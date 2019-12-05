@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.admin.models import LogEntry
+# from django.contrib.admin.models import LogEntry
 
 
 
@@ -68,4 +68,34 @@ class Proposal(models.Model):
 
 
 class Rule(models.Model):
-    pass
+    
+    community = models.ForeignKey(Community, 
+        models.CASCADE,
+        verbose_name='community',
+    )
+    
+class Post(models.Model):
+    
+    community = models.ForeignKey(Community, 
+        models.CASCADE,
+        verbose_name='community',
+    )
+    
+    author = models.ForeignKey(
+        User,
+        models.CASCADE,
+        verbose_name='author',
+    )
+    
+    text = models.TextField()
+    
+    
+    class Meta:
+        verbose_name = 'post'
+        verbose_name_plural = 'post'
+
+    def __str__(self):
+        return ' '.join([self.author.username, 'wrote', self.community.name])
+
+
+    
