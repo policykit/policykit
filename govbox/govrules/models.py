@@ -3,7 +3,18 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.admin.models import LogEntry
+from polymorphic.models import PolymorphicModel
 
+
+class CommunityIntegration(PolymorphicModel):
+    pass
+
+
+class SlackIntegration(CommunityIntegration):
+    API = 'https://slack.com/api/'
+    
+    pass
+    
 
 
 class Community(models.Model):
@@ -14,6 +25,15 @@ class Community(models.Model):
         verbose_name='users',
         blank=True,
     )
+    
+    api_key = models.CharField('name', max_length=300, unique=True)
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+        models.CASCADE,
+        verbose_name='community_integration',
+        null=True
+    )
+    
     
     class Meta:
         verbose_name = 'community'
