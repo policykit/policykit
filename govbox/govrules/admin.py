@@ -1,5 +1,5 @@
 from django.contrib import admin
-from govrules.models import Community, Proposal, Post, Rule
+from govrules.models import Community, Proposal, Post, Rule, CommunityIntegration, SlackIntegration
 
 
 class CommunityAdmin(admin.ModelAdmin):
@@ -17,3 +17,11 @@ admin.site.register(Post, PostAdmin)
 class RuleAdmin(admin.ModelAdmin):
     pass
 admin.site.register(Rule, RuleAdmin)
+
+class CommunityIntegrationAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(CommunityIntegration, CommunityIntegrationAdmin)
+
+class SlackIntegrationAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(SlackIntegration, SlackIntegrationAdmin)

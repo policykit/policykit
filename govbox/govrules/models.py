@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.admin.models import LogEntry
 from polymorphic.models import PolymorphicModel
+from govrules.views import execute_proposal
 
 
 class CommunityIntegration(PolymorphicModel):
@@ -12,9 +13,12 @@ class CommunityIntegration(PolymorphicModel):
 
 class SlackIntegration(CommunityIntegration):
     API = 'https://slack.com/api/'
+    team_id = models.CharField('team_id', max_length=150, unique=True)
+    token = models.CharField('token', max_length=300, unique=True)
     
+    
+class SlackUserGroup(models.Model):
     pass
-    
 
 
 class Community(models.Model):
@@ -26,12 +30,9 @@ class Community(models.Model):
         blank=True,
     )
     
-    api_key = models.CharField('name', max_length=300, unique=True)
-    
     community_integration = models.ForeignKey(CommunityIntegration,
         models.CASCADE,
-        verbose_name='community_integration',
-        null=True
+        verbose_name='community_integration'
     )
     
     
@@ -86,6 +87,13 @@ class Proposal(models.Model):
         return ' '.join([self.action, str(self.content_type), 'to', self.community.name])
 
 
+    def save(self, *args, **kwargs):
+        super(Proposal, self).save(*args, **kwargs)
+        
+        # check if there is a consensus rule
+        execute_proposal(self)
+
+
 
 class Rule(models.Model):
     
@@ -93,6 +101,10 @@ class Rule(models.Model):
         models.CASCADE,
         verbose_name='community',
     )
+    
+    code = models.TextField()
+    
+    
     
 class Post(models.Model):
     
