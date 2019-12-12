@@ -18,7 +18,8 @@ class SlackIntegration(CommunityIntegration):
     
     
 class SlackUserGroup(models.Model):
-    pass
+    name = models.CharField('name', max_length=150, unique=True)
+    description = models.TextField()
 
 
 class Community(models.Model):
