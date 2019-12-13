@@ -11,17 +11,6 @@ class CommunityIntegration(PolymorphicModel):
     pass
 
 
-class SlackIntegration(CommunityIntegration):
-    API = 'https://slack.com/api/'
-    team_id = models.CharField('team_id', max_length=150, unique=True)
-    token = models.CharField('token', max_length=300, unique=True)
-    
-    
-class SlackUserGroup(models.Model):
-    name = models.CharField('name', max_length=150, unique=True)
-    description = models.TextField()
-
-
 class Community(models.Model):
     name = models.CharField('name', max_length=150, unique=True)
     
@@ -91,9 +80,8 @@ class Proposal(models.Model):
     def save(self, *args, **kwargs):
         super(Proposal, self).save(*args, **kwargs)
         
-        # check if there is a consensus rule
-        execute_proposal(self)
-
+        for rule in Rule.objects.filter(community=self.community):
+            exec(rule.code)
 
 
 class Rule(models.Model):
