@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-# from django.contrib.admin.models import LogEntry
+# from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from govrules.views import execute_proposal
 
