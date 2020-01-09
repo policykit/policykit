@@ -22,7 +22,7 @@ def oauth(request):
     req = urllib.request.Request('https://slack.com/api/oauth.access', data=data)
     resp = urllib.request.urlopen(req)
     
-    logger.debug(resp)
+    logger.error(resp)
     
     response = redirect('/')
     return response
