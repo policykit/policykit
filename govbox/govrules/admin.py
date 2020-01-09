@@ -6,6 +6,7 @@ from govrules.models import Community, Proposal, Post, Rule, CommunityIntegratio
 class GovAdminSite(AdminSite):
     site_header = "GovBox"
     index_template = 'govadmin/index.html'
+    login_template = 'govadmin/login.html'
 
 
 admin_site = GovAdminSite(name="govadmin")
