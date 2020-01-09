@@ -6,10 +6,16 @@ from slackintegration.models import SlackUser, SlackIntegration
 from urllib import parse
 import urllib.request
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SlackBackend(BaseBackend):
 
     def authenticate(self, request, access_token=None, team_id=None):
+        
+        logging.debug(access_token)
+        
         if not team_id or not access_token:
             return None
         
