@@ -15,6 +15,18 @@ class SlackIntegration(CommunityIntegration):
                                     max_length=300, 
                                     unique=True)
     
+
+
+class UserSignIn(models.Model):
+    slack_team = models.ForeignKey(
+        SlackIntegration,
+        models.CASCADE,
+    )
+    
+    access_token = models.CharField('access_token', 
+                                    max_length=300, 
+                                    unique=True)
+
     
     
     
