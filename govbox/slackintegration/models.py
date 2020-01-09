@@ -6,8 +6,16 @@ from govrules.models import CommunityIntegration
 
 class SlackIntegration(CommunityIntegration):
     API = 'https://slack.com/api/'
+    
+    team_name = models.CharField('team_name', 
+                                  max_length=1000)
     team_id = models.CharField('team_id', max_length=150, unique=True)
-    token = models.CharField('token', max_length=300, unique=True)
+
+    access_token = models.CharField('access_token', 
+                                    max_length=300, 
+                                    unique=True)
+    
+    
     
     
 class SlackUserGroup(models.Model):
