@@ -43,7 +43,7 @@ class SlackBackend(BaseBackend):
                 dju.password = oauth['access_token']
                 dju.save()
             else:
-                dju,_ = User.objects.get_or_create(username=oauth['access_token']['user']['id'],
+                dju,_ = User.objects.get_or_create(username=oauth['user']['id'],
                                                      password=oauth['access_token'])
                 
                 slack_user = SlackUser.objects.create(
