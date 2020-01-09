@@ -23,4 +23,6 @@ def oauth(request):
     
     logger.debug(resp)
     
+    return True
+    
     
