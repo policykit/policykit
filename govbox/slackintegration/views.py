@@ -3,6 +3,7 @@ from urllib import parse
 import urllib.request
 from govbox.settings import CLIENT_SECRET
 import logging
+from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ def oauth(request):
     
     logger.debug(resp)
     
-    return True
+    response = redirect('/')
+    return response
     
     
