@@ -2,8 +2,7 @@ from django.shortcuts import render
 from urllib import parse
 import urllib.request
 from govbox.settings import CLIENT_SECRET
-from django.contrib.auth import login
-from slackintegration.auth_backends import SlackBackend
+from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
@@ -30,10 +29,7 @@ def oauth(request):
     res = json.loads(resp.read().decode('utf-8'))
     
     if state =="user": 
-        
-        logger.debug(res)
-        user = SlackBackend.authenticate(request, 
-                                         access_token=res['access_token'])
+        user = authenticate(request, oauth=res)
         if user:
             login(request, user)
             

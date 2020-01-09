@@ -148,6 +148,16 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'slackintegration': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'govrules': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
 }
 
