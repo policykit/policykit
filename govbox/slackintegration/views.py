@@ -25,7 +25,7 @@ def oauth(request):
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     
-    if SlackIntegration.objects.filter(access_token=res['access_token']).exists():
+    if not SlackIntegration.objects.filter(access_token=res['access_token']).exists():
         s = SlackIntegration.objects.create(
             team_name=res['team_name'],
             team_id=res['team_id'],
