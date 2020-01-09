@@ -7,6 +7,11 @@ class GovAdminSite(AdminSite):
     site_header = "GovBox"
     index_template = 'govadmin/index.html'
     login_template = 'govadmin/login.html'
+    
+    def has_permission(self, request):
+        if request.user.is_anonymous:
+            return False
+        return True
 
 
 admin_site = GovAdminSite(name="govadmin")
