@@ -48,7 +48,7 @@ class SlackBackend(BaseBackend):
                 
                 slack_user = SlackUser.objects.create(
                     django_user = dju,
-                    slack_team = s,
+                    slack_team = s[0],
                     user_id = oauth['user']['id'],
                     user_name = oauth['user']['name'],
                     avatar = oauth['user']['image_24'],
