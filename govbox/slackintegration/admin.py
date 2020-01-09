@@ -1,6 +1,6 @@
 from django.contrib import admin
 from govrules.admin import admin_site
-from slackintegration.models import SlackIntegration, SlackUserGroup, UserSignIn
+from slackintegration.models import SlackIntegration, SlackUserGroup, SlackUser
 
 # Register your models here.
 
@@ -13,6 +13,7 @@ class SlackUserGroupAdmin(admin.ModelAdmin):
     pass
 admin_site.register(SlackUserGroup, SlackUserGroupAdmin)
 
-class UserSignInAdmin(admin.ModelAdmin):
+
+class SlackUserAdmin(admin.ModelAdmin):
     pass
-admin_site.register(UserSignIn, UserSignInAdmin)
+admin_site.register(SlackUser, SlackUserAdmin)

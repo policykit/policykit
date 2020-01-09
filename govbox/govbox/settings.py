@@ -107,6 +107,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+AUTHENTICATION_BACKENDS = ['slackintegration.auth_backends.SlackBackend',
+                           'django.contrib.auth.backends.ModelBackend']
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 

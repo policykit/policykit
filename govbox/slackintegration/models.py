@@ -1,5 +1,6 @@
 from django.db import models
 from govrules.models import CommunityIntegration
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -17,7 +18,11 @@ class SlackIntegration(CommunityIntegration):
     
 
 
-class UserSignIn(models.Model):
+class SlackUser(models.Model):
+    
+    django_user = models.ForeignKey(User,
+                                    models.CASCADE)
+    
     slack_team = models.ForeignKey(
         SlackIntegration,
         models.CASCADE,
