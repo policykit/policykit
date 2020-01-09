@@ -23,9 +23,19 @@ class UserSignIn(models.Model):
         models.CASCADE,
     )
     
+    user_name = models.CharField('user_name', 
+                                  max_length=300)
+    
+    user_id = models.CharField('user_id', 
+                                max_length=300)
+    
     access_token = models.CharField('access_token', 
-                                    max_length=300, 
-                                    unique=True)
+                                     max_length=300, 
+                                     unique=True)
+    
+    avatar = models.CharField('avatar', 
+                               max_length=500, 
+                               null=True)
 
     
     

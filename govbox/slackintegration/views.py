@@ -31,8 +31,20 @@ def oauth(request):
             s = SlackIntegration.objects.filter(team_id=res['team_id'])
             
             if s.exists():
+                
+                user_data = parse.urlencode({
+                'token': res['access_token']
+                }).encode()
+                
+                user_req = urllib.request.Request('https://slack.com/api/users.identity?', data=user_data)
+                user_resp = urllib.request.urlopen(user_req)
+                user_res = json.loads(user_resp.read().decode('utf-8'))
+                
                 u = UserSignIn.objects.create(
                     slack_team = s[0],
+                    user_name = user_res['user']['name'],
+                    user_id = user_res['user']['id'],
+                    avatar = user_res['user']['image_24'],
                     access_token=res['access_token']
                     )
                 
