@@ -7,9 +7,8 @@ from govbox.settings import CLIENT_SECRET
 
 def oauth(request):
     
-#     code = request.GET.code
-    code = 'test'
-
+    code = request.GET.get('code')
+    
     data = parse.urlencode({
         'client_id': '455205644210.869594358164',
         'client_secret': CLIENT_SECRET,
