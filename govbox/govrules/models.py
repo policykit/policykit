@@ -8,7 +8,11 @@ from govrules.views import execute_proposal
 
 
 class CommunityIntegration(PolymorphicModel):
-    pass
+    community_name = models.CharField('team_name', 
+                              max_length=1000)
+
+
+# class CommunityUser():
 
 
 class Community(models.Model):

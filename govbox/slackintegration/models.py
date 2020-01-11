@@ -9,8 +9,6 @@ from django.contrib.auth.models import Permission
 class SlackIntegration(CommunityIntegration):
     API = 'https://slack.com/api/'
     
-    team_name = models.CharField('team_name', 
-                                  max_length=1000)
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
     access_token = models.CharField('access_token', 
