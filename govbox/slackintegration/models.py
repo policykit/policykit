@@ -1,6 +1,7 @@
 from django.db import models
 from govrules.models import CommunityIntegration
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission
 
 # Create your models here.
 
@@ -43,6 +44,13 @@ class SlackUser(models.Model):
                                null=True)
 
     
+    def save(self, *args, **kwargs):
+        permission = Permission.objects.get(name='Can add proposal')
+        self.django_user.user_permissions.add(permission)
+        
+        super(SlackUser, self).save(*args, **kwargs)
+        
+        
     
     
 class SlackUserGroup(models.Model):
