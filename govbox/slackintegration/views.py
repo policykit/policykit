@@ -37,12 +37,12 @@ def oauth(request):
         s = SlackIntegration.objects.filter(access_token=res['access_token'])
         if not s.exists():
             _ = SlackIntegration.objects.create(
-                team_name=res['team_name'],
+                community_name=res['team_name'],
                 team_id=res['team_id'],
                 access_token=res['access_token']
                 )
         else:
-            s[0].team_name=res['team_name']
+            s[0].community_name=res['team_name']
             s[0].team_id=res['team_id']
             s[0].access_token=res['access_token']
             s[0].save()
