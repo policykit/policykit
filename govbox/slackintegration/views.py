@@ -34,7 +34,7 @@ def oauth(request):
             login(request, user)
             
     elif state == "app":
-        s = SlackIntegration.objects.filter(access_token=res['access_token'])
+        s = SlackIntegration.objects.filter(team_id=res['team_id'])
         if not s.exists():
             _ = SlackIntegration.objects.create(
                 community_name=res['team_name'],
@@ -42,9 +42,9 @@ def oauth(request):
                 access_token=res['access_token']
                 )
         else:
-            s[0].community_name=res['team_name']
-            s[0].team_id=res['team_id']
-            s[0].access_token=res['access_token']
+            s[0].community_name = res['team_name']
+            s[0].team_id = res['team_id']
+            s[0].access_token = res['access_token']
             s[0].save()
         
     response = redirect('/')
