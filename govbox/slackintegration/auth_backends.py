@@ -12,9 +12,6 @@ logger = logging.getLogger(__name__)
 class SlackBackend(BaseBackend):
 
     def authenticate(self, request, oauth=None):
-        
-        logging.debug(oauth)
-        
         if not oauth:
             return None
         
@@ -33,32 +30,34 @@ class SlackBackend(BaseBackend):
             if slack_user.exists():
                 # update user info
                 slack_user[0].user_id = oauth['user']['id']
-                slack_user[0].user_name = oauth['user']['name']
+                slack_user[0].readable_name = oauth['user']['name']
                 slack_user[0].avatar = oauth['user']['image_24']
                 slack_user[0].access_token = oauth['access_token']
-                slack_user[0].save()
+                slack_user[0].community_integration = s[0]
                 
-                dju = slack_user[0].django_user
-                dju.username = oauth['user']['id']
-                dju.password = oauth['access_token']
-                dju.save()
+#                 dju = slack_user[0].django_user
+                slack_user[0].username = oauth['user']['id']
+                slack_user[0].password = oauth['access_token']
+                slack_user[0].save()
+#                 dju.save()
             else:
-                dju,_ = User.objects.get_or_create(username=oauth['user']['id'],
-                                                     password=oauth['access_token'])
+#                 dju,_ = User.objects.get_or_create(username=oauth['user']['id'],
+#                                                      password=oauth['access_token'])
                 
                 slack_user = SlackUser.objects.create(
-                    django_user = dju,
-                    slack_team = s[0],
+                    username=oauth['user']['id'],
+                    password=oauth['access_token'],
+                    community_integration = s[0],
                     user_id = oauth['user']['id'],
-                    user_name = oauth['user']['name'],
+                    readable_name = oauth['user']['name'],
                     avatar = oauth['user']['image_24'],
                     access_token = oauth['access_token'],
                     )
-            return dju
+            return slack_user
         return None
 
     def get_user(self, user_id):
         try:
-            return User.objects.get(pk=user_id)
+            return SlackUser.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None

@@ -1,5 +1,5 @@
 from django.db import models
-from govrules.models import CommunityIntegration
+from govrules.models import CommunityIntegration, CommunityUser
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
 
@@ -17,18 +17,7 @@ class SlackIntegration(CommunityIntegration):
     
 
 
-class SlackUser(models.Model):
-    
-    django_user = models.ForeignKey(User,
-                                    models.CASCADE)
-    
-    slack_team = models.ForeignKey(
-        SlackIntegration,
-        models.CASCADE,
-    )
-    
-    user_name = models.CharField('user_name', 
-                                  max_length=300)
+class SlackUser(CommunityUser):
     
     user_id = models.CharField('user_id', 
                                 max_length=300)
@@ -41,14 +30,7 @@ class SlackUser(models.Model):
                                max_length=500, 
                                null=True)
 
-    
-    def save(self, *args, **kwargs):
-        permission = Permission.objects.get(name='Can add proposal')
-        self.django_user.user_permissions.add(permission)
-        
-        super(SlackUser, self).save(*args, **kwargs)
-        
-        
+
     
     
 class SlackUserGroup(models.Model):

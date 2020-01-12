@@ -12,7 +12,21 @@ class CommunityIntegration(PolymorphicModel):
                               max_length=1000)
 
 
-# class CommunityUser():
+class CommunityUser(User, PolymorphicModel):
+        
+    readable_name = models.CharField('readable_name', 
+                                      max_length=300)
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+        
+        
+    def save(self, *args, **kwargs):
+        permission = Permission.objects.get(name='Can add proposal')        
+        super(User, self).save(*args, **kwargs)
+        self.user_permissions.add(permission)
+        
+        
 
 
 class Community(models.Model):
