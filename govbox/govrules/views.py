@@ -6,7 +6,8 @@ import urllib.parse
 # Create your views here.
 
 def submit_proposal(request):
-    print(request.user)
+    if request.user:
+        print("here")
     return True
 
 
