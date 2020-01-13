@@ -29,39 +29,17 @@ class CommunityUser(User, PolymorphicModel):
         
 
 
-class Community(models.Model):
-    name = models.CharField('name', max_length=150, unique=True)
-    
-    users = models.ManyToManyField(
-        User,
-        verbose_name='users',
-        blank=True,
-    )
-    
-    community_integration = models.ForeignKey(CommunityIntegration,
-        models.CASCADE,
-        verbose_name='community_integration'
-    )
-    
-    
-    class Meta:
-        verbose_name = 'community'
-        verbose_name_plural = 'community'
-
-    def __str__(self):
-        return self.name
-
 
 class Proposal(models.Model):
-    community = models.ForeignKey(Community, 
+    community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
-        verbose_name='community',
+        verbose_name='community_integration',
     )
     
-    creators = models.ManyToManyField(
-        User,
-        verbose_name='creators',
-        blank=True,
+    author = models.ForeignKey(
+        CommunityUser,
+        verbose_name='author', 
+        blank=True
     )
     
     content_type = models.ForeignKey(

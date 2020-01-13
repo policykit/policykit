@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 def submit_proposal(request):
+    
+    user = request.user
+    
     logger.info(request)
     return HttpResponse('')
 
