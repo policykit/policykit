@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 import urllib.request
 import urllib.parse
 
@@ -8,7 +8,7 @@ import urllib.parse
 
 def submit_proposal(request):
     print(request)
-    return HttpResponseRedirect('/')
+    return HttpResponse('')
 
 
 def execute_proposal(proposal):
