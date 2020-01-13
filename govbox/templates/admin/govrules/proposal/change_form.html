@@ -18,16 +18,12 @@
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
 &rsaquo; {% if has_view_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
-&rsaquo; {% if add %}{% blocktrans with name=opts.verbose_name %}ADDDDDDDDDDD {{ name }}{% endblocktrans %}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+&rsaquo; {% if add %}{% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}{% else %}{{ original|truncatewords:"18" }}{% endif %}
 </div>
 {% endblock %}
 {% endif %}
 
-{% block content %}
-
-HIIIIIIIIIIIIII
-
-<div id="content-main">
+{% block content %}<div id="content-main">
 {% block object-tools %}
 {% if change %}{% if not is_popup %}
   <ul class="object-tools">
@@ -51,7 +47,38 @@ HIIIIIIIIIIIIII
 
 {% block field_sets %}
 {% for fieldset in adminform %}
-  {% include "admin/includes/fieldset.html" %}
+
+	{% if fieldset.name != "Community" and fieldset.name != "Creators" %}
+		<fieldset class="module aligned {{ fieldset.classes }}">
+		    {% if fieldset.name %}<h2>{{ fieldset.name }}</h2>{% endif %}
+		    {% if fieldset.description %}
+		        <div class="description">{{ fieldset.description|safe }}</div>
+		    {% endif %}
+		    {% for line in fieldset %}
+		        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% if not line.has_visible_field %} hidden{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+		            {% if line.fields|length_is:'1' %}{{ line.errors }}{% endif %}
+		            {% for field in line %}
+		                <div{% if not line.fields|length_is:'1' %} class="fieldBox{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}"{% elif field.is_checkbox %} class="checkbox-row"{% endif %}>
+		                    {% if not line.fields|length_is:'1' and not field.is_readonly %}{{ field.errors }}{% endif %}
+		                    {% if field.is_checkbox %}
+		                        {{ field.field }}{{ field.label_tag }}
+		                    {% else %}
+		                        {{ field.label_tag }}
+		                        {% if field.is_readonly %}
+		                            <div class="readonly">{{ field.contents }}</div>
+		                        {% else %}
+		                            {{ field.field }}
+		                        {% endif %}
+		                    {% endif %}
+		                    {% if field.field.help_text %}
+		                        <div class="help">{{ field.field.help_text|safe }}</div>
+		                    {% endif %}
+		                </div>
+		            {% endfor %}
+		        </div>
+		    {% endfor %}
+		</fieldset>
+	{% endif %}
 {% endfor %}
 {% endblock %}
 
