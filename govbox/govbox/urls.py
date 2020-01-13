@@ -17,10 +17,10 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include
 from govrules.admin import admin_site
-import slackintegration
 
 urlpatterns = [
     path('', admin_site.urls),
+    path('govrules/', include('govrules.urls')),
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls'))
 ]

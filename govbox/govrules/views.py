@@ -5,6 +5,9 @@ import urllib.parse
 
 # Create your views here.
 
+def submit_proposal():
+    print('here')
+
 
 def execute_proposal(proposal):
     from govrules.models import Proposal
