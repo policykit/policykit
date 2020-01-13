@@ -77,7 +77,7 @@ class Proposal(models.Model):
     def save(self, *args, **kwargs):
         super(Proposal, self).save(*args, **kwargs)
         
-        for rule in Rule.objects.filter(community=self.community):
+        for rule in Rule.objects.filter(community_integration=self.community_integration):
             exec(rule.code)
 
 
