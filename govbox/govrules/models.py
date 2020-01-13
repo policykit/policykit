@@ -38,6 +38,7 @@ class Proposal(models.Model):
     
     author = models.ForeignKey(
         CommunityUser,
+        models.CASCADE,
         verbose_name='author', 
         blank=True
     )
@@ -82,7 +83,7 @@ class Proposal(models.Model):
 
 class Rule(models.Model):
     
-    community = models.ForeignKey(Community, 
+    community = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
         verbose_name='community',
     )
@@ -93,7 +94,7 @@ class Rule(models.Model):
     
 class Post(models.Model):
     
-    community = models.ForeignKey(Community, 
+    community = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
         verbose_name='community',
     )
