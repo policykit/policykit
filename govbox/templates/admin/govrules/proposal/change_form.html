@@ -48,105 +48,90 @@
 {% block field_sets %}
 
 <fieldset class="module aligned ">
-        <div class="form-row field-content_type">
-            
-            
-                <div>
-                    
-                    
-                        <label class="required" for="id_content_type">Content type:</label>
-                        
-                            <div class="related-widget-wrapper">
-    <select name="content_type" required="" id="id_content_type">
-  <option value="" selected="">---------</option>
+    <div class="form-row field-content_type">
 
-  <option value="1">admin | log entry</option>
+        <div>
 
-  <option value="2">auth | permission</option>
+            <label class="required" for="id_content_type">Content type:</label>
 
-  <option value="3">auth | group</option>
+            <div class="related-widget-wrapper">
+                <select name="content_type" required="" id="id_content_type">
+                    <option value="" selected="">---------</option>
 
-  <option value="4">auth | user</option>
+                    <option value="1">admin | log entry</option>
 
-  <option value="5">contenttypes | content type</option>
+                    <option value="2">auth | permission</option>
 
-  <option value="6">sessions | session</option>
+                    <option value="3">auth | group</option>
 
-  <option value="7">govrules | community</option>
+                    <option value="4">auth | user</option>
 
-  <option value="8">govrules | community integration</option>
+                    <option value="5">contenttypes | content type</option>
 
-  <option value="9">govrules | rule</option>
+                    <option value="6">sessions | session</option>
 
-  <option value="10">govrules | proposal</option>
+                    <option value="7">govrules | community</option>
 
-  <option value="11">govrules | post</option>
+                    <option value="8">govrules | community integration</option>
 
-  <option value="12">govrules | user</option>
+                    <option value="9">govrules | rule</option>
 
-  <option value="13">slackintegration | slack integration</option>
+                    <option value="10">govrules | proposal</option>
 
-  <option value="14">slackintegration | user</option>
+                    <option value="11">govrules | post</option>
 
-  <option value="15">slackintegration | slack user group</option>
+                    <option value="12">govrules | user</option>
 
-</select>
-    
-        
-    
-</div>
-                        
-                    
-                    
-                </div>
-            
+                    <option value="13">slackintegration | slack integration</option>
+
+                    <option value="14">slackintegration | user</option>
+
+                    <option value="15">slackintegration | slack user group</option>
+
+                </select>
+
+            </div>
+
         </div>
-    
-        <div class="form-row field-object_id">
-            
-            
-                <div>
-                    
-                    
-                        <label class="required" for="id_object_id">Object id:</label>
-                        
-                            <input type="number" name="object_id" class="vIntegerField" min="0" required="" id="id_object_id">
-                        
-                    
-                    
-                </div>
-            
+
+    </div>
+
+    <div class="form-row field-object_id">
+
+        <div>
+
+            <label class="required" for="id_object_id">Object id:</label>
+
+            <input type="number" name="object_id" class="vIntegerField" min="0" required="" id="id_object_id">
+
         </div>
-    
-        <div class="form-row field-action">
-            
-            
-                <div>
-                    
-                    
-                        <label class="required" for="id_action">Action:</label>
-                        
-                            <select name="action" required="" id="id_action">
-  <option value="" selected="">---------</option>
 
-  <option value="add">add</option>
+    </div>
 
-  <option value="change">change</option>
+    <div class="form-row field-action">
 
-  <option value="view">view</option>
+        <div>
 
-  <option value="delete">delete</option>
+            <label class="required" for="id_action">Action:</label>
 
-</select>
-                        
-                    
-                    
-                </div>
-            
+            <select name="action" required="" id="id_action">
+                <option value="" selected="">---------</option>
+
+                <option value="add">add</option>
+
+                <option value="change">change</option>
+
+                <option value="view">view</option>
+
+                <option value="delete">delete</option>
+
+            </select>
+
         </div>
-    
+
+    </div>
+
 </fieldset>
-
 
 {% endblock %}
 
@@ -160,7 +145,11 @@
 
 {% block after_related_objects %}{% endblock %}
 
-{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+{% block submit_buttons_bottom %}
+<div class="submit-row">
+	<input type="submit" value="Save" class="default" name="_save">
+</div>
+{% endblock %}
 
 {% block admin_change_form_document_ready %}
     <script id="django-admin-form-add-constants"
