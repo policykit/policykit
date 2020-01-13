@@ -83,9 +83,9 @@ class Proposal(models.Model):
 
 class Rule(models.Model):
     
-    community = models.ForeignKey(CommunityIntegration, 
+    community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
-        verbose_name='community',
+        verbose_name='community_integration',
     )
     
     code = models.TextField()
