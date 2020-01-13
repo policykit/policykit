@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from govrules.models import Community, Proposal, Post, Rule, CommunityIntegration
+from govrules.models import Proposal, Post, Rule, CommunityIntegration
 
 
 class GovAdminSite(AdminSite):
@@ -15,11 +15,6 @@ class GovAdminSite(AdminSite):
 
 
 admin_site = GovAdminSite(name="govadmin")
-
-
-class CommunityAdmin(admin.ModelAdmin):
-    pass
-admin_site.register(Community, CommunityAdmin)
 
 class ProposalAdmin(admin.ModelAdmin):
     pass
