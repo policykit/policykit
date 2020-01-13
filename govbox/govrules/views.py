@@ -3,11 +3,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
 import urllib.request
 import urllib.parse
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # Create your views here.
 
 def submit_proposal(request):
-    print(request)
+    logger.info(request)
     return HttpResponse('')
 
 
