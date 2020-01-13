@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponseRedirect
 import urllib.request
 import urllib.parse
 
 # Create your views here.
 
 def submit_proposal(request):
-    if request.user:
-        print("here")
-    return True
+    print(request)
+    return HttpResponseRedirect('/')
 
 
 def execute_proposal(proposal):
