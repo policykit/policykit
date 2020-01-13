@@ -71,7 +71,7 @@ class Proposal(models.Model):
         verbose_name_plural = 'proposal'
 
     def __str__(self):
-        return ' '.join([self.action, str(self.content_type), 'to', self.community.name])
+        return ' '.join([self.action, str(self.content_type), 'to', self.community_integration.community_name])
 
 
     def save(self, *args, **kwargs):
