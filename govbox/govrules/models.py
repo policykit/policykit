@@ -29,8 +29,7 @@ class CommunityUser(User, PolymorphicModel):
         
 
 
-
-class Proposal(models.Model):
+class Measure(PolymorphicModel):
     community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
         verbose_name='community_integration',
@@ -43,6 +42,53 @@ class Proposal(models.Model):
         blank=True
     )
     
+    PROPOSED = 'proposed'
+    FAILED = 'failed'
+    PASSED = 'passed'
+    
+    STATUS = [
+            (PROPOSED, 'proposed'),
+            (FAILED, 'failed'),
+            (PASSED, 'passed')
+        ]
+    
+    status = models.CharField(choices=STATUS, max_length=10)
+    
+    
+    
+    
+class ProcessMeasure(Measure):    
+    code = models.TextField()
+    
+    explanation = models.TextField(null=True)
+    
+    
+    class Meta:
+        verbose_name = 'process'
+        verbose_name_plural = 'processes'
+
+        
+    def __str__(self):
+        return ' '.join(['Process: ', self.explanation, 'for', self.community_integration.community_name])
+    
+    
+    
+class RuleMeasure(Measure):
+    rule_code = models.TextField()
+    
+    rule_text = models.TextField()
+    
+    explanation = models.TextField(null=True)
+    
+    class Meta:
+        verbose_name = 'rule'
+        verbose_name_plural = 'rules'
+        
+    def __str__(self):
+        return ' '.join(['Rule: ', self.explanation, 'for', self.community_integration.community_name])
+    
+    
+class ActionMeasure(Measure):
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
@@ -67,28 +113,20 @@ class Proposal(models.Model):
     
     
     class Meta:
-        verbose_name = 'proposal'
-        verbose_name_plural = 'proposal'
+        verbose_name = 'action'
+        verbose_name_plural = 'actions'
 
     def __str__(self):
-        return ' '.join([self.action, str(self.content_type), 'to', self.community_integration.community_name])
-
+        return ' '.join(['Action: ', self.action, str(self.content_type), 'to', self.community_integration.community_name])
 
     def save(self, *args, **kwargs):
-        super(Proposal, self).save(*args, **kwargs)
+        super(ActionMeasure, self).save(*args, **kwargs)
         
-        for rule in Rule.objects.filter(community_integration=self.community_integration):
+        for rule in RuleMeasure.objects.filter(community_integration=self.community_integration):
             exec(rule.code)
 
 
-class Rule(models.Model):
-    
-    community_integration = models.ForeignKey(CommunityIntegration, 
-        models.CASCADE,
-        verbose_name='community_integration',
-    )
-    
-    code = models.TextField()
+
     
     
     

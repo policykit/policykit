@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from govrules.models import Proposal, Post, Rule, CommunityIntegration
+from govrules.models import CommunityIntegration, ProcessMeasure, RuleMeasure, ActionMeasure
 
 
 class GovAdminSite(AdminSite):
@@ -16,19 +16,24 @@ class GovAdminSite(AdminSite):
 
 admin_site = GovAdminSite(name="govadmin")
 
-class ProposalAdmin(admin.ModelAdmin):
-    pass
-admin_site.register(Proposal, ProposalAdmin)
 
-class PostAdmin(admin.ModelAdmin):
+class ProcessAdmin(admin.ModelAdmin):
     pass
-admin_site.register(Post, PostAdmin)
+
+admin_site.register(ProcessMeasure, ProcessAdmin)
 
 class RuleAdmin(admin.ModelAdmin):
     pass
-admin_site.register(Rule, RuleAdmin)
+
+admin_site.register(RuleMeasure, RuleAdmin)
+
+class ActionAdmin(admin.ModelAdmin):
+    pass
+
+admin_site.register(ActionMeasure, ActionAdmin)
 
 class CommunityIntegrationAdmin(admin.ModelAdmin):
     pass
+
 admin_site.register(CommunityIntegration, CommunityIntegrationAdmin)
 
