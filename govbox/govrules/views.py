@@ -8,10 +8,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def execute_rule(rule):
-    community_integration = rule.community_integration
+def execute_action(action):
+    community_integration = action.community_integration
     
-    obj = rule.content_object
+    obj = action.content_object
     call = community_integration.API + obj.API_METHOD
     
     print(obj)
