@@ -36,7 +36,7 @@ class SlackUser(CommunityUser):
                                null=True)
     
     def save(self, *args, **kwargs):      
-        super(SlackIntegration, self).save(*args, **kwargs)
+        super(SlackUser, self).save(*args, **kwargs)
         group = self.community_integration.user_group
         group.user_set.add(self)
 
