@@ -57,6 +57,7 @@ class SlackBackend(BaseBackend):
             return slack_user
         return None
 
+
     def get_user(self, user_id):
         try:
             return SlackUser.objects.get(pk=user_id)

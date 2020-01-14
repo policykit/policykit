@@ -8,18 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# Create your views here.
-
-def submit_proposal(request):
-    
-    user = request.user
-    
-    logger.info(request)
-    return HttpResponse('')
-
-
 def execute_proposal(proposal):
-    from govrules.models import Proposal
     community_integration = proposal.community.community_integration
     
     obj = proposal.content_object

@@ -7,7 +7,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +35,13 @@ def oauth(request):
             
     elif state == "app":
         s = SlackIntegration.objects.filter(team_id=res['team_id'])
+        user_group = Group.objects.create(name="Slack")
         if not s.exists():
             _ = SlackIntegration.objects.create(
                 community_name=res['team_name'],
                 team_id=res['team_id'],
-                access_token=res['access_token']
+                access_token=res['access_token'],
+                user_group=user_group
                 )
         else:
             s[0].community_name = res['team_name']

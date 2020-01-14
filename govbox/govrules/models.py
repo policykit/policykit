@@ -10,6 +10,8 @@ from govrules.views import execute_proposal
 class CommunityIntegration(PolymorphicModel):
     community_name = models.CharField('team_name', 
                               max_length=1000)
+    
+    user_group = models.ForeignKey(Group, models.CASCADE)
 
 
 class CommunityUser(User, PolymorphicModel):
@@ -64,9 +66,9 @@ class Measure(PolymorphicModel):
     
 class ProcessMeasure(Measure):    
     code = models.TextField()
-    
     explanation = models.TextField(null=True)
     
+    # if this condition is met, then the RuleMeasure status is set to passed
     
     class Meta:
         verbose_name = 'process'
@@ -91,6 +93,20 @@ class RuleMeasure(Measure):
         
     def __str__(self):
         return ' '.join(['Rule: ', self.explanation, 'for', self.community_integration.community_name])
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Runs only when object is new
+            process = ProcessMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration)
+            self.status = Measure.PROPOSED
+            
+            super(RuleMeasure, self).save(*args, **kwargs)
+            
+            if process.exists():
+                exec(process[0].code)
+
+        else:   
+            super(RuleMeasure, self).save(*args, **kwargs)
     
     
 class ActionMeasure(Measure):
@@ -129,34 +145,6 @@ class ActionMeasure(Measure):
         
         for rule in RuleMeasure.objects.filter(community_integration=self.community_integration):
             exec(rule.code)
-
-
-
-    
-    
-    
-class Post(models.Model):
-    
-    community = models.ForeignKey(CommunityIntegration, 
-        models.CASCADE,
-        verbose_name='community',
-    )
-    
-    author = models.ForeignKey(
-        User,
-        models.CASCADE,
-        verbose_name='author',
-    )
-    
-    text = models.TextField()
-    
-    
-    class Meta:
-        verbose_name = 'post'
-        verbose_name_plural = 'post'
-
-    def __str__(self):
-        return ' '.join([self.author.username, 'wrote', self.community.name])
 
 
     
