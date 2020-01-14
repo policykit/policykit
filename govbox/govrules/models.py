@@ -20,11 +20,14 @@ class CommunityUser(User, PolymorphicModel):
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
         
-        
-    def save(self, *args, **kwargs):
-        permission = Permission.objects.get(name='Can add proposal')        
+    def save(self, *args, **kwargs):      
         super(User, self).save(*args, **kwargs)
-        self.user_permissions.add(permission)
+        p1 = Permission.objects.get(name='Can add process')
+        p2 = Permission.objects.get(name='Can add rule')
+        p3 = Permission.objects.get(name='Can add action')
+        self.user_permissions.add(p1)
+        self.user_permissions.add(p2)
+        self.user_permissions.add(p3)
         
         
 
@@ -54,6 +57,8 @@ class Measure(PolymorphicModel):
     
     status = models.CharField(choices=STATUS, max_length=10)
     
+    class Meta:
+        abstract = True
     
     
     
