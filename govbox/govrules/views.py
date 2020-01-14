@@ -8,17 +8,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def execute_proposal(proposal):
-    community_integration = proposal.community.community_integration
+def execute_rule(rule):
+    community_integration = rule.community_integration
     
-    obj = proposal.content_object
+    obj = rule.content_object
     call = community_integration.API + obj.API_METHOD
     
     print(obj)
     
-    data = urllib.parse.urlencode({'token': community_integration.token,
-                                   'name': obj.name,
-                                   'description': obj.description}).encode('ascii')
+    data = urllib.parse.urlencode({'token': community_integration.access_token,
+                                   'text': obj.message,
+                                   'channel': obj.channel}).encode('ascii')
 
     response = urllib.request.urlopen(url=call, data=data)
     

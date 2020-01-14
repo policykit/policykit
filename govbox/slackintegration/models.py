@@ -43,8 +43,7 @@ class SlackUser(CommunityUser):
 
 
 class SlackChat(models.Model):
-    
-    POST = 'chat.postMessage'
+    API_METHOD = 'chat.postMessage'
     message = models.TextField()
 
 
