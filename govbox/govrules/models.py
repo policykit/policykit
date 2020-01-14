@@ -66,7 +66,7 @@ class Measure(PolymorphicModel):
     
     
 class ProcessMeasure(Measure):    
-    code = models.TextField()
+    process_code = models.TextField()
     explanation = models.TextField(null=True)
     
     # if this condition is met, then the RuleMeasure status is set to passed
@@ -110,7 +110,7 @@ class RuleMeasure(Measure):
             super(RuleMeasure, self).save(*args, **kwargs)
             
             if process.exists():
-                exec(process[0].code)
+                exec(process[0].process_code)
 
         else:   
             super(RuleMeasure, self).save(*args, **kwargs)
@@ -155,7 +155,7 @@ class ActionMeasure(Measure):
             super(ActionMeasure, self).save(*args, **kwargs)
             
             for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
-                exec(rule.code)
+                exec(rule.rule_code)
 
         else:   
             super(ActionMeasure, self).save(*args, **kwargs)
