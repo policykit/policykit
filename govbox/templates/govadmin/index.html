@@ -55,22 +55,34 @@
 
 {% block sidebar %}
 <div id="content-middle">
-	<B>Passed Process Measures</B>
-	{% for process in passed_processes %}
-	<P>
-		{{ process.process_code}} <BR>
-		{{ process.explanation }}
-	</P>
-	{% endfor %}
+	<table>
+		<caption>Passed Process Measures</caption>
+		<tbody>
+			{% for process in passed_processes %}
+			<tr>
+				<td>
+					{{ process.process_code}} <BR>
+					<i>{{ process.explanation }}</i>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 	
-	<B>Passed Rule Measures</B>
-	{% for rule in passed_rules %}
-	<P>
-		{{ rule.rule_code}} <BR>
-		{{ rule.rule_text}} <BR>
-		{{ rule.explanation }}
-	</P>
-	{% endfor %}
+	<table>
+		<caption>Passed Rule Measures</caption>
+		<tbody>
+			{% for rule in passed_rules %}
+			<tr>
+				<td>
+					{{ rule.rule_code }} <BR>
+					{{ rule.rule_text }} <BR>
+					<i>{{ rule.explanation }}</i>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 </div>
 <div id="content-related">
     <div class="module" id="recent-actions-module">
