@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
+from django.core.exceptions import ValidationError
 from govrules.views import *
 
 
@@ -81,15 +82,21 @@ class ProcessMeasure(Measure):
     
     
 class RuleMeasure(Measure):
-    rule_code = models.TextField()
+    rule_code = models.TextField(null=True)
     
-    rule_text = models.TextField()
+    rule_text = models.TextField(null=True)
     
     explanation = models.TextField(null=True)
     
     class Meta:
         verbose_name = 'rule'
         verbose_name_plural = 'rules'
+        
+    def clean(self):
+        super().clean()
+        if self.rule_code is None and self.rule_text is None:
+            raise ValidationError('Code or text rule instructions are both None')
+
         
     def __str__(self):
         return ' '.join(['Rule: ', self.explanation, 'for', self.community_integration.community_name])
@@ -141,10 +148,19 @@ class ActionMeasure(Measure):
         return ' '.join(['Action: ', self.action, str(self.content_type), 'to', self.community_integration.community_name])
 
     def save(self, *args, **kwargs):
-        super(ActionMeasure, self).save(*args, **kwargs)
+        if not self.pk:
+            # Runs only when object is new
+            self.status = Measure.PROPOSED
+            
+            super(ActionMeasure, self).save(*args, **kwargs)
+            
+            for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
+                exec(rule.code)
+
+        else:   
+            super(ActionMeasure, self).save(*args, **kwargs)
         
-        for rule in RuleMeasure.objects.filter(community_integration=self.community_integration):
-            exec(rule.code)
+        
 
 
     
