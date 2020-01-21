@@ -14,11 +14,23 @@ def execute_action(action):
     obj = action.content_object
     call = community_integration.API + obj.API_METHOD
     
-    print(obj)
+    obj_type = action.content_type
     
-    data = urllib.parse.urlencode({'token': community_integration.access_token,
-                                   'text': obj.message,
-                                   'channel': obj.channel}).encode('ascii')
+    obj_fields = [f.name for f in obj_type._meta.get_fields()]
+    
+    data = {'token': community_integration.access_token}
+    
+    for item in obj_fields:
+        try :
+            value = getattr(obj, item)
+            data[item] = value
+        except obj.DoesNotExist:
+            continue
+        
+    
+    logger.info(data)
+    
+    data = urllib.parse.urlencode(data).encode('ascii')
 
     response = urllib.request.urlopen(url=call, data=data)
     
