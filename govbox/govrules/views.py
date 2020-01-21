@@ -14,16 +14,16 @@ def execute_action(action):
     obj = action.content_object
     call = community_integration.API + obj.API_METHOD
     
-    obj_type = action.content_type
     
-    obj_fields = [f.name for f in obj_type._meta.get_fields()]
+    obj_fields = [f.name for f in obj._meta.get_fields()]
     
     data = {'token': community_integration.access_token}
     
     for item in obj_fields:
         try :
-            value = getattr(obj, item)
-            data[item] = value
+            if item != 'id':
+                value = getattr(obj, item)
+                data[item] = value
         except obj.DoesNotExist:
             continue
         
