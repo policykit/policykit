@@ -26,15 +26,9 @@ def execute_action(action):
                 data[item] = value
         except obj.DoesNotExist:
             continue
-        
-    
-    logger.info(data)
     
     data = urllib.parse.urlencode(data).encode('ascii')
 
     response = urllib.request.urlopen(url=call, data=data)
     
     html = response.read()
-    print(html)
-    
-    print(call)
