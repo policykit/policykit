@@ -28,6 +28,7 @@ def oauth(request):
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     
+    logger.info("RES")
     logger.info(res)
     
     if state =="user":
