@@ -16,6 +16,7 @@ class SlackBackend(BaseBackend):
             return None
         
         s = SlackIntegration.objects.filter(team_id=oauth['team']['id'])
+
         if s.exists():
             user_data = parse.urlencode({
                     'token': oauth['authed_user']['access_token']

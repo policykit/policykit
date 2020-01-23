@@ -30,7 +30,7 @@ def oauth(request):
     
     logger.info(res)
     
-    if state =="user": 
+    if state =="user":
         user = authenticate(request, oauth=res)
         if user:
             login(request, user)
