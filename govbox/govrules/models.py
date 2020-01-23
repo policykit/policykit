@@ -34,9 +34,18 @@ class CommunityUser(User, PolymorphicModel):
 class CommunityAction(PolymorphicModel):
     ACTION = None
     
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    author = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+    
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)
-        action_measure = ActionMeasure.objects.create(content_type=self.polymorphic_ctype,
+        action_measure = ActionMeasure.objects.create(community_integration=self.community_integration,
+                                                      author=self.author,
+                                                      status=Measure.PROPOSED,
+                                                      content_type=self.polymorphic_ctype,
                                                       object_id=self.id,
                                                       action=ActionMeasure.ADD,
                                                       )
