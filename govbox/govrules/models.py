@@ -107,8 +107,11 @@ class RuleMeasure(Measure):
             
             super(RuleMeasure, self).save(*args, **kwargs)
             
-            if process.exists():
-                exec(process[0].process_code)
+#             if process.exists():
+#                 exec(process[0].process_code)
+
+            self.status = Measure.PASSED
+            super(RuleMeasure, self).save(*args, **kwargs)
 
         else:   
             super(RuleMeasure, self).save(*args, **kwargs)
@@ -152,8 +155,11 @@ class ActionMeasure(Measure):
             
             super(ActionMeasure, self).save(*args, **kwargs)
             
-            for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
-                exec(rule.rule_code)
+#             for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
+#                 exec(rule.rule_code)
+
+            if self.action == self.ADD:
+                execute_action(self)
 
         else:   
             super(ActionMeasure, self).save(*args, **kwargs)
