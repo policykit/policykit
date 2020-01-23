@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 def execute_action(action):
+    
+    logger.info('here')
+    
     community_integration = action.community_integration
     
     obj = action.content_object
@@ -30,6 +33,9 @@ def execute_action(action):
     data = urllib.parse.urlencode(data).encode('ascii')
 
     response = urllib.request.urlopen(url=call, data=data)
+    
+    logger.info(call)
+    logger.info(data)
     
     html = response.read()
     
