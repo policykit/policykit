@@ -172,7 +172,8 @@ class ActionMeasure(Measure):
                 exec(rule.rule_code)
                 
             if self.status == Measure.PASSED:
-                self.delete()
+                action_item = self.content_object
+                action_item.delete()
 
         else:   
             super(ActionMeasure, self).save(*args, **kwargs)
