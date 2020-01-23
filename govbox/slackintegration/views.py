@@ -24,7 +24,7 @@ def oauth(request):
         'code': code,
         }).encode()
         
-    req = urllib.request.Request('https://slack.com/api/oauth.access', data=data)
+    req = urllib.request.Request('https://slack.com/api/oauth.v2.access', data=data)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     
