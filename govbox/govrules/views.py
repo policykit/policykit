@@ -15,7 +15,7 @@ def execute_action(action):
     community_integration = action.community_integration
     
     obj = action.content_object
-    call = community_integration.API + obj.API_METHOD
+    call = community_integration.API + obj.ACTION
     
     
     obj_fields = [f.name for f in obj._meta.get_fields()]

@@ -27,14 +27,21 @@ class CommunityUser(User, PolymorphicModel):
         super(User, self).save(*args, **kwargs)
         p1 = Permission.objects.get(name='Can add process')
         p2 = Permission.objects.get(name='Can add rule')
-        p3 = Permission.objects.get(name='Can add action')
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
-        self.user_permissions.add(p3)
         
         
 class CommunityAction(PolymorphicModel):
     ACTION = None
+    
+    def save(self, *args, **kwargs):      
+        super(CommunityAction, self).save(*args, **kwargs)
+        action_measure = ActionMeasure.objects.create(content_type=self.polymorphic_ctype,
+                                                      object_id=self.id,
+                                                      action=ActionMeasure.ADD,
+                                                      )
+        
+    
 
 
 class Measure(PolymorphicModel):
@@ -107,11 +114,8 @@ class RuleMeasure(Measure):
             
             super(RuleMeasure, self).save(*args, **kwargs)
             
-#             if process.exists():
-#                 exec(process[0].process_code)
-
-            self.status = Measure.PASSED
-            super(RuleMeasure, self).save(*args, **kwargs)
+            if process.exists():
+                exec(process[0].process_code)
 
         else:   
             super(RuleMeasure, self).save(*args, **kwargs)
@@ -155,11 +159,11 @@ class ActionMeasure(Measure):
             
             super(ActionMeasure, self).save(*args, **kwargs)
             
-#             for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
-#                 exec(rule.rule_code)
-
-            if self.action == self.ADD:
-                execute_action(self)
+            for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
+                exec(rule.rule_code)
+                
+            if self.status == Measure.PASSED:
+                self.delete()
 
         else:   
             super(ActionMeasure, self).save(*args, **kwargs)
