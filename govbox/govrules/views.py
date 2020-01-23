@@ -4,7 +4,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 import urllib.request
 import urllib.parse
 import logging
-from govrules.models import Measure
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +43,7 @@ def execute_action(action):
         
         logger.info(html)
         
+        from govrules.models import Measure
         action.status = Measure.PASSED
         action.save()
         
