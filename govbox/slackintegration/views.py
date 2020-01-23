@@ -36,7 +36,7 @@ def oauth(request):
             if user:
                 login(request, user)
         except:
-            print("hi")
+            logger.info("LOGIN ERROR CAUGHT")
             
     elif state == "app":
         s = SlackIntegration.objects.filter(team_id=res['team']['id'])

@@ -15,8 +15,8 @@ class SlackBackend(BaseBackend):
         if not oauth:
             return None
 
-        print("OAUTH")
-        print(oauth)
+        logger.info("OAUTH HERE")
+        logger.info(oauth)
         
         s = SlackIntegration.objects.filter(team_id=oauth['team']['id'])
 
