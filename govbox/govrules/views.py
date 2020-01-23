@@ -32,3 +32,5 @@ def execute_action(action):
     response = urllib.request.urlopen(url=call, data=data)
     
     html = response.read()
+    
+    logger.info(html)

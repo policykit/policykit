@@ -65,7 +65,7 @@ class Measure(PolymorphicModel):
     
 class ProcessMeasure(Measure):    
     process_code = models.TextField()
-    explanation = models.TextField(null=True)
+    explanation = models.TextField(null=True, blank=True)
     
     # if this condition is met, then the RuleMeasure status is set to passed
     
@@ -80,11 +80,11 @@ class ProcessMeasure(Measure):
     
     
 class RuleMeasure(Measure):
-    rule_code = models.TextField(null=True)
+    rule_code = models.TextField(null=True, blank=True)
     
-    rule_text = models.TextField(null=True)
+    rule_text = models.TextField(null=True, blank=True)
     
-    explanation = models.TextField(null=True)
+    explanation = models.TextField(null=True, blank=True)
     
     class Meta:
         verbose_name = 'rule'
