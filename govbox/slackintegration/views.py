@@ -28,16 +28,16 @@ def oauth(request):
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     
-    logger.info("RES")
+    logger.info('RES')
     logger.info(res)
     
-    if state =="user":
+    if state == "user":
         try:
             user = authenticate(request, oauth=res)
             if user:
                 login(request, user)
         except:
-            logger.info("LOGIN ERROR CAUGHT")
+            logger.info('LOGIN ERROR CAUGHT')
             
     elif state == "app":
         s = SlackIntegration.objects.filter(team_id=res['team']['id'])
