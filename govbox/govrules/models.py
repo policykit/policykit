@@ -33,6 +33,8 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p3)
         
         
+class CommunityAction(PolymorphicModel):
+    ACTION = None
 
 
 class Measure(PolymorphicModel):
@@ -59,10 +61,6 @@ class Measure(PolymorphicModel):
         ]
     
     status = models.CharField(choices=STATUS, max_length=10)
-    
-    class Meta:
-        abstract = True
-    
     
     
 class ProcessMeasure(Measure):    
@@ -162,5 +160,15 @@ class ActionMeasure(Measure):
         
         
 
-
+class UserVote(models.Model):
+    
+    user = models.ForeignKey(CommunityUser,
+                              models.CASCADE)
+    
+    measure = models.ForeignKey(Measure,
+                                models.CASCADE)
+    
+    value = models.BooleanField(null=True)
+    
+    
     
