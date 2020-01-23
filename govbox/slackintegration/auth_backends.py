@@ -15,44 +15,41 @@ class SlackBackend(BaseBackend):
         if not oauth:
             return None
         
-        s = SlackIntegration.objects.filter(team_id=oauth['team_id'])
+        s = SlackIntegration.objects.filter(team_id=oauth['team']['id'])
         if s.exists():
-#             user_data = parse.urlencode({
-#                     'token': oauth['access_token']
-#                     }).encode()
-#                 
-#             user_req = urllib.request.Request('https://slack.com/api/users.identity?', data=user_data)
-#             user_resp = urllib.request.urlopen(user_req)
-#             user_res = json.loads(user_resp.read().decode('utf-8'))
+            user_data = parse.urlencode({
+                    'token': oauth['authed_user']['access_token']
+                    }).encode()
+
                 
             
-            slack_user = SlackUser.objects.filter(user_id=oauth['user']['id'])
+            slack_user = SlackUser.objects.filter(user_id=oauth['authed_user']['id'])
             if slack_user.exists():
                 # update user info
                 slack_user = slack_user[0]
-                slack_user.user_id = oauth['user']['id']
-                slack_user.readable_name = oauth['user']['name']
-                slack_user.avatar = oauth['user']['image_24']
-                slack_user.access_token = oauth['access_token']
+                slack_user.user_id = oauth['authed_user']['id']
+                slack_user.access_token = oauth['authed_user']['access_token']
                 slack_user.community_integration = s[0]
                 
-#                 dju = slack_user[0].django_user
-                slack_user.username = oauth['user']['id']
-                slack_user.password = oauth['access_token']
+                slack_user.username = oauth['authed_user']['id']
+                slack_user.password = oauth['authed_user']['access_token']
                 slack_user.save()
-#                 dju.save()
+
             else:
-#                 dju,_ = User.objects.get_or_create(username=oauth['user']['id'],
-#                                                      password=oauth['access_token'])
                 
+                                 
+                user_req = urllib.request.Request('https://slack.com/api/users.identity?', data=user_data)
+                user_resp = urllib.request.urlopen(user_req)
+                user_res = json.loads(user_resp.read().decode('utf-8'))
+
                 slack_user = SlackUser.objects.create(
-                    username=oauth['user']['id'],
-                    password=oauth['access_token'],
+                    username=oauth['authed_user']['id'],
+                    password=oauth['authed_user']['access_token'],
                     community_integration = s[0],
-                    user_id = oauth['user']['id'],
-                    readable_name = oauth['user']['name'],
-                    avatar = oauth['user']['image_24'],
-                    access_token = oauth['access_token'],
+                    user_id = oauth['authed_user']['id'],
+                    readable_name = user_res['user']['name'],
+                    avatar = user_res['user']['image_24'],
+                    access_token = oauth['authed_user']['access_token'],
                     )
             return slack_user
         return None

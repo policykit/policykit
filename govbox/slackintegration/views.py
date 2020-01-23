@@ -24,9 +24,11 @@ def oauth(request):
         'code': code,
         }).encode()
         
-    req = urllib.request.Request('https://slack.com/api/oauth.access', data=data)
+    req = urllib.request.Request('https://slack.com/api/oauth.v2.access', data=data)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
+    
+    logger.info(res)
     
     if state =="user": 
         user = authenticate(request, oauth=res)
@@ -34,18 +36,18 @@ def oauth(request):
             login(request, user)
             
     elif state == "app":
-        s = SlackIntegration.objects.filter(team_id=res['team_id'])
-        user_group = Group.objects.create(name="Slack")
+        s = SlackIntegration.objects.filter(team_id=res['team']['id'])
+        user_group,_ = Group.objects.get_or_create(name="Slack")
         if not s.exists():
             _ = SlackIntegration.objects.create(
-                community_name=res['team_name'],
-                team_id=res['team_id'],
+                community_name=res['team']['name'],
+                team_id=res['team']['id'],
                 access_token=res['access_token'],
                 user_group=user_group
                 )
         else:
-            s[0].community_name = res['team_name']
-            s[0].team_id = res['team_id']
+            s[0].community_name = res['team']['name']
+            s[0].team_id = res['team']['id']
             s[0].access_token = res['access_token']
             s[0].save()
         

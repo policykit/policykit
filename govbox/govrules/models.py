@@ -27,12 +27,30 @@ class CommunityUser(User, PolymorphicModel):
         super(User, self).save(*args, **kwargs)
         p1 = Permission.objects.get(name='Can add process')
         p2 = Permission.objects.get(name='Can add rule')
-        p3 = Permission.objects.get(name='Can add action')
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
-        self.user_permissions.add(p3)
         
         
+class CommunityAction(PolymorphicModel):
+    ACTION = None
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    author = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+    
+    def save(self, *args, **kwargs):      
+        super(CommunityAction, self).save(*args, **kwargs)
+        action_measure = ActionMeasure.objects.create(community_integration=self.community_integration,
+                                                      author=self.author,
+                                                      status=Measure.PROPOSED,
+                                                      content_type=self.polymorphic_ctype,
+                                                      object_id=self.id,
+                                                      action=ActionMeasure.ADD,
+                                                      )
+        
+    
 
 
 class Measure(PolymorphicModel):
@@ -60,14 +78,10 @@ class Measure(PolymorphicModel):
     
     status = models.CharField(choices=STATUS, max_length=10)
     
-    class Meta:
-        abstract = True
-    
-    
     
 class ProcessMeasure(Measure):    
     process_code = models.TextField()
-    explanation = models.TextField(null=True)
+    explanation = models.TextField(null=True, blank=True)
     
     # if this condition is met, then the RuleMeasure status is set to passed
     
@@ -82,11 +96,11 @@ class ProcessMeasure(Measure):
     
     
 class RuleMeasure(Measure):
-    rule_code = models.TextField(null=True)
+    rule_code = models.TextField(null=True, blank=True)
     
-    rule_text = models.TextField(null=True)
+    rule_text = models.TextField(null=True, blank=True)
     
-    explanation = models.TextField(null=True)
+    explanation = models.TextField(null=True, blank=True)
     
     class Meta:
         verbose_name = 'rule'
@@ -156,11 +170,24 @@ class ActionMeasure(Measure):
             
             for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
+                
+            if self.status == Measure.PASSED:
+                self.delete()
 
         else:   
             super(ActionMeasure, self).save(*args, **kwargs)
         
         
 
-
+class UserVote(models.Model):
+    
+    user = models.ForeignKey(CommunityUser,
+                              models.CASCADE)
+    
+    measure = models.ForeignKey(Measure,
+                                models.CASCADE)
+    
+    value = models.BooleanField(null=True)
+    
+    
     

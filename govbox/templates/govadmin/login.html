@@ -23,14 +23,16 @@
 {% block content %}
 
 <P>
-	<a href="https://slack.com/oauth/authorize?state=app&scope=usergroups:read usergroups:write chat:write:user chat:write:bot bot&client_id=455205644210.869594358164">
-		<img alt=""Add to Slack"" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
-		</a>
+	
+	<a href="https://slack.com/oauth/v2/authorize?state=app&client_id=455205644210.869594358164&scope=app_mentions:read,calls:read,calls:write,channels:history,channels:join,channels:manage,channels:read,chat:write,commands,dnd:read,emoji:read,files:read,files:write,groups:history,groups:read,groups:write,im:history,im:read,im:write,incoming-webhook,links:read,links:write,mpim:history,mpim:read,mpim:write,pins:read,pins:write,reactions:read,reactions:write,reminders:read,reminders:write,remote_files:read,remote_files:share,remote_files:write,team:read,usergroups:read,usergroups:write,users.profile:read,users:read,users:read.email,users:write"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"></a>
+
 </P>
 
 
 <P>
-	<a href="https://slack.com/oauth/authorize?state=user&scope=identity.basic identity.avatar&client_id=455205644210.869594358164">
+	
+	
+	<a href="https://slack.com/oauth/v2/authorize?state=user&user_scope=identity.basic identity.avatar&client_id=455205644210.869594358164">
 	<img src="https://platform.slack-edge.com/img/sign_in_with_slack.png" srcset="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" />
 	</a>
 	

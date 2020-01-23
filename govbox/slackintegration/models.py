@@ -1,7 +1,11 @@
 from django.db import models
-from govrules.models import CommunityIntegration, CommunityUser
+from govrules.models import CommunityIntegration, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
 
+
+SLACK_ACTIONS = ['slackpostmessage', 
+                 'slackschedulemessage', 
+                 'slackrenameconversation']
 
 class SlackIntegration(CommunityIntegration):
     API = 'https://slack.com/api/'
@@ -15,8 +19,8 @@ class SlackIntegration(CommunityIntegration):
     def save(self, *args, **kwargs):      
         super(SlackIntegration, self).save(*args, **kwargs)
         
-        content_type = ContentType.objects.get(model='slackchat')
-        perms = Permission.objects.filter(content_type=content_type)
+        content_types = ContentType.objects.filter(model__in=SLACK_ACTIONS)
+        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.user_group.permissions.add(p)
     
@@ -41,25 +45,21 @@ class SlackUser(CommunityUser):
         group.user_set.add(self)
 
 
+    
+class SlackPostMessage(CommunityAction):
+    ACTION = 'chat.postMessage'
+    text = models.TextField()
+    channel = models.CharField('channel', max_length=150)
+    
+class SlackScheduleMessage(CommunityAction):
+    ACTION = 'chat.scheduleMessage'
+    text = models.TextField()
+    channel = models.CharField('channel', max_length=150)
+    post_at = models.IntegerField('post at')
 
-class SlackChat(models.Model):
-    API_METHOD = 'chat.postMessage'
-    message = models.TextField()
+class SlackRenameConversation(CommunityAction):
+    ACTION = 'conversations.rename'
+    name = models.CharField('name', max_length=150, unique=True)
     channel = models.CharField('channel', max_length=150)
 
-
-class SlackConversation(models.Model):
-    
-    CREATE = 'conversations.create'
-    RENAME = 'conversations.rename'
-    
-    name = models.CharField('name', max_length=150, unique=True)
-    
-    
-    
-class SlackUserGroup(models.Model):
-    API_METHOD = 'usergroups.create'
-    name = models.CharField('name', max_length=150, unique=True)
-    description = models.TextField()
-    
     
