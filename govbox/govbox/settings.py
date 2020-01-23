@@ -143,6 +143,7 @@ LOGGING = {
         },
     },
     'loggers': {
+        # TODO: Uncomment these sections
         # 'django': {
         #     'handlers': ['file'],
         #     'level': 'INFO',
