@@ -28,8 +28,8 @@ def oauth(request):
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     
-    # logger.info('RES')
-    # logger.info(res)
+    logger.info("RES RES RES")
+    logger.info(res)
     
     if state == "user":
         try:
@@ -37,6 +37,8 @@ def oauth(request):
             if user:
                 login(request, user)
         except:
+            # This triggers on cancel
+            # Though I'm not sure if it only triggers on cancel...
             logger.info('LOGIN ERROR CAUGHT')
             
     elif state == "app":
