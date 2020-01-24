@@ -48,13 +48,21 @@ def execute_action(action):
         logger.info(call)
         logger.info(data)
         
-        res = json.loads(response.read().decode('utf-8'))
+        html = response.read()
         
         logger.info(html)
         
-        from govrules.models import Measure
-        action.status = Measure.PASSED
-        action.save()
+        res = json.loads(html)
+        
+        
+        
+        if res['ok']:
+            from govrules.models import Measure
+            action.status = Measure.PASSED
+            action.save()
+        else:
+            error_message = res['error']
+            
         
     except Exception as e:
         logger.error(e)
