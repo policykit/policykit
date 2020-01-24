@@ -4,7 +4,7 @@ from govrules.models import CommunityIntegration, ProcessMeasure, RuleMeasure, A
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
-from settings import PROJECT_NAME
+from govbox.settings import PROJECT_NAME
 
 
 class GovAdminSite(AdminSite):
