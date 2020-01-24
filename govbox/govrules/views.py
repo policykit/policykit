@@ -22,7 +22,12 @@ def execute_action(action):
         
         obj_fields = [f.name for f in obj._meta.get_fields()]
         
-        data = {'token': community_integration.access_token}
+        data = {}
+        
+        if obj.AUTH == "user":
+            data['token'] = action.author.access_token
+        else:
+            data['token'] = community_integration.access_token
         
         for item in obj_fields:
             try :
