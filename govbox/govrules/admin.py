@@ -59,29 +59,33 @@ class ProcessAdmin(admin.ModelAdmin):
     fields= ('process_code', 'explanation')
     
     def save_model(self, request, obj, form, change):
-        
-        logger.info(request.user)
-        
         if not change:
             obj.author = request.user
             obj.community_integration = request.user.community_integration
-            
+            obj.status = Measure.PROPOSED
         obj.save()
 
 admin_site.register(ProcessMeasure, ProcessAdmin)
 
 class RuleAdmin(admin.ModelAdmin):
-    pass
+    fields= ('rule_code', 'rule_text', 'explanation')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.author = request.user
+            obj.community_integration = request.user.community_integration
+            obj.status = Measure.PROPOSED
+        obj.save()
 
 admin_site.register(RuleMeasure, RuleAdmin)
-
-class ActionAdmin(admin.ModelAdmin):
-    pass
-
-admin_site.register(ActionMeasure, ActionAdmin)
-
-class CommunityIntegrationAdmin(admin.ModelAdmin):
-    pass
-
-admin_site.register(CommunityIntegration, CommunityIntegrationAdmin)
+# 
+# class ActionAdmin(admin.ModelAdmin):
+#     pass
+# 
+# admin_site.register(ActionMeasure, ActionAdmin)
+# 
+# class CommunityIntegrationAdmin(admin.ModelAdmin):
+#     pass
+# 
+# admin_site.register(CommunityIntegration, CommunityIntegrationAdmin)
 

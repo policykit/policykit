@@ -4,17 +4,18 @@ from slackintegration.models import *
 
 # Register your models here.
 
-class SlackIntegrationAdmin(admin.ModelAdmin):
-    pass
-admin_site.register(SlackIntegration, SlackIntegrationAdmin)
+# class SlackIntegrationAdmin(admin.ModelAdmin):
+#     pass
+# admin_site.register(SlackIntegration, SlackIntegrationAdmin)
+# 
+# class SlackUserAdmin(admin.ModelAdmin):
+#     pass
+# admin_site.register(SlackUser, SlackUserAdmin)
 
-
-class SlackUserAdmin(admin.ModelAdmin):
-    pass
-admin_site.register(SlackUser, SlackUserAdmin)
 
 class SlackPostMessageAdmin(admin.ModelAdmin):
     pass
+
 admin_site.register(SlackPostMessage, SlackPostMessageAdmin)
 
 class SlackScheduleMessageAdmin(admin.ModelAdmin):
