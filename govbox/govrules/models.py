@@ -36,6 +36,9 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
         
+    def __str__(self):
+        return self.readable_name + '@' + self.community_integration.community_name
+        
         
 class CommunityAction(PolymorphicModel):
     ACTION = None
