@@ -59,6 +59,7 @@ class SlackScheduleMessage(CommunityAction):
 
 class SlackRenameConversation(CommunityAction):
     ACTION = 'conversations.rename'
+    AUTH = 'user'
     name = models.CharField('name', max_length=150, unique=True)
     channel = models.CharField('channel', max_length=150)
 

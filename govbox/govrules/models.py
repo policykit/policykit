@@ -33,12 +33,16 @@ class CommunityUser(User, PolymorphicModel):
         
 class CommunityAction(PolymorphicModel):
     ACTION = None
+    AUTH = 'app'
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
     
     author = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
+    
+    
+    
     
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)
