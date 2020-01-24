@@ -22,6 +22,12 @@ class CommunityUser(User, PolymorphicModel):
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
+    
+        
+    access_token = models.CharField('access_token', 
+                                     max_length=300, 
+                                     unique=True)
+    
         
     def save(self, *args, **kwargs):      
         super(User, self).save(*args, **kwargs)
