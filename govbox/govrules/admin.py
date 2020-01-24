@@ -5,6 +5,10 @@ from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
 from govbox.settings import PROJECT_NAME
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class GovAdminSite(AdminSite):
@@ -52,7 +56,17 @@ admin_site = GovAdminSite(name="govadmin")
 
 
 class ProcessAdmin(admin.ModelAdmin):
-    pass
+    fields= ('process_code', 'explanation')
+    
+    def save_model(self, request, obj, form, change):
+        
+        logger.info(request.user)
+        
+        if not change:
+            obj.author = request.user
+            obj.community_integration = request.user.community_integration
+            
+        obj.save()
 
 admin_site.register(ProcessMeasure, ProcessAdmin)
 
