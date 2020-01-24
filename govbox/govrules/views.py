@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 import urllib.request
 import urllib.parse
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ def execute_action(action):
         logger.info(call)
         logger.info(data)
         
-        html = response.read()
+        res = json.loads(response.read().decode('utf-8'))
         
         logger.info(html)
         
