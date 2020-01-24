@@ -63,3 +63,4 @@ class SlackKickConversation(CommunityAction):
     ACTION = 'conversations.kick'
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
+

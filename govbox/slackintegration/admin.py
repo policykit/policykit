@@ -1,6 +1,6 @@
 from django.contrib import admin
 from govrules.admin import admin_site
-from slackintegration.models import SlackIntegration, SlackUser, SlackPostMessage, SlackScheduleMessage, SlackRenameConversation
+from slackintegration.models import *
 
 # Register your models here.
 
@@ -24,4 +24,8 @@ admin_site.register(SlackScheduleMessage, SlackScheduleMessageAdmin)
 class SlackRenameConversationAdmin(admin.ModelAdmin):
     pass
 admin_site.register(SlackRenameConversation, SlackRenameConversationAdmin)
+
+class SlackKickConversationAdmin(admin.ModelAdmin):
+    pass
+admin_site.register(SlackKickConversation, SlackKickConversationAdmin)
 
