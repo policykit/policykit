@@ -20,7 +20,10 @@ def execute_action(action):
         call = community_integration.API + obj.ACTION
         
         
-        obj_fields = [f.name for f in obj._meta.get_fields()]
+        obj_fields = []
+        for f in obj._meta.get_fields():
+            if f.name not in ['polymorphic_ctype','community_integration','author','communityaction_ptr']:
+                obj_fields.append(f.name) 
         
         data = {}
         
