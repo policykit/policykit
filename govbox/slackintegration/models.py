@@ -5,7 +5,9 @@ from django.contrib.auth.models import Permission, ContentType, User
 
 SLACK_ACTIONS = ['slackpostmessage', 
                  'slackschedulemessage', 
-                 'slackrenameconversation']
+                 'slackrenameconversation',
+                 'slackkickconversation'
+                 ]
 
 class SlackIntegration(CommunityIntegration):
     API = 'https://slack.com/api/'
