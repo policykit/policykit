@@ -63,6 +63,7 @@ class SlackRenameConversation(CommunityAction):
     
 class SlackKickConversation(CommunityAction):
     ACTION = 'conversations.kick'
+    AUTH = 'user'
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
 
