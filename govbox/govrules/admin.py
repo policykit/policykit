@@ -3,10 +3,16 @@ from django.contrib.admin import AdminSite
 from govrules.models import CommunityIntegration, ProcessMeasure, RuleMeasure, ActionMeasure, Measure
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
+from django.utils.translation import gettext_lazy
+from settings import PROJECT_NAME
 
 
 class GovAdminSite(AdminSite):
-    site_header = "GovBox"
+    site_title = PROJECT_NAME
+    site_header = PROJECT_NAME
+    
+    index_title = gettext_lazy('Governance Authoring')
+    
     index_template = 'govadmin/index.html'
     login_template = 'govadmin/login.html'
     
