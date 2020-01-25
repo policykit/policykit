@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from urllib import parse
 import urllib.request
 from govbox.settings import CLIENT_SECRET
@@ -54,4 +55,12 @@ def oauth(request):
     response = redirect('/')
     return response
         
+    
+def action(request):
+    action_type = request.GET.get('type')
+    if action_type == "url_verification":
+        challenge = request.GET.get('challenge')
+        return HttpResponse(challenge)
+    
+    return HttpResponse("")
     

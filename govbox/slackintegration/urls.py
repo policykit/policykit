@@ -4,5 +4,6 @@ from slackintegration import views
 
 
 urlpatterns = [
-    path('oauth', views.oauth)
+    path('oauth', views.oauth),
+    path('action', views.action)
 ]
