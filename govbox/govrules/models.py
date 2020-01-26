@@ -187,10 +187,6 @@ class ActionMeasure(Measure):
             
             for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
-                
-            if self.status == Measure.PASSED:
-                action_item = self.content_object
-                action_item.delete()
 
         else:   
             super(ActionMeasure, self).save(*args, **kwargs)
