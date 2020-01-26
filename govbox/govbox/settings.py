@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_celery_beat',
+    'django_celery_results',
     'govrules',
     'slackintegration',
 ]
@@ -172,7 +173,7 @@ CELERY_BROKER_URL = 'amqp://'
 CELERY_BEAT_SCHEDULE = {
  'count-votes-beat': {
        'task': 'count_votes',
-       'schedule': 600.0,
+       'schedule': 30.0,
     }       
 }
 
