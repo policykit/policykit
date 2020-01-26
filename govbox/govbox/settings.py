@@ -169,6 +169,9 @@ LOGGING = {
 from celery.schedules import crontab
 
 CELERY_BROKER_URL = 'amqp://' 
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+
 
 CELERY_BEAT_SCHEDULE = {
  'count-votes-beat': {
