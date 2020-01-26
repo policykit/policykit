@@ -184,7 +184,6 @@ class ActionMeasure(Measure):
             super(ActionMeasure, self).save(*args, **kwargs)
             
             action = self
-            
             for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
 

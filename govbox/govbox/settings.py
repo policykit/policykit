@@ -175,8 +175,8 @@ CELERY_CACHE_BACKEND = 'django-cache'
 
 CELERY_BEAT_SCHEDULE = {
  'count-votes-beat': {
-       'task': 'govrules.tasks.count_votes',
-       'schedule': 30.0,
+       'task': 'govrules.tasks.consider_proposed_actions',
+       'schedule': 60.0,
     }       
 }
 
