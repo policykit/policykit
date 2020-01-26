@@ -62,7 +62,6 @@ def execute_action(action):
             action.save()
         else:
             error_message = res['error']
-            
         
     except Exception as e:
         logger.error(e)
