@@ -7,7 +7,10 @@ from celery import Celery
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'govbox.settings')
 
-app = Celery('govbox')
+app = Celery('govbox',
+             broker='amqp://',
+             backend='amqp://',
+             include=['govrules.tasks'])
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
@@ -22,3 +25,6 @@ app.autodiscover_tasks()
 @app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
+    
+if __name__ == '__main__':
+    app.start()
