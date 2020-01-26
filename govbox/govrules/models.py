@@ -79,6 +79,8 @@ class Measure(PolymorphicModel):
         blank=True
     )
     
+    proposal_time = models.DateTimeFiled(auto_now_add=True)
+    
     PROPOSED = 'proposed'
     FAILED = 'failed'
     PASSED = 'passed'
