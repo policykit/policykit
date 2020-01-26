@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from govrules.models import CommunityIntegration, ProcessMeasure, RuleMeasure, ActionMeasure, Measure
+from govrules.models import CommunityIntegration, ProcessMeasure, RuleMeasure, ActionMeasure, Measure, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -78,6 +78,16 @@ class RuleAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(RuleMeasure, RuleAdmin)
+
+class UserVoteAdmin(admin.ModelAdmin):
+    fields= ('measure', 'value')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.user = request.user
+        obj.save()
+
+admin_site.register(UserVote, UserVoteAdmin)
 # 
 # class ActionAdmin(admin.ModelAdmin):
 #     pass
