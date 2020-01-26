@@ -164,3 +164,15 @@ LOGGING = {
     },
 }
 
+
+from celery.schedules import crontab
+
+CELERY_BROKER_URL = 'amqp://' 
+
+CELERY_BEAT_SCHEDULE = {
+ 'count-votes-beat': {
+       'task': 'count_votes',
+       'schedule': 600.0,
+    }       
+}
+
