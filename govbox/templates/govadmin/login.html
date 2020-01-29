@@ -10,7 +10,7 @@
 <script src={% static "govrules/js/login.js" %}></script>
 {% endblock %}
 
-{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block bodyclass %}{{ block.super }} login {{ foo }} {% endblock %}
 
 {% block usertools %}{% endblock %}
 
