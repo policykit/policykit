@@ -12,9 +12,7 @@
 
 {% block bodyclass %}{{ block.super }} login {% endblock %}
 
-{% block usertools %}{% endblock %}
-
-{% block nav-global %}
+{% block usertools %}
 
 {% if request.GET.error %}
   Error: {{ request.GET.error }}
@@ -25,6 +23,8 @@
 {% endif %}
 
 {% endblock %}
+
+{% block nav-global %}{% endblock %}
 
 {% block content_title %}{% endblock %}
 
