@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser
 from django.contrib.auth.models import User, Group
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,8 @@ def oauth(request):
     response = redirect('/')
     return response
         
-    
+
+@csrf_exempt
 def action(request):
     action_type = request.GET.get('type')
     logger.info(action_type)
