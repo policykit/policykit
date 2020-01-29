@@ -58,8 +58,10 @@ def oauth(request):
     
 def action(request):
     action_type = request.GET.get('type')
+    logger.info(action_type)
     if action_type == "url_verification":
         challenge = request.GET.get('challenge')
+        logger.info(challenge)
         return HttpResponse(challenge)
     
     return HttpResponse("")
