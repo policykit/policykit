@@ -10,9 +10,7 @@
 <script src={% static "govrules/js/login.js" %}></script>
 {% endblock %}
 
-{% block bodyclass %}{{ block.super }} login {% endblock %}
-
-{% block usertools %}
+{% block bodyclass %}{{ block.super }} login 
 
 {% if request.GET.error %}
   Error: {{ request.GET.error }}
@@ -21,6 +19,10 @@
 {% if request.GET.success %}
   Successfully added GovBox!
 {% endif %}
+
+{% endblock %}
+
+{% block usertools %}
 
 {% endblock %}
 
