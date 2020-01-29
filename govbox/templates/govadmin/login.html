@@ -12,8 +12,6 @@
 
 {% block bodyclass %}{{ block.super }} login {% endblock %}
 
-Error: {{ request.GET.error }}
-
 {% block usertools %}{% endblock %}
 
 {% block nav-global %}{% endblock %}
@@ -30,6 +28,7 @@ Error: {{ request.GET.error }}
 
 </P>
 
+Error: {{ request.GET.error }}
 
 <P>
 	
