@@ -54,7 +54,7 @@ def oauth(request):
                 s[0].save()
     else:
         # error message stating that the sign-in/add-to-slack didn't work
-        return render(request, '/login.html', {'foo': 'bar'})
+        return render(request, 'admin/login.html', {'foo': 'bar'})
         logger.info("CANCEL")
     
     response = redirect('/')
