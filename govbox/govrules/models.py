@@ -36,6 +36,15 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
         
+        p3 = Permission.objects.get(name='Can add user vote')
+        p4 = Permission.objects.get(name='Can change user vote')
+        p5 = Permission.objects.get(name='Can delete user vote')
+        p6 = Permission.objects.get(name='Can view user vote')
+        self.user_permissions.add(p3)
+        self.user_permissions.add(p4)
+        self.user_permissions.add(p5)
+        self.user_permissions.add(p6)
+        
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
         
