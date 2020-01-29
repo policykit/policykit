@@ -59,10 +59,10 @@ def oauth(request):
 
 @csrf_exempt
 def action(request):
-    action_type = request.GET.get('type')
-    logger.info(action_type)
-    if action_type == "url_verification":
-        challenge = request.GET.get('challenge')
+    body = request.POST.get('body')
+    logger.info(body)
+    if body['type'] == "url_verification":
+        challenge = body['challenge']
         logger.info(challenge)
         return HttpResponse(challenge)
     
