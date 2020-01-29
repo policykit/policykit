@@ -14,13 +14,7 @@
 
 {% block usertools %}{% endblock %}
 
-{% block nav-global %}{% endblock %}
-
-{% block content_title %}{% endblock %}
-
-{% block breadcrumbs %}{% endblock %}
-
-{% block content %}
+{% block nav-global %}
 
 {% if request.GET.error %}
   Error: {{ request.GET.error }}
@@ -29,6 +23,14 @@
 {% if request.GET.success %}
   Successfully added GovBox!
 {% endif %}
+
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
 
 
 <P>
