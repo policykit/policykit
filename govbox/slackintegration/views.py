@@ -30,8 +30,6 @@ def oauth(request):
     
     logger.info("RES RES RES")
     logger.info(res)
-
-    response = redirect('/')
     
     if res['ok']:
         if state == "user":
@@ -56,9 +54,10 @@ def oauth(request):
                 s[0].save()
     else:
         # error message stating that the sign-in/add-to-slack didn't work
-        response = redirect('/', foo='bar')
+        return render(request, '/', {'foo': 'bar'})
         logger.info("CANCEL")
-        
+    
+    response = redirect('/')
     return response
         
     
