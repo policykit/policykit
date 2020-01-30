@@ -60,6 +60,7 @@ def oauth(request):
 @csrf_exempt
 def action(request):
     json_data = json.loads(request.body)
+    logger.info(json_data)
     action_type = json_data.get('type')
     if action_type == "url_verification":
         challenge = json_data.get('challenge')
