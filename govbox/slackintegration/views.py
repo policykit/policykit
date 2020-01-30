@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-from slackintegration.models import SlackIntegration, SlackUser
+from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 
@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 def oauth(request):
-    
     code = request.GET.get('code')
     state = request.GET.get('state')
     
@@ -55,14 +54,32 @@ def oauth(request):
         
     response = redirect('/')
     return response
-        
+
 
 @csrf_exempt
 def action(request):
     json_data = json.loads(request.body)
     logger.info(json_data)
+    
     action_type = json_data.get('type')
-    if action_type == "url_verification":
+    
+    if action_type == "event_callback":
+        event = json_data.get('event')
+        team_id = json_data.get('team_id')
+        author_id = json_data.get('authed_users')[0]
+        
+        integration = SlackIntegration.objects.get(team_id=team_id)
+        author = SlackUser.objects.get(user_id=author_id)
+        
+        if event.get('type') == "channel_rename":
+            new_action = SlackRenameConversation()
+            new_action.community_integration = integration
+            new_action.author = author
+            new_action.name = event['channel']['name']
+            new_action.channel = event['channel']['id']
+            new_action.save(slack_revert=True)
+    
+    elif action_type == "url_verification":
         challenge = json_data.get('challenge')
         return HttpResponse(challenge)
     

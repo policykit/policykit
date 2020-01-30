@@ -1,7 +1,11 @@
 from django.db import models
-from govrules.models import CommunityIntegration, CommunityUser, CommunityAction
+from govrules.models import CommunityIntegration, CommunityUser, CommunityAction, CommunityObject
 from django.contrib.auth.models import Permission, ContentType, User
+import urllib
+import json
+import logging
 
+logger = logging.getLogger(__name__)
 
 SLACK_ACTIONS = ['slackpostmessage', 
                  'slackschedulemessage', 
@@ -60,6 +64,36 @@ class SlackRenameConversation(CommunityAction):
     AUTH = 'user'
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
+    
+    def get_channel_info(self):
+        data = {'token': self.community_integration.access_token,
+                'channel': self.channel
+                }
+        req = urllib.request.Request('https://slack.com/api/conversations.info?', data=data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+        prev_name = res['channel']['previous_names'][-1]
+        return prev_name
+        
+    def revert(self, prev_name):
+        data = {'name': prev_name,
+                'token': self.author.access_token,
+                'channel': self.channel
+                }
+        req = urllib.request.Request('https://slack.com/api/conversations.rename?', data=data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+    
+    def save(self, *args, **kwargs):
+        revert = kwargs.get('slack_revert')
+        if revert:
+            prev_name = self.get_channel_info()
+            self.revert(prev_name)
+        
+        super(SlackRenameConversation, self).save(*args, **kwargs)
+        
     
 class SlackKickConversation(CommunityAction):
     ACTION = 'conversations.kick'

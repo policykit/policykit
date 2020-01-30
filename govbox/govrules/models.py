@@ -49,6 +49,7 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name + '@' + self.community_integration.community_name
         
         
+        
 class CommunityAction(PolymorphicModel):
     ACTION = None
     AUTH = 'app'
