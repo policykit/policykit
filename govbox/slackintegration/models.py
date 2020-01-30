@@ -1,5 +1,5 @@
 from django.db import models
-from govrules.models import CommunityIntegration, CommunityUser, CommunityAction, CommunityObject
+from govrules.models import CommunityIntegration, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
