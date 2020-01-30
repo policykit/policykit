@@ -30,6 +30,7 @@ SECRET_KEY = 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'
 DEBUG = True
 
 ALLOWED_HOSTS = ['policykit.org',
+                 'www.policykit.org',
                  'ec2-54-189-150-51.us-west-2.compute.amazonaws.com',
                  '54.189.150.51',
                  '127.0.0.1']
