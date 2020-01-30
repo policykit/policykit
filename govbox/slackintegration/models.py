@@ -66,10 +66,12 @@ class SlackRenameConversation(CommunityAction):
     channel = models.CharField('channel', max_length=150)
     
     def get_channel_info(self):
-        data = {'token': self.community_integration.access_token,
+        values = {'token': self.community_integration.access_token,
                 'channel': self.channel
                 }
-        req = urllib.request.Request('https://slack.com/api/conversations.info?', data=data)
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        req = urllib.request.Request('https://slack.com/api/conversations.info?', data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
@@ -77,11 +79,13 @@ class SlackRenameConversation(CommunityAction):
         return prev_name
         
     def revert(self, prev_name):
-        data = {'name': prev_name,
+        values = {'name': prev_name,
                 'token': self.author.access_token,
                 'channel': self.channel
                 }
-        req = urllib.request.Request('https://slack.com/api/conversations.rename?', data=data)
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        req = urllib.request.Request('https://slack.com/api/conversations.rename?', data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
