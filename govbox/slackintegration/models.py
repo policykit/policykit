@@ -75,8 +75,8 @@ class SlackRenameConversation(CommunityAction):
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
-        prev_name = res['channel']['previous_names'][0]
-        return prev_name
+        prev_names = res['channel']['previous_names']
+        return prev_names
         
     def revert(self, prev_name):
         values = {'name': prev_name,
@@ -90,13 +90,19 @@ class SlackRenameConversation(CommunityAction):
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
     
-    def save(self, *args, **kwargs):
-        revert = kwargs.get('slack_revert')
-        if revert:
-            prev_name = self.get_channel_info()
-            if prev_name != self.name:
-                self.revert(prev_name)
+    def save(self, slack_revert=False, *args, **kwargs):
+        if slack_revert:
+            prev_names = self.get_channel_info()
+            
+            if len(prev_names) == 1:
+                self.revert(prev_names[0])
                 super(SlackRenameConversation, self).save(*args, **kwargs)
+            
+            if len(prev_names) > 1:
+                former_name = prev_names[1]
+                if former_name != self.name:
+                    self.revert(prev_names[0])
+                    super(SlackRenameConversation, self).save(*args, **kwargs)
         
         
         
