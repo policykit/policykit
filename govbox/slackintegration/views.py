@@ -66,10 +66,10 @@ def action(request):
     if action_type == "event_callback":
         event = json_data.get('event')
         team_id = json_data.get('team_id')
-        author_id = json_data.get('authed_users')[0]
+#         author_id = json_data.get('authed_users')[0]
         
         integration = SlackIntegration.objects.get(team_id=team_id)
-        author = SlackUser.objects.get(user_id=author_id)
+        author = SlackUser.objects.all()[0]
         
         if event.get('type') == "channel_rename":
             new_action = SlackRenameConversation()
