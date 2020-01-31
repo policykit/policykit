@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 SLACK_ACTIONS = ['slackpostmessage', 
                  'slackschedulemessage', 
                  'slackrenameconversation',
-                 'slackkickconversation'
+                 'slackkickconversation',
+                 'slackjoinconversation'
                  ]
 
 class SlackIntegration(CommunityIntegration):
@@ -113,3 +114,11 @@ class SlackKickConversation(CommunityAction):
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
 
+
+class SlackJoinConversation(CommunityAction):
+    ACTION = 'conversations.join'
+    AUTH = 'user'
+    user = models.CharField('user', max_length=15)
+    channel = models.CharField('channel', max_length=150)
+    
+    

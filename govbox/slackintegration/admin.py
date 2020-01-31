@@ -30,3 +30,7 @@ class SlackKickConversationAdmin(admin.ModelAdmin):
     pass
 admin_site.register(SlackKickConversation, SlackKickConversationAdmin)
 
+class SlackJoinConversationAdmin(admin.ModelAdmin):
+    pass
+admin_site.register(SlackJoinConversation, SlackJoinConversationAdmin)
+
