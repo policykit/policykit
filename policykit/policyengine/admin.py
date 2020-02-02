@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from govrules.models import CommunityIntegration, ProcessPolicy, RulePolicy, ActionPolicy, Policy, UserVote
+from policyengine.models import CommunityIntegration, ProcessPolicy, RulePolicy, ActionPolicy, Policy, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
