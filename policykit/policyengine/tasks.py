@@ -3,9 +3,9 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from govrules.models import UserVote, ActionPolicy, Policy, RulePolicy, CommunityUser
-from govbox.celery import app
-from govrules.views import *
+from policyengine.models import UserVote, ActionPolicy, Policy, RulePolicy, CommunityUser
+from policykit.celery import app
+from policyengine.views import *
 
 @shared_task
 def consider_proposed_actions():
