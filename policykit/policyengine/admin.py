@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from govrules.models import CommunityIntegration, ProcessMeasure, RuleMeasure, ActionMeasure, Measure, UserVote
+from govrules.models import CommunityIntegration, ProcessPolicy, RulePolicy, ActionPolicy, Policy, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -11,14 +11,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class GovAdminSite(AdminSite):
+class PolicyAdminSite(AdminSite):
     site_title = PROJECT_NAME
     site_header = PROJECT_NAME
     
-    index_title = gettext_lazy('Governance Authoring')
+    index_title = gettext_lazy('Policy Authoring')
     
-    index_template = 'govadmin/index.html'
-    login_template = 'govadmin/login.html'
+    index_template = 'policyadmin/index.html'
+    login_template = 'policyadmin/login.html'
     
     def has_permission(self, request):
         if request.user.is_anonymous:
@@ -36,9 +36,9 @@ class GovAdminSite(AdminSite):
         user = request.user
         community_integration = user.community_integration
         
-        passed_processes = ProcessMeasure.objects.filter(status=Measure.PASSED, community_integration=community_integration)
+        passed_processes = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
 
-        passed_rules = RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=community_integration)
+        passed_rules = RulePolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
@@ -52,7 +52,7 @@ class GovAdminSite(AdminSite):
         return TemplateResponse(request, self.index_template or 'admin/index.html', context)
 
 
-admin_site = GovAdminSite(name="govadmin")
+admin_site = PolicyAdminSite(name="policyadmin")
 
 
 class ProcessAdmin(admin.ModelAdmin):
@@ -62,10 +62,10 @@ class ProcessAdmin(admin.ModelAdmin):
         if not change:
             obj.author = request.user
             obj.community_integration = request.user.community_integration
-            obj.status = Measure.PROPOSED
+            obj.status = Policy.PROPOSED
         obj.save()
 
-admin_site.register(ProcessMeasure, ProcessAdmin)
+admin_site.register(ProcessPolicy, ProcessAdmin)
 
 class RuleAdmin(admin.ModelAdmin):
     fields= ('rule_code', 'rule_text', 'explanation')
@@ -74,10 +74,10 @@ class RuleAdmin(admin.ModelAdmin):
         if not change:
             obj.author = request.user
             obj.community_integration = request.user.community_integration
-            obj.status = Measure.PROPOSED
+            obj.status = Policy.PROPOSED
         obj.save()
 
-admin_site.register(RuleMeasure, RuleAdmin)
+admin_site.register(RulePolicy, RuleAdmin)
 
 class UserVoteAdmin(admin.ModelAdmin):
     fields= ('measure', 'value')

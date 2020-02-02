@@ -56,8 +56,8 @@ def execute_action(action):
     
     
     if res['ok']:
-        from govrules.models import Measure
-        action.status = Measure.PASSED
+        from govrules.models import Policy
+        action.status = Policy.PASSED
         action.save()
     else:
         error_message = res['error']

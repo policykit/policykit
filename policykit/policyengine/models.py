@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from govrules.views import *
+from policyengine.views import *
 
 
 class CommunityIntegration(PolymorphicModel):
@@ -65,18 +65,18 @@ class CommunityAction(PolymorphicModel):
     
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)
-        action_measure = ActionMeasure.objects.create(community_integration=self.community_integration,
+        action_measure = ActionPolicy.objects.create(community_integration=self.community_integration,
                                                       author=self.author,
-                                                      status=Measure.PROPOSED,
+                                                      status=Policy.PROPOSED,
                                                       content_type=self.polymorphic_ctype,
                                                       object_id=self.id,
-                                                      action=ActionMeasure.ADD,
+                                                      action=ActionPolicy.ADD,
                                                       )
         
     
 
 
-class Measure(PolymorphicModel):
+class Policy(PolymorphicModel):
     community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
         verbose_name='community_integration',
@@ -104,7 +104,7 @@ class Measure(PolymorphicModel):
     status = models.CharField(choices=STATUS, max_length=10)
     
     
-class ProcessMeasure(Measure):    
+class ProcessPolicy(Policy):    
     process_code = models.TextField()
     explanation = models.TextField(null=True, blank=True)
     
@@ -120,7 +120,7 @@ class ProcessMeasure(Measure):
     
     
     
-class RuleMeasure(Measure):
+class RulePolicy(Policy):
     rule_code = models.TextField(null=True, blank=True)
     
     rule_text = models.TextField(null=True, blank=True)
@@ -143,19 +143,19 @@ class RuleMeasure(Measure):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            process = ProcessMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration)
-            self.status = Measure.PROPOSED
+            process = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration)
+            self.status = Policy.PROPOSED
             
-            super(RuleMeasure, self).save(*args, **kwargs)
+            super(RulePolicy, self).save(*args, **kwargs)
             
             if process.exists():
                 exec(process[0].process_code)
 
         else:   
-            super(RuleMeasure, self).save(*args, **kwargs)
+            super(RulePolicy, self).save(*args, **kwargs)
     
     
-class ActionMeasure(Measure):
+class ActionPolicy(Policy):
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
@@ -189,16 +189,16 @@ class ActionMeasure(Measure):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            self.status = Measure.PROPOSED
+            self.status = Policy.PROPOSED
             
-            super(ActionMeasure, self).save(*args, **kwargs)
+            super(ActionPolicy, self).save(*args, **kwargs)
             
             action = self
-            for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
+            for rule in RulePolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
 
         else:   
-            super(ActionMeasure, self).save(*args, **kwargs)
+            super(ActionPolicy, self).save(*args, **kwargs)
         
         
 
@@ -207,7 +207,7 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser,
                               models.CASCADE)
     
-    measure = models.ForeignKey(Measure,
+    measure = models.ForeignKey(Policy,
                                 models.CASCADE)
     
     value = models.BooleanField(null=True)
