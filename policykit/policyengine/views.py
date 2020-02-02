@@ -56,7 +56,7 @@ def execute_action(action):
     
     
     if res['ok']:
-        from govrules.models import Policy
+        from policyengine.models import Policy
         action.status = Policy.PASSED
         action.save()
     else:
