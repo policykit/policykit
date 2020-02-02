@@ -1,5 +1,5 @@
 from django.contrib import admin
-from govrules.admin import admin_site
+from policyengine.admin import admin_site
 from slackintegration.models import *
 
 # Register your models here.
