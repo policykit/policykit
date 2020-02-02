@@ -20,7 +20,7 @@ def oauth(request):
     state = request.GET.get('state')
     
     data = parse.urlencode({
-        'client_id': '455205644210.869594358164',
+        'client_id': '455205644210.932801604965',
         'client_secret': CLIENT_SECRET,
         'code': code,
         }).encode()
