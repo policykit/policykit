@@ -65,7 +65,7 @@ class CommunityAction(PolymorphicModel):
     
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)
-        action_measure = ActionPolicy.objects.create(community_integration=self.community_integration,
+        action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
                                                       author=self.author,
                                                       status=Policy.PROPOSED,
                                                       content_type=self.polymorphic_ctype,
@@ -108,7 +108,7 @@ class ProcessPolicy(Policy):
     process_code = models.TextField()
     explanation = models.TextField(null=True, blank=True)
     
-    # if this condition is met, then the RuleMeasure status is set to passed
+    # if this condition is met, then the RulePolicy status is set to passed
     
     class Meta:
         verbose_name = 'process'
@@ -207,7 +207,7 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser,
                               models.CASCADE)
     
-    measure = models.ForeignKey(Policy,
+    policy = models.ForeignKey(Policy,
                                 models.CASCADE)
     
     value = models.BooleanField(null=True)
