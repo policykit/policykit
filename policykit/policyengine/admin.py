@@ -4,7 +4,7 @@ from policyengine.models import CommunityIntegration, ProcessPolicy, RulePolicy,
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
-from govbox.settings import PROJECT_NAME
+from policykit.settings import PROJECT_NAME
 import logging
 
 
