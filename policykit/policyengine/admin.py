@@ -80,7 +80,7 @@ class RuleAdmin(admin.ModelAdmin):
 admin_site.register(RulePolicy, RuleAdmin)
 
 class UserVoteAdmin(admin.ModelAdmin):
-    fields= ('measure', 'value')
+    fields= ('policy', 'value')
     
     def save_model(self, request, obj, form, change):
         if not change:
