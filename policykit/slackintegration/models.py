@@ -135,9 +135,8 @@ class SlackJoinConversation(CommunityAction):
         logger.info(res)
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
-        if slack_revert:
-            if inviter and inviter != "UTE9MFJJ0":
-                self.__revert()
+        if slack_revert and inviter:
+            self.__revert()
         
         super(SlackJoinConversation, self).save(*args, **kwargs)
             
