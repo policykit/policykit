@@ -118,12 +118,10 @@ class SlackKickConversation(CommunityAction):
 class SlackJoinConversation(CommunityAction):
     ACTION = 'conversations.join'
     AUTH = 'user'
-    user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
         
     def __revert(self):
-        values = {'user': self.user,
-                  'token': self.author.access_token,
+        values = {'token': self.author.access_token,
                   'channel': self.channel
                 }
         data = urllib.parse.urlencode(values)

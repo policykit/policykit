@@ -86,8 +86,7 @@ def action(request):
             new_action = SlackJoinConversation()
             new_action.community_integration = integration
             inviter_user = event['inviter']
-            new_action.author = author # TODO Change this to "inviter"?
-            new_action.user = event['user']
+            new_action.author = SlackUser.objects.get(user_id=event['user'])
             new_action.channel = event['channel']
             new_action.save(slack_revert=True, inviter=inviter_user)
     
