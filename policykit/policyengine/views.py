@@ -19,6 +19,8 @@ def execute_action(action):
     obj = action.content_object
     call = community_integration.API + obj.ACTION
     
+    logger.info(call)
+    
     
     obj_fields = []
     for f in obj._meta.get_fields():
@@ -32,6 +34,8 @@ def execute_action(action):
     else:
         data['token'] = community_integration.access_token
     
+    logger.info('here2')
+    
     for item in obj_fields:
         try :
             if item != 'id':
@@ -41,11 +45,10 @@ def execute_action(action):
             continue
     
     data = urllib.parse.urlencode(data).encode('ascii')
+    
+    logger.info(data)
 
     response = urllib.request.urlopen(url=call, data=data)
-    
-    logger.info(call)
-    logger.info(data)
     
     html = response.read()
     
