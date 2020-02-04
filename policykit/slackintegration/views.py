@@ -85,7 +85,7 @@ def action(request):
         elif event.get('type') == "member_joined_channel":
             new_action = SlackJoinConversation()
             new_action.community_integration = integration
-            inviter_user = event['inviter']
+            inviter_user = event.get('inviter')
             new_action.author = SlackUser.objects.get(user_id=event['user'])
             new_action.channel = event['channel']
             new_action.save(slack_revert=True, inviter=inviter_user)
