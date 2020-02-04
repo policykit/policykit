@@ -63,6 +63,7 @@ class CommunityAction(PolymorphicModel):
     
     
     
+    
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)
         action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
@@ -211,6 +212,7 @@ class UserVote(models.Model):
                                 models.CASCADE)
     
     value = models.BooleanField(null=True)
+    
     
     
     

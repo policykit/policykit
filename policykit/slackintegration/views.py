@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation
+from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 
@@ -63,15 +63,18 @@ def action(request):
     
     action_type = json_data.get('type')
     
-    if action_type == "event_callback":
+    if action_type == "url_verification":
+        challenge = json_data.get('challenge')
+        return HttpResponse(challenge)
+    elif action_type == "event_callback":
         event = json_data.get('event')
         team_id = json_data.get('team_id')
-#         author_id = json_data.get('authed_users')[0]
-        
         integration = SlackIntegration.objects.get(team_id=team_id)
-        author = SlackUser.objects.all()[0]
-        
+        author = SlackUser.objects.all()[0] # TODO Change this to admin user? Bot user?
+#         author_id = json_data.get('authed_users')[0]
+
         if event.get('type') == "channel_rename":
+            
             new_action = SlackRenameConversation()
             new_action.community_integration = integration
             new_action.author = author
@@ -79,9 +82,15 @@ def action(request):
             new_action.channel = event['channel']['id']
             new_action.save(slack_revert=True)
     
-    elif action_type == "url_verification":
-        challenge = json_data.get('challenge')
-        return HttpResponse(challenge)
+        elif action_type == "member_joined_channel":
+            new_action = SlackJoinConversation()
+            new_action.community_integration = integration
+            inviter_user = event['inviter']
+            new_action.author = author # TODO Change this to "inviter"?
+            new_action.user = event['user']
+            new_action.channel = event['channel']
+            new_action.save(slack_revert=True, inviter=inviter_user)
+    
     
     return HttpResponse("")
     

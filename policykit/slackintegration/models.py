@@ -66,7 +66,7 @@ class SlackRenameConversation(CommunityAction):
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
     
-    def get_channel_info(self):
+    def __get_channel_info(self):
         values = {'token': self.community_integration.access_token,
                 'channel': self.channel
                 }
@@ -79,7 +79,7 @@ class SlackRenameConversation(CommunityAction):
         prev_names = res['channel']['previous_names']
         return prev_names
         
-    def revert(self, prev_name):
+    def __revert(self, prev_name):
         values = {'name': prev_name,
                 'token': self.author.access_token,
                 'channel': self.channel
@@ -93,16 +93,16 @@ class SlackRenameConversation(CommunityAction):
     
     def save(self, slack_revert=False, *args, **kwargs):
         if slack_revert:
-            prev_names = self.get_channel_info()
+            prev_names = self.__get_channel_info()
             
             if len(prev_names) == 1:
-                self.revert(prev_names[0])
+                self.__revert(prev_names[0])
                 super(SlackRenameConversation, self).save(*args, **kwargs)
             
             if len(prev_names) > 1:
                 former_name = prev_names[1]
                 if former_name != self.name:
-                    self.revert(prev_names[0])
+                    self.__revert(prev_names[0])
                     super(SlackRenameConversation, self).save(*args, **kwargs)
         
         
@@ -120,5 +120,24 @@ class SlackJoinConversation(CommunityAction):
     AUTH = 'user'
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
-
+        
+    def __revert(self):
+        values = {'user': self.user,
+                  'token': self.author.access_token,
+                  'channel': self.channel
+                }
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        req = urllib.request.Request('https://slack.com/api/conversations.kick?', data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+    
+    def save(self, slack_revert=False, inviter=None, *args, **kwargs):
+        if slack_revert:
+            if inviter and inviter != "UTE9MFJJ0":
+                self.__revert()
+        
+        super(SlackJoinConversation, self).save(*args, **kwargs)
+            
     
