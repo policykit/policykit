@@ -57,7 +57,7 @@ def execute_action(action):
     res = json.loads(html)
     
     
-    if action.community_post_id:
+    if obj.community_post_id:
         values = {'token': action.author.access_token,
                   'ts': obj.community_post_id,
                   'channel': obj.channel
