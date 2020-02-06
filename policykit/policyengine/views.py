@@ -57,6 +57,20 @@ def execute_action(action):
     res = json.loads(html)
     
     
+    if action.community_post_id:
+        values = {'token': action.author.access_token,
+                  'ts': action.community_post_id,
+                  'channel': action.channel
+                }
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        call_info = community_integration.API + 'chat.delete?'
+        req = urllib.request.Request(call_info, data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+    
+    
     
     if res['ok']:
         from policyengine.models import Policy
