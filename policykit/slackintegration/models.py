@@ -54,6 +54,28 @@ class SlackPostMessage(CommunityAction):
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     
+    def __revert(self, time_stamp):
+        
+        values = {'token': self.author.access_token,
+                  'ts': time_stamp,
+                  'channel': self.channel
+                }
+        
+        logger.info(values)
+        
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        req = urllib.request.Request('https://slack.com/api/chat.delete?', data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+    
+    def save(self, time_stamp=None, poster=None, *args, **kwargs):
+        if time_stamp and poster != 'UTE9MFJJ0':
+            self.__revert(time_stamp)
+        
+        super(SlackPostMessage, self).save(*args, **kwargs)
+    
 class SlackScheduleMessage(CommunityAction):
     ACTION = 'chat.scheduleMessage'
     text = models.TextField()
@@ -117,7 +139,6 @@ class SlackKickConversation(CommunityAction):
 
 class SlackJoinConversation(CommunityAction):
     ACTION = 'conversations.invite'
-#     AUTH = 'user'
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
         
