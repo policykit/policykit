@@ -59,13 +59,13 @@ class SlackPostMessage(CommunityAction):
                   'ts': time_stamp,
                   'channel': self.channel
                 }
-        super(self).__revert(values, SlackIntegration.API + 'chat.delete')
+        super().__revert(values, SlackIntegration.API + 'chat.delete')
     
     def __post_rule(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super(self).__post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().__post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
     
     def save(self, time_stamp=None, poster=None, *args, **kwargs):
@@ -105,13 +105,13 @@ class SlackRenameConversation(CommunityAction):
                 'token': self.author.access_token,
                 'channel': self.channel
                 }
-        super(self).__revert(values, SlackIntegration.API + 'conversations.rename')
+        super().__revert(values, SlackIntegration.API + 'conversations.rename')
     
     def __post_rule(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super(self).__post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().__post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
         
     def save(self, slack_revert=False, *args, **kwargs):
@@ -147,13 +147,13 @@ class SlackJoinConversation(CommunityAction):
                   'token': self.author.access_token,
                   'channel': self.channel
                 }
-        super(self).__revert(values, SlackIntegration.API + 'conversations.kick')
+        super().__revert(values, SlackIntegration.API + 'conversations.kick')
     
     def __post_rule(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super(self).__post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().__post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
         
     
