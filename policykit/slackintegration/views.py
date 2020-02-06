@@ -92,14 +92,15 @@ def action(request):
             new_action.save(slack_revert=True, inviter=inviter_user)
     
         elif event.get('type') == 'message':
-            new_action = SlackPostMessage()
-            new_action.community_integration = integration
-            new_action.author = author
-            new_action.text = event['text']
-            new_action.channel = event['channel']
-            time_stamp = event['ts']
-            poster = event['user']
-            new_action.save(time_stamp=time_stamp, poster=poster)
+            if event.get('subtype') == None:
+                new_action = SlackPostMessage()
+                new_action.community_integration = integration
+                new_action.author = author
+                new_action.text = event['text']
+                new_action.channel = event['channel']
+                time_stamp = event['ts']
+                poster = event['user']
+                new_action.save(time_stamp=time_stamp, poster=poster)
             
     
     return HttpResponse("")
