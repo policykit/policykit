@@ -8,7 +8,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage
-from policyengine.models import ActionPolicy, UserVote
+from policyengine.models import ActionPolicy, UserVote, CommunityAction
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 
@@ -105,9 +105,11 @@ def action(request):
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']
-            action = ActionPolicy.objects.filter(community_post_id=ts)
+            action = CommunityAction.objects.filter(community_post_id=ts)
             if action:
                 action = action[0]
+                policy = ActionPolicy.objects.filter(object_id=action.id)
+                
                 if event['reaction'] == '+1' or event['reaction'] == '-1':
                     if event['reaction'] == '+1':
                         value = True
@@ -115,7 +117,7 @@ def action(request):
                         value = False
                     
                     user = SlackUser.objects.get(user_id=event['user'])
-                    uv, created = UserVote.objects.get_or_create(action=action,
+                    uv, created = UserVote.objects.get_or_create(policy=policy,
                                                                  user=user)
                     uv.value = value
                     uv.save()
