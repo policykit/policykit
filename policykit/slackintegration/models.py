@@ -116,15 +116,15 @@ class SlackKickConversation(CommunityAction):
 
 
 class SlackJoinConversation(CommunityAction):
-    ACTION = 'conversations.join'
+    ACTION = 'conversations.invite'
     AUTH = 'user'
     channel = models.CharField('channel', max_length=150)
+    users = models.CharField('users', max_length=15)
         
     def __revert(self):
         
-        admin_user = SlackUser.objects.all()[0]
-        values = {'user': self.author.user_id,
-                  'token': admin_user.access_token,
+        values = {'user': self.users,
+                  'token': self.author.access_token,
                   'channel': self.channel
                 }
         data = urllib.parse.urlencode(values)
@@ -135,7 +135,7 @@ class SlackJoinConversation(CommunityAction):
         logger.info(res)
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
-        if slack_revert and inviter:
+        if slack_revert and inviter != 'UDD0ZNYMS':
             self.__revert()
         
         super(SlackJoinConversation, self).save(*args, **kwargs)
