@@ -60,12 +60,29 @@ class CommunityAction(PolymorphicModel):
     author = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
+    def __api_call(self, values, call):
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        call_info = call + '?'
+        req = urllib.request.Request(call_info, data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
     
-    
-    
-    
+    def __revert(self, values, call):
+        self.__api_call(values, call)
+        
+    def __post_rule(self, values, call):
+        rule = RulePolicy.objects.filter(community_integration=self.community_integration,
+                                         status=Policy.PASSED)
+        if rule.count() > 0:
+            rule = rule[0]
+            rules_message = "This action is governed by the following rule: " + rule.explanation
+            values['text'] = rules_message
+            self.__api_call(values, call)
+            
     def save(self, *args, **kwargs):      
-        super(CommunityAction, self).save(*args, **kwargs)
+        super(CommunityAction, self).save(*args, **kwargs)        
         action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
                                                       author=self.author,
                                                       status=Policy.PROPOSED,

@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction
+from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction, Policy, RulePolicy
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
@@ -55,24 +55,23 @@ class SlackPostMessage(CommunityAction):
     channel = models.CharField('channel', max_length=150)
     
     def __revert(self, time_stamp):
-        
         values = {'token': self.author.access_token,
                   'ts': time_stamp,
                   'channel': self.channel
                 }
+        super(SlackPostMessage, self).__revert(values, SlackIntegration.API + 'chat.delete')
+    
+    def __post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super(SlackJoinConversation, self).__post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
-        logger.info(values)
-        
-        data = urllib.parse.urlencode(values)
-        data = data.encode('utf-8')
-        req = urllib.request.Request('https://slack.com/api/chat.delete?', data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        logger.info(res)
     
     def save(self, time_stamp=None, poster=None, *args, **kwargs):
         if time_stamp and poster != 'UTE9MFJJ0':
             self.__revert(time_stamp)
+            self.__post_rule()
         
         super(SlackPostMessage, self).save(*args, **kwargs)
     
@@ -106,30 +105,31 @@ class SlackRenameConversation(CommunityAction):
                 'token': self.author.access_token,
                 'channel': self.channel
                 }
-        data = urllib.parse.urlencode(values)
-        data = data.encode('utf-8')
-        req = urllib.request.Request('https://slack.com/api/conversations.rename?', data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        logger.info(res)
+        super(SlackRenameConversation, self).__revert(values, SlackIntegration.API + 'conversations.rename')
     
+    def __post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super(SlackJoinConversation, self).__post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        
+        
     def save(self, slack_revert=False, *args, **kwargs):
         if slack_revert:
             prev_names = self.__get_channel_info()
             
             if len(prev_names) == 1:
                 self.__revert(prev_names[0])
+                self.__post_rule()
                 super(SlackRenameConversation, self).save(*args, **kwargs)
             
             if len(prev_names) > 1:
                 former_name = prev_names[1]
                 if former_name != self.name:
                     self.__revert(prev_names[0])
+                    self.__post_rule()
                     super(SlackRenameConversation, self).save(*args, **kwargs)
         
-        
-        
-    
 class SlackKickConversation(CommunityAction):
     ACTION = 'conversations.kick'
     AUTH = 'user'
@@ -143,24 +143,24 @@ class SlackJoinConversation(CommunityAction):
     users = models.CharField('users', max_length=15)
         
     def __revert(self):
-        
         values = {'user': self.users,
                   'token': self.author.access_token,
                   'channel': self.channel
                 }
+        super(SlackJoinConversation, self).__revert(values, SlackIntegration.API + 'conversations.kick')
+    
+    def __post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super(SlackJoinConversation, self).__post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
-        logger.info(values)
         
-        data = urllib.parse.urlencode(values)
-        data = data.encode('utf-8')
-        req = urllib.request.Request('https://slack.com/api/conversations.kick?', data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        logger.info(res)
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
         if slack_revert and inviter != 'UTE9MFJJ0':
             self.__revert()
+            self.__post_rule()
         
         super(SlackJoinConversation, self).save(*args, **kwargs)
             
