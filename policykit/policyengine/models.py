@@ -85,13 +85,13 @@ class CommunityAction(PolymorphicModel):
             rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = rules_message
             res = self.api_call(values, call)
-            
             self.community_post_id = res['ts']
-            self.save()
-            logger.info(self.id)
+            
             
             
     def save(self, *args, **kwargs):
+        logger.info(self.community_post_id)
+        
         if not self.pk:
             # Runs only when object is new
             super(CommunityAction, self).save(*args, **kwargs)
