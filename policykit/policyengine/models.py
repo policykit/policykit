@@ -88,6 +88,7 @@ class CommunityAction(PolymorphicModel):
             
             self.community_post_id = res['ts']
             self.save()
+            logger.info(self.id)
             
             
     def save(self, *args, **kwargs):
