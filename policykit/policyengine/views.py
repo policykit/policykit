@@ -59,8 +59,8 @@ def execute_action(action):
     
     if action.community_post_id:
         values = {'token': action.author.access_token,
-                  'ts': action.community_post_id,
-                  'channel': action.channel
+                  'ts': obj.community_post_id,
+                  'channel': obj.channel
                 }
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
