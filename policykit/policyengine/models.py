@@ -85,22 +85,27 @@ class CommunityAction(PolymorphicModel):
             rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = rules_message
             res = self.api_call(values, call)
+            
             self.community_post_id = res['ts']
+            self.save()
             
             
-    def save(self, *args, **kwargs):      
-        super(CommunityAction, self).save(*args, **kwargs)        
-        action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Runs only when object is new
+            super(CommunityAction, self).save(*args, **kwargs)
+            action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
                                                       author=self.author,
                                                       status=Policy.PROPOSED,
                                                       content_type=self.polymorphic_ctype,
                                                       object_id=self.id,
                                                       action=ActionPolicy.ADD,
                                                       )
+
+        else:   
+            super(CommunityAction, self).save(*args, **kwargs) 
         
-    
-
-
+        
 class Policy(PolymorphicModel):
     community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
