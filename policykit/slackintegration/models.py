@@ -127,6 +127,9 @@ class SlackJoinConversation(CommunityAction):
                   'token': self.author.access_token,
                   'channel': self.channel
                 }
+        
+        logger.info(values)
+        
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
         req = urllib.request.Request('https://slack.com/api/conversations.kick?', data)
@@ -136,6 +139,7 @@ class SlackJoinConversation(CommunityAction):
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
         if slack_revert and inviter != 'UDD0ZNYMS':
+            logger.info('here3')
             self.__revert()
         
         super(SlackJoinConversation, self).save(*args, **kwargs)
