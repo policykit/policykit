@@ -80,7 +80,7 @@ class CommunityAction(PolymorphicModel):
             rule = rule[0]
             rules_message = "This action is governed by the following rule: " + rule.explanation
             values['text'] = rules_message
-            self.__api_call(values, call)
+            self.api_call(values, call)
             
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)        
