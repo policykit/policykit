@@ -54,24 +54,24 @@ class SlackPostMessage(CommunityAction):
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     
-    def __revert(self, time_stamp):
+    def revert(self, time_stamp):
         values = {'token': self.author.access_token,
                   'ts': time_stamp,
                   'channel': self.channel
                 }
-        super().__revert(values, SlackIntegration.API + 'chat.delete')
+        super().revert(values, SlackIntegration.API + 'chat.delete')
     
-    def __post_rule(self):
+    def post_rule(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().__post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
     
     def save(self, time_stamp=None, poster=None, *args, **kwargs):
         if time_stamp and poster != 'UTE9MFJJ0':
-            self.__revert(time_stamp)
-            self.__post_rule()
+            self.revert(time_stamp)
+            self.post_rule()
         
         super(SlackPostMessage, self).save(*args, **kwargs)
     
@@ -87,7 +87,7 @@ class SlackRenameConversation(CommunityAction):
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
     
-    def __get_channel_info(self):
+    def get_channel_info(self):
         values = {'token': self.community_integration.access_token,
                 'channel': self.channel
                 }
@@ -100,34 +100,34 @@ class SlackRenameConversation(CommunityAction):
         prev_names = res['channel']['previous_names']
         return prev_names
         
-    def __revert(self, prev_name):
+    def revert(self, prev_name):
         values = {'name': prev_name,
                 'token': self.author.access_token,
                 'channel': self.channel
                 }
-        super().__revert(values, SlackIntegration.API + 'conversations.rename')
+        super().revert(values, SlackIntegration.API + 'conversations.rename')
     
-    def __post_rule(self):
+    def post_rule(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().__post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
         
     def save(self, slack_revert=False, *args, **kwargs):
         if slack_revert:
-            prev_names = self.__get_channel_info()
+            prev_names = self.get_channel_info()
             
             if len(prev_names) == 1:
-                self.__revert(prev_names[0])
-                self.__post_rule()
+                self.revert(prev_names[0])
+                self.post_rule()
                 super(SlackRenameConversation, self).save(*args, **kwargs)
             
             if len(prev_names) > 1:
                 former_name = prev_names[1]
                 if former_name != self.name:
-                    self.__revert(prev_names[0])
-                    self.__post_rule()
+                    self.revert(prev_names[0])
+                    self.post_rule()
                     super(SlackRenameConversation, self).save(*args, **kwargs)
         
 class SlackKickConversation(CommunityAction):
@@ -142,25 +142,23 @@ class SlackJoinConversation(CommunityAction):
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
         
-    def __revert(self):
+    def revert(self):
         values = {'user': self.users,
                   'token': self.author.access_token,
                   'channel': self.channel
                 }
-        super().__revert(values, SlackIntegration.API + 'conversations.kick')
+        super().revert(values, SlackIntegration.API + 'conversations.kick')
     
-    def __post_rule(self):
+    def post_rule(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().__post_rule(values, SlackIntegration.API + 'chat.postMessage')
-        
-        
+        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
         if slack_revert and inviter != 'UTE9MFJJ0':
-            self.__revert()
-            self.__post_rule()
+            self.revert()
+            self.post_rule()
         
         super(SlackJoinConversation, self).save(*args, **kwargs)
             

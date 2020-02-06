@@ -60,7 +60,8 @@ class CommunityAction(PolymorphicModel):
     author = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
-    def __api_call(self, values, call):
+    
+    def api_call(self, values, call):
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
         call_info = call + '?'
@@ -69,10 +70,10 @@ class CommunityAction(PolymorphicModel):
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
     
-    def __revert(self, values, call):
-        self.__api_call(values, call)
+    def revert(self, values, call):
+        self.api_call(values, call)
         
-    def __post_rule(self, values, call):
+    def post_rule(self, values, call):
         rule = RulePolicy.objects.filter(community_integration=self.community_integration,
                                          status=Policy.PASSED)
         if rule.count() > 0:
