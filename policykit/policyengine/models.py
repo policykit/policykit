@@ -78,7 +78,7 @@ class CommunityAction(PolymorphicModel):
                                          status=Policy.PASSED)
         if rule.count() > 0:
             rule = rule[0]
-            rules_message = "This action is governed by the following rule: " + rule.explanation
+            rules_message = str(self.id) + ": this action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: to pass this action.'
             values['text'] = rules_message
             self.api_call(values, call)
             

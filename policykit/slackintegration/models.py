@@ -68,12 +68,12 @@ class SlackPostMessage(CommunityAction):
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
         
     
-    def save(self, time_stamp=None, poster=None, *args, **kwargs):
+    def save(self, time_stamp=None, poster=None, *args, **kwargs): 
         if time_stamp and poster != 'UTE9MFJJ0':
+            super(SlackPostMessage, self).save(*args, **kwargs)
             self.revert(time_stamp)
             self.post_rule()
         
-        super(SlackPostMessage, self).save(*args, **kwargs)
     
 class SlackScheduleMessage(CommunityAction):
     ACTION = 'chat.scheduleMessage'
@@ -117,18 +117,17 @@ class SlackRenameConversation(CommunityAction):
     def save(self, slack_revert=False, *args, **kwargs):
         if slack_revert:
             prev_names = self.get_channel_info()
-            
             if len(prev_names) == 1:
+                super(SlackRenameConversation, self).save(*args, **kwargs)
                 self.revert(prev_names[0])
                 self.post_rule()
-                super(SlackRenameConversation, self).save(*args, **kwargs)
             
             if len(prev_names) > 1:
                 former_name = prev_names[1]
                 if former_name != self.name:
+                    super(SlackRenameConversation, self).save(*args, **kwargs)
                     self.revert(prev_names[0])
                     self.post_rule()
-                    super(SlackRenameConversation, self).save(*args, **kwargs)
         
 class SlackKickConversation(CommunityAction):
     ACTION = 'conversations.kick'
@@ -157,9 +156,10 @@ class SlackJoinConversation(CommunityAction):
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
         if slack_revert and inviter != 'UTE9MFJJ0':
+            super(SlackJoinConversation, self).save(*args, **kwargs)
             self.revert()
             self.post_rule()
         
-        super(SlackJoinConversation, self).save(*args, **kwargs)
+        
             
     
