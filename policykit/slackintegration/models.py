@@ -117,7 +117,7 @@ class SlackKickConversation(CommunityAction):
 
 class SlackJoinConversation(CommunityAction):
     ACTION = 'conversations.invite'
-    AUTH = 'user'
+#     AUTH = 'user'
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
         
