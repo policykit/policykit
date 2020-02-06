@@ -60,6 +60,9 @@ class CommunityAction(PolymorphicModel):
     author = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
+    community_post_id = models.CharField('community_post_id', 
+                                         max_length=300)
+    
     
     def api_call(self, values, call):
         data = urllib.parse.urlencode(values)
@@ -69,18 +72,21 @@ class CommunityAction(PolymorphicModel):
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
+        return res
     
     def revert(self, values, call):
-        self.api_call(values, call)
+        _ = self.api_call(values, call)
         
     def post_rule(self, values, call):
         rule = RulePolicy.objects.filter(community_integration=self.community_integration,
                                          status=Policy.PASSED)
         if rule.count() > 0:
             rule = rule[0]
-            rules_message = str(self.id) + ": this action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: to pass this action.'
+            rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = rules_message
-            self.api_call(values, call)
+            res = self.api_call(values, call)
+            self.community_post_id = res['ts']
+            
             
     def save(self, *args, **kwargs):      
         super(CommunityAction, self).save(*args, **kwargs)        
