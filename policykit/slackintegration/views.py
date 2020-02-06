@@ -109,18 +109,19 @@ def action(request):
             if action:
                 action = action[0]
                 policy = ActionPolicy.objects.filter(object_id=action.id)
-                
-                if event['reaction'] == '+1' or event['reaction'] == '-1':
-                    if event['reaction'] == '+1':
-                        value = True
-                    elif event['reaction'] == '-1':
-                        value = False
-                    
-                    user = SlackUser.objects.get(user_id=event['user'])
-                    uv, created = UserVote.objects.get_or_create(policy=policy,
-                                                                 user=user)
-                    uv.value = value
-                    uv.save()
+                if policy:
+                    policy = policy[0]
+                    if event['reaction'] == '+1' or event['reaction'] == '-1':
+                        if event['reaction'] == '+1':
+                            value = True
+                        elif event['reaction'] == '-1':
+                            value = False
+                        
+                        user = SlackUser.objects.get(user_id=event['user'])
+                        uv, created = UserVote.objects.get_or_create(policy=policy,
+                                                                     user=user)
+                        uv.value = value
+                        uv.save()
     
     return HttpResponse("")
     
