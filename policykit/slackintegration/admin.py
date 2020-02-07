@@ -15,7 +15,6 @@ from slackintegration.models import *
 
 class SlackPostMessageAdmin(admin.ModelAdmin):
     pass
-
 admin_site.register(SlackPostMessage, SlackPostMessageAdmin)
 
 class SlackScheduleMessageAdmin(admin.ModelAdmin):

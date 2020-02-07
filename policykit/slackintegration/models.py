@@ -11,7 +11,8 @@ SLACK_ACTIONS = ['slackpostmessage',
                  'slackschedulemessage', 
                  'slackrenameconversation',
                  'slackkickconversation',
-                 'slackjoinconversation'
+                 'slackjoinconversation',
+                 'slackpinmessage'
                  ]
 
 class SlackIntegration(CommunityIntegration):
