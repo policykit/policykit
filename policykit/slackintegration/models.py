@@ -167,6 +167,17 @@ class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
+
+    def post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super().post_rule(values, SlackIntegration.API + 'pins.add')
+        
+    
+    def save(self, *args, **kwargs): 
+        self.post_rule()
+        super(SlackPostMessage, self).save(*args, **kwargs)
             
         
         
