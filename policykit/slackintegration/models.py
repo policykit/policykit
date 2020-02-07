@@ -165,8 +165,14 @@ class SlackJoinConversation(CommunityAction):
 
 class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
-    text = models.TextField()
     channel = models.CharField('channel', max_length=150)
+    timestamp = models.IntegerField('timestamp')
+
+    def revert(self):
+        values = {'token': self.author.access_token,
+                  'channel': self.channel
+                }
+        super().revert(values, SlackIntegration.API + 'chat.delete')
 
     def post_rule(self):
         values = {'channel': self.channel,
