@@ -160,6 +160,12 @@ class SlackJoinConversation(CommunityAction):
             self.revert()
             self.post_rule()
             super(SlackJoinConversation, self).save(*args, **kwargs)
+
+
+class SlackPinMessage(CommunityAction):
+    ACTION = 'pins.add'
+    text = models.TextField()
+    channel = models.CharField('channel', max_length=150)
             
         
         

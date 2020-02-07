@@ -34,3 +34,7 @@ class SlackJoinConversationAdmin(admin.ModelAdmin):
     pass
 admin_site.register(SlackJoinConversation, SlackJoinConversationAdmin)
 
+class SlackPinMessage(admin.ModelAdmin):
+    pass
+admin_site.register(SlackPinMessage, SlackPinMessageAdmin)
+
