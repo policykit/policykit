@@ -176,7 +176,7 @@ class SlackPinMessage(CommunityAction):
 
     def post_rule(self):
         values = {'channel': self.channel,
-                  'token': self.author.access_token
+                  'token': self.community_integration.access_token
                   }
         super().post_rule(values, SlackIntegration.API + 'pins.add')
     
