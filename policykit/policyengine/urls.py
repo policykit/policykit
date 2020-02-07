@@ -1,5 +1,5 @@
 from django.urls import path
-from govrules import views
+from policyengine import views
 
 
 urlpatterns = [

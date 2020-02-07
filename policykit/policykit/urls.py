@@ -1,4 +1,4 @@
-"""govbox URL Configuration
+"""policykit URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -16,11 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include
-from govrules.admin import admin_site
+from policyengine.admin import admin_site
 
 urlpatterns = [
     path('', admin_site.urls),
-    path('govrules/', include('govrules.urls')),
+    path('policyengine/', include('policyengine.urls')),
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls'))
 ]

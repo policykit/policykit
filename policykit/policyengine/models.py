@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from govrules.views import *
+from policyengine.views import *
 
 
 class CommunityIntegration(PolymorphicModel):
@@ -22,6 +22,12 @@ class CommunityUser(User, PolymorphicModel):
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
+    
+        
+    access_token = models.CharField('access_token', 
+                                     max_length=300, 
+                                     unique=True)
+    
         
     def save(self, *args, **kwargs):      
         super(User, self).save(*args, **kwargs)
@@ -30,9 +36,23 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
         
+        p3 = Permission.objects.get(name='Can add user vote')
+        p4 = Permission.objects.get(name='Can change user vote')
+        p5 = Permission.objects.get(name='Can delete user vote')
+        p6 = Permission.objects.get(name='Can view user vote')
+        self.user_permissions.add(p3)
+        self.user_permissions.add(p4)
+        self.user_permissions.add(p5)
+        self.user_permissions.add(p6)
+        
+    def __str__(self):
+        return self.readable_name + '@' + self.community_integration.community_name
+        
+        
         
 class CommunityAction(PolymorphicModel):
     ACTION = None
+    AUTH = 'app'
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
@@ -40,20 +60,54 @@ class CommunityAction(PolymorphicModel):
     author = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
-    def save(self, *args, **kwargs):      
-        super(CommunityAction, self).save(*args, **kwargs)
-        action_measure = ActionMeasure.objects.create(community_integration=self.community_integration,
+    community_post_id = models.CharField('community_post_id', 
+                                         max_length=300)
+    
+    
+    def api_call(self, values, call):
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        call_info = call + '?'
+        req = urllib.request.Request(call_info, data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+        return res
+    
+    def revert(self, values, call):
+        _ = self.api_call(values, call)
+        
+    def post_rule(self, values, call):
+        rule = RulePolicy.objects.filter(community_integration=self.community_integration,
+                                         status=Policy.PASSED)
+        if rule.count() > 0:
+            rule = rule[0]
+            rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+            values['text'] = rules_message
+            res = self.api_call(values, call)
+            self.community_post_id = res['ts']
+            
+            
+            
+    def save(self, *args, **kwargs):
+        logger.info(self.community_post_id)
+        
+        if not self.pk:
+            # Runs only when object is new
+            super(CommunityAction, self).save(*args, **kwargs)
+            action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
                                                       author=self.author,
-                                                      status=Measure.PROPOSED,
+                                                      status=Policy.PROPOSED,
                                                       content_type=self.polymorphic_ctype,
                                                       object_id=self.id,
-                                                      action=ActionMeasure.ADD,
+                                                      action=ActionPolicy.ADD,
                                                       )
+
+        else:   
+            super(CommunityAction, self).save(*args, **kwargs) 
         
-    
-
-
-class Measure(PolymorphicModel):
+        
+class Policy(PolymorphicModel):
     community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
         verbose_name='community_integration',
@@ -65,6 +119,8 @@ class Measure(PolymorphicModel):
         verbose_name='author', 
         blank=True
     )
+    
+    proposal_time = models.DateTimeField(auto_now_add=True)
     
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -79,11 +135,11 @@ class Measure(PolymorphicModel):
     status = models.CharField(choices=STATUS, max_length=10)
     
     
-class ProcessMeasure(Measure):    
+class ProcessPolicy(Policy):    
     process_code = models.TextField()
     explanation = models.TextField(null=True, blank=True)
     
-    # if this condition is met, then the RuleMeasure status is set to passed
+    # if this condition is met, then the RulePolicy status is set to passed
     
     class Meta:
         verbose_name = 'process'
@@ -95,7 +151,7 @@ class ProcessMeasure(Measure):
     
     
     
-class RuleMeasure(Measure):
+class RulePolicy(Policy):
     rule_code = models.TextField(null=True, blank=True)
     
     rule_text = models.TextField(null=True, blank=True)
@@ -118,19 +174,19 @@ class RuleMeasure(Measure):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            process = ProcessMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration)
-            self.status = Measure.PROPOSED
+            process = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration)
+            self.status = Policy.PROPOSED
             
-            super(RuleMeasure, self).save(*args, **kwargs)
+            super(RulePolicy, self).save(*args, **kwargs)
             
             if process.exists():
                 exec(process[0].process_code)
 
         else:   
-            super(RuleMeasure, self).save(*args, **kwargs)
+            super(RulePolicy, self).save(*args, **kwargs)
     
     
-class ActionMeasure(Measure):
+class ActionPolicy(Policy):
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
@@ -164,18 +220,16 @@ class ActionMeasure(Measure):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            self.status = Measure.PROPOSED
+            self.status = Policy.PROPOSED
             
-            super(ActionMeasure, self).save(*args, **kwargs)
+            super(ActionPolicy, self).save(*args, **kwargs)
             
-            for rule in RuleMeasure.objects.filter(status=Measure.PASSED, community_integration=self.community_integration):
+            action = self
+            for rule in RulePolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
-                
-            if self.status == Measure.PASSED:
-                self.delete()
 
         else:   
-            super(ActionMeasure, self).save(*args, **kwargs)
+            super(ActionPolicy, self).save(*args, **kwargs)
         
         
 
@@ -184,10 +238,11 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser,
                               models.CASCADE)
     
-    measure = models.ForeignKey(Measure,
+    policy = models.ForeignKey(Policy,
                                 models.CASCADE)
     
     value = models.BooleanField(null=True)
+    
     
     
     
