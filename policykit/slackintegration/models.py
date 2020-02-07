@@ -177,7 +177,7 @@ class SlackPinMessage(CommunityAction):
     
     def save(self, *args, **kwargs): 
         self.post_rule()
-        super(SlackPostMessage, self).save(*args, **kwargs)
+        super(SlackPinMessage, self).save(*args, **kwargs)
             
         
         
