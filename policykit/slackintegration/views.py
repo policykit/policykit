@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage
+from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
 from policyengine.models import ActionPolicy, UserVote, CommunityAction
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
@@ -108,6 +108,13 @@ def action(request):
                 time_stamp = event['ts']
                 poster = event['user']
                 new_action.save(time_stamp=time_stamp, poster=poster)
+
+        elif event.get('type') == 'pin_added':
+            new_action = SlackPinMessage()
+            new_action.community_integration = integration
+            new_action.author = author
+            new_action.channel = event['channel']['id']
+            new_action.save()
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']

@@ -169,7 +169,7 @@ class SlackPinMessage(CommunityAction):
     timestamp = models.IntegerField('timestamp')
 
     def revert(self):
-        values = {'token': self.author.access_token,
+        values = {'token': self.community_integration.access_token,
                   'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
