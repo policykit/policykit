@@ -59,7 +59,7 @@ def oauth(request):
         logger.info("CANCEL")
         return response
         
-    response = redirect('/')
+    response = redirect('/login?success=true')
     return response
 
 
