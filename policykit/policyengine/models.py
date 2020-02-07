@@ -44,6 +44,9 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p4)
         self.user_permissions.add(p5)
         self.user_permissions.add(p6)
+
+        p7 = Permission.objects.get(name='Can add slack pin message')
+        self.user_permissions.add(p7)
         
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
