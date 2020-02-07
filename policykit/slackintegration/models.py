@@ -183,6 +183,8 @@ class SlackPinMessage(CommunityAction):
     
     def save(self, time_stamp=None, *args, **kwargs):
         if time_stamp:
+            logger.info("TIME STAMP TIME STAMP TIME STAMP")
+            logger.info(time_stamp)
             self.revert(time_stamp)
             self.post_rule()
             super(SlackPinMessage, self).save(*args, **kwargs)
