@@ -116,8 +116,8 @@ def action(request):
             new_action.channel = event['channel_id']
             # need to change this
             new_action.timestamp = 0
-            timestamp = event['event_ts']
-            new_action.save(timestamp)
+            time_stamp = event['event_ts']
+            new_action.save(time_stamp=time_stamp)
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']
