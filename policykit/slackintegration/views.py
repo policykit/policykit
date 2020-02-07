@@ -113,7 +113,8 @@ def action(request):
             new_action = SlackPinMessage()
             new_action.community_integration = integration
             new_action.author = author
-            new_action.channel = event['channel']['id']
+            new_action.channel = event['channel_id']
+            # also have 'event_ts' field for timestamp
             new_action.save()
             
         elif event.get('type') == 'reaction_added':
