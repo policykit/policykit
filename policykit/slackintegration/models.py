@@ -172,7 +172,7 @@ class SlackPinMessage(CommunityAction):
         values = {'token': self.author.access_token,
                   'channel': self.channel
                 }
-        super().revert(values, SlackIntegration.API + 'chat.delete')
+        super().revert(values, SlackIntegration.API + 'pins.remove')
 
     def post_rule(self):
         values = {'channel': self.channel,
@@ -181,7 +181,8 @@ class SlackPinMessage(CommunityAction):
         super().post_rule(values, SlackIntegration.API + 'pins.add')
         
     
-    def save(self, *args, **kwargs): 
+    def save(self, *args, **kwargs):
+        self.revert()
         self.post_rule()
         super(SlackPinMessage, self).save(*args, **kwargs)
             
