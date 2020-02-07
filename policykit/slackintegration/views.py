@@ -114,8 +114,10 @@ def action(request):
             new_action.community_integration = integration
             new_action.author = author
             new_action.channel = event['channel_id']
-            new_action.timestamp = event['event_ts']
-            new_action.save()
+            # need to change this
+            new_action.timestamp = 0
+            timestamp = event['event_ts']
+            new_action.save(timestamp)
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']
