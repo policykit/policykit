@@ -118,7 +118,7 @@ def action(request):
             new_action.timestamp = 0
             logger.info("ITEM ITEM ITEM")
             logger.info(event['item'])
-            time_stamp = event['item']['ts']
+            time_stamp = event['item']['message']['ts']
             new_action.save(time_stamp=time_stamp)
             
         elif event.get('type') == 'reaction_added':
