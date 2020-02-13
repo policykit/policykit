@@ -45,6 +45,7 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p5)
         self.user_permissions.add(p6)
 
+        # TODO: Do this in Django Shell instead
         p7 = Permission.objects.get(name='Can add slack pin message')
         self.user_permissions.add(p7)
         
@@ -86,8 +87,10 @@ class CommunityAction(PolymorphicModel):
     def post_rule(self, values, call):
         rule = RulePolicy.objects.filter(community_integration=self.community_integration,
                                          status=Policy.PASSED)
+
         if rule.count() > 0:
             rule = rule[0]
+            # need more descriptive message
             rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = rules_message
             res = self.api_call(values, call)

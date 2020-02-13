@@ -10,8 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 def execute_action(action):
-    
-
     logger.info('here')
     
     community_integration = action.community_integration
