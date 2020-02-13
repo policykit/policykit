@@ -168,12 +168,11 @@ class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)
-    timestamp = float(timestamp)
 
     def revert(self):
         values = {'token': self.community_integration.access_token,
                   'channel': self.channel,
-                  'timestamp': timestamp
+                  'timestamp': float(self.timestamp)
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
@@ -184,7 +183,7 @@ class SlackPinMessage(CommunityAction):
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, *args, **kwargs):
-        if timestamp:
+        if self.timestamp:
             self.revert()
             self.post_rule()
             super(SlackPinMessage, self).save(*args, **kwargs)
