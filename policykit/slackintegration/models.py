@@ -172,7 +172,7 @@ class SlackPinMessage(CommunityAction):
     def revert(self):
         values = {'token': self.community_integration.access_token,
                   'channel': self.channel,
-                  'timestamp': float(self.timestamp)
+                  'timestamp': self.timestamp
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
