@@ -167,7 +167,8 @@ class SlackJoinConversation(CommunityAction):
 class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
     channel = models.CharField('channel', max_length=150)
-    timestamp = float(models.CharField('timestamp'))
+    timestamp = models.CharField('timestamp', max_length=150)
+    timestamp = float(timestamp)
 
     def revert(self):
         values = {'token': self.community_integration.access_token,
