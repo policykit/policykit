@@ -56,7 +56,6 @@ def oauth(request):
     else:
         # error message stating that the sign-in/add-to-slack didn't work
         response = redirect('/login?error=cancel')
-        logger.info("CANCEL")
         return response
         
     response = redirect('/login?success=true')

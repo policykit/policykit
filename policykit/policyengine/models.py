@@ -65,7 +65,7 @@ class CommunityAction(PolymorphicModel):
     
     
     def api_call(self, values, call):
-        logger.info("CALL CALL CALL")
+        logger.info("COMMUNITY ACTION API CALL")
         logger.info(call)
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
@@ -73,7 +73,7 @@ class CommunityAction(PolymorphicModel):
         req = urllib.request.Request(call_info, data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
-        logger.info("RES RES RES")
+        logger.info("COMMUNITY ACTION API RESPONSE")
         logger.info(res)
         return res
     

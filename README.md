@@ -5,10 +5,9 @@
 
 Put `CLIENT_SECRET = ""` in settings.py
 
-`python manage.py runserver`
+`python3 manage.py runserver`
 
-Migrations
+Run Migrations
 
 Had issue with LOGGING filename...
-
-Unable to open configuration file thing...
+Need to change where debug log goes or create folder /var/log/django
