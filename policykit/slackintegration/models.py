@@ -180,8 +180,8 @@ class SlackPinMessage(CommunityAction):
                   }
         super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
     
-    def save(self, *args, **kwargs):
-        if self.timestamp:
+    def save(self, user=None, *args, **kwargs):
+        if self.timestamp and user != 'UTE9MFJJ0':
             self.revert()
             self.post_rule()
             super(SlackPinMessage, self).save(*args, **kwargs)
