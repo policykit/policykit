@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage
+from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
 from policyengine.models import ActionPolicy, UserVote, CommunityAction
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
@@ -32,28 +32,33 @@ def oauth(request):
     
     logger.info(res)
     
-    if state =="user": 
-        user = authenticate(request, oauth=res)
-        if user:
-            login(request, user)
-            
-    elif state == "app":
-        s = SlackIntegration.objects.filter(team_id=res['team']['id'])
-        user_group,_ = Group.objects.get_or_create(name="Slack")
-        if not s.exists():
-            _ = SlackIntegration.objects.create(
-                community_name=res['team']['name'],
-                team_id=res['team']['id'],
-                access_token=res['access_token'],
-                user_group=user_group
-                )
-        else:
-            s[0].community_name = res['team']['name']
-            s[0].team_id = res['team']['id']
-            s[0].access_token = res['access_token']
-            s[0].save()
+    if res['ok']:
+        if state =="user": 
+            user = authenticate(request, oauth=res)
+            if user:
+                login(request, user)
+                
+        elif state == "app":
+            s = SlackIntegration.objects.filter(team_id=res['team']['id'])
+            user_group,_ = Group.objects.get_or_create(name="Slack")
+            if not s.exists():
+                _ = SlackIntegration.objects.create(
+                    community_name=res['team']['name'],
+                    team_id=res['team']['id'],
+                    access_token=res['access_token'],
+                    user_group=user_group
+                    )
+            else:
+                s[0].community_name = res['team']['name']
+                s[0].team_id = res['team']['id']
+                s[0].access_token = res['access_token']
+                s[0].save()
+    else:
+        # error message stating that the sign-in/add-to-slack didn't work
+        response = redirect('/login?error=cancel')
+        return response
         
-    response = redirect('/')
+    response = redirect('/login?success=true')
     return response
 
 
@@ -102,6 +107,15 @@ def action(request):
                 time_stamp = event['ts']
                 poster = event['user']
                 new_action.save(time_stamp=time_stamp, poster=poster)
+
+        elif event.get('type') == 'pin_added':
+            new_action = SlackPinMessage()
+            new_action.community_integration = integration
+            new_action.author = author
+            new_action.channel = event['channel_id']
+            new_action.timestamp = event['item']['message']['ts']
+            user = event['user']
+            new_action.save(user=user)
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']

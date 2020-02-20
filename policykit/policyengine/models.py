@@ -65,12 +65,15 @@ class CommunityAction(PolymorphicModel):
     
     
     def api_call(self, values, call):
+        logger.info("COMMUNITY ACTION API CALL")
+        logger.info(call)
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
         call_info = call + '?'
         req = urllib.request.Request(call_info, data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
+        logger.info("COMMUNITY ACTION API RESPONSE")
         logger.info(res)
         return res
     
@@ -80,14 +83,14 @@ class CommunityAction(PolymorphicModel):
     def post_rule(self, values, call):
         rule = RulePolicy.objects.filter(community_integration=self.community_integration,
                                          status=Policy.PASSED)
+
         if rule.count() > 0:
             rule = rule[0]
+            # need more descriptive message
             rules_message = "This action is governed by the following rule: " + rule.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = rules_message
             res = self.api_call(values, call)
-            self.community_post_id = res['ts']
-            
-            
+            self.community_post_id = res['ts']         
             
     def save(self, *args, **kwargs):
         logger.info(self.community_post_id)

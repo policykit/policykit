@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 def execute_action(action):
-    
-
     logger.info('here')
+    logger.info('EXECUTING ACTION BELOW:')
+    logger.info(action)
     
     community_integration = action.community_integration
     
@@ -20,7 +20,7 @@ def execute_action(action):
     call = community_integration.API + obj.ACTION
     
     logger.info(call)
-    
+
     
     obj_fields = []
     for f in obj._meta.get_fields():
