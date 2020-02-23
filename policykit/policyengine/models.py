@@ -109,7 +109,7 @@ class CommunityAction(PolymorphicModel):
         
        
         
-class Policy(PolymorphicModel):
+class BasePolicy(models.Model):
     community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,
         verbose_name='community_integration',
@@ -138,8 +138,11 @@ class Policy(PolymorphicModel):
     
     data_store = models.TextField()
     
+    class Meta:
+        abstract = True
     
-class ProcessPolicy(Policy):    
+    
+class ProcessPolicy(BasePolicy):    
     process_code = models.TextField()
     explanation = models.TextField(null=True, blank=True)
     
@@ -155,7 +158,7 @@ class ProcessPolicy(Policy):
     
     
     
-class CommunityPolicy(Policy):
+class CommunityPolicy(BasePolicy):
     rule_code = models.TextField(null=True, blank=True)
     
     rule_text = models.TextField(null=True, blank=True)
@@ -178,8 +181,8 @@ class CommunityPolicy(Policy):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            process = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration)
-            self.status = Policy.PROPOSED
+            process = ProcessPolicy.objects.filter(status=BasePolicy.PASSED, community_integration=self.community_integration)
+            self.status = BasePolicy.PROPOSED
             
             super(CommunityPolicy, self).save(*args, **kwargs)
             
@@ -190,7 +193,7 @@ class CommunityPolicy(Policy):
             super(CommunityPolicy, self).save(*args, **kwargs)
     
     
-class ActionPolicy(Policy):
+class ActionPolicy(BasePolicy):
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
@@ -209,12 +212,12 @@ class ActionPolicy(Policy):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            self.status = Policy.PROPOSED
+            self.status = BasePolicy.PROPOSED
             
             super(ActionPolicy, self).save(*args, **kwargs)
             
             action = self
-            for rule in CommunityPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration):
+            for rule in CommunityPolicy.objects.filter(status=BasePolicy.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
 
         else:   
@@ -257,7 +260,7 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser,
                               models.CASCADE)
     
-    policy = models.ForeignKey(Policy,
+    community_policy = models.ForeignKey(CommunityPolicy,
                                 models.CASCADE)
     
     boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected

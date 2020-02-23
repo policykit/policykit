@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import CommunityIntegration, ProcessPolicy, CommunityPolicy, ActionPolicy, Policy, UserVote
+from policyengine.models import CommunityIntegration, ProcessPolicy, CommunityPolicy, ActionPolicy, BasePolicy, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -36,9 +36,9 @@ class PolicyAdminSite(AdminSite):
         user = request.user
         community_integration = user.community_integration
         
-        passed_processes = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
+        passed_processes = ProcessPolicy.objects.filter(status=BasePolicy.PASSED, community_integration=community_integration)
 
-        passed_rules = CommunityPolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
+        passed_rules = CommunityPolicy.objects.filter(status=BasePolicy.PASSED, community_integration=community_integration)
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
@@ -62,7 +62,7 @@ class ProcessAdmin(admin.ModelAdmin):
         if not change:
             obj.author = request.user
             obj.community_integration = request.user.community_integration
-            obj.status = Policy.PROPOSED
+            obj.status = BasePolicy.PROPOSED
         obj.save()
 
 admin_site.register(ProcessPolicy, ProcessAdmin)
@@ -74,7 +74,7 @@ class CommunityAdmin(admin.ModelAdmin):
         if not change:
             obj.author = request.user
             obj.community_integration = request.user.community_integration
-            obj.status = Policy.PROPOSED
+            obj.status = BasePolicy.PROPOSED
         obj.save()
 
 admin_site.register(CommunityPolicy, CommunityAdmin)
