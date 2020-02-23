@@ -222,33 +222,33 @@ class ActionPolicy(Policy):
         
         
         
- 
-class ActionBundle(models.Model):
-    
-    actions = models.ManyToManyField(ActionPolicy, 
-                                     models.CASCADE, 
-                                     verbose_name="actions")
-    
-    community_integration = models.ForeignKey(CommunityIntegration,
-                                   models.CASCADE)
-    
-    author = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
-    
-    
-    def save(self, *args, **kwargs):        
-        if not self.pk:
-            # Runs only when object is new
-            super(ActionBundle, self).save(*args, **kwargs)
-            action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
-                                                      author=self.author,
-                                                      status=Policy.PROPOSED,
-                                                      content_type=self.polymorphic_ctype,
-                                                      object_id=self.id
-                                                      )
-
-        else:   
-            super(ActionBundle, self).save(*args, **kwargs) 
+#  
+# class ActionBundle(models.Model):
+#     
+#     actions = models.ManyToManyField(ActionPolicy, 
+#                                      models.CASCADE, 
+#                                      verbose_name="actions")
+#     
+#     community_integration = models.ForeignKey(CommunityIntegration,
+#                                    models.CASCADE)
+#     
+#     author = models.ForeignKey(CommunityUser,
+#                                 models.CASCADE)
+#     
+#     
+#     def save(self, *args, **kwargs):        
+#         if not self.pk:
+#             # Runs only when object is new
+#             super(ActionBundle, self).save(*args, **kwargs)
+#             action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
+#                                                       author=self.author,
+#                                                       status=Policy.PROPOSED,
+#                                                       content_type=self.polymorphic_ctype,
+#                                                       object_id=self.id
+#                                                       )
+# 
+#         else:   
+#             super(ActionBundle, self).save(*args, **kwargs) 
     
         
 
