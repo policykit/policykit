@@ -5,7 +5,7 @@ backcall==0.1.0
 billiard==3.6.1.0
 celery==4.4.0
 decorator==4.4.1
-Django==3.0
+Django==3.0.3
 django-celery-beat==1.5.0
 django-celery-results==1.1.2
 django-polymorphic==2.1.2
@@ -19,7 +19,6 @@ more-itertools==8.1.0
 parso==0.5.2
 pexpect==4.7.0
 pickleshare==0.7.5
-pkg-resources==0.0.0
 prompt-toolkit==3.0.2
 ptyprocess==0.6.0
 Pygments==2.5.2

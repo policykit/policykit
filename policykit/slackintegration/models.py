@@ -11,7 +11,8 @@ SLACK_ACTIONS = ['slackpostmessage',
                  'slackschedulemessage', 
                  'slackrenameconversation',
                  'slackkickconversation',
-                 'slackjoinconversation'
+                 'slackjoinconversation',
+                 'slackpinmessage'
                  ]
 
 class SlackIntegration(CommunityIntegration):
@@ -30,8 +31,7 @@ class SlackIntegration(CommunityIntegration):
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.user_group.permissions.add(p)
-    
-
+            
 
 class SlackUser(CommunityUser):
     
@@ -160,6 +160,31 @@ class SlackJoinConversation(CommunityAction):
             self.revert()
             self.post_rule()
             super(SlackJoinConversation, self).save(*args, **kwargs)
+
+
+class SlackPinMessage(CommunityAction):
+    ACTION = 'pins.add'
+    channel = models.CharField('channel', max_length=150)
+    timestamp = models.CharField('timestamp', max_length=150)
+
+    def revert(self):
+        values = {'token': self.community_integration.access_token,
+                  'channel': self.channel,
+                  'timestamp': self.timestamp
+                }
+        super().revert(values, SlackIntegration.API + 'pins.remove')
+
+    def post_rule(self):
+        values = {'channel': self.channel,
+                  'token': self.community_integration.access_token
+                  }
+        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+    
+    def save(self, user=None, *args, **kwargs):
+        if self.timestamp and user != 'UTE9MFJJ0':
+            self.revert()
+            self.post_rule()
+            super(SlackPinMessage, self).save(*args, **kwargs)
             
         
         

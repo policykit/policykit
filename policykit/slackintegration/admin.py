@@ -15,7 +15,6 @@ from slackintegration.models import *
 
 class SlackPostMessageAdmin(admin.ModelAdmin):
     pass
-
 admin_site.register(SlackPostMessage, SlackPostMessageAdmin)
 
 class SlackScheduleMessageAdmin(admin.ModelAdmin):
@@ -33,4 +32,8 @@ admin_site.register(SlackKickConversation, SlackKickConversationAdmin)
 class SlackJoinConversationAdmin(admin.ModelAdmin):
     pass
 admin_site.register(SlackJoinConversation, SlackJoinConversationAdmin)
+
+class SlackPinMessageAdmin(admin.ModelAdmin):
+    pass
+admin_site.register(SlackPinMessage, SlackPinMessageAdmin)
 
