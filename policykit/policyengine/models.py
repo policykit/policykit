@@ -100,12 +100,12 @@ class CommunityAction(PolymorphicModel):
                                                       status=Policy.PROPOSED,
                                                       content_type=self.polymorphic_ctype,
                                                       object_id=self.id,
-                                                      action=ActionPolicy.ADD,
                                                       )
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs) 
         
+       
         
 class Policy(PolymorphicModel):
     community_integration = models.ForeignKey(CommunityIntegration, 
@@ -133,6 +133,8 @@ class Policy(PolymorphicModel):
         ]
     
     status = models.CharField(choices=STATUS, max_length=10)
+    
+    data_store = models.TextField()
     
     
 class ProcessPolicy(Policy):    
@@ -193,29 +195,14 @@ class ActionPolicy(Policy):
         verbose_name='content type',
     )
     object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-    
-    ADD = 'add'
-    CHANGE = 'change'
-    VIEW = 'view'
-    DELETE = 'delete'
-    
-    ACTIONS = [
-            (ADD, 'add'),
-            (CHANGE, 'change'),
-            (VIEW, 'view'),
-            (DELETE, 'delete')
-        ]
-    
-    action = models.CharField(choices=ACTIONS, max_length=10)
-    
+    content_object = GenericForeignKey('content_type', 'object_id')    
     
     class Meta:
         verbose_name = 'action'
         verbose_name_plural = 'actions'
 
     def __str__(self):
-        return ' '.join(['Action: ', self.action, str(self.content_type), 'to', self.community_integration.community_name])
+        return ' '.join(['Action: ', str(self.content_type), 'to', self.community_integration.community_name])
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -232,6 +219,36 @@ class ActionPolicy(Policy):
             super(ActionPolicy, self).save(*args, **kwargs)
         
         
+        
+ 
+class ActionBundle(models.Model):
+    
+    actions = models.ManyToManyField(ActionPolicy, 
+                                     models.CASCADE, 
+                                     verbose_name="actions")
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    author = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+    
+    
+    def save(self, *args, **kwargs):        
+        if not self.pk:
+            # Runs only when object is new
+            super(ActionBundle, self).save(*args, **kwargs)
+            action_policy = ActionPolicy.objects.create(community_integration=self.community_integration,
+                                                      author=self.author,
+                                                      status=Policy.PROPOSED,
+                                                      content_type=self.polymorphic_ctype,
+                                                      object_id=self.id
+                                                      )
+
+        else:   
+            super(ActionBundle, self).save(*args, **kwargs) 
+    
+        
 
 class UserVote(models.Model):
     
@@ -241,7 +258,10 @@ class UserVote(models.Model):
     policy = models.ForeignKey(Policy,
                                 models.CASCADE)
     
-    value = models.BooleanField(null=True)
+    boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected
+    
+    
+    numerical_value = models.IntegerField(null=True) # rank, linear value
     
     
     
