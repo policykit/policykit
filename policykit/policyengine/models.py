@@ -49,7 +49,6 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name + '@' + self.community_integration.community_name
         
         
-        
 class CommunityAction(PolymorphicModel):
     ACTION = None
     AUTH = 'app'
@@ -81,7 +80,7 @@ class CommunityAction(PolymorphicModel):
         _ = self.api_call(values, call)
         
     def post_rule(self, values, call):
-        rule = RulePolicy.objects.filter(community_integration=self.community_integration,
+        rule = CommunityPolicy.objects.filter(community_integration=self.community_integration,
                                          status=Policy.PASSED)
 
         if rule.count() > 0:
@@ -156,7 +155,7 @@ class ProcessPolicy(Policy):
     
     
     
-class RulePolicy(Policy):
+class CommunityPolicy(Policy):
     rule_code = models.TextField(null=True, blank=True)
     
     rule_text = models.TextField(null=True, blank=True)
@@ -182,13 +181,13 @@ class RulePolicy(Policy):
             process = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration)
             self.status = Policy.PROPOSED
             
-            super(RulePolicy, self).save(*args, **kwargs)
+            super(CommunityPolicy, self).save(*args, **kwargs)
             
             if process.exists():
                 exec(process[0].process_code)
 
         else:   
-            super(RulePolicy, self).save(*args, **kwargs)
+            super(CommunityPolicy, self).save(*args, **kwargs)
     
     
 class ActionPolicy(Policy):
@@ -215,7 +214,7 @@ class ActionPolicy(Policy):
             super(ActionPolicy, self).save(*args, **kwargs)
             
             action = self
-            for rule in RulePolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration):
+            for rule in CommunityPolicy.objects.filter(status=Policy.PASSED, community_integration=self.community_integration):
                 exec(rule.rule_code)
 
         else:   

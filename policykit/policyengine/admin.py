@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import CommunityIntegration, ProcessPolicy, RulePolicy, ActionPolicy, Policy, UserVote
+from policyengine.models import CommunityIntegration, ProcessPolicy, CommunityPolicy, ActionPolicy, Policy, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -38,7 +38,7 @@ class PolicyAdminSite(AdminSite):
         
         passed_processes = ProcessPolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
 
-        passed_rules = RulePolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
+        passed_rules = CommunityPolicy.objects.filter(status=Policy.PASSED, community_integration=community_integration)
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
@@ -67,7 +67,7 @@ class ProcessAdmin(admin.ModelAdmin):
 
 admin_site.register(ProcessPolicy, ProcessAdmin)
 
-class RuleAdmin(admin.ModelAdmin):
+class CommunityAdmin(admin.ModelAdmin):
     fields= ('rule_code', 'rule_text', 'explanation')
     
     def save_model(self, request, obj, form, change):
@@ -77,7 +77,7 @@ class RuleAdmin(admin.ModelAdmin):
             obj.status = Policy.PROPOSED
         obj.save()
 
-admin_site.register(RulePolicy, RuleAdmin)
+admin_site.register(CommunityPolicy, CommunityAdmin)
 
 class UserVoteAdmin(admin.ModelAdmin):
     fields= ('policy', 'value')
