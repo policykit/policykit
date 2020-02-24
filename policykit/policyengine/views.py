@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 def check_policy_code(policy):
     policy_pass = False
     exec(policy.policy_conditional_code)
+    
+    logger.info(policy_pass)
     return policy_pass
 
 
