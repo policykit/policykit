@@ -187,7 +187,7 @@ class CommunityAction(BaseAction):
             
             action = self
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                exec(policy.rule_code)
+                exec(policy.policy_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
@@ -265,7 +265,7 @@ class CommunityPolicy(BasePolicy):
             super(CommunityPolicy, self).save(*args, **kwargs)
             
             if process.exists():
-                exec(process[0].process_code)
+                exec(process[0].policy_code)
 
         else:   
             super(CommunityPolicy, self).save(*args, **kwargs)
