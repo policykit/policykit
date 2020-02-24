@@ -11,7 +11,7 @@ from policyengine.views import *
 def consider_proposed_actions():
     proposed_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in proposed_actions:
-        for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+        for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
             if check_policy_code(policy):
                 exec(policy.policy_action_code)
 
