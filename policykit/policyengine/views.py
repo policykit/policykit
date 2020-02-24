@@ -16,7 +16,7 @@ def execute_action(action):
     
     community_integration = action.community_integration
     
-    obj = action.content_object
+    obj = action.api_action
     call = community_integration.API + obj.ACTION
     
     logger.info(call)
@@ -24,13 +24,13 @@ def execute_action(action):
     
     obj_fields = []
     for f in obj._meta.get_fields():
-        if f.name not in ['polymorphic_ctype','community_integration','author','communityaction_ptr']:
+        if f.name not in ['polymorphic_ctype','community_integration','initiator','community_post','communityaction_ptr']:
             obj_fields.append(f.name) 
     
     data = {}
     
     if obj.AUTH == "user":
-        data['token'] = action.author.access_token
+        data['token'] = action.proposal.author.access_token
     else:
         data['token'] = community_integration.access_token
     
@@ -57,9 +57,9 @@ def execute_action(action):
     res = json.loads(html)
     
     
-    if obj.community_post_id:
-        values = {'token': action.author.access_token,
-                  'ts': obj.community_post_id,
+    if obj.community_post:
+        values = {'token': action.proposal.author.access_token,
+                  'ts': obj.community_post,
                   'channel': obj.channel
                 }
         data = urllib.parse.urlencode(values)
@@ -73,9 +73,10 @@ def execute_action(action):
     
     
     if res['ok']:
-        from policyengine.models import Policy
-        action.status = Policy.PASSED
-        action.save()
+        from policyengine.models import Proposal
+        p = action.proposal
+        p.status = Proposal.PASSED
+        p.save()
     else:
         error_message = res['error']
         logger.info(error_message)

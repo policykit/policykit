@@ -4,7 +4,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "govrules/css/index.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "policyengine/css/index.css" %}">
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -65,7 +65,7 @@
 			{% for process in passed_processes %}
 			<tr>
 				<td>
-					{{ process.process_code}} <BR>
+					{{ process.policy_code}} <BR>
 					<i>{{ process.explanation }}</i>
 				</td>
 			</tr>
@@ -74,13 +74,13 @@
 	</table>
 	
 	<table>
-		<caption>Passed Rules</caption>
+		<caption>Passed Community Policies</caption>
 		<tbody>
 			{% for rule in passed_rules %}
 			<tr>
 				<td>
-					{{ rule.rule_code }} <BR>
-					{{ rule.rule_text }} <BR>
+					{{ rule.policy_code }} <BR>
+					{{ rule.policy_text }} <BR>
 					<i>{{ rule.explanation }}</i>
 				</td>
 			</tr>

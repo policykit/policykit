@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction
+from policyengine.models import CommunityIntegration, CommunityUser, CommunityAPI
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
@@ -49,13 +49,13 @@ class SlackUser(CommunityUser):
 
 
     
-class SlackPostMessage(CommunityAction):
+class SlackPostMessage(CommunityAPI):
     ACTION = 'chat.postMessage'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     
     def revert(self, time_stamp):
-        values = {'token': self.author.access_token,
+        values = {'token': self.initiator.access_token,
                   'ts': time_stamp,
                   'channel': self.channel
                 }
@@ -75,13 +75,13 @@ class SlackPostMessage(CommunityAction):
             super(SlackPostMessage, self).save(*args, **kwargs)
             
     
-class SlackScheduleMessage(CommunityAction):
+class SlackScheduleMessage(CommunityAPI):
     ACTION = 'chat.scheduleMessage'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     post_at = models.IntegerField('post at')
 
-class SlackRenameConversation(CommunityAction):
+class SlackRenameConversation(CommunityAPI):
     ACTION = 'conversations.rename'
     AUTH = 'user'
     name = models.CharField('name', max_length=150)
@@ -102,7 +102,7 @@ class SlackRenameConversation(CommunityAction):
         
     def revert(self, prev_name):
         values = {'name': prev_name,
-                'token': self.author.access_token,
+                'token': self.initiator.access_token,
                 'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'conversations.rename')
@@ -130,21 +130,21 @@ class SlackRenameConversation(CommunityAction):
                     super(SlackRenameConversation, self).save(*args, **kwargs)
                     
         
-class SlackKickConversation(CommunityAction):
+class SlackKickConversation(CommunityAPI):
     ACTION = 'conversations.kick'
     AUTH = 'user'
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
 
 
-class SlackJoinConversation(CommunityAction):
+class SlackJoinConversation(CommunityAPI):
     ACTION = 'conversations.invite'
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
         
     def revert(self):
         values = {'user': self.users,
-                  'token': self.author.access_token,
+                  'token': self.initiator.access_token,
                   'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'conversations.kick')
@@ -162,7 +162,7 @@ class SlackJoinConversation(CommunityAction):
             super(SlackJoinConversation, self).save(*args, **kwargs)
 
 
-class SlackPinMessage(CommunityAction):
+class SlackPinMessage(CommunityAPI):
     ACTION = 'pins.add'
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)

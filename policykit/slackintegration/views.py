@@ -8,7 +8,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import ActionPolicy, UserVote, CommunityAction
+from policyengine.models import CommunityAction, UserVote, CommunityAPI
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 
@@ -83,7 +83,7 @@ def action(request):
             
             new_action = SlackRenameConversation()
             new_action.community_integration = integration
-            new_action.author = author
+            new_action.initiator = author
             new_action.name = event['channel']['name']
             new_action.channel = event['channel']['id']
             new_action.save(slack_revert=True)
@@ -92,7 +92,7 @@ def action(request):
             new_action = SlackJoinConversation()
             new_action.community_integration = integration
             inviter_user = event.get('inviter')
-            new_action.author = author
+            new_action.initiator = author
             new_action.users = event.get('user')
             new_action.channel = event['channel']
             new_action.save(slack_revert=True, inviter=inviter_user)
@@ -101,7 +101,7 @@ def action(request):
             if event.get('subtype') == None:
                 new_action = SlackPostMessage()
                 new_action.community_integration = integration
-                new_action.author = author
+                new_action.initiator = author
                 new_action.text = event['text']
                 new_action.channel = event['channel']
                 time_stamp = event['ts']
@@ -111,7 +111,7 @@ def action(request):
         elif event.get('type') == 'pin_added':
             new_action = SlackPinMessage()
             new_action.community_integration = integration
-            new_action.author = author
+            new_action.initiator = author
             new_action.channel = event['channel_id']
             new_action.timestamp = event['item']['message']['ts']
             user = event['user']
@@ -119,10 +119,10 @@ def action(request):
             
         elif event.get('type') == 'reaction_added':
             ts = event['item']['ts']
-            action = CommunityAction.objects.filter(community_post_id=ts)
+            action = CommunityAPI.objects.filter(community_post=ts)
             if action:
                 action = action[0]
-                policy = ActionPolicy.objects.filter(object_id=action.id)
+                policy = CommunityAction.objects.filter(api_action=action.id)
                 if policy:
                     policy = policy[0]
                     if event['reaction'] == '+1' or event['reaction'] == '-1':
