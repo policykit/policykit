@@ -265,6 +265,7 @@ class CommunityPolicy(BasePolicy):
             super(CommunityPolicy, self).save(*args, **kwargs)
             
             if process.exists():
+                policy = self
                 exec(process[0].policy_code)
 
         else:   
