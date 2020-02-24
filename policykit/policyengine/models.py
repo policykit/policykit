@@ -176,7 +176,7 @@ class CommunityAction(BaseAction):
         verbose_name_plural = 'communityactions'
 
     def __str__(self):
-        return ' '.join(['Action: ', str(self.community_api), 'to', self.community_integration.community_name])
+        return ' '.join(['Action: ', str(self.api_action), 'to', self.community_integration.community_name])
 
     def save(self, *args, **kwargs):
         if not self.pk:
