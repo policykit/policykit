@@ -249,7 +249,7 @@ class CommunityPolicy(BasePolicy):
         
     def clean(self):
         super().clean()
-        if self.policy_code is None and self.policy_text is None:
+        if self.policy_action_code is None and self.policy_text is None:
             raise ValidationError('Code or text rule instructions are both None')
 
         
