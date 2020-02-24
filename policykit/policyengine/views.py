@@ -9,11 +9,17 @@ import json
 logger = logging.getLogger(__name__)
 
 def check_policy_code(policy):
+    _locals = locals()
+    
     policy_pass = False
-    exec(policy.policy_conditional_code)
+    exec(policy.policy_conditional_code, globals(), _locals)
     
     logger.info(policy.policy_conditional_code)
+    
+    
     logger.info(policy_pass)
+    logger.info(_locals)
+    
     return policy_pass
 
 
