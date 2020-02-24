@@ -88,7 +88,7 @@ class CommunityAPI(PolymorphicModel):
         
     def post_policy(self, values, call):
         policy = CommunityPolicy.objects.filter(community_integration=self.community_integration,
-                                                status=Proposal.PASSED)
+                                                proposal__status=Proposal.PASSED)
 
         if policy.count() > 0:
             policy = policy[0]
@@ -104,10 +104,10 @@ class CommunityAPI(PolymorphicModel):
         if not self.pk:
             # Runs only when object is new
             super(CommunityAPI, self).save(*args, **kwargs)
+            p = Proposal.objects.create(status=Proposal.PROPOSED, author=self.author)
             _ = CommunityAction.objects.create(community_integration=self.community_integration,
-                                              author=self.author,
-                                              status=Proposal.PROPOSED,
-                                              api_action=self
+                                               proposal=p,
+                                               api_action=self
                                               )
 
         else:   
