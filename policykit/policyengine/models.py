@@ -258,7 +258,9 @@ class CommunityPolicy(BasePolicy):
         if not self.pk:
             # Runs only when object is new
             process = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration)
-            self.proposal.status = Proposal.PROPOSED
+            p = self.proposal
+            p.status = Proposal.PROPOSED
+            p.save()
             
             super(CommunityPolicy, self).save(*args, **kwargs)
             
