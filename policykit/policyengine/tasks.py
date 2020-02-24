@@ -15,4 +15,6 @@ def consider_proposed_actions():
             if check_filter_code(policy, action):
                 if check_policy_code(policy):
                     exec(policy.policy_action_code)
+                else:
+                    exec(policy.policy_failure_code)
 

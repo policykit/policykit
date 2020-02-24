@@ -190,6 +190,8 @@ class CommunityAction(BaseAction):
                 if check_filter_code(policy, action):
                     if check_policy_code(policy):
                         exec(policy.policy_action_code)
+                    else:
+                        exec(policy.policy_failure_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
@@ -242,6 +244,7 @@ class CommunityPolicy(BasePolicy):
     policy_filter_code = models.TextField(null=True, blank=True)
     policy_conditional_code = models.TextField(null=True, blank=True)
     policy_action_code = models.TextField(null=True, blank=True)
+    policy_failure_code = models.TextField(null=True, blank=True)
     
     policy_text = models.TextField(null=True, blank=True)
     
