@@ -39,8 +39,8 @@ class CommunityUser(User, PolymorphicModel):
         
     def save(self, *args, **kwargs):      
         super(User, self).save(*args, **kwargs)
-        p1 = Permission.objects.get(name='Can add process')
-        p2 = Permission.objects.get(name='Can add rule')
+        p1 = Permission.objects.get(name='Can add processpolicy')
+        p2 = Permission.objects.get(name='Can add communitypolicy')
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
         
