@@ -104,13 +104,13 @@ class CommunityAPI(PolymorphicModel):
         if not self.pk:
             # Runs only when object is new
             super(CommunityAPI, self).save(*args, **kwargs)
-            p = Proposal.objects.create(status=Proposal.PROPOSED, author=self.author)
+            p = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
             _ = CommunityAction.objects.create(community_integration=self.community_integration,
                                                proposal=p,
                                                api_action=self
                                               )
 
-        else:   
+        else:
             super(CommunityAPI, self).save(*args, **kwargs) 
         
         
