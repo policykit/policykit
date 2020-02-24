@@ -61,17 +61,17 @@ class SlackPostMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'chat.delete')
     
-    def post_rule(self):
+    def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
         
     
     def save(self, time_stamp=None, poster=None, *args, **kwargs): 
         if time_stamp and poster != 'UTE9MFJJ0':
             self.revert(time_stamp)
-            self.post_rule()
+            self.post_policy()
             super(SlackPostMessage, self).save(*args, **kwargs)
             
     
@@ -107,11 +107,11 @@ class SlackRenameConversation(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'conversations.rename')
     
-    def post_rule(self):
+    def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
         
         
     def save(self, slack_revert=False, *args, **kwargs):
@@ -119,14 +119,14 @@ class SlackRenameConversation(CommunityAPI):
             prev_names = self.get_channel_info()
             if len(prev_names) == 1:
                 self.revert(prev_names[0])
-                self.post_rule()
+                self.post_policy()
                 super(SlackRenameConversation, self).save(*args, **kwargs)
             
             if len(prev_names) > 1:
                 former_name = prev_names[1]
                 if former_name != self.name:
                     self.revert(prev_names[0])
-                    self.post_rule()
+                    self.post_policy()
                     super(SlackRenameConversation, self).save(*args, **kwargs)
                     
         
@@ -149,16 +149,16 @@ class SlackJoinConversation(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'conversations.kick')
     
-    def post_rule(self):
+    def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, slack_revert=False, inviter=None, *args, **kwargs):
         if slack_revert and inviter != 'UTE9MFJJ0':
             self.revert()
-            self.post_rule()
+            self.post_policy()
             super(SlackJoinConversation, self).save(*args, **kwargs)
 
 
@@ -174,16 +174,16 @@ class SlackPinMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
-    def post_rule(self):
+    def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
-        super().post_rule(values, SlackIntegration.API + 'chat.postMessage')
+        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
     
     def save(self, user=None, *args, **kwargs):
         if self.timestamp and user != 'UTE9MFJJ0':
             self.revert()
-            self.post_rule()
+            self.post_policy()
             super(SlackPinMessage, self).save(*args, **kwargs)
             
         
