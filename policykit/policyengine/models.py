@@ -196,11 +196,15 @@ class CommunityAction(BaseAction):
   
 class CommunityActionBundle(BaseAction):
      
-    api_actions = models.ManyToManyField(CommunityAPI, 
+    bundled_api_actions = models.ManyToManyField(CommunityAPI, 
                                      models.CASCADE, 
-                                     verbose_name="api_actions")
+                                     verbose_name="bundled_api_actions")
 
-        
+    class Meta:
+        verbose_name = 'communityactionbundle'
+        verbose_name_plural = 'communityactionbundles'
+    
+    
 
 class BasePolicy(models.Model):
     community_integration = models.ForeignKey(CommunityIntegration, 
