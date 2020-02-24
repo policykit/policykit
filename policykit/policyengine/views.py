@@ -24,7 +24,13 @@ def execute_action(action):
     
     obj_fields = []
     for f in obj._meta.get_fields():
-        if f.name not in ['polymorphic_ctype','community_integration','initiator','community_post','communityaction_ptr']:
+        if f.name not in ['polymorphic_ctype',
+                          'community_integration',
+                          'initiator',
+                          'community_post',
+                          'communityapi_ptr',
+                          'communityaction',
+                          ]:
             obj_fields.append(f.name) 
     
     data = {}
