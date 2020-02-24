@@ -9,7 +9,9 @@ import json
 logger = logging.getLogger(__name__)
 
 def check_policy_code(policy):
+    policy_pass = False
     exec(policy.policy_conditional_code)
+    return policy_pass
 
 
 def execute_action(action):
