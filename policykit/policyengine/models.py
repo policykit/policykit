@@ -68,7 +68,7 @@ class CommunityAPI(PolymorphicModel):
                                 models.CASCADE)
     
     community_post = models.CharField('community_post', 
-                                         max_length=300)
+                                         max_length=300, null=True)
     
     def api_call(self, values, call):
         logger.info("COMMUNITY API CALL")

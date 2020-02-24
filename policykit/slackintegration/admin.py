@@ -14,26 +14,68 @@ from slackintegration.models import *
 
 
 class SlackPostMessageAdmin(admin.ModelAdmin):
-    pass
+    fields= ('text', 'channel')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community_integration = request.user.community_integration
+        obj.save()
+    
 admin_site.register(SlackPostMessage, SlackPostMessageAdmin)
 
 class SlackScheduleMessageAdmin(admin.ModelAdmin):
-    pass
+    fields= ('text', 'channel', 'post_at')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community_integration = request.user.community_integration
+        obj.save()
+    
 admin_site.register(SlackScheduleMessage, SlackScheduleMessageAdmin)
 
 class SlackRenameConversationAdmin(admin.ModelAdmin):
-    pass
+    fields= ('name', 'channel')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community_integration = request.user.community_integration
+        obj.save()
+        
 admin_site.register(SlackRenameConversation, SlackRenameConversationAdmin)
 
 class SlackKickConversationAdmin(admin.ModelAdmin):
-    pass
+    fields= ('user', 'channel')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community_integration = request.user.community_integration
+        obj.save()
+    
 admin_site.register(SlackKickConversation, SlackKickConversationAdmin)
 
 class SlackJoinConversationAdmin(admin.ModelAdmin):
-    pass
+    fields= ('users', 'channel')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community_integration = request.user.community_integration
+        obj.save()
+        
 admin_site.register(SlackJoinConversation, SlackJoinConversationAdmin)
 
 class SlackPinMessageAdmin(admin.ModelAdmin):
-    pass
+    fields= ('channel', 'timestamp')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community_integration = request.user.community_integration
+        obj.save()
+    
 admin_site.register(SlackPinMessage, SlackPinMessageAdmin)
 
