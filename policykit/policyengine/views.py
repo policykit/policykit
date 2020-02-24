@@ -8,6 +8,9 @@ import json
 
 logger = logging.getLogger(__name__)
 
+def check_policy_code(policy):
+    exec(policy.policy_conditional_code)
+
 
 def execute_action(action):
     logger.info('here')
@@ -75,7 +78,6 @@ def execute_action(action):
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         logger.info(res)
-    
     
     
     if res['ok']:

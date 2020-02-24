@@ -9,8 +9,9 @@ from policyengine.views import *
 
 @shared_task
 def consider_proposed_actions():
-    
     proposed_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in proposed_actions:
-        for policy in CommunityPolicy.objects.filter(status=BasePolicy.PASSED, community_integration=action.community_integration):
-            exec(policy.rule_code)
+        for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+            if check_policy_code(policy):
+                exec(policy.policy_action_code)
+
