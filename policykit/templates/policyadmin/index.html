@@ -65,7 +65,7 @@
 			{% for process in passed_processes %}
 			<tr>
 				<td>
-					Policy code: {{ process.policy_code}} <BR>
+					Policy code: <code><pre>{{ process.policy_code}}</code></pre> <BR>
 					<i>{{ process.explanation }}</i>
 				</td>
 			</tr>
@@ -79,8 +79,9 @@
 			{% for rule in passed_rules %}
 			<tr>
 				<td>
-					Conditional code: {{ rule.policy_conditional_code }} <BR>
-					Action code: {{ rule.policy_action_code }} <BR>
+					Filter code: <code><pre>{{ rule.policy_filter_code }}</code></pre> <BR>
+					Conditional code: <code><pre>{{ rule.policy_conditional_code }}</code></pre> <BR>
+					Action code: <code><pre>{{ rule.policy_action_code }}</code></pre> <BR>
 					{{ rule.policy_text }} <BR>
 					<i>{{ rule.explanation }}</i>
 				</td>
