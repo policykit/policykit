@@ -73,6 +73,8 @@ class SlackPostMessage(CommunityAPI):
             self.revert(time_stamp)
             self.post_policy()
             super(SlackPostMessage, self).save(*args, **kwargs)
+        if not time_stamp and not poster:
+            super(SlackPostMessage, self).save(*args, **kwargs)
             
     
 class SlackScheduleMessage(CommunityAPI):
@@ -128,6 +130,8 @@ class SlackRenameConversation(CommunityAPI):
                     self.revert(prev_names[0])
                     self.post_policy()
                     super(SlackRenameConversation, self).save(*args, **kwargs)
+        else:
+            super(SlackRenameConversation, self).save(*args, **kwargs)
                     
         
 class SlackKickConversation(CommunityAPI):
@@ -160,6 +164,8 @@ class SlackJoinConversation(CommunityAPI):
             self.revert()
             self.post_policy()
             super(SlackJoinConversation, self).save(*args, **kwargs)
+        if not slack_revert:
+            super(SlackJoinConversation, self).save(*args, **kwargs)
 
 
 class SlackPinMessage(CommunityAPI):
@@ -184,6 +190,8 @@ class SlackPinMessage(CommunityAPI):
         if self.timestamp and user != 'UTE9MFJJ0':
             self.revert()
             self.post_policy()
+            super(SlackPinMessage, self).save(*args, **kwargs)
+        if not user:
             super(SlackPinMessage, self).save(*args, **kwargs)
             
         
