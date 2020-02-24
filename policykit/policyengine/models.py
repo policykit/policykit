@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import execute_action, check_policy_code
+from policyengine.views import execute_action, check_policy_code, check_filter_code
 import urllib
 import json
 
@@ -187,8 +187,9 @@ class CommunityAction(BaseAction):
             
             action = self
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                if check_policy_code(policy):
-                    exec(policy.policy_action_code)
+                if check_filter_code(policy, action):
+                    if check_policy_code(policy):
+                        exec(policy.policy_action_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
@@ -238,6 +239,7 @@ class ProcessPolicy(BasePolicy):
     
     
 class CommunityPolicy(BasePolicy):
+    policy_filter_code = models.TextField(null=True, blank=True)
     policy_conditional_code = models.TextField(null=True, blank=True)
     policy_action_code = models.TextField(null=True, blank=True)
     

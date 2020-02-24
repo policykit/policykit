@@ -68,7 +68,7 @@ class ProcessAdmin(admin.ModelAdmin):
 admin_site.register(ProcessPolicy, ProcessAdmin)
 
 class CommunityAdmin(admin.ModelAdmin):
-    fields= ('policy_conditional_code', 'policy_action_code', 'policy_text', 'explanation')
+    fields= ('policy_filter_code', 'policy_conditional_code', 'policy_action_code', 'policy_text', 'explanation')
     
     def save_model(self, request, obj, form, change):
         if not change:

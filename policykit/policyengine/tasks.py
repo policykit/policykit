@@ -12,6 +12,7 @@ def consider_proposed_actions():
     proposed_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in proposed_actions:
         for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
-            if check_policy_code(policy):
-                exec(policy.policy_action_code)
+            if check_filter_code(policy, action):
+                if check_policy_code(policy):
+                    exec(policy.policy_action_code)
 

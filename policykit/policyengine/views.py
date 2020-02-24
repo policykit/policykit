@@ -15,6 +15,13 @@ def check_policy_code(policy):
     return _locals['policy_pass']
 
 
+def check_filter_code(policy, action):
+    _locals = locals()
+    action_pass = False
+    exec(policy.policy_filter_code, globals(), _locals)
+    return _locals['action_pass']
+
+
 def execute_action(action):
     logger.info('here')
     logger.info('EXECUTING ACTION BELOW:')
