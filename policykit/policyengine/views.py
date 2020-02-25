@@ -8,8 +8,8 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def check_policy_code(policy):
-    from policyengine.models import Proposal
+def check_policy_code(policy, action):
+    from policyengine.models import *
     _locals = locals()
     policy_pass = Proposal.PROPOSED
     exec(policy.policy_conditional_code, globals(), _locals)

@@ -192,7 +192,7 @@ class CommunityAction(BaseAction):
             action = self
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
                 if check_filter_code(policy, action):
-                    cond_result = check_policy_code(policy)
+                    cond_result = check_policy_code(policy, action)
                     if cond_result == Proposal.PASSED:
                         exec(policy.policy_action_code)
                     elif cond_result == Proposal.FAILED:
