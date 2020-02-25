@@ -13,6 +13,9 @@ def check_policy_code(policy, action):
     _locals = locals()
     
     policy_pass = Proposal.PROPOSED
+    
+    logger.info(_locals)
+    
     exec(policy.policy_conditional_code, globals(), _locals)
     
     logger.info(_locals)
