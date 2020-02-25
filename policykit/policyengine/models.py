@@ -72,6 +72,8 @@ class CommunityAPI(PolymorphicModel):
     
     community_revert = models.BooleanField(default=False)
     
+    community_origin = models.BooleanField(default=False)
+    
     def api_call(self, values, call):
         logger.info("COMMUNITY API CALL")
         logger.info(call)
