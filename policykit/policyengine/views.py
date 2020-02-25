@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
-from policyengine.models import Proposal
 import urllib.request
 import urllib.parse
 import logging
@@ -10,6 +9,7 @@ import json
 logger = logging.getLogger(__name__)
 
 def check_policy_code(policy):
+    from policyengine.models import Proposal
     _locals = locals()
     policy_pass = Proposal.PROPOSED
     exec(policy.policy_conditional_code, globals(), _locals)
