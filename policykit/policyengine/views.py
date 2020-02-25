@@ -9,8 +9,9 @@ import json
 logger = logging.getLogger(__name__)
 
 def check_policy_code(policy, action):
-    from policyengine.models import *
+    from policyengine.models import Proposal, UserVote, CommunityUser
     _locals = locals()
+    
     policy_pass = Proposal.PROPOSED
     exec(policy.policy_conditional_code, globals(), _locals)
     
