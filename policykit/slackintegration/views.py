@@ -113,7 +113,7 @@ def action(request):
         if new_action:
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_action.community_integration):
                 if check_filter_code(policy, new_action):
-                    cond_result = check_policy_code(policy)
+                    cond_result = check_policy_code(policy, new_action)
                     new_action.community_origin = True
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                         new_action.community_revert = True
