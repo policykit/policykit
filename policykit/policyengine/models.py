@@ -70,6 +70,8 @@ class CommunityAPI(PolymorphicModel):
     community_post = models.CharField('community_post', 
                                          max_length=300, null=True)
     
+    community_revert = models.BooleanField(default=False)
+    
     def api_call(self, values, call):
         logger.info("COMMUNITY API CALL")
         logger.info(call)
@@ -188,9 +190,10 @@ class CommunityAction(BaseAction):
             action = self
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
                 if check_filter_code(policy, action):
-                    if check_policy_code(policy):
+                    cond_result = check_policy_code(policy)
+                    if cond_result == Proposal.PASSED:
                         exec(policy.policy_action_code)
-                    else:
+                    elif cond_result == Proposal.FAILED:
                         exec(policy.policy_failure_code)
 
         else:   

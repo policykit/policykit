@@ -47,7 +47,6 @@ class SlackUser(CommunityUser):
         group = self.community_integration.user_group
         group.user_set.add(self)
 
-
     
 class SlackPostMessage(CommunityAPI):
     ACTION = 'chat.postMessage'
@@ -68,12 +67,13 @@ class SlackPostMessage(CommunityAPI):
         super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
         
     
-    def save(self, time_stamp=None, poster=None, *args, **kwargs): 
-        if time_stamp and poster != 'UTE9MFJJ0':
-            self.revert(time_stamp)
-            self.post_policy()
-            super(SlackPostMessage, self).save(*args, **kwargs)
-        if not time_stamp and not poster:
+    def save(self, *args, **kwargs):
+        if self.community_revert:
+            if self.time_stamp and self.poster != 'UTE9MFJJ0':
+                self.revert(self.time_stamp)
+                self.post_policy()
+                super(SlackPostMessage, self).save(*args, **kwargs)
+        else:
             super(SlackPostMessage, self).save(*args, **kwargs)
             
     
