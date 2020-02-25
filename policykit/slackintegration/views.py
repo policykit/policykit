@@ -138,9 +138,9 @@ def action(request):
                             value = False
                         
                         user = SlackUser.objects.get(user_id=event['user'])
-                        uv, created = UserVote.objects.get_or_create(policy=policy,
+                        uv, created = UserVote.objects.get_or_create(community_policy=policy,
                                                                      user=user)
-                        uv.value = value
+                        uv.boolean_value = value
                         uv.save()
     
     return HttpResponse("")
