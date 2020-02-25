@@ -80,6 +80,7 @@ def action(request):
         author = SlackUser.objects.all()[0] # TODO Change this to admin user? Bot user?
 #         author_id = json_data.get('authed_users')[0]
 
+        new_action = None
         
         if event.get('type') == "channel_rename":
             new_action = SlackRenameConversation()
