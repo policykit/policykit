@@ -13,6 +13,8 @@ def check_policy_code(policy):
     _locals = locals()
     policy_pass = Proposal.PROPOSED
     exec(policy.policy_conditional_code, globals(), _locals)
+    
+    logger.info("Policy Pass: " + policy_pass)
     return _locals['policy_pass']
 
 
@@ -20,6 +22,8 @@ def check_filter_code(policy, action):
     _locals = locals()
     action_pass = False
     exec(policy.policy_filter_code, globals(), _locals)
+    
+    logger.info("Action Pass: " + str(action_pass))
     return _locals['action_pass']
 
 
