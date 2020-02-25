@@ -105,4 +105,9 @@ def execute_action(action):
         else:
             error_message = res['error']
             logger.info(error_message)
-    
+    else:
+        from policyengine.models import Proposal
+        p = action.proposal
+        p.status = Proposal.PASSED
+        p.save()
+
