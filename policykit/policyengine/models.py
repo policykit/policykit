@@ -172,7 +172,7 @@ class ProcessAction(BaseAction):
 
 class CommunityAction(BaseAction):
     
-    api_action = models.ForeignKey(CommunityAPI,
+    api_action = models.OneToOneField(CommunityAPI,
                                       models.CASCADE)
     
     class Meta:
