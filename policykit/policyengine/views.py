@@ -16,6 +16,8 @@ def check_policy_code(policy, action):
     exec(policy.policy_conditional_code, globals(), _locals)
     
     logger.info("Policy Pass: " + policy_pass)
+    logger.info(_locals)
+    
     return policy_pass
 
 
