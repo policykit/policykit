@@ -295,14 +295,9 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser,
                               models.CASCADE)
     
-    community_policy = models.ForeignKey(CommunityPolicy,
+    proposal = models.ForeignKey(Proposal,
                                 models.CASCADE)
     
     boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected
-    
-    
-    numerical_value = models.IntegerField(null=True) # rank, linear value
-    
-    
     
     

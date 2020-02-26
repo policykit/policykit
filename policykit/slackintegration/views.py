@@ -125,12 +125,12 @@ def action(request):
         
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
-            action = CommunityAPI.objects.filter(community_post=ts)
-            if action:
-                action = action[0]
-                policy = CommunityAction.objects.filter(api_action=action.id)
-                if policy:
-                    policy = policy[0]
+            api_action = CommunityAPI.objects.filter(community_post=ts)
+            if api_action:
+                api_action = api_action[0]
+                action = CommunityAction.objects.filter(api_action=api_action.id)
+                if action:
+                    action = action[0]
                     if event['reaction'] == '+1' or event['reaction'] == '-1':
                         if event['reaction'] == '+1':
                             value = True
@@ -138,7 +138,7 @@ def action(request):
                             value = False
                         
                         user = SlackUser.objects.get(user_id=event['user'])
-                        uv, created = UserVote.objects.get_or_create(community_policy=policy,
+                        uv, created = UserVote.objects.get_or_create(proposal=action.proposal,
                                                                      user=user)
                         uv.boolean_value = value
                         uv.save()

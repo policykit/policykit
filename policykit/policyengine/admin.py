@@ -80,7 +80,7 @@ class CommunityAdmin(admin.ModelAdmin):
 admin_site.register(CommunityPolicy, CommunityAdmin)
 
 class UserVoteAdmin(admin.ModelAdmin):
-    fields= ('policy', 'value')
+    fields= ('proposal', 'boolean_value')
     
     def save_model(self, request, obj, form, change):
         if not change:
