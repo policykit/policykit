@@ -95,8 +95,8 @@ def execute_action(action):
             call_info = community_integration.API + 'chat.delete?'
             req = urllib.request.Request(call_info, data)
             resp = urllib.request.urlopen(req)
-            res = json.loads(resp.read().decode('utf-8'))
-            logger.info(res)
+            res2 = json.loads(resp.read().decode('utf-8'))
+            logger.info(res2)
         
         
         if res['ok']:
