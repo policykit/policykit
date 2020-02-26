@@ -54,27 +54,19 @@ class SlackPostMessage(CommunityAPI):
     channel = models.CharField('channel', max_length=150)
     
     def revert(self, time_stamp):
-        values = {'token': self.initiator.access_token,
-                  'ts': time_stamp,
-                  'channel': self.channel
-                }
-        super().revert(values, SlackIntegration.API + 'chat.delete')
+        if self.time_stamp and self.poster != 'UTE9MFJJ0':
+            values = {'token': self.initiator.access_token,
+                      'ts': time_stamp,
+                      'channel': self.channel
+                    }
+            super().revert(values, SlackIntegration.API + 'chat.delete')
+            self.post_policy()
     
     def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
         super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-        
-    
-    def save(self, *args, **kwargs):
-        if self.community_revert:
-            if self.time_stamp and self.poster != 'UTE9MFJJ0':
-                self.revert(self.time_stamp)
-                self.post_policy()
-                super(SlackPostMessage, self).save(*args, **kwargs)
-        else:
-            super(SlackPostMessage, self).save(*args, **kwargs)
             
     
 class SlackScheduleMessage(CommunityAPI):
@@ -147,25 +139,18 @@ class SlackJoinConversation(CommunityAPI):
     users = models.CharField('users', max_length=15)
         
     def revert(self):
-        values = {'user': self.users,
-                  'token': self.initiator.access_token,
-                  'channel': self.channel
-                }
-        super().revert(values, SlackIntegration.API + 'conversations.kick')
+        if self.inviter != 'UTE9MFJJ0':
+            values = {'user': self.users,
+                      'token': self.initiator.access_token,
+                      'channel': self.channel
+                    }
+            super().revert(values, SlackIntegration.API + 'conversations.kick')
     
     def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
         super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-    
-    def save(self, slack_revert=False, inviter=None, *args, **kwargs):
-        if slack_revert and inviter != 'UTE9MFJJ0':
-            self.revert()
-            self.post_policy()
-            super(SlackJoinConversation, self).save(*args, **kwargs)
-        if not slack_revert:
-            super(SlackJoinConversation, self).save(*args, **kwargs)
 
 
 class SlackPinMessage(CommunityAPI):

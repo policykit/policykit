@@ -89,6 +89,8 @@ class CommunityAPI(PolymorphicModel):
     
     def revert(self, values, call):
         _ = self.api_call(values, call)
+        self.community_revert = True
+        self.save()
         
     def post_policy(self, values, call):
         policy = CommunityPolicy.objects.filter(community_integration=self.community_integration,
