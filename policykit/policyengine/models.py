@@ -102,7 +102,8 @@ class CommunityAPI(PolymorphicModel):
             policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = policy_message
             res = self.api_call(values, call)
-            self.community_post = res['ts']         
+            self.community_post = res['ts']   
+            self.save()      
             
     def save(self, *args, **kwargs):
         logger.info(self.community_post)
