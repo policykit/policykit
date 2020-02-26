@@ -11,23 +11,22 @@ logger = logging.getLogger(__name__)
 def check_policy_code(policy, action):
     from policyengine.models import Proposal, UserVote, CommunityUser
     _locals = locals()
-    
-    policy_pass = Proposal.PROPOSED
     exec(policy.policy_conditional_code, globals(), _locals)
     
-    logger.info("Policy Pass: " + policy_pass)
-    logger.info(_locals)
-    
-    return policy_pass
+    if _locals.get('policy_pass'):
+        return _locals['policy_pass']
+    else:
+        return Proposal.PROPOSED
 
 
 def check_filter_code(policy, action):
     _locals = locals()
-    action_pass = False
     exec(policy.policy_filter_code, globals(), _locals)
     
-    logger.info("Action Pass: " + str(_locals['action_pass']))
-    return _locals['action_pass']
+    if _locals.get('action_pass'):
+        return _locals['action_pass']
+    else:
+        return False
 
 
 def execute_action(action):
