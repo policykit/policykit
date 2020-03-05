@@ -71,6 +71,7 @@ class LogAPICall(models.Model):
         logger.info(call)
         data = urllib.parse.urlencode(values)
         data = data.encode('utf-8')
+        logger.info(data)
         
         _ = LogAPICall.objects.create(community_integration = community_integration,
                                       call_type = call,

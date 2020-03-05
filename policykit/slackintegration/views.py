@@ -8,10 +8,11 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal
+from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall
 from policyengine.views import check_filter_code, check_policy_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -91,41 +92,52 @@ def action(request):
         event = json_data.get('event')
         team_id = json_data.get('team_id')
         integration = SlackIntegration.objects.get(team_id=team_id)
-        author = SlackUser.objects.all()[0] # TODO Change this to admin user? Bot user?
-#         author_id = json_data.get('authed_users')[0]
+        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
 
         new_action = None
+        policy_kit_action = False
         
         if event.get('type') == "channel_rename":
             new_action = SlackRenameConversation()
             new_action.community_integration = integration
-            new_action.initiator = author
+            new_action.initiator = admin_user
             new_action.name = event['channel']['name']
             new_action.channel = event['channel']['id']
         elif event.get('type') == "member_joined_channel":
             new_action = SlackJoinConversation()
             new_action.community_integration = integration
             new_action.inviter_user = event.get('inviter')
-            new_action.initiator = author
+            new_action.initiator = admin_user
             new_action.users = event.get('user')
             new_action.channel = event['channel']
         elif event.get('type') == 'message' and event.get('subtype') == None:
-            new_action = SlackPostMessage()
-            new_action.community_integration = integration
-            new_action.initiator = author
-            new_action.text = event['text']
-            new_action.channel = event['channel']
-            new_action.time_stamp = event['ts']
-            new_action.poster = event['user']
+            
+            logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
+                                            call_type="https://slack.com/api/chat.postMessage")
+            if logs.exists():
+                for log in logs:
+                    j_info = json.loads(log.extra_info)
+                    if event['text'] == j_info['text']:
+                        policy_kit_action = True
+            
+            if not policy_kit_action:
+                new_action = SlackPostMessage()
+                new_action.community_integration = integration
+                new_action.initiator = admin_user
+                new_action.text = event['text']
+                new_action.channel = event['channel']
+                new_action.time_stamp = event['ts']
+                new_action.poster = event['user']
         elif event.get('type') == 'pin_added':
             new_action = SlackPinMessage()
             new_action.community_integration = integration
-            new_action.initiator = author
+            new_action.initiator = admin_user
             new_action.channel = event['channel_id']
             new_action.timestamp = event['item']['message']['ts']
             new_action.user = event['user']
         
-        if new_action:
+        if new_action and not policy_kit_action:
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_action.community_integration):
                 if check_filter_code(policy, new_action):
                     if not new_action.pk:
