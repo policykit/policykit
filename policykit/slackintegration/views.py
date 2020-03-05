@@ -54,6 +54,17 @@ def oauth(request):
                 s[0].team_id = res['team']['id']
                 s[0].access_token = res['access_token']
                 s[0].save()
+            
+            user = SlackUser.objects.filter(user_id=res['authed_user']['id'])
+            if not user.exists():
+                
+                # CHECK HERE THAT USER IS ADMIN
+                
+                
+                _ = SlackUser.objects.create(user_id=res['authed_user']['id'],
+                                             access_token=res['authed_user']['access_token'],
+                                             is_community_admin=True
+                                             )
     else:
         # error message stating that the sign-in/add-to-slack didn't work
         response = redirect('/login?error=cancel')
@@ -114,12 +125,14 @@ def action(request):
         if new_action:
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_action.community_integration):
                 if check_filter_code(policy, new_action):
-                    new_action.community_origin = True
-                    new_action.save()
+                    if not new_action.pk:
+                        new_action.community_origin = True
+                        new_action.save()
+                    # init() goees here
                     cond_result = check_policy_code(policy, new_action.communityaction)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                         new_action.revert()
-                    
+                        new_action.post_policy()
                     
                     
                     

@@ -60,7 +60,6 @@ class SlackPostMessage(CommunityAPI):
                       'channel': self.channel
                     }
             super().revert(values, SlackIntegration.API + 'chat.delete')
-            self.post_policy()
     
     def post_policy(self):
         values = {'channel': self.channel,

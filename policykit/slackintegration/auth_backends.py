@@ -23,7 +23,7 @@ class SlackBackend(BaseBackend):
                     }).encode()
 
             slack_user = SlackUser.objects.filter(user_id=oauth['authed_user']['id'])
-            if slack_user.exists():
+            if slack_user.exists() and slack_user[0].readable_name != None:
                 # update user info
                 slack_user = slack_user[0]
                 slack_user.user_id = oauth['authed_user']['id']

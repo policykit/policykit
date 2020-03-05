@@ -26,15 +26,16 @@ class CommunityIntegration(PolymorphicModel):
 class CommunityUser(User, PolymorphicModel):
         
     readable_name = models.CharField('readable_name', 
-                                      max_length=300)
+                                      max_length=300, null=True)
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
     
         
     access_token = models.CharField('access_token', 
-                                     max_length=300, 
-                                     unique=True)
+                                     max_length=300)
+    
+    is_community_admin = models.BooleanField(default=False)
     
         
     def save(self, *args, **kwargs):      
