@@ -55,12 +55,11 @@ class SlackPostMessage(CommunityAPI):
     channel = models.CharField('channel', max_length=150)
     
     def revert(self):
-        if self.time_stamp and self.poster != 'UTE9MFJJ0':
-            values = {'token': self.initiator.access_token,
-                      'ts': self.time_stamp,
-                      'channel': self.channel
-                    }
-            super().revert(values, SlackIntegration.API + 'chat.delete')
+        values = {'token': self.initiator.access_token,
+                  'ts': self.time_stamp,
+                  'channel': self.channel
+                }
+        super().revert(values, SlackIntegration.API + 'chat.delete')
     
     def post_policy(self):
         values = {'channel': self.channel,
