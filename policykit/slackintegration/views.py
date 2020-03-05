@@ -129,6 +129,7 @@ def action(request):
                 new_action.initiator = get_or_create_user(integration, event['user'])
                 prev_names = new_action.get_channel_info()
                 new_action.prev_name = prev_names[0]
+                
         elif event.get('type') == 'message' and event.get('subtype') == None:
             if not is_policykit_action(integration, event['text'], 'text', SlackPostMessage.ACTION):            
                 new_action = SlackPostMessage()
@@ -139,22 +140,25 @@ def action(request):
                 new_action.initiator = get_or_create_user(integration, event['user'])
 
         elif event.get('type') == "member_joined_channel":
-            new_action = SlackJoinConversation()
-            new_action.community_integration = integration
-            new_action.inviter_user = event.get('inviter')
-            new_action.initiator = admin_user
-            new_action.users = event.get('user')
-            new_action.channel = event['channel']
+            if not is_policykit_action(integration, event['channel'], 'channel', SlackJoinConversation.ACTION):
+                new_action = SlackJoinConversation()
+                new_action.community_integration = integration
+                if event.get('inviter'):
+                    new_action.initiator = get_or_create_user(integration, event['inviter'])
+                else:
+                    new_action.initiator = get_or_create_user(integration, event['user'])
+                new_action.users = event.get('user')
+                new_action.channel = event['channel']
 
                 
         elif event.get('type') == 'pin_added':
-            new_action = SlackPinMessage()
-            new_action.community_integration = integration
-            new_action.initiator = admin_user
-            new_action.channel = event['channel_id']
-            new_action.timestamp = event['item']['message']['ts']
-            new_action.user = event['user']
-        
+            if not is_policykit_action(integration, event['channel_id'], 'channel', SlackPinMessage.ACTION):
+                new_action = SlackPinMessage()
+                new_action.community_integration = integration
+                new_action.initiator = get_or_create_user(integration, event['user'])
+                new_action.channel = event['channel_id']
+                new_action.timestamp = event['item']['message']['ts']
+
         if new_action and not policy_kit_action:
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_action.community_integration):
                 if check_filter_code(policy, new_action):
@@ -165,7 +169,6 @@ def action(request):
                     cond_result = check_policy_code(policy, new_action.communityaction)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                         new_action.revert()
-                        new_action.post_policy()
                     
                     
                     

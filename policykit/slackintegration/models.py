@@ -118,16 +118,17 @@ class SlackKickConversation(CommunityAPI):
 
 class SlackJoinConversation(CommunityAPI):
     ACTION = 'conversations.invite'
+    AUTH = 'admin_user'
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
         
     def revert(self):
-        if self.inviter != 'UTE9MFJJ0':
-            values = {'user': self.users,
-                      'token': self.initiator.access_token,
-                      'channel': self.channel
-                    }
-            super().revert(values, SlackIntegration.API + 'conversations.kick')
+        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        values = {'user': self.users,
+                  'token': admin_user.access_token,
+                  'channel': self.channel
+                }
+        super().revert(values, SlackIntegration.API + 'conversations.kick')
     
     def post_policy(self):
         values = {'channel': self.channel,
@@ -138,30 +139,18 @@ class SlackJoinConversation(CommunityAPI):
 
 class SlackPinMessage(CommunityAPI):
     ACTION = 'pins.add'
+    AUTH = 'admin_user'
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)
 
     def revert(self):
-        values = {'token': self.community_integration.access_token,
+        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        values = {'token': admin_user.access_token,
                   'channel': self.channel,
                   'timestamp': self.timestamp
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-    
-    def save(self, user=None, *args, **kwargs):
-        if self.timestamp and user != 'UTE9MFJJ0':
-            self.revert()
-            self.post_policy()
-            super(SlackPinMessage, self).save(*args, **kwargs)
-        if not user:
-            super(SlackPinMessage, self).save(*args, **kwargs)
-            
         
         
             
