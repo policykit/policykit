@@ -81,7 +81,8 @@ def execute_action(action):
         res = LogAPICall.make_api_call(community_integration, data, call)
         
         if obj.community_post:
-            values = {'token': action.proposal.author.access_token,
+            admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+            values = {'token': admin_user.access_token,
                       'ts': obj.community_post,
                       'channel': obj.channel
                     }
