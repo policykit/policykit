@@ -116,13 +116,10 @@ def action(request):
             logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
                                             call_type="https://slack.com/api/chat.postMessage")
             
-            logger.info(logs)
-            
             if logs.exists():
                 for log in logs:
                     j_info = json.loads(log.extra_info)
                     if event['text'] == j_info['text']:
-                        logger.info('policykit action')
                         policy_kit_action = True
             
             if not policy_kit_action:
