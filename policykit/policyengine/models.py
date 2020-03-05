@@ -66,7 +66,7 @@ class LogAPICall(models.Model):
     extra_info = models.TextField()
     
     @classmethod
-    def make_api_call(community_integration, values, call):
+    def make_api_call(cls, community_integration, values, call):
         logger.info("COMMUNITY API CALL")
         logger.info(call)
         data = urllib.parse.urlencode(values)
