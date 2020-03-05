@@ -66,6 +66,9 @@ def execute_action(action):
                 data['token'] = action.proposal.author.access_token
             else:
                 data['token'] = community_integration.access_token
+        elif obj.AUTH == "admin_user":
+            admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+            data['token'] = admin_user.access_token
         else:
             data['token'] = community_integration.access_token
             
