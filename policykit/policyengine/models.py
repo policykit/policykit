@@ -58,6 +58,34 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name + '@' + self.community_integration.community_name
         
         
+class LogAPICall(models.Model):
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    proposal_time = models.DateTimeField(auto_now_add=True)
+    call_type = models.CharField('call_type', max_length=300)
+    extra_info = models.TextField()
+    
+    @classmethod
+    def make_api_call(community_integration, values, call):
+        logger.info("COMMUNITY API CALL")
+        logger.info(call)
+        data = urllib.parse.urlencode(values)
+        data = data.encode('utf-8')
+        
+        _ = LogAPICall.objects.create(community_integration = community_integration,
+                                      call_type = call,
+                                      extra_info = data
+                                      )
+        
+        call_info = call + '?'
+        req = urllib.request.Request(call_info, data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info("COMMUNITY API RESPONSE")
+        logger.info(res)
+        return res
+        
+        
 class CommunityAPI(PolymorphicModel):
     ACTION = None
     AUTH = 'app'
@@ -75,21 +103,8 @@ class CommunityAPI(PolymorphicModel):
     
     community_origin = models.BooleanField(default=False)
     
-    def api_call(self, values, call):
-        logger.info("COMMUNITY API CALL")
-        logger.info(call)
-        data = urllib.parse.urlencode(values)
-        data = data.encode('utf-8')
-        call_info = call + '?'
-        req = urllib.request.Request(call_info, data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        logger.info("COMMUNITY API RESPONSE")
-        logger.info(res)
-        return res
-    
     def revert(self, values, call):
-        _ = self.api_call(values, call)
+        _ = LogAPICall.make_api_call(self.community_integration, values, call)
         self.community_revert = True
         self.save()
         
@@ -102,7 +117,7 @@ class CommunityAPI(PolymorphicModel):
             # need more descriptive message
             policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
             values['text'] = policy_message
-            res = self.api_call(values, call)
+            res = LogAPICall.make_api_call(self.community_integration, values, call)
             self.community_post = res['ts']   
             self.save()      
             

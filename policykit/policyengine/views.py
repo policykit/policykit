@@ -30,6 +30,8 @@ def check_filter_code(policy, action):
 
 
 def execute_action(action):
+    from policyengine.models import LogAPICall
+    
     logger.info('here')
 
     community_integration = action.community_integration
@@ -37,10 +39,7 @@ def execute_action(action):
     
     if not obj.community_origin or (obj.community_origin and obj.community_revert):
         logger.info('EXECUTING ACTION BELOW:')
-        logger.info(action)
-
         call = community_integration.API + obj.ACTION
-        
         logger.info(call)
     
         
@@ -62,8 +61,6 @@ def execute_action(action):
         else:
             data['token'] = community_integration.access_token
         
-        logger.info('here2')
-        
         for item in obj_fields:
             try :
                 if item != 'id':
@@ -71,33 +68,16 @@ def execute_action(action):
                     data[item] = value
             except obj.DoesNotExist:
                 continue
-        
-        data = urllib.parse.urlencode(data).encode('ascii')
-        
-        logger.info(data)
-    
-        response = urllib.request.urlopen(url=call, data=data)
-        
-        html = response.read()
-        
-        logger.info(html)
-        
-        res = json.loads(html)
-        
+
+        res = LogAPICall.make_api_call(community_integration, data, call)
         
         if obj.community_post:
             values = {'token': action.proposal.author.access_token,
                       'ts': obj.community_post,
                       'channel': obj.channel
                     }
-            data = urllib.parse.urlencode(values)
-            data = data.encode('utf-8')
-            call_info = community_integration.API + 'chat.delete?'
-            req = urllib.request.Request(call_info, data)
-            resp = urllib.request.urlopen(req)
-            res2 = json.loads(resp.read().decode('utf-8'))
-            logger.info(res2)
-        
+            call = community_integration.API + 'chat.delete'
+            _ = LogAPICall.make_api_call(community_integration, values, call)
         
         if res['ok']:
             from policyengine.models import Proposal
