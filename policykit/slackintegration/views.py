@@ -41,9 +41,10 @@ def oauth(request):
                 
         elif state == "app":
             s = SlackIntegration.objects.filter(team_id=res['team']['id'])
+            integration = None
             user_group,_ = Group.objects.get_or_create(name="Slack")
             if not s.exists():
-                _ = SlackIntegration.objects.create(
+                integration = SlackIntegration.objects.create(
                     community_name=res['team']['name'],
                     team_id=res['team']['id'],
                     access_token=res['access_token'],
@@ -54,6 +55,7 @@ def oauth(request):
                 s[0].team_id = res['team']['id']
                 s[0].access_token = res['access_token']
                 s[0].save()
+                integration = s[0]
             
             user = SlackUser.objects.filter(user_id=res['authed_user']['id'])
             if not user.exists():
@@ -63,7 +65,7 @@ def oauth(request):
                 _ = SlackUser.objects.create(user_id=res['authed_user']['id'],
                                              access_token=res['authed_user']['access_token'],
                                              is_community_admin=True,
-                                             community_integration=s
+                                             community_integration=integration
                                              )
     else:
         # error message stating that the sign-in/add-to-slack didn't work
