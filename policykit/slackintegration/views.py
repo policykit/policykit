@@ -120,7 +120,7 @@ def action(request):
             
             if logs.exists():
                 for log in logs:
-                    j_info = json.loads(log.extra_info.decode('utf-8'))
+                    j_info = json.loads(log.extra_info)
                     if event['text'] == j_info['text']:
                         logger.info('policykit action')
                         policy_kit_action = True

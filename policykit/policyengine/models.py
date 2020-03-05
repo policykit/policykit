@@ -69,14 +69,15 @@ class LogAPICall(models.Model):
     def make_api_call(cls, community_integration, values, call):
         logger.info("COMMUNITY API CALL")
         logger.info(call)
-        data = urllib.parse.urlencode(values)
-        data = data.encode('utf-8')
-        logger.info(data)
-        
+             
         _ = LogAPICall.objects.create(community_integration = community_integration,
                                       call_type = call,
-                                      extra_info = data
+                                      extra_info = json.dumps(values)
                                       )
+        
+        data = urllib.parse.urlencode(values)   
+        data = data.encode('utf-8')
+        logger.info(data)
         
         call_info = call + '?'
         req = urllib.request.Request(call_info, data)
