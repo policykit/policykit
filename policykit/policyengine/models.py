@@ -206,7 +206,10 @@ class CommunityAction(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            self.proposal.status = Proposal.PROPOSED
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                        author=self.api_action.initiator)
+            
+            self.proposal = p
             
             super(CommunityAction, self).save(*args, **kwargs)
             
