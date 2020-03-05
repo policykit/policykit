@@ -117,7 +117,7 @@ def action(request):
                                             call_type="https://slack.com/api/chat.postMessage")
             if logs.exists():
                 for log in logs:
-                    j_info = json.loads(log.extra_info)
+                    j_info = json.loads(log.extra_info.decode('utf-8'))
                     if event['text'] == j_info['text']:
                         policy_kit_action = True
             
