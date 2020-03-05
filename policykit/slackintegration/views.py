@@ -108,6 +108,9 @@ def action(request):
             if logs.exists():
                 for log in logs:
                     j_info = json.loads(log.extra_info)
+                    logger.info('-----------')
+                    logger.info(event['channel'])
+                    logger.info(j_info)
                     if event['channel']['name'] == j_info['channel']:
                         
                         logger.info('policykit action')
