@@ -103,13 +103,12 @@ class SlackJoinConversation(CommunityAPI):
 
 class SlackPinMessage(CommunityAPI):
     ACTION = 'pins.add'
-    AUTH = 'admin_user'
+    AUTH = 'bot'
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)
 
     def revert(self):
-        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
-        values = {'token': admin_user.access_token,
+        values = {'token': self.community_integration.access_token,
                   'channel': self.channel,
                   'timestamp': self.timestamp
                 }
