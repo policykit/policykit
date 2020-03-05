@@ -94,8 +94,8 @@ class SlackRenameConversation(CommunityAPI):
         prev_names = res['channel']['previous_names']
         return prev_names
         
-    def revert(self, prev_name):
-        values = {'name': prev_name,
+    def revert(self):
+        values = {'name': self.prev_name,
                 'token': self.initiator.access_token,
                 'channel': self.channel
                 }
@@ -107,23 +107,6 @@ class SlackRenameConversation(CommunityAPI):
                   }
         super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
         
-        
-    def save(self, slack_revert=False, *args, **kwargs):
-        if slack_revert:
-            prev_names = self.get_channel_info()
-            if len(prev_names) == 1:
-                self.revert(prev_names[0])
-                self.post_policy()
-                super(SlackRenameConversation, self).save(*args, **kwargs)
-            
-            if len(prev_names) > 1:
-                former_name = prev_names[1]
-                if former_name != self.name:
-                    self.revert(prev_names[0])
-                    self.post_policy()
-                    super(SlackRenameConversation, self).save(*args, **kwargs)
-        else:
-            super(SlackRenameConversation, self).save(*args, **kwargs)
                     
         
 class SlackKickConversation(CommunityAPI):
