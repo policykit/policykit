@@ -60,10 +60,10 @@ def oauth(request):
                 
                 # CHECK HERE THAT USER IS ADMIN
                 
-                
                 _ = SlackUser.objects.create(user_id=res['authed_user']['id'],
                                              access_token=res['authed_user']['access_token'],
-                                             is_community_admin=True
+                                             is_community_admin=True,
+                                             community_integration=s
                                              )
     else:
         # error message stating that the sign-in/add-to-slack didn't work
