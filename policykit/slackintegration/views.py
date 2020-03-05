@@ -111,7 +111,7 @@ def action(request):
                     logger.info('-----------')
                     logger.info(event['channel'])
                     logger.info(j_info)
-                    if event['channel']['name'] == j_info['channel']:
+                    if event['channel']['name'] == j_info['name']:
                         
                         logger.info('policykit action')
                         
