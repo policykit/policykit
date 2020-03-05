@@ -39,7 +39,8 @@ class SlackBackend(BaseBackend):
                 user_resp = urllib.request.urlopen(user_req)
                 user_res = json.loads(user_resp.read().decode('utf-8'))
 
-                slack_user,_ = SlackUser.objects.get_or_create(user_id=oauth['authed_user']['id'])
+                slack_user,_ = SlackUser.objects.get_or_create(user_id=oauth['authed_user']['id'],
+                                                               community_integration=s[0])
                 
                 slack_user.password = oauth['authed_user']['access_token']
                 slack_user.community_integration = s[0]
