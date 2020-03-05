@@ -50,6 +50,7 @@ class SlackUser(CommunityUser):
     
 class SlackPostMessage(CommunityAPI):
     ACTION = 'chat.postMessage'
+    AUTH = 'user'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     

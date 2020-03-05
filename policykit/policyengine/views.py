@@ -30,7 +30,7 @@ def check_filter_code(policy, action):
 
 
 def execute_action(action):
-    from policyengine.models import LogAPICall
+    from policyengine.models import LogAPICall, CommunityUser
     
     logger.info('here')
 
@@ -58,8 +58,12 @@ def execute_action(action):
         
         if obj.AUTH == "user":
             data['token'] = action.proposal.author.access_token
+            if not data['token']:
+                admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+                data['token'] = admin_user.access_token
         else:
             data['token'] = community_integration.access_token
+            
         
         for item in obj_fields:
             try :

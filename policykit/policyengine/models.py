@@ -33,7 +33,7 @@ class CommunityUser(User, PolymorphicModel):
     
         
     access_token = models.CharField('access_token', 
-                                     max_length=300)
+                                     max_length=300, null=True)
     
     is_community_admin = models.BooleanField(default=False)
     

@@ -125,11 +125,19 @@ def action(request):
             if not policy_kit_action:
                 new_action = SlackPostMessage()
                 new_action.community_integration = integration
-                new_action.initiator = admin_user
                 new_action.text = event['text']
                 new_action.channel = event['channel']
                 new_action.time_stamp = event['ts']
-                new_action.poster = event['user']
+                
+                user = SlackUser.objects.filter(user_id=event['user'], community_integration=integration)
+                if user.exists():
+                    new_action.initiator = user[0]
+                else:
+                    user = SlackUser.objects.create(user_id=event['user'], 
+                                                    community_integration=integration)
+                    new_action.initator = user
+                    
+                
         elif event.get('type') == 'pin_added':
             new_action = SlackPinMessage()
             new_action.community_integration = integration
