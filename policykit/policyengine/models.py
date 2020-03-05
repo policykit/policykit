@@ -115,7 +115,7 @@ class CommunityAPI(PolymorphicModel):
                   'token': self.community_integration.access_token
                   }
         
-        call = self.API + 'chat.postMessage'
+        call = self.community_integration.API + 'chat.postMessage'
         
         policy = CommunityPolicy.objects.filter(community_integration=self.community_integration,
                                                 proposal__status=Proposal.PASSED)
