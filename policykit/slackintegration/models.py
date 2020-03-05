@@ -62,19 +62,6 @@ class SlackPostMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'chat.delete')
     
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-            
-    
-class SlackScheduleMessage(CommunityAPI):
-    ACTION = 'chat.scheduleMessage'
-    text = models.TextField()
-    channel = models.CharField('channel', max_length=150)
-    post_at = models.IntegerField('post at')
-
 class SlackRenameConversation(CommunityAPI):
     ACTION = 'conversations.rename'
     AUTH = 'admin_user'
@@ -90,7 +77,6 @@ class SlackRenameConversation(CommunityAPI):
         req = urllib.request.Request('https://slack.com/api/conversations.info?', data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
-        logger.info(res)
         prev_names = res['channel']['previous_names']
         return prev_names
         
@@ -100,22 +86,7 @@ class SlackRenameConversation(CommunityAPI):
                 'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'conversations.rename')
-    
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
         
-                    
-        
-class SlackKickConversation(CommunityAPI):
-    ACTION = 'conversations.kick'
-    AUTH = 'user'
-    user = models.CharField('user', max_length=15)
-    channel = models.CharField('channel', max_length=150)
-
-
 class SlackJoinConversation(CommunityAPI):
     ACTION = 'conversations.invite'
     AUTH = 'admin_user'
@@ -129,13 +100,6 @@ class SlackJoinConversation(CommunityAPI):
                   'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'conversations.kick')
-    
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-
 
 class SlackPinMessage(CommunityAPI):
     ACTION = 'pins.add'
@@ -151,7 +115,15 @@ class SlackPinMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
-        
-        
-            
-    
+class SlackScheduleMessage(CommunityAPI):
+    ACTION = 'chat.scheduleMessage'
+    text = models.TextField()
+    channel = models.CharField('channel', max_length=150)
+    post_at = models.IntegerField('post at')
+
+class SlackKickConversation(CommunityAPI):
+    ACTION = 'conversations.kick'
+    AUTH = 'user'
+    user = models.CharField('user', max_length=15)
+    channel = models.CharField('channel', max_length=150)
+
