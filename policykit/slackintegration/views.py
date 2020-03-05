@@ -77,6 +77,29 @@ def oauth(request):
     return response
 
 
+def is_policykit_action(integration, test_a, test_b, api_name):
+    current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
+    logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
+                                            call_type=integration.API + api_name)
+
+    if logs.exists():
+        for log in logs:
+            j_info = json.loads(log.extra_info)
+            if test_a == j_info[test_b]:
+                return True
+    
+    return False
+    
+def get_or_create_user(integration, user_id):
+    user = SlackUser.objects.filter(user_id=user_id, community_integration=integration)
+    if user.exists():
+        return user[0]
+    else:
+        user = SlackUser.objects.create(user_id=user_id, 
+                                        community_integration=integration)
+        return user
+
+
 @csrf_exempt
 def action(request):
     json_data = json.loads(request.body)
@@ -93,32 +116,28 @@ def action(request):
         team_id = json_data.get('team_id')
         integration = SlackIntegration.objects.get(team_id=team_id)
         admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
-        current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
 
         new_action = None
         policy_kit_action = False
         
         if event.get('type') == "channel_rename":
-            logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
-                                            call_type=integration.API + SlackRenameConversation.ACTION)
-
-            if logs.exists():
-                for log in logs:
-                    j_info = json.loads(log.extra_info)
-                    if event['channel']['name'] == j_info['name']:
-                        policy_kit_action = True
-            
-            if not policy_kit_action:
+            if not is_policykit_action(integration, event['channel']['name'], 'name', SlackRenameConversation.ACTION):
                 new_action = SlackRenameConversation()
                 new_action.community_integration = integration
-                new_action.initiator = admin_user
                 new_action.name = event['channel']['name']
                 new_action.channel = event['channel']['id']
-                
+                new_action.initiator = get_or_create_user(integration, event['user'])
                 prev_names = new_action.get_channel_info()
                 new_action.prev_name = prev_names[0]
-            
-            
+        elif event.get('type') == 'message' and event.get('subtype') == None:
+            if not is_policykit_action(integration, event['text'], 'text', SlackPostMessage.ACTION):            
+                new_action = SlackPostMessage()
+                new_action.community_integration = integration
+                new_action.text = event['text']
+                new_action.channel = event['channel']
+                new_action.time_stamp = event['ts']
+                new_action.initiator = get_or_create_user(integration, event['user'])
+
         elif event.get('type') == "member_joined_channel":
             new_action = SlackJoinConversation()
             new_action.community_integration = integration
@@ -126,33 +145,7 @@ def action(request):
             new_action.initiator = admin_user
             new_action.users = event.get('user')
             new_action.channel = event['channel']
-        elif event.get('type') == 'message' and event.get('subtype') == None:
-            
-            logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
-                                            call_type=integration.API + SlackPostMessage.ACTION)
-            
-            if logs.exists():
-                for log in logs:
-                    j_info = json.loads(log.extra_info)
-                    if event['text'] == j_info['text']:
-                        policy_kit_action = True
-            
-            if not policy_kit_action:
-                new_action = SlackPostMessage()
-                new_action.community_integration = integration
-                new_action.text = event['text']
-                new_action.channel = event['channel']
-                new_action.time_stamp = event['ts']
-                
-                user = SlackUser.objects.filter(user_id=event['user'], community_integration=integration)
-                if user.exists():
-                    new_action.initiator = user[0]
-                else:
-                    user = SlackUser.objects.create(user_id=event['user'], 
-                                                    community_integration=integration)
-                    new_action.initiator = user
-                    
-                
+
                 
         elif event.get('type') == 'pin_added':
             new_action = SlackPinMessage()
