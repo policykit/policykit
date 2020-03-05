@@ -55,7 +55,8 @@ class SlackPostMessage(CommunityAPI):
     channel = models.CharField('channel', max_length=150)
     
     def revert(self):
-        values = {'token': self.community_integration.access_token,
+        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        values = {'token': admin_user.access_token,
                   'ts': self.time_stamp,
                   'channel': self.channel
                 }
