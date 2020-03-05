@@ -103,10 +103,15 @@ def action(request):
             logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
                                             call_type=integration.API + SlackRenameConversation.ACTION)
             
+            logger.info(logs)
+            
             if logs.exists():
                 for log in logs:
                     j_info = json.loads(log.extra_info)
                     if event['channel']['name'] == j_info['channel']:
+                        
+                        logger.info('policykit action')
+                        
                         policy_kit_action = True
             
             if not policy_kit_action:
