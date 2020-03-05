@@ -110,7 +110,7 @@ class CommunityAPI(PolymorphicModel):
         self.community_revert = True
         self.save()
         
-    def post_policy(self, values):
+    def post_policy(self):
         values = {'channel': self.channel,
                   'token': self.community_integration.access_token
                   }
