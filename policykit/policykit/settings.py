@@ -135,6 +135,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATICFILES_DIR = [
+    "/policyengine/static",
+]
 
 PROJECT_NAME = "PolicyKit"
 
