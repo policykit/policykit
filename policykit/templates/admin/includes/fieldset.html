@@ -25,7 +25,7 @@
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
                             <script>
-                              var editor = CodeMirror.fromTextArea($("#{{ field.field.name }}"), {
+                              var editor = CodeMirror.fromTextArea($("#id_{{ field.field.name }}"), {
                                 lineNumbers: true
                               });
                             </script>
