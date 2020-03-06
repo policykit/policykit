@@ -50,34 +50,21 @@ class SlackUser(CommunityUser):
     
 class SlackPostMessage(CommunityAPI):
     ACTION = 'chat.postMessage'
+    AUTH = 'admin_bot'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     
     def revert(self):
-        if self.time_stamp and self.poster != 'UTE9MFJJ0':
-            values = {'token': self.initiator.access_token,
-                      'ts': self.time_stamp,
-                      'channel': self.channel
-                    }
-            super().revert(values, SlackIntegration.API + 'chat.delete')
-            self.post_policy()
+        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        values = {'token': admin_user.access_token,
+                  'ts': self.time_stamp,
+                  'channel': self.channel
+                }
+        super().revert(values, SlackIntegration.API + 'chat.delete')
     
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-            
-    
-class SlackScheduleMessage(CommunityAPI):
-    ACTION = 'chat.scheduleMessage'
-    text = models.TextField()
-    channel = models.CharField('channel', max_length=150)
-    post_at = models.IntegerField('post at')
-
 class SlackRenameConversation(CommunityAPI):
     ACTION = 'conversations.rename'
-    AUTH = 'user'
+    AUTH = 'admin_user'
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
     
@@ -90,71 +77,33 @@ class SlackRenameConversation(CommunityAPI):
         req = urllib.request.Request('https://slack.com/api/conversations.info?', data)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
-        logger.info(res)
         prev_names = res['channel']['previous_names']
         return prev_names
         
-    def revert(self, prev_name):
-        values = {'name': prev_name,
+    def revert(self):
+        values = {'name': self.prev_name,
                 'token': self.initiator.access_token,
                 'channel': self.channel
                 }
         super().revert(values, SlackIntegration.API + 'conversations.rename')
-    
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
         
-        
-    def save(self, slack_revert=False, *args, **kwargs):
-        if slack_revert:
-            prev_names = self.get_channel_info()
-            if len(prev_names) == 1:
-                self.revert(prev_names[0])
-                self.post_policy()
-                super(SlackRenameConversation, self).save(*args, **kwargs)
-            
-            if len(prev_names) > 1:
-                former_name = prev_names[1]
-                if former_name != self.name:
-                    self.revert(prev_names[0])
-                    self.post_policy()
-                    super(SlackRenameConversation, self).save(*args, **kwargs)
-        else:
-            super(SlackRenameConversation, self).save(*args, **kwargs)
-                    
-        
-class SlackKickConversation(CommunityAPI):
-    ACTION = 'conversations.kick'
-    AUTH = 'user'
-    user = models.CharField('user', max_length=15)
-    channel = models.CharField('channel', max_length=150)
-
-
 class SlackJoinConversation(CommunityAPI):
     ACTION = 'conversations.invite'
+    AUTH = 'admin_user'
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
         
     def revert(self):
-        if self.inviter != 'UTE9MFJJ0':
-            values = {'user': self.users,
-                      'token': self.initiator.access_token,
-                      'channel': self.channel
-                    }
-            super().revert(values, SlackIntegration.API + 'conversations.kick')
-    
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-
+        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        values = {'user': self.users,
+                  'token': admin_user.access_token,
+                  'channel': self.channel
+                }
+        super().revert(values, SlackIntegration.API + 'conversations.kick')
 
 class SlackPinMessage(CommunityAPI):
     ACTION = 'pins.add'
+    AUTH = 'bot'
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)
 
@@ -165,21 +114,15 @@ class SlackPinMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
-        super().post_policy(values, SlackIntegration.API + 'chat.postMessage')
-    
-    def save(self, user=None, *args, **kwargs):
-        if self.timestamp and user != 'UTE9MFJJ0':
-            self.revert()
-            self.post_policy()
-            super(SlackPinMessage, self).save(*args, **kwargs)
-        if not user:
-            super(SlackPinMessage, self).save(*args, **kwargs)
-            
-        
-        
-            
-    
+class SlackScheduleMessage(CommunityAPI):
+    ACTION = 'chat.scheduleMessage'
+    text = models.TextField()
+    channel = models.CharField('channel', max_length=150)
+    post_at = models.IntegerField('post at')
+
+class SlackKickConversation(CommunityAPI):
+    ACTION = 'conversations.kick'
+    AUTH = 'user'
+    user = models.CharField('user', max_length=15)
+    channel = models.CharField('channel', max_length=150)
+
