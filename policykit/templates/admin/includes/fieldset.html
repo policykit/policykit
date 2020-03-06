@@ -18,9 +18,9 @@
                         {% else %}
                             {{ field.field }}
                             <!-- Create a simple CodeMirror instance -->
-                            <link rel="stylesheet" href="../../../codemirror/lib/codemirror.css">
-                            <script src="../../../codemirror/lib/codemirror.js"></script>
-                            <script src="../../../codemirror/mode/python/python.js"></script>
+                            <!-- <link rel="stylesheet" href="../../../codemirror/lib/codemirror.css"> -->
+                            <script src={% static "codemirror/lib/codemirror.js" %}></script>
+                            <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script>
                               var editor = CodeMirror.fromTextArea(myTextarea, {
                                 lineNumbers: true
