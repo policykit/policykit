@@ -23,8 +23,9 @@
                             <!-- <link rel="stylesheet" href="../../../codemirror/lib/codemirror.css"> -->
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
+                            <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
                             <script>
-                              var editor = CodeMirror.fromTextArea(myTextarea, {
+                              var editor = CodeMirror.fromTextArea($("#{{ field.field.name }}"), {
                                 lineNumbers: true
                               });
                             </script>
