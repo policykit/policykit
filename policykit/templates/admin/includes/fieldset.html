@@ -24,7 +24,7 @@
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script>
-                              var textArea = document.getElementById('id_policy_filter_code');
+                              var textArea = document.getElementById('id_{{ field.field.name }}');
                               var editor = CodeMirror.fromTextArea(textArea, {
                                 lineNumbers: true
                               });
