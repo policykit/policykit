@@ -307,11 +307,11 @@ class ProcessPolicy(BasePolicy):
     
     
 class CommunityPolicy(BasePolicy):
-    policy_filter_code = models.TextField(null=True, blank=True)
-    policy_init_code = models.TextField(null=True, blank=True)
-    policy_conditional_code = models.TextField(null=True, blank=True)
-    policy_action_code = models.TextField(null=True, blank=True)
-    policy_failure_code = models.TextField(null=True, blank=True)
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
     
     policy_text = models.TextField(null=True, blank=True)
     
@@ -319,10 +319,10 @@ class CommunityPolicy(BasePolicy):
         verbose_name = 'communitypolicy'
         verbose_name_plural = 'communitypolicies'
         
-    def clean(self):
-        super().clean()
-        if self.policy_action_code is None and self.policy_text is None:
-            raise ValidationError('Code or text rule instructions are both None')
+#     def clean(self):
+#         super().clean()
+#         if self.policy_action_code is None and self.policy_text is None:
+#             raise ValidationError('Code or text rule instructions are both None')
 
         
     def __str__(self):
