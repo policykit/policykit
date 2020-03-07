@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
 from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall
-from policyengine.views import check_filter_code, check_policy_code
+from policyengine.views import check_filter_code, check_policy_code, initialize_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 import datetime
@@ -165,7 +165,7 @@ def action(request):
                     if not new_action.pk:
                         new_action.community_origin = True
                         new_action.save()
-                    # init() goees here
+                    initialize_code(policy, new_action)
                     cond_result = check_policy_code(policy, new_action.communityaction)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                         new_action.revert()

@@ -19,6 +19,10 @@ def check_policy_code(policy, action):
         return Proposal.PROPOSED
 
 
+def initialize_code(policy, action):
+    exec(policy.policy_init_code, globals(), locals())
+    
+
 def check_filter_code(policy, action):
     _locals = locals()
     exec(policy.policy_filter_code, globals(), _locals)

@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import execute_action, check_policy_code, check_filter_code
+from policyengine.views import execute_action, check_policy_code, check_filter_code, initialize_code
 import urllib
 import json
 
@@ -222,6 +222,7 @@ class CommunityAction(BaseAction):
             action = self
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
                 if check_filter_code(policy, action):
+                    initialize_code(policy, action)
                     cond_result = check_policy_code(policy, action)
                     if cond_result == Proposal.PASSED:
                         exec(policy.policy_action_code)
@@ -262,6 +263,34 @@ class BasePolicy(models.Model):
     
     class Meta:
         abstract = True
+        
+    def _get_data_store(self):
+        if self.data_store != '':
+            return json.loads(self.data_store)
+        else:
+            return {}
+    
+    def _set_data_store(self, obj):
+        self.data_store = json.dumps(obj)
+        self.save()
+    
+    def get_data(self, key):
+        obj = self._get_data_store()
+        return obj.get(key, None)
+    
+    def add_or_update_data(self, key, value):
+        obj = self._get_data_store()
+        obj[key] = value
+        self._set_data_store(obj)
+        return True
+    
+    def delete_data(self, key):
+        obj = self._get_data_store()
+        res = obj.pop(key, None)
+        self._set_data_store(obj)
+        if not res:
+            return False
+        return True
     
     
 class ProcessPolicy(BasePolicy):    
@@ -279,6 +308,7 @@ class ProcessPolicy(BasePolicy):
     
 class CommunityPolicy(BasePolicy):
     policy_filter_code = models.TextField(null=True, blank=True)
+    policy_init_code = models.TextField(null=True, blank=True)
     policy_conditional_code = models.TextField(null=True, blank=True)
     policy_action_code = models.TextField(null=True, blank=True)
     policy_failure_code = models.TextField(null=True, blank=True)
