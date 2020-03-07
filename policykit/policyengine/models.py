@@ -58,6 +58,40 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name + '@' + self.community_integration.community_name
         
         
+        
+class DataStore(models.Model):
+    
+    data_store = models.TextField()
+        
+    def _get_data_store(self):
+        if self.data_store != '':
+            return json.loads(self.data_store)
+        else:
+            return {}
+    
+    def _set_data_store(self, obj):
+        self.data_store = json.dumps(obj)
+        self.save()
+    
+    def get_item(self, key):
+        obj = self._get_data_store()
+        return obj.get(key, None)
+    
+    def add_or_update_item(self, key, value):
+        obj = self._get_data_store()
+        obj[key] = value
+        self._set_data_store(obj)
+        return True
+    
+    def delete_item(self, key):
+        obj = self._get_data_store()
+        res = obj.pop(key, None)
+        self._set_data_store(obj)
+        if not res:
+            return False
+        return True
+
+        
 class LogAPICall(models.Model):
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
@@ -127,7 +161,7 @@ class CommunityAPI(PolymorphicModel):
             values['text'] = policy_message
             res = LogAPICall.make_api_call(self.community_integration, values, call)
             self.community_post = res['ts']   
-            self.save()      
+            self.save()
             
     def save(self, *args, **kwargs):
         logger.info(self.community_post)
@@ -167,6 +201,11 @@ class Proposal(models.Model):
         ]
     
     status = models.CharField(choices=STATUS, max_length=10)
+    
+    data = models.ForeignKey(DataStore, 
+        models.CASCADE,
+        verbose_name='data',
+    )
 
        
 class BaseAction(models.Model):
@@ -258,39 +297,9 @@ class BasePolicy(models.Model):
                                  models.CASCADE)
     
     explanation = models.TextField(null=True, blank=True)
-   
-    data_store = models.TextField()
     
     class Meta:
         abstract = True
-        
-    def _get_data_store(self):
-        if self.data_store != '':
-            return json.loads(self.data_store)
-        else:
-            return {}
-    
-    def _set_data_store(self, obj):
-        self.data_store = json.dumps(obj)
-        self.save()
-    
-    def get_data(self, key):
-        obj = self._get_data_store()
-        return obj.get(key, None)
-    
-    def add_or_update_data(self, key, value):
-        obj = self._get_data_store()
-        obj[key] = value
-        self._set_data_store(obj)
-        return True
-    
-    def delete_data(self, key):
-        obj = self._get_data_store()
-        res = obj.pop(key, None)
-        self._set_data_store(obj)
-        if not res:
-            return False
-        return True
     
     
 class ProcessPolicy(BasePolicy):    
