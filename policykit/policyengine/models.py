@@ -164,7 +164,7 @@ class CommunityAPI(PolymorphicModel):
             user_ids = [user.username for user in users]
             info = {'token': self.community_integration.access_token}
             info['users'] = ','.join(user_ids)
-            call = self.community_integration.API + 'coversations.open'
+            call = self.community_integration.API + 'conversations.open'
             res = LogAPICall.make_api_call(self.community_integration, info, call)
             channel = res['channel']['id']
             values['channel'] = channel
@@ -180,7 +180,7 @@ class CommunityAPI(PolymorphicModel):
             for user_id in user_ids:
                 info = {'token': self.community_integration.access_token}
                 info['users'] = user_id
-                call = self.community_integration.API + 'coversations.open'
+                call = self.community_integration.API + 'conversations.open'
                 res = LogAPICall.make_api_call(self.community_integration, info, call)
                 channel = res['channel']['id']
                 values['channel'] = channel
