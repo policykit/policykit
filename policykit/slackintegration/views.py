@@ -169,6 +169,7 @@ def action(request):
                 if check_filter_code(policy, action):
                     if not new_api_action.pk:
                         new_api_action.community_origin = True
+                        new_api_action.is_bundled = False
                         new_api_action.save()
                     initialize_code(policy, new_api_action.communityaction)
                     cond_result = check_policy_code(policy, new_api_action.communityaction)

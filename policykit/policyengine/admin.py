@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import CommunityIntegration, ProcessPolicy, CommunityPolicy, CommunityAction, Proposal, UserVote
+from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityActionBundle, Proposal, UserVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -78,6 +78,20 @@ class CommunityAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(CommunityPolicy, CommunityAdmin)
+
+class CommunityActionBundleAdmin(admin.ModelAdmin):
+    fields= ('bundled_api_actions')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.is_bundle = True
+            obj.community_origin = False
+            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
+            obj.proposal = p
+            obj.community_integration = request.user.community_integration
+        obj.save()
+
+admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
 class UserVoteAdmin(admin.ModelAdmin):
     fields= ('proposal', 'boolean_value')
