@@ -328,7 +328,7 @@ class CommunityAction(BaseAction):
                     elif cond_result == Proposal.FAILED:
                         exec(policy.policy_failure_code)
                     else:
-                        action.api_action.post_policy()
+                        exec(policy.policy_notify_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
