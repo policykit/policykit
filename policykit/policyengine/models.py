@@ -251,10 +251,19 @@ class Proposal(models.Model):
     
     status = models.CharField(choices=STATUS, max_length=10)
     
-    data = models.ForeignKey(DataStore, 
+    data = models.OneToOneField(DataStore, 
         models.CASCADE,
         verbose_name='data',
+        null=True
     )
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            ds = DataStore.objects.create()
+            self.data = ds
+        
+        super(Proposal, self).save(*args, **kwargs)
+            
 
        
 class BaseAction(models.Model):
