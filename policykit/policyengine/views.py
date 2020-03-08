@@ -20,6 +20,7 @@ def check_policy_code(policy, action):
 
 
 def initialize_code(policy, action):
+    from policyengine.models import Proposal, UserVote, CommunityUser
     exec(policy.policy_init_code, globals(), locals())
     
 
