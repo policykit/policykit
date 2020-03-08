@@ -34,10 +34,6 @@ class SlackIntegration(CommunityIntegration):
             
 
 class SlackUser(CommunityUser):
-    
-    user_id = models.CharField('user_id', 
-                                max_length=300)
-
     avatar = models.CharField('avatar', 
                                max_length=500, 
                                null=True)

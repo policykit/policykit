@@ -53,9 +53,9 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
     
     if post_type == "mpim":
         api_call = 'chat.postMessage'
-        user_ids = [user.username for user in users]
+        usernames = [user.username for user in users]
         info = {'token': policy.community_integration.access_token}
-        info['users'] = ','.join(user_ids)
+        info['users'] = ','.join(usernames)
         call = policy.community_integration.API + 'conversations.open'
         res = LogAPICall.make_api_call(policy.community_integration, info, call)
         channel = res['channel']['id']
@@ -69,11 +69,11 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
         
     elif post_type == 'im':
         api_call = 'chat.postMessage'
-        user_ids = [user.username for user in users]
+        usernames = [user.username for user in users]
         
-        for user_id in user_ids:
+        for username in usernames:
             info = {'token': policy.community_integration.access_token}
-            info['users'] = user_id
+            info['users'] = username
             call = policy.community_integration.API + 'conversations.open'
             res = LogAPICall.make_api_call(policy.community_integration, info, call)
             channel = res['channel']['id']
@@ -87,10 +87,10 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
             
     elif post_type == 'ephemeral':
         api_call = 'chat.postEphemeral'
-        user_ids = [user.username for user in users]
+        usernames = [user.username for user in users]
         
-        for user_id in user_ids:
-            values['user'] = user_id
+        for username in usernames:
+            values['user'] = username
             
             if channel:
                 values['channel'] = channel
