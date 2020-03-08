@@ -144,7 +144,7 @@ class CommunityAPI(PolymorphicModel):
         self.community_revert = True
         self.save()
         
-    def post_policy(self, policy, action, post_type='channel', users=None, template=None, channel=None):
+    def post_policy(self, policy, post_type='channel', users=None, template=None, channel=None):
         values = {'token': self.community_integration.access_token}
         
         if not template:
