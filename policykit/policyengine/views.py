@@ -23,7 +23,7 @@ def initialize_code(policy, action):
     exec(policy.policy_init_code, globals(), locals())
     
 
-def check_filter_code(policy, action):
+def check_filter_code(policy, api_action):
     _locals = locals()
     exec(policy.policy_filter_code, globals(), _locals)
     

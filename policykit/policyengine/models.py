@@ -144,24 +144,73 @@ class CommunityAPI(PolymorphicModel):
         self.community_revert = True
         self.save()
         
-    def post_policy(self):
-        values = {'channel': self.channel,
-                  'token': self.community_integration.access_token
-                  }
+    def post_policy(self, policy, action, post_type='channel', users=None, template=None, channel=None):
+        values = {'token': self.community_integration.access_token}
         
-        call = self.community_integration.API + 'chat.postMessage'
-        
-        policy = CommunityPolicy.objects.filter(community_integration=self.community_integration,
-                                                proposal__status=Proposal.PASSED)
-
-        if policy.count() > 0:
-            policy = policy[0]
-            # need more descriptive message
+        if not template:
             policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
-            values['text'] = policy_message
+        else:
+            policy_message = template
+
+        values['text'] = policy_message
+        
+        # mpim - all users
+        # im each user
+        # channel all users
+        # channel ephemeral users
+        
+        if post_type == "mpim":
+            api_call = 'chat.postMessage'
+            user_ids = [user.user_id for user in users]
+            info = {'token': self.community_integration.access_token}
+            info['users'] = ','.join(user_ids)
+            call = self.community_integration.API + 'coversations.open'
+            res = LogAPICall.make_api_call(self.community_integration, info, call)
+            channel = res['channel']['id']
+            values['channel'] = channel
+            
+            call = self.community_integration.API + api_call
             res = LogAPICall.make_api_call(self.community_integration, values, call)
-            self.community_post = res['ts']   
+            self.community_post = res['ts']
             self.save()
+        elif post_type == 'im':
+            api_call = 'chat.postMessage'
+            user_ids = [user.user_id for user in users]
+            
+            for user_id in user_ids:
+                info = {'token': self.community_integration.access_token}
+                info['users'] = user_id
+                call = self.community_integration.API + 'coversations.open'
+                res = LogAPICall.make_api_call(self.community_integration, info, call)
+                channel = res['channel']['id']
+                values['channel'] = channel
+                
+                call = self.community_integration.API + api_call
+                res = LogAPICall.make_api_call(self.community_integration, values, call)
+                self.community_post = res['ts']
+                self.save()
+        elif post_type == 'ephemeral':
+            api_call = 'chat.postEphemeral'
+            user_ids = [user.user_id for user in users]
+            
+            for user_id in user_ids:
+                values['user'] = user_id
+                values['channel'] = self.channel
+                call = self.community_integration.API + api_call
+                res = LogAPICall.make_api_call(self.community_integration, values, call)
+                self.community_post = res['ts']
+                self.save()
+        elif post_type == 'channel':
+            api_call = 'chat.postMessage'
+            if channel:
+                values['channel'] = channel
+            else:
+                values['channel'] = self.channel
+            call = self.community_integration.API + api_call
+            res = LogAPICall.make_api_call(self.community_integration, values, call)
+            self.community_post = res['ts']
+            self.save()
+        
             
     def save(self, *args, **kwargs):
         logger.info(self.community_post)
@@ -260,8 +309,10 @@ class CommunityAction(BaseAction):
             
             action = self
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                if check_filter_code(policy, action):
+                if check_filter_code(policy, action.api_action):
+                    
                     initialize_code(policy, action)
+                    
                     cond_result = check_policy_code(policy, action)
                     if cond_result == Proposal.PASSED:
                         exec(policy.policy_action_code)
@@ -318,6 +369,7 @@ class ProcessPolicy(BasePolicy):
 class CommunityPolicy(BasePolicy):
     policy_filter_code = models.TextField(blank=True, default='')
     policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
     policy_conditional_code = models.TextField(blank=True, default='')
     policy_action_code = models.TextField(blank=True, default='')
     policy_failure_code = models.TextField(blank=True, default='')

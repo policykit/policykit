@@ -58,12 +58,13 @@ def oauth(request):
                 s[0].save()
                 integration = s[0]
             
-            user = SlackUser.objects.filter(user_id=res['authed_user']['id'])
+            user = SlackUser.objects.filter(user_id=res['authed_user']['id'], username=res['authed_user']['id'])
             if not user.exists():
                 
                 # CHECK HERE THAT USER IS ADMIN
                 
                 _ = SlackUser.objects.create(user_id=res['authed_user']['id'],
+                                             username=res['authed_user']['id'],
                                              access_token=res['authed_user']['access_token'],
                                              is_community_admin=True,
                                              community_integration=integration
@@ -91,11 +92,11 @@ def is_policykit_action(integration, test_a, test_b, api_name):
     return False
     
 def get_or_create_user(integration, user_id):
-    user = SlackUser.objects.filter(user_id=user_id, community_integration=integration)
+    user = SlackUser.objects.filter(user_id=user_id, username=user_id, community_integration=integration)
     if user.exists():
         return user[0]
     else:
-        user = SlackUser.objects.create(user_id=user_id, 
+        user = SlackUser.objects.create(user_id=user_id, username=user_id,
                                         community_integration=integration)
         return user
 
@@ -117,58 +118,59 @@ def action(request):
         integration = SlackIntegration.objects.get(team_id=team_id)
         admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
 
-        new_action = None
+        new_api_action = None
         policy_kit_action = False
         
         if event.get('type') == "channel_rename":
             if not is_policykit_action(integration, event['channel']['name'], 'name', SlackRenameConversation.ACTION):
-                new_action = SlackRenameConversation()
-                new_action.community_integration = integration
-                new_action.name = event['channel']['name']
-                new_action.channel = event['channel']['id']
-                new_action.initiator = get_or_create_user(integration, event['user'])
-                prev_names = new_action.get_channel_info()
-                new_action.prev_name = prev_names[0]
+                new_api_action = SlackRenameConversation()
+                new_api_action.community_integration = integration
+                new_api_action.name = event['channel']['name']
+                new_api_action.channel = event['channel']['id']
+                new_api_action.initiator = get_or_create_user(integration, event['user'])
+                prev_names = new_api_action.get_channel_info()
+                new_api_action.prev_name = prev_names[0]
                 
         elif event.get('type') == 'message' and event.get('subtype') == None:
             if not is_policykit_action(integration, event['text'], 'text', SlackPostMessage.ACTION):            
-                new_action = SlackPostMessage()
-                new_action.community_integration = integration
-                new_action.text = event['text']
-                new_action.channel = event['channel']
-                new_action.time_stamp = event['ts']
-                new_action.initiator = get_or_create_user(integration, event['user'])
+                new_api_action = SlackPostMessage()
+                new_api_action.community_integration = integration
+                new_api_action.text = event['text']
+                new_api_action.channel = event['channel']
+                new_api_action.time_stamp = event['ts']
+                new_api_action.initiator = get_or_create_user(integration, event['user'])
 
         elif event.get('type') == "member_joined_channel":
             if not is_policykit_action(integration, event['channel'], 'channel', SlackJoinConversation.ACTION):
-                new_action = SlackJoinConversation()
-                new_action.community_integration = integration
+                new_api_action = SlackJoinConversation()
+                new_api_action.community_integration = integration
                 if event.get('inviter'):
-                    new_action.initiator = get_or_create_user(integration, event['inviter'])
+                    new_api_action.initiator = get_or_create_user(integration, event['inviter'])
                 else:
-                    new_action.initiator = get_or_create_user(integration, event['user'])
-                new_action.users = event.get('user')
-                new_action.channel = event['channel']
+                    new_api_action.initiator = get_or_create_user(integration, event['user'])
+                new_api_action.users = event.get('user')
+                new_api_action.channel = event['channel']
 
                 
         elif event.get('type') == 'pin_added':
             if not is_policykit_action(integration, event['channel_id'], 'channel', SlackPinMessage.ACTION):
-                new_action = SlackPinMessage()
-                new_action.community_integration = integration
-                new_action.initiator = get_or_create_user(integration, event['user'])
-                new_action.channel = event['channel_id']
-                new_action.timestamp = event['item']['message']['ts']
+                new_api_action = SlackPinMessage()
+                new_api_action.community_integration = integration
+                new_api_action.initiator = get_or_create_user(integration, event['user'])
+                new_api_action.channel = event['channel_id']
+                new_api_action.timestamp = event['item']['message']['ts']
 
-        if new_action and not policy_kit_action:
-            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_action.community_integration):
-                if check_filter_code(policy, new_action):
-                    if not new_action.pk:
-                        new_action.community_origin = True
-                        new_action.save()
-                    initialize_code(policy, new_action)
-                    cond_result = check_policy_code(policy, new_action.communityaction)
+
+        if new_api_action and not policy_kit_action:
+            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_api_action.community_integration):
+                if check_filter_code(policy, new_api_action):
+                    if not new_api_action.pk:
+                        new_api_action.community_origin = True
+                        new_api_action.save()
+                    initialize_code(policy, new_api_action.communityaction)
+                    cond_result = check_policy_code(policy, new_api_action.communityaction)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                        new_action.revert()
+                        new_api_action.revert()
                     
                     
                     
