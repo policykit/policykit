@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import execute_action, check_policy_code, check_filter_code, initialize_code
+from policyengine.views import post_policy, execute_action, check_policy_code, check_filter_code, initialize_code
 import urllib
 import json
 
@@ -135,9 +135,6 @@ class CommunityAPI(PolymorphicModel):
     initiator = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
-    community_post = models.CharField('community_post', 
-                                         max_length=300, null=True)
-    
     community_revert = models.BooleanField(default=False)
     
     community_origin = models.BooleanField(default=False)
@@ -148,73 +145,6 @@ class CommunityAPI(PolymorphicModel):
         _ = LogAPICall.make_api_call(self.community_integration, values, call)
         self.community_revert = True
         self.save()
-        
-    def post_policy(self, policy, post_type='channel', users=None, template=None, channel=None):
-        values = {'token': self.community_integration.access_token}
-        
-        if not template:
-            policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
-        else:
-            policy_message = template
-
-        values['text'] = policy_message
-        
-        # mpim - all users
-        # im each user
-        # channel all users
-        # channel ephemeral users
-        
-        if post_type == "mpim":
-            api_call = 'chat.postMessage'
-            user_ids = [user.username for user in users]
-            info = {'token': self.community_integration.access_token}
-            info['users'] = ','.join(user_ids)
-            call = self.community_integration.API + 'conversations.open'
-            res = LogAPICall.make_api_call(self.community_integration, info, call)
-            channel = res['channel']['id']
-            values['channel'] = channel
-            
-            call = self.community_integration.API + api_call
-            res = LogAPICall.make_api_call(self.community_integration, values, call)
-            self.community_post = res['ts']
-            self.save()
-        elif post_type == 'im':
-            api_call = 'chat.postMessage'
-            user_ids = [user.username for user in users]
-            
-            for user_id in user_ids:
-                info = {'token': self.community_integration.access_token}
-                info['users'] = user_id
-                call = self.community_integration.API + 'conversations.open'
-                res = LogAPICall.make_api_call(self.community_integration, info, call)
-                channel = res['channel']['id']
-                values['channel'] = channel
-                
-                call = self.community_integration.API + api_call
-                res = LogAPICall.make_api_call(self.community_integration, values, call)
-                self.community_post = res['ts']
-                self.save()
-        elif post_type == 'ephemeral':
-            api_call = 'chat.postEphemeral'
-            user_ids = [user.username for user in users]
-            
-            for user_id in user_ids:
-                values['user'] = user_id
-                values['channel'] = self.channel
-                call = self.community_integration.API + api_call
-                res = LogAPICall.make_api_call(self.community_integration, values, call)
-                self.community_post = res['ts']
-                self.save()
-        elif post_type == 'channel':
-            api_call = 'chat.postMessage'
-            if channel:
-                values['channel'] = channel
-            else:
-                values['channel'] = self.channel
-            call = self.community_integration.API + api_call
-            res = LogAPICall.make_api_call(self.community_integration, values, call)
-            self.community_post = res['ts']
-            self.save()
         
             
     def save(self, *args, **kwargs):
@@ -275,6 +205,9 @@ class BaseAction(models.Model):
         models.CASCADE,
         verbose_name='community_integration',
     )
+    
+    community_post = models.CharField('community_post', 
+                                         max_length=300, null=True)
     
     proposal = models.OneToOneField(Proposal,
                                  models.CASCADE)
@@ -359,12 +292,12 @@ class CommunityActionBundle(BaseAction):
         verbose_name = 'communityactionbundle'
         verbose_name_plural = 'communityactionbundles'
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            # Runs only when object is new
-            super(CommunityActionBundle, self).save(*args, **kwargs)
-        else:   
-            super(CommunityActionBundle, self).save(*args, **kwargs)
+#     def save(self, *args, **kwargs):
+#         if not self.pk:
+#             # Runs only when object is new
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
+#         else:   
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
             
     
 

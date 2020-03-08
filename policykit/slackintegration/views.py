@@ -8,7 +8,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall
+from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
@@ -182,25 +182,22 @@ def action(request):
         
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
-            api_action = CommunityAPI.objects.filter(community_post=ts)
-            if api_action:
-                api_action = api_action[0]
-                action = CommunityAction.objects.filter(api_action=api_action.id)
-                if action:
-                    action = action[0]
-                    if event['reaction'] == '+1' or event['reaction'] == '-1':
-                        if event['reaction'] == '+1':
-                            value = True
-                        elif event['reaction'] == '-1':
-                            value = False
-                        
-                        user,_ = SlackUser.objects.get_or_create(user_id=event['user'], 
-                                                               username=event['user'],
-                                                               community_integration=action.community_integration)
-                        uv,_ = UserVote.objects.get_or_create(proposal=action.proposal,
-                                                                     user=user)
-                        uv.boolean_value = value
-                        uv.save()
+            action = BaseAction.objects.filter(community_post=ts)
+            if action.exists():
+                action = action[0]
+                if event['reaction'] == '+1' or event['reaction'] == '-1':
+                    if event['reaction'] == '+1':
+                        value = True
+                    elif event['reaction'] == '-1':
+                        value = False
+                    
+                    user,_ = SlackUser.objects.get_or_create(user_id=event['user'], 
+                                                           username=event['user'],
+                                                           community_integration=action.community_integration)
+                    uv,_ = UserVote.objects.get_or_create(proposal=action.proposal,
+                                                                 user=user)
+                    uv.boolean_value = value
+                    uv.save()
     
     return HttpResponse("")
     

@@ -34,6 +34,94 @@ def check_filter_code(policy, action):
         return False
 
 
+def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
+    from policyengine.models import LogAPICall
+    
+    values = {'token': policy.community_integration.access_token}
+    
+    if not template:
+        policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+    else:
+        policy_message = template
+
+    values['text'] = policy_message
+    
+    # mpim - all users
+    # im each user
+    # channel all users
+    # channel ephemeral users
+    
+    if post_type == "mpim":
+        api_call = 'chat.postMessage'
+        user_ids = [user.username for user in users]
+        info = {'token': policy.community_integration.access_token}
+        info['users'] = ','.join(user_ids)
+        call = policy.community_integration.API + 'conversations.open'
+        res = LogAPICall.make_api_call(policy.community_integration, info, call)
+        channel = res['channel']['id']
+        values['channel'] = channel
+        
+        call = policy.community_integration.API + api_call
+        res = LogAPICall.make_api_call(policy.community_integration, values, call)
+        
+        action.community_post = res['ts']
+        action.save()
+        
+    elif post_type == 'im':
+        api_call = 'chat.postMessage'
+        user_ids = [user.username for user in users]
+        
+        for user_id in user_ids:
+            info = {'token': policy.community_integration.access_token}
+            info['users'] = user_id
+            call = policy.community_integration.API + 'conversations.open'
+            res = LogAPICall.make_api_call(policy.community_integration, info, call)
+            channel = res['channel']['id']
+            values['channel'] = channel
+            
+            call = policy.community_integration.API + api_call
+            res = LogAPICall.make_api_call(policy.community_integration, values, call)
+            
+            action.community_post = res['ts']
+            action.save()
+            
+    elif post_type == 'ephemeral':
+        api_call = 'chat.postEphemeral'
+        user_ids = [user.username for user in users]
+        
+        for user_id in user_ids:
+            values['user'] = user_id
+            
+            if channel:
+                values['channel'] = channel
+            else:
+                if action.action_type == "CommunityAction":
+                    values['channel'] = action.api_action.channel
+                else:
+                    values['channel'] = action.bundled_api_actions.all()[0].channel
+            call = policy.community_integration.API + api_call
+            
+            res = LogAPICall.make_api_call(policy.community_integration, values, call)
+            
+            action.community_post = res['ts']
+            action.save()
+    elif post_type == 'channel':
+        api_call = 'chat.postMessage'
+        if channel:
+            values['channel'] = channel
+        else:
+            if action.action_type == "CommunityAction":
+                values['channel'] = action.api_action.channel
+            else:
+                values['channel'] = action.bundled_api_actions.all()[0].channel
+                    
+        call = policy.community_integration.API + api_call
+        res = LogAPICall.make_api_call(policy.community_integration, values, call)
+        
+        action.community_post = res['ts']
+        action.save()
+
+
 def execute_action(action):
     from policyengine.models import LogAPICall, CommunityUser
     
@@ -88,10 +176,10 @@ def execute_action(action):
 
         res = LogAPICall.make_api_call(community_integration, data, call)
         
-        if obj.community_post:
+        if action.community_post:
             admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
             values = {'token': admin_user.access_token,
-                      'ts': obj.community_post,
+                      'ts': action.community_post,
                       'channel': obj.channel
                     }
             call = community_integration.API + 'chat.delete'
