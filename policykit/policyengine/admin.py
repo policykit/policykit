@@ -55,7 +55,7 @@ class PolicyAdminSite(AdminSite):
 admin_site = PolicyAdminSite(name="policyadmin")
 
 
-class ProcessAdmin(admin.ModelAdmin):
+class ProcessPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_code', 'explanation')
     
     def save_model(self, request, obj, form, change):
@@ -65,9 +65,9 @@ class ProcessAdmin(admin.ModelAdmin):
             obj.community_integration = request.user.community_integration
         obj.save()
 
-admin_site.register(ProcessPolicy, ProcessAdmin)
+admin_site.register(ProcessPolicy, ProcessPolicyAdmin)
 
-class CommunityAdmin(admin.ModelAdmin):
+class CommunityPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation')
     
     def save_model(self, request, obj, form, change):
@@ -77,10 +77,10 @@ class CommunityAdmin(admin.ModelAdmin):
             obj.community_integration = request.user.community_integration
         obj.save()
 
-admin_site.register(CommunityPolicy, CommunityAdmin)
+admin_site.register(CommunityPolicy, CommunityPolicyAdmin)
 
 class CommunityActionBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_api_actions')
+    fields= ('bundled_api_actions',)
     
     def save_model(self, request, obj, form, change):
         if not change:
