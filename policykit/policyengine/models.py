@@ -340,6 +340,7 @@ class CommunityActionBundle(BaseAction):
     bundled_api_actions = models.ManyToManyField(CommunityAPI, 
                                      models.CASCADE, 
                                      verbose_name="bundled_api_actions",
+                                     related_name="communityactionbundle"
                                      )
 
     class Meta:
