@@ -54,6 +54,9 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p5)
         self.user_permissions.add(p6)
         
+        p7 = Permission.objects.get(name='Can add communityactionbundle')
+        self.user_permissions.add(p7)
+        
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
         
@@ -225,7 +228,6 @@ class CommunityAPI(PolymorphicModel):
                 _ = CommunityAction.objects.create(community_integration=self.community_integration,
                                                    api_action=self
                                                   )
-
         else:
             super(CommunityAPI, self).save(*args, **kwargs) 
         
