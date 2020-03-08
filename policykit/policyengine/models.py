@@ -358,10 +358,6 @@ class CommunityActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                        author=self.bundled_api_actions.al()[0].initiator)
-            
-            self.proposal = p
             super(CommunityAction, self).save(*args, **kwargs)
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
@@ -423,6 +419,7 @@ class CommunityPolicy(BasePolicy):
         if not self.pk:
             # Runs only when object is new
             process = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration)
+            
             p = self.proposal
             p.status = Proposal.PROPOSED
             p.save()

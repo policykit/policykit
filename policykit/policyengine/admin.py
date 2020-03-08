@@ -72,8 +72,6 @@ class CommunityPolicyAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if not change:
-            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
-            obj.proposal = p
             obj.community_integration = request.user.community_integration
         obj.save()
 
