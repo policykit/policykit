@@ -337,11 +337,7 @@ class CommunityAction(BaseAction):
   
 class CommunityActionBundle(BaseAction):
       
-    bundled_api_actions = models.ManyToManyField(CommunityAPI, 
-                                     models.CASCADE, 
-                                     verbose_name="bundled_api_actions",
-                                     related_name="communityactionbundle"
-                                     )
+    bundled_api_actions = models.ManyToManyField(CommunityAPI)
 
     class Meta:
         verbose_name = 'communityactionbundle'
