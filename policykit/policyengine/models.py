@@ -161,7 +161,7 @@ class CommunityAPI(PolymorphicModel):
         
         if post_type == "mpim":
             api_call = 'chat.postMessage'
-            user_ids = [user.user_id for user in users]
+            user_ids = [user.username for user in users]
             info = {'token': self.community_integration.access_token}
             info['users'] = ','.join(user_ids)
             call = self.community_integration.API + 'coversations.open'
@@ -175,7 +175,7 @@ class CommunityAPI(PolymorphicModel):
             self.save()
         elif post_type == 'im':
             api_call = 'chat.postMessage'
-            user_ids = [user.user_id for user in users]
+            user_ids = [user.username for user in users]
             
             for user_id in user_ids:
                 info = {'token': self.community_integration.access_token}
@@ -191,7 +191,7 @@ class CommunityAPI(PolymorphicModel):
                 self.save()
         elif post_type == 'ephemeral':
             api_call = 'chat.postEphemeral'
-            user_ids = [user.user_id for user in users]
+            user_ids = [user.username for user in users]
             
             for user_id in user_ids:
                 values['user'] = user_id
