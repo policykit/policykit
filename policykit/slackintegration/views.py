@@ -163,7 +163,9 @@ def action(request):
 
         if new_api_action and not policy_kit_action:
             for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_api_action.community_integration):
-                if check_filter_code(policy, new_api_action):
+                action = CommunityAction()
+                action.api_action = new_api_action
+                if check_filter_code(policy, action):
                     if not new_api_action.pk:
                         new_api_action.community_origin = True
                         new_api_action.save()

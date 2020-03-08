@@ -19,6 +19,7 @@ class SlackPostMessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
+            obj.is_bundled = False
             obj.community_integration = request.user.community_integration
         obj.save()
     
@@ -30,6 +31,7 @@ class SlackScheduleMessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
+            obj.is_bundled = False
             obj.community_integration = request.user.community_integration
         obj.save()
     
@@ -41,6 +43,7 @@ class SlackRenameConversationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
+            obj.is_bundled = False
             obj.community_integration = request.user.community_integration
         obj.save()
         
@@ -52,6 +55,7 @@ class SlackKickConversationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
+            obj.is_bundled = False
             obj.community_integration = request.user.community_integration
         obj.save()
     
@@ -63,6 +67,7 @@ class SlackJoinConversationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
+            obj.is_bundled = False
             obj.community_integration = request.user.community_integration
         obj.save()
         
@@ -74,6 +79,7 @@ class SlackPinMessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
+            obj.is_bundled = False
             obj.community_integration = request.user.community_integration
         obj.save()
     

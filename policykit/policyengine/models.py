@@ -139,6 +139,8 @@ class CommunityAPI(PolymorphicModel):
     
     community_origin = models.BooleanField(default=False)
     
+    is_bundled = models.BooleanField(default=False)
+    
     def revert(self, values, call):
         _ = LogAPICall.make_api_call(self.community_integration, values, call)
         self.community_revert = True
@@ -218,11 +220,11 @@ class CommunityAPI(PolymorphicModel):
         if not self.pk:
             # Runs only when object is new
             super(CommunityAPI, self).save(*args, **kwargs)
-            p = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
-            _ = CommunityAction.objects.create(community_integration=self.community_integration,
-                                               proposal=p,
-                                               api_action=self
-                                              )
+            
+            if not self.is_bundled:
+                _ = CommunityAction.objects.create(community_integration=self.community_integration,
+                                                   api_action=self
+                                                  )
 
         else:
             super(CommunityAPI, self).save(*args, **kwargs) 
@@ -278,6 +280,28 @@ class BaseAction(models.Model):
     class Meta:
         abstract = True   
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super(BaseAction, self).save(*args, **kwargs)
+            
+            action = self
+            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                if check_filter_code(policy, action):
+                    
+                    initialize_code(policy, action)
+                    
+                    cond_result = check_policy_code(policy, action)
+                    if cond_result == Proposal.PASSED:
+                        exec(policy.policy_action_code)
+                    elif cond_result == Proposal.FAILED:
+                        exec(policy.policy_failure_code)
+                    else:
+                        exec(policy.policy_notify_code)
+        else:
+            super(BaseAction, self).save(*args, **kwargs)      
+        
+
+
 
 class ProcessAction(BaseAction):
      
@@ -315,20 +339,6 @@ class CommunityAction(BaseAction):
             self.proposal = p
             
             super(CommunityAction, self).save(*args, **kwargs)
-            
-            action = self
-            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                if check_filter_code(policy, action.api_action):
-                    
-                    initialize_code(policy, action)
-                    
-                    cond_result = check_policy_code(policy, action)
-                    if cond_result == Proposal.PASSED:
-                        exec(policy.policy_action_code)
-                    elif cond_result == Proposal.FAILED:
-                        exec(policy.policy_failure_code)
-                    else:
-                        exec(policy.policy_notify_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
@@ -342,7 +352,18 @@ class CommunityActionBundle(BaseAction):
     class Meta:
         verbose_name = 'communityactionbundle'
         verbose_name_plural = 'communityactionbundles'
-    
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Runs only when object is new
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                        author=self.bundled_api_actions.al()[0].initiator)
+            
+            self.proposal = p
+            super(CommunityAction, self).save(*args, **kwargs)
+        else:   
+            super(CommunityAction, self).save(*args, **kwargs)
+            
     
 
 class BasePolicy(models.Model):
