@@ -193,10 +193,10 @@ def action(request):
                         elif event['reaction'] == '-1':
                             value = False
                         
-                        user = SlackUser.objects.get_or_create(user_id=event['user'], 
+                        user,_ = SlackUser.objects.get_or_create(user_id=event['user'], 
                                                                username=event['user'],
                                                                community_integration=action.community_integration)
-                        uv, created = UserVote.objects.get_or_create(proposal=action.proposal,
+                        uv,_ = UserVote.objects.get_or_create(proposal=action.proposal,
                                                                      user=user)
                         uv.boolean_value = value
                         uv.save()
