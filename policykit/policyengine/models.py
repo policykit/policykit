@@ -325,6 +325,8 @@ class CommunityAction(BaseAction):
     api_action = models.OneToOneField(CommunityAPI,
                                       models.CASCADE)
     
+    action_type = "CommunityAction"
+    
     class Meta:
         verbose_name = 'communityaction'
         verbose_name_plural = 'communityactions'
@@ -350,6 +352,8 @@ class CommunityAction(BaseAction):
 class CommunityActionBundle(BaseAction):
       
     bundled_api_actions = models.ManyToManyField(CommunityAPI)
+    
+    action_type = "CommunityActionBundle"
 
     class Meta:
         verbose_name = 'communityactionbundle'
