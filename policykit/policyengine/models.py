@@ -358,9 +358,9 @@ class CommunityActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            super(CommunityAction, self).save(*args, **kwargs)
+            super(CommunityActionBundle, self).save(*args, **kwargs)
         else:   
-            super(CommunityAction, self).save(*args, **kwargs)
+            super(CommunityActionBundle, self).save(*args, **kwargs)
             
     
 
