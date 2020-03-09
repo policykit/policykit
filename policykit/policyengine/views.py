@@ -8,6 +8,16 @@ import json
 
 logger = logging.getLogger(__name__)
 
+NUMBERS = {1: 'one',
+           2: 'two',
+           3: 'three',
+           4: 'four',
+           5: 'five',
+           6: 'six',
+           7: 'seven',
+           8: 'eight',
+           9: 'nine'}
+
 
 def check_filter_code(policy, action):
     from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
@@ -41,10 +51,17 @@ def check_policy_code(policy, action):
 def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
     
+    if action.action_type == "CommunityActionBundle":
+        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote below:\n'
+        for num, api_action in enumerate(action.bundled_api_actions):
+            policy_message_default += ':' + NUMBERS[num] + ': ' + str(api_action) + '\n'
+    else:
+        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+    
     values = {'token': policy.community_integration.access_token}
     
     if not template:
-        policy_message = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+        policy_message = policy_message_default
     else:
         policy_message = template
 
