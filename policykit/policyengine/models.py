@@ -232,19 +232,20 @@ class BaseAction(models.Model):
         if not self.pk:
             super(BaseAction, self).save(*args, **kwargs)
             
-            action = self
-            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                if check_filter_code(policy, action):
-                    
-                    initialize_code(policy, action)
-                    
-                    cond_result = check_policy_code(policy, action)
-                    if cond_result == Proposal.PASSED:
-                        exec(policy.policy_action_code)
-                    elif cond_result == Proposal.FAILED:
-                        exec(policy.policy_failure_code)
-                    else:
-                        exec(policy.policy_notify_code)
+            if not self.is_bundled:
+                action = self
+                for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                    if check_filter_code(policy, action):
+                        
+                        initialize_code(policy, action)
+                        
+                        cond_result = check_policy_code(policy, action)
+                        if cond_result == Proposal.PASSED:
+                            exec(policy.policy_action_code)
+                        elif cond_result == Proposal.FAILED:
+                            exec(policy.policy_failure_code)
+                        else:
+                            exec(policy.policy_notify_code)
         else:
             super(BaseAction, self).save(*args, **kwargs)      
         
