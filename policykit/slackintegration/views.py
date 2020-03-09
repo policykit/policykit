@@ -8,7 +8,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import CommunityAction, BooleanVote, NumberVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction
+from policyengine.models import CommunityAction, BooleanVote, NumberVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction, CommunityActionBundle
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
