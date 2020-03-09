@@ -317,12 +317,12 @@ class CommunityActionBundle(BaseAction):
         verbose_name = 'communityactionbundle'
         verbose_name_plural = 'communityactionbundles'
 
-#     def save(self, *args, **kwargs):
-#         if not self.pk:
-#             # Runs only when object is new
-#             super(CommunityActionBundle, self).save(*args, **kwargs)
-#         else:   
-#             super(CommunityActionBundle, self).save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Runs only when object is new
+            super(CommunityActionBundle, self).save(*args, **kwargs)
+        else:   
+            super(CommunityActionBundle, self).save(*args, **kwargs)
             
     
 
