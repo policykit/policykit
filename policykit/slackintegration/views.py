@@ -8,7 +8,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import CommunityAction, UserVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction
+from policyengine.models import CommunityAction, BooleanVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
@@ -194,7 +194,7 @@ def action(request):
                     
                     user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                            community_integration=action.community_integration)
-                    uv,_ = UserVote.objects.get_or_create(proposal=action.proposal,
+                    uv,_ = BooleanVote.objects.get_or_create(proposal=action.proposal,
                                                                  user=user)
                     uv.boolean_value = value
                     uv.save()
@@ -212,7 +212,7 @@ def action(request):
                         
                         user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                                community_integration=action.community_integration)
-                        uv,_ = UserVote.objects.get_or_create(proposal=action.proposal,
+                        uv,_ = BooleanVote.objects.get_or_create(proposal=action.proposal,
                                                                      user=user)
                         uv.boolean_value = value
                         uv.save()
