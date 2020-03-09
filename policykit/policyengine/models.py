@@ -327,6 +327,16 @@ class ProcessPolicy(BasePolicy):
     def __str__(self):
         return ' '.join(['ProcessPolicy: ', self.explanation, 'for', self.community_integration.community_name])
     
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            p = self.proposal
+            p.status = Proposal.PASSED
+            p.save()
+            
+            super(ProcessPolicy, self).save(*args, **kwargs)
+
+        else:   
+            super(ProcessPolicy, self).save(*args, **kwargs)
     
     
 class CommunityPolicy(BasePolicy):
