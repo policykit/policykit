@@ -287,6 +287,16 @@ class CommunityActionBundle(BaseAction):
     bundled_api_actions = models.ManyToManyField(CommunityAPI)
     
     action_type = "CommunityActionBundle"
+    
+    ELECTION = 'election'
+    BUNDLE = 'bundle'
+    
+    BUNDLE_TYPE = [
+            (ELECTION, 'election'),
+            (BUNDLE, 'bundle')
+        ]
+    
+    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     class Meta:
         verbose_name = 'communityactionbundle'

@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_filter_code(policy, action):
+    from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
     _locals = locals()
     exec(policy.policy_filter_code, globals(), _locals)
     
@@ -21,13 +22,13 @@ def check_filter_code(policy, action):
 
 
 def initialize_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser
+    from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
     exec(policy.policy_init_code, globals(), locals())
     
 
 
 def check_policy_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser
+    from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
     _locals = locals()
     exec(policy.policy_conditional_code, globals(), _locals)
     
