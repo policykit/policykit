@@ -144,9 +144,12 @@ def execute_action(action):
             if f.name not in ['polymorphic_ctype',
                               'community_integration',
                               'initiator',
-                              'community_post',
                               'communityapi_ptr',
                               'communityaction',
+                              'communityactionbundle',
+                              'community_revert',
+                              'community_origin',
+                              'is_bundled'
                               ]:
                 obj_fields.append(f.name) 
         
