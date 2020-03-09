@@ -194,10 +194,14 @@ def action(request):
                     
                     user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                            community_integration=action.community_integration)
-                    uv,_ = BooleanVote.objects.get_or_create(proposal=action.proposal,
+                    uv = BooleanVote.objects.filter(proposal=action.proposal,
                                                                  user=user)
-                    uv.boolean_value = value
-                    uv.save()
+                    if uv.exists():
+                        uv = uv[0]
+                        uv.boolean_value = value
+                        uv.save()
+                    else:
+                        uv = BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
             
             if action == None:
                 action_res = CommunityActionBundle.objects.filter(community_post=ts)
@@ -212,10 +216,14 @@ def action(request):
                         
                         user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                                community_integration=action.community_integration)
-                        uv,_ = BooleanVote.objects.get_or_create(proposal=action.proposal,
-                                                                     user=user)
-                        uv.boolean_value = value
-                        uv.save()
+                        uv = BooleanVote.objects.filter(proposal=action.proposal,
+                                                                 user=user)
+                        if uv.exists():
+                            uv = uv[0]
+                            uv.boolean_value = value
+                            uv.save()
+                        else:
+                            uv = BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
         
     
     return HttpResponse("")
