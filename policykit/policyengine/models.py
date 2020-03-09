@@ -45,17 +45,26 @@ class CommunityUser(User, PolymorphicModel):
         self.user_permissions.add(p1)
         self.user_permissions.add(p2)
         
-        p3 = Permission.objects.get(name='Can add user vote')
-        p4 = Permission.objects.get(name='Can change user vote')
-        p5 = Permission.objects.get(name='Can delete user vote')
-        p6 = Permission.objects.get(name='Can view user vote')
+        p3 = Permission.objects.get(name='Can add boolean vote')
+        p4 = Permission.objects.get(name='Can change boolean vote')
+        p5 = Permission.objects.get(name='Can delete boolean vote')
+        p6 = Permission.objects.get(name='Can view boolean vote')
         self.user_permissions.add(p3)
         self.user_permissions.add(p4)
         self.user_permissions.add(p5)
         self.user_permissions.add(p6)
         
-        p7 = Permission.objects.get(name='Can add communityactionbundle')
+        p7 = Permission.objects.get(name='Can add number vote')
+        p8 = Permission.objects.get(name='Can change number vote')
+        p9 = Permission.objects.get(name='Can delete number vote')
+        p10 = Permission.objects.get(name='Can view number vote')
         self.user_permissions.add(p7)
+        self.user_permissions.add(p8)
+        self.user_permissions.add(p9)
+        self.user_permissions.add(p10)
+        
+        p11 = Permission.objects.get(name='Can add communityactionbundle')
+        self.user_permissions.add(p11)
         
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
