@@ -141,6 +141,7 @@ class CommunityAPI(PolymorphicModel):
     
     is_bundled = models.BooleanField(default=False)
     
+    
     def revert(self, values, call):
         _ = LogAPICall.make_api_call(self.community_integration, values, call)
         self.community_revert = True
@@ -152,10 +153,10 @@ class CommunityAPI(PolymorphicModel):
             # Runs only when object is new
             super(CommunityAPI, self).save(*args, **kwargs)
             
-            if not self.is_bundled:
-                _ = CommunityAction.objects.create(community_integration=self.community_integration,
-                                                   api_action=self
-                                                  )
+            _ = CommunityAction.objects.create(community_integration=self.community_integration,
+                                               api_action=self,
+                                               is_bundled=self.is_bundled
+                                              )
         else:
             super(CommunityAPI, self).save(*args, **kwargs) 
         
@@ -209,6 +210,9 @@ class BaseAction(models.Model):
     
     proposal = models.OneToOneField(Proposal,
                                  models.CASCADE)
+    
+    
+    is_bundled = models.BooleanField(default=False)
     
     class Meta:
         abstract = True   
@@ -270,6 +274,7 @@ class CommunityAction(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
+            
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                         author=self.api_action.initiator)
             
@@ -284,7 +289,7 @@ class CommunityAction(BaseAction):
   
 class CommunityActionBundle(BaseAction):
       
-    bundled_api_actions = models.ManyToManyField(CommunityAPI)
+    bundled_actions = models.ManyToManyField(CommunityAction)
     
     action_type = "CommunityActionBundle"
     
@@ -404,12 +409,8 @@ class UserVote(models.Model):
 
 class BooleanVote(UserVote):
     boolean_value = models.BooleanField() # yes/no, selected/not selected
-    
 
-class MultipleChoiceVote(UserVote):
-    api_action = models.ForeignKey(CommunityAPI,
-                                   models.CASCADE)
-    
+class NumberVote(UserVote):
     number_value = models.IntegerField()
 
 

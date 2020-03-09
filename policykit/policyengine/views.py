@@ -38,7 +38,7 @@ def initialize_code(policy, action):
 
 
 def check_policy_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
+    from policyengine.models import Proposal, BooleanVote, MultipleChoiceVote, CommunityUser, CommunityActionBundle
     _locals = locals()
     exec(policy.policy_conditional_code, globals(), _locals)
     
@@ -53,8 +53,8 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
     
     if action.action_type == "CommunityActionBundle":
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote below:\n'
-        for num, api_action in enumerate(action.bundled_api_actions):
-            policy_message_default += ':' + NUMBERS[num] + ': ' + str(api_action) + '\n'
+        for num, action in enumerate(action.bundled_actions):
+            policy_message_default += ':' + NUMBERS[num] + ': ' + str(action.api_action) + '\n'
     else:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
     
@@ -119,7 +119,8 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
                 if action.action_type == "CommunityAction":
                     values['channel'] = action.api_action.channel
                 else:
-                    values['channel'] = action.bundled_api_actions.all()[0].channel
+                    action = action.bundled_actions.all()[0]
+                    values['channel'] = action.api_action.channel
             call = policy.community_integration.API + api_call
             
             res = LogAPICall.make_api_call(policy.community_integration, values, call)
@@ -134,7 +135,8 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
             if action.action_type == "CommunityAction":
                 values['channel'] = action.api_action.channel
             else:
-                values['channel'] = action.bundled_api_actions.all()[0].channel
+                action = action.bundled_actions.all()[0]
+                values['channel'] = action.api_action.channel
                     
         call = policy.community_integration.API + api_call
         res = LogAPICall.make_api_call(policy.community_integration, values, call)
