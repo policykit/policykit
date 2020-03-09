@@ -176,9 +176,11 @@ def action(request):
         
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
-            action = BaseAction.objects.filter(community_post=ts)
-            if action.exists():
-                action = action[0]
+            action = None
+            action_res = CommunityAction.objects.filter(community_post=ts)
+            if action_res.exists():
+                action = action_res[0]
+            
                 if event['reaction'] == '+1' or event['reaction'] == '-1':
                     if event['reaction'] == '+1':
                         value = True
@@ -191,6 +193,25 @@ def action(request):
                                                                  user=user)
                     uv.boolean_value = value
                     uv.save()
+            
+            if action == None:
+                action_res = CommunityActionBundle.objects.filter(community_post=ts)
+                if action_res.exists():
+                    action = action_res[0]
+                    
+                    if event['reaction'] == '+1' or event['reaction'] == '-1':
+                        if event['reaction'] == '+1':
+                            value = True
+                        elif event['reaction'] == '-1':
+                            value = False
+                        
+                        user,_ = SlackUser.objects.get_or_create(username=event['user'],
+                                                               community_integration=action.community_integration)
+                        uv,_ = UserVote.objects.get_or_create(proposal=action.proposal,
+                                                                     user=user)
+                        uv.boolean_value = value
+                        uv.save()
+        
     
     return HttpResponse("")
     
