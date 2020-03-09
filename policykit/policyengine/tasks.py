@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policyengine.models import UserVote, CommunityAction, CommunityActionBundle, Proposal, CommunityPolicy, CommunityUser
+from policyengine.models import UserVote, NumberVote, BooleanVote, CommunityAction, CommunityActionBundle, Proposal, CommunityPolicy, CommunityUser
 from policykit.celery import app
 from policyengine.views import *
 
