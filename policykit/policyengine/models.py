@@ -226,29 +226,15 @@ class BaseAction(models.Model):
     class Meta:
         abstract = True   
 
-    def save(self, *args, **kwargs):
-        logger.info(self.community_post)
-        
-        if not self.pk:
-            super(BaseAction, self).save(*args, **kwargs)
-            
-            if not self.is_bundled:
-                action = self
-                for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                    if check_filter_code(policy, action):
-                        
-                        initialize_code(policy, action)
-                        
-                        cond_result = check_policy_code(policy, action)
-                        if cond_result == Proposal.PASSED:
-                            exec(policy.policy_action_code)
-                        elif cond_result == Proposal.FAILED:
-                            exec(policy.policy_failure_code)
-                        else:
-                            exec(policy.policy_notify_code)
-        else:
-            super(BaseAction, self).save(*args, **kwargs)      
-        
+#     def save(self, *args, **kwargs):
+#         logger.info(self.community_post)
+#         
+#         if not self.pk:
+#             super(BaseAction, self).save(*args, **kwargs)
+#             
+#         else:
+#             super(BaseAction, self).save(*args, **kwargs)      
+#         
 
 
 
@@ -291,6 +277,22 @@ class CommunityAction(BaseAction):
             self.proposal = p
             
             super(CommunityAction, self).save(*args, **kwargs)
+            
+            
+            if not self.is_bundled:
+                action = self
+                for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                    if check_filter_code(policy, action):
+                        
+                        initialize_code(policy, action)
+                        
+                        cond_result = check_policy_code(policy, action)
+                        if cond_result == Proposal.PASSED:
+                            exec(policy.policy_action_code)
+                        elif cond_result == Proposal.FAILED:
+                            exec(policy.policy_failure_code)
+                        else:
+                            exec(policy.policy_notify_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)
@@ -320,7 +322,23 @@ class CommunityActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
+            
             super(CommunityActionBundle, self).save(*args, **kwargs)
+        
+            action = self
+            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                if check_filter_code(policy, action):
+                    
+                    initialize_code(policy, action)
+                    
+                    cond_result = check_policy_code(policy, action)
+                    if cond_result == Proposal.PASSED:
+                        exec(policy.policy_action_code)
+                    elif cond_result == Proposal.FAILED:
+                        exec(policy.policy_failure_code)
+                    else:
+                        exec(policy.policy_notify_code)
+
         else:   
             super(CommunityActionBundle, self).save(*args, **kwargs)
             
