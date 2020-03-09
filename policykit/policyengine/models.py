@@ -1,4 +1,6 @@
-from django.db import models
+from django.db import models, transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -13,6 +15,12 @@ import logging
 
 
 logger = logging.getLogger(__name__)
+
+def on_transaction_commit(func):
+    def inner(*args, **kwargs):
+        transaction.on_commit(lambda: func(*args, **kwargs))
+
+    return inner
 
 
 
@@ -319,29 +327,31 @@ class CommunityActionBundle(BaseAction):
         verbose_name = 'communityactionbundle'
         verbose_name_plural = 'communityactionbundles'
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            # Runs only when object is new
-            
-            super(CommunityActionBundle, self).save(*args, **kwargs)
-        
-            action = self
-            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                if check_filter_code(policy, action):
-                    
-                    initialize_code(policy, action)
-                    
-                    cond_result = check_policy_code(policy, action)
-                    if cond_result == Proposal.PASSED:
-                        exec(policy.policy_action_code)
-                    elif cond_result == Proposal.FAILED:
-                        exec(policy.policy_failure_code)
-                    else:
-                        exec(policy.policy_notify_code)
+#     def save(self, *args, **kwargs):
+#         if not self.pk:
+#             # Runs only when object is new
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
+# 
+#         else:   
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
 
-        else:   
-            super(CommunityActionBundle, self).save(*args, **kwargs)
+@receiver(post_save, sender=CommunityActionBundle)
+@on_transaction_commit
+def after_bundle_save(sender, instance, **kwargs):
+    action = instance
+    for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
+        if check_filter_code(policy, action):
             
+            initialize_code(policy, action)
+            
+            cond_result = check_policy_code(policy, action)
+            if cond_result == Proposal.PASSED:
+                exec(policy.policy_action_code)
+            elif cond_result == Proposal.FAILED:
+                exec(policy.policy_failure_code)
+            else:
+                exec(policy.policy_notify_code)
+  
     
 
 class BasePolicy(models.Model):
