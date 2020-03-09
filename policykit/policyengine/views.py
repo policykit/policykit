@@ -8,7 +8,8 @@ import json
 
 logger = logging.getLogger(__name__)
 
-NUMBERS = {1: 'one',
+NUMBERS = {0: 'zero',
+           1: 'one',
            2: 'two',
            3: 'three',
            4: 'four',
@@ -54,8 +55,8 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
     if action.action_type == "CommunityActionBundle":
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote below:\n'
         bundled_actions = action.bundled_actions.all()
-        for num, action in enumerate(bundled_actions):
-            policy_message_default += ':' + NUMBERS[num] + ': ' + str(action.api_action) + '\n'
+        for num, a in enumerate(bundled_actions):
+            policy_message_default += ':' + NUMBERS[num] + ': ' + str(a.api_action) + '\n'
     else:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
     
