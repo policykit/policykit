@@ -8,13 +8,26 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import CommunityAction, BooleanVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction
+from policyengine.models import CommunityAction, BooleanVote, NumberVote, CommunityAPI, CommunityPolicy, Proposal, LogAPICall, BaseAction
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 import datetime
 
 logger = logging.getLogger(__name__)
+
+NUMBERS_TEXT = {'zero': 0,
+                'one': 1,
+                'two': 2,
+                'three': 3,
+                'four': 4,
+                'five': 5,
+                'six': 6,
+                'seven': 7,
+                'eight': 8,
+                'nine': 9
+                }
+
 
 # Create your views here.
 
@@ -208,22 +221,23 @@ def action(request):
                 if action_res.exists():
                     action = action_res[0]
                     
-                    if event['reaction'] == '+1' or event['reaction'] == '-1':
-                        if event['reaction'] == '+1':
-                            value = True
-                        elif event['reaction'] == '-1':
-                            value = False
+                    bundled_actions = list(action.bundled_actions.all())
+                    
+                    if event['reaction'] in NUMBERS_TEXT.keys():
+                        num = NUMBERS_TEXT[event['reaction']]
+                        voted_action = bundled_actions[num]
+                        
                         
                         user,_ = SlackUser.objects.get_or_create(username=event['user'],
-                                                               community_integration=action.community_integration)
-                        uv = BooleanVote.objects.filter(proposal=action.proposal,
+                                                               community_integration=voted_action.community_integration)
+                        uv = NumberVote.objects.filter(proposal=voted_action.proposal,
                                                                  user=user)
                         if uv.exists():
                             uv = uv[0]
-                            uv.boolean_value = value
+                            uv.number_value = 1
                             uv.save()
                         else:
-                            uv = BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
+                            uv = NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=1)
         
     
     return HttpResponse("")
