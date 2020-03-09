@@ -80,7 +80,7 @@ class CommunityPolicyAdmin(admin.ModelAdmin):
 admin_site.register(CommunityPolicy, CommunityPolicyAdmin)
 
 class CommunityActionBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_api_actions',)
+    fields= ('bundled_api_actions', 'bundle_type')
     
     def save_model(self, request, obj, form, change):
         if not change:
