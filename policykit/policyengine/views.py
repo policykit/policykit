@@ -8,21 +8,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def check_policy_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser
-    _locals = locals()
-    exec(policy.policy_conditional_code, globals(), _locals)
-    
-    if _locals.get('policy_pass'):
-        return _locals['policy_pass']
-    else:
-        return Proposal.PROPOSED
-
-
-def initialize_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser
-    exec(policy.policy_init_code, globals(), locals())
-    
 
 def check_filter_code(policy, action):
     _locals = locals()
@@ -32,6 +17,24 @@ def check_filter_code(policy, action):
         return _locals['action_pass']
     else:
         return False
+
+
+
+def initialize_code(policy, action):
+    from policyengine.models import Proposal, UserVote, CommunityUser
+    exec(policy.policy_init_code, globals(), locals())
+    
+
+
+def check_policy_code(policy, action):
+    from policyengine.models import Proposal, UserVote, CommunityUser
+    _locals = locals()
+    exec(policy.policy_conditional_code, globals(), _locals)
+    
+    if _locals.get('policy_pass'):
+        return _locals['policy_pass']
+    else:
+        return Proposal.PROPOSED
 
 
 def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
