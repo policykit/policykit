@@ -147,9 +147,7 @@ class CommunityAPI(PolymorphicModel):
         self.save()
         
             
-    def save(self, *args, **kwargs):
-        logger.info(self.community_post)
-        
+    def save(self, *args, **kwargs):        
         if not self.pk:
             # Runs only when object is new
             super(CommunityAPI, self).save(*args, **kwargs)
@@ -216,6 +214,8 @@ class BaseAction(models.Model):
         abstract = True   
 
     def save(self, *args, **kwargs):
+        logger.info(self.community_post)
+        
         if not self.pk:
             super(BaseAction, self).save(*args, **kwargs)
             
