@@ -121,8 +121,8 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
                 if action.action_type == "CommunityAction":
                     values['channel'] = action.api_action.channel
                 else:
-                    action = action.bundled_actions.all()[0]
-                    values['channel'] = action.api_action.channel
+                    a = action.bundled_actions.all()[0]
+                    values['channel'] = a.api_action.channel
             call = policy.community_integration.API + api_call
             
             res = LogAPICall.make_api_call(policy.community_integration, values, call)
@@ -137,8 +137,8 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
             if action.action_type == "CommunityAction":
                 values['channel'] = action.api_action.channel
             else:
-                action = action.bundled_actions.all()[0]
-                values['channel'] = action.api_action.channel
+                a = action.bundled_actions.all()[0]
+                values['channel'] = a.api_action.channel
                     
         call = policy.community_integration.API + api_call
         res = LogAPICall.make_api_call(policy.community_integration, values, call)
