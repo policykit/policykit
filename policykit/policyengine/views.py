@@ -53,7 +53,7 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
     
     if action.action_type == "CommunityActionBundle":
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote below:\n'
-        for num, action in enumerate(action.bundled_actions):
+        for num, action in enumerate(action.bundled_actions.all()):
             policy_message_default += ':' + NUMBERS[num] + ': ' + str(action.api_action) + '\n'
     else:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
