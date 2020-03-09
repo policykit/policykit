@@ -117,8 +117,9 @@ def action(request):
                 new_api_action.community_integration = integration
                 new_api_action.name = event['channel']['name']
                 new_api_action.channel = event['channel']['id']
-                new_api_action.initiator = user = SlackUser.objects.get_or_create(username=event['user'],
-                                                                                  community_integration=integration)
+                u,_ = SlackUser.objects.get_or_create(username=event['user'],
+                                                      community_integration=integration)
+                new_api_action.initiator = u
                 prev_names = new_api_action.get_channel_info()
                 new_api_action.prev_name = prev_names[0]
                 
@@ -129,19 +130,22 @@ def action(request):
                 new_api_action.text = event['text']
                 new_api_action.channel = event['channel']
                 new_api_action.time_stamp = event['ts']
-                new_api_action.initiator = SlackUser.objects.get_or_create(username=event['user'],
+                u,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                                            community_integration=integration)
+                new_api_action.initiator = u
 
         elif event.get('type') == "member_joined_channel":
             if not is_policykit_action(integration, event['channel'], 'channel', SlackJoinConversation.ACTION):
                 new_api_action = SlackJoinConversation()
                 new_api_action.community_integration = integration
                 if event.get('inviter'):
-                    new_api_action.initiator = SlackUser.objects.get_or_create(username=event['inviter'],
-                                                                               community_integration=integration)
+                    u,_ = SlackUser.objects.get_or_create(username=event['inviter'],
+                                                          community_integration=integration)
+                    new_api_action.initiator = u
                 else:
-                    new_api_action.initiator = SlackUser.objects.get_or_create(username=event['user'],
-                                                                               community_integration=integration)
+                    u,_ = SlackUser.objects.get_or_create(username=event['user'],
+                                                          community_integration=integration)
+                    new_api_action.initiator = u
                 new_api_action.users = event.get('user')
                 new_api_action.channel = event['channel']
 
@@ -150,8 +154,9 @@ def action(request):
             if not is_policykit_action(integration, event['channel_id'], 'channel', SlackPinMessage.ACTION):
                 new_api_action = SlackPinMessage()
                 new_api_action.community_integration = integration
-                new_api_action.initiator = SlackUser.objects.get_or_create(username=event['user'],
-                                                                           community_integration=integration)
+                u,_ = SlackUser.objects.get_or_create(username=event['user'],
+                                                      community_integration=integration)
+                new_api_action.initiator = u
                 new_api_action.channel = event['channel_id']
                 new_api_action.timestamp = event['item']['message']['ts']
 
