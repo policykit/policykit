@@ -20,7 +20,7 @@ NUMBERS = {1: 'one',
 
 
 def check_filter_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
+    from policyengine.models import Proposal, BooleanVote, NumberVote, CommunityUser, CommunityActionBundle
     _locals = locals()
     exec(policy.policy_filter_code, globals(), _locals)
     
@@ -32,13 +32,13 @@ def check_filter_code(policy, action):
 
 
 def initialize_code(policy, action):
-    from policyengine.models import Proposal, UserVote, CommunityUser, CommunityActionBundle
+    from policyengine.models import Proposal, BooleanVote, NumberVote, CommunityUser, CommunityActionBundle
     exec(policy.policy_init_code, globals(), locals())
     
 
 
 def check_policy_code(policy, action):
-    from policyengine.models import Proposal, BooleanVote, MultipleChoiceVote, CommunityUser, CommunityActionBundle
+    from policyengine.models import Proposal, BooleanVote, NumberVote, CommunityUser, CommunityActionBundle
     _locals = locals()
     exec(policy.policy_conditional_code, globals(), _locals)
     
