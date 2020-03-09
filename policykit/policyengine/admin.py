@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityActionBundle, Proposal, UserVote
+from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityActionBundle, Proposal, BooleanVote, MultipleChoiceVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -93,7 +93,7 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
 
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
-class UserVoteAdmin(admin.ModelAdmin):
+class BooleanVoteAdmin(admin.ModelAdmin):
     fields= ('proposal', 'boolean_value')
     
     def save_model(self, request, obj, form, change):
@@ -101,7 +101,18 @@ class UserVoteAdmin(admin.ModelAdmin):
             obj.user = request.user
         obj.save()
 
-admin_site.register(UserVote, UserVoteAdmin)
+admin_site.register(BooleanVote, BooleanVoteAdmin)
+
+class MultipleChoiceVoteAdmin(admin.ModelAdmin):
+    fields= ('proposal', 'api_action', 'number_value')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.user = request.user
+        obj.save()
+
+admin_site.register(MultipleChoiceVote, MultipleChoiceVoteAdmin)
+
 # 
 # class ActionAdmin(admin.ModelAdmin):
 #     pass
