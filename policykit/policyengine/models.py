@@ -339,18 +339,20 @@ class CommunityActionBundle(BaseAction):
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
-    for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
-        if check_filter_code(policy, action):
-            
-            initialize_code(policy, action)
-            
-            cond_result = check_policy_code(policy, action)
-            if cond_result == Proposal.PASSED:
-                exec(policy.policy_action_code)
-            elif cond_result == Proposal.FAILED:
-                exec(policy.policy_failure_code)
-            else:
-                exec(policy.policy_notify_code)
+    
+    if not action.community_post:
+        for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
+            if check_filter_code(policy, action):
+                
+                initialize_code(policy, action)
+                
+                cond_result = check_policy_code(policy, action)
+                if cond_result == Proposal.PASSED:
+                    exec(policy.policy_action_code)
+                elif cond_result == Proposal.FAILED:
+                    exec(policy.policy_failure_code)
+                else:
+                    exec(policy.policy_notify_code)
   
     
 
