@@ -214,17 +214,41 @@ def execute_action(action):
             _ = LogAPICall.make_api_call(community_integration, values, call)
         
         if res['ok']:
-            from policyengine.models import Proposal
-            p = action.proposal
-            p.status = Proposal.PASSED
-            p.save()
+            clean_up_proposals(action, True)
         else:
             error_message = res['error']
             logger.info(error_message)
+            clean_up_proposals(action, False)
 
     else:
-        from policyengine.models import Proposal
-        p = action.proposal
-        p.status = Proposal.PASSED
-        p.save()
+        clean_up_proposals(action, True)
 
+
+def clean_up_proposals(action, executed):
+    from policyengine.models import Proposal
+    
+    if action.is_bundled:
+        bundle = action.communityactionbundle_set.all() 
+        for a in bundle.bundled_actions.all():
+            if a != action:
+                p = a.proposal
+                p.status = Proposal.FAILED
+                p.save()
+        p = bundle.proposal
+        if executed:
+            p.status = Proposal.PASSED
+        else:
+            p.status = Proposal.FAILED
+        p.save()
+            
+        
+    p = action.proposal
+    if executed:
+        p.status = Proposal.PASSED
+    else:
+        p.status = Proposal.FAILED
+    p.save()
+            
+            
+            
+    
