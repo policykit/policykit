@@ -147,7 +147,7 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
         action.save()
 
 
-def execute_action(action):
+def execute_action(action, delete_policykit_post=True):
     from policyengine.models import LogAPICall, CommunityUser
     
     logger.info('here')
@@ -204,14 +204,27 @@ def execute_action(action):
 
         res = LogAPICall.make_api_call(community_integration, data, call)
         
-        if action.community_post:
-            admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-            values = {'token': admin_user.access_token,
-                      'ts': action.community_post,
-                      'channel': obj.channel
-                    }
-            call = community_integration.API + 'chat.delete'
-            _ = LogAPICall.make_api_call(community_integration, values, call)
+        
+        # delete PolicyKit Post
+        if delete_policykit_post:
+            posted_action = None
+            if action.is_bundled:
+                bundle = action.communityactionbundle_set.all()
+                if bundle.exists():
+                    posted_action = bundle[0]
+            else:
+                posted_action = action
+                
+            if posted_action.community_post:
+                admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+                values = {'token': admin_user.access_token,
+                          'ts': posted_action.community_post,
+                          'channel': obj.channel
+                        }
+                call = community_integration.API + 'chat.delete'
+                _ = LogAPICall.make_api_call(community_integration, values, call)
+
+        
         
         if res['ok']:
             clean_up_proposals(action, True)
