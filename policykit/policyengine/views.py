@@ -228,18 +228,20 @@ def clean_up_proposals(action, executed):
     from policyengine.models import Proposal
     
     if action.is_bundled:
-        bundle = action.communityactionbundle_set.all() 
-        for a in bundle.bundled_actions.all():
-            if a != action:
-                p = a.proposal
+        bundle = action.communityactionbundle_set.all()
+        if bundle.exists():
+            bundle = bundle[0]
+            for a in bundle.bundled_actions.all():
+                if a != action:
+                    p = a.proposal
+                    p.status = Proposal.FAILED
+                    p.save()
+            p = bundle.proposal
+            if executed:
+                p.status = Proposal.PASSED
+            else:
                 p.status = Proposal.FAILED
-                p.save()
-        p = bundle.proposal
-        if executed:
-            p.status = Proposal.PASSED
-        else:
-            p.status = Proposal.FAILED
-        p.save()
+            p.save()
             
         
     p = action.proposal
