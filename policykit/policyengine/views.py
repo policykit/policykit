@@ -5,7 +5,6 @@ import urllib.request
 import urllib.parse
 import logging
 import json
-from policyengine.models import CommunityActionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +50,7 @@ def check_policy_code(policy, action):
 
 
 def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
-    from policyengine.models import LogAPICall
+    from policyengine.models import LogAPICall, CommunityActionBundle
     
     if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
@@ -239,7 +238,7 @@ def execute_action(action, delete_policykit_post=True):
 
 
 def clean_up_proposals(action, executed):
-    from policyengine.models import Proposal
+    from policyengine.models import Proposal, CommunityActionBundle
     
     if action.is_bundled:
         bundle = action.communityactionbundle_set.all()
