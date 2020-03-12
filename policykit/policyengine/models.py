@@ -367,6 +367,8 @@ class BasePolicy(models.Model):
     
     explanation = models.TextField(null=True, blank=True)
     
+    is_bundled = models.BooleanField(default=False)
+    
     class Meta:
         abstract = True
     
@@ -404,6 +406,8 @@ class CommunityPolicy(BasePolicy):
     
     policy_text = models.TextField(null=True, blank=True)
     
+    policy_type = "CommunityPolicy"
+    
     class Meta:
         verbose_name = 'communitypolicy'
         verbose_name_plural = 'communitypolicies'
@@ -428,12 +432,65 @@ class CommunityPolicy(BasePolicy):
             
             super(CommunityPolicy, self).save(*args, **kwargs)
             
-            if process.exists():
-                policy = self
-                exec(process[0].policy_code)
+            if not self.is_bundled:
+            
+                if process.exists():
+                    policy = self
+                    exec(process[0].policy_code)
 
         else:   
             super(CommunityPolicy, self).save(*args, **kwargs)
+   
+   
+class CommunityPolicyBundle(BaseAction):
+      
+    bundled_policies = models.ManyToManyField(CommunityPolicy)
+    
+    policy_type = "CommunityPolicyBundle"
+    
+    ELECTION = 'election'
+    BUNDLE = 'bundle'
+    
+    BUNDLE_TYPE = [
+            (ELECTION, 'election'),
+            (BUNDLE, 'bundle')
+        ]
+    
+    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
+
+    class Meta:
+        verbose_name = 'communitypolicybundle'
+        verbose_name_plural = 'communitypolicybundles'
+
+#     def save(self, *args, **kwargs):
+#         if not self.pk:
+#             # Runs only when object is new
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
+# 
+#         else:   
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
+
+# @receiver(post_save, sender=CommunityPolicyBundle)
+# @on_transaction_commit
+# def after_policy_bundle_save(sender, instance, **kwargs):
+#     action = instance
+#     
+#     if not action.community_post:
+#         for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
+#             if check_filter_code(policy, action):
+#                 
+#                 initialize_code(policy, action)
+#                 
+#                 cond_result = check_policy_code(policy, action)
+#                 if cond_result == Proposal.PASSED:
+#                     exec(policy.policy_action_code)
+#                 elif cond_result == Proposal.FAILED:
+#                     exec(policy.policy_failure_code)
+#                 else:
+#                     exec(policy.policy_notify_code)
+  
+   
+   
    
 class UserVote(models.Model):
     

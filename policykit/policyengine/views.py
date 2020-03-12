@@ -5,6 +5,7 @@ import urllib.request
 import urllib.parse
 import logging
 import json
+from policyengine.models import CommunityActionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +53,8 @@ def check_policy_code(policy, action):
 def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
     
-    if action.action_type == "CommunityActionBundle":
-        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote below:\n'
+    if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
+        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
         bundled_actions = action.bundled_actions.all()
         for num, a in enumerate(bundled_actions):
             policy_message_default += ':' + NUMBERS[num] + ': ' + str(a.api_action) + '\n'
@@ -244,11 +245,13 @@ def clean_up_proposals(action, executed):
         bundle = action.communityactionbundle_set.all()
         if bundle.exists():
             bundle = bundle[0]
-            for a in bundle.bundled_actions.all():
-                if a != action:
-                    p = a.proposal
-                    p.status = Proposal.FAILED
-                    p.save()
+            # TO DO - remove all of this
+            if bundle.bundle_type == CommunityActionBundle.ELECTION:
+                for a in bundle.bundled_actions.all():
+                    if a != action:
+                        p = a.proposal
+                        p.status = Proposal.FAILED
+                        p.save()
             p = bundle.proposal
             if executed:
                 p.status = Proposal.PASSED

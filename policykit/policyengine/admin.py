@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -92,6 +92,19 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
+
+class CommunityPolicyBundleAdmin(admin.ModelAdmin):
+    fields= ('bundled_policies', 'bundle_type')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.is_bundle = True
+            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
+            obj.proposal = p
+            obj.community_integration = request.user.community_integration
+        obj.save()
+
+admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
 
 class BooleanVoteAdmin(admin.ModelAdmin):
     fields= ('proposal', 'boolean_value')
