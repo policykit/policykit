@@ -73,6 +73,8 @@ class CommunityUser(User, PolymorphicModel):
         
         p11 = Permission.objects.get(name='Can add communityactionbundle')
         self.user_permissions.add(p11)
+        p12 = Permission.objects.get(name='Can add communitypolicybundle')
+        self.user_permissions.add(p12)
         
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
