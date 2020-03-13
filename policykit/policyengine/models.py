@@ -180,42 +180,6 @@ class CommunityAPI(PolymorphicModel):
             super(CommunityAPI, self).save(*args, **kwargs) 
         
         
-class Proposal(models.Model):
-    
-    author = models.ForeignKey(
-        CommunityUser,
-        models.CASCADE,
-        verbose_name='author', 
-        blank=True
-        )
-    
-    proposal_time = models.DateTimeField(auto_now_add=True)
-    
-    PROPOSED = 'proposed'
-    FAILED = 'failed'
-    PASSED = 'passed'
-    
-    STATUS = [
-            (PROPOSED, 'proposed'),
-            (FAILED, 'failed'),
-            (PASSED, 'passed')
-        ]
-    
-    status = models.CharField(choices=STATUS, max_length=10)
-    
-    data = models.OneToOneField(DataStore, 
-        models.CASCADE,
-        verbose_name='data',
-        null=True
-    )
-    
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            ds = DataStore.objects.create()
-            self.data = ds
-        
-        super(Proposal, self).save(*args, **kwargs)
-            
 
        
 class BaseAction(models.Model):
@@ -435,7 +399,6 @@ class CommunityPolicy(BasePolicy):
             super(CommunityPolicy, self).save(*args, **kwargs)
             
             if not self.is_bundled:
-            
                 if process.exists():
                     policy = self
                     exec(process[0].policy_code)
@@ -449,16 +412,6 @@ class CommunityPolicyBundle(BaseAction):
     bundled_policies = models.ManyToManyField(CommunityPolicy)
     
     policy_type = "CommunityPolicyBundle"
-    
-    ELECTION = 'election'
-    BUNDLE = 'bundle'
-    
-    BUNDLE_TYPE = [
-            (ELECTION, 'election'),
-            (BUNDLE, 'bundle')
-        ]
-    
-    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     class Meta:
         verbose_name = 'communitypolicybundle'
@@ -472,26 +425,68 @@ class CommunityPolicyBundle(BaseAction):
 #         else:   
 #             super(CommunityActionBundle, self).save(*args, **kwargs)
 
-# @receiver(post_save, sender=CommunityPolicyBundle)
-# @on_transaction_commit
-# def after_policy_bundle_save(sender, instance, **kwargs):
-#     action = instance
-#     
-#     if not action.community_post:
-#         for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
-#             if check_filter_code(policy, action):
-#                 
-#                 initialize_code(policy, action)
-#                 
-#                 cond_result = check_policy_code(policy, action)
-#                 if cond_result == Proposal.PASSED:
-#                     exec(policy.policy_action_code)
-#                 elif cond_result == Proposal.FAILED:
-#                     exec(policy.policy_failure_code)
-#                 else:
-#                     exec(policy.policy_notify_code)
+@receiver(post_save, sender=CommunityPolicyBundle)
+@on_transaction_commit
+def after_policy_bundle_save(sender, instance, **kwargs):
+    policy = instance
+     
+    process = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, 
+                                           community_integration=policy.community_integration)
+    if process.exists():
+        exec(process[0].policy_code)
   
-   
+
+
+class Proposal(models.Model):
+    
+    author = models.ForeignKey(
+        CommunityUser,
+        models.CASCADE,
+        verbose_name='author', 
+        blank=True
+        )
+    
+    proposal_time = models.DateTimeField(auto_now_add=True)
+    
+    PROPOSED = 'proposed'
+    FAILED = 'failed'
+    PASSED = 'passed'
+    
+    STATUS = [
+            (PROPOSED, 'proposed'),
+            (FAILED, 'failed'),
+            (PASSED, 'passed')
+        ]
+    
+    status = models.CharField(choices=STATUS, max_length=10)
+    
+    data = models.OneToOneField(DataStore, 
+        models.CASCADE,
+        verbose_name='data',
+        null=True
+    )
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            ds = DataStore.objects.create()
+            self.data = ds
+            
+        super(Proposal, self).save(*args, **kwargs)
+            
+        if self.status == Proposal.PASSED:
+            cpb = CommunityPolicyBundle.objects.filter(proposal=self)
+            if cpb.exists():
+                bundled_policies = cpb.bundled_policies.all()
+                for policy in bundled_policies:
+                    proposal = policy.proposal
+                    proposal.status = Proposal.PASSED
+                    proposal.save()
+        
+            
+
+
+
+
    
    
 class UserVote(models.Model):
@@ -511,7 +506,4 @@ class BooleanVote(UserVote):
 
 class NumberVote(UserVote):
     number_value = models.IntegerField()
-
-
-
 
