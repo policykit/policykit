@@ -180,6 +180,53 @@ class CommunityAPI(PolymorphicModel):
             super(CommunityAPI, self).save(*args, **kwargs) 
         
         
+class Proposal(models.Model):
+    
+    author = models.ForeignKey(
+        CommunityUser,
+        models.CASCADE,
+        verbose_name='author', 
+        blank=True
+        )
+    
+    proposal_time = models.DateTimeField(auto_now_add=True)
+    
+    PROPOSED = 'proposed'
+    FAILED = 'failed'
+    PASSED = 'passed'
+    
+    STATUS = [
+            (PROPOSED, 'proposed'),
+            (FAILED, 'failed'),
+            (PASSED, 'passed')
+        ]
+    
+    status = models.CharField(choices=STATUS, max_length=10)
+    
+    data = models.OneToOneField(DataStore, 
+        models.CASCADE,
+        verbose_name='data',
+        null=True
+    )
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            ds = DataStore.objects.create()
+            self.data = ds
+            
+        super(Proposal, self).save(*args, **kwargs)
+            
+        if self.status == self.PASSED:
+            cpb = CommunityPolicyBundle.objects.filter(proposal=self)
+            if cpb.exists():
+                bundled_policies = cpb.bundled_policies.all()
+                for policy in bundled_policies:
+                    proposal = policy.proposal
+                    proposal.status = self.PASSED
+                    proposal.save()
+        
+            
+
 
        
 class BaseAction(models.Model):
@@ -437,52 +484,6 @@ def after_policy_bundle_save(sender, instance, **kwargs):
   
 
 
-class Proposal(models.Model):
-    
-    author = models.ForeignKey(
-        CommunityUser,
-        models.CASCADE,
-        verbose_name='author', 
-        blank=True
-        )
-    
-    proposal_time = models.DateTimeField(auto_now_add=True)
-    
-    PROPOSED = 'proposed'
-    FAILED = 'failed'
-    PASSED = 'passed'
-    
-    STATUS = [
-            (PROPOSED, 'proposed'),
-            (FAILED, 'failed'),
-            (PASSED, 'passed')
-        ]
-    
-    status = models.CharField(choices=STATUS, max_length=10)
-    
-    data = models.OneToOneField(DataStore, 
-        models.CASCADE,
-        verbose_name='data',
-        null=True
-    )
-    
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            ds = DataStore.objects.create()
-            self.data = ds
-            
-        super(Proposal, self).save(*args, **kwargs)
-            
-        if self.status == Proposal.PASSED:
-            cpb = CommunityPolicyBundle.objects.filter(proposal=self)
-            if cpb.exists():
-                bundled_policies = cpb.bundled_policies.all()
-                for policy in bundled_policies:
-                    proposal = policy.proposal
-                    proposal.status = Proposal.PASSED
-                    proposal.save()
-        
-            
 
 
 
