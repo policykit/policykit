@@ -489,12 +489,6 @@ def after_policy_bundle_save(sender, instance, **kwargs):
   
 
 
-
-
-
-
-   
-   
 class UserVote(models.Model):
     
     user = models.ForeignKey(CommunityUser,

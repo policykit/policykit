@@ -15,13 +15,20 @@ def consider_proposed_actions():
             
             if not policy.has_notified:
                 initialize_code(policy, action)
-        
-            cond_result = check_policy_code(policy, action)
-            if cond_result == Proposal.PASSED:
                 
-                exec(policy.policy_action_code)
-            elif cond_result == Proposal.FAILED:
-                exec(policy.policy_failure_code)
+                cond_result = check_policy_code(policy, action)
+                if cond_result == Proposal.PASSED:
+                    exec(policy.policy_action_code)
+                elif cond_result == Proposal.FAILED:
+                    exec(policy.policy_failure_code)
+                else:
+                    exec(policy.policy_notify_code)
+            else:
+                cond_result = check_policy_code(policy, action)
+                if cond_result == Proposal.PASSED:
+                    exec(policy.policy_action_code)
+                elif cond_result == Proposal.FAILED:
+                    exec(policy.policy_failure_code)
         
     
     community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
