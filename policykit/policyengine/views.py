@@ -36,6 +36,9 @@ def initialize_code(policy, action):
     from policyengine.models import Proposal, BooleanVote, NumberVote, CommunityUser, CommunityActionBundle
     exec(policy.policy_init_code, globals(), locals())
     
+    policy.has_notified = True
+    policy.save()
+    
 
 
 def check_policy_code(policy, action):

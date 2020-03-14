@@ -383,6 +383,8 @@ class BasePolicy(models.Model):
     
     is_bundled = models.BooleanField(default=False)
     
+    has_notified = models.BooleanField(default=False)
+    
     class Meta:
         abstract = True
     

@@ -12,6 +12,10 @@ def consider_proposed_actions():
     
     def _execute_policy(policy, action):
         if check_filter_code(policy, action):
+            
+            if not policy.has_notified:
+                initialize_code(policy, action)
+        
             cond_result = check_policy_code(policy, action)
             if cond_result == Proposal.PASSED:
                 
