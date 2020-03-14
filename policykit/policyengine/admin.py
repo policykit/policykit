@@ -94,7 +94,7 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
 class CommunityPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies')
+    fields= ('bundled_policies',)
     
     def save_model(self, request, obj, form, change):
         if not change:
