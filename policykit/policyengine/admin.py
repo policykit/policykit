@@ -39,6 +39,12 @@ class PolicyAdminSite(AdminSite):
         passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
 
         passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
+        for i in passed_community_policies:
+            c = i.communitypolicybundle_set.all()
+            if c.exists():
+                c = c[0]
+                i.bundle = c
+
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
@@ -94,7 +100,7 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
 class CommunityPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies',)
+    fields= ('bundled_policies', 'explanation')
     
     def save_model(self, request, obj, form, change):
         if not change:

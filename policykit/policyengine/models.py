@@ -459,6 +459,8 @@ class CommunityPolicyBundle(BaseAction):
       
     bundled_policies = models.ManyToManyField(CommunityPolicy)
     
+    explanation = models.TextField(blank=True, default='')
+    
     policy_type = "CommunityPolicyBundle"
 
     class Meta:
