@@ -79,9 +79,9 @@
 			{% for rule in passed_rules %}
 			<tr>
 				<td>
-					{{ if rule.is_bundled }}
-						Part of bundled policy: rule.bundle.explanation<BR>
-					{{ endif }}
+					{% if rule.is_bundled %}
+						Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+					{% endif %}
 					Filter code: <code><pre>{{ rule.policy_filter_code }}</code></pre> <BR>
 					Init code: <code><pre>{{ rule.policy_init_code }}</code></pre> <BR>
 					Notify code: <code><pre>{{ rule.policy_notify_code }}</code></pre> <BR>	
