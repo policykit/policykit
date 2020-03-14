@@ -219,6 +219,7 @@ class Proposal(models.Model):
         if self.status == self.PASSED:
             cpb = CommunityPolicyBundle.objects.filter(proposal=self)
             if cpb.exists():
+                cpb = cpb[0]
                 bundled_policies = cpb.bundled_policies.all()
                 for policy in bundled_policies:
                     proposal = policy.proposal
