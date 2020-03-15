@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.admin.widgets import FilteredSelectMultiple    
-from django.contrib.auth.models import Group
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from policyengine.models import PolicyKitGroupAction
 
 User = get_user_model()
 
@@ -10,7 +10,7 @@ User = get_user_model()
 # Create ModelForm based on the Group model.
 class GroupAdminForm(forms.ModelForm):
     class Meta:
-        model = Group
+        model = PolicyKitGroupAction
         exclude = []
 
     # Add the users field.
@@ -39,3 +39,4 @@ class GroupAdminForm(forms.ModelForm):
         # Save many-to-many data
         self.save_m2m()
         return instance
+
