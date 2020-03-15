@@ -151,16 +151,29 @@ class LogAPICall(models.Model):
         return res
         
 
-class PolicyKitAPI(PolymorphicModel):
+class PolicykitAPI(PolymorphicModel):
     
     community_integration = models.ForeignKey(CommunityIntegration,
                                    models.CASCADE)
     
     initiator = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
+    
+    def save(self, *args, **kwargs):        
+        if not self.pk:
+            # Runs only when object is new
+            super(PolicykitAPI, self).save(*args, **kwargs)
+            
+            _ = ProcessAction.objects.create(
+                    community_integration=self.community_integration,
+                    api_action=self,
+                    is_bundled=self.is_bundled
+                )
+        else:
+            super(PolicykitAPI, self).save(*args, **kwargs) 
 
 
-class PolicykitAddGroup(PolicyKitAPI):
+class PolicykitAddGroup(PolicykitAPI):
     
     users = models.ManyToManyField(CommunityUser)
     

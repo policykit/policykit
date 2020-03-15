@@ -144,12 +144,6 @@ class PolicykitAddGroupAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.save()
         
-        _ = ProcessAction.objects.create(
-                community_integration=request.user.community_integration,
-                api_action=self,
-                is_bundled=self.is_bundled
-            )
-        
 admin_site.register(PolicykitAddGroup, PolicykitAddGroupAdmin)
 
 
