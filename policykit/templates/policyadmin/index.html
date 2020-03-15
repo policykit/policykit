@@ -5,6 +5,9 @@
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "policyengine/css/index.css" %}">
+<link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
+<script src={% static "codemirror/lib/codemirror.js" %}></script>
+<script src={% static "codemirror/mode/python/python.js" %}></script>
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -70,18 +73,13 @@
                     <i>{{ process.explanation }}</i>
                 </td>
             </tr>
-
-            <!-- Create a simple CodeMirror instance -->
-            <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
-            <script src={% static "codemirror/lib/codemirror.js" %}></script>
-            <script src={% static "codemirror/mode/python/python.js" %}></script>
             <script>
                 var textArea = document.getElementById('process_{{ process.id }}');
                 var editor = CodeMirror.fromTextArea(textArea, {
                   lineNumbers: true,
-                  readOnly: true,
-                  value: `{{ process.policy_code }}`
+                  readOnly: "nocursor"
                 });
+                editor.setValue(`{{process.policy_code}}`);
             </script>
 			{% endfor %}
 		</tbody>
