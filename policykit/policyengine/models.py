@@ -150,7 +150,8 @@ class LogAPICall(models.Model):
         logger.info(res)
         return res
         
-        
+
+  
 class CommunityAPI(PolymorphicModel):
     ACTION = None
     AUTH = 'app'
@@ -269,17 +270,29 @@ class BaseAction(models.Model):
 
 class ProcessAction(BaseAction):
      
-    content_type = models.ForeignKey(
-        ContentType,
-        models.CASCADE,
-        verbose_name='content type',
-    )
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    api_action = models.OneToOneField(PolicyKitAPI,
+                                      models.CASCADE)
+    
+    action_type = "CommunityAction"
     
     class Meta:
         verbose_name = 'processaction'
         verbose_name_plural = 'processactions'
+        
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Runs only when object is new
+#             
+#             p = Proposal.objects.create(status=Proposal.PROPOSED,
+#                                         author=self.api_action.initiator)
+#             
+#             self.proposal = p
+            
+            super(ProcessAction, self).save(*args, **kwargs)
+
+        else:   
+            super(ProcessAction, self).save(*args, **kwargs)
+        
 
 
 class CommunityAction(BaseAction):
@@ -513,4 +526,33 @@ class BooleanVote(UserVote):
 
 class NumberVote(UserVote):
     number_value = models.IntegerField()
+
+
+
+
+
+class PolicyKitAPI(PolymorphicModel):
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    initiator = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+
+
+class PolicyKitGroupAction(PolicyKitAPI):
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    permissions = models.ForeignKey(Permission)
+    
+    name = models.CharField('name', max_length=300)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit group action'),
+        )
+      
+
+
 
