@@ -5,6 +5,9 @@
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "policyengine/css/index.css" %}">
+<link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
+<script src={% static "codemirror/lib/codemirror.js" %}></script>
+<script src={% static "codemirror/mode/python/python.js" %}></script>
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -63,12 +66,22 @@
 		<caption>Passed Process Policies</caption>
 		<tbody>
 			{% for process in passed_processes %}
-			<tr>
-				<td>
-					Policy code: <code><pre>{{ process.policy_code}}</code></pre> <BR>
-					<i>{{ process.explanation }}</i>
-				</td>
-			</tr>
+            <tr>
+                <td>
+                    <label for="process_{{ process.id }}">Policy Code: </label>
+                    <textarea id="process_{{ process.id }}"></textarea><BR>
+                    <i>{{ process.explanation }}</i>
+                </td>
+            </tr>
+            <!-- Create a simple CodeMirror instance -->
+            <script>
+                var textArea = document.getElementById('process_{{ process.id }}');
+                var editor = CodeMirror.fromTextArea(textArea, {
+                  lineNumbers: true,
+                  readOnly: true,
+                  value: "{{ process.policy_code }}"
+                });
+            </script>
 			{% endfor %}
 		</tbody>
 	</table>
