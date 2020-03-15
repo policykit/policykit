@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from policyengine.models import PolicyKitGroupAction
+from policyengine.models import PolicykitAddGroup
 
 User = get_user_model()
 
@@ -10,7 +10,7 @@ User = get_user_model()
 # Create ModelForm based on the Group model.
 class GroupAdminForm(forms.ModelForm):
     class Meta:
-        model = PolicyKitGroupAction
+        model = PolicykitAddGroup
         exclude = []
 
     # Add the users field.
