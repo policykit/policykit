@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
@@ -142,6 +142,14 @@ class GroupAdmin(admin.ModelAdmin):
 #             obj.user = request.user
 #         obj.save()
 
+class CommunityUserAdmin(admin.ModelAdmin):
+    pass
+
+class PermissionAdmin(admin.ModelAdmin):
+    pass
+
+admin_site.register(CommunityUser, CommunityUserAdmin)
+admin_site.register(Permission, PermissionAdmin)
 admin_site.register(Group, GroupAdmin)
 
 
