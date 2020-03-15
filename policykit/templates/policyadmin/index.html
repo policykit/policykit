@@ -79,7 +79,8 @@
                 var textArea = document.getElementById('process_{{ process.id }}');
                 var editor = CodeMirror.fromTextArea(textArea, {
                   lineNumbers: true,
-                  readOnly: true
+                  readOnly: true,
+                  value: {{ process.policy_code }}
                 });
             </script>
 			{% endfor %}
