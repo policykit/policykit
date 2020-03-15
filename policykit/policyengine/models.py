@@ -234,7 +234,30 @@ class Proposal(models.Model):
                     proposal.status = self.PASSED
                     proposal.save()
         
-            
+
+class PolicyKitAPI(PolymorphicModel):
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    initiator = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+
+
+class PolicyKitGroupAction(PolicyKitAPI):
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    permissions = models.ForeignKey(Permission)
+    
+    name = models.CharField('name', max_length=300)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit group action'),
+        )
+      
+     
 
 
        
@@ -531,28 +554,6 @@ class NumberVote(UserVote):
 
 
 
-class PolicyKitAPI(PolymorphicModel):
-    
-    community_integration = models.ForeignKey(CommunityIntegration,
-                                   models.CASCADE)
-    
-    initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
-
-
-class PolicyKitGroupAction(PolicyKitAPI):
-    
-    users = models.ManyToManyField(CommunityUser)
-    
-    permissions = models.ForeignKey(Permission)
-    
-    name = models.CharField('name', max_length=300)
-    
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit group action'),
-        )
-      
 
 
 
