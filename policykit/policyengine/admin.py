@@ -134,10 +134,6 @@ class NumberVoteAdmin(admin.ModelAdmin):
 
 admin_site.register(NumberVote, NumberVoteAdmin)
 
-
-# Unregister the original Group admin.
-admin.site.unregister(Group)
-
 # Create a new Group admin.
 class GroupAdmin(admin.ModelAdmin):
     # Use our custom form.
@@ -146,7 +142,7 @@ class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ['permissions']
 
 # Register the new Group ModelAdmin.
-admin.site.register(Group, GroupAdmin)
+admin_site.register(Group, GroupAdmin)
 
 
 
