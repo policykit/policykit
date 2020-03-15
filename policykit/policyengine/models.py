@@ -248,7 +248,7 @@ class PolicyKitGroupAction(PolicyKitAPI):
     
     users = models.ManyToManyField(CommunityUser)
     
-    permissions = models.ForeignKey(Permission)
+    permissions = models.ManyToManyField(Permission)
     
     name = models.CharField('name', max_length=300)
     
