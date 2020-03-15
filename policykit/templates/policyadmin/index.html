@@ -122,7 +122,7 @@
                 };
 
                 for (const type in codeTypes) {
-                    var textArea = document.getElementById(type + '_{{ process.id }}');
+                    var textArea = document.getElementById(type + '_{{ rule.id }}');
                     var editor = CodeMirror.fromTextArea(textArea, {
                       lineNumbers: true,
                       readOnly: "nocursor"
