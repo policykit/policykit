@@ -50,6 +50,11 @@ class SlackPostMessage(CommunityAPI):
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute slack post message'),
+        )
+    
     def revert(self):
         admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
         values = {'token': admin_user.access_token,
@@ -63,6 +68,11 @@ class SlackRenameConversation(CommunityAPI):
     AUTH = 'admin_user'
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute slack rename conversation'),
+        )
     
     def get_channel_info(self):
         values = {'token': self.community_integration.access_token,
@@ -88,6 +98,11 @@ class SlackJoinConversation(CommunityAPI):
     AUTH = 'admin_user'
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute slack join conversation'),
+        )
         
     def revert(self):
         admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
@@ -103,6 +118,11 @@ class SlackPinMessage(CommunityAPI):
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)
 
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute slack pin message'),
+        )
+
     def revert(self):
         values = {'token': self.community_integration.access_token,
                   'channel': self.channel,
@@ -115,10 +135,20 @@ class SlackScheduleMessage(CommunityAPI):
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     post_at = models.IntegerField('post at')
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute slack schedule message'),
+        )
 
 class SlackKickConversation(CommunityAPI):
     ACTION = 'conversations.kick'
     AUTH = 'user'
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute slack kick conversation'),
+        )
 

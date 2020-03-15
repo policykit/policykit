@@ -167,11 +167,6 @@ class CommunityAPI(PolymorphicModel):
     
     is_bundled = models.BooleanField(default=False)
     
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute action'),
-        )
-    
     
     def revert(self, values, call):
         _ = LogAPICall.make_api_call(self.community_integration, values, call)
