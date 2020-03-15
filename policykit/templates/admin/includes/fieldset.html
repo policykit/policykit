@@ -23,6 +23,9 @@
                             <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
+                            <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
+                            <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+                            <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
                             <script>
                               var name = '{{ field.field.name }}'
                               if(name.includes('code')) {
