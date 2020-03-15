@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from policyengine.models import CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
+from policykit.forms import GroupAdminForm
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -133,24 +134,19 @@ class NumberVoteAdmin(admin.ModelAdmin):
 
 admin_site.register(NumberVote, NumberVoteAdmin)
 
+
+# Unregister the original Group admin.
+admin.site.unregister(Group)
+
+# Create a new Group admin.
 class GroupAdmin(admin.ModelAdmin):
-    pass
-#     fields= ('proposal', 'number_value')
-#     
-#     def save_model(self, request, obj, form, change):
-#         if not change:
-#             obj.user = request.user
-#         obj.save()
+    # Use our custom form.
+    form = GroupAdminForm
+    # Filter permissions horizontal as well.
+    filter_horizontal = ['permissions']
 
-class UserAdmin(admin.ModelAdmin):
-    pass
-
-class PermissionAdmin(admin.ModelAdmin):
-    pass
-
-admin_site.register(User, UserAdmin)
-admin_site.register(Permission, PermissionAdmin)
-admin_site.register(Group, GroupAdmin)
+# Register the new Group ModelAdmin.
+admin.site.register(Group, GroupAdmin)
 
 
 
