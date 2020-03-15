@@ -121,7 +121,7 @@
                     'failure': `{{rule.policy_failure_code}}`
                 };
 
-                for (var [type, code] of codeTypes.entries()) {
+                for (var [type, code] of codeTypes.entries) {
                     var textArea = document.getElementById(type + '_{{ process.id }}');
                     var editor = CodeMirror.fromTextArea(textArea, {
                       lineNumbers: true,
