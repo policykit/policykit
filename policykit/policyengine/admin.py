@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 from policyengine.models import ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
@@ -131,6 +132,20 @@ class NumberVoteAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(NumberVote, NumberVoteAdmin)
+
+class GroupAdmin(admin.ModelAdmin):
+    pass
+#     fields= ('proposal', 'number_value')
+#     
+#     def save_model(self, request, obj, form, change):
+#         if not change:
+#             obj.user = request.user
+#         obj.save()
+
+admin_site.register(Group, GroupAdmin)
+
+
+
 
 # 
 # class ActionAdmin(admin.ModelAdmin):
