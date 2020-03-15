@@ -150,7 +150,7 @@ class PolicyKitGroupActionAdmin(admin.ModelAdmin):
                 is_bundled=self.is_bundled
             )
         
-admin_site.register(Group, PolicyKitGroupActionAdmin)
+admin_site.register(PolicyKitGroupAction, PolicyKitGroupActionAdmin)
 
 
 
