@@ -5,6 +5,9 @@
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "policyengine/css/index.css" %}">
+<link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
+<script src={% static "codemirror/lib/codemirror.js" %}></script>
+<script src={% static "codemirror/mode/python/python.js" %}></script>
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -63,12 +66,21 @@
 		<caption>Passed Process Policies</caption>
 		<tbody>
 			{% for process in passed_processes %}
-			<tr>
-				<td>
-					Policy code: <code><pre>{{ process.policy_code}}</code></pre> <BR>
-					<i>{{ process.explanation }}</i>
-				</td>
-			</tr>
+            <tr>
+                <td>
+                    <label for="process_{{ process.id }}">Policy Code: </label>
+                    <textarea id="process_{{ process.id }}"></textarea><BR>
+                    <i>{{ process.explanation }}</i>
+                </td>
+            </tr>
+            <script>
+                var textArea = document.getElementById('process_{{ process.id }}');
+                var editor = CodeMirror.fromTextArea(textArea, {
+                  lineNumbers: true,
+                  readOnly: "nocursor"
+                });
+                editor.setValue(`{{process.policy_code}}`);
+            </script>
 			{% endfor %}
 		</tbody>
 	</table>
@@ -82,16 +94,42 @@
 					{% if rule.is_bundled %}
 						Part of bundled policy: {{ rule.bundle.explanation }}<BR>
 					{% endif %}
-					Filter code: <code><pre>{{ rule.policy_filter_code }}</code></pre> <BR>
-					Init code: <code><pre>{{ rule.policy_init_code }}</code></pre> <BR>
-					Notify code: <code><pre>{{ rule.policy_notify_code }}</code></pre> <BR>	
-					Conditional code: <code><pre>{{ rule.policy_conditional_code }}</code></pre> <BR>
-					Action code: <code><pre>{{ rule.policy_action_code }}</code></pre> <BR>
-					Failure code: <code><pre>{{ rule.policy_failure_code }}</code></pre> <BR>
+                    <label>Filter Code: </label>
+                    <textarea id="filter_{{ rule.id }}"></textarea> <BR>
+                    <label>Init Code: </label>
+                    <textarea id="init_{{ rule.id }}"></textarea> <BR>
+                    <label>Notify Code: </label>
+                    <textarea id="notify_{{ rule.id }}"></textarea> <BR>
+                    <label>Conditional Code: </label>
+                    <textarea id="conditional_{{ rule.id }}"></textarea> <BR>
+                    <label>Action Code: </label>
+                    <textarea id="action_{{ rule.id }}"></textarea> <BR>
+                    <label>Failure Code: </label>
+                    <textarea id="failure_{{ rule.id }}"></textarea> <BR>
 					{{ rule.policy_text }} <BR>
 					<i>{{ rule.explanation }}</i>
 				</td>
 			</tr>
+
+            <script>
+                const codeTypes = {
+                    'filter': `{{rule.policy_filter_code}}`, 
+                    'init': `{{rule.policy_init_code}}`, 
+                    'notify': `{{rule.policy_notify_code}}`, 
+                    'conditional': `{{rule.policy_conditional_code}}`, 
+                    'action': `{{rule.policy_action_code}}`, 
+                    'failure': `{{rule.policy_failure_code}}`
+                };
+
+                for (const type in codeTypes) {
+                    var textArea = document.getElementById(type + '_{{ rule.id }}');
+                    var editor = CodeMirror.fromTextArea(textArea, {
+                      lineNumbers: true,
+                      readOnly: "nocursor"
+                    });
+                    editor.setValue(codeTypes[type]);
+                }
+            </script>
 			{% endfor %}
 		</tbody>
 	</table>
