@@ -112,7 +112,7 @@
 			</tr>
 
             <script>
-                var codeTypes = {
+                const codeTypes = {
                     'filter': `{{rule.policy_filter_code}}`, 
                     'init': `{{rule.policy_init_code}}`, 
                     'notify': `{{rule.policy_notify_code}}`, 
@@ -121,13 +121,13 @@
                     'failure': `{{rule.policy_failure_code}}`
                 };
 
-                for (var [type, code] of codeTypes.entries) {
+                for (const type in codeTypes) {
                     var textArea = document.getElementById(type + '_{{ process.id }}');
                     var editor = CodeMirror.fromTextArea(textArea, {
                       lineNumbers: true,
                       readOnly: "nocursor"
                     });
-                    editor.setValue(code);
+                    editor.setValue(codeTypes[type]);
                 }
             </script>
 			{% endfor %}
