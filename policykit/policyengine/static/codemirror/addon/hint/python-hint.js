@@ -1,3 +1,5 @@
+// From: https://github.com/mildsunrise/CodeMirror/blob/master/addon/hint/python-hint.js
+
 (function () {
   function forEach(arr, f) {
     for (var i = 0, e = arr.length; i < e; ++i) f(arr[i]);

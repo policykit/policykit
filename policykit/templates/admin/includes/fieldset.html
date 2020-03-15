@@ -34,6 +34,7 @@
                                   lineNumbers: true
                                 });
 
+                                // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor.on('inputRead', function onChange(editor, input) {
                                     if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
                                         return;
