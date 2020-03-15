@@ -142,13 +142,13 @@ class GroupAdmin(admin.ModelAdmin):
 #             obj.user = request.user
 #         obj.save()
 
-class CommunityUserAdmin(admin.ModelAdmin):
+class UserAdmin(admin.ModelAdmin):
     pass
 
 class PermissionAdmin(admin.ModelAdmin):
     pass
 
-admin_site.register(CommunityUser, CommunityUserAdmin)
+admin_site.register(User, UserAdmin)
 admin_site.register(Permission, PermissionAdmin)
 admin_site.register(Group, GroupAdmin)
 
