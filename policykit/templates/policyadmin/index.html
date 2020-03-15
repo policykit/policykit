@@ -70,6 +70,7 @@
                     <i>{{ process.explanation }}</i>
                 </td>
             </tr>
+
             <!-- Create a simple CodeMirror instance -->
             <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
             <script src={% static "codemirror/lib/codemirror.js" %}></script>
@@ -78,8 +79,8 @@
                 var textArea = document.getElementById('process_{{ process.id }}');
                 var editor = CodeMirror.fromTextArea(textArea, {
                   lineNumbers: true,
-                  readOnly: true,
-                  value: '{{ process.policy_code }}'
+                  readOnly: true
+                  // value: '{{ process.policy_code }}'
                 });
             </script>
 			{% endfor %}
