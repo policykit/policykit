@@ -151,6 +151,29 @@ class LogAPICall(models.Model):
         return res
         
 
+class PolicyKitAPI(PolymorphicModel):
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    initiator = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+
+
+class PolicykitAddGroup(PolicyKitAPI):
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    permissions = models.ManyToManyField(Permission)
+    
+    name = models.CharField('name', max_length=300)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add group'),
+        )
+      
+
   
 class CommunityAPI(PolymorphicModel):
     ACTION = None
@@ -235,28 +258,7 @@ class Proposal(models.Model):
                     proposal.save()
         
 
-class PolicyKitAPI(PolymorphicModel):
-    
-    community_integration = models.ForeignKey(CommunityIntegration,
-                                   models.CASCADE)
-    
-    initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
 
-
-class PolicyKitGroupAction(PolicyKitAPI):
-    
-    users = models.ManyToManyField(CommunityUser)
-    
-    permissions = models.ManyToManyField(Permission)
-    
-    name = models.CharField('name', max_length=300)
-    
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit group action'),
-        )
-      
      
 
 

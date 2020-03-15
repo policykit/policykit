@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import PolicyKitGroupAction, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import PolicykitAddGroup, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
 from policyengine.forms import GroupAdminForm
 from django.views.decorators.cache import never_cache
@@ -135,11 +135,11 @@ class NumberVoteAdmin(admin.ModelAdmin):
 admin_site.register(NumberVote, NumberVoteAdmin)
 
 # Create a new Group admin.
-class PolicyKitGroupActionAdmin(admin.ModelAdmin):
-#     # Use our custom form.
-#     form = GroupAdminForm
-#     # Filter permissions horizontal as well.
-#     filter_horizontal = ['permissions']
+class PolicykitAddGroupAdmin(admin.ModelAdmin):
+    # Use our custom form.
+    form = GroupAdminForm
+    # Filter permissions horizontal as well.
+    filter_horizontal = ['permissions']
     
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -150,7 +150,7 @@ class PolicyKitGroupActionAdmin(admin.ModelAdmin):
                 is_bundled=self.is_bundled
             )
         
-admin_site.register(PolicyKitGroupAction, PolicyKitGroupActionAdmin)
+admin_site.register(PolicykitAddGroup, PolicykitAddGroupAdmin)
 
 
 
