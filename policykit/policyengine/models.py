@@ -308,7 +308,7 @@ class BaseAction(models.Model):
 
 class ProcessAction(BaseAction):
      
-    api_action = models.OneToOneField(PolicyKitAPI,
+    api_action = models.OneToOneField(PolicykitAPI,
                                       models.CASCADE)
     
     action_type = "CommunityAction"
