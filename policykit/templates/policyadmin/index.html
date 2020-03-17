@@ -84,6 +84,31 @@
 			{% endfor %}
 		</tbody>
 	</table>
+
+    <table>
+        <caption>Proposed Process Policies</caption>
+        <tbody>
+            {% for process in proposed_processes %}
+            <tr>
+                <td>
+                    <label for="process_{{ process.id }}">Policy Code: </label>
+                    <textarea id="process_{{ process.id }}"></textarea><BR>
+                    <i>{{ process.explanation }}</i><BR>
+                    <i>{{ process.proposal_time }}</i>
+                    <i>{{ curr_time }}</i>
+                </td>
+            </tr>
+            <script>
+                var textArea = document.getElementById('process_{{ process.id }}');
+                var editor = CodeMirror.fromTextArea(textArea, {
+                  lineNumbers: true,
+                  readOnly: "nocursor"
+                });
+                editor.setValue(`{{process.policy_code}}`);
+            </script>
+            {% endfor %}
+        </tbody>
+    </table>
 	
 	<table>
 		<caption>Passed Community Policies</caption>
