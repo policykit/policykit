@@ -52,7 +52,7 @@ class PolicyAdminSite(AdminSite):
                 c = c[0]
                 i.bundle = c
 
-        curr_time = datetime.datime.now()
+        curr_time = datetime.datetime.now()
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
