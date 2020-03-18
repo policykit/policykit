@@ -54,7 +54,6 @@ class PolicyAdminSite(AdminSite):
 
         curr_time = datetime.datetime.now()
 
-
         context = {**self.each_context(request), 
                    'title': self.index_title, 
                    'app_list': app_list, 

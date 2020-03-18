@@ -94,7 +94,7 @@
                     <label for="process_{{ process.id }}">Policy Code: </label>
                     <textarea id="process_{{ process.id }}"></textarea><BR>
                     <i>{{ process.explanation }}</i><BR>
-                    <i>Time elapsed since creation: {{ curr_time - process.proposal.proposal_time }}</i>
+                    <i>Time elapsed since creation: {{ process.proposal.proposal_time|timesince }}</i>
                 </td>
             </tr>
             <script>
