@@ -132,7 +132,6 @@
                     <textarea id="failure_{{ rule.id }}"></textarea> <BR>
 					{{ rule.policy_text }} <BR>
 					<i>{{ rule.explanation }}</i>
-                    <i>Time elapsed since creation: {{ rule.proposal.proposal_time|timesince }}</i>
 				</td>
 			</tr>
 
@@ -181,7 +180,8 @@
                     <label>Failure Code: </label>
                     <textarea id="failure_{{ rule.id }}"></textarea> <BR>
                     {{ rule.policy_text }} <BR>
-                    <i>{{ rule.explanation }}</i>
+                    <i>{{ rule.explanation }}</i><BR>
+                    <i>Time elapsed since creation: {{ rule.proposal.proposal_time|timesince }}</i>
                 </td>
             </tr>
 
