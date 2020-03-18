@@ -52,8 +52,6 @@ class PolicyAdminSite(AdminSite):
                 c = c[0]
                 i.bundle = c
 
-        curr_time = datetime.datetime.now()
-
         context = {**self.each_context(request), 
                    'title': self.index_title, 
                    'app_list': app_list, 
@@ -61,7 +59,6 @@ class PolicyAdminSite(AdminSite):
                    'passed_processes': passed_process_policies,
                    'proposed_rules': proposed_community_policies,
                    'passed_rules': passed_community_policies,
-                   'curr_time': curr_time,
                    **(extra_context or {})}
 
         request.current_app = self.name
