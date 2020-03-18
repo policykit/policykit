@@ -43,7 +43,7 @@ class PolicyAdminSite(AdminSite):
 
         passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
 
-        prposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
+        proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
 
         passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
         for i in passed_community_policies:
@@ -54,12 +54,13 @@ class PolicyAdminSite(AdminSite):
 
         curr_time = datetime.datetime.now()
 
+
         context = {**self.each_context(request), 
                    'title': self.index_title, 
                    'app_list': app_list, 
                    'proposed_processes': proposed_process_policies,
                    'passed_processes': passed_process_policies,
-                   'proposed_rules': prposed_community_policies,
+                   'proposed_rules': proposed_community_policies,
                    'passed_rules': passed_community_policies,
                    'curr_time': curr_time,
                    **(extra_context or {})}
