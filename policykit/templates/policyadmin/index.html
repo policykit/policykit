@@ -84,6 +84,30 @@
 			{% endfor %}
 		</tbody>
 	</table>
+
+    <table>
+        <caption>Proposed Process Policies</caption>
+        <tbody>
+            {% for process in proposed_processes %}
+            <tr>
+                <td>
+                    <label for="process_{{ process.id }}">Policy Code: </label>
+                    <textarea id="process_{{ process.id }}"></textarea><BR>
+                    <i>{{ process.explanation }}</i><BR>
+                    <i>Time elapsed since creation: {{ process.proposal.proposal_time|timesince }}</i>
+                </td>
+            </tr>
+            <script>
+                var textArea = document.getElementById('process_{{ process.id }}');
+                var editor = CodeMirror.fromTextArea(textArea, {
+                  lineNumbers: true,
+                  readOnly: "nocursor"
+                });
+                editor.setValue(`{{process.policy_code}}`);
+            </script>
+            {% endfor %}
+        </tbody>
+    </table>
 	
 	<table>
 		<caption>Passed Community Policies</caption>
@@ -133,6 +157,56 @@
 			{% endfor %}
 		</tbody>
 	</table>
+
+    <table>
+        <caption>Proposed Community Policies</caption>
+        <tbody>
+            {% for rule in proposed_rules %}
+            <tr>
+                <td>
+                    {% if rule.is_bundled %}
+                        Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+                    {% endif %}
+                    <label>Filter Code: </label>
+                    <textarea id="filter_{{ rule.id }}"></textarea> <BR>
+                    <label>Init Code: </label>
+                    <textarea id="init_{{ rule.id }}"></textarea> <BR>
+                    <label>Notify Code: </label>
+                    <textarea id="notify_{{ rule.id }}"></textarea> <BR>
+                    <label>Conditional Code: </label>
+                    <textarea id="conditional_{{ rule.id }}"></textarea> <BR>
+                    <label>Action Code: </label>
+                    <textarea id="action_{{ rule.id }}"></textarea> <BR>
+                    <label>Failure Code: </label>
+                    <textarea id="failure_{{ rule.id }}"></textarea> <BR>
+                    {{ rule.policy_text }} <BR>
+                    <i>{{ rule.explanation }}</i><BR>
+                    <i>Time elapsed since creation: {{ rule.proposal.proposal_time|timesince }}</i>
+                </td>
+            </tr>
+
+            <script>
+                const codeTypes = {
+                    'filter': `{{ rule.policy_filter_code | safe }}`, 
+                    'init': `{{ rule.policy_init_code | safe }}`, 
+                    'notify': `{{ rule.policy_notify_code | safe }}`, 
+                    'conditional': `{{ rule.policy_conditional_code | safe }}`, 
+                    'action': `{{ rule.policy_action_code | safe }}`, 
+                    'failure': `{{ rule.policy_failure_code | safe }}`
+                };
+
+                for (const type in codeTypes) {
+                    var textArea = document.getElementById(type + '_{{ rule.id }}');
+                    var editor = CodeMirror.fromTextArea(textArea, {
+                      lineNumbers: true,
+                      readOnly: "nocursor"
+                    });
+                    editor.setValue(codeTypes[type]);
+                }
+            </script>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 <div id="content-related">
     <div class="module" id="recent-actions-module">
