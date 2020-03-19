@@ -7,6 +7,7 @@ from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy
 from policykit.settings import PROJECT_NAME
+import datetime
 import logging
 
 
@@ -37,8 +38,12 @@ class PolicyAdminSite(AdminSite):
         
         user = request.user
         community_integration = user.community_integration
-        
+
+        proposed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
+
         passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
+
+        proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
 
         passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
         for i in passed_community_policies:
@@ -47,11 +52,12 @@ class PolicyAdminSite(AdminSite):
                 c = c[0]
                 i.bundle = c
 
-
         context = {**self.each_context(request), 
                    'title': self.index_title, 
                    'app_list': app_list, 
+                   'proposed_processes': proposed_process_policies,
                    'passed_processes': passed_process_policies,
+                   'proposed_rules': proposed_community_policies,
                    'passed_rules': passed_community_policies,
                    **(extra_context or {})}
 
