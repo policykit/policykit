@@ -221,3 +221,5 @@ JET_THEMES = [
     }
 ]
 
+JET_INDEX_DASHBOARD = 'dashboard.CustomIndexDashboard'
+
