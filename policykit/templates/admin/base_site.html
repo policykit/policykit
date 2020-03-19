@@ -7,7 +7,14 @@
 <h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
 {% endblock %}
 
-{% block nav-global %}{% endblock %}
+{% block nav-global %}
+    <a href="https://github.com/amyxzhang/policykit" class="sidebar-link icon">
+        <span class="sidebar-link-label">
+            <span class="sidebar-link-icon jet-demo-icon-github"></span>
+            {% trans 'Visit GitHub page' %}
+        </span>
+    </a>
+{% endblock %}
 
 {% block welcome-msg %}
     {% trans 'Welcome,' %}
