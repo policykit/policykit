@@ -21,7 +21,7 @@ from policyengine.admin import admin_site
 urlpatterns = [
     path('', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
-    url('jet/', include('jet.urls', 'jet')),  # Django JET URLS
+    path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls'))
 ]
