@@ -6,6 +6,9 @@
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />
+    <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
+	<script src={% static "codemirror/lib/codemirror.js" %}></script>
+	<script src={% static "codemirror/mode/python/python.js" %}></script>
 
     {% for css in dashboard.media.css %}
         <link href="{% static css %}" rel="stylesheet" />
@@ -34,4 +37,226 @@
 
 {% block content %}
     {{ dashboard.render }}
+    <div id="content-main">
+
+{% if app_list %}
+    {% for app in app_list %}
+        <div class="app-{{ app.app_label }} module">
+        <table>
+        <caption>
+            <a href="{{ app.app_url }}" class="section" title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">{{ app.name }}</a>
+        </caption>
+        {% for model in app.models %}
+            <tr class="model-{{ model.object_name|lower }}">
+            {% if model.admin_url %}
+                <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+            {% else %}
+                <th scope="row">{{ model.name }}</th>
+            {% endif %}
+
+            {% if model.add_url %}
+                <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
+            {% else %}
+                <td>&nbsp;</td>
+            {% endif %}
+
+            {% if model.admin_url %}
+                {% if model.view_only %}
+                <td><a href="{{ model.admin_url }}" class="viewlink">{% trans 'View' %}</a></td>
+                {% else %}
+                <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+                {% endif %}
+            {% else %}
+                <td>&nbsp;</td>
+            {% endif %}
+            </tr>
+        {% endfor %}
+        </table>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>{% trans 'You don’t have permission to view or edit anything.' %}</p>
+{% endif %}
+</div>
+    
+{% endblock %}
+
+
+{% block sidebar %}
+<div id="content-middle">
+	<table>
+		<caption>Passed Process Policies</caption>
+		<tbody>
+			{% for process in passed_processes %}
+            <tr>
+                <td>
+                    <label for="process_{{ process.id }}">Policy Code: </label>
+                    <textarea id="process_{{ process.id }}"></textarea><BR>
+                    <i>{{ process.explanation }}</i>
+                </td>
+            </tr>
+            <script>
+                var textArea = document.getElementById('process_{{ process.id }}');
+                var editor = CodeMirror.fromTextArea(textArea, {
+                  lineNumbers: true,
+                  readOnly: "nocursor"
+                });
+                editor.setValue(`{{process.policy_code}}`);
+            </script>
+			{% endfor %}
+		</tbody>
+	</table>
+
+    <table>
+        <caption>Proposed Process Policies</caption>
+        <tbody>
+            {% for process in proposed_processes %}
+            <tr>
+                <td>
+                    <label for="process_{{ process.id }}">Policy Code: </label>
+                    <textarea id="process_{{ process.id }}"></textarea><BR>
+                    <i>{{ process.explanation }}</i><BR>
+                    <i>Time elapsed since creation: {{ process.proposal.proposal_time|timesince }}</i>
+                </td>
+            </tr>
+            <script>
+                var textArea = document.getElementById('process_{{ process.id }}');
+                var editor = CodeMirror.fromTextArea(textArea, {
+                  lineNumbers: true,
+                  readOnly: "nocursor"
+                });
+                editor.setValue(`{{process.policy_code}}`);
+            </script>
+            {% endfor %}
+        </tbody>
+    </table>
+
+	<table>
+		<caption>Passed Community Policies</caption>
+		<tbody>
+			{% for rule in passed_rules %}
+			<tr>
+				<td>
+					{% if rule.is_bundled %}
+						Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+					{% endif %}
+                    <label>Filter Code: </label>
+                    <textarea id="filter_{{ rule.id }}"></textarea> <BR>
+                    <label>Init Code: </label>
+                    <textarea id="init_{{ rule.id }}"></textarea> <BR>
+                    <label>Notify Code: </label>
+                    <textarea id="notify_{{ rule.id }}"></textarea> <BR>
+                    <label>Conditional Code: </label>
+                    <textarea id="conditional_{{ rule.id }}"></textarea> <BR>
+                    <label>Action Code: </label>
+                    <textarea id="action_{{ rule.id }}"></textarea> <BR>
+                    <label>Failure Code: </label>
+                    <textarea id="failure_{{ rule.id }}"></textarea> <BR>
+					{{ rule.policy_text }} <BR>
+					<i>{{ rule.explanation }}</i>
+				</td>
+			</tr>
+
+            <script>
+                const codeTypes = {
+                    'filter': `{{ rule.policy_filter_code | safe }}`, 
+                    'init': `{{ rule.policy_init_code | safe }}`, 
+                    'notify': `{{ rule.policy_notify_code | safe }}`, 
+                    'conditional': `{{ rule.policy_conditional_code | safe }}`, 
+                    'action': `{{ rule.policy_action_code | safe }}`, 
+                    'failure': `{{ rule.policy_failure_code | safe }}`
+                };
+
+                for (const type in codeTypes) {
+                    var textArea = document.getElementById(type + '_{{ rule.id }}');
+                    var editor = CodeMirror.fromTextArea(textArea, {
+                      lineNumbers: true,
+                      readOnly: "nocursor"
+                    });
+                    editor.setValue(codeTypes[type]);
+                }
+            </script>
+			{% endfor %}
+		</tbody>
+	</table>
+
+    <table>
+        <caption>Proposed Community Policies</caption>
+        <tbody>
+            {% for rule in proposed_rules %}
+            <tr>
+                <td>
+                    {% if rule.is_bundled %}
+                        Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+                    {% endif %}
+                    <label>Filter Code: </label>
+                    <textarea id="filter_{{ rule.id }}"></textarea> <BR>
+                    <label>Init Code: </label>
+                    <textarea id="init_{{ rule.id }}"></textarea> <BR>
+                    <label>Notify Code: </label>
+                    <textarea id="notify_{{ rule.id }}"></textarea> <BR>
+                    <label>Conditional Code: </label>
+                    <textarea id="conditional_{{ rule.id }}"></textarea> <BR>
+                    <label>Action Code: </label>
+                    <textarea id="action_{{ rule.id }}"></textarea> <BR>
+                    <label>Failure Code: </label>
+                    <textarea id="failure_{{ rule.id }}"></textarea> <BR>
+                    {{ rule.policy_text }} <BR>
+                    <i>{{ rule.explanation }}</i><BR>
+                    <i>Time elapsed since creation: {{ rule.proposal.proposal_time|timesince }}</i>
+                </td>
+            </tr>
+
+            <script>
+                const codeTypes = {
+                    'filter': `{{ rule.policy_filter_code | safe }}`, 
+                    'init': `{{ rule.policy_init_code | safe }}`, 
+                    'notify': `{{ rule.policy_notify_code | safe }}`, 
+                    'conditional': `{{ rule.policy_conditional_code | safe }}`, 
+                    'action': `{{ rule.policy_action_code | safe }}`, 
+                    'failure': `{{ rule.policy_failure_code | safe }}`
+                };
+
+                for (const type in codeTypes) {
+                    var textArea = document.getElementById(type + '_{{ rule.id }}');
+                    var editor = CodeMirror.fromTextArea(textArea, {
+                      lineNumbers: true,
+                      readOnly: "nocursor"
+                    });
+                    editor.setValue(codeTypes[type]);
+                }
+            </script>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% trans 'Recent actions' %}</h2>
+        <h3>{% trans 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+            <p>{% trans 'None available' %}</p>
+            {% else %}
+            <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br>
+                {% if entry.content_type %}
+                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                {% else %}
+                    <span class="mini quiet">{% trans 'Unknown content' %}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+</div>
 {% endblock %}
