@@ -185,3 +185,8 @@ CELERY_BEAT_SCHEDULE = {
     }       
 }
 
+
+JET_SIDE_MENU_COMPACT = True
+
+JET_DEFAULT_THEME = 'light-green'
+
