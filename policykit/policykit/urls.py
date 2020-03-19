@@ -22,6 +22,5 @@ urlpatterns = [
     path('', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('admin/', admin.site.urls),
-    path('grappelli/', include('grappelli.urls')), # grappelli URLS
     path('slack/', include('slackintegration.urls'))
 ]
