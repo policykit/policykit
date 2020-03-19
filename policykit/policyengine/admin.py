@@ -141,7 +141,11 @@ class PolicykitAddGroupAdmin(admin.ModelAdmin):
     # Filter permissions horizontal as well.
     filter_horizontal = ['permissions']
     
+    fields= ('name', 'users', 'permissions')
+    
     def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
         obj.save()
         
 admin_site.register(PolicykitAddGroup, PolicykitAddGroupAdmin)

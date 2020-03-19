@@ -185,7 +185,7 @@ class PolicykitAddGroup(PolicykitAPI):
         permissions = (
             ('can_execute', 'Can execute policykit add group'),
         )
-      
+    
 
   
 class CommunityAPI(PolymorphicModel):
@@ -311,7 +311,7 @@ class ProcessAction(BaseAction):
     api_action = models.OneToOneField(PolicykitAPI,
                                       models.CASCADE)
     
-    action_type = "CommunityAction"
+    action_type = "ProcessAction"
     
     class Meta:
         verbose_name = 'processaction'
@@ -320,16 +320,31 @@ class ProcessAction(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-#             
-#             p = Proposal.objects.create(status=Proposal.PROPOSED,
-#                                         author=self.api_action.initiator)
-#             
-#             self.proposal = p
+             
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                        author=self.api_action.initiator)
+             
+            self.proposal = p
             
             super(ProcessAction, self).save(*args, **kwargs)
 
         else:   
             super(ProcessAction, self).save(*args, **kwargs)
+            
+            if not self.is_bundled:
+                action = self
+                for policy in ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                    if check_filter_code(policy, action):
+                        
+                        initialize_code(policy, action)
+                        
+                        cond_result = check_policy_code(policy, action)
+                        if cond_result == Proposal.PASSED:
+                            exec(policy.policy_action_code)
+                        elif cond_result == Proposal.FAILED:
+                            exec(policy.policy_failure_code)
+                        else:
+                            exec(policy.policy_notify_code)
         
 
 
@@ -448,7 +463,16 @@ class BasePolicy(models.Model):
     
     
 class ProcessPolicy(BasePolicy):    
-    policy_code = models.TextField()
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
+    policy_type = "ProcessPolicy"
     
     class Meta:
         verbose_name = 'processpolicy'
