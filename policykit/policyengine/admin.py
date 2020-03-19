@@ -20,6 +20,7 @@ class PolicyAdminSite(AdminSite):
     
     index_title = gettext_lazy('Policy Authoring')
     
+    index_template = 'policyadmin/index.html'
     login_template = 'policyadmin/login.html'
     
     def has_permission(self, request):
@@ -27,42 +28,42 @@ class PolicyAdminSite(AdminSite):
             return False
         return True
     
-#     @never_cache
-#     def index(self, request, extra_context=None):
-#         """
-#         Display the main admin index page, which lists all of the installed
-#         apps that have been registered in this site.
-#         """
-#         app_list = self.get_app_list(request)
-#         
-#         user = request.user
-#         community_integration = user.community_integration
-# 
-#         proposed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
-# 
-#         passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
-# 
-#         proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
-# 
-#         passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
-#         for i in passed_community_policies:
-#             c = i.communitypolicybundle_set.all()
-#             if c.exists():
-#                 c = c[0]
-#                 i.bundle = c
-# 
-#         context = {**self.each_context(request), 
-#                    'title': self.index_title, 
-#                    'app_list': app_list, 
-#                    'proposed_processes': proposed_process_policies,
-#                    'passed_processes': passed_process_policies,
-#                    'proposed_rules': proposed_community_policies,
-#                    'passed_rules': passed_community_policies,
-#                    **(extra_context or {})}
-# 
-#         request.current_app = self.name
-# 
-#         return TemplateResponse(request, self.index_template or 'admin/index.html', context)
+    @never_cache
+    def index(self, request, extra_context=None):
+        """
+        Display the main admin index page, which lists all of the installed
+        apps that have been registered in this site.
+        """
+        app_list = self.get_app_list(request)
+        
+        user = request.user
+        community_integration = user.community_integration
+
+        proposed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
+
+        passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
+
+        proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
+
+        passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
+        for i in passed_community_policies:
+            c = i.communitypolicybundle_set.all()
+            if c.exists():
+                c = c[0]
+                i.bundle = c
+
+        context = {**self.each_context(request), 
+                   'title': self.index_title, 
+                   'app_list': app_list, 
+                   'proposed_processes': proposed_process_policies,
+                   'passed_processes': passed_process_policies,
+                   'proposed_rules': proposed_community_policies,
+                   'passed_rules': passed_community_policies,
+                   **(extra_context or {})}
+
+        request.current_app = self.name
+
+        return TemplateResponse(request, self.index_template or 'admin/index.html', context)
 
 
 admin_site = PolicyAdminSite(name="policyadmin")
