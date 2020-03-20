@@ -22,7 +22,7 @@
 				</li>
 
             <script>
-                const codeTypes = {
+                var codeTypes = {
                     'filter': `{{ rule.policy_filter_code | safe }}`, 
                     'init': `{{ rule.policy_init_code | safe }}`, 
                     'notify': `{{ rule.policy_notify_code | safe }}`, 
@@ -31,7 +31,7 @@
                     'failure': `{{ rule.policy_failure_code | safe }}`
                 };
 
-                for (const type in codeTypes) {
+                for (var type in codeTypes) {
                     var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
                     var editor = CodeMirror.fromTextArea(textArea, {
                       lineNumbers: true,
