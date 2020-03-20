@@ -6,6 +6,10 @@ from jet.dashboard.dashboard import Dashboard, AppIndexDashboard
 from jet.utils import get_admin_site_name
 from policykit.dashboard_modules import CommunityPolicyModule
 
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 class CustomIndexDashboard(Dashboard):
     columns = 3
@@ -26,6 +30,7 @@ class CustomIndexDashboard(Dashboard):
         
         self.children.append(CommunityPolicyModule(context=self.context['request']))
         
+        logger.info(self.children)
         
 
         site_name = get_admin_site_name(context)
