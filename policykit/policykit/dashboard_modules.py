@@ -2,7 +2,7 @@ from jet.dashboard.modules import DashboardModule
 from policyengine.models import CommunityPolicy
 
 
-class CommunityPolicy(DashboardModule):
+class CommunityPolicyModule(DashboardModule):
     title = 'Community Policies'
     template = 'policyadmin/dashboard_modules/community_policy.html'
 

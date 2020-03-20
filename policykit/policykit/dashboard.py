@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from jet.dashboard import modules
 from jet.dashboard.dashboard import Dashboard, AppIndexDashboard
 from jet.utils import get_admin_site_name
+from policykit.dashboard_modules import CommunityPolicyModule
 
 
 class CustomIndexDashboard(Dashboard):
@@ -13,6 +14,17 @@ class CustomIndexDashboard(Dashboard):
         self.available_children.append(modules.LinkList)
         self.available_children.append(modules.Feed)
 
+
+        # append an app list module for "Applications"
+        self.children.append(modules.AppList(
+            _('Applications'),
+            exclude=('auth.*',),
+            column=1,
+            order=0
+        ))
+        
+        
+        self.children.append(modules.CommunityPolicyModule())
 
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
@@ -32,13 +44,7 @@ class CustomIndexDashboard(Dashboard):
             order=0
         ))
 
-        # append an app list module for "Applications"
-        self.children.append(modules.AppList(
-            _('Applications'),
-            exclude=('auth.*',),
-            column=1,
-            order=0
-        ))
+        
 
         # append an app list module for "Administration"
         self.children.append(modules.AppList(
