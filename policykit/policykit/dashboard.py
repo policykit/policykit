@@ -23,8 +23,8 @@ class CustomIndexDashboard(Dashboard):
             order=0
         ))
         
-        self.user = self.context['request'].user
-        self.children.append(CommunityPolicyModule(user=self.user))
+        
+        self.children.append(CommunityPolicyModule(context=self.context['request']))
         
         
 
