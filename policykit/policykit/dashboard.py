@@ -4,7 +4,6 @@ from django.utils.translation import ugettext_lazy as _
 from jet.dashboard import modules
 from jet.dashboard.dashboard import Dashboard, AppIndexDashboard
 from jet.utils import get_admin_site_name
-from jet.dashboard.dashboard_modules import google_analytics
 
 
 class CustomIndexDashboard(Dashboard):
@@ -14,9 +13,6 @@ class CustomIndexDashboard(Dashboard):
         self.available_children.append(modules.LinkList)
         self.available_children.append(modules.Feed)
 
-        self.available_children.append(google_analytics.GoogleAnalyticsVisitorsTotals)
-        self.available_children.append(google_analytics.GoogleAnalyticsVisitorsChart)
-        self.available_children.append(google_analytics.GoogleAnalyticsPeriodVisitors)
 
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
