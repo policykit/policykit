@@ -53,10 +53,6 @@ class PolicyModule(DashboardModule):
             
             
         for i in policies:
-            c = i.communitypolicybundle_set.all()
-            if c.exists():
-                c = c[0]
-                i.bundle = c
             self.children.append({'is_bundled': i.is_bundled,
                                   'id': i.id,
                                   'policy_filter_code': i.policy_filter_code,
