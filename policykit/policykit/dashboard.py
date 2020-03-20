@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from jet.dashboard import modules
 from jet.dashboard.dashboard import Dashboard, AppIndexDashboard
 from jet.utils import get_admin_site_name
-from policykit.dashboard_modules import CommunityPolicyModule
+from policykit.dashboard_modules import PolicyModule
 
 import logging
 
@@ -30,10 +30,40 @@ class CustomIndexDashboard(Dashboard):
         ))
         
         
-        self.children.append(CommunityPolicyModule(
+        self.children.append(PolicyModule(
+            policy_type="Process",
+            status="passed",
+            title="Passed Process Policies",
             deletable=False,
             column=1,
             order=0,
+        ))
+        
+        self.children.append(PolicyModule(
+            policy_type="Process",
+            status="proposed",
+            title="Proposed Process Policies",
+            deletable=False,
+            column=1,
+            order=1,
+        ))
+        
+        self.children.append(PolicyModule(
+            policy_type="Community",
+            status="passed",
+            title="Passed Community Policies",
+            deletable=False,
+            column=1,
+            order=2,
+        ))
+        
+        self.children.append(PolicyModule(
+            policy_type="Community",
+            status="proposed",
+            title="Proposed Community Policies",
+            deletable=False,
+            column=1,
+            order=3,
         ))
         
 

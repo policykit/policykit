@@ -1,11 +1,11 @@
 from jet.dashboard.modules import DashboardModule
-from policyengine.models import CommunityPolicy, Proposal
+from policyengine.models import CommunityPolicy, Proposal, ProcessPolicy
 from django.utils.translation import ugettext_lazy as _
 
 
-class CommunityPolicyModule(DashboardModule):
+class PolicyModule(DashboardModule):
     
-    title = _('Passed Community Policies')
+    title = _('Policies')
     
     template = 'policyadmin/dashboard_modules/community_policy.html'
     
@@ -17,11 +17,42 @@ class CommunityPolicyModule(DashboardModule):
     deletable = False
     show_title = True
     
+    policy_type = "Community"
+    status = "passed"
+    
+    def __init__(self, policy_type="Community", status="passed", title=None, **kwargs):
+        kwargs.update({'policy_type': policy_type,
+                       'status': status})
+        super(PolicyModule, self).__init__(title, **kwargs)
+        
+    def settings_dict(self):
+        return {
+            'policy_type': self.policy_type,
+            'status': self.status
+        }
+
+
+    def load_settings(self, settings):
+        self.policy_type = settings.get('policy_type', self.policy_type)
+        self.status = settings.get('status', self.status)
+        
     
     def init_with_context(self, context):
-        passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, 
-                                                                   community_integration=context['request'].user.community_integration)
-        for i in passed_community_policies:
+        if self.policy_type == "Community":
+            policies = CommunityPolicy.objects
+        elif self.policy_type == "Process":
+            policies = ProcessPolicy.objects
+        
+        policies = policies.filter(community_integration=context['request'].user.community_integration)
+    
+        if self.status == "passed":
+            policies = policies.filter(proposal__status=Proposal.PASSED)
+        elif self.status == "proposed":
+            policies = policies.filter(proposal__status=Proposal.PROPOSED)
+            
+            
+            
+        for i in policies:
             c = i.communitypolicybundle_set.all()
             if c.exists():
                 c = c[0]
