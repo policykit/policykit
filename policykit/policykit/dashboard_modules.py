@@ -27,5 +27,13 @@ class CommunityPolicyModule(DashboardModule):
                 c = c[0]
                 i.bundle = c
             self.children.append({'is_bundled': i.is_bundled,
-                                  'id': i.id})
+                                  'id': i.id,
+                                  'policy_filter_code': i.policy_filter_code,
+                                  'policy_init_code': i.policy_init_code,
+                                  'policy_notify_code': i.policy_notify_code,
+                                  'policy_conditional_code': i.policy_conditional_code,
+                                  'policy_action_code': i.policy_action_code,
+                                  'policy_failure_code': i.policy_failure_code,
+                                  'policy_text': i.policy_text,
+                                  'explanation': i.explanation})
         
