@@ -53,7 +53,9 @@ class PolicyModule(DashboardModule):
             
             
         for i in policies:
-            self.children.append({'is_bundled': i.is_bundled,
+            self.children.append({'policy_type': self.policy_type,
+                                  'status': self.status,
+                                  'is_bundled': i.is_bundled,
                                   'id': i.id,
                                   'policy_filter_code': i.policy_filter_code,
                                   'policy_init_code': i.policy_init_code,

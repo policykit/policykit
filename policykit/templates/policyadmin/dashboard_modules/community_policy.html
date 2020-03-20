@@ -6,17 +6,17 @@
 						Part of bundled policy: {{ rule.bundle.explanation }}<BR>
 					{% endif %}
                     <label>Filter Code: </label>
-                    <textarea id="filter_{{ rule.id }}"></textarea> <BR>
+                    <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                     <label>Init Code: </label>
-                    <textarea id="init_{{ rule.id }}"></textarea> <BR>
+                    <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                     <label>Notify Code: </label>
-                    <textarea id="notify_{{ rule.id }}"></textarea> <BR>
+                    <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                     <label>Conditional Code: </label>
-                    <textarea id="conditional_{{ rule.id }}"></textarea> <BR>
+                    <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                     <label>Action Code: </label>
-                    <textarea id="action_{{ rule.id }}"></textarea> <BR>
+                    <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                     <label>Failure Code: </label>
-                    <textarea id="failure_{{ rule.id }}"></textarea> <BR>
+                    <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
 					{{ rule.policy_text }} <BR>
 					<i>{{ rule.explanation }}</i>
 				</li>
@@ -32,7 +32,7 @@
                 };
 
                 for (const type in codeTypes) {
-                    var textArea = document.getElementById(type + '_{{ rule.id }}');
+                    var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
                     var editor = CodeMirror.fromTextArea(textArea, {
                       lineNumbers: true,
                       readOnly: "nocursor"
