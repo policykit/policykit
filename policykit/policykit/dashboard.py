@@ -18,6 +18,7 @@ class CustomIndexDashboard(Dashboard):
     def init_with_context(self, context):
         
         self.available_children.append(modules.LinkList)
+        self.available_children.append(modules.AppList)
 
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
