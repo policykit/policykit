@@ -45,12 +45,7 @@ class PolicyAdminSite(AdminSite):
 
         proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
 
-        passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
-        for i in passed_community_policies:
-            c = i.communitypolicybundle_set.all()
-            if c.exists():
-                c = c[0]
-                i.bundle = c
+       
 
         context = {**self.each_context(request), 
                    'title': self.index_title, 
@@ -58,7 +53,6 @@ class PolicyAdminSite(AdminSite):
                    'proposed_processes': proposed_process_policies,
                    'passed_processes': passed_process_policies,
                    'proposed_rules': proposed_community_policies,
-                   'passed_rules': passed_community_policies,
                    **(extra_context or {})}
 
         request.current_app = self.name
