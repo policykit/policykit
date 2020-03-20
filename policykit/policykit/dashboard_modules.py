@@ -6,5 +6,5 @@ class CommunityPolicyModule(DashboardModule):
     title = 'Community Policies'
     template = 'policyadmin/dashboard_modules/community_policy.html'
 
-    def __init__(self, title=None):
+    def __init__(self):
         self.children = CommunityPolicy.objects.all()

@@ -24,7 +24,7 @@ class CustomIndexDashboard(Dashboard):
         ))
         
         
-        self.children.append(modules.CommunityPolicyModule())
+        self.children.append(CommunityPolicyModule())
 
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
