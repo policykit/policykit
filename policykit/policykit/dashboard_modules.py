@@ -3,12 +3,18 @@ from policyengine.models import CommunityPolicy, Proposal
 
 
 class CommunityPolicyModule(DashboardModule):
-    title = 'Community Policies'
     template = 'policyadmin/dashboard_modules/community_policy.html'
+    draggable = False
+    collapsible = True
+    deletable = False
+    show_title = True
+    title = 'Passed Community Policies'
+    title_url = None
 
-    def __init__(self, user):
+    def init_with_context(self, context):
         
-        passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=user.community_integration)
+        passed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, 
+                                                                   community_integration=context.user.community_integration)
         for i in passed_community_policies:
             c = i.communitypolicybundle_set.all()
             if c.exists():
@@ -16,3 +22,4 @@ class CommunityPolicyModule(DashboardModule):
                 i.bundle = c
                 
         self.children =  passed_community_policies
+        

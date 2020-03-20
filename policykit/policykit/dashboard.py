@@ -25,6 +25,8 @@ class CustomIndexDashboard(Dashboard):
         
         self.user = self.context['request'].user
         self.children.append(CommunityPolicyModule(user=self.user))
+        
+        
 
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
@@ -59,15 +61,6 @@ class CustomIndexDashboard(Dashboard):
             _('Recent Actions'),
             10,
             column=0,
-            order=1
-        ))
-
-        # append a feed module
-        self.children.append(modules.Feed(
-            _('Latest Django News'),
-            feed_url='http://www.djangoproject.com/rss/weblog/',
-            limit=5,
-            column=1,
             order=1
         ))
 
