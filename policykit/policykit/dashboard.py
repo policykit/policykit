@@ -17,9 +17,6 @@ class CustomIndexDashboard(Dashboard):
 
     def init_with_context(self, context):
         
-        self.available_children.append(modules.LinkList)
-        self.available_children.append(modules.AppList)
-
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
             _('Applications'),
@@ -27,6 +24,7 @@ class CustomIndexDashboard(Dashboard):
             column=0,
             order=0,
             deletable=False,
+            draggable=False,
         ))
         
         
@@ -35,6 +33,7 @@ class CustomIndexDashboard(Dashboard):
             status="passed",
             title="Passed Process Policies",
             deletable=False,
+            draggable=False,
             column=1,
             order=0,
         ))
@@ -44,6 +43,7 @@ class CustomIndexDashboard(Dashboard):
             status="proposed",
             title="Proposed Process Policies",
             deletable=False,
+            draggable=False,
             column=1,
             order=1,
         ))
@@ -53,6 +53,7 @@ class CustomIndexDashboard(Dashboard):
             status="passed",
             title="Passed Community Policies",
             deletable=False,
+            draggable=False,
             column=1,
             order=2,
         ))
@@ -62,6 +63,7 @@ class CustomIndexDashboard(Dashboard):
             status="proposed",
             title="Proposed Community Policies",
             deletable=False,
+            draggable=False,
             column=1,
             order=3,
         ))
@@ -74,6 +76,7 @@ class CustomIndexDashboard(Dashboard):
             column=2,
             order=0,
             deletable=False,
+            draggable=False,
         ))
 
         # append a recent actions module
@@ -83,6 +86,7 @@ class CustomIndexDashboard(Dashboard):
             column=2,
             order=1,
             deletable=False,
+            draggable=False,
         ))
         
         
