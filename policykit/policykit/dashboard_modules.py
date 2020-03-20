@@ -1,5 +1,6 @@
 from jet.dashboard.modules import DashboardModule
 from policyengine.models import CommunityPolicy, Proposal
+from django.utils.translation import ugettext_lazy as _
 
 
 class CommunityPolicyModule(DashboardModule):
