@@ -24,31 +24,35 @@ class CustomIndexDashboard(Dashboard):
         self.children.append(modules.AppList(
             _('Applications'),
             exclude=('auth.*',),
-            column=1,
-            order=0
+            column=0,
+            order=0,
+            deletable=False,
         ))
         
         
-        self.children.append(CommunityPolicyModule())
+        self.children.append(CommunityPolicyModule(
+            deletable=False,
+            column=1,
+            order=0,
+        ))
         
-        logger.info(self.children)
-        
-
 
         # append an app list module for "Administration"
         self.children.append(modules.AppList(
             _('Administration'),
             models=('auth.*',),
             column=2,
-            order=0
+            order=0,
+            deletable=False,
         ))
 
         # append a recent actions module
         self.children.append(modules.RecentActions(
             _('Recent Actions'),
             10,
-            column=0,
-            order=1
+            column=2,
+            order=1,
+            deletable=False,
         ))
         
         
@@ -66,8 +70,8 @@ class CustomIndexDashboard(Dashboard):
                  reverse('%s:password_change' % site_name)],
                 [_('Log out'), reverse('%s:logout' % site_name)],
             ],
-            column=0,
-            order=0
+            column=2,
+            order=2
         ))
 
         
