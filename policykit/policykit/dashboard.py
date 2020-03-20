@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 
 class CustomIndexDashboard(Dashboard):
     columns = 3
+    
 
     def init_with_context(self, context):
+        
         self.available_children.append(modules.LinkList)
-        self.available_children.append(modules.Feed)
-
 
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
@@ -28,11 +28,29 @@ class CustomIndexDashboard(Dashboard):
         ))
         
         
-        self.children.append(CommunityPolicyModule(context=self.context['request']))
+        self.children.append(CommunityPolicyModule())
         
         logger.info(self.children)
         
 
+
+        # append an app list module for "Administration"
+        self.children.append(modules.AppList(
+            _('Administration'),
+            models=('auth.*',),
+            column=2,
+            order=0
+        ))
+
+        # append a recent actions module
+        self.children.append(modules.RecentActions(
+            _('Recent Actions'),
+            10,
+            column=0,
+            order=1
+        ))
+        
+        
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
         self.children.append(modules.LinkList(
@@ -53,45 +71,6 @@ class CustomIndexDashboard(Dashboard):
 
         
 
-        # append an app list module for "Administration"
-        self.children.append(modules.AppList(
-            _('Administration'),
-            models=('auth.*',),
-            column=2,
-            order=0
-        ))
-
-        # append a recent actions module
-        self.children.append(modules.RecentActions(
-            _('Recent Actions'),
-            10,
-            column=0,
-            order=1
-        ))
-
-        # append another link list module for "support".
-        self.children.append(modules.LinkList(
-            _('Support'),
-            children=[
-                {
-                    'title': _('Django documentation'),
-                    'url': 'http://docs.djangoproject.com/',
-                    'external': True,
-                },
-                {
-                    'title': _('Django "django-users" mailing list'),
-                    'url': 'http://groups.google.com/group/django-users',
-                    'external': True,
-                },
-                {
-                    'title': _('Django irc channel'),
-                    'url': 'irc://irc.freenode.net/django',
-                    'external': True,
-                },
-            ],
-            column=2,
-            order=1
-        ))
 
 
 class CustomAppIndexDashboard(AppIndexDashboard):
