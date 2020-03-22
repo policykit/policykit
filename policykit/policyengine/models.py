@@ -37,6 +37,7 @@ class CommunityIntegration(PolymorphicModel):
             # create Starter ProcessPolicy
             
             p = ProcessPolicy()
+            p.community_integration = self
             p.policy_filter_code = "action_pass=True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
