@@ -76,9 +76,9 @@ class CommunityUser(User, PolymorphicModel):
         p12 = Permission.objects.get(name='Can add communitypolicybundle')
         self.user_permissions.add(p12)
         
-        p13 = Permission.objects.get(name='Can add policykit add group')
-        p14 = Permission.objects.get(name='Can view policykit add group')
-        p15 = Permission.objects.get(name='Can change policykit add group')
+        p13 = Permission.objects.get(name='Can add policykit group')
+        p14 = Permission.objects.get(name='Can view policykit group')
+        p15 = Permission.objects.get(name='Can change policykit group')
         self.user_permissions.add(p13)
         self.user_permissions.add(p14)
         self.user_permissions.add(p15)
