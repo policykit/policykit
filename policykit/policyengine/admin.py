@@ -148,12 +148,6 @@ class PolicykitGroupAdmin(admin.ModelAdmin):
         obj.community_integration = request.user.community_integration
         obj.save()
         
-    def save_form(self, request, form, change):
-        obj = super(PolicykitGroupAdmin, self).save_form(request, form, change)
-        obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
-        return obj
-        
 admin_site.register(PolicykitGroup, PolicykitGroupAdmin)
 
 
