@@ -159,6 +159,8 @@ class PolicykitAPI(PolymorphicModel):
     initiator = models.ForeignKey(CommunityUser,
                                 models.CASCADE)
     
+    is_bundled = models.BooleanField(default=False)
+    
     def save(self, *args, **kwargs):        
         if not self.pk:
             # Runs only when object is new
