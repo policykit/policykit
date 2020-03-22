@@ -136,10 +136,10 @@ admin_site.register(NumberVote, NumberVoteAdmin)
 
 # Create a new Group admin.
 class PolicykitGroupAdmin(admin.ModelAdmin):
-    # Use our custom form.
-    form = GroupAdminForm
-    # Filter permissions horizontal as well.
-    filter_horizontal = ['permissions']
+#     # Use our custom form.
+#     form = GroupAdminForm
+#     # Filter permissions horizontal as well.
+#     filter_horizontal = ['permissions']
     
     fields= ('name', 'users', 'permissions')
     
