@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import PolicykitAddGroup, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import PolicykitGroup, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
 from policyengine.forms import GroupAdminForm
 from django.views.decorators.cache import never_cache
