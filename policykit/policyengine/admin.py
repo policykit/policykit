@@ -135,7 +135,7 @@ class NumberVoteAdmin(admin.ModelAdmin):
 admin_site.register(NumberVote, NumberVoteAdmin)
 
 # Create a new Group admin.
-class PolicykitAddGroupAdmin(admin.ModelAdmin):
+class PolicykitGroupAdmin(admin.ModelAdmin):
     # Use our custom form.
     form = GroupAdminForm
     # Filter permissions horizontal as well.
@@ -148,7 +148,7 @@ class PolicykitAddGroupAdmin(admin.ModelAdmin):
         obj.community_integration = request.user.community_integration
         obj.save()
         
-admin_site.register(PolicykitAddGroup, PolicykitAddGroupAdmin)
+admin_site.register(PolicykitGroup, PolicykitGroupAdmin)
 
 
 
