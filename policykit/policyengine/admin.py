@@ -152,25 +152,6 @@ admin_site.register(PolicykitAddGroup, PolicykitAddGroupAdmin)
 
 
 
-# Create a new Group admin.
-class AddGroupAdmin(admin.ModelAdmin):
-    # Use our custom form.
-    form = GroupAdminForm
-    # Filter permissions horizontal as well.
-    filter_horizontal = ['permissions']
-    
-    fields= ('name', 'users', 'permissions')
-    
-    def save_model(self, request, obj, form, change):
-        obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
-        obj.save()
-        
-admin_site.register(Group, AddGroupAdmin)
-
-
-
-
 
 # 
 # class ActionAdmin(admin.ModelAdmin):

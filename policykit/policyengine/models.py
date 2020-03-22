@@ -175,7 +175,7 @@ class PolicykitAPI(PolymorphicModel):
             super(PolicykitAPI, self).save(*args, **kwargs) 
 
 
-class PolicykitAddGroup(PolicykitAPI):
+class PolicykitGroup(PolicykitAPI):
     
     users = models.ManyToManyField(CommunityUser)
     
@@ -187,19 +187,21 @@ class PolicykitAddGroup(PolicykitAPI):
         permissions = (
             ('can_execute', 'Can execute policykit add group'),
         )
+
+
+class PolicykitAddPermission(PolicykitAPI):
     
-class PolicykitAddCommunityPolicy(PolicykitAPI):
+    user = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
     
-    users = models.ManyToManyField(CommunityUser)
-    
-    permissions = models.ManyToManyField(Permission)
-    
-    name = models.CharField('name', max_length=300)
+    permission = models.ForeignKey(Permission,
+                                   models.CASCADE)
     
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add group'),
+            ('can_execute', 'Can execute policykit add permission'),
         )
+
 
 
   
@@ -324,7 +326,19 @@ class BaseAction(models.Model):
 class ProcessAction(BaseAction):
      
     api_action = models.OneToOneField(PolicykitAPI,
-                                      models.CASCADE)
+                                      models.CASCADE,
+                                      null=True)
+    
+    content_type = models.ForeignKey(
+        ContentType,
+        models.CASCADE,
+        verbose_name='content type',
+        null=True
+    )
+    object_id = models.PositiveIntegerField(null=True)
+    
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
     
     action_type = "ProcessAction"
     
@@ -335,11 +349,12 @@ class ProcessAction(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-             
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                        author=self.api_action.initiator)
-             
-            self.proposal = p
+            
+            if not self.proposal:
+                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                            author=self.api_action.initiator)
+                 
+                self.proposal = p
             
             super(ProcessAction, self).save(*args, **kwargs)
 
@@ -498,12 +513,20 @@ class ProcessPolicy(BasePolicy):
         return ' '.join(['ProcessPolicy: ', self.explanation, 'for', self.community_integration.community_name])
     
     def save(self, *args, **kwargs):
-        if not self.pk:
-            p = self.proposal
-            p.status = Proposal.PASSED
-            p.save()
+        if not self.pk:    
             
             super(ProcessPolicy, self).save(*args, **kwargs)
+                    
+            ctype = ContentType.objects.get_for_model(self)
+            
+            _ = ProcessAction.objects.create(
+                    community_integration=self.community_integration,
+                    api_action=None,
+                    content_type=ctype,
+                    object_id=self.id,
+                    is_bundled=self.is_bundled,
+                    proposal=self.proposal
+                )
 
         else:   
             super(ProcessPolicy, self).save(*args, **kwargs)
@@ -537,18 +560,19 @@ class CommunityPolicy(BasePolicy):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            process = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration)
-            
-            p = self.proposal
-            p.status = Proposal.PROPOSED
-            p.save()
             
             super(CommunityPolicy, self).save(*args, **kwargs)
             
-            if not self.is_bundled:
-                if process.exists():
-                    policy = self
-                    exec(process[0].policy_code)
+            ctype = ContentType.objects.get_for_model(self)
+            
+            _ = ProcessAction.objects.create(
+                    community_integration=self.community_integration,
+                    api_action=None,
+                    content_type=ctype,
+                    object_id=self.id,
+                    is_bundled=self.is_bundled,
+                    proposal=self.proposal
+                )
 
         else:   
             super(CommunityPolicy, self).save(*args, **kwargs)
