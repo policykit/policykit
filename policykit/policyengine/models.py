@@ -29,6 +29,28 @@ class CommunityIntegration(PolymorphicModel):
                               max_length=1000)
     
     user_group = models.ForeignKey(Group, models.CASCADE)
+    
+    def save(self, *args, **kwargs):   
+        if not self.pk:
+            super(CommunityIntegration, self).save(*args, **kwargs)
+            
+            # create Starter ProcessPolicy
+            
+            p = ProcessPolicy()
+            p.policy_filter_code = "action_pass=True"
+            p.policy_init_code = "pass"
+            p.policy_notify_code = "pass"
+            p.policy_conditional_code = "policy_pass = Proposal.PASSED"
+            p.policy_action_code = "execute_action(action)"
+            p.policy_failure_code = "pass"
+            p.explanation = "Starter Policy: all policies pass"
+            
+            proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+            p.proposal = proposal
+            p.save()
+            
+        else:
+            super(CommunityIntegration, self).save(*args, **kwargs)
 
 
 class CommunityUser(User, PolymorphicModel):
@@ -46,42 +68,46 @@ class CommunityUser(User, PolymorphicModel):
     is_community_admin = models.BooleanField(default=False)
     
         
-    def save(self, *args, **kwargs):      
-        super(User, self).save(*args, **kwargs)
-        p1 = Permission.objects.get(name='Can add processpolicy')
-        p2 = Permission.objects.get(name='Can add communitypolicy')
-        self.user_permissions.add(p1)
-        self.user_permissions.add(p2)
-        
-        p3 = Permission.objects.get(name='Can add boolean vote')
-        p4 = Permission.objects.get(name='Can change boolean vote')
-        p5 = Permission.objects.get(name='Can delete boolean vote')
-        p6 = Permission.objects.get(name='Can view boolean vote')
-        self.user_permissions.add(p3)
-        self.user_permissions.add(p4)
-        self.user_permissions.add(p5)
-        self.user_permissions.add(p6)
-        
-        p7 = Permission.objects.get(name='Can add number vote')
-        p8 = Permission.objects.get(name='Can change number vote')
-        p9 = Permission.objects.get(name='Can delete number vote')
-        p10 = Permission.objects.get(name='Can view number vote')
-        self.user_permissions.add(p7)
-        self.user_permissions.add(p8)
-        self.user_permissions.add(p9)
-        self.user_permissions.add(p10)
-        
-        p11 = Permission.objects.get(name='Can add communityactionbundle')
-        self.user_permissions.add(p11)
-        p12 = Permission.objects.get(name='Can add communitypolicybundle')
-        self.user_permissions.add(p12)
-        
-        p13 = Permission.objects.get(name='Can add policykit group')
-        p14 = Permission.objects.get(name='Can view policykit group')
-        p15 = Permission.objects.get(name='Can change policykit group')
-        self.user_permissions.add(p13)
-        self.user_permissions.add(p14)
-        self.user_permissions.add(p15)
+    def save(self, *args, **kwargs):   
+        if not self.pk:   
+            super(User, self).save(*args, **kwargs)
+            p1 = Permission.objects.get(name='Can add processpolicy')
+            p2 = Permission.objects.get(name='Can add communitypolicy')
+            self.user_permissions.add(p1)
+            self.user_permissions.add(p2)
+            
+            p3 = Permission.objects.get(name='Can add boolean vote')
+            p4 = Permission.objects.get(name='Can change boolean vote')
+            p5 = Permission.objects.get(name='Can delete boolean vote')
+            p6 = Permission.objects.get(name='Can view boolean vote')
+            self.user_permissions.add(p3)
+            self.user_permissions.add(p4)
+            self.user_permissions.add(p5)
+            self.user_permissions.add(p6)
+            
+            p7 = Permission.objects.get(name='Can add number vote')
+            p8 = Permission.objects.get(name='Can change number vote')
+            p9 = Permission.objects.get(name='Can delete number vote')
+            p10 = Permission.objects.get(name='Can view number vote')
+            self.user_permissions.add(p7)
+            self.user_permissions.add(p8)
+            self.user_permissions.add(p9)
+            self.user_permissions.add(p10)
+            
+            p11 = Permission.objects.get(name='Can add communityactionbundle')
+            self.user_permissions.add(p11)
+            p12 = Permission.objects.get(name='Can add communitypolicybundle')
+            self.user_permissions.add(p12)
+            
+            p13 = Permission.objects.get(name='Can add policykit group')
+            p14 = Permission.objects.get(name='Can view policykit group')
+            p15 = Permission.objects.get(name='Can change policykit group')
+            self.user_permissions.add(p13)
+            self.user_permissions.add(p14)
+            self.user_permissions.add(p15)
+        else:
+            super(User, self).save(*args, **kwargs)
+            
         
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
@@ -247,7 +273,8 @@ class Proposal(models.Model):
         CommunityUser,
         models.CASCADE,
         verbose_name='author', 
-        blank=True
+        blank=True,
+        null=True
         )
     
     proposal_time = models.DateTimeField(auto_now_add=True)
@@ -515,18 +542,24 @@ class ProcessPolicy(BasePolicy):
     def save(self, *args, **kwargs):
         if not self.pk:    
             
-            super(ProcessPolicy, self).save(*args, **kwargs)
-                    
-            ctype = ContentType.objects.get_for_model(self)
+            p = ProcessPolicy.objects.all()
             
-            _ = ProcessAction.objects.create(
-                    community_integration=self.community_integration,
-                    api_action=None,
-                    content_type=ctype,
-                    object_id=self.id,
-                    is_bundled=self.is_bundled,
-                    proposal=self.proposal
-                )
+            if p.exists():
+                
+                super(ProcessPolicy, self).save(*args, **kwargs)
+
+                ctype = ContentType.objects.get_for_model(self)
+                
+                _ = ProcessAction.objects.create(
+                        community_integration=self.community_integration,
+                        api_action=None,
+                        content_type=ctype,
+                        object_id=self.id,
+                        is_bundled=self.is_bundled,
+                        proposal=self.proposal
+                    )
+            else:
+                super(ProcessPolicy, self).save(*args, **kwargs)
 
         else:   
             super(ProcessPolicy, self).save(*args, **kwargs)
