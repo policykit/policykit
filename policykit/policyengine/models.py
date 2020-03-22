@@ -192,10 +192,14 @@ class PolicykitAPI(PolymorphicModel):
         if not self.pk:
             # Runs only when object is new
             super(PolicykitAPI, self).save(*args, **kwargs)
+
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                        author=self.initiator)
             
             _ = ProcessAction.objects.create(
                     community_integration=self.community_integration,
                     api_action=self,
+                    proposal=p,
                     is_bundled=self.is_bundled
                 )
         else:
@@ -375,34 +379,23 @@ class ProcessAction(BaseAction):
         verbose_name_plural = 'processactions'
         
     def save(self, *args, **kwargs):
-        if not self.pk:
-            # Runs only when object is new
-            
-            if not self.proposal:
-                p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                            author=self.api_action.initiator)
-                 
-                self.proposal = p
-            
-            super(ProcessAction, self).save(*args, **kwargs)
 
-        else:   
-            super(ProcessAction, self).save(*args, **kwargs)
-            
-            if not self.is_bundled:
-                action = self
-                for policy in ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
-                    if check_filter_code(policy, action):
-                        
-                        initialize_code(policy, action)
-                        
-                        cond_result = check_policy_code(policy, action)
-                        if cond_result == Proposal.PASSED:
-                            exec(policy.policy_action_code)
-                        elif cond_result == Proposal.FAILED:
-                            exec(policy.policy_failure_code)
-                        else:
-                            exec(policy.policy_notify_code)
+        super(ProcessAction, self).save(*args, **kwargs)
+        
+        if not self.is_bundled:
+            action = self
+            for policy in ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=self.community_integration):
+                if check_filter_code(policy, action):
+                    
+                    initialize_code(policy, action)
+                    
+                    cond_result = check_policy_code(policy, action)
+                    if cond_result == Proposal.PASSED:
+                        exec(policy.policy_action_code)
+                    elif cond_result == Proposal.FAILED:
+                        exec(policy.policy_failure_code)
+                    else:
+                        exec(policy.policy_notify_code)
         
 
 
