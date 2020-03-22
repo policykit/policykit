@@ -188,6 +188,19 @@ class PolicykitAddGroup(PolicykitAPI):
             ('can_execute', 'Can execute policykit add group'),
         )
     
+class PolicykitAddCommunityPolicy(PolicykitAPI):
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    permissions = models.ManyToManyField(Permission)
+    
+    name = models.CharField('name', max_length=300)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add group'),
+        )
+
 
   
 class CommunityAPI(PolymorphicModel):

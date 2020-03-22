@@ -28,36 +28,36 @@ class PolicyAdminSite(AdminSite):
             return False
         return True
     
-    @never_cache
-    def index(self, request, extra_context=None):
-        """
-        Display the main admin index page, which lists all of the installed
-        apps that have been registered in this site.
-        """
-        app_list = self.get_app_list(request)
-        
-        user = request.user
-        community_integration = user.community_integration
-
-        proposed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
-
-        passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
-
-        proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
-
-       
-
-        context = {**self.each_context(request), 
-                   'title': self.index_title, 
-                   'app_list': app_list, 
-                   'proposed_processes': proposed_process_policies,
-                   'passed_processes': passed_process_policies,
-                   'proposed_rules': proposed_community_policies,
-                   **(extra_context or {})}
-
-        request.current_app = self.name
-
-        return TemplateResponse(request, self.index_template or 'admin/index.html', context)
+#     @never_cache
+#     def index(self, request, extra_context=None):
+#         """
+#         Display the main admin index page, which lists all of the installed
+#         apps that have been registered in this site.
+#         """
+#         app_list = self.get_app_list(request)
+#         
+#         user = request.user
+#         community_integration = user.community_integration
+# 
+#         proposed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
+# 
+#         passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
+# 
+#         proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
+# 
+#        
+# 
+#         context = {**self.each_context(request), 
+#                    'title': self.index_title, 
+#                    'app_list': app_list, 
+#                    'proposed_processes': proposed_process_policies,
+#                    'passed_processes': passed_process_policies,
+#                    'proposed_rules': proposed_community_policies,
+#                    **(extra_context or {})}
+# 
+#         request.current_app = self.name
+# 
+#         return TemplateResponse(request, self.index_template or 'admin/index.html', context)
 
 
 admin_site = PolicyAdminSite(name="policyadmin")
@@ -149,6 +149,25 @@ class PolicykitAddGroupAdmin(admin.ModelAdmin):
         obj.save()
         
 admin_site.register(PolicykitAddGroup, PolicykitAddGroupAdmin)
+
+
+
+# Create a new Group admin.
+class AddGroupAdmin(admin.ModelAdmin):
+    # Use our custom form.
+    form = GroupAdminForm
+    # Filter permissions horizontal as well.
+    filter_horizontal = ['permissions']
+    
+    fields= ('name', 'users', 'permissions')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(Group, AddGroupAdmin)
+
 
 
 
