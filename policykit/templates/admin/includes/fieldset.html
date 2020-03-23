@@ -32,6 +32,9 @@
                                 var textArea = document.getElementById('id_{{ field.field.name }}');
                                 var editor = CodeMirror.fromTextArea(textArea);
                                 editor.setValue(textArea.value);
+                                setTimeout(function() {
+                                    editor.refresh();
+                                }, 1);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor.on('inputRead', function onChange(editor, input) {
