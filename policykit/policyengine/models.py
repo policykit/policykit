@@ -50,6 +50,60 @@ class CommunityIntegration(PolymorphicModel):
             p.proposal = proposal
             p.save()
             
+            # starter permissions for usergroup
+            
+            p1 = Permission.objects.get(name='Can add processpolicy')
+            p2 = Permission.objects.get(name='Can view processpolicy')
+            p3 = Permission.objects.get(name='Can change processpolicy')
+            p4 = Permission.objects.get(name='Can delete processpolicy')
+            self.user_group.permissions.add(p1)
+            self.user_group.permissions.add(p2)
+            self.user_group.permissions.add(p3)
+            self.user_group.permissions.add(p4)
+            
+            p1 = Permission.objects.get(name='Can add communitypolicy')
+            p2 = Permission.objects.get(name='Can view communitypolicy')
+            p3 = Permission.objects.get(name='Can change communitypolicy')
+            p4 = Permission.objects.get(name='Can delete communitypolicy')
+            self.user_group.permissions.add(p1)
+            self.user_group.permissions.add(p2)
+            self.user_group.permissions.add(p3)
+            self.user_group.permissions.add(p4)
+            
+            p1 = Permission.objects.get(name='Can add boolean vote')
+            p2 = Permission.objects.get(name='Can change boolean vote')
+            p3 = Permission.objects.get(name='Can delete boolean vote')
+            p4 = Permission.objects.get(name='Can view boolean vote')
+            self.user_group.permissions.add(p1)
+            self.user_group.permissions.add(p2)
+            self.user_group.permissions.add(p3)
+            self.user_group.permissions.add(p4)
+            
+            p1 = Permission.objects.get(name='Can add number vote')
+            p2 = Permission.objects.get(name='Can change number vote')
+            p3 = Permission.objects.get(name='Can delete number vote')
+            p4 = Permission.objects.get(name='Can view number vote')
+            self.user_group.permissions.add(p1)
+            self.user_group.permissions.add(p2)
+            self.user_group.permissions.add(p3)
+            self.user_group.permissions.add(p4)
+            
+            p11 = Permission.objects.get(name='Can add communityactionbundle')
+            self.user_group.permissions.add(p11)
+            p12 = Permission.objects.get(name='Can add communitypolicybundle')
+            self.user_group.permissions.add(p12)
+            
+            p1 = Permission.objects.get(name='Can add policykit group')
+            
+            p2 = Permission.objects.get(name='Can change group')
+            p3 = Permission.objects.get(name='Can delete group')
+            p4 = Permission.objects.get(name='Can view group')
+            self.user_group.permissions.add(p1)
+            self.user_group.permissions.add(p2)
+            self.user_group.permissions.add(p3)
+            self.user_group.permissions.add(p4)
+            
+
         else:
             super(CommunityIntegration, self).save(*args, **kwargs)
 
@@ -72,44 +126,6 @@ class CommunityUser(User, PolymorphicModel):
     def save(self, *args, **kwargs):   
         if not self.pk:   
             super(User, self).save(*args, **kwargs)
-            p1 = Permission.objects.get(name='Can add processpolicy')
-            p2 = Permission.objects.get(name='Can add communitypolicy')
-            self.user_permissions.add(p1)
-            self.user_permissions.add(p2)
-            
-            p3 = Permission.objects.get(name='Can add boolean vote')
-            p4 = Permission.objects.get(name='Can change boolean vote')
-            p5 = Permission.objects.get(name='Can delete boolean vote')
-            p6 = Permission.objects.get(name='Can view boolean vote')
-            self.user_permissions.add(p3)
-            self.user_permissions.add(p4)
-            self.user_permissions.add(p5)
-            self.user_permissions.add(p6)
-            
-            p7 = Permission.objects.get(name='Can add number vote')
-            p8 = Permission.objects.get(name='Can change number vote')
-            p9 = Permission.objects.get(name='Can delete number vote')
-            p10 = Permission.objects.get(name='Can view number vote')
-            self.user_permissions.add(p7)
-            self.user_permissions.add(p8)
-            self.user_permissions.add(p9)
-            self.user_permissions.add(p10)
-            
-            p11 = Permission.objects.get(name='Can add communityactionbundle')
-            self.user_permissions.add(p11)
-            p12 = Permission.objects.get(name='Can add communitypolicybundle')
-            self.user_permissions.add(p12)
-            
-            p13 = Permission.objects.get(name='Can add policykit group')
-            p14 = Permission.objects.get(name='Can view policykit group')
-            p15 = Permission.objects.get(name='Can change policykit group')
-            self.user_permissions.add(p13)
-            self.user_permissions.add(p14)
-            self.user_permissions.add(p15)
-            
-            p16 = Permission.objects.get(name='Can view group')
-            self.user_permissions.add(p16)
-            
         else:
             super(User, self).save(*args, **kwargs)
             
@@ -188,11 +204,12 @@ class PolicykitAPI(PolymorphicModel):
                                    models.CASCADE)
     
     initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
+                                models.CASCADE,
+                                null=True)
     
     is_bundled = models.BooleanField(default=False)
     
-    def save(self, *args, **kwargs):        
+    def save(self, *args, **kwargs):    
         if not self.pk:
             # Runs only when object is new
             super(PolicykitAPI, self).save(*args, **kwargs)
@@ -201,17 +218,16 @@ class PolicykitAPI(PolymorphicModel):
                                         author=self.initiator)
         else:
             super(PolicykitAPI, self).save(*args, **kwargs) 
-            
+
             p = self.proposal
-            
-                    
+
         _ = ProcessAction.objects.create(
                 community_integration=self.community_integration,
                 api_action=self,
                 proposal=p,
                 is_bundled=self.is_bundled
             )
-
+        
 
 class PolicykitGroup(PolicykitAPI):
     
@@ -233,20 +249,6 @@ class PolicykitGroup(PolicykitAPI):
     class Meta:
         permissions = (
             ('can_execute', 'Can execute policykit add group'),
-        )
-
-
-class PolicykitAddPermission(PolicykitAPI):
-    
-    user = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
-    
-    permission = models.ForeignKey(Permission,
-                                   models.CASCADE)
-    
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit add permission'),
         )
 
 
