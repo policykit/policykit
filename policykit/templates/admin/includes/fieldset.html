@@ -30,11 +30,13 @@
                               var name = '{{ field.field.name }}'
                               if(name.includes('code')) {
                                 var textArea = document.getElementById('id_{{ field.field.name }}');
-                                var editor = CodeMirror.fromTextArea(textArea);
+                                var editor = CodeMirror.fromTextArea(textArea, {
+                                    theme: 'monokai'
+                                });
                                 editor.setValue(textArea.value);
                                 setTimeout(function() {
                                     editor.refresh();
-                                }, 1);
+                                }, 10);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor.on('inputRead', function onChange(editor, input) {
