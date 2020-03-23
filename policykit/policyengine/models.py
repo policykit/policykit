@@ -27,7 +27,8 @@ class CommunityIntegration(PolymorphicModel):
                               max_length=1000)
     
     base_role = models.OneToOneField('CommunityRole',
-                                     models.CASCADE)
+                                     models.CASCADE,
+                                     null=True)
     
     def save(self, *args, **kwargs):   
         if not self.pk:
