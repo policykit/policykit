@@ -219,7 +219,7 @@ class PolicykitGroup(PolicykitAPI):
     name = models.CharField('name', max_length=300)
     
     def execute(self):
-        g = Group.objects.get_or_create(name=self.name)
+        g,_ = Group.objects.get_or_create(name=self.name)
         
         for u in self.users.all():
             g.user_set.add(u)
@@ -395,6 +395,10 @@ class ProcessAction(BaseAction):
     def execute(self):
         if self.api_action:
             self.api_action.execute()
+        else:
+            obj = self.content_object
+            
+            
                 
         
     def save(self, *args, **kwargs):
@@ -602,7 +606,6 @@ class CommunityPolicy(BasePolicy):
 #         super().clean()
 #         if self.policy_action_code is None and self.policy_text is None:
 #             raise ValidationError('Code or text rule instructions are both None')
-
         
     def __str__(self):
         return ' '.join(['CommunityPolicy: ', self.explanation, 'for', self.community_integration.community_name])
