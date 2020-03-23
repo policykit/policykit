@@ -146,6 +146,10 @@ class PolicykitGroupAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitGroup, PolicykitGroupAdmin)
 
 
+class GroupAdmin(admin.ModelAdmin):
+    pass
+ 
+admin_site.register(Group, GroupAdmin)
 
 
 # 
