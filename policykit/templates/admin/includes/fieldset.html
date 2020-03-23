@@ -33,6 +33,7 @@
                                 var editor = CodeMirror.fromTextArea(textArea, {
                                   lineNumbers: true
                                 });
+                                editor.setValue(textArea.value);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor.on('inputRead', function onChange(editor, input) {
