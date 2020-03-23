@@ -26,7 +26,8 @@ class CommunityIntegration(PolymorphicModel):
     community_name = models.CharField('team_name', 
                               max_length=1000)
     
-    base_role = models.OneToOneField('CommunityRole')
+    base_role = models.OneToOneField('CommunityRole',
+                                     models.CASCADE)
     
     def save(self, *args, **kwargs):   
         if not self.pk:
