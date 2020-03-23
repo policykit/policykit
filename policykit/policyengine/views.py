@@ -150,7 +150,7 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
         action.save()
 
 
-def execute_action(action, delete_policykit_post=True):
+def execute_community_action(action, delete_policykit_post=True):
     from policyengine.models import LogAPICall, CommunityUser
     
     logger.info('here')

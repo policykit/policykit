@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import post_policy, execute_action, check_policy_code, check_filter_code, initialize_code
+from policyengine.views import post_policy, execute_community_action, check_policy_code, check_filter_code, initialize_code
 import urllib
 import json
 
@@ -42,7 +42,7 @@ class CommunityIntegration(PolymorphicModel):
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
             p.policy_conditional_code = "policy_pass = Proposal.PASSED"
-            p.policy_action_code = "execute_action(action)"
+            p.policy_action_code = "action.execute()"
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"
             
@@ -214,6 +214,13 @@ class PolicykitGroup(PolicykitAPI):
     
     name = models.CharField('name', max_length=300)
     
+    def execute(self):
+        g = Group.objects.get_or_create(name=self.name)
+        for u in self.users:
+            g.user_set.add(u)
+        for p in self.permissions:
+            g.permission_set.add(p)   
+    
     class Meta:
         permissions = (
             ('can_execute', 'Can execute policykit add group'),
@@ -378,6 +385,12 @@ class ProcessAction(BaseAction):
         verbose_name = 'processaction'
         verbose_name_plural = 'processactions'
         
+        
+    def execute(self):
+        if self.api_action:
+            self.api_action.execute()
+                
+        
     def save(self, *args, **kwargs):
 
         super(ProcessAction, self).save(*args, **kwargs)
@@ -412,6 +425,10 @@ class CommunityAction(BaseAction):
 
     def __str__(self):
         return ' '.join(['Action: ', str(self.api_action), 'to', self.community_integration.community_name])
+
+
+    def execute(self):
+        execute_community_action(self)
 
     def save(self, *args, **kwargs):
         if not self.pk:
