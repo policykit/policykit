@@ -216,9 +216,11 @@ class PolicykitGroup(PolicykitAPI):
     
     def execute(self):
         g = Group.objects.get_or_create(name=self.name)
-        for u in self.users:
+        
+        for u in self.users_set.all():
             g.user_set.add(u)
-        for p in self.permissions:
+            
+        for p in self.permissions_set.all():
             g.permission_set.add(p)   
     
     class Meta:
