@@ -92,7 +92,7 @@ class CommunityIntegration(PolymorphicModel):
             p12 = Permission.objects.get(name='Can add communitypolicybundle')
             self.base_role.permissions.add(p12)
             
-            p1 = Permission.objects.get(name='Can add policykit group')
+            p1 = Permission.objects.get(name='Can add policykit add role')
             p2 = Permission.objects.get(name='Can change communityrole')
             p3 = Permission.objects.get(name='Can delete communityrole')
             p4 = Permission.objects.get(name='Can view communityrole')
