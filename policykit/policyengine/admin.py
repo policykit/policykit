@@ -63,7 +63,7 @@ admin_site = PolicyAdminSite(name="policyadmin")
 
 
 class ProcessPolicyAdmin(admin.ModelAdmin):
-    fields= ('policy_code', 'explanation')
+    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
     
     def save_model(self, request, obj, form, change):
         if not change:
@@ -136,7 +136,7 @@ admin_site.register(NumberVote, NumberVoteAdmin)
 # Create a new Group admin.
 class PolicykitAddRoleAdmin(admin.ModelAdmin):
 
-    fields= ('name', 'users', 'permissions')
+    fields= ('name', 'users', 'permissions','is_bundled')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
