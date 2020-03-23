@@ -27,17 +27,17 @@
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
                             <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
+                            <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
                             <script>
                               var name = '{{ field.field.name }}'
                               if(name.includes('code')) {
                                 var textArea = document.getElementById('id_{{ field.field.name }}');
                                 var editor = CodeMirror.fromTextArea(textArea, {
+                                    mode: 'python',
+                                    autoRefresh: true,
                                     theme: 'monokai'
                                 });
                                 editor.setValue(textArea.value);
-                                setTimeout(function() {
-                                    editor.refresh();
-                                }, 10);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor.on('inputRead', function onChange(editor, input) {
