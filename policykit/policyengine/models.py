@@ -225,7 +225,7 @@ class PolicykitGroup(PolicykitAPI):
             g.user_set.add(u)
             
         for p in self.permissions.all():
-            g.permission_set.add(p)   
+            g.permissions.add(p)   
     
     class Meta:
         permissions = (
