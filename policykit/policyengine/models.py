@@ -106,6 +106,10 @@ class CommunityUser(User, PolymorphicModel):
             self.user_permissions.add(p13)
             self.user_permissions.add(p14)
             self.user_permissions.add(p15)
+            
+            p16 = Permission.objects.get(name='Can view group')
+            self.user_permissions.add(p16)
+            
         else:
             super(User, self).save(*args, **kwargs)
             
