@@ -199,15 +199,18 @@ class PolicykitAPI(PolymorphicModel):
 
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                         author=self.initiator)
-            
-            _ = ProcessAction.objects.create(
-                    community_integration=self.community_integration,
-                    api_action=self,
-                    proposal=p,
-                    is_bundled=self.is_bundled
-                )
         else:
             super(PolicykitAPI, self).save(*args, **kwargs) 
+            
+            p = self.proposal
+            
+                    
+        _ = ProcessAction.objects.create(
+                community_integration=self.community_integration,
+                api_action=self,
+                proposal=p,
+                is_bundled=self.is_bundled
+            )
 
 
 class PolicykitGroup(PolicykitAPI):
@@ -396,10 +399,10 @@ class ProcessAction(BaseAction):
         if self.api_action:
             self.api_action.execute()
         else:
-            obj = self.content_object
-            
-            
-                
+            proposal = self.proposal
+            proposal.status = Proposal.PASSED
+            proposal.save()
+
         
     def save(self, *args, **kwargs):
 
