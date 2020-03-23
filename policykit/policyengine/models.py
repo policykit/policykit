@@ -22,13 +22,11 @@ def on_transaction_commit(func):
 
     return inner
 
-
-
 class CommunityIntegration(PolymorphicModel):
     community_name = models.CharField('team_name', 
                               max_length=1000)
     
-    user_group = models.ForeignKey(Group, models.CASCADE)
+    base_role = models.OneToOneField('CommunityRole')
     
     def save(self, *args, **kwargs):   
         if not self.pk:
@@ -56,57 +54,68 @@ class CommunityIntegration(PolymorphicModel):
             p2 = Permission.objects.get(name='Can view processpolicy')
             p3 = Permission.objects.get(name='Can change processpolicy')
             p4 = Permission.objects.get(name='Can delete processpolicy')
-            self.user_group.permissions.add(p1)
-            self.user_group.permissions.add(p2)
-            self.user_group.permissions.add(p3)
-            self.user_group.permissions.add(p4)
+            self.base_role.permissions.add(p1)
+            self.base_role.permissions.add(p2)
+            self.base_role.permissions.add(p3)
+            self.base_role.permissions.add(p4)
             
             p1 = Permission.objects.get(name='Can add communitypolicy')
             p2 = Permission.objects.get(name='Can view communitypolicy')
             p3 = Permission.objects.get(name='Can change communitypolicy')
             p4 = Permission.objects.get(name='Can delete communitypolicy')
-            self.user_group.permissions.add(p1)
-            self.user_group.permissions.add(p2)
-            self.user_group.permissions.add(p3)
-            self.user_group.permissions.add(p4)
+            self.base_role.permissions.add(p1)
+            self.base_role.permissions.add(p2)
+            self.base_role.permissions.add(p3)
+            self.base_role.permissions.add(p4)
             
             p1 = Permission.objects.get(name='Can add boolean vote')
             p2 = Permission.objects.get(name='Can change boolean vote')
             p3 = Permission.objects.get(name='Can delete boolean vote')
             p4 = Permission.objects.get(name='Can view boolean vote')
-            self.user_group.permissions.add(p1)
-            self.user_group.permissions.add(p2)
-            self.user_group.permissions.add(p3)
-            self.user_group.permissions.add(p4)
+            self.base_role.permissions.add(p1)
+            self.base_role.permissions.add(p2)
+            self.base_role.permissions.add(p3)
+            self.base_role.permissions.add(p4)
             
             p1 = Permission.objects.get(name='Can add number vote')
             p2 = Permission.objects.get(name='Can change number vote')
             p3 = Permission.objects.get(name='Can delete number vote')
             p4 = Permission.objects.get(name='Can view number vote')
-            self.user_group.permissions.add(p1)
-            self.user_group.permissions.add(p2)
-            self.user_group.permissions.add(p3)
-            self.user_group.permissions.add(p4)
+            self.base_role.permissions.add(p1)
+            self.base_role.permissions.add(p2)
+            self.base_role.permissions.add(p3)
+            self.base_role.permissions.add(p4)
             
             p11 = Permission.objects.get(name='Can add communityactionbundle')
-            self.user_group.permissions.add(p11)
+            self.base_role.permissions.add(p11)
             p12 = Permission.objects.get(name='Can add communitypolicybundle')
-            self.user_group.permissions.add(p12)
+            self.base_role.permissions.add(p12)
             
             p1 = Permission.objects.get(name='Can add policykit group')
-            
-            p2 = Permission.objects.get(name='Can change group')
-            p3 = Permission.objects.get(name='Can delete group')
-            p4 = Permission.objects.get(name='Can view group')
-            self.user_group.permissions.add(p1)
-            self.user_group.permissions.add(p2)
-            self.user_group.permissions.add(p3)
-            self.user_group.permissions.add(p4)
+            p2 = Permission.objects.get(name='Can change communityrole')
+            p3 = Permission.objects.get(name='Can delete communityrole')
+            p4 = Permission.objects.get(name='Can view communityrole')
+            self.base_role.permissions.add(p1)
+            self.base_role.permissions.add(p2)
+            self.base_role.permissions.add(p3)
+            self.base_role.permissions.add(p4)
             
 
         else:
             super(CommunityIntegration, self).save(*args, **kwargs)
 
+
+class CommunityRole(Group):
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+
+    class Meta:
+        verbose_name = 'communityrole'
+        verbose_name_plural = 'communityroles'
+
+    def save(self, *args, **kwargs):
+        super(CommunityRole, self).save(*args, **kwargs)
+    
 
 class CommunityUser(User, PolymorphicModel):
         
@@ -120,19 +129,12 @@ class CommunityUser(User, PolymorphicModel):
     access_token = models.CharField('access_token', 
                                      max_length=300, null=True)
     
-    is_community_admin = models.BooleanField(default=False)
-    
-        
-    def save(self, *args, **kwargs):   
-        if not self.pk:   
-            super(User, self).save(*args, **kwargs)
-        else:
-            super(User, self).save(*args, **kwargs)
-            
+    is_community_admin = models.BooleanField(default=False)            
         
     def __str__(self):
         return self.readable_name + '@' + self.community_integration.community_name
-        
+
+
         
         
 class DataStore(models.Model):
@@ -338,11 +340,6 @@ class Proposal(models.Model):
                     proposal.save()
         
 
-
-     
-
-
-       
 class BaseAction(models.Model):
     community_integration = models.ForeignKey(CommunityIntegration, 
         models.CASCADE,

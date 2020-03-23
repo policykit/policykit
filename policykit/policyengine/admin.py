@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import PolicykitGroup, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import PolicykitGroup, CommunityRole, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
@@ -146,10 +146,14 @@ class PolicykitGroupAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitGroup, PolicykitGroupAdmin)
 
 
-class GroupAdmin(admin.ModelAdmin):
-    pass
+class CommunityRoleAdmin(admin.ModelAdmin):
+    fields= ('name', 'permissions')
+    
+    def save_model(self, request, obj, form, change):
+        obj.save()
+        
  
-admin_site.register(Group, GroupAdmin)
+admin_site.register(CommunityRole, CommunityRoleAdmin)
 
 
 # 
