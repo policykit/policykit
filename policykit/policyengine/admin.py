@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import PolicykitGroup, CommunityRole, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import PolicykitAddRole, CommunityRole, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
@@ -134,7 +134,7 @@ class NumberVoteAdmin(admin.ModelAdmin):
 admin_site.register(NumberVote, NumberVoteAdmin)
 
 # Create a new Group admin.
-class PolicykitGroupAdmin(admin.ModelAdmin):
+class PolicykitAddRoleAdmin(admin.ModelAdmin):
 
     fields= ('name', 'users', 'permissions')
     
@@ -143,7 +143,7 @@ class PolicykitGroupAdmin(admin.ModelAdmin):
         obj.community_integration = request.user.community_integration
         obj.save()
         
-admin_site.register(PolicykitGroup, PolicykitGroupAdmin)
+admin_site.register(PolicykitAddRole, PolicykitAddRoleAdmin)
 
 
 class CommunityRoleAdmin(admin.ModelAdmin):

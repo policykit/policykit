@@ -233,7 +233,7 @@ class PolicykitAPI(PolymorphicModel):
             )
         
 
-class PolicykitGroup(PolicykitAPI):
+class PolicykitAddRole(PolicykitAPI):
     
     users = models.ManyToManyField(CommunityUser)
     
@@ -242,7 +242,7 @@ class PolicykitGroup(PolicykitAPI):
     name = models.CharField('name', max_length=300)
     
     def execute(self):
-        g,_ = Group.objects.get_or_create(name=self.name)
+        g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community_integration.community_name)
         
         for u in self.users.all():
             g.user_set.add(u)
@@ -252,7 +252,7 @@ class PolicykitGroup(PolicykitAPI):
     
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add group'),
+            ('can_execute', 'Can execute policykit add role'),
         )
 
 
