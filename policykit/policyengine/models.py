@@ -257,6 +257,22 @@ class PolicykitAddRole(PolicykitAPI):
 
 
 
+class PolicykitDeleteRole(PolicykitAPI):
+    role = models.ForeignKey(CommunityRole,
+                             models.SET_NULL,
+                             null=True)
+    
+    def execute(self):        
+        self.role.delete()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit delete role'),
+        )
+
+
+
+
   
 class CommunityAPI(PolymorphicModel):
     ACTION = None
