@@ -201,6 +201,27 @@ class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
 
+class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
+    fields= ('community_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+
+admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPolicyAdmin)
+
+
+class PolicykitChangeProcessPolicyAdmin(admin.ModelAdmin):
+    fields= ('process_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+
+admin_site.register(PolicykitChangeProcessPolicy, PolicykitChangeProcessPolicyAdmin)
+
 
 
 class CommunityRoleAdmin(admin.ModelAdmin):
