@@ -22,17 +22,23 @@
                             <!-- Create a simple CodeMirror instance -->
                             <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
                             <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
+                            <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
                             <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
+                            <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
                             <script>
                               var name = '{{ field.field.name }}'
                               if(name.includes('code')) {
                                 var textArea = document.getElementById('id_{{ field.field.name }}');
                                 var editor = CodeMirror.fromTextArea(textArea, {
-                                  lineNumbers: true
+                                    mode: 'python',
+                                    autoRefresh: true,
+                                    lineNumbers: true,
+                                    theme: 'eclipse'
                                 });
+                                editor.setValue(textArea.value);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor.on('inputRead', function onChange(editor, input) {

@@ -5,9 +5,10 @@
   font-family: monospace;
   /* TODO: CHANGE*/
   height: auto;
-  width: 300px;
+  width: auto;
   color: black;
   direction: ltr;
+  border: solid 1px;
 }
 
 /* PADDING */
