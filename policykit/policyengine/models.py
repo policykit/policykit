@@ -53,21 +53,13 @@ class CommunityIntegration(PolymorphicModel):
             
             p1 = Permission.objects.get(name='Can add processpolicy')
             p2 = Permission.objects.get(name='Can view processpolicy')
-            p3 = Permission.objects.get(name='Can change processpolicy')
-            p4 = Permission.objects.get(name='Can delete processpolicy')
             self.base_role.permissions.add(p1)
             self.base_role.permissions.add(p2)
-            self.base_role.permissions.add(p3)
-            self.base_role.permissions.add(p4)
             
             p1 = Permission.objects.get(name='Can add communitypolicy')
             p2 = Permission.objects.get(name='Can view communitypolicy')
-            p3 = Permission.objects.get(name='Can change communitypolicy')
-            p4 = Permission.objects.get(name='Can delete communitypolicy')
             self.base_role.permissions.add(p1)
             self.base_role.permissions.add(p2)
-            self.base_role.permissions.add(p3)
-            self.base_role.permissions.add(p4)
             
             p1 = Permission.objects.get(name='Can add boolean vote')
             p2 = Permission.objects.get(name='Can change boolean vote')
@@ -107,6 +99,10 @@ class CommunityIntegration(PolymorphicModel):
             p1 = Permission.objects.get(name='Can add policykit change community policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change process policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit remove community policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit remove process policy')
             self.base_role.permissions.add(p1)
             
 
@@ -403,6 +399,34 @@ class PolicykitChangeProcessPolicy(PolicykitAPI):
     class Meta:
         permissions = (
             ('can_execute', 'Can execute policykit change process policy'),
+        )
+
+
+class PolicykitRemoveCommunityPolicy(PolicykitAPI):
+    community_policy = models.ForeignKey('CommunityPolicy',
+                                         models.SET_NULL,
+                                         null=True)
+    
+    def execute(self):        
+        self.community_policy.delete()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove community policy'),
+        )
+        
+
+class PolicykitRemoveProcessPolicy(PolicykitAPI):
+    process_policy = models.ForeignKey('ProcessPolicy',
+                                         models.SET_NULL,
+                                         null=True)
+    
+    def execute(self):        
+        self.process_policy.delete()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove process policy'),
         )
 
   

@@ -223,6 +223,28 @@ class PolicykitChangeProcessPolicyAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitChangeProcessPolicy, PolicykitChangeProcessPolicyAdmin)
 
 
+class PolicykitRemoveCommunityPolicyAdmin(admin.ModelAdmin):
+    fields= ('community_policy','is_bundled')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitRemoveCommunityPolicy, PolicykitRemoveCommunityPolicyAdmin)
+
+
+class PolicykitRemoveProcessPolicyAdmin(admin.ModelAdmin):
+    fields= ('process_policy','is_bundled')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitRemoveProcessPolicy, PolicykitRemoveProcessPolicyAdmin)
+
+
 
 class CommunityRoleAdmin(admin.ModelAdmin):
     fields= ('name', 'permissions')
