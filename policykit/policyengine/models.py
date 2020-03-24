@@ -100,6 +100,10 @@ class CommunityIntegration(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit remove permission')
             self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit add user role')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit remove user role')
+            self.base_role.permissions.add(p1)
             
             p2 = Permission.objects.get(name='Can change communityrole')
             p3 = Permission.objects.get(name='Can delete communityrole')
@@ -242,18 +246,13 @@ class PolicykitAPI(PolymorphicModel):
 
 class PolicykitAddRole(PolicykitAPI):
     
-    users = models.ManyToManyField(CommunityUser)
-    
-    permissions = models.ManyToManyField(Permission)
-    
     name = models.CharField('name', max_length=300)
-    
+
+    permissions = models.ManyToManyField(Permission)
+
     def execute(self):
         g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community_integration.community_name)
         
-        for u in self.users.all():
-            g.user_set.add(u)
-            
         for p in self.permissions.all():
             g.permissions.add(p)   
     
@@ -309,9 +308,36 @@ class PolicykitRemovePermission(PolicykitAPI):
         )
 
 
+class PolicykitAddUserRole(PolicykitAPI):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    def execute(self):        
+        for u in self.users.all():
+            self.role.user_set.add(u)  
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add user role'),
+        )
 
 
-
+class PolicykitRemoveUserRole(PolicykitAPI):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    def execute(self):        
+        for u in self.users.all():
+            self.role.user_set.remove(u)  
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove user role'),
+        )
 
   
 class CommunityAPI(PolymorphicModel):

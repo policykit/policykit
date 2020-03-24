@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission, PolicykitDeleteRole, ProcessAction, CommunityRole, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import *
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
@@ -136,7 +136,7 @@ admin_site.register(NumberVote, NumberVoteAdmin)
 
 class PolicykitAddRoleAdmin(admin.ModelAdmin):
 
-    fields= ('name', 'users', 'permissions','is_bundled')
+    fields= ('name', 'permissions','is_bundled')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
@@ -158,7 +158,7 @@ admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
 
 
 class PolicykitAddPermissionAdmin(admin.ModelAdmin):
-    fields= ('role','permissions')
+    fields= ('role','permissions','is_bundled')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
@@ -169,7 +169,7 @@ admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
 
 
 class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
-    fields= ('role','permissions')
+    fields= ('role','permissions','is_bundled')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
@@ -178,6 +178,27 @@ class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
         
 admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
 
+
+
+class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
+    fields= ('role','users','is_bundled')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitAddUserRole, PolicykitAddUserRoleAdmin)
+
+class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
+    fields= ('role','users','is_bundled')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
 
 
