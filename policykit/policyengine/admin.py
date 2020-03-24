@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from policyengine.models import PolicykitAddRole, PolicykitDeleteRole, ProcessAction, CommunityRole, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
+from policyengine.models import PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission, PolicykitDeleteRole, ProcessAction, CommunityRole, CommunityUser, ProcessPolicy, CommunityPolicy, CommunityPolicyBundle, CommunityActionBundle, Proposal, BooleanVote, NumberVote
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
@@ -155,6 +155,30 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
         obj.save()
         
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
+
+
+class PolicykitAddPermissionAdmin(admin.ModelAdmin):
+    fields= ('role','permissions')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
+
+
+class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
+    fields= ('role','permissions')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
+
+
 
 
 

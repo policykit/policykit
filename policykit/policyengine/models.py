@@ -96,6 +96,10 @@ class CommunityIntegration(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit delete role')
             self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit add permission')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit remove permission')
+            self.base_role.permissions.add(p1)
             
             p2 = Permission.objects.get(name='Can change communityrole')
             p3 = Permission.objects.get(name='Can delete communityrole')
@@ -259,7 +263,6 @@ class PolicykitAddRole(PolicykitAPI):
         )
 
 
-
 class PolicykitDeleteRole(PolicykitAPI):
     role = models.ForeignKey(CommunityRole,
                              models.SET_NULL,
@@ -272,6 +275,40 @@ class PolicykitDeleteRole(PolicykitAPI):
         permissions = (
             ('can_execute', 'Can execute policykit delete role'),
         )
+
+
+class PolicykitAddPermission(PolicykitAPI):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    permissions = models.ManyToManyField(Permission)
+    
+    def execute(self):        
+        for p in self.permissions.all():
+            self.role.permissions.add(p)  
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add permission'),
+        )
+
+
+class PolicykitRemovePermission(PolicykitAPI):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    permissions = models.ManyToManyField(Permission)
+    
+    def execute(self):        
+        for p in self.permissions.all():
+            self.role.permissions.remove(p)  
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove permission'),
+        )
+
+
 
 
 
