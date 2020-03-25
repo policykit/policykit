@@ -38,17 +38,17 @@ class CustomIndexDashboard(Dashboard):
             column=1,
             order=0,
         ))
-        
-        self.children.append(PolicyModule(
-            policy_type="Process",
-            status="proposed",
-            title="Proposed Process Policies",
-            deletable=False,
-            contrast=True,
-            draggable=False,
-            column=1,
-            order=1,
-        ))
+#         
+#         self.children.append(PolicyModule(
+#             policy_type="Process",
+#             status="proposed",
+#             title="Proposed Process Policies",
+#             deletable=False,
+#             contrast=True,
+#             draggable=False,
+#             column=1,
+#             order=1,
+#         ))
         
         self.children.append(PolicyModule(
             policy_type="Community",
@@ -60,17 +60,17 @@ class CustomIndexDashboard(Dashboard):
             column=1,
             order=2,
         ))
-        
-        self.children.append(PolicyModule(
-            policy_type="Community",
-            status="proposed",
-            title="Proposed Community Policies",
-            deletable=False,
-            contrast=True,
-            draggable=False,
-            column=1,
-            order=3,
-        ))
+#         
+#         self.children.append(PolicyModule(
+#             policy_type="Community",
+#             status="proposed",
+#             title="Proposed Community Policies",
+#             deletable=False,
+#             contrast=True,
+#             draggable=False,
+#             column=1,
+#             order=3,
+#         ))
         
         
         self.children.append(RolePermissionModule(
