@@ -30,7 +30,8 @@ class RolePermissionModule(DashboardModule):
                 role_info['permissions'].append({'name': p.name})
                 
             for u in i.user_set.all():
-                role_info['users'].append({'username': u.communityuser.readable_name})
+                cu = u.communityuser
+                role_info['users'].append({'username': cu.readable_name})
             
             self.children.append(role_info)
         
