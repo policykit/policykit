@@ -23,14 +23,14 @@ class RolePermissionModule(DashboardModule):
         roles = CommunityRole.objects.filter(community_integration=user.community_integration)
             
         for i in roles:
-            role_info = {'name': i.name,
+            role_info = {'role_name': i.name,
                          'permissions': [],
                          'users': []}
             for p in i.permissions.all():
                 role_info['permissions'].append({'name': p.name})
                 
             for u in i.user_set.all():
-                role_info['users'].append({'username': u.username})
+                role_info['users'].append({'username': u.readable_name})
             
             self.children.append(role_info)
         
