@@ -100,6 +100,22 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
 
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
+
+class ProcessActionBundleAdmin(admin.ModelAdmin):
+    fields= ('bundled_actions', 'bundle_type')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.is_bundle = True
+            obj.community_origin = False
+            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
+            obj.proposal = p
+            obj.community_integration = request.user.community_integration
+        obj.save()
+
+admin_site.register(ProcessActionBundle, ProcessActionBundleAdmin)
+
+
 class CommunityPolicyBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_policies', 'explanation')
     
@@ -112,6 +128,23 @@ class CommunityPolicyBundleAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
+
+
+
+class ProcessPolicyBundleAdmin(admin.ModelAdmin):
+    fields= ('bundled_policies', 'explanation')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.is_bundle = True
+            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
+            obj.proposal = p
+            obj.community_integration = request.user.community_integration
+        obj.save()
+
+admin_site.register(ProcessPolicyBundle, ProcessPolicyBundleAdmin)
+
+
 
 class BooleanVoteAdmin(admin.ModelAdmin):
     fields= ('proposal', 'boolean_value')

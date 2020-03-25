@@ -595,7 +595,57 @@ class ProcessAction(BaseAction):
                         exec(policy.policy_failure_code)
                     else:
                         exec(policy.policy_notify_code)
-        
+
+
+class ProcessActionBundle(BaseAction):
+      
+    bundled_actions = models.ManyToManyField(ProcessAction)
+    
+    action_type = "ProcessActionBundle"
+    
+    ELECTION = 'election'
+    BUNDLE = 'bundle'
+    
+    BUNDLE_TYPE = [
+            (ELECTION, 'election'),
+            (BUNDLE, 'bundle')
+        ]
+    
+    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
+
+    def execute(self):
+        if self.bundle_type == ProcessActionBundle.BUNDLE:
+            for action in self.bundled_actions.all():
+                if action.api_action:
+                    action.api_action.execute()
+                else:
+                    proposal = action.proposal
+                    proposal.status = Proposal.PASSED
+                    proposal.save()
+
+    class Meta:
+        verbose_name = 'processactionbundle'
+        verbose_name_plural = 'processactionbundles'
+
+
+@receiver(post_save, sender=ProcessActionBundle)
+@on_transaction_commit
+def after_processaction_bundle_save(sender, instance, **kwargs):
+    action = instance
+
+    for policy in ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=action.community_integration):
+        if check_filter_code(policy, action):
+            
+            initialize_code(policy, action)
+            
+            cond_result = check_policy_code(policy, action)
+            if cond_result == Proposal.PASSED:
+                exec(policy.policy_action_code)
+            elif cond_result == Proposal.FAILED:
+                exec(policy.policy_failure_code)
+            else:
+                exec(policy.policy_notify_code)
+
 
 
 class CommunityAction(BaseAction):
@@ -663,6 +713,11 @@ class CommunityActionBundle(BaseAction):
         ]
     
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
+
+    def execute(self):
+        if self.bundle_type == CommunityActionBundle.BUNDLE:
+            for action in self.bundled_actions.all():
+                execute_community_action(action)
 
     class Meta:
         verbose_name = 'communityactionbundle'
@@ -760,7 +815,48 @@ class ProcessPolicy(BasePolicy):
 
         else:   
             super(ProcessPolicy, self).save(*args, **kwargs)
+
+
+ 
+class ProcessPolicyBundle(BaseAction):
+       
+    bundled_policies = models.ManyToManyField(ProcessPolicy)
+     
+    explanation = models.TextField(blank=True, default='')
+     
+    policy_type = "ProcessPolicyBundle"
+ 
+    class Meta:
+        verbose_name = 'processpolicybundle'
+        verbose_name_plural = 'processpolicybundles'
+ 
+#     def save(self, *args, **kwargs):
+#         if not self.pk:
+#             # Runs only when object is new
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
+# 
+#         else:   
+#             super(CommunityActionBundle, self).save(*args, **kwargs)
+ 
+@receiver(post_save, sender=ProcessPolicyBundle)
+@on_transaction_commit
+def after_process_bundle_save(sender, instance, **kwargs):
+    policy = instance
     
+    ctype = ContentType.objects.get_for_model(policy)
+            
+    _ = ProcessAction.objects.create(
+            community_integration=policy.community_integration,
+            api_action=None,
+            content_type=ctype,
+            object_id=policy.id,
+            is_bundled=policy.is_bundled,
+            proposal=policy.proposal
+        )
+  
+  
+
+
     
 class CommunityPolicy(BasePolicy):
     policy_filter_code = models.TextField(blank=True, default='')
@@ -830,12 +926,19 @@ class CommunityPolicyBundle(BaseAction):
 @receiver(post_save, sender=CommunityPolicyBundle)
 @on_transaction_commit
 def after_policy_bundle_save(sender, instance, **kwargs):
+        
     policy = instance
-     
-    process = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, 
-                                           community_integration=policy.community_integration)
-    if process.exists():
-        exec(process[0].policy_code)
+        
+    ctype = ContentType.objects.get_for_model(policy)
+            
+    _ = ProcessAction.objects.create(
+            community_integration=policy.community_integration,
+            api_action=None,
+            content_type=ctype,
+            object_id=policy.id,
+            is_bundled=policy.is_bundled,
+            proposal=policy.proposal
+        )
   
 
 
