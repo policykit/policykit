@@ -66,10 +66,7 @@ class PolicykitAddProcessPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
     
     def save_model(self, request, obj, form, change):
-        if not change:
-            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
-            obj.proposal = p
-            obj.community_integration = request.user.community_integration
+        obj.community_integration = request.user.community_integration
         obj.save()
 
 admin_site.register(PolicykitAddProcessPolicy, PolicykitAddProcessPolicyAdmin)
@@ -79,10 +76,7 @@ class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
     
     def save_model(self, request, obj, form, change):
-        if not change:
-            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
-            obj.proposal = p
-            obj.community_integration = request.user.community_integration
+        obj.community_integration = request.user.community_integration
         obj.save()
 
 admin_site.register(PolicykitAddCommunityPolicy, PolicykitAddCommunityPolicyAdmin)
@@ -123,11 +117,8 @@ class CommunityPolicyBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_policies', 'explanation')
     
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.is_bundle = True
-            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
-            obj.proposal = p
-            obj.community_integration = request.user.community_integration
+        obj.is_bundle = True
+        obj.community_integration = request.user.community_integration
         obj.save()
 
 admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
@@ -138,11 +129,8 @@ class ProcessPolicyBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_policies', 'explanation')
     
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.is_bundle = True
-            p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
-            obj.proposal = p
-            obj.community_integration = request.user.community_integration
+        obj.is_bundle = True
+        obj.community_integration = request.user.community_integration
         obj.save()
 
 admin_site.register(ProcessPolicyBundle, ProcessPolicyBundleAdmin)
@@ -280,27 +268,6 @@ class PolicykitRemoveProcessPolicyAdmin(admin.ModelAdmin):
         
 admin_site.register(PolicykitRemoveProcessPolicy, PolicykitRemoveProcessPolicyAdmin)
 
-
-
-class CommunityRoleAdmin(admin.ModelAdmin):
-    fields= ('name', 'permissions')
-    
-    
-    
-#     def delete_model(self, request, object):
-#         
-#     
-#     
-    def save_model(self, request, obj, form, change):
-        logger.info(request)
-        logger.info(obj)
-        logger.info(form)
-        logger.info(change)
-        obj.save()
-        
-        
- 
-admin_site.register(CommunityRole, CommunityRoleAdmin)
 
 
 # 
