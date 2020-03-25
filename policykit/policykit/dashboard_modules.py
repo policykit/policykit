@@ -1,6 +1,40 @@
 from jet.dashboard.modules import DashboardModule
-from policyengine.models import CommunityPolicy, Proposal, ProcessPolicy
+from policyengine.models import CommunityPolicy, Proposal, ProcessPolicy, CommunityRole
 from django.utils.translation import ugettext_lazy as _
+
+
+class RolePermissionModule(DashboardModule):
+        
+    title = _('Roles and Permissions')
+    
+    template = 'policyadmin/dashboard_modules/roles_permissions.html'
+    
+    layout = 'stacked'
+    
+    children = []
+    draggable = False
+    collapsible = True
+    deletable = False
+    show_title = True
+    
+    
+    def init_with_context(self, context):
+        user = context['request'].user
+        roles = CommunityRole.objects.filter(community_integration=user.community_integration)
+            
+        for i in roles:
+            role_info = {'name': i.name,
+                         'permissions': [],
+                         'users': []}
+            for p in i.permissions.all():
+                role_info['permissions'].append({'name': p.name})
+                
+            for u in i.user_set.all():
+                role_info['users'].append({'username': u.username})
+            
+            self.children.append(role_info)
+        
+    
 
 
 class PolicyModule(DashboardModule):

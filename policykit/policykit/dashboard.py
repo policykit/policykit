@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from jet.dashboard import modules
 from jet.dashboard.dashboard import Dashboard, AppIndexDashboard
 from jet.utils import get_admin_site_name
-from policykit.dashboard_modules import PolicyModule
+from policykit.dashboard_modules import PolicyModule, RolePermissionModule
 
 import logging
 
@@ -72,16 +72,16 @@ class CustomIndexDashboard(Dashboard):
             order=3,
         ))
         
-
-        # append an app list module for "Administration"
-        self.children.append(modules.AppList(
-            _('Administration'),
-            models=('auth.*',),
+        
+        self.children.append(RolePermissionModule(
+            deletable=False,
+            contrast=True,
+            draggable=False,
             column=2,
             order=0,
-            deletable=False,
-            draggable=False,
         ))
+        
+
 
         # append a recent actions module
         self.children.append(modules.RecentActions(

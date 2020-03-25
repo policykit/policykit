@@ -1,0 +1,20 @@
+
+<ul>
+	{% for role in module.children %}
+			<li><label><strong>role.name</strong></label><BR>
+				Permissions:
+				<ul>
+					{% for p in role.permissions %}
+						<li>{{ p.name }}</li>
+					{% endfor %}
+				</ul>
+				<BR>
+				Users:
+				<ul>
+					{% for u in role.users %}
+						<li>{{ u.username }}</li>
+					{% endfor %}
+				</ul>
+				</li>
+	{% endfor %}
+</ul>
