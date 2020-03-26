@@ -59,7 +59,7 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
         bundled_actions = action.bundled_actions.all()
         for num, a in enumerate(bundled_actions):
-            policy_message_default += ':' + NUMBERS[num] + ': ' + str(a.api_action) + '\n'
+            policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
     else:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
     
@@ -122,10 +122,10 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
                 values['channel'] = channel
             else:
                 if action.action_type == "CommunityAction":
-                    values['channel'] = action.api_action.channel
+                    values['channel'] = action.channel
                 else:
                     a = action.bundled_actions.all()[0]
-                    values['channel'] = a.api_action.channel
+                    values['channel'] = a.channel
             call = policy.community_integration.API + api_call
             
             res = LogAPICall.make_api_call(policy.community_integration, values, call)
@@ -138,10 +138,10 @@ def post_policy(policy, action, post_type='channel', users=None, template=None, 
             values['channel'] = channel
         else:
             if action.action_type == "CommunityAction":
-                values['channel'] = action.api_action.channel
+                values['channel'] = action.channel
             else:
                 a = action.bundled_actions.all()[0]
-                values['channel'] = a.api_action.channel
+                values['channel'] = a.channel
                     
         call = policy.community_integration.API + api_call
         res = LogAPICall.make_api_call(policy.community_integration, values, call)
@@ -156,7 +156,7 @@ def execute_community_action(action, delete_policykit_post=True):
     logger.info('here')
 
     community_integration = action.community_integration
-    obj = action.api_action
+    obj = action
     
     if not obj.community_origin or (obj.community_origin and obj.community_revert):
         logger.info('EXECUTING ACTION BELOW:')

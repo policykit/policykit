@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityIntegration, CommunityUser, CommunityAPI
+from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
@@ -44,7 +44,7 @@ class SlackUser(CommunityUser):
         group.user_set.add(self)
 
     
-class SlackPostMessage(CommunityAPI):
+class SlackPostMessage(CommunityAction):
     ACTION = 'chat.postMessage'
     AUTH = 'admin_bot'
     text = models.TextField()
@@ -63,7 +63,7 @@ class SlackPostMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'chat.delete')
     
-class SlackRenameConversation(CommunityAPI):
+class SlackRenameConversation(CommunityAction):
     ACTION = 'conversations.rename'
     AUTH = 'admin_user'
     name = models.CharField('name', max_length=150)
@@ -93,7 +93,7 @@ class SlackRenameConversation(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'conversations.rename')
         
-class SlackJoinConversation(CommunityAPI):
+class SlackJoinConversation(CommunityAction):
     ACTION = 'conversations.invite'
     AUTH = 'admin_user'
     channel = models.CharField('channel', max_length=150)
@@ -112,7 +112,7 @@ class SlackJoinConversation(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'conversations.kick')
 
-class SlackPinMessage(CommunityAPI):
+class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
     AUTH = 'bot'
     channel = models.CharField('channel', max_length=150)
@@ -130,7 +130,7 @@ class SlackPinMessage(CommunityAPI):
                 }
         super().revert(values, SlackIntegration.API + 'pins.remove')
 
-class SlackScheduleMessage(CommunityAPI):
+class SlackScheduleMessage(CommunityAction):
     ACTION = 'chat.scheduleMessage'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
@@ -141,7 +141,7 @@ class SlackScheduleMessage(CommunityAPI):
             ('can_execute', 'Can execute slack schedule message'),
         )
 
-class SlackKickConversation(CommunityAPI):
+class SlackKickConversation(CommunityAction):
     ACTION = 'conversations.kick'
     AUTH = 'user'
     user = models.CharField('user', max_length=15)

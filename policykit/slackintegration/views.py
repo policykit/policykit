@@ -177,22 +177,18 @@ def action(request):
 
 
         if new_api_action and not policy_kit_action:
-            for policy in CommunityPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=new_api_action.community_integration):
-                action = CommunityAction()
-                action.api_action = new_api_action
-                if check_filter_code(policy, action):
+            for policy in CommunityPolicy.objects.filter(community_integration=new_api_action.community_integration):
+                if check_filter_code(policy, new_api_action):
                     if not new_api_action.pk:
                         new_api_action.community_origin = True
                         new_api_action.is_bundled = False
                         new_api_action.save()
-                    initialize_code(policy, new_api_action.communityaction)
-                    cond_result = check_policy_code(policy, new_api_action.communityaction)
+                    initialize_code(policy, new_api_action)
+                    cond_result = check_policy_code(policy, new_api_action)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                         new_api_action.revert()
                     
                     
-                    
-        
         
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']

@@ -204,325 +204,10 @@ class LogAPICall(models.Model):
         return res
         
 
-class PolicykitAPI(PolymorphicModel):
-    
-    community_integration = models.ForeignKey(CommunityIntegration,
-                                   models.CASCADE)
-    
-    initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE,
-                                null=True)
-    
-    is_bundled = models.BooleanField(default=False)
-    
-    def save(self, *args, **kwargs):    
-        if not self.pk:
-            # Runs only when object is new
-            super(PolicykitAPI, self).save(*args, **kwargs)
-
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                        author=self.initiator)
-        else:
-            super(PolicykitAPI, self).save(*args, **kwargs) 
-
-            p = self.proposal
-
-        _ = ProcessAction.objects.create(
-                community_integration=self.community_integration,
-                api_action=self,
-                proposal=p,
-                is_bundled=self.is_bundled
-            )
         
 
-class PolicykitAddRole(PolicykitAPI):
-    
-    name = models.CharField('name', max_length=300)
-
-    permissions = models.ManyToManyField(Permission)
-
-    def execute(self):
-        g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community_integration.community_name)
-        
-        for p in self.permissions.all():
-            g.permissions.add(p)   
-    
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit add role'),
-        )
 
 
-class PolicykitDeleteRole(PolicykitAPI):
-    role = models.ForeignKey(CommunityRole,
-                             models.SET_NULL,
-                             null=True)
-    
-    def execute(self):        
-        self.role.delete()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit delete role'),
-        )
-
-
-class PolicykitAddPermission(PolicykitAPI):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-    
-    permissions = models.ManyToManyField(Permission)
-    
-    def execute(self):        
-        for p in self.permissions.all():
-            self.role.permissions.add(p)  
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit add permission'),
-        )
-
-
-class PolicykitRemovePermission(PolicykitAPI):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-    
-    permissions = models.ManyToManyField(Permission)
-    
-    def execute(self):        
-        for p in self.permissions.all():
-            self.role.permissions.remove(p)  
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit remove permission'),
-        )
-
-
-class PolicykitAddUserRole(PolicykitAPI):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-    
-    users = models.ManyToManyField(CommunityUser)
-    
-    def execute(self):        
-        for u in self.users.all():
-            self.role.user_set.add(u)  
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit add user role'),
-        )
-
-
-class PolicykitRemoveUserRole(PolicykitAPI):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-    
-    users = models.ManyToManyField(CommunityUser)
-    
-    def execute(self):        
-        for u in self.users.all():
-            self.role.user_set.remove(u)  
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit remove user role'),
-        )
-        
-class PolicykitAddCommunityPolicy(PolicykitAPI):    
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-    
-    policy_text = models.TextField(null=True, blank=True)
-    
-    explanation = models.TextField(null=True, blank=True)
-    
-    def execute(self):
-        policy = CommunityPolicy()
-        policy.policy_filter_code = self.policy_filter_code
-        policy.policy_init_code = self.policy_init_code
-        policy.policy_notify_code = self.policy_notify_code
-        policy.policy_conditional_code = self.policy_conditional_code
-        policy.policy_action_code = self.policy_action_code
-        policy.policy_failure_code = self.policy_failure_code
-        policy.policy_text = self.policy_text
-        policy.explanation = self.explanation
-        policy.is_bundled = self.is_bundled
-        policy.community_integration = self.community_integration
-        policy.save()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit add community policy'),
-        )
-
-
-class PolicykitAddProcessPolicy(PolicykitAPI):    
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-    
-    policy_text = models.TextField(null=True, blank=True)
-    
-    explanation = models.TextField(null=True, blank=True)
-    
-    def execute(self):
-        policy = ProcessPolicy()
-        policy.policy_filter_code = self.policy_filter_code
-        policy.policy_init_code = self.policy_init_code
-        policy.policy_notify_code = self.policy_notify_code
-        policy.policy_conditional_code = self.policy_conditional_code
-        policy.policy_action_code = self.policy_action_code
-        policy.policy_failure_code = self.policy_failure_code
-        policy.policy_text = self.policy_text
-        policy.explanation = self.explanation
-        policy.is_bundled = self.is_bundled
-        policy.community_integration = self.community_integration
-        policy.save()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit add process policy'),
-        )
-       
-        
-class PolicykitChangeCommunityPolicy(PolicykitAPI):
-    community_policy = models.ForeignKey('CommunityPolicy',
-                                         models.CASCADE)
-    
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-    
-    policy_text = models.TextField(null=True, blank=True)
-    
-    explanation = models.TextField(null=True, blank=True)
-    
-    def execute(self):
-        self.community_policy.policy_filter_code = self.policy_filter_code
-        self.community_policy.policy_init_code = self.policy_init_code
-        self.community_policy.policy_notify_code = self.policy_notify_code
-        self.community_policy.policy_conditional_code = self.policy_conditional_code
-        self.community_policy.policy_action_code = self.policy_action_code
-        self.community_policy.policy_failure_code = self.policy_failure_code
-        self.community_policy.policy_text = self.policy_text
-        self.community_policy.explanation = self.explanation
-        
-        self.community_policy.save()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit change community policy'),
-        )
-        
-        
-class PolicykitChangeProcessPolicy(PolicykitAPI):
-    process_policy = models.ForeignKey('ProcessPolicy',
-                                         models.CASCADE)
-    
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-    
-    policy_text = models.TextField(null=True, blank=True)
-    
-    explanation = models.TextField(null=True, blank=True)
-    
-    def execute(self):
-        self.process_policy.policy_filter_code = self.policy_filter_code
-        self.process_policy.policy_init_code = self.policy_init_code
-        self.process_policy.policy_notify_code = self.policy_notify_code
-        self.process_policy.policy_conditional_code = self.policy_conditional_code
-        self.process_policy.policy_action_code = self.policy_action_code
-        self.process_policy.policy_failure_code = self.policy_failure_code
-        self.process_policy.policy_text = self.policy_text
-        self.process_policy.explanation = self.explanation
-        
-        self.process_policy.save()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit change process policy'),
-        )
-
-
-class PolicykitRemoveCommunityPolicy(PolicykitAPI):
-    community_policy = models.ForeignKey('CommunityPolicy',
-                                         models.SET_NULL,
-                                         null=True)
-    
-    def execute(self):        
-        self.community_policy.delete()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit remove community policy'),
-        )
-        
-
-class PolicykitRemoveProcessPolicy(PolicykitAPI):
-    process_policy = models.ForeignKey('ProcessPolicy',
-                                         models.SET_NULL,
-                                         null=True)
-    
-    def execute(self):        
-        self.process_policy.delete()
-        
-    class Meta:
-        permissions = (
-            ('can_execute', 'Can execute policykit remove process policy'),
-        )
-
-  
-class CommunityAPI(PolymorphicModel):
-    ACTION = None
-    AUTH = 'app'
-    
-    community_integration = models.ForeignKey(CommunityIntegration,
-                                   models.CASCADE)
-    
-    initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
-    
-    community_revert = models.BooleanField(default=False)
-    
-    community_origin = models.BooleanField(default=False)
-    
-    is_bundled = models.BooleanField(default=False)
-    
-    
-    def revert(self, values, call):
-        _ = LogAPICall.make_api_call(self.community_integration, values, call)
-        self.community_revert = True
-        self.save()
-        
-            
-    def save(self, *args, **kwargs):        
-        if not self.pk:
-            # Runs only when object is new
-            super(CommunityAPI, self).save(*args, **kwargs)
-            
-            _ = CommunityAction.objects.create(community_integration=self.community_integration,
-                                               api_action=self,
-                                               is_bundled=self.is_bundled
-                                              )
-        else:
-            super(CommunityAPI, self).save(*args, **kwargs) 
-        
         
 class Proposal(models.Model):
     
@@ -580,12 +265,18 @@ class BaseAction(models.Model):
         abstract = True   
 
 
-class ProcessAction(BaseAction):
-     
-    api_action = models.OneToOneField(PolicykitAPI,
-                                      models.CASCADE,
-                                      null=True)
+class ProcessAction(BaseAction, PolymorphicModel):
     
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    initiator = models.ForeignKey(CommunityUser,
+                                models.CASCADE,
+                                null=True)
+    
+    is_bundled = models.BooleanField(default=False)
+    
+
     action_type = "ProcessAction"
     
     class Meta:
@@ -593,32 +284,36 @@ class ProcessAction(BaseAction):
         verbose_name_plural = 'processactions'
         
         
-    def execute(self):
-        self.api_action.execute()
-        
+    def pass_action(self):
         proposal = self.proposal
         proposal.status = Proposal.PASSED
         proposal.save()
 
         
     def save(self, *args, **kwargs):
-
-        super(ProcessAction, self).save(*args, **kwargs)
-        
-        if not self.is_bundled:
-            action = self
-            for policy in ProcessPolicy.objects.filter(community_integration=self.community_integration):
-                if check_filter_code(policy, action):
-                    
-                    initialize_code(policy, action)
-                    
-                    cond_result = check_policy_code(policy, action)
-                    if cond_result == Proposal.PASSED:
-                        exec(policy.policy_action_code)
-                    elif cond_result == Proposal.FAILED:
-                        exec(policy.policy_failure_code)
-                    else:
-                        exec(policy.policy_notify_code)
+        if not self.pk:
+            # Runs only when object is new
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                            author=self.initiator)
+            self.proposal = p
+            super(ProcessAction, self).save(*args, **kwargs)
+            
+            if not self.is_bundled:
+                action = self
+                for policy in ProcessPolicy.objects.filter(community_integration=self.community_integration):
+                    if check_filter_code(policy, action):
+                        
+                        initialize_code(policy, action)
+                        
+                        cond_result = check_policy_code(policy, action)
+                        if cond_result == Proposal.PASSED:
+                            exec(policy.policy_action_code)
+                        elif cond_result == Proposal.FAILED:
+                            exec(policy.policy_failure_code)
+                        else:
+                            exec(policy.policy_notify_code)
+        else:
+            super(ProcessAction, self).save(*args, **kwargs)
 
 
 class ProcessActionBundle(BaseAction):
@@ -640,10 +335,13 @@ class ProcessActionBundle(BaseAction):
     def execute(self):
         if self.bundle_type == ProcessActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
-                action.api_action.execute()
-                proposal = action.proposal
-                proposal.status = Proposal.PASSED
-                proposal.save()
+                action.execute()
+                action.pass_action()
+                
+    def pass_action(self):
+        proposal = self.proposal
+        proposal.status = Proposal.PASSED
+        proposal.save()
 
     class Meta:
         verbose_name = 'processactionbundle'
@@ -670,12 +368,303 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 
 
-class CommunityAction(BaseAction):
+
+class PolicykitAddRole(ProcessAction):
     
-    api_action = models.OneToOneField(CommunityAPI,
-                                      models.CASCADE)
+    name = models.CharField('name', max_length=300)
+
+    permissions = models.ManyToManyField(Permission)
+
+    def execute(self):
+        g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community_integration.community_name)
+        
+        for p in self.permissions.all():
+            g.permissions.add(p)   
+            
+        self.pass_action()
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add role'),
+        )
+
+
+class PolicykitDeleteRole(ProcessAction):
+    role = models.ForeignKey(CommunityRole,
+                             models.SET_NULL,
+                             null=True)
+    
+    def execute(self):        
+        self.role.delete()
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit delete role'),
+        )
+
+
+class PolicykitAddPermission(ProcessAction):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    permissions = models.ManyToManyField(Permission)
+    
+    def execute(self):        
+        for p in self.permissions.all():
+            self.role.permissions.add(p)  
+        
+        self.pass_action()
+        
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add permission'),
+        )
+
+
+class PolicykitRemovePermission(ProcessAction):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    permissions = models.ManyToManyField(Permission)
+    
+    def execute(self):        
+        for p in self.permissions.all():
+            self.role.permissions.remove(p) 
+        
+        self.pass_action() 
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove permission'),
+        )
+
+
+class PolicykitAddUserRole(ProcessAction):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    def execute(self):        
+        for u in self.users.all():
+            self.role.user_set.add(u)
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add user role'),
+        )
+
+
+class PolicykitRemoveUserRole(ProcessAction):
+    role = models.ForeignKey(CommunityRole,
+                             models.CASCADE)
+    
+    users = models.ManyToManyField(CommunityUser)
+    
+    def execute(self):        
+        for u in self.users.all():
+            self.role.user_set.remove(u)  
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove user role'),
+        )
+        
+class PolicykitAddCommunityPolicy(ProcessAction):    
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
+    explanation = models.TextField(null=True, blank=True)
+    
+    def execute(self):
+        policy = CommunityPolicy()
+        policy.policy_filter_code = self.policy_filter_code
+        policy.policy_init_code = self.policy_init_code
+        policy.policy_notify_code = self.policy_notify_code
+        policy.policy_conditional_code = self.policy_conditional_code
+        policy.policy_action_code = self.policy_action_code
+        policy.policy_failure_code = self.policy_failure_code
+        policy.policy_text = self.policy_text
+        policy.explanation = self.explanation
+        policy.is_bundled = self.is_bundled
+        policy.community_integration = self.community_integration
+        policy.save()
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add community policy'),
+        )
+
+
+class PolicykitAddProcessPolicy(ProcessAction):    
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
+    explanation = models.TextField(null=True, blank=True)
+    
+    def execute(self):
+        policy = ProcessPolicy()
+        policy.policy_filter_code = self.policy_filter_code
+        policy.policy_init_code = self.policy_init_code
+        policy.policy_notify_code = self.policy_notify_code
+        policy.policy_conditional_code = self.policy_conditional_code
+        policy.policy_action_code = self.policy_action_code
+        policy.policy_failure_code = self.policy_failure_code
+        policy.policy_text = self.policy_text
+        policy.explanation = self.explanation
+        policy.is_bundled = self.is_bundled
+        policy.community_integration = self.community_integration
+        policy.save()
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit add process policy'),
+        )
+       
+        
+class PolicykitChangeCommunityPolicy(ProcessAction):
+    community_policy = models.ForeignKey('CommunityPolicy',
+                                         models.CASCADE)
+    
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
+    explanation = models.TextField(null=True, blank=True)
+    
+    def execute(self):
+        self.community_policy.policy_filter_code = self.policy_filter_code
+        self.community_policy.policy_init_code = self.policy_init_code
+        self.community_policy.policy_notify_code = self.policy_notify_code
+        self.community_policy.policy_conditional_code = self.policy_conditional_code
+        self.community_policy.policy_action_code = self.policy_action_code
+        self.community_policy.policy_failure_code = self.policy_failure_code
+        self.community_policy.policy_text = self.policy_text
+        self.community_policy.explanation = self.explanation
+        
+        self.community_policy.save()
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit change community policy'),
+        )
+        
+        
+class PolicykitChangeProcessPolicy(ProcessAction):
+    process_policy = models.ForeignKey('ProcessPolicy',
+                                         models.CASCADE)
+    
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
+    explanation = models.TextField(null=True, blank=True)
+    
+    def execute(self):
+        self.process_policy.policy_filter_code = self.policy_filter_code
+        self.process_policy.policy_init_code = self.policy_init_code
+        self.process_policy.policy_notify_code = self.policy_notify_code
+        self.process_policy.policy_conditional_code = self.policy_conditional_code
+        self.process_policy.policy_action_code = self.policy_action_code
+        self.process_policy.policy_failure_code = self.policy_failure_code
+        self.process_policy.policy_text = self.policy_text
+        self.process_policy.explanation = self.explanation
+        self.process_policy.save()
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit change process policy'),
+        )
+
+
+class PolicykitRemoveCommunityPolicy(ProcessAction):
+    community_policy = models.ForeignKey('CommunityPolicy',
+                                         models.SET_NULL,
+                                         null=True)
+    
+    def execute(self):        
+        self.community_policy.delete()
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove community policy'),
+        )
+        
+
+class PolicykitRemoveProcessPolicy(ProcessAction):
+    process_policy = models.ForeignKey('ProcessPolicy',
+                                         models.SET_NULL,
+                                         null=True)
+    
+    def execute(self):        
+        self.process_policy.delete()
+        
+        self.pass_action()
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit remove process policy'),
+        )
+
+
+
+
+class CommunityAction(BaseAction,PolymorphicModel):
+    ACTION = None
+    AUTH = 'app'
+    
+    community_integration = models.ForeignKey(CommunityIntegration,
+                                   models.CASCADE)
+    
+    initiator = models.ForeignKey(CommunityUser,
+                                models.CASCADE)
+    
+    community_revert = models.BooleanField(default=False)
+    
+    community_origin = models.BooleanField(default=False)
+    
+    is_bundled = models.BooleanField(default=False)
     
     action_type = "CommunityAction"
+    
     
     class Meta:
         verbose_name = 'communityaction'
@@ -684,15 +673,27 @@ class CommunityAction(BaseAction):
     def __str__(self):
         return ' '.join(['Action: ', str(self.api_action), 'to', self.community_integration.community_name])
 
+    def revert(self, values, call):
+        _ = LogAPICall.make_api_call(self.community_integration, values, call)
+        self.community_revert = True
+        self.save()
+
     def execute(self):
         execute_community_action(self)
+        self.pass_action()
+        
+    def pass_action(self):
+        proposal = self.proposal
+        proposal.status = Proposal.PASSED
+        proposal.save()
+        
 
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
             
             p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                        author=self.api_action.initiator)
+                                        author=self.initiator)
             
             self.proposal = p
             
@@ -739,6 +740,13 @@ class CommunityActionBundle(BaseAction):
         if self.bundle_type == CommunityActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 execute_community_action(action)
+                action.pass_action()
+
+    def pass_action(self):
+        proposal = self.proposal
+        proposal.status = Proposal.PASSED
+        proposal.save()
+
 
     class Meta:
         verbose_name = 'communityactionbundle'
