@@ -270,7 +270,7 @@ admin_site.register(PolicykitRemoveProcessPolicy, PolicykitRemoveProcessPolicyAd
 
 
 class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
-    fields= ('text')
+    fields= ('text',)
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
