@@ -46,7 +46,7 @@ class Community(PolymorphicModel):
             
             p = ProcessPolicy()
             p.community = self
-            p.policy_filter_code = "return True"
+            p.policy_filter_code = "filter_pass = True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
             p.policy_conditional_code = "action_pass = PASSED"
