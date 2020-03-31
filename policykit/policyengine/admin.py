@@ -269,6 +269,18 @@ class PolicykitRemoveProcessPolicyAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitRemoveProcessPolicy, PolicykitRemoveProcessPolicyAdmin)
 
 
+class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
+    fields= ('text')
+    
+    def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
+        obj.community_integration = request.user.community_integration
+        obj.save()
+        
+admin_site.register(PolicykitChangeCommunityDoc, PolicykitChangeCommunityDocAdmin)
+
+
+
 
 # 
 # class ActionAdmin(admin.ModelAdmin):
