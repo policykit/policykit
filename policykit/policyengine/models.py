@@ -29,6 +29,9 @@ class CommunityIntegration(PolymorphicModel):
     base_role = models.OneToOneField('CommunityRole',
                                      models.CASCADE)
     
+    def notify_action(self, action, policy, users):
+        pass
+    
     def save(self, *args, **kwargs):   
         if not self.pk:
             super(CommunityIntegration, self).save(*args, **kwargs)
@@ -155,17 +158,17 @@ class DataStore(models.Model):
         self.data_store = json.dumps(obj)
         self.save()
     
-    def get_item(self, key):
+    def get(self, key):
         obj = self._get_data_store()
         return obj.get(key, None)
     
-    def add_or_update_item(self, key, value):
+    def set(self, key, value):
         obj = self._get_data_store()
         obj[key] = value
         self._set_data_store(obj)
         return True
     
-    def delete_item(self, key):
+    def remove(self, key):
         obj = self._get_data_store()
         res = obj.pop(key, None)
         self._set_data_store(obj)
@@ -233,11 +236,26 @@ class Proposal(models.Model):
     
     status = models.CharField(choices=STATUS, max_length=10)
     
-    data = models.OneToOneField(DataStore, 
-        models.CASCADE,
-        verbose_name='data',
-        null=True
-    )
+    def get_yes_votes(self, users=None):
+        return self.get_boolean_votes(True, users)
+    
+    def get_no_votes(self, users=None):
+        return self.get_boolean_votes(False, users)
+        
+    def get_boolean_votes(self, value=False, users=None):
+        if users:
+            votes = BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users)
+        else:
+            votes = BooleanVote.objects.filter(boolean_value=False, proposal=self)
+        return votes
+    
+    def get_number_votes(self, value=0, users=None):
+        if users:
+            votes = NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)
+        else:
+            votes = NumberVote.objects.filter(number_value=value, proposal=self)
+        return votes
+        
     
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -260,6 +278,12 @@ class BaseAction(models.Model):
     
     
     is_bundled = models.BooleanField(default=False)
+    
+    data = models.OneToOneField(DataStore, 
+        models.CASCADE,
+        verbose_name='data',
+        null=True
+    )
     
     class Meta:
         abstract = True   
@@ -374,6 +398,12 @@ class PolicykitAddRole(ProcessAction):
     name = models.CharField('name', max_length=300)
 
     permissions = models.ManyToManyField(Permission)
+    
+    
+    def __str__(self):
+        perms = ""
+        return "Add Role -  name: " + self.name + ", permissions: " 
+
 
     def execute(self):
         g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community_integration.community_name)
@@ -670,9 +700,6 @@ class CommunityAction(BaseAction,PolymorphicModel):
         verbose_name = 'communityaction'
         verbose_name_plural = 'communityactions'
 
-    def __str__(self):
-        return ' '.join(['Action: ', str(self.api_action), 'to', self.community_integration.community_name])
-
     def revert(self, values, call):
         _ = LogAPICall.make_api_call(self.community_integration, values, call)
         self.community_revert = True
@@ -785,6 +812,12 @@ class BasePolicy(models.Model):
     is_bundled = models.BooleanField(default=False)
     
     has_notified = models.BooleanField(default=False)
+    
+    data = models.OneToOneField(DataStore, 
+        models.CASCADE,
+        verbose_name='data',
+        null=True
+    )
     
     class Meta:
         abstract = True

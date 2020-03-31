@@ -29,6 +29,19 @@ NUMBERS_TEXT = {'zero': 0,
                 }
 
 
+NUMBERS = {0: 'zero',
+           1: 'one',
+           2: 'two',
+           3: 'three',
+           4: 'four',
+           5: 'five',
+           6: 'six',
+           7: 'seven',
+           8: 'eight',
+           9: 'nine'}
+
+
+
 # Create your views here.
 
 def oauth(request):
@@ -104,6 +117,7 @@ def is_policykit_action(integration, test_a, test_b, api_name):
                 return True
     
     return False
+
 
 
 @csrf_exempt
@@ -240,3 +254,103 @@ def action(request):
     
     return HttpResponse("")
     
+
+
+
+def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
+    from policyengine.models import LogAPICall, CommunityActionBundle
+    
+    if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
+        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
+        bundled_actions = action.bundled_actions.all()
+        for num, a in enumerate(bundled_actions):
+            policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
+    else:
+        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+    
+    values = {'token': policy.community_integration.access_token}
+    
+    if not template:
+        policy_message = policy_message_default
+    else:
+        policy_message = template
+
+    values['text'] = policy_message
+    
+    # mpim - all users
+    # im each user
+    # channel all users
+    # channel ephemeral users
+    
+    if post_type == "mpim":
+        api_call = 'chat.postMessage'
+        usernames = [user.username for user in users]
+        info = {'token': policy.community_integration.access_token}
+        info['users'] = ','.join(usernames)
+        call = policy.community_integration.API + 'conversations.open'
+        res = LogAPICall.make_api_call(policy.community_integration, info, call)
+        channel = res['channel']['id']
+        values['channel'] = channel
+        
+        call = policy.community_integration.API + api_call
+        res = LogAPICall.make_api_call(policy.community_integration, values, call)
+        
+        action.community_post = res['ts']
+        action.save()
+        
+    elif post_type == 'im':
+        api_call = 'chat.postMessage'
+        usernames = [user.username for user in users]
+        
+        for username in usernames:
+            info = {'token': policy.community_integration.access_token}
+            info['users'] = username
+            call = policy.community_integration.API + 'conversations.open'
+            res = LogAPICall.make_api_call(policy.community_integration, info, call)
+            channel = res['channel']['id']
+            values['channel'] = channel
+            
+            call = policy.community_integration.API + api_call
+            res = LogAPICall.make_api_call(policy.community_integration, values, call)
+            
+            action.community_post = res['ts']
+            action.save()
+            
+    elif post_type == 'ephemeral':
+        api_call = 'chat.postEphemeral'
+        usernames = [user.username for user in users]
+        
+        for username in usernames:
+            values['user'] = username
+            
+            if channel:
+                values['channel'] = channel
+            else:
+                if action.action_type == "CommunityAction":
+                    values['channel'] = action.channel
+                else:
+                    a = action.bundled_actions.all()[0]
+                    values['channel'] = a.channel
+            call = policy.community_integration.API + api_call
+            
+            res = LogAPICall.make_api_call(policy.community_integration, values, call)
+            
+            action.community_post = res['ts']
+            action.save()
+    elif post_type == 'channel':
+        api_call = 'chat.postMessage'
+        if channel:
+            values['channel'] = channel
+        else:
+            if action.action_type == "CommunityAction":
+                values['channel'] = action.channel
+            else:
+                a = action.bundled_actions.all()[0]
+                values['channel'] = a.channel
+                    
+        call = policy.community_integration.API + api_call
+        res = LogAPICall.make_api_call(policy.community_integration, values, call)
+        
+        action.community_post = res['ts']
+        action.save()
+

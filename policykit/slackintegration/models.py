@@ -1,6 +1,7 @@
 from django.db import models
 from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
+from slackintegration.views import post_policy
 import urllib
 import json
 import logging
@@ -23,6 +24,9 @@ class SlackIntegration(CommunityIntegration):
     access_token = models.CharField('access_token', 
                                     max_length=300, 
                                     unique=True)
+    
+    def notify_action(self, action, policy, users, post_type='channel', users=None, template=None, channel=None):
+        post_policy(policy, action, users, post_type, users, template, channel)
     
     def save(self, *args, **kwargs):      
         super(SlackIntegration, self).save(*args, **kwargs)
@@ -66,6 +70,9 @@ class SlackPostMessage(CommunityAction):
 class SlackRenameConversation(CommunityAction):
     ACTION = 'conversations.rename'
     AUTH = 'admin_user'
+    
+    action_type = "SlackRenameConversation"
+    
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
     
