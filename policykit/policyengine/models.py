@@ -45,10 +45,10 @@ class CommunityIntegration(PolymorphicModel):
             
             p = ProcessPolicy()
             p.community_integration = self
-            p.policy_filter_code = "action_pass=True"
+            p.policy_filter_code = "filter_pass=True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
-            p.policy_conditional_code = "policy_pass = Proposal.PASSED"
+            p.policy_conditional_code = "action_pass = Proposal.PASSED"
             p.policy_action_code = "action.execute()"
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"
