@@ -26,7 +26,7 @@ class SlackIntegration(CommunityIntegration):
                                     unique=True)
     
     def notify_action(self, action, policy, users, post_type='channel', users=None, template=None, channel=None):
-        post_policy(policy, action, users, post_type, users, template, channel)
+        post_policy(policy, action, users, post_type, template, channel)
     
     def save(self, *args, **kwargs):      
         super(SlackIntegration, self).save(*args, **kwargs)

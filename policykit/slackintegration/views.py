@@ -257,7 +257,7 @@ def action(request):
 
 
 
-def post_policy(policy, action, post_type='channel', users=None, template=None, channel=None):
+def post_policy(policy, action, users=None, post_type='channel', template=None, channel=None):
     from policyengine.models import LogAPICall, CommunityActionBundle
     
     if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
