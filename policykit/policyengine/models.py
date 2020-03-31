@@ -402,7 +402,7 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 
 
-class PolicykitEditCommunityDoc(ProcessAction):
+class PolicykitChangeCommunityDoc(ProcessAction):
     change_text = models.TextField()
     
     def execute(self):        
