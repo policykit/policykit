@@ -8,7 +8,7 @@ import logging
 from django.shortcuts import redirect
 import json
 from slackintegration.models import SlackIntegration, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import CommunityAction, BooleanVote, NumberVote, CommunityRole, CommunityPolicy, Proposal, LogAPICall, BaseAction, CommunityActionBundle
+from policyengine.models import *
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
@@ -71,11 +71,13 @@ def oauth(request):
             integration = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Base User@" + res['team']['name'])
             if not s.exists():
+                cg = CommunityDoc.objects.create(text='')
                 integration = SlackIntegration.objects.create(
                     community_name=res['team']['name'],
                     team_id=res['team']['id'],
                     access_token=res['access_token'],
-                    base_role=user_group
+                    base_role=user_group,
+                    community_guidelines=cg
                     )
                 user_group.community_integration = integration
                 user_group.save()

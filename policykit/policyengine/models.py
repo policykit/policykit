@@ -22,9 +22,6 @@ def on_transaction_commit(func):
 
     return inner
 
-
-
-
 class CommunityIntegration(PolymorphicModel):
     community_name = models.CharField('team_name', 
                               max_length=1000)
