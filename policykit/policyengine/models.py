@@ -110,6 +110,8 @@ class CommunityIntegration(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit add process policy')
             self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can add policykit change community doc')
+            self.base_role.permissions.add(p1)
             
 
         else:
@@ -218,12 +220,7 @@ class LogAPICall(models.Model):
         logger.info("COMMUNITY API RESPONSE")
         logger.info(res)
         return res
-        
-
-        
-
-
-
+    
         
 class Proposal(models.Model):
     
@@ -413,7 +410,7 @@ class PolicykitEditCommunityDoc(ProcessAction):
         
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit edit community doc'),
+            ('can_execute', 'Can execute policykit change community doc'),
         )
 
 
