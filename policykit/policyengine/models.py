@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import post_policy, execute_community_action, check_policy_code, check_filter_code, initialize_code
+from policyengine.views import execute_community_action, check_policy_code, check_filter_code, initialize_code
 import urllib
 import json
 
