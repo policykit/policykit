@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 
 def check_filter_code(action, policy):
     _locals = locals()
-    exec(policy.policy_filter_code, globals(), _locals)
+    
+    wrapper_start = "def filter():\n"
+    wrapper_end = "    filter_pass = filter()"
+    
+    policy.policy_filter_code
+    exec(, globals(), _locals)
     
     if _locals.get('filter_pass'):
         return _locals['filter_pass']
@@ -24,7 +29,7 @@ def check_filter_code(action, policy):
 
 
 
-def initialize_code(action, policy, users):
+def initialize_code(action, policy):
     exec(policy.policy_init_code, globals(), locals())
     
     policy.has_notified = True
@@ -32,7 +37,7 @@ def initialize_code(action, policy, users):
     
 
 
-def check_policy_code(action, policy, users):
+def check_policy_code(action, policy):
     _locals = locals()
     exec(policy.policy_conditional_code, globals(), _locals)
     
@@ -47,19 +52,19 @@ def execute_community_action(action, delete_policykit_post=True):
     
     logger.info('here')
 
-    community_integration = action.community_integration
+    community = action.community
     obj = action
     
     if not obj.community_origin or (obj.community_origin and obj.community_revert):
         logger.info('EXECUTING ACTION BELOW:')
-        call = community_integration.API + obj.ACTION
+        call = community.API + obj.ACTION
         logger.info(call)
     
         
         obj_fields = []
         for f in obj._meta.get_fields():
             if f.name not in ['polymorphic_ctype',
-                              'community_integration',
+                              'community',
                               'initiator',
                               'communityapi_ptr',
                               'communityaction',
@@ -81,12 +86,12 @@ def execute_community_action(action, delete_policykit_post=True):
             if action.proposal.author.is_community_admin:
                 data['token'] = action.proposal.author.access_token
             else:
-                data['token'] = community_integration.access_token
+                data['token'] = community.access_token
         elif obj.AUTH == "admin_user":
             admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
             data['token'] = admin_user.access_token
         else:
-            data['token'] = community_integration.access_token
+            data['token'] = community.access_token
             
         
         for item in obj_fields:
@@ -97,7 +102,7 @@ def execute_community_action(action, delete_policykit_post=True):
             except obj.DoesNotExist:
                 continue
 
-        res = LogAPICall.make_api_call(community_integration, data, call)
+        res = LogAPICall.make_api_call(community, data, call)
         
         
         # delete PolicyKit Post
@@ -116,8 +121,8 @@ def execute_community_action(action, delete_policykit_post=True):
                           'ts': posted_action.community_post,
                           'channel': obj.channel
                         }
-                call = community_integration.API + 'chat.delete'
-                _ = LogAPICall.make_api_call(community_integration, values, call)
+                call = community.API + 'chat.delete'
+                _ = LogAPICall.make_api_call(community, values, call)
 
         
         

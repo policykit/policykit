@@ -19,7 +19,7 @@ class SlackPostMessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
     
 admin_site.register(SlackPostMessage, SlackPostMessageAdmin)
@@ -30,7 +30,7 @@ class SlackScheduleMessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
     
 admin_site.register(SlackScheduleMessage, SlackScheduleMessageAdmin)
@@ -41,7 +41,7 @@ class SlackRenameConversationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
         
 admin_site.register(SlackRenameConversation, SlackRenameConversationAdmin)
@@ -52,7 +52,7 @@ class SlackKickConversationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
     
 admin_site.register(SlackKickConversation, SlackKickConversationAdmin)
@@ -63,7 +63,7 @@ class SlackJoinConversationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
         
 admin_site.register(SlackJoinConversation, SlackJoinConversationAdmin)
@@ -74,7 +74,7 @@ class SlackPinMessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.initiator = request.user
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
     
 admin_site.register(SlackPinMessage, SlackPinMessageAdmin)

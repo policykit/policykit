@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
-from slackintegration.models import SlackUser, SlackIntegration
+from slackintegration.models import SlackUser, SlackCommunity
 from urllib import parse
 import urllib.request
 import json
@@ -15,7 +15,7 @@ class SlackBackend(BaseBackend):
         if not oauth:
             return None
 
-        s = SlackIntegration.objects.filter(team_id=oauth['team']['id'])
+        s = SlackCommunity.objects.filter(team_id=oauth['team']['id'])
 
         if s.exists():
             user_data = parse.urlencode({
@@ -28,7 +28,7 @@ class SlackBackend(BaseBackend):
                 # update user info
                 slack_user = slack_user[0]
                 slack_user.access_token = oauth['authed_user']['access_token']
-                slack_user.community_integration = s[0]
+                slack_user.community = s[0]
                 slack_user.password = oauth['authed_user']['access_token']
                 slack_user.save()
             else:
@@ -40,7 +40,7 @@ class SlackBackend(BaseBackend):
                 if slack_user.exists():
                     slack_user = slack_user[0]
                     slack_user.access_token = oauth['authed_user']['access_token']
-                    slack_user.community_integration = s[0]
+                    slack_user.community = s[0]
                     slack_user.password = oauth['authed_user']['access_token']
                     slack_user.readable_name = user_res['user']['name']
                     slack_user.avatar = user_res['user']['image_24']
@@ -49,7 +49,7 @@ class SlackBackend(BaseBackend):
                     slack_user,_ = SlackUser.objects.get_or_create(
                         username=oauth['authed_user']['id'],
                         password=oauth['authed_user']['access_token'],
-                        community_integration = s[0],
+                        community = s[0],
                         readable_name = user_res['user']['name'],
                         avatar = user_res['user']['image_24'],
                         access_token = oauth['authed_user']['access_token'],

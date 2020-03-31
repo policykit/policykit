@@ -33,17 +33,17 @@ def consider_proposed_actions():
     
     community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in community_actions:
-        for policy in CommunityPolicy.objects.filter(community_integration=action.community_integration):
+        for policy in CommunityPolicy.objects.filter(community=action.community):
             _execute_policy(policy, action)
             
     bundle_actions = CommunityActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in bundle_actions:
-        for policy in CommunityPolicy.objects.filter(community_integration=action.community_integration):
+        for policy in CommunityPolicy.objects.filter(community=action.community):
             _execute_policy(policy, action)
     
     process_actions = ProcessAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in process_actions:
-        for policy in ProcessPolicy.objects.filter(community_integration=action.community_integration):
+        for policy in ProcessPolicy.objects.filter(community=action.community):
             _execute_policy(policy, action)
     
 

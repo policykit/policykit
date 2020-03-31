@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction
+from policyengine.models import Community, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
@@ -15,7 +15,7 @@ SLACK_ACTIONS = ['slackpostmessage',
                  'slackpinmessage'
                  ]
 
-class SlackIntegration(CommunityIntegration):
+class SlackCommunity(Community):
     API = 'https://slack.com/api/'
     
     team_id = models.CharField('team_id', max_length=150, unique=True)
@@ -29,7 +29,7 @@ class SlackIntegration(CommunityIntegration):
         post_policy(policy, action, users, post_type, template, channel)
     
     def save(self, *args, **kwargs):      
-        super(SlackIntegration, self).save(*args, **kwargs)
+        super(SlackCommunity, self).save(*args, **kwargs)
         
         content_types = ContentType.objects.filter(model__in=SLACK_ACTIONS)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
@@ -44,7 +44,7 @@ class SlackUser(CommunityUser):
     
     def save(self, *args, **kwargs):      
         super(SlackUser, self).save(*args, **kwargs)
-        group = self.community_integration.base_role
+        group = self.community.base_role
         group.user_set.add(self)
 
     
@@ -65,7 +65,7 @@ class SlackPostMessage(CommunityAction):
                   'ts': self.time_stamp,
                   'channel': self.channel
                 }
-        super().revert(values, SlackIntegration.API + 'chat.delete')
+        super().revert(values, SlackCommunity.API + 'chat.delete')
     
 class SlackRenameConversation(CommunityAction):
     ACTION = 'conversations.rename'
@@ -82,7 +82,7 @@ class SlackRenameConversation(CommunityAction):
         )
     
     def get_channel_info(self):
-        values = {'token': self.community_integration.access_token,
+        values = {'token': self.community.access_token,
                 'channel': self.channel
                 }
         data = urllib.parse.urlencode(values)
@@ -98,7 +98,7 @@ class SlackRenameConversation(CommunityAction):
                 'token': self.initiator.access_token,
                 'channel': self.channel
                 }
-        super().revert(values, SlackIntegration.API + 'conversations.rename')
+        super().revert(values, SlackCommunity.API + 'conversations.rename')
         
 class SlackJoinConversation(CommunityAction):
     ACTION = 'conversations.invite'
@@ -117,7 +117,7 @@ class SlackJoinConversation(CommunityAction):
                   'token': admin_user.access_token,
                   'channel': self.channel
                 }
-        super().revert(values, SlackIntegration.API + 'conversations.kick')
+        super().revert(values, SlackCommunity.API + 'conversations.kick')
 
 class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
@@ -131,11 +131,11 @@ class SlackPinMessage(CommunityAction):
         )
 
     def revert(self):
-        values = {'token': self.community_integration.access_token,
+        values = {'token': self.community.access_token,
                   'channel': self.channel,
                   'timestamp': self.timestamp
                 }
-        super().revert(values, SlackIntegration.API + 'pins.remove')
+        super().revert(values, SlackCommunity.API + 'pins.remove')
 
 class SlackScheduleMessage(CommunityAction):
     ACTION = 'chat.scheduleMessage'

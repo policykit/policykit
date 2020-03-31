@@ -66,7 +66,7 @@ class PolicykitAddProcessPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
     
     def save_model(self, request, obj, form, change):
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
 
 admin_site.register(PolicykitAddProcessPolicy, PolicykitAddProcessPolicyAdmin)
@@ -76,7 +76,7 @@ class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
     
     def save_model(self, request, obj, form, change):
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
 
 admin_site.register(PolicykitAddCommunityPolicy, PolicykitAddCommunityPolicyAdmin)
@@ -92,7 +92,7 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
             obj.community_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
 
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
@@ -107,7 +107,7 @@ class ProcessActionBundleAdmin(admin.ModelAdmin):
             obj.community_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
-            obj.community_integration = request.user.community_integration
+            obj.community = request.user.community
         obj.save()
 
 admin_site.register(ProcessActionBundle, ProcessActionBundleAdmin)
@@ -118,7 +118,7 @@ class CommunityPolicyBundleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
 
 admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
@@ -130,7 +130,7 @@ class ProcessPolicyBundleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
 
 admin_site.register(ProcessPolicyBundle, ProcessPolicyBundleAdmin)
@@ -164,7 +164,7 @@ class PolicykitAddRoleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitAddRole, PolicykitAddRoleAdmin)
@@ -175,7 +175,7 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
@@ -186,7 +186,7 @@ class PolicykitAddPermissionAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
@@ -197,7 +197,7 @@ class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
@@ -209,7 +209,7 @@ class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitAddUserRole, PolicykitAddUserRoleAdmin)
@@ -219,7 +219,7 @@ class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
@@ -230,7 +230,7 @@ class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
 
 admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPolicyAdmin)
@@ -241,7 +241,7 @@ class PolicykitChangeProcessPolicyAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
 
 admin_site.register(PolicykitChangeProcessPolicy, PolicykitChangeProcessPolicyAdmin)
@@ -252,7 +252,7 @@ class PolicykitRemoveCommunityPolicyAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitRemoveCommunityPolicy, PolicykitRemoveCommunityPolicyAdmin)
@@ -263,7 +263,7 @@ class PolicykitRemoveProcessPolicyAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitRemoveProcessPolicy, PolicykitRemoveProcessPolicyAdmin)
@@ -274,7 +274,7 @@ class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community_integration = request.user.community_integration
+        obj.community = request.user.community
         obj.save()
         
 admin_site.register(PolicykitChangeCommunityDoc, PolicykitChangeCommunityDocAdmin)

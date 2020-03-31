@@ -21,10 +21,10 @@ class ProposedActions(DashboardModule):
     def init_with_context(self, context):
         user = context['request'].user
         
-        proposed_processactions = ProcessAction.objects.filter(community_integration=user.community_integration,
+        proposed_processactions = ProcessAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
         
-        proposed_communityactions = CommunityAction.objects.filter(community_integration=user.community_integration,
+        proposed_communityactions = CommunityAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
         
         
@@ -61,7 +61,7 @@ class RolePermissionModule(DashboardModule):
     
     def init_with_context(self, context):
         user = context['request'].user
-        roles = CommunityRole.objects.filter(community_integration=user.community_integration)
+        roles = CommunityRole.objects.filter(community=user.community)
             
         for i in roles:
             role_info = {'role_name': i.name,
@@ -115,7 +115,7 @@ class PolicyModule(DashboardModule):
         elif self.policy_type == "Process":
             policies = ProcessPolicy.objects
         
-        policies = policies.filter(community_integration=context['request'].user.community_integration)
+        policies = policies.filter(community=context['request'].user.community)
             
         for i in policies:
             self.children.append({'policy_type': self.policy_type,

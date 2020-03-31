@@ -22,7 +22,7 @@ def on_transaction_commit(func):
 
     return inner
 
-class CommunityIntegration(PolymorphicModel):
+class Community(PolymorphicModel):
     community_name = models.CharField('team_name', 
                               max_length=1000)
     
@@ -39,13 +39,13 @@ class CommunityIntegration(PolymorphicModel):
     
     def save(self, *args, **kwargs):   
         if not self.pk:
-            super(CommunityIntegration, self).save(*args, **kwargs)
+            super(Community, self).save(*args, **kwargs)
             
             # create Starter ProcessPolicy
             
             p = ProcessPolicy()
-            p.community_integration = self
-            p.policy_filter_code = "filter_pass=True"
+            p.community = self
+            p.policy_filter_code = "return True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
             p.policy_conditional_code = "action_pass = PASSED"
@@ -115,11 +115,11 @@ class CommunityIntegration(PolymorphicModel):
             
 
         else:
-            super(CommunityIntegration, self).save(*args, **kwargs)
+            super(Community, self).save(*args, **kwargs)
 
 
 class CommunityRole(Group):
-    community_integration = models.ForeignKey(CommunityIntegration,
+    community = models.ForeignKey(Community,
                                    models.CASCADE,
                                    null=True)
 
@@ -136,7 +136,7 @@ class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', 
                                       max_length=300, null=True)
     
-    community_integration = models.ForeignKey(CommunityIntegration,
+    community = models.ForeignKey(Community,
                                    models.CASCADE)
     
         
@@ -146,7 +146,7 @@ class CommunityUser(User, PolymorphicModel):
     is_community_admin = models.BooleanField(default=False)            
         
     def __str__(self):
-        return self.readable_name + '@' + self.community_integration.community_name
+        return self.readable_name + '@' + self.community.community_name
 
 
 class CommunityDoc(models.Model):
@@ -193,20 +193,20 @@ class DataStore(models.Model):
 
         
 class LogAPICall(models.Model):
-    community_integration = models.ForeignKey(CommunityIntegration,
+    community = models.ForeignKey(Community,
                                    models.CASCADE)
     proposal_time = models.DateTimeField(auto_now_add=True)
     call_type = models.CharField('call_type', max_length=300)
     extra_info = models.TextField()
     
     @classmethod
-    def make_api_call(cls, community_integration, values, call):
+    def make_api_call(cls, community, values, call):
         logger.info("COMMUNITY API CALL")
         logger.info(call)
              
-        _ = LogAPICall.objects.create(community_integration = community_integration,
-                                      call_type = call,
-                                      extra_info = json.dumps(values)
+        _ = LogAPICall.objects.create(community=community,
+                                      call_type=call,
+                                      extra_info=json.dumps(values)
                                       )
         
         data = urllib.parse.urlencode(values)   
@@ -275,9 +275,9 @@ class Proposal(models.Model):
         
 
 class BaseAction(models.Model):
-    community_integration = models.ForeignKey(CommunityIntegration, 
+    community = models.ForeignKey(Community, 
         models.CASCADE,
-        verbose_name='community_integration',
+        verbose_name='community',
     )
     
     community_post = models.CharField('community_post', 
@@ -301,7 +301,7 @@ class BaseAction(models.Model):
 
 class ProcessAction(BaseAction, PolymorphicModel):
     
-    community_integration = models.ForeignKey(CommunityIntegration,
+    community = models.ForeignKey(Community,
                                    models.CASCADE)
     
     initiator = models.ForeignKey(CommunityUser,
@@ -334,7 +334,7 @@ class ProcessAction(BaseAction, PolymorphicModel):
             
             if not self.is_bundled:
                 action = self
-                for policy in ProcessPolicy.objects.filter(community_integration=self.community_integration):
+                for policy in ProcessPolicy.objects.filter(community=self.community):
                     if check_filter_code(policy, action):
                         
                         initialize_code(policy, action)
@@ -387,7 +387,7 @@ class ProcessActionBundle(BaseAction):
 def after_processaction_bundle_save(sender, instance, **kwargs):
     action = instance
 
-    for policy in ProcessPolicy.objects.filter(community_integration=action.community_integration):
+    for policy in ProcessPolicy.objects.filter(community=action.community):
         if check_filter_code(policy, action):
             
             initialize_code(policy, action)
@@ -406,7 +406,7 @@ class PolicykitChangeCommunityDoc(ProcessAction):
     change_text = models.TextField()
     
     def execute(self):        
-        self.community_integration.community_guidelines.change_text(self.change_text)
+        self.community.community_guidelines.change_text(self.change_text)
         
     class Meta:
         permissions = (
@@ -428,7 +428,7 @@ class PolicykitAddRole(ProcessAction):
 
 
     def execute(self):
-        g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community_integration.community_name)
+        g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community.community_name)
         
         for p in self.permissions.all():
             g.permissions.add(p)   
@@ -551,7 +551,7 @@ class PolicykitAddCommunityPolicy(ProcessAction):
         policy.policy_text = self.policy_text
         policy.explanation = self.explanation
         policy.is_bundled = self.is_bundled
-        policy.community_integration = self.community_integration
+        policy.community = self.community
         policy.save()
         
         self.pass_action()
@@ -585,7 +585,7 @@ class PolicykitAddProcessPolicy(ProcessAction):
         policy.policy_text = self.policy_text
         policy.explanation = self.explanation
         policy.is_bundled = self.is_bundled
-        policy.community_integration = self.community_integration
+        policy.community = self.community
         policy.save()
         
         self.pass_action()
@@ -703,7 +703,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
     ACTION = None
     AUTH = 'app'
     
-    community_integration = models.ForeignKey(CommunityIntegration,
+    community = models.ForeignKey(Community,
                                    models.CASCADE)
     
     initiator = models.ForeignKey(CommunityUser,
@@ -723,7 +723,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         verbose_name_plural = 'communityactions'
 
     def revert(self, values, call):
-        _ = LogAPICall.make_api_call(self.community_integration, values, call)
+        _ = LogAPICall.make_api_call(self.community, values, call)
         self.community_revert = True
         self.save()
 
@@ -751,7 +751,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
             
             if not self.is_bundled:
                 action = self
-                for policy in CommunityPolicy.objects.filter(community_integration=self.community_integration):
+                for policy in CommunityPolicy.objects.filter(community=self.community):
                     if check_filter_code(policy, action):
                         
                         initialize_code(policy, action)
@@ -808,7 +808,7 @@ def after_bundle_save(sender, instance, **kwargs):
     action = instance
     
     if not action.community_post:
-        for policy in CommunityPolicy.objects.filter(community_integration=action.community_integration):
+        for policy in CommunityPolicy.objects.filter(community=action.community):
             if check_filter_code(policy, action):
                 
                 initialize_code(policy, action)
@@ -824,9 +824,9 @@ def after_bundle_save(sender, instance, **kwargs):
     
 
 class BasePolicy(models.Model):
-    community_integration = models.ForeignKey(CommunityIntegration, 
+    community = models.ForeignKey(Community, 
         models.CASCADE,
-        verbose_name='community_integration',
+        verbose_name='community',
     )
     
     explanation = models.TextField(null=True, blank=True)
@@ -863,7 +863,7 @@ class ProcessPolicy(BasePolicy):
 
         
     def __str__(self):
-        return ' '.join(['ProcessPolicy: ', self.explanation, 'for', self.community_integration.community_name])
+        return ' '.join(['ProcessPolicy: ', self.explanation, 'for', self.community.community_name])
 
  
 class ProcessPolicyBundle(BaseAction):
@@ -897,7 +897,7 @@ class CommunityPolicy(BasePolicy):
         
         
     def __str__(self):
-        return ' '.join(['CommunityPolicy: ', self.explanation, 'for', self.community_integration.community_name])
+        return ' '.join(['CommunityPolicy: ', self.explanation, 'for', self.community.community_name])
    
    
 class CommunityPolicyBundle(BaseAction):
