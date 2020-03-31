@@ -22,12 +22,20 @@ def on_transaction_commit(func):
 
     return inner
 
+
+
+
 class CommunityIntegration(PolymorphicModel):
     community_name = models.CharField('team_name', 
                               max_length=1000)
     
     base_role = models.OneToOneField('CommunityRole',
                                      models.CASCADE)
+    
+    community_guidelines = models.OneToOneField('CommunityDoc',
+                                     models.CASCADE)
+    
+    
     
     def notify_action(self, action, policy, users):
         pass
@@ -142,7 +150,15 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name + '@' + self.community_integration.community_name
 
 
-        
+class CommunityDoc(models.Model):
+    
+    text = models.TextField()
+    
+    def change_text(self, text):
+        self.text = text
+        self.save()
+    
+
         
 class DataStore(models.Model):
     
@@ -390,6 +406,18 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
             else:
                 exec(policy.policy_notify_code)
 
+
+
+class PolicykitEditCommunityDoc(ProcessAction):
+    change_text = models.TextField()
+    
+    def execute(self):        
+        self.community_integration.community_guidelines.change_text(self.change_text)
+        
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute policykit edit community doc'),
+        )
 
 
 
