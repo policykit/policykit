@@ -27,7 +27,8 @@ class Community(PolymorphicModel):
                               max_length=1000)
     
     base_role = models.OneToOneField('CommunityRole',
-                                     models.CASCADE)
+                                     models.CASCADE,
+                                     related_name='base_community')
     
     community_guidelines = models.OneToOneField('CommunityDoc',
                                      models.CASCADE)
