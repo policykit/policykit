@@ -13,7 +13,7 @@ PASSED = 'passed'
 logger = logging.getLogger(__name__)
 
 
-def check_filter_code(action, policy):
+def check_filter_code(policy, action):
     _locals = locals()
 #     
 #     wrapper_start = "def filter():\n"
@@ -29,7 +29,7 @@ def check_filter_code(action, policy):
 
 
 
-def initialize_code(action, policy):
+def initialize_code(policy, action):
     exec(policy.policy_init_code, globals(), locals())
     
     policy.has_notified = True
@@ -37,7 +37,7 @@ def initialize_code(action, policy):
     
 
 
-def check_policy_code(action, policy):
+def check_policy_code(policy, action):
     _locals = locals()
     exec(policy.policy_conditional_code, globals(), _locals)
     
