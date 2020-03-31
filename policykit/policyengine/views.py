@@ -15,12 +15,16 @@ logger = logging.getLogger(__name__)
 
 def check_filter_code(policy, action):
     _locals = locals()
-#     
-#     wrapper_start = "def filter():\n"
-#     wrapper_end = "    filter_pass = filter()"
+     
+    wrapper_start = "def filter():\n"
+    wrapper_end = "    filter_pass = filter()"
+    
+    lines = ['    ' + item for item in policy.policy_filter_code.splitlines()]
+    filter_str = '\r\n'.join(lines)
+    filter_code = wrapper_start + filter_str + wrapper_end
     
     
-    exec(policy.policy_filter_code, globals(), _locals)
+    exec(filter_code, globals(), _locals)
     
     if _locals.get('filter_pass'):
         return _locals['filter_pass']
