@@ -1,7 +1,6 @@
 from django.db import models
 from policyengine.models import CommunityIntegration, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
-from slackintegration.views import post_policy
 import urllib
 import json
 import logging
@@ -26,6 +25,7 @@ class SlackIntegration(CommunityIntegration):
                                     unique=True)
     
     def notify_action(self, action, policy, users, post_type='channel', template=None, channel=None):
+        from slackintegration.views import post_policy
         post_policy(policy, action, users, post_type, template, channel)
     
     def save(self, *args, **kwargs):      
