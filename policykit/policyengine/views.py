@@ -46,9 +46,9 @@ def check_policy_code(policy, action):
     
     _locals = locals()
     
-    wrapper_start = "def check():\r\n  global PASSED\r\n"
+    wrapper_start = "def check(action):\r\n  PASSED = 'passed'\r\n  x = action\r\n"
     
-    wrapper_end = "\r\npolicy_pass = check()"
+    wrapper_end = "\r\npolicy_pass = check(action)"
      
     lines = ['  ' + item for item in policy.policy_conditional_code.splitlines()]
     check_str = '\r\n'.join(lines)
