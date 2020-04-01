@@ -13,10 +13,6 @@ import json
 
 import logging
 
-PROPOSED = 'proposed'
-FAILED = 'failed'
-PASSED = 'passed'
-
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +54,7 @@ class Community(PolymorphicModel):
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"
             
-            proposal = Proposal.objects.create(author=None, status=PASSED)
+            proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
             p.proposal = proposal
             p.save()
             
@@ -239,6 +235,10 @@ class Proposal(models.Model):
     
     proposal_time = models.DateTimeField(auto_now_add=True)
     
+    PROPOSED = 'proposed'
+    FAILED = 'failed'
+    PASSED = 'passed'
+    
     STATUS = [
             (PROPOSED, 'proposed'),
             (FAILED, 'failed'),
@@ -321,14 +321,14 @@ class ProcessAction(BaseAction, PolymorphicModel):
         
     def pass_action(self):
         proposal = self.proposal
-        proposal.status = PASSED
+        proposal.status = Proposal.PASSED
         proposal.save()
 
         
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            p = Proposal.objects.create(status=PROPOSED,
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
                                             author=self.initiator)
             self.proposal = p
             super(ProcessAction, self).save(*args, **kwargs)
@@ -341,9 +341,9 @@ class ProcessAction(BaseAction, PolymorphicModel):
                         initialize_code(policy, action)
                         
                         cond_result = check_policy_code(policy, action)
-                        if cond_result == PASSED:
+                        if cond_result == Proposal.PASSED:
                             exec(policy.policy_action_code)
-                        elif cond_result == FAILED:
+                        elif cond_result == Proposal.FAILED:
                             exec(policy.policy_failure_code)
                         else:
                             exec(policy.policy_notify_code)
@@ -375,7 +375,7 @@ class ProcessActionBundle(BaseAction):
                 
     def pass_action(self):
         proposal = self.proposal
-        proposal.status = PASSED
+        proposal.status = Proposal.PASSED
         proposal.save()
 
     class Meta:
@@ -394,9 +394,9 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
             initialize_code(policy, action)
             
             cond_result = check_policy_code(policy, action)
-            if cond_result == PASSED:
+            if cond_result == Proposal.PASSED:
                 exec(policy.policy_action_code)
-            elif cond_result == FAILED:
+            elif cond_result == Proposal.FAILED:
                 exec(policy.policy_failure_code)
             else:
                 exec(policy.policy_notify_code)
@@ -734,7 +734,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         
     def pass_action(self):
         proposal = self.proposal
-        proposal.status = PASSED
+        proposal.status = Proposal.PASSED
         proposal.save()
         
 
@@ -742,7 +742,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         if not self.pk:
             # Runs only when object is new
             
-            p = Proposal.objects.create(status=PROPOSED,
+            p = Proposal.objects.create(status=Proposal.PROPOSED,
                                         author=self.initiator)
             
             self.proposal = p
@@ -758,9 +758,9 @@ class CommunityAction(BaseAction,PolymorphicModel):
                         initialize_code(policy, action)
                         
                         cond_result = check_policy_code(policy, action)
-                        if cond_result == PASSED:
+                        if cond_result == Proposal.PASSED:
                             exec(policy.policy_action_code)
-                        elif cond_result == FAILED:
+                        elif cond_result == Proposal.FAILED:
                             exec(policy.policy_failure_code)
                         else:
                             exec(policy.policy_notify_code)
@@ -794,7 +794,7 @@ class CommunityActionBundle(BaseAction):
 
     def pass_action(self):
         proposal = self.proposal
-        proposal.status = PASSED
+        proposal.status = Proposal.PASSED
         proposal.save()
 
 
@@ -815,9 +815,9 @@ def after_bundle_save(sender, instance, **kwargs):
                 initialize_code(policy, action)
                 
                 cond_result = check_policy_code(policy, action)
-                if cond_result == PASSED:
+                if cond_result == Proposal.PASSED:
                     exec(policy.policy_action_code)
-                elif cond_result == FAILED:
+                elif cond_result == Proposal.FAILED:
                     exec(policy.policy_failure_code)
                 else:
                     exec(policy.policy_notify_code)
