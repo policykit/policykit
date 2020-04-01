@@ -40,15 +40,16 @@ def initialize_code(policy, action):
 
 
 def check_policy_code(policy, action):
-    PROPOSED = 'proposed'
-    FAILED = 'failed'
-    PASSED = 'passed'
+    from policyengine.models import *
+
+    users = CommunityUser.objects.filter(community=policy.community)
     
     _locals = locals()
     
-    wrapper_start = "def check(action):\r\n  PASSED = 'passed'\r\n  x = action\r\n"
+    wrapper_start = "def check(policy, action, users):\r\n"
+    wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
     
-    wrapper_end = "\r\npolicy_pass = check(action)"
+    wrapper_end = "\r\npolicy_pass = check(policy, action, users)"
      
     lines = ['  ' + item for item in policy.policy_conditional_code.splitlines()]
     check_str = '\r\n'.join(lines)
@@ -59,7 +60,7 @@ def check_policy_code(policy, action):
     if _locals.get('policy_pass'):
         return _locals['policy_pass']
     else:
-        return PROPOSED
+        return Proposal.PROPOSED
 
 
 def execute_community_action(action, delete_policykit_post=True):
