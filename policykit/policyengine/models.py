@@ -49,7 +49,7 @@ class Community(PolymorphicModel):
             p.policy_filter_code = "return True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
-            p.policy_conditional_code = "action_pass = PASSED"
+            p.policy_conditional_code = "return PASSED"
             p.policy_action_code = "action.execute()"
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"

@@ -6,9 +6,7 @@ import urllib.parse
 import logging
 import json
 
-PROPOSED = 'proposed'
-FAILED = 'failed'
-PASSED = 'passed'
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +40,27 @@ def initialize_code(policy, action):
 
 
 def check_policy_code(policy, action):
-    _locals = locals()
-    exec(policy.policy_conditional_code, globals(), _locals)
+    PROPOSED = 'proposed'
+    FAILED = 'failed'
+    PASSED = 'passed'
     
-    if _locals.get('action_pass'):
-        return _locals['action_pass']
+    _locals = locals()
+    
+    wrapper_start = "def check():\r\n"
+    wrapper_end = "\r\npolicy_pass = check()"
+     
+    lines = ['  ' + item for item in policy.policy_conditional_code.splitlines()]
+    check_str = '\r\n'.join(lines)
+    check_code = wrapper_start + check_str + wrapper_end
+     
+    logger.info(globals())
+    logger.info(_locals)
+    
+    
+    exec(check_code, globals(), _locals)
+    
+    if _locals.get('policy_pass'):
+        return _locals['policy_pass']
     else:
         return PROPOSED
 
