@@ -22,7 +22,7 @@ def check_filter_code(policy, action):
     filter_code = wrapper_start + filter_str + wrapper_end
      
      
-    exec(filter_code, globals(), _locals)
+    exec(filter_code, [], _locals)
     
     if _locals.get('filter_pass'):
         return _locals['filter_pass']
@@ -52,12 +52,8 @@ def check_policy_code(policy, action):
     lines = ['  ' + item for item in policy.policy_conditional_code.splitlines()]
     check_str = '\r\n'.join(lines)
     check_code = wrapper_start + check_str + wrapper_end
-     
-    logger.info(globals())
-    logger.info(_locals)
-    
-    
-    exec(check_code, globals(), _locals)
+
+    exec(check_code, None, _locals)
     
     if _locals.get('policy_pass'):
         return _locals['policy_pass']
