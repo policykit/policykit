@@ -46,7 +46,7 @@ def check_policy_code(policy, action):
     
     _locals = locals()
     
-    wrapper_start = "def check():\r\n  PASSED = 'passed'\r\n  x = action\r\n"
+    wrapper_start = "def check():\r\n  global PASSED'\r\n"
     
     wrapper_end = "\r\npolicy_pass = check()"
      
