@@ -22,7 +22,7 @@ def check_filter_code(policy, action):
     filter_code = wrapper_start + filter_str + wrapper_end
      
      
-    exec(filter_code, [], _locals)
+    exec(filter_code, None, _locals)
     
     if _locals.get('filter_pass'):
         return _locals['filter_pass']
