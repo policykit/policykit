@@ -410,7 +410,8 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 class PolicykitChangeCommunityDoc(ProcessAction):
     
-    community_doc = models.ForeignKey(CommunityDoc)
+    community_doc = models.ForeignKey(CommunityDoc, 
+                                      models.CASCADE)
     
     change_text = models.TextField()
     
