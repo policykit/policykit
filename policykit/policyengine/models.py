@@ -120,9 +120,6 @@ class Community(PolymorphicModel):
 
 
 class CommunityRole(Group):
-    name = models.CharField('name', 
-                           max_length=300)
-    
     community = models.ForeignKey(Community,
                                    models.CASCADE,
                                    null=True)
