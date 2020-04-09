@@ -31,7 +31,8 @@ class Community(PolymorphicModel):
                                      related_name='base_community')
     
     community_guidelines = models.OneToOneField('CommunityDoc',
-                                     models.CASCADE)
+                                     models.CASCADE,
+                                     related_name='base_doc_community')
     
     
     
