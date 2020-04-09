@@ -120,6 +120,9 @@ class Community(PolymorphicModel):
 
 
 class CommunityRole(Group):
+    name = models.CharField('name', 
+                           max_length=300)
+    
     community = models.ForeignKey(Community,
                                    models.CASCADE,
                                    null=True)
@@ -153,6 +156,11 @@ class CommunityUser(User, PolymorphicModel):
 class CommunityDoc(models.Model):
     
     text = models.TextField()
+    
+    community = models.ForeignKey(Community,
+                                   models.CASCADE)
+    
+    
     
     def change_text(self, text):
         self.text = text
@@ -404,10 +412,13 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 
 class PolicykitChangeCommunityDoc(ProcessAction):
+    
+    community_doc = models.ForeignKey(CommunityDoc)
+    
     change_text = models.TextField()
     
     def execute(self):        
-        self.community.community_guidelines.change_text(self.change_text)
+        self.community_doc.change_text(self.change_text)
         
     class Meta:
         permissions = (
@@ -429,7 +440,7 @@ class PolicykitAddRole(ProcessAction):
 
 
     def execute(self):
-        g,_ = CommunityRole.objects.get_or_create(name=self.name + '_' + self.community.community_name)
+        g,_ = CommunityRole.objects.get_or_create(name=self.name)
         
         for p in self.permissions.all():
             g.permissions.add(p)   
@@ -825,6 +836,16 @@ def after_bundle_save(sender, instance, **kwargs):
     
 
 class BasePolicy(models.Model):
+    
+    policy_filter_code = models.TextField(blank=True, default='')
+    policy_init_code = models.TextField(blank=True, default='')
+    policy_notify_code = models.TextField(blank=True, default='')
+    policy_conditional_code = models.TextField(blank=True, default='')
+    policy_action_code = models.TextField(blank=True, default='')
+    policy_failure_code = models.TextField(blank=True, default='')
+    
+    policy_text = models.TextField(null=True, blank=True)
+    
     community = models.ForeignKey(Community, 
         models.CASCADE,
         verbose_name='community',
@@ -847,15 +868,7 @@ class BasePolicy(models.Model):
     
     
 class ProcessPolicy(BasePolicy):    
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-    
-    policy_text = models.TextField(null=True, blank=True)
-    
+
     policy_type = "ProcessPolicy"
     
     class Meta:
@@ -871,8 +884,6 @@ class ProcessPolicyBundle(BaseAction):
        
     bundled_policies = models.ManyToManyField(ProcessPolicy)
      
-    explanation = models.TextField(blank=True, default='')
-     
     policy_type = "ProcessPolicyBundle"
  
     class Meta:
@@ -881,14 +892,6 @@ class ProcessPolicyBundle(BaseAction):
  
     
 class CommunityPolicy(BasePolicy):
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-    
-    policy_text = models.TextField(null=True, blank=True)
     
     policy_type = "CommunityPolicy"
     
@@ -904,8 +907,6 @@ class CommunityPolicy(BasePolicy):
 class CommunityPolicyBundle(BaseAction):
       
     bundled_policies = models.ManyToManyField(CommunityPolicy)
-    
-    explanation = models.TextField(blank=True, default='')
     
     policy_type = "CommunityPolicyBundle"
 
