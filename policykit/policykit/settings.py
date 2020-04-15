@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'policyengine',
     'slackintegration',
+    'redditintegration',
 ]
 
 MIDDLEWARE = [
