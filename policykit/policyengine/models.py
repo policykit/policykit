@@ -924,15 +924,17 @@ class UserVote(models.Model):
     proposal = models.ForeignKey(Proposal,
                                 models.CASCADE)
     
+    vote_time = models.DateTimeField(auto_now_add=True)
+    
     class Meta:
         abstract = True
      
 
 class BooleanVote(UserVote):
-    boolean_value = models.BooleanField() # yes/no, selected/not selected
+    boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected
 
 class NumberVote(UserVote):
-    number_value = models.IntegerField()
+    number_value = models.IntegerField(null=True)
 
 
 
