@@ -50,7 +50,7 @@ def oauth(request):
     
     data = parse.urlencode({
         'client_id': '455205644210.932801604965',
-        'client_secret': CLIENT_SECRET,
+        'client_secret': SLACK_CLIENT_SECRET,
         'code': code,
         }).encode()
         
