@@ -166,6 +166,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'redditintegration': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'policyengine': {
             'handlers': ['file'],
             'level': 'DEBUG',
