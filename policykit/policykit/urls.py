@@ -24,7 +24,6 @@ urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     path('admin/', admin.site.urls),
-    path('slack/', include('slackintegration.urls'),
+    path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
-    )
 ]
