@@ -14,6 +14,6 @@ Need to change where debug log goes or create folder /var/log/django
 
 For django-jet to run with Django 3.0:
 
-Find `jet/dashboard/models.py` file in django-jet distribution and remove `from django.utils.encoding import python_2_unicode_compatible` line as well as the line `@python_2_unicode_compatible`. Do the same in the `"jet/models.py"` file.
+Find the `jet/dashboard/models.py` and `"jet/models.py"` files in your django-jet instllation and replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`
 
 Note: I ran into some issues with permissions, remember to install with sudo if executing requires sudo.
