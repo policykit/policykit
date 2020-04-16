@@ -21,13 +21,10 @@ from policyengine.admin import admin_site
 urlpatterns = [
     path('', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
-    
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
-    
     path('admin/', admin.site.urls),
-    
     path('slack/', include('slackintegration.urls'),
-    path('reddit/', include('redditintegration.urls'),
+    path('reddit/', include('redditintegration.urls')),
     )
 ]
