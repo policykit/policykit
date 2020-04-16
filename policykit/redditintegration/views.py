@@ -35,9 +35,6 @@ def oauth(request):
         
         logger.info(res)
         
-        if res['ok']:
-        
-        
     
         response = redirect('/login?success=true')
         return response
