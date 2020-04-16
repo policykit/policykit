@@ -1,11 +1,14 @@
 from django.contrib import admin
-from django.contrib.admin import AdminSite
-from policyengine.models import *
+from django.contrib.admin import AdminSit
+from django.urls import NoReverseMatch, reverse
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
 from django.template.response import TemplateResponse
+from django.http import Http404, HttpResponseRedirect
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.translation import gettext_lazy
 from policykit.settings import PROJECT_NAME
+from policyengine.models import *
 import datetime
 import logging
 
@@ -34,29 +37,54 @@ class PolicyAdminSite(AdminSite):
 #         apps that have been registered in this site.
 #         """
 #         app_list = self.get_app_list(request)
-#         
-#         user = request.user
-#         community_integration = user.community_integration
-# 
-#         proposed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
-# 
-#         passed_process_policies = ProcessPolicy.objects.filter(proposal__status=Proposal.PASSED, community_integration=community_integration)
-# 
-#         proposed_community_policies = CommunityPolicy.objects.filter(proposal__status=Proposal.PROPOSED, community_integration=community_integration)
-# 
-#        
-# 
+#  
 #         context = {**self.each_context(request), 
 #                    'title': self.index_title, 
-#                    'app_list': app_list, 
-#                    'proposed_processes': proposed_process_policies,
-#                    'passed_processes': passed_process_policies,
-#                    'proposed_rules': proposed_community_policies,
+#                    'app_list': app_list,
 #                    **(extra_context or {})}
-# 
+#  
 #         request.current_app = self.name
-# 
+#  
 #         return TemplateResponse(request, self.index_template or 'admin/index.html', context)
+
+
+#     @never_cache
+#     def login(self, request, extra_context=None):
+#         """
+#         Displays the login form for the given HttpRequest.
+#         """
+#         if request.method == 'GET' and self.has_permission(request):
+#             # Already logged-in, redirect to admin index
+#             index_path = reverse('admin:index', current_app=self.name)
+#             return HttpResponseRedirect(index_path)
+# 
+#         from django.contrib.auth.views import LoginView
+#         # Since this module gets imported in the application's root package,
+#         # it cannot import models from other applications at the module level,
+#         # and django.contrib.admin.forms eventually imports User.
+#         from django.contrib.admin.forms import AdminAuthenticationForm
+#         context = dict(
+#             self.each_context(request),
+#             title=_('Log in'),
+#             app_path=request.get_full_path(),
+#             username=request.user.get_username(),
+#         )
+#         if (REDIRECT_FIELD_NAME not in request.GET and
+#                 REDIRECT_FIELD_NAME not in request.POST):
+#             context[REDIRECT_FIELD_NAME] = reverse('admin:index', current_app=self.name)
+#         context.update(extra_context or {})
+#         
+# 
+#         defaults = {
+#             'extra_context': context,
+#             'authentication_form': self.login_form or AdminAuthenticationForm,
+#             'template_name': self.login_template or 'admin/login.html',
+#         }
+#         request.current_app = self.name
+#         return LoginView.as_view(**defaults)(request)
+
+
+
 
 
 admin_site = PolicyAdminSite(name="policyadmin")

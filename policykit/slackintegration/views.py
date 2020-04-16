@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from urllib import parse
 import urllib.request
-from policykit.settings import CLIENT_SECRET
+from policykit.settings import SLACK_CLIENT_SECRET
 from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
