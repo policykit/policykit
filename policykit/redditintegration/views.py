@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 def oauth(request):
     logger.info(request)
+    
+    response = redirect('/login?success=true')
+    return response
 
 
 
