@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.contrib.admin import AdminSit
+from django.contrib.admin import AdminSite
 from django.urls import NoReverseMatch, reverse
 from django.contrib.auth.models import User, Group, Permission
 from django.views.decorators.cache import never_cache
