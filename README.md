@@ -18,12 +18,12 @@ If you used virtualenv, this should be in path_to_your_ve/your_ve_name/lib/pytho
 In both files, replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`
 
 3)
-Put 
+Put
 `SLACK_CLIENT_SECRET = ''`
 `REDDIT_CLIENT_SECRET = ''`
 in a file called private.py in the same file as your manage.py file. These store API secret keys that you will need to fill out if you wish to query the Slack or Reddit API.
 
-4) 
+4)
 PolicyKit is currently logging to the path: /var/log/django
 You either need to create this folder or go into settings.py to change where it logs.
 
@@ -36,3 +36,10 @@ Now set up a database. You can use the default sqlite or mysql or another databa
 
 Finally, run `python manage.py makemigrations` to migrate tables to the database.
 
+## Potential Issues
+
+1)
+It's possible that you may receive an error saying that installing from requirements.txt fails on the line `-pkg-resources==0.0.0`. If so, delete this line from requirements.txt and re-install.
+
+2)
+It's possible that you may receive the error `InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]` where `ModelState` may refer to policyengine, policykit, redditintegration or slackintegration. If so, inside each subdirectory: policyengine, policykit, redditintegration and slackintegration, create a directory called `migrations` and add an empty file inside each directory named `__init__.py`.
