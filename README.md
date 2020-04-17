@@ -1,19 +1,38 @@
 # PolicyKit
 
 ## Getting Started
+
+1)
+PolicyKit requires python 3.
+
+I recommend that you use virtualenv.
+Once you have that created, activate the virtualenv and run:
+
 `pip install -r requirements.txt`
 
-Put `CLIENT_SECRET = ""` in settings.py
+2)
+One of our libraries, django-jet, does not work with Django 3.0 yet.
+To fix this, find the `jet/dashboard/models.py` and `"jet/models.py"` files in your django-jet installation.
+If you used virtualenv, this should be in path_to_your_ve/your_ve_name/lib/python3.7/site-packages/jet/
 
-`python3 manage.py runserver`
+In both files, replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`
 
-Run Migrations
+3)
+Put 
+`SLACK_CLIENT_SECRET = ''`
+`REDDIT_CLIENT_SECRET = ''`
+in a file called private.py in the same file as your manage.py file. These store API secret keys that you will need to fill out if you wish to query the Slack or Reddit API.
 
-Had issue with LOGGING filename...
-Need to change where debug log goes or create folder /var/log/django
+4) 
+PolicyKit is currently logging to the path: /var/log/django
+You either need to create this folder or go into settings.py to change where it logs.
 
-For django-jet to run with Django 3.0:
+5)
+Check you can run the server with no problems:
+`python manage.py runserver`
 
-Find the `jet/dashboard/models.py` and `"jet/models.py"` files in your django-jet instllation and replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`
+6)
+Now set up a database. You can use the default sqlite or mysql or another database of your choice. Make sure settings.py is pointing to the right database.
 
-Note: I ran into some issues with permissions, remember to install with sudo if executing requires sudo.
+Finally, run `python manage.py makemigrations` to migrate tables to the database.
+
