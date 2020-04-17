@@ -39,7 +39,4 @@ Finally, run `python manage.py makemigrations` to migrate tables to the database
 ## Potential Issues
 
 1)
-It's possible that you may receive an error saying that installing from requirements.txt fails on the line `-pkg-resources==0.0.0`. If so, delete this line from requirements.txt and re-install.
-
-2)
 It's possible that you may receive the error `InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]` where `ModelState` may refer to policyengine, policykit, redditintegration or slackintegration. If so, inside each subdirectory: policyengine, policykit, redditintegration and slackintegration, create a directory called `migrations` and add an empty file inside each directory named `__init__.py`.
