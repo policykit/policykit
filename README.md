@@ -12,7 +12,7 @@ Once you have that created, activate the virtualenv and run:
 
 2)
 One of our libraries, django-jet, does not work with Django 3.0 yet.
-To fix this, find the `jet/dashboard/models.py` and `"jet/models.py"` files in your django-jet installation.
+To fix this, find the `jet/dashboard/models.py` and `jet/models.py` files in your django-jet installation.
 If you used virtualenv, this should be in path_to_your_ve/your_ve_name/lib/python3.7/site-packages/jet/
 
 In both files, replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`
