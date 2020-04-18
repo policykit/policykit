@@ -51,18 +51,21 @@ class RedditCommunity(Community):
                                null=True)
     
     def make_call(self, url, values=None):
-        logger.info(url)
+        logger.info(self.API + url)
         try:
-            req = urllib.request.Request(url)
+            req = urllib.request.Request(self.API + url)
             req.add_header('Authorization', 'bearer %s' % self.access_token)
             req.add_header("User-Agent", REDDIT_USER_AGENT)
+            
+            logger.info(req)
+            
             resp = urllib.request.urlopen(req)
             res = json.loads(resp.read().decode('utf-8'))
         except urllib.error.HTTPError as e:
             if e.reason == 'Unauthorized':
                 self.refresh_access_token()
                 
-                req = urllib.request.Request(url)
+                req = urllib.request.Request(self.API + url)
                 req.add_header('Authorization', 'bearer %s' % self.access_token)
                 req.add_header("User-Agent", REDDIT_USER_AGENT)
                 resp = urllib.request.urlopen(req)
@@ -239,6 +242,6 @@ class RedditMakePost(CommunityAction):
     def revert(self):
         values = {'id': self.name
                 }
-        super().revert(values, RedditCommunity.API + 'api/remove')
+        super().revert(values, 'api/remove')
         
 
