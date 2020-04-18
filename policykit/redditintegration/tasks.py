@@ -22,8 +22,13 @@ def reddit_listener_actions():
         
         for item in res['data']['children']:
             data = item['data']
+            
+            logger.info(data)
 
             post_exists = RedditMakePost.objects.filter(name=data['name'])
+            
+            logger.info(post_exists)
+            
             if not post_exists.exists():
                 new_api_action = RedditMakePost()
                 new_api_action.community = community

@@ -88,11 +88,11 @@ def oauth(request):
                 community.save()
                 
             else:
-                s[0].community_name = res['team']['name']
-                s[0].team_id = res['team']['id']
-                s[0].access_token = res['access_token']
-                s[0].save()
                 community = s[0]
+                community.community_name = res['team']['name']
+                community.team_id = res['team']['id']
+                community.access_token = res['access_token']
+                community.save()
             
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
             if not user.exists():
