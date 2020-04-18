@@ -44,47 +44,28 @@ class RedditBackend(BaseBackend):
             user_info = json.loads(resp.read().decode('utf-8'))
             
             logger.info(user_info)
-            
-            
-#             slack_user = SlackUser.objects.filter(username=oauth['authed_user']['id'])
-#             
-#             if slack_user.exists() and slack_user[0].readable_name != None:
-#                 # update user info
-#                 slack_user = slack_user[0]
-#                 slack_user.access_token = oauth['authed_user']['access_token']
-#                 slack_user.community = s[0]
-#                 slack_user.password = oauth['authed_user']['access_token']
-#                 slack_user.save()
-#             
-#             
-# 
-#             
-#             else:
-#                 
-#                 
-#                 user_req = urllib.request.Request('https://slack.com/api/users.identity?', data=user_data)
-#                 user_resp = urllib.request.urlopen(user_req)
-#                 user_res = json.loads(user_resp.read().decode('utf-8'))
-# 
-# 
-#                 if slack_user.exists():
-#                     slack_user = slack_user[0]
-#                     slack_user.access_token = oauth['authed_user']['access_token']
-#                     slack_user.community = s[0]
-#                     slack_user.password = oauth['authed_user']['access_token']
-#                     slack_user.readable_name = user_res['user']['name']
-#                     slack_user.avatar = user_res['user']['image_24']
-#                     slack_user.save()
-#                 else:
-#                     slack_user,_ = SlackUser.objects.get_or_create(
-#                         username=oauth['authed_user']['id'],
-#                         password=oauth['authed_user']['access_token'],
-#                         community = s[0],
-#                         readable_name = user_res['user']['name'],
-#                         avatar = user_res['user']['image_24'],
-#                         access_token = oauth['authed_user']['access_token'],
-#                         )
-#             return slack_user
+
+            reddit_user = RedditUser.objects.filter(username=user_info['name'])
+             
+            if reddit_user.exists():
+                # update user info
+                reddit_user = reddit_user[0]
+                reddit_user.access_token = oauth['access_token']
+                reddit_user.community = community
+                reddit_user.password = oauth['access_token']
+                reddit_user.readable_name = user_info['name']
+                reddit_user.avatar = user_info['icon_img']
+                reddit_user.save()
+            else:
+                reddit_user,_ = RedditUser.objects.get_or_create(
+                    username=user_info['name'],
+                    password=oauth['access_token'],
+                    community = community,
+                    readable_name = user_info['name'],
+                    avatar = user_info['icon_img'],
+                    access_token = oauth['access_token'],
+                    )
+            return reddit_user
         return None
 
 
