@@ -57,7 +57,7 @@ class RedditCommunity(Community):
             req.add_header('Authorization', 'bearer %s' % self.access_token)
             req.add_header("User-Agent", REDDIT_USER_AGENT)
             
-            logger.info(req)
+            logger.info(req.headers)
             
             resp = urllib.request.urlopen(req)
             res = json.loads(resp.read().decode('utf-8'))
