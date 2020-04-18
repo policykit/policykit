@@ -38,7 +38,7 @@ def oauth(request):
 
         base64string = base64.standard_b64encode(string.encode('utf-8'))
 
-        request.add_header("Authorization", "Basic %s" % base64string)
+        req.add_header("Authorization", "Basic %s" % base64string)
 
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
