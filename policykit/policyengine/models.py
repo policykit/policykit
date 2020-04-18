@@ -132,6 +132,10 @@ class CommunityRole(Group):
 
     def save(self, *args, **kwargs):
         super(CommunityRole, self).save(*args, **kwargs)
+        
+    def __str__(self):
+        return self.community.community_name + ': ' + self.name
+
     
 
 class CommunityUser(User, PolymorphicModel):
