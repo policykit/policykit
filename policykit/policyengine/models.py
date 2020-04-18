@@ -346,8 +346,10 @@ class ProcessAction(BaseAction, PolymorphicModel):
                         cond_result = check_policy_code(policy, action)
                         if cond_result == Proposal.PASSED:
                             exec(policy.policy_action_code)
+                            
                         elif cond_result == Proposal.FAILED:
                             exec(policy.policy_failure_code)
+                            
                         else:
                             exec(policy.policy_notify_code)
         else:
@@ -767,8 +769,10 @@ class CommunityAction(BaseAction,PolymorphicModel):
                         cond_result = check_policy_code(policy, action)
                         if cond_result == Proposal.PASSED:
                             exec(policy.policy_action_code)
+                            
                         elif cond_result == Proposal.FAILED:
                             exec(policy.policy_failure_code)
+                            
                         else:
                             exec(policy.policy_notify_code)
 

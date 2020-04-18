@@ -102,10 +102,10 @@ class RedditCommunity(Community):
         
         logger.info(action)
         
-#         obj = action
-#         
-#         if not obj.community_origin or (obj.community_origin and obj.community_revert):
-#             logger.info('EXECUTING ACTION BELOW:')
+        obj = action
+         
+        if not obj.community_origin or (obj.community_origin and obj.community_revert):
+            logger.info('EXECUTING ACTION BELOW:')
 #             call = self.API + obj.ACTION
 #             logger.info(call)
 #         
@@ -182,8 +182,8 @@ class RedditCommunity(Community):
 #                 logger.info(error_message)
 #                 clean_up_proposals(action, False)
 #     
-#         else:
-#             clean_up_proposals(action, True)
+        else:
+            clean_up_proposals(action, True)
             
 
 class RedditUser(CommunityUser):
@@ -244,4 +244,6 @@ class RedditMakePost(CommunityAction):
                 }
         super().revert(values, 'api/remove')
         
-
+    def execute(self):
+        self.community.make_call('api/approve', {'id': self.name})
+        super().execute()
