@@ -52,7 +52,7 @@ class RedditCommunity(Community):
     
     def make_call(self, url, values=None):
         logger.info(url)
-        req = urllib.request.Request(self.API + url)
+        req = urllib.request.Request(url)
         req.add_header('Authorization', 'bearer %s' % self.access_token)
         req.add_header("User-Agent", REDDIT_USER_AGENT)
         resp = urllib.request.urlopen(req)
@@ -182,7 +182,7 @@ class RedditUser(CommunityUser):
     
     def make_call(self, url, values=None):
         logger.info(url)
-        req = urllib.request.Request(self.community.API + url)
+        req = urllib.request.Request(url)
         req.add_header('Authorization', 'bearer %s' % self.access_token)
         req.add_header("User-Agent", REDDIT_USER_AGENT)
         resp = urllib.request.urlopen(req)
@@ -227,6 +227,6 @@ class RedditMakePost(CommunityAction):
     def revert(self):
         values = {'id': self.name
                 }
-        super().revert(values, 'api/remove')
+        super().revert(values, RedditCommunity.API + 'api/remove')
         
 
