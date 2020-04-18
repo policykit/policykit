@@ -70,6 +70,10 @@ class RedditUser(CommunityUser):
                                max_length=500, 
                                null=True)
     
+    avatar = models.CharField('avatar', 
+                           max_length=500, 
+                           null=True)
+    
     def refresh_access_token(self):
         res = refresh_access_token(self.refresh_token)
         self.access_token = res['access_token']
