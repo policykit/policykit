@@ -10,7 +10,7 @@ import json
 # Create your models here.
 
 
-def refresh_token(refresh_token):
+def refresh_access_token(refresh_token):
     data = parse.urlencode({
         'grant_type': 'refresh_token',
         'refresh_token': refresh_token
@@ -43,8 +43,8 @@ class RedditCommunity(Community):
                                null=True)
     
     
-    def refresh_token(self):
-        res = refresh_token(self.refresh_token)
+    def refresh_access_token(self):
+        res = refresh_access_token(self.refresh_token)
         self.access_token = res['access_token']
         self.save()
 
@@ -67,8 +67,8 @@ class RedditUser(CommunityUser):
                                max_length=500, 
                                null=True)
     
-    def refresh_token(self):
-        res = refresh_token(self.refresh_token)
+    def refresh_access_token(self):
+        res = refresh_access_token(self.refresh_token)
         self.access_token = res['access_token']
         self.save()
     
