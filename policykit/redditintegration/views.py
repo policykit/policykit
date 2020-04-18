@@ -32,12 +32,11 @@ def oauth(request):
             
         req = urllib.request.Request('https://www.reddit.com/api/v1/access_token', data=data)
         
-        string = '%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET)
+        credentials = ('%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET))
+        encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
-        base64string = base64.standard_b64encode(string.encode('utf-8'))
-
-        req.add_header("Authorization", "Basic %s" % base64string)
-        req.add_header("User-Agent", "PolicyKit-App-Reddit-Integration")
+        req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
+        req.add_header("User-Agent", "PolicyKit-App-Reddit-Integration v 1.0")
 
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
