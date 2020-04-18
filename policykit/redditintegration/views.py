@@ -95,7 +95,9 @@ def oauth(request):
                 s[0].access_token = res['access_token']
                 s[0].refresh_token = res['refresh_token']
                 s[0].save()
-                community = s[0]    
+                community = s[0]  
+                
+            logger.info(res['access_token'])  
     
         response = redirect('/login?success=true')
         return response
