@@ -62,7 +62,7 @@ def oauth(request):
     
     if res['ok']:
         if state =="user": 
-            user = authenticate(request, oauth=res)
+            user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
                 

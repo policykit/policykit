@@ -11,8 +11,11 @@ logger = logging.getLogger(__name__)
 
 class SlackBackend(BaseBackend):
 
-    def authenticate(self, request, oauth=None):
+    def authenticate(self, request, oauth=None, platform=None):
         if not oauth:
+            return None
+        
+        if platform != 'slack':
             return None
 
         s = SlackCommunity.objects.filter(team_id=oauth['team']['id'])

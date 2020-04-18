@@ -47,7 +47,7 @@ def oauth(request):
     logger.info(res)
     
     if state =="policykit_reddit_user_login": 
-        user = authenticate(request, oauth=res)
+        user = authenticate(request, oauth=res, platform="reddit")
         if user:
                 login(request, user)
         

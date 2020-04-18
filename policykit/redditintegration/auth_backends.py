@@ -11,8 +11,11 @@ logger = logging.getLogger(__name__)
 
 class RedditBackend(BaseBackend):
 
-    def authenticate(self, request, oauth=None):
+    def authenticate(self, request, oauth=None, platform=None):
         if not oauth:
+            return None
+        
+        if platform != 'reddit':
             return None
         
         req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/subscriber')
