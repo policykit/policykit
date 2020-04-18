@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from policykit.settings import REDDIT_CLIENT_SECRET, REDDIT_CLIENT_ID
+from policykit.settings import REDDIT_CLIENT_SECRET
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from urllib import parse
@@ -34,14 +34,12 @@ def oauth(request):
             
         req = urllib.request.Request('https://www.reddit.com/api/v1/access_token', data=data)
         
-        string = '%s:%s' % (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET)
+        string = '%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET)
 
         base64string = base64.standard_b64encode(string.encode('utf-8'))
 
         request.add_header("Authorization", "Basic %s" % base64string)
 
-        
-        
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         
