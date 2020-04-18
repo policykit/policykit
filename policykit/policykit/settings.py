@@ -192,7 +192,11 @@ CELERY_BEAT_SCHEDULE = {
  'count-votes-beat': {
        'task': 'policyengine.tasks.consider_proposed_actions',
        'schedule': 60.0,
-    }       
+    },
+ 'reddit-listener-beat': {
+       'task': 'redditintegration.tasks.reddit_listener_actions',
+       'schedule': 60.0,
+    }    
 }
 
 

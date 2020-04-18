@@ -10,6 +10,8 @@ import json
 
 REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
+REDDIT_ACTIONS = []
+
 # Create your models here.
 
 
@@ -59,10 +61,10 @@ class RedditCommunity(Community):
     def save(self, *args, **kwargs):      
         super(RedditCommunity, self).save(*args, **kwargs)
         
-#         content_types = ContentType.objects.filter(model__in=REDDIT_ACTIONS)
-#         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
-#         for p in perms:
-#             self.base_role.permissions.add(p)
+        content_types = ContentType.objects.filter(model__in=REDDIT_ACTIONS)
+        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
+        for p in perms:
+            self.base_role.permissions.add(p)
             
 
 class RedditUser(CommunityUser):
