@@ -24,8 +24,6 @@ def oauth(request):
         
         logger.info(code)
         
-        
-        
         data = parse.urlencode({
             'grant_type': 'authorization_code',
             'code': code,
@@ -39,6 +37,7 @@ def oauth(request):
         base64string = base64.standard_b64encode(string.encode('utf-8'))
 
         req.add_header("Authorization", "Basic %s" % base64string)
+        req.add_header("User-Agent", "PolicyKit-App-Reddit-Integration")
 
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
