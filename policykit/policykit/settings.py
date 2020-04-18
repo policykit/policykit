@@ -118,7 +118,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-AUTHENTICATION_BACKENDS = ['slackintegration.auth_backends.SlackBackend',
+AUTHENTICATION_BACKENDS = ['redditintegration.auth_backends.RedditBackend',
+                           'slackintegration.auth_backends.SlackBackend',
                            'django.contrib.auth.backends.ModelBackend']
 
 
