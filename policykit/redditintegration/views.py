@@ -66,7 +66,7 @@ def oauth(request):
             s = RedditCommunity.objects.filter(team_id=title)
          
             community = None
-            user_group,_ = CommunityRole.objects.create(name="Base User")
+            user_group,_ = CommunityRole.objects.create(role_name="Base User", name="Reddit: " + title + ": Base User")
             if not s.exists():
                 community = RedditCommunity.objects.create(
                     community_name=title,

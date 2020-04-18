@@ -69,7 +69,7 @@ def oauth(request):
         elif state == "app":
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Base User")
+            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
             if not s.exists():
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],

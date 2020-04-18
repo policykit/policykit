@@ -125,6 +125,9 @@ class CommunityRole(Group):
     community = models.ForeignKey(Community,
                                    models.CASCADE,
                                    null=True)
+    
+    role_name = models.CharField('readable_name', 
+                                      max_length=300, null=True)
 
     class Meta:
         verbose_name = 'communityrole'
@@ -134,7 +137,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
         
     def __str__(self):
-        return self.community.community_name + ': ' + self.name
+        return self.community.community_name + ': ' + self.role_name
 
     
 
