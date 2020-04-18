@@ -52,8 +52,16 @@ class RedditCommunity(Community):
     
     def make_call(self, url, values=None):
         logger.info(self.API + url)
+        
+        if values:
+            data = urllib.parse.urlencode(values)   
+            data = data.encode('utf-8')
+            logger.info(data)
+        else:
+            data = None
+        
         try:
-            req = urllib.request.Request(self.API + url)
+            req = urllib.request.Request(self.API + url, data)
             req.add_header('Authorization', 'bearer %s' % self.access_token)
             req.add_header("User-Agent", REDDIT_USER_AGENT)
             
@@ -65,7 +73,7 @@ class RedditCommunity(Community):
             if e.reason == 'Unauthorized':
                 self.refresh_access_token()
                 
-                req = urllib.request.Request(self.API + url)
+                req = urllib.request.Request(self.API + url, data)
                 req.add_header('Authorization', 'bearer %s' % self.access_token)
                 req.add_header("User-Agent", REDDIT_USER_AGENT)
                 resp = urllib.request.urlopen(req)
