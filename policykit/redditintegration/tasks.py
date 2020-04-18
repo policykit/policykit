@@ -18,7 +18,7 @@ def reddit_listener_actions():
         
         actions = []
         
-        res = community.make_call('r/policykit/about/unmoderated')
+        res = community.make_call('https://www.reddit.com/r/policykit/about/unmoderated.json')
         
         for item in res['data']['children']:
             data = item['data']
