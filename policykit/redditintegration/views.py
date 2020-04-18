@@ -71,6 +71,7 @@ def oauth(request):
          
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Reddit: " + title + ": Base User")
+            
             if not s.exists():
                 community = RedditCommunity.objects.create(
                     community_name=title,
@@ -90,14 +91,16 @@ def oauth(request):
                 community.save()
                  
             else:
-                s[0].community_name = title
-                s[0].team_id = title
-                s[0].access_token = res['access_token']
-                s[0].refresh_token = res['refresh_token']
-                s[0].save()
-                community = s[0]  
+                community = s[0]
+                community.community_name = title
+                community.team_id = title
+                community.access_token = res['access_token']
+                community.refresh_token = res['refresh_token']
+                community.save()
                 
-            logger.info(res['access_token'])  
+                
+                
+            logger.info(community.access_token)  
     
         response = redirect('/login?success=true')
         return response
