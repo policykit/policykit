@@ -7,6 +7,9 @@ from urllib import parse
 import base64
 import json
 
+
+REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
+
 # Create your models here.
 
 

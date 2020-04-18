@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from policykit.settings import REDDIT_CLIENT_SECRET
 from django.shortcuts import redirect
-from redditintegration.models import RedditCommunity, RedditUser
+from redditintegration.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
+from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from urllib import parse
 import urllib.request
@@ -11,8 +12,6 @@ import json
 import base64
 import logging
 
-
-REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
 logger = logging.getLogger(__name__)
 
@@ -23,32 +22,37 @@ def oauth(request):
     logger.info(request)
     
     state = request.GET.get('state')
-    if state == "policykit_reddit_string":
+    
+    code = request.GET.get('code')
         
-        code = request.GET.get('code')
+    logger.info(code)
+    
+    data = parse.urlencode({
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': 'https://policykit.org/reddit/oauth',
+        }).encode()
         
-        logger.info(code)
-        
-        data = parse.urlencode({
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': 'https://policykit.org/reddit/oauth',
-            }).encode()
-            
-        req = urllib.request.Request('https://www.reddit.com/api/v1/access_token', data=data)
-        
-        credentials = ('%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET))
-        encoded_credentials = base64.b64encode(credentials.encode('ascii'))
+    req = urllib.request.Request('https://www.reddit.com/api/v1/access_token', data=data)
+    
+    credentials = ('%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET))
+    encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
-        req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
-        req.add_header("User-Agent", REDDIT_USER_AGENT)
+    req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
+    req.add_header("User-Agent", REDDIT_USER_AGENT)
 
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
+    resp = urllib.request.urlopen(req)
+    res = json.loads(resp.read().decode('utf-8'))
+    
+    logger.info(res)
+    
+    if state =="policykit_reddit_user_login": 
+        user = authenticate(request, oauth=res)
+        if user:
+                login(request, user)
         
-        logger.info(res)
-        
-        
+    elif state == "policykit_reddit_mod_install":
+
         req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
         req.add_header('Authorization', 'bearer %s' % res['access_token'])
         req.add_header("User-Agent", REDDIT_USER_AGENT)
