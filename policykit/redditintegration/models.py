@@ -6,6 +6,9 @@ import urllib
 from urllib import parse
 import base64
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
@@ -35,7 +38,7 @@ def refresh_access_token(refresh_token):
 
 
 class RedditCommunity(Community):
-    API = 'https://reddit.com/api/v1/'
+    API = 'https://oauth.reddit.com/'
     
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
@@ -47,6 +50,15 @@ class RedditCommunity(Community):
                                max_length=500, 
                                null=True)
     
+    def make_call(self, url, values=None):
+        logger.info(url)
+        req = urllib.request.Request(self.API + url)
+        req.add_header('Authorization', 'bearer %s' % self.access_token)
+        req.add_header("User-Agent", REDDIT_USER_AGENT)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+        return res
     
     def refresh_access_token(self):
         res = refresh_access_token(self.refresh_token)
@@ -67,6 +79,98 @@ class RedditCommunity(Community):
             self.base_role.permissions.add(p)
             
 
+    def execute_community_action(self, action, delete_policykit_post=True):
+        from policyengine.models import LogAPICall, CommunityUser
+        from policyengine.views import clean_up_proposals
+        
+        logger.info('here')
+        
+        logger.info(action)
+        
+#         obj = action
+#         
+#         if not obj.community_origin or (obj.community_origin and obj.community_revert):
+#             logger.info('EXECUTING ACTION BELOW:')
+#             call = self.API + obj.ACTION
+#             logger.info(call)
+#         
+#             
+#             obj_fields = []
+#             for f in obj._meta.get_fields():
+#                 if f.name not in ['polymorphic_ctype',
+#                                   'community',
+#                                   'initiator',
+#                                   'communityapi_ptr',
+#                                   'communityaction',
+#                                   'communityactionbundle',
+#                                   'community_revert',
+#                                   'community_origin',
+#                                   'is_bundled'
+#                                   ]:
+#                     obj_fields.append(f.name) 
+#             
+#             data = {}
+#             
+#             if obj.AUTH == "user":
+#                 data['token'] = action.proposal.author.access_token
+#                 if not data['token']:
+#                     admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+#                     data['token'] = admin_user.access_token
+#             elif obj.AUTH == "admin_bot":
+#                 if action.proposal.author.is_community_admin:
+#                     data['token'] = action.proposal.author.access_token
+#                 else:
+#                     data['token'] = community.access_token
+#             elif obj.AUTH == "admin_user":
+#                 admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+#                 data['token'] = admin_user.access_token
+#             else:
+#                 data['token'] = self.access_token
+#                 
+#             
+#             for item in obj_fields:
+#                 try :
+#                     if item != 'id':
+#                         value = getattr(obj, item)
+#                         data[item] = value
+#                 except obj.DoesNotExist:
+#                     continue
+#     
+#             res = LogAPICall.make_api_call(self, data, call)
+#             
+#             
+#             # delete PolicyKit Post
+#             if delete_policykit_post:
+#                 posted_action = None
+#                 if action.is_bundled:
+#                     bundle = action.communityactionbundle_set.all()
+#                     if bundle.exists():
+#                         posted_action = bundle[0]
+#                 else:
+#                     posted_action = action
+#                     
+#                 if posted_action.community_post:
+#                     admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+#                     values = {'token': admin_user.access_token,
+#                               'ts': posted_action.community_post,
+#                               'channel': obj.channel
+#                             }
+#                     call = self.API + 'chat.delete'
+#                     _ = LogAPICall.make_api_call(self, values, call)
+#     
+#             
+#             
+#             if res['ok']:
+#                 clean_up_proposals(action, True)
+#             else:
+#                 error_message = res['error']
+#                 logger.info(error_message)
+#                 clean_up_proposals(action, False)
+#     
+#         else:
+#             clean_up_proposals(action, True)
+            
+
 class RedditUser(CommunityUser):
     refresh_token = models.CharField('refresh_token', 
                                max_length=500, 
@@ -75,6 +179,16 @@ class RedditUser(CommunityUser):
     avatar = models.CharField('avatar', 
                            max_length=500, 
                            null=True)
+    
+    def make_call(self, url, values=None):
+        logger.info(url)
+        req = urllib.request.Request(self.community.API + url)
+        req.add_header('Authorization', 'bearer %s' % self.access_token)
+        req.add_header("User-Agent", REDDIT_USER_AGENT)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info(res)
+        return res
     
     def refresh_access_token(self):
         res = refresh_access_token(self.refresh_token)
@@ -87,4 +201,32 @@ class RedditUser(CommunityUser):
         group.user_set.add(self)
 
 
+class RedditMakePost(CommunityAction):
+    ACTION = 'api/submit'
+    AUTH = 'user'
+    
+    title = models.CharField('title', 
+                               max_length=500, 
+                               null=True)
+    text = models.TextField()
+    
+    kind = models.CharField('kind', 
+                               max_length=30, 
+                               default="self")
+    
+    name = models.CharField('name', 
+                               max_length=100, 
+                               null=True)
+    
+    class Meta:
+        permissions = (
+            ('can_execute', 'Can execute reddit make post'),
+        )
+
+    
+    def revert(self):
+        values = {'id': self.name
+                }
+        super().revert(values, 'api/remove')
+        
 

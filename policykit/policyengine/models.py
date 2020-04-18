@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import execute_community_action, check_policy_code, check_filter_code, initialize_code
+from policyengine.views import check_policy_code, check_filter_code, initialize_code
 import urllib
 import json
 
@@ -217,23 +217,12 @@ class LogAPICall(models.Model):
     @classmethod
     def make_api_call(cls, community, values, call):
         logger.info("COMMUNITY API CALL")
-        logger.info(call)
-             
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
-        
-        data = urllib.parse.urlencode(values)   
-        data = data.encode('utf-8')
-        logger.info(data)
-        
-        call_info = call + '?'
-        req = urllib.request.Request(call_info, data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
+        res = community.make_call(call, values=values)
         logger.info("COMMUNITY API RESPONSE")
-        logger.info(res)
         return res
     
         
@@ -747,7 +736,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         self.save()
 
     def execute(self):
-        execute_community_action(self)
+        self.community.execute_community_action(self)
         self.pass_action()
         
     def pass_action(self):
@@ -807,7 +796,7 @@ class CommunityActionBundle(BaseAction):
     def execute(self):
         if self.bundle_type == CommunityActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
-                execute_community_action(action)
+                self.community.execute_community_action(action)
                 action.pass_action()
 
     def pass_action(self):
