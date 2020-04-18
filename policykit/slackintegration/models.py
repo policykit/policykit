@@ -167,7 +167,7 @@ class SlackPostMessage(CommunityAction):
                   'ts': self.time_stamp,
                   'channel': self.channel
                 }
-        super().revert(values, SlackCommunity.API + 'chat.delete')
+        super().revert(values, 'chat.delete')
     
 class SlackRenameConversation(CommunityAction):
     ACTION = 'conversations.rename'
@@ -219,7 +219,7 @@ class SlackJoinConversation(CommunityAction):
                   'token': admin_user.access_token,
                   'channel': self.channel
                 }
-        super().revert(values, SlackCommunity.API + 'conversations.kick')
+        super().revert(values, 'conversations.kick')
 
 class SlackPinMessage(CommunityAction):
     ACTION = 'pins.add'
@@ -237,7 +237,7 @@ class SlackPinMessage(CommunityAction):
                   'channel': self.channel,
                   'timestamp': self.timestamp
                 }
-        super().revert(values, SlackCommunity.API + 'pins.remove')
+        super().revert(values, 'pins.remove')
 
 class SlackScheduleMessage(CommunityAction):
     ACTION = 'chat.scheduleMessage'
