@@ -66,6 +66,8 @@ class RedditCommunity(Community):
                 req.add_header("User-Agent", REDDIT_USER_AGENT)
                 resp = urllib.request.urlopen(req)
                 res = json.loads(resp.read().decode('utf-8'))
+            else:
+                logger.info(e)
         logger.info(res)
         return res
     
