@@ -11,6 +11,9 @@ import json
 import base64
 import logging
 
+
+REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,51 +41,64 @@ def oauth(request):
         encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
         req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
-        req.add_header("User-Agent", "PolicyKit-App-Reddit-Integration v 1.0")
+        req.add_header("User-Agent", REDDIT_USER_AGENT)
 
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         
         logger.info(res)
         
-        s = RedditCommunity.objects.filter(team_id=res['team']['id'])
-            community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Base User")
-            if not s.exists():
-                community = SlackCommunity.objects.create(
-                    community_name=res['team']['name'],
-                    team_id=res['team']['id'],
-                    access_token=res['access_token'],
-                    base_role=user_group
-                    )
-                user_group.community = community
-                user_group.save()
-                
-                cg = CommunityDoc.objects.create(text='',
-                                                 community=community)
-                
-                
-                community.community_guidelines=cg
-                community.save()
-                
-            else:
-                s[0].community_name = res['team']['name']
-                s[0].team_id = res['team']['id']
-                s[0].access_token = res['access_token']
-                s[0].save()
-                community = s[0]
-            
-            user = SlackUser.objects.filter(username=res['authed_user']['id'])
-            if not user.exists():
-                
-                # CHECK HERE THAT USER IS ADMIN
-                
-                _ = SlackUser.objects.create(username=res['authed_user']['id'],
-                                             access_token=res['authed_user']['access_token'],
-                                             is_community_admin=True,
-                                             community=community
-                                             )
         
+        req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
+        req.add_header('Authorization', 'bearer %s' % res['access_token'])
+        req.add_header("User-Agent", REDDIT_USER_AGENT)
+        resp = urllib.request.urlopen(req)
+        content = resp.read()
+        
+        logger.info(content)
+                
+        
+        
+        
+#         s = RedditCommunity.objects.filter(team_id=res['team']['id'])
+#         
+#         community = None
+#         user_group,_ = CommunityRole.objects.get_or_create(name="Base User")
+#         if not s.exists():
+#             community = SlackCommunity.objects.create(
+#                 community_name=res['team']['name'],
+#                 team_id=res['team']['id'],
+#                 access_token=res['access_token'],
+#                 base_role=user_group
+#                 )
+#             user_group.community = community
+#             user_group.save()
+#             
+#             cg = CommunityDoc.objects.create(text='',
+#                                              community=community)
+#             
+#             
+#             community.community_guidelines=cg
+#             community.save()
+#             
+#         else:
+#             s[0].community_name = res['team']['name']
+#             s[0].team_id = res['team']['id']
+#             s[0].access_token = res['access_token']
+#             s[0].save()
+#             community = s[0]
+#         
+#         user = SlackUser.objects.filter(username=res['authed_user']['id'])
+#         if not user.exists():
+#             
+#             # CHECK HERE THAT USER IS ADMIN
+#             
+#             _ = SlackUser.objects.create(username=res['authed_user']['id'],
+#                                          access_token=res['authed_user']['access_token'],
+#                                          is_community_admin=True,
+#                                          community=community
+#                                          )
+#         
         
         
         

@@ -55,7 +55,12 @@ Reminder: You must be an admin of the Slack to add PolicyKit to your Slack.<BR>
 <P>
 <b>Connect PolicyKit to Reddit</b>
 <BR>
-Reminder: You must be a mod of the subreddit to add PolicyKit to your subreddit.<BR>
+
+Because Reddit doesn't grant permissions on a subreddit by subreddit basis, you should create a Reddit account and make that account a moderator
+with full permissions on your Reddit. Then, while logged in to that account, click below to grant PolicyKit permission to act on behalf of that account.	
+	
+	
+<BR>
 	
 
 <a href="https://www.reddit.com/api/v1/authorize?client_id=QrZzzkLgVc1x6w&response_type=code&state=policykit_reddit_string&redirect_uri=https%3A%2F%2Fpolicykit.org%2Freddit%2Foauth&duration=permanent&scope=modcontributors,modmail,mysubreddits,modconfig,modflair,modothers,modtraffic,modself,modlog,modposts,modwiki">
@@ -66,7 +71,9 @@ Reminder: You must be a mod of the subreddit to add PolicyKit to your subreddit.
 
 <P>
 	
-	
+<a href="https://www.reddit.com/api/v1/authorize?client_id=QrZzzkLgVc1x6w&response_type=code&state=policykit_reddit_string&redirect_uri=https%3A%2F%2Fpolicykit.org%2Freddit%2Foauth&duration=permanent&scope=edit,flair,identity,mysubreddits,read,submit,save,vote">
+	Sign in with Reddit
+</a>
 	
 </P>
 
