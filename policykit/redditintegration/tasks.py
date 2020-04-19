@@ -18,7 +18,7 @@ def is_policykit_action(community, name, call_type):
         community.make_call('api/approve', {'id': name})
         return True
     else:
-        current_time_minus = datetime.datetime.now() - datetime.timedelta(minute=2)
+        current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
         logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
                                                 call_type=call_type)
         if logs.exists():
