@@ -40,14 +40,15 @@ def initialize_code(policy, action):
 
 
 def check_policy_code(policy, action):
-    from policyengine.models import Proposal, CommunityUser, UserVote
+    from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
     users = CommunityUser.objects.filter(community=policy.community)
-    votes = UserVote.objects.filter(proposal=action.proposal)
+    boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
+    number_votes = NumberVote.objects.filter(proposal=action.proposal)
     
     _locals = locals()
     
-    wrapper_start = "def check(policy, action, users, votes):\r\n"
+    wrapper_start = "def check(policy, action, users, boolean_votes, number_votes):\r\n"
     wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
     
     wrapper_end = "\r\npolicy_pass = check(policy, action, users)"
