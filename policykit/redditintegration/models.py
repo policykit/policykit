@@ -91,8 +91,8 @@ class RedditCommunity(Community):
 
     
     def notify_action(self, action, policy, users=None):
-        logger.info('here!!!!!')
-        pass
+        from redditintegration.views import post_policy
+        post_policy(policy, action, users)
 
     
     def save(self, *args, **kwargs):      

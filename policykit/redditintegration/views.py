@@ -117,5 +117,30 @@ def action(request):
     logger.info(json_data)
     
     
-def post_policy():
-    pass
+def post_policy(policy, action, users, template=None):
+    from policyengine.models import LogAPICall
+   
+    policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote by voting up or down on this post.'
+    
+    if not template:
+        policy_message = policy_message_default
+    else:
+        policy_message = template
+        
+    values = {
+              'ad': False,
+              'api_type': 'json',
+              'kind': 'self',
+              'sr': action.community.community_name,
+              'text': policy_message,
+              'title': 'Vote on action'
+              }
+
+    res = LogAPICall.make_api_call(policy.community, values, 'api/submit')
+    
+    logger.info(res)
+
+        
+    action.community_post = res['ts']
+    action.save()
+    
