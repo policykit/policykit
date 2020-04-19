@@ -49,10 +49,6 @@ class RedditCommunity(Community):
     refresh_token = models.CharField('refresh_token', 
                                max_length=500, 
                                null=True)
-    
-    def notify_action(self, action, policy, users=None):
-        logger.info('here!!!!!')
-        pass
         
     
     def make_call(self, url, values=None):
@@ -94,9 +90,10 @@ class RedditCommunity(Community):
         self.save()
 
     
-    def notify_action(self, action, policy, users, post_type='channel', template=None, channel=None):
-        from redditintegration.views import post_policy
-        post_policy(policy, action, users, post_type, template, channel)
+    def notify_action(self, action, policy, users=None):
+        logger.info('here!!!!!')
+        pass
+
     
     def save(self, *args, **kwargs):      
         super(RedditCommunity, self).save(*args, **kwargs)

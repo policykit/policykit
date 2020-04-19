@@ -26,6 +26,8 @@ def reddit_listener_actions():
             post_exists = RedditMakePost.objects.filter(name=data['name'])
             
             if not post_exists.exists():
+                logger.info('make new action')
+                
                 new_api_action = RedditMakePost()
                 new_api_action.community = community
                 new_api_action.text = data['selftext']
@@ -45,8 +47,11 @@ def reddit_listener_actions():
                         action.community_origin = True
                         action.is_bundled = False
                         action.save()
+                        logger.info('action saved')
                     cond_result = check_policy_code(policy, action)
+                    logger.info(cond_result)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
+                        logger.info('revert')
                         action.revert()
         
     
