@@ -103,13 +103,13 @@ def reddit_listener_actions():
                                                                user=u)
                         if bool_vote.exists():
                             vote = bool_vote[0]
-                            if vote.boolean_vote != val:
-                                vote.boolean_vote = val
+                            if vote.boolean_value != val:
+                                vote.boolean_value = val
                                 vote.save()
                         else:
                             b = BooleanVote.objects.create(proposal=proposed_action.proposal,
                                                            user=u,
-                                                           boolean_vote=val)
+                                                           boolean_value=val)
                             logger.info('created vote')
                     
                 
