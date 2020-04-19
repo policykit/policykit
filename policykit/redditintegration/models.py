@@ -165,7 +165,6 @@ class RedditCommunity(Community):
             data['sr'] = action.community.community_name
             data['api_type'] = 'json'
             
-            logger.info(data)
             res = LogAPICall.make_api_call(self, data, call, action=action)
             
             # delete PolicyKit Post
@@ -183,6 +182,9 @@ class RedditCommunity(Community):
                             }
                     call = 'api/remove'
                     _ = LogAPICall.make_api_call(self, values, call)
+                    
+            # approve post
+            action.community.make_call('api/approve', {'id': action.name})
 
         clean_up_proposals(action, True)
             
