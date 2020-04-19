@@ -51,7 +51,7 @@ class RedditCommunity(Community):
                                null=True)
         
     
-    def make_call(self, url, values=None):
+    def make_call(self, url, values=None, action=None):
         logger.info(self.API + url)
         
         if values:
@@ -61,21 +61,37 @@ class RedditCommunity(Community):
         else:
             data = None
         
+        
+        
         try:
+            user_token = False
             req = urllib.request.Request(self.API + url, data)
-            req.add_header('Authorization', 'bearer %s' % self.access_token)
+            
+            if action and action.AUTH == 'user':
+                user = action.initiator
+                req.add_header('Authorization', 'bearer %s' % user.access_token)
+                user_token = True
+            else:
+                req.add_header('Authorization', 'bearer %s' % self.access_token)
             req.add_header("User-Agent", REDDIT_USER_AGENT)
-            
+                
             logger.info(req.headers)
-            
             resp = urllib.request.urlopen(req)
             res = json.loads(resp.read().decode('utf-8'))
         except urllib.error.HTTPError as e:
             if e.reason == 'Unauthorized':
-                self.refresh_access_token()
+                
+                if user_token:
+                    user.refresh_access_token()
+                else:
+                    self.refresh_access_token()
                 
                 req = urllib.request.Request(self.API + url, data)
-                req.add_header('Authorization', 'bearer %s' % self.access_token)
+                if action and action.AUTH == 'user':
+                    user = action.initiator
+                    req.add_header('Authorization', 'bearer %s' % user.access_token)
+                else:
+                    req.add_header('Authorization', 'bearer %s' % self.access_token)
                 req.add_header("User-Agent", REDDIT_USER_AGENT)
                 resp = urllib.request.urlopen(req)
                 res = json.loads(resp.read().decode('utf-8'))
@@ -116,52 +132,44 @@ class RedditCommunity(Community):
          
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
             logger.info('EXECUTING ACTION BELOW:')
-#             call = self.API + obj.ACTION
-#             logger.info(call)
-#         
-#             
-#             obj_fields = []
-#             for f in obj._meta.get_fields():
-#                 if f.name not in ['polymorphic_ctype',
-#                                   'community',
-#                                   'initiator',
-#                                   'communityapi_ptr',
-#                                   'communityaction',
-#                                   'communityactionbundle',
-#                                   'community_revert',
-#                                   'community_origin',
-#                                   'is_bundled'
-#                                   ]:
-#                     obj_fields.append(f.name) 
-#             
-#             data = {}
-#             
-#             if obj.AUTH == "user":
-#                 data['token'] = action.proposal.author.access_token
-#                 if not data['token']:
-#                     admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-#                     data['token'] = admin_user.access_token
-#             elif obj.AUTH == "admin_bot":
-#                 if action.proposal.author.is_community_admin:
-#                     data['token'] = action.proposal.author.access_token
-#                 else:
-#                     data['token'] = community.access_token
-#             elif obj.AUTH == "admin_user":
-#                 admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-#                 data['token'] = admin_user.access_token
-#             else:
-#                 data['token'] = self.access_token
-#                 
-#             
-#             for item in obj_fields:
-#                 try :
-#                     if item != 'id':
-#                         value = getattr(obj, item)
-#                         data[item] = value
-#                 except obj.DoesNotExist:
-#                     continue
-#     
-#             res = LogAPICall.make_api_call(self, data, call)
+            call = obj.ACTION
+            logger.info(call)
+
+            obj_fields = []
+            for f in obj._meta.get_fields():
+                if f.name not in ['polymorphic_ctype',
+                                  'community',
+                                  'initiator',
+                                  'communityapi_ptr',
+                                  'communityaction',
+                                  'communityactionbundle',
+                                  'community_revert',
+                                  'community_origin',
+                                  'is_bundled',
+                                  'proposal',
+                                  'data',
+                                  'community_post',
+                                  'name'
+                                  ]:
+                    obj_fields.append(f.name) 
+             
+            data = {}                 
+             
+            for item in obj_fields:
+                try :
+                    if item != 'id':
+                        value = getattr(obj, item)
+                        data[item] = value
+                except obj.DoesNotExist:
+                    continue
+                   
+                
+            data['sr'] = action.community.community_name
+            data['api_type'] = 'json'
+            
+            logger.info(data)
+     
+            res = LogAPICall.make_api_call(self, data, call, action=action)
 #             
 #             
 #             # delete PolicyKit Post
@@ -185,15 +193,8 @@ class RedditCommunity(Community):
 #     
 #             
 #             
-#             if res['ok']:
-#                 clean_up_proposals(action, True)
-#             else:
-#                 error_message = res['error']
-#                 logger.info(error_message)
-#                 clean_up_proposals(action, False)
-#     
-        else:
-            clean_up_proposals(action, True)
+
+        clean_up_proposals(action, True)
             
 
 class RedditUser(CommunityUser):
@@ -204,16 +205,6 @@ class RedditUser(CommunityUser):
     avatar = models.CharField('avatar', 
                            max_length=500, 
                            null=True)
-    
-    def make_call(self, url, values=None):
-        logger.info(url)
-        req = urllib.request.Request(self.community.API + url)
-        req.add_header('Authorization', 'bearer %s' % self.access_token)
-        req.add_header("User-Agent", REDDIT_USER_AGENT)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        logger.info(res)
-        return res
     
     def refresh_access_token(self):
         res = refresh_access_token(self.refresh_token)

@@ -215,13 +215,13 @@ class LogAPICall(models.Model):
     extra_info = models.TextField()
     
     @classmethod
-    def make_api_call(cls, community, values, call):
+    def make_api_call(cls, community, values, call, action=None):
         logger.info("COMMUNITY API CALL")
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
-        res = community.make_call(call, values=values)
+        res = community.make_call(call, values=values, action=action)
         logger.info("COMMUNITY API RESPONSE")
         return res
     
