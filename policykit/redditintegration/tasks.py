@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 def is_policykit_action(community, name, call_type):
     community_post = RedditMakePost.objects.filter(community_post=name)
     if community_post.exists():
+        logger.info('approve PolicyKit post')
         community.make_call('api/approve', {'id': name})
         return True
     else:
