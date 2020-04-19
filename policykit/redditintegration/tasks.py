@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policyengine.models import Proposal, CommunityPolicy
+from policyengine.models import Proposal, CommunityPolicy, CommunityAction, BooleanVote, NumberVote
 from redditintegration.models import RedditCommunity, RedditUser, RedditMakePost
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 import datetime
@@ -11,9 +11,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def is_policykit_action(name):
+def is_policykit_action(community, name):
     community_post = RedditMakePost.objects.filter(community_post=name)
     if community_post.exists():
+        community.make_call('api/approve', {'id': name})
         return True
     return False
 
@@ -21,7 +22,6 @@ def is_policykit_action(name):
 def reddit_listener_actions():
     
     for community in RedditCommunity.objects.all():
-        
         actions = []
         
         res = community.make_call('r/policykit/about/unmoderated')
@@ -29,7 +29,7 @@ def reddit_listener_actions():
         for item in res['data']['children']:
             data = item['data']
             
-            if not is_policykit_action(data['name']):
+            if not is_policykit_action(community, data['name']):
     
                 post_exists = RedditMakePost.objects.filter(name=data['name'])
                 
@@ -63,7 +63,54 @@ def reddit_listener_actions():
                         action.revert()
         
     
-    logger.info('reddit_task')
-    pass
     
+        # look for votes
+        
+        proposed_actions = CommunityAction.objects.filter(community=community, 
+                                                          proposal__status=Proposal.PROPOSED,
+                                                          community_post__isnull=False
+                                                          )
+        
+        for proposed_action in proposed_actions:
+            
+            id = proposed_action.community_post.split('_')[1]
+            
+            call = 'r/policykit/comments/' + id + '.json'
+            res = community.make_call(call)
+            replies = res[1]['data']['children']
+            
+            for reply in replies:
+                data = reply['data']
+                
+                text = data['body']
+                
+                logger.info(text)
+                
+                val = None
+                if '\\-1' in text:
+                    val = False
+                elif '\\+1' in text:
+                    val = True
+                
+                if val != None:
+                    username = data['author']
+                    u = RedditUser.objects.filter(username=username, 
+                                                  community=community)
+                    
+                    if u.exists():
+                        u = u[0]
+                        bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal,
+                                                               user=u)
+                        if bool_vote.exists():
+                            vote = bool_vote[0]
+                            if vote.boolean_vote != val:
+                                vote.boolean_vote = val
+                                vote.save()
+                        else:
+                            b = BooleanVote.objects.create(proposal=proposed_action.proposal,
+                                                           user=u,
+                                                           boolean_vote=val)
+                            logger.info('created vote')
+                    
+                
 
