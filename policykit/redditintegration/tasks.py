@@ -12,7 +12,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def is_policykit_action(community, name, call_type):
+def is_policykit_action(community, name, call_type, test_a, test_b):
     community_post = RedditMakePost.objects.filter(community_post=name)
     if community_post.exists():
         logger.info('approve PolicyKit post')
@@ -26,7 +26,8 @@ def is_policykit_action(community, name, call_type):
             logger.info("checking API logging")
             for log in logs:
                 j_info = json.loads(log.extra_info)
-                if name == j_info['name']:
+                if test_a == j_info[test_b]:
+                    logger.info("checking API logging FOUND")
                     return True
     return False
 
@@ -43,7 +44,7 @@ def reddit_listener_actions():
         for item in res['data']['children']:
             data = item['data']
             
-            if not is_policykit_action(community, data['name'], call_type):
+            if not is_policykit_action(community, data['name'], call_type, data['title'], 'title'):
     
                 post_exists = RedditMakePost.objects.filter(name=data['name'])
                 
