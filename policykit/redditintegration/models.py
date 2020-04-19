@@ -140,7 +140,7 @@ class RedditCommunity(Community):
                 if f.name not in ['polymorphic_ctype',
                                   'community',
                                   'initiator',
-                                  'communityapi_ptr',
+                                  'communityaction_ptr',
                                   'communityaction',
                                   'communityactionbundle',
                                   'community_revert',
