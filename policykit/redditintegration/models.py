@@ -61,8 +61,6 @@ class RedditCommunity(Community):
         else:
             data = None
         
-        
-        
         try:
             user_token = False
             req = urllib.request.Request(self.API + url, data)
@@ -169,31 +167,23 @@ class RedditCommunity(Community):
             data['api_type'] = 'json'
             
             logger.info(data)
-     
             res = LogAPICall.make_api_call(self, data, call, action=action)
-#             
-#             
-#             # delete PolicyKit Post
-#             if delete_policykit_post:
-#                 posted_action = None
-#                 if action.is_bundled:
-#                     bundle = action.communityactionbundle_set.all()
-#                     if bundle.exists():
-#                         posted_action = bundle[0]
-#                 else:
-#                     posted_action = action
-#                     
-#                 if posted_action.community_post:
-#                     admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-#                     values = {'token': admin_user.access_token,
-#                               'ts': posted_action.community_post,
-#                               'channel': obj.channel
-#                             }
-#                     call = self.API + 'chat.delete'
-#                     _ = LogAPICall.make_api_call(self, values, call)
-#     
-#             
-#             
+            
+            # delete PolicyKit Post
+            if delete_policykit_post:
+                posted_action = None
+                if action.is_bundled:
+                    bundle = action.communityactionbundle_set.all()
+                    if bundle.exists():
+                        posted_action = bundle[0]
+                else:
+                    posted_action = action
+                     
+                if posted_action.community_post:
+                    values = {'id': posted_action.community_post
+                            }
+                    call = 'api/remove'
+                    _ = LogAPICall.make_api_call(self, values, call)
 
         clean_up_proposals(action, True)
             
