@@ -3,19 +3,30 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policyengine.models import Proposal, CommunityPolicy, CommunityAction, BooleanVote, NumberVote
+from policyengine.models import Proposal, LogAPICall, CommunityPolicy, CommunityAction, BooleanVote, NumberVote
 from redditintegration.models import RedditCommunity, RedditUser, RedditMakePost
 from policyengine.views import check_filter_code, check_policy_code, initialize_code
 import datetime
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
-def is_policykit_action(community, name):
+def is_policykit_action(community, name, call_type):
     community_post = RedditMakePost.objects.filter(community_post=name)
     if community_post.exists():
         community.make_call('api/approve', {'id': name})
         return True
+    else:
+        
+        current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
+        logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
+                                                call_type=call_type)
+        if logs.exists():
+            for log in logs:
+                j_info = json.loads(log.extra_info)
+                if name == j_info['name']:
+                    return True
     return False
 
 @shared_task
@@ -26,10 +37,12 @@ def reddit_listener_actions():
         
         res = community.make_call('r/policykit/about/unmoderated')
         
+        call_type = 'api/submit'
+        
         for item in res['data']['children']:
             data = item['data']
             
-            if not is_policykit_action(community, data['name']):
+            if not is_policykit_action(community, data['name'], call_type):
     
                 post_exists = RedditMakePost.objects.filter(name=data['name'])
                 
