@@ -95,7 +95,6 @@ class RedditCommunity(Community):
                 res = json.loads(resp.read().decode('utf-8'))
             else:
                 logger.info(e)
-        logger.info(res)
         return res
     
     def refresh_access_token(self):
