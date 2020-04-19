@@ -43,10 +43,11 @@ def check_policy_code(policy, action):
     from policyengine.models import Proposal, CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
+    votes = UserVote.objects.filter(proposal=action.proposal)
     
     _locals = locals()
     
-    wrapper_start = "def check(policy, action, users):\r\n"
+    wrapper_start = "def check(policy, action, users, votes):\r\n"
     wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
     
     wrapper_end = "\r\npolicy_pass = check(policy, action, users)"

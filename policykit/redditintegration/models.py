@@ -50,6 +50,11 @@ class RedditCommunity(Community):
                                max_length=500, 
                                null=True)
     
+    def notify_action(self, action, policy, users=None):
+        logger.info('here!!!!!')
+        pass
+        
+    
     def make_call(self, url, values=None):
         logger.info(self.API + url)
         
@@ -253,5 +258,6 @@ class RedditMakePost(CommunityAction):
         super().revert(values, 'api/remove')
         
     def execute(self):
-        self.community.make_call('api/approve', {'id': self.name})
+        if not self.community_revert:
+            self.community.make_call('api/approve', {'id': self.name})
         super().execute()
