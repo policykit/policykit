@@ -82,7 +82,8 @@ class RedditCommunity(Community):
             if e.reason == 'Unauthorized':
                 
                 if user_token:
-                    user.refresh_access_token()
+                    ruser = user.reddituser
+                    ruser.refresh_access_token()
                 else:
                     self.refresh_access_token()
                 

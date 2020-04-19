@@ -156,7 +156,7 @@ class CommunityUser(User, PolymorphicModel):
     is_community_admin = models.BooleanField(default=False)            
         
     def __str__(self):
-        return self.readable_name + '@' + self.community.community_name
+        return self.username + '@' + self.community.community_name
 
 
 class CommunityDoc(models.Model):
