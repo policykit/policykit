@@ -170,6 +170,8 @@ class RedditCommunity(Community):
             
             res = LogAPICall.make_api_call(self, data, call, action=action)
             
+            logger.info(res)
+            
             # delete PolicyKit Post
             logger.info('delete policykit post')
             if delete_policykit_post:
@@ -189,7 +191,7 @@ class RedditCommunity(Community):
                     
             # approve post
             logger.info('approve executed post')
-            action.community.make_call('api/approve', {'id': action.name})
+            action.community.make_call('api/approve', {'id': res['json']['data']['name']})
 
         clean_up_proposals(action, True)
             
