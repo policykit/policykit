@@ -51,7 +51,7 @@ def check_policy_code(policy, action):
     wrapper_start = "def check(policy, action, users, boolean_votes, number_votes):\r\n"
     wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
     
-    wrapper_end = "\r\npolicy_pass = check(policy, action, users)"
+    wrapper_end = "\r\npolicy_pass = check(policy, action, users, boolean_votes, number_votes)"
      
     lines = ['  ' + item for item in policy.policy_conditional_code.splitlines()]
     check_str = '\r\n'.join(lines)
