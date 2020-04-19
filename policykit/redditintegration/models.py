@@ -57,7 +57,6 @@ class RedditCommunity(Community):
         if values:
             data = urllib.parse.urlencode(values)   
             data = data.encode('utf-8')
-            logger.info(data)
         else:
             data = None
         
