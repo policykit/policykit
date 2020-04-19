@@ -66,8 +66,11 @@ class RedditCommunity(Community):
             
             if action and action.AUTH == 'user':
                 user = action.initiator
-                req.add_header('Authorization', 'bearer %s' % user.access_token)
-                user_token = True
+                if user.access_token:
+                    req.add_header('Authorization', 'bearer %s' % user.access_token)
+                    user_token = True
+                else:
+                    req.add_header('Authorization', 'bearer %s' % self.access_token)
             else:
                 req.add_header('Authorization', 'bearer %s' % self.access_token)
             req.add_header("User-Agent", REDDIT_USER_AGENT)
@@ -167,6 +170,7 @@ class RedditCommunity(Community):
             res = LogAPICall.make_api_call(self, data, call, action=action)
             
             # delete PolicyKit Post
+            logger.info('delete policykit post')
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
@@ -183,6 +187,7 @@ class RedditCommunity(Community):
                     _ = LogAPICall.make_api_call(self, values, call)
                     
             # approve post
+            logger.info('approve executed post')
             action.community.make_call('api/approve', {'id': action.name})
 
         clean_up_proposals(action, True)
