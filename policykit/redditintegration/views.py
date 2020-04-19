@@ -141,6 +141,6 @@ def post_policy(policy, action, users, template=None):
     logger.info(res)
 
         
-    action.community_post = res['ts']
+    action.community_post = res['json']['data']['name']
     action.save()
     

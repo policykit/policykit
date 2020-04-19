@@ -11,6 +11,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def is_policykit_action(name):
+    community_post = RedditMakePost.objects.filter(community_post=name)
+    if community_post.exists():
+        return True
+    return False
+
 @shared_task
 def reddit_listener_actions():
     
@@ -22,23 +28,25 @@ def reddit_listener_actions():
         
         for item in res['data']['children']:
             data = item['data']
-
-            post_exists = RedditMakePost.objects.filter(name=data['name'])
             
-            if not post_exists.exists():
-                logger.info('make new action')
-                
-                new_api_action = RedditMakePost()
-                new_api_action.community = community
-                new_api_action.text = data['selftext']
-                new_api_action.title = data['title']
-                new_api_action.name = data['name']
+            if not is_policykit_action(data['name']):
     
-                u,_ = RedditUser.objects.get_or_create(username=data['author'],
-                                                       community=community)
-                new_api_action.initiator = u
-                actions.append(new_api_action)
+                post_exists = RedditMakePost.objects.filter(name=data['name'])
                 
+                if not post_exists.exists():
+                    logger.info('make new action')
+                    
+                    new_api_action = RedditMakePost()
+                    new_api_action.community = community
+                    new_api_action.text = data['selftext']
+                    new_api_action.title = data['title']
+                    new_api_action.name = data['name']
+        
+                    u,_ = RedditUser.objects.get_or_create(username=data['author'],
+                                                           community=community)
+                    new_api_action.initiator = u
+                    actions.append(new_api_action)
+                    
         
         for action in actions:
             for policy in CommunityPolicy.objects.filter(community=action.community):
