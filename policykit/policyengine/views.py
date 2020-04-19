@@ -40,7 +40,7 @@ def initialize_code(policy, action):
 
 
 def check_policy_code(policy, action):
-    from policyengine.models import Proposal, CommunityUser
+    from policyengine.models import Proposal, CommunityUser, UserVote
 
     users = CommunityUser.objects.filter(community=policy.community)
     votes = UserVote.objects.filter(proposal=action.proposal)
