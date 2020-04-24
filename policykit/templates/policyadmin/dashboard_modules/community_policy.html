@@ -1,28 +1,26 @@
 <ul>
     {% for rule in module.children %}
-    <a role="button" href="#{{rule.id}}" data-toggle="collapse" data-target = "#"aria-expanded="true" aria-controls="collapseOne">{{ rule.explanation }}</a>
-    <div id="{{rule.id}}" class="panel-collapse collapse in" role="tabpanel">
-        <div class="panel-body">
-            <li>
-                {% if rule.is_bundled %}
-                    Part of bundled policy: {{ rule.bundle.explanation }}<BR>
-                {% endif %}
-                <label>Filter Code: </label>
-                <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Init Code: </label>
-                <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Notify Code: </label>
-                <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Conditional Code: </label>
-                <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Action Code: </label>
-                <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Failure Code: </label>
-                <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                {{ rule.policy_text }} <BR>
-                <i>{{ rule.explanation }}</i>
-            </li>
-        </div>
+    <button type="button" data-toggle="collapse" data-target="#rule-{{rule.id}}">{{ rule.explanation }}</button>
+    <div id="rule-{{rule.id}}" class="collapse">
+        <li>
+            {% if rule.is_bundled %}
+                Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+            {% endif %}
+            <label>Filter Code: </label>
+            <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+            <label>Init Code: </label>
+            <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+            <label>Notify Code: </label>
+            <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+            <label>Conditional Code: </label>
+            <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+            <label>Action Code: </label>
+            <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+            <label>Failure Code: </label>
+            <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+            {{ rule.policy_text }} <BR>
+            <i>{{ rule.explanation }}</i>
+        </li>
     </div>
     <script>
         var codeTypes = {
