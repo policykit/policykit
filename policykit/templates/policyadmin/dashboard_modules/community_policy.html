@@ -2,7 +2,7 @@
     {% for rule in module.children %}
     <!-- <button type="button" data-toggle="collapse" data-target="#rule-{{rule.id}}">{{ rule.explanation }}</button> -->
     <a data-toggle="collapse" href="#rule-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.id}}">{{ rule.explanation }}<i class="fas fa-angle-down rotate-icon"></i></a>
-    <div id="rule-{{rule.id}}" class="collapse show">
+    <div id="rule-{{rule.id}}" class="collapse">
         <li>
             {% if rule.is_bundled %}
                 Part of bundled policy: {{ rule.bundle.explanation }}<BR>
