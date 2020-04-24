@@ -1,50 +1,47 @@
-<a role="button" href="#{{rule.id}}" data-toggle="collapse" aria-expanded="true" aria-controls="collapseOne">{{ rule.explanation }}</a>
-
-<div id={{rule.id}} class = "panel-collapse collapse in" role="tabpanel">
-    <div class="panel-body">
-        <ul>
-            {% for rule in module.children %}
+<ul>
+    {% for rule in module.children %}
+    <a role="button" href="#{{rule.id}}" data-toggle="collapse" data-target = "#"aria-expanded="true" aria-controls="collapseOne">{{ rule.explanation }}</a>
+    <div id="{{rule.id}}" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
             <li>
-                    {% if rule.is_bundled %}
-                        Part of bundled policy: {{ rule.bundle.explanation }}<BR>
-                    {% endif %}
-                    Test
-                    <label>Filter Code: </label>
-                    <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Init Code: </label>
-                    <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Notify Code: </label>
-                    <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Conditional Code: </label>
-                    <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Action Code: </label>
-                    <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Failure Code: </label>
-                    <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    {{ rule.policy_text }} <BR>
-                    <i>{{ rule.explanation }}</i>
-                </li>
-
-            <script>
-                var codeTypes = {
-                    'filter': `{{ rule.policy_filter_code | safe }}`, 
-                    'init': `{{ rule.policy_init_code | safe }}`, 
-                    'notify': `{{ rule.policy_notify_code | safe }}`, 
-                    'conditional': `{{ rule.policy_conditional_code | safe }}`, 
-                    'action': `{{ rule.policy_action_code | safe }}`, 
-                    'failure': `{{ rule.policy_failure_code | safe }}`
-                };
-
-                for (var type in codeTypes) {
-                    var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
-                    var editor = CodeMirror.fromTextArea(textArea, {
-                      lineNumbers: true,
-                      readOnly: "nocursor"
-                    });
-                    editor.setValue(codeTypes[type]);
-                }
-            </script>
-            {% endfor %}
-        </ul>
+                {% if rule.is_bundled %}
+                    Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+                {% endif %}
+                <label>Filter Code: </label>
+                <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Init Code: </label>
+                <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Notify Code: </label>
+                <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Conditional Code: </label>
+                <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Action Code: </label>
+                <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Failure Code: </label>
+                <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                {{ rule.policy_text }} <BR>
+                <i>{{ rule.explanation }}</i>
+            </li>
+        </div>
     </div>
-</div>
+    <script>
+        var codeTypes = {
+            'filter': `{{ rule.policy_filter_code | safe }}`, 
+            'init': `{{ rule.policy_init_code | safe }}`, 
+            'notify': `{{ rule.policy_notify_code | safe }}`, 
+            'conditional': `{{ rule.policy_conditional_code | safe }}`, 
+            'action': `{{ rule.policy_action_code | safe }}`, 
+            'failure': `{{ rule.policy_failure_code | safe }}`
+        };
+
+        for (var type in codeTypes) {
+            var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
+            var editor = CodeMirror.fromTextArea(textArea, {
+              lineNumbers: true,
+              readOnly: "nocursor"
+            });
+            editor.setValue(codeTypes[type]);
+        }
+    </script>
+    {% endfor %}
+</ul>
