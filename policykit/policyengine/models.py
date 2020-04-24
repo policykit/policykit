@@ -408,9 +408,7 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 
 
-class PolicykitChangeCommunityDoc(ProcessAction):
-    classes = ['collapse']
-    
+class PolicykitChangeCommunityDoc(ProcessAction):    
     community_doc = models.ForeignKey(CommunityDoc, 
                                       models.CASCADE)
     
