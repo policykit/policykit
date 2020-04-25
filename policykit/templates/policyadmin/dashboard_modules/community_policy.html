@@ -5,10 +5,7 @@
       <div class="card">
         <div class="card-header" id="heading-{{rule.id}}">
           <a data-toggle="collapse" data-parent="#accordion-{{rule.id}}" href="#rule-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.id}}">
-            <h5 class="mb-0">
-              {{ rule.explanation }}
-              <i class="fas fa-angle-down rotate-icon"></i>
-            </h5>
+            {{ rule.explanation }}
           </a>
         </div>
 
@@ -31,7 +28,6 @@
                 <label>Failure Code: </label>
                 <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                 {{ rule.policy_text }} <BR>
-                <i>{{ rule.explanation }}</i>
             </li>
             <script>
                 var codeTypes = {
