@@ -39,7 +39,7 @@
                     'failure': `{{ rule.policy_failure_code | safe }}`
                 };
 
-                $('#accordion').on('show.bs.collapse', function() {
+                $('#accordion-{{rule.id}}').on('show.bs.collapse', function() {
                     for (var type in codeTypes) {
                         var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
                         var editor = CodeMirror.fromTextArea(textArea, {
