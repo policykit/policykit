@@ -39,15 +39,17 @@
                     'failure': `{{ rule.policy_failure_code | safe }}`
                 };
 
-                for (var type in codeTypes) {
-                    var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
-                    var editor = CodeMirror.fromTextArea(textArea, {
-                      lineNumbers: true,
-                      readOnly: "nocursor"
-                    });
-                    editor.setValue(codeTypes[type]);
-                    editor.refresh();
-                }
+                $('#accordion').on('show.bs.collapse', function() {
+                    for (var type in codeTypes) {
+                        var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
+                        var editor = CodeMirror.fromTextArea(textArea, {
+                          lineNumbers: true,
+                          readOnly: "nocursor"
+                        });
+                        editor.setValue(codeTypes[type]);
+                        editor.refresh();
+                    }
+                });
             </script>
           </div>
         </div>
