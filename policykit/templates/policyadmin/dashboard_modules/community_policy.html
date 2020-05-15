@@ -30,6 +30,7 @@
                 {{ rule.policy_text }} <BR>
             </li>
             <script>
+                var codemirror_init = false;
                 var codeTypes = {
                     'filter': `{{ rule.policy_filter_code | safe }}`, 
                     'init': `{{ rule.policy_init_code | safe }}`, 
@@ -40,14 +41,16 @@
                 };
 
                 $('#accordion-{{rule.id}}').on('shown.bs.collapse', function() {
-                    for (var type in codeTypes) {
-                        var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
-                        var editor = CodeMirror.fromTextArea(textArea, {
-                          lineNumbers: true,
-                          readOnly: "nocursor"
-                        });
-                        editor.setValue(codeTypes[type]);
-                        editor.refresh();
+                    if (!codemirror_init) {
+                        for (var type in codeTypes) {
+                            var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
+                            var editor = CodeMirror.fromTextArea(textArea, {
+                              lineNumbers: true,
+                              readOnly: "nocursor"
+                            });
+                            editor.setValue(codeTypes[type]);
+                            editor.refresh();
+                        }
                     }
                 });
             </script>
