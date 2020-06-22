@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import execute_community_action, check_policy_code, check_filter_code, initialize_code
+from policyengine.views import check_policy_code, check_filter_code, initialize_code
 import urllib
 import json
 
@@ -125,6 +125,9 @@ class CommunityRole(Group):
     community = models.ForeignKey(Community,
                                    models.CASCADE,
                                    null=True)
+    
+    role_name = models.CharField('readable_name', 
+                                      max_length=300, null=True)
 
     class Meta:
         verbose_name = 'communityrole'
@@ -132,6 +135,10 @@ class CommunityRole(Group):
 
     def save(self, *args, **kwargs):
         super(CommunityRole, self).save(*args, **kwargs)
+        
+    def __str__(self):
+        return self.community.community_name + ': ' + self.role_name
+
     
 
 class CommunityUser(User, PolymorphicModel):
@@ -149,7 +156,7 @@ class CommunityUser(User, PolymorphicModel):
     is_community_admin = models.BooleanField(default=False)            
         
     def __str__(self):
-        return self.readable_name + '@' + self.community.community_name
+        return self.username + '@' + self.community.community_name
 
 
 class CommunityDoc(models.Model):
@@ -208,25 +215,14 @@ class LogAPICall(models.Model):
     extra_info = models.TextField()
     
     @classmethod
-    def make_api_call(cls, community, values, call):
+    def make_api_call(cls, community, values, call, action=None):
         logger.info("COMMUNITY API CALL")
-        logger.info(call)
-             
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
-        
-        data = urllib.parse.urlencode(values)   
-        data = data.encode('utf-8')
-        logger.info(data)
-        
-        call_info = call + '?'
-        req = urllib.request.Request(call_info, data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
+        res = community.make_call(call, values=values, action=action)
         logger.info("COMMUNITY API RESPONSE")
-        logger.info(res)
         return res
     
         
@@ -350,8 +346,10 @@ class ProcessAction(BaseAction, PolymorphicModel):
                         cond_result = check_policy_code(policy, action)
                         if cond_result == Proposal.PASSED:
                             exec(policy.policy_action_code)
+                            
                         elif cond_result == Proposal.FAILED:
                             exec(policy.policy_failure_code)
+                            
                         else:
                             exec(policy.policy_notify_code)
         else:
@@ -410,8 +408,7 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 
 
-class PolicykitChangeCommunityDoc(ProcessAction):
-    
+class PolicykitChangeCommunityDoc(ProcessAction):    
     community_doc = models.ForeignKey(CommunityDoc, 
                                       models.CASCADE)
     
@@ -740,7 +737,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         self.save()
 
     def execute(self):
-        execute_community_action(self)
+        self.community.execute_community_action(self)
         self.pass_action()
         
     def pass_action(self):
@@ -771,8 +768,10 @@ class CommunityAction(BaseAction,PolymorphicModel):
                         cond_result = check_policy_code(policy, action)
                         if cond_result == Proposal.PASSED:
                             exec(policy.policy_action_code)
+                            
                         elif cond_result == Proposal.FAILED:
                             exec(policy.policy_failure_code)
+                            
                         else:
                             exec(policy.policy_notify_code)
 
@@ -800,7 +799,7 @@ class CommunityActionBundle(BaseAction):
     def execute(self):
         if self.bundle_type == CommunityActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
-                execute_community_action(action)
+                self.community.execute_community_action(action)
                 action.pass_action()
 
     def pass_action(self):

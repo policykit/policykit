@@ -11,6 +11,7 @@ from policyengine.views import *
 def consider_proposed_actions():
     
     def _execute_policy(policy, action):
+        
         if check_filter_code(policy, action):
             
             if not policy.has_notified:
@@ -33,6 +34,9 @@ def consider_proposed_actions():
     
     community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in community_actions:
+        
+        logger.info(action)
+        
         for policy in CommunityPolicy.objects.filter(community=action.community):
             _execute_policy(policy, action)
             

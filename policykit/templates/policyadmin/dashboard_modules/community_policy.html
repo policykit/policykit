@@ -1,27 +1,36 @@
-
 <ul>
-			{% for rule in module.children %}
-			<li>
-					{% if rule.is_bundled %}
-						Part of bundled policy: {{ rule.bundle.explanation }}<BR>
-					{% endif %}
-                    <label>Filter Code: </label>
-                    <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Init Code: </label>
-                    <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Notify Code: </label>
-                    <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Conditional Code: </label>
-                    <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Action Code: </label>
-                    <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                    <label>Failure Code: </label>
-                    <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-					{{ rule.policy_text }} <BR>
-					<i>{{ rule.explanation }}</i>
-				</li>
+    {% for rule in module.children %}
+    <!-- <button type="button" data-toggle="collapse" data-target="#rule-{{rule.id}}">{{ rule.explanation }}</button> -->
+    <div class="accordion" id="accordion-{{rule.id}}">
+      <div class="card">
+        <div class="card-header" id="heading-{{rule.id}}">
+          <a data-toggle="collapse" data-parent="#accordion-{{rule.id}}" href="#rule-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.id}}">
+            {{ rule.explanation }}
+          </a>
+        </div>
 
+        <div id="rule-{{rule.id}}" class="collapse" role="tabpanel" aria-labelledby="heading-{{rule.id}}" data-parent="#accordion-{{rule.id}}">
+          <div class="card-body">
+            <li>
+                {% if rule.is_bundled %}
+                    Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+                {% endif %}
+                <label>Filter Code: </label>
+                <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Init Code: </label>
+                <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Notify Code: </label>
+                <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Conditional Code: </label>
+                <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Action Code: </label>
+                <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Failure Code: </label>
+                <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                {{ rule.policy_text }} <BR>
+            </li>
             <script>
+                var codemirror_init = false;
                 var codeTypes = {
                     'filter': `{{ rule.policy_filter_code | safe }}`, 
                     'init': `{{ rule.policy_init_code | safe }}`, 
@@ -31,14 +40,24 @@
                     'failure': `{{ rule.policy_failure_code | safe }}`
                 };
 
-                for (var type in codeTypes) {
-                    var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
-                    var editor = CodeMirror.fromTextArea(textArea, {
-                      lineNumbers: true,
-                      readOnly: "nocursor"
-                    });
-                    editor.setValue(codeTypes[type]);
-                }
+                $('#accordion-{{rule.id}}').on('shown.bs.collapse', function() {
+                    if (!codemirror_init) {
+                        for (var type in codeTypes) {
+                            var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
+                            var editor = CodeMirror.fromTextArea(textArea, {
+                              lineNumbers: true,
+                              readOnly: "nocursor"
+                            });
+                            editor.setValue(codeTypes[type]);
+                            editor.refresh();
+                        }
+                        codemirror_init = true;
+                    }
+                });
             </script>
-			{% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
 </ul>

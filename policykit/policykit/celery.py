@@ -10,7 +10,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
 app = Celery('policykit',
              broker='amqp://',
              backend='amqp://',
-             include=['policyengine.tasks'])
+             include=['policyengine.tasks',
+                      'redditintegration.tasks'])
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

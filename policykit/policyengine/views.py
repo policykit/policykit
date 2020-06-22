@@ -40,16 +40,18 @@ def initialize_code(policy, action):
 
 
 def check_policy_code(policy, action):
-    from policyengine.models import Proposal, CommunityUser
+    from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
     users = CommunityUser.objects.filter(community=policy.community)
+    boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
+    number_votes = NumberVote.objects.filter(proposal=action.proposal)
     
     _locals = locals()
     
-    wrapper_start = "def check(policy, action, users):\r\n"
+    wrapper_start = "def check(policy, action, users, boolean_votes, number_votes):\r\n"
     wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
     
-    wrapper_end = "\r\npolicy_pass = check(policy, action, users)"
+    wrapper_end = "\r\npolicy_pass = check(policy, action, users, boolean_votes, number_votes)"
      
     lines = ['  ' + item for item in policy.policy_conditional_code.splitlines()]
     check_str = '\r\n'.join(lines)
@@ -63,94 +65,6 @@ def check_policy_code(policy, action):
         return Proposal.PROPOSED
 
 
-def execute_community_action(action, delete_policykit_post=True):
-    from policyengine.models import LogAPICall, CommunityUser
-    
-    logger.info('here')
-
-    community = action.community
-    obj = action
-    
-    if not obj.community_origin or (obj.community_origin and obj.community_revert):
-        logger.info('EXECUTING ACTION BELOW:')
-        call = community.API + obj.ACTION
-        logger.info(call)
-    
-        
-        obj_fields = []
-        for f in obj._meta.get_fields():
-            if f.name not in ['polymorphic_ctype',
-                              'community',
-                              'initiator',
-                              'communityapi_ptr',
-                              'communityaction',
-                              'communityactionbundle',
-                              'community_revert',
-                              'community_origin',
-                              'is_bundled'
-                              ]:
-                obj_fields.append(f.name) 
-        
-        data = {}
-        
-        if obj.AUTH == "user":
-            data['token'] = action.proposal.author.access_token
-            if not data['token']:
-                admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-                data['token'] = admin_user.access_token
-        elif obj.AUTH == "admin_bot":
-            if action.proposal.author.is_community_admin:
-                data['token'] = action.proposal.author.access_token
-            else:
-                data['token'] = community.access_token
-        elif obj.AUTH == "admin_user":
-            admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-            data['token'] = admin_user.access_token
-        else:
-            data['token'] = community.access_token
-            
-        
-        for item in obj_fields:
-            try :
-                if item != 'id':
-                    value = getattr(obj, item)
-                    data[item] = value
-            except obj.DoesNotExist:
-                continue
-
-        res = LogAPICall.make_api_call(community, data, call)
-        
-        
-        # delete PolicyKit Post
-        if delete_policykit_post:
-            posted_action = None
-            if action.is_bundled:
-                bundle = action.communityactionbundle_set.all()
-                if bundle.exists():
-                    posted_action = bundle[0]
-            else:
-                posted_action = action
-                
-            if posted_action.community_post:
-                admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
-                values = {'token': admin_user.access_token,
-                          'ts': posted_action.community_post,
-                          'channel': obj.channel
-                        }
-                call = community.API + 'chat.delete'
-                _ = LogAPICall.make_api_call(community, values, call)
-
-        
-        
-        if res['ok']:
-            clean_up_proposals(action, True)
-        else:
-            error_message = res['error']
-            logger.info(error_message)
-            clean_up_proposals(action, False)
-
-    else:
-        clean_up_proposals(action, True)
 
 
 def clean_up_proposals(action, executed):

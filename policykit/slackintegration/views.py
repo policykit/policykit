@@ -62,14 +62,14 @@ def oauth(request):
     
     if res['ok']:
         if state =="user": 
-            user = authenticate(request, oauth=res)
+            user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
                 
         elif state == "app":
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Base User")
+            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
             if not s.exists():
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],
@@ -88,11 +88,11 @@ def oauth(request):
                 community.save()
                 
             else:
-                s[0].community_name = res['team']['name']
-                s[0].team_id = res['team']['id']
-                s[0].access_token = res['access_token']
-                s[0].save()
                 community = s[0]
+                community.community_name = res['team']['name']
+                community.team_id = res['team']['id']
+                community.access_token = res['access_token']
+                community.save()
             
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
             if not user.exists():

@@ -118,7 +118,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-AUTHENTICATION_BACKENDS = ['slackintegration.auth_backends.SlackBackend',
+AUTHENTICATION_BACKENDS = ['redditintegration.auth_backends.RedditBackend',
+                           'slackintegration.auth_backends.SlackBackend',
                            'django.contrib.auth.backends.ModelBackend']
 
 
@@ -191,7 +192,11 @@ CELERY_BEAT_SCHEDULE = {
  'count-votes-beat': {
        'task': 'policyengine.tasks.consider_proposed_actions',
        'schedule': 60.0,
-    }       
+    },
+ 'reddit-listener-beat': {
+       'task': 'redditintegration.tasks.reddit_listener_actions',
+       'schedule': 60.0,
+    }    
 }
 
 
