@@ -62,6 +62,8 @@
 + "dict hex object slice coerce dir id oct sorted intern ";
   var pythonBuiltinsL = pythonBuiltins.split(" ").join("() ").split(" ");
   var pythonBuiltinsU = pythonBuiltins.toUpperCase().split(" ").join("() ").split(" ");
+  var policyKitKeywords = "action policy users proposal community constitution";
+  var policyKitKeywordsL = policyKitKeywords.split(" ");
 
   function getCompletions(token, context) {
     var found = [], start = token.string;
@@ -74,6 +76,7 @@
         forEach(pythonBuiltinsU, maybeAdd);
         forEach(pythonKeywordsL, maybeAdd);
         forEach(pythonKeywordsU, maybeAdd);
+        forEach(policyKitKeywordsL, maybeAdd);
     }
 
     if (context) {

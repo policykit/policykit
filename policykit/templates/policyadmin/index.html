@@ -7,8 +7,11 @@
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />
     <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
+    <link rel="stylesheet" type="text/css" href={% static "bootstrap/css/bootstrap.css" %}>
 	<script src={% static "codemirror/lib/codemirror.js" %}></script>
 	<script src={% static "codemirror/mode/python/python.js" %}></script>
+    <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+    <script src={% static "bootstrap/js/bootstrap.js" %}></script>
 
     {% for css in dashboard.media.css %}
         <link href="{% static css %}" rel="stylesheet" />
@@ -17,7 +20,6 @@
 
 {% block extrahead %}
     {{ block.super }}
-
     {% for js in dashboard.media.js %}
         <script src="{% static js %}"></script>
     {% endfor %}

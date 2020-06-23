@@ -47,29 +47,29 @@ NUMBERS = {0: 'zero',
 def oauth(request):
     code = request.GET.get('code')
     state = request.GET.get('state')
-    
+
     data = parse.urlencode({
         'client_id': '455205644210.932801604965',
         'client_secret': SLACK_CLIENT_SECRET,
         'code': code,
         }).encode()
-        
+
     req = urllib.request.Request('https://slack.com/api/oauth.v2.access', data=data)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
-    
+
     logger.info(res)
-    
+
     if res['ok']:
-        if state =="user": 
-            user = authenticate(request, oauth=res)
+        if state =="user":
+            user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
-                
+
         elif state == "app":
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Base User")
+            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
             if not s.exists():
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],
@@ -79,26 +79,37 @@ def oauth(request):
                     )
                 user_group.community = community
                 user_group.save()
-                
+
                 cg = CommunityDoc.objects.create(text='',
                                                  community=community)
-                
-                
+
+
                 community.community_guidelines=cg
                 community.save()
-                
+
             else:
-                s[0].community_name = res['team']['name']
-                s[0].team_id = res['team']['id']
-                s[0].access_token = res['access_token']
-                s[0].save()
                 community = s[0]
-            
+                community.community_name = res['team']['name']
+                community.team_id = res['team']['id']
+                community.access_token = res['access_token']
+                community.save()
+
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
             if not user.exists():
-                
-                # CHECK HERE THAT USER IS ADMIN
-                
+
+                # Checks that user is admin
+
+                data = parse.urlencode({
+                    'token': res['access_token'],
+                    'user': res['authed_user']['id']
+                    }).encode()
+                reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=data)
+                respInfo = urllib.request.urlopen(reqInfo)
+                resInfo = json.loads(respInfo.read())
+                if resInfo['user']['is_admin'] == False:
+                    response = redirect('/login?error=user_is_not_an_admin')
+                    return response
+
                 _ = SlackUser.objects.create(username=res['authed_user']['id'],
                                              access_token=res['authed_user']['access_token'],
                                              is_community_admin=True,
@@ -108,7 +119,7 @@ def oauth(request):
         # error message stating that the sign-in/add-to-slack didn't work
         response = redirect('/login?error=cancel')
         return response
-        
+
     response = redirect('/login?success=true')
     return response
 
@@ -123,7 +134,7 @@ def is_policykit_action(integration, test_a, test_b, api_name):
             j_info = json.loads(log.extra_info)
             if test_a == j_info[test_b]:
                 return True
-    
+
     return False
 
 
@@ -134,11 +145,11 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
     action_type = json_data.get('type')
-    
+
     if action_type == "url_verification":
         challenge = json_data.get('challenge')
         return HttpResponse(challenge)
-    
+
     elif action_type == "event_callback":
         event = json_data.get('event')
         team_id = json_data.get('team_id')
@@ -147,7 +158,7 @@ def action(request):
 
         new_api_action = None
         policy_kit_action = False
-        
+
         if event.get('type') == "channel_rename":
             if not is_policykit_action(community, event['channel']['name'], 'name', SlackRenameConversation.ACTION):
                 new_api_action = SlackRenameConversation()
@@ -159,9 +170,9 @@ def action(request):
                 new_api_action.initiator = u
                 prev_names = new_api_action.get_channel_info()
                 new_api_action.prev_name = prev_names[0]
-                
+
         elif event.get('type') == 'message' and event.get('subtype') == None:
-            if not is_policykit_action(community, event['text'], 'text', SlackPostMessage.ACTION):            
+            if not is_policykit_action(community, event['text'], 'text', SlackPostMessage.ACTION):
                 new_api_action = SlackPostMessage()
                 new_api_action.community = community
                 new_api_action.text = event['text']
@@ -186,7 +197,7 @@ def action(request):
                 new_api_action.users = event.get('user')
                 new_api_action.channel = event['channel']
 
-                
+
         elif event.get('type') == 'pin_added':
             if not is_policykit_action(community, event['channel_id'], 'channel', SlackPinMessage.ACTION):
                 new_api_action = SlackPinMessage()
@@ -209,22 +220,22 @@ def action(request):
                     cond_result = check_policy_code(policy, new_api_action)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                         new_api_action.revert()
-                    
-                    
-        
+
+
+
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
             action = None
             action_res = CommunityAction.objects.filter(community_post=ts)
             if action_res.exists():
                 action = action_res[0]
-            
+
                 if event['reaction'] == '+1' or event['reaction'] == '-1':
                     if event['reaction'] == '+1':
                         value = True
                     elif event['reaction'] == '-1':
                         value = False
-                    
+
                     user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                            community=action.community)
                     uv = BooleanVote.objects.filter(proposal=action.proposal,
@@ -235,19 +246,19 @@ def action(request):
                         uv.save()
                     else:
                         uv = BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
-            
+
             if action == None:
                 action_res = CommunityActionBundle.objects.filter(community_post=ts)
                 if action_res.exists():
                     action = action_res[0]
-                    
+
                     bundled_actions = list(action.bundled_actions.all())
-                    
+
                     if event['reaction'] in NUMBERS_TEXT.keys():
                         num = NUMBERS_TEXT[event['reaction']]
                         voted_action = bundled_actions[num]
-                        
-                        
+
+
                         user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                                community=voted_action.community)
                         uv = NumberVote.objects.filter(proposal=voted_action.proposal,
@@ -258,16 +269,16 @@ def action(request):
                             uv.save()
                         else:
                             uv = NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=1)
-        
-    
+
+
     return HttpResponse("")
-    
+
 
 
 
 def post_policy(policy, action, users=None, post_type='channel', template=None, channel=None):
     from policyengine.models import LogAPICall, CommunityActionBundle
-    
+
     if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
         bundled_actions = action.bundled_actions.all()
@@ -275,21 +286,21 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
             policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
     else:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
-    
+
     values = {'token': policy.community.access_token}
-    
+
     if not template:
         policy_message = policy_message_default
     else:
         policy_message = template
 
     values['text'] = policy_message
-    
+
     # mpim - all users
     # im each user
     # channel all users
     # channel ephemeral users
-    
+
     if post_type == "mpim":
         api_call = 'chat.postMessage'
         usernames = [user.username for user in users]
@@ -299,17 +310,17 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
         res = LogAPICall.make_api_call(policy.community, info, call)
         channel = res['channel']['id']
         values['channel'] = channel
-        
+
         call = policy.community_integration.API + api_call
         res = LogAPICall.make_api_call(policy.community, values, call)
-        
+
         action.community_post = res['ts']
         action.save()
-        
+
     elif post_type == 'im':
         api_call = 'chat.postMessage'
         usernames = [user.username for user in users]
-        
+
         for username in usernames:
             info = {'token': policy.community.access_token}
             info['users'] = username
@@ -317,20 +328,20 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
             res = LogAPICall.make_api_call(policy.community, info, call)
             channel = res['channel']['id']
             values['channel'] = channel
-            
+
             call = policy.community.API + api_call
             res = LogAPICall.make_api_call(policy.community, values, call)
-            
+
             action.community_post = res['ts']
             action.save()
-            
+
     elif post_type == 'ephemeral':
         api_call = 'chat.postEphemeral'
         usernames = [user.username for user in users]
-        
+
         for username in usernames:
             values['user'] = username
-            
+
             if channel:
                 values['channel'] = channel
             else:
@@ -340,9 +351,9 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
                     a = action.bundled_actions.all()[0]
                     values['channel'] = a.channel
             call = policy.community.API + api_call
-            
+
             res = LogAPICall.make_api_call(policy.community, values, call)
-            
+
             action.community_post = res['ts']
             action.save()
     elif post_type == 'channel':
@@ -355,10 +366,9 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
             else:
                 a = action.bundled_actions.all()[0]
                 values['channel'] = a.channel
-                    
+
         call = policy.community.API + api_call
         res = LogAPICall.make_api_call(policy.community, values, call)
-        
+
         action.community_post = res['ts']
         action.save()
-
