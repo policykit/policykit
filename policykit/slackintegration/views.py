@@ -105,7 +105,7 @@ def oauth(request):
                     }).encode()
                 reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=data)
                 respInfo = urllib.request.urlopen(reqInfo)
-                resInfo = json.loads(respInfo.read().decode('utf-8'))
+                resInfo = json.loads(respInfo.read())
                 if resInfo['user']['is_admin'] == False:
                     response = redirect('/login?error=cancel')
                     return response
