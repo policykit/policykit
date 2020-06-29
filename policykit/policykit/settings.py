@@ -95,7 +95,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    },
+
 }
 
 
@@ -153,7 +154,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/var/log/django/debug.log',
+            'filename': '/Users/sreyaguha/Desktop/summer/policykit/policykit/policykit/var/log/django/debug.log',
         },
     },
     'loggers': {
