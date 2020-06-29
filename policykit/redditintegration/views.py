@@ -102,8 +102,8 @@ def oauth(request):
 
             logger.info(community.access_token)"""
 
-            template = '/configure?subreddits=' + ','.join(titles)
-            return render(request, template)
+            response = redirect('/configure?subreddits=' + ','.join(titles))
+            return response
 
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
     return response
