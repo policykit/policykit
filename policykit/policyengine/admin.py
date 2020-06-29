@@ -91,7 +91,7 @@ admin_site = PolicyAdminSite(name="policyadmin")
 
 
 class PolicykitAddProcessPolicyAdmin(admin.ModelAdmin):
-    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
+    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
@@ -101,7 +101,7 @@ admin_site.register(PolicykitAddProcessPolicy, PolicykitAddProcessPolicyAdmin)
 
 
 class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
+    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
@@ -254,7 +254,7 @@ admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
 
 class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('community_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
+    fields= ('community_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
@@ -265,7 +265,7 @@ admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPoli
 
 
 class PolicykitChangeProcessPolicyAdmin(admin.ModelAdmin):
-    fields= ('process_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled')
+    fields= ('process_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
