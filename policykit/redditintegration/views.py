@@ -103,7 +103,7 @@ def oauth(request):
             logger.info(community.access_token)"""
 
             template = 'policyadmin/configure?subreddits=' + ','.join(titles)
-            return HttpResponse(template.render())
+            return render(request, template)
 
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
     return response
