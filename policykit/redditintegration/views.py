@@ -105,7 +105,7 @@ def oauth(request):
             response = redirect('/configure?subreddits=' + ','.join(titles))
             return response
 
-    response = redirect('/login?success=false')
+    response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
     return response
 
 
