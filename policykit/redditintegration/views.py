@@ -102,7 +102,7 @@ def oauth(request):
 
             logger.info(community.access_token)"""
 
-            response = render(request, '/policyadmin/configure.html?subreddits=' + ','.join(titles))
+            response = redirect('/reddit/configure?subreddits=' + ','.join(titles))
             return response
 
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
@@ -116,6 +116,8 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
+def configure(request):
+    return render(request, "configure.html")
 
 def post_policy(policy, action, users, template=None):
     from policyengine.models import LogAPICall
