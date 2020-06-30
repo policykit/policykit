@@ -128,5 +128,6 @@ class PolicyModule(DashboardModule):
                                   'policy_action_code': i.policy_action_code,
                                   'policy_failure_code': i.policy_failure_code,
                                   'policy_text': i.policy_text,
-                                  'explanation': i.explanation})
+                                  'explanation': i.explanation,
+                                  'policy_name': i.policy_name})
         

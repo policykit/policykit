@@ -55,6 +55,7 @@ class Community(PolymorphicModel):
             p.policy_action_code = "action.execute()"
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"
+            p.policy_name = "Starter name"
             
             proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
             p.proposal = proposal
@@ -544,6 +545,8 @@ class PolicykitAddCommunityPolicy(ProcessAction):
     policy_conditional_code = models.TextField(blank=True, default='')
     policy_action_code = models.TextField(blank=True, default='')
     policy_failure_code = models.TextField(blank=True, default='')
+
+    policy_name = models.TextField(null=True, blank=True)
     
     policy_text = models.TextField(null=True, blank=True)
     
@@ -558,6 +561,7 @@ class PolicykitAddCommunityPolicy(ProcessAction):
         policy.policy_action_code = self.policy_action_code
         policy.policy_failure_code = self.policy_failure_code
         policy.policy_text = self.policy_text
+        policy.policy_name = self.policy_name
         policy.explanation = self.explanation
         policy.is_bundled = self.is_bundled
         policy.community = self.community
@@ -580,6 +584,7 @@ class PolicykitAddProcessPolicy(ProcessAction):
     policy_failure_code = models.TextField(blank=True, default='')
     
     policy_text = models.TextField(null=True, blank=True)
+    policy_name = models.TextField(null=True, blank=True)
     
     explanation = models.TextField(null=True, blank=True)
     
@@ -617,7 +622,7 @@ class PolicykitChangeCommunityPolicy(ProcessAction):
     policy_failure_code = models.TextField(blank=True, default='')
     
     policy_text = models.TextField(null=True, blank=True)
-    
+    policy_name = models.TextField(null=True, blank=True)
     explanation = models.TextField(null=True, blank=True)
     
     def execute(self):
@@ -628,6 +633,7 @@ class PolicykitChangeCommunityPolicy(ProcessAction):
         self.community_policy.policy_action_code = self.policy_action_code
         self.community_policy.policy_failure_code = self.policy_failure_code
         self.community_policy.policy_text = self.policy_text
+        self.community_policy.policy_name = self.policy_name
         self.community_policy.explanation = self.explanation
         
         self.community_policy.save()
@@ -652,6 +658,7 @@ class PolicykitChangeProcessPolicy(ProcessAction):
     policy_failure_code = models.TextField(blank=True, default='')
     
     policy_text = models.TextField(null=True, blank=True)
+    policy_name = models.TextField(null=True, blank=True)
     
     explanation = models.TextField(null=True, blank=True)
     
@@ -663,6 +670,7 @@ class PolicykitChangeProcessPolicy(ProcessAction):
         self.process_policy.policy_action_code = self.policy_action_code
         self.process_policy.policy_failure_code = self.policy_failure_code
         self.process_policy.policy_text = self.policy_text
+        self.process_policy.policy_name = self.policy_name
         self.process_policy.explanation = self.explanation
         self.process_policy.save()
         
@@ -844,6 +852,7 @@ class BasePolicy(models.Model):
     policy_failure_code = models.TextField(blank=True, default='')
     
     policy_text = models.TextField(null=True, blank=True)
+    policy_name = models.TextField(null=True, blank=True)
     
     community = models.ForeignKey(Community, 
         models.CASCADE,
