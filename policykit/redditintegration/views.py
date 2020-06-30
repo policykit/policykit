@@ -102,7 +102,7 @@ def oauth(request):
 
             logger.info(community.access_token)"""
 
-            encoded_titles = urllib.urlencode(titles)
+            encoded_titles = parse.urlencode(titles)
             response = redirect('/configure?%s'%encoded_titles)
             return response
 
