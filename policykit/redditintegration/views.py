@@ -102,7 +102,8 @@ def oauth(request):
 
             logger.info(community.access_token)"""
 
-            response = redirect('/configure?subreddits=' + ','.join(titles))
+            encoded_titles = urllib.urlencode(titles)
+            response = redirect('/configure?%s'%encoded_titles)
             return response
 
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')

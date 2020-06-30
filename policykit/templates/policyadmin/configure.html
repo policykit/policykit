@@ -28,7 +28,7 @@
 <form>
 <label for="subreddits">Choose a Subreddit:</label>
 <select name="subreddits" id="subreddits">
-  {% for subreddit in request.GET.subreddits.split(",") %}
+  {% for subreddit in request.GET.subreddits %}
     <option value="{{ subreddit }}">{{ subreddit }}</option>
   {% endfor %}
 </select>
