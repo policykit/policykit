@@ -90,7 +90,7 @@ def oauth(request):
                 #https://api.slack.com/methods/users.list
                 if res2['ok']:
                     for user in res2['members']:
-                        if !user['deleted']:
+                        if not user['deleted']:
                             u,_ = SlackUser.objects.get_or_create(username=user['id'], readable_name=user['real_name'], community=community)
                 
                 user_group.community = community
