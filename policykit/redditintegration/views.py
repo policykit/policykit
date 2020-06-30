@@ -102,7 +102,7 @@ def oauth(request):
 
             logger.info(community.access_token)"""
 
-            response = redirect('/reddit/configure?subreddits=' + ','.join(titles))
+            response = redirect('/reddit?subreddits=' + ','.join(titles))
             return response
 
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
