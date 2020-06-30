@@ -18,6 +18,7 @@ from django.urls import path
 from django.conf.urls import include
 from django.views.generic import TemplateView
 from policyengine.admin import admin_site
+from policykit import configure
 
 urlpatterns = [
     path('', admin_site.urls),
@@ -27,5 +28,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
-    path('configure/', TemplateView.as_view(template_name='policyadmin/configure.html'))
+    path('configure/', configure.configure)
 ]
