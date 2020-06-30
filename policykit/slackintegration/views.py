@@ -83,7 +83,7 @@ def oauth(request):
                     'token':community.access_token
                 }).encode()
                                        
-                req2 = urllib.request.Request('https://slack.com/api/users.list', data=data)
+                req2 = urllib.request.Request('https://slack.com/api/users.list', data=data2)
                 resp2 = urllib.request.urlopen(req2)
                 res2 = json.loads(resp2.read().decode('utf-8'))
                 
