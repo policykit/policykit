@@ -1,13 +1,20 @@
-{% extends "admin/base_site.html" %}
 {% load i18n static %}
-
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/login.css" %}">
-{{ form.media }}
-{% endblock %}
 
 {% block extrahead %}
 <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
 {% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block usertools %}
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
 
 {% block content %}
 
