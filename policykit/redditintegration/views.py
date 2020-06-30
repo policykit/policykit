@@ -73,6 +73,7 @@ def oauth(request):
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
     return response
 
+@csrf_exempt
 def initCommunity(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
