@@ -5,6 +5,5 @@ from redditintegration import views
 
 urlpatterns = [
     path('oauth', views.oauth),
-    path('action', views.action),
-    path('configure', views.configure)
+    path('action', views.action)
 ]
