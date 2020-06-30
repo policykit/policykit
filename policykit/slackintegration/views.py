@@ -79,8 +79,8 @@ def oauth(request):
                     )
             
                 #get the list of users, create SlackUser object for each user
-                data = parse.urlencode({
-                    'token':res['access_token']
+                data2 = parse.urlencode({
+                    'token':community.access_token
                 }).encode()
                                        
                 req2 = urllib.request.Request('https://slack.com/api/users.list', data=data)
@@ -91,7 +91,7 @@ def oauth(request):
                 if res2['ok']:
                     for user in res2['members']:
                         if not user['deleted']:
-                            SlackUser.objects.create(username=user['id'], readable_name=user['real_name'], community=community)
+                            u,_ = SlackUser.objects.get_or_create(username=user['id'], readable_name=user['real_name'], community=community)
                 
                 user_group.community = community
                 user_group.save()
@@ -125,7 +125,9 @@ def oauth(request):
                 if resInfo['user']['is_admin'] == False:
                     response = redirect('/login?error=user_is_not_an_admin')
                     return response
-
+                
+                
+                
                 _ = SlackUser.objects.create(username=res['authed_user']['id'],
                                              access_token=res['authed_user']['access_token'],
                                              is_community_admin=True,
