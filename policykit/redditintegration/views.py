@@ -88,15 +88,14 @@ def initCommunity(request):
         community = RedditCommunity.objects.create(
             community_name=title,
             team_id=title,
-            access_token=res['access_token'],
-            refresh_token=res['refresh_token'],
+            access_token=access_token,
+            refresh_token=refresh_token,
             base_role=user_group
             )
         user_group.community = community
         user_group.save()
 
-        cg = CommunityDoc.objects.create(text='',
-                                         community=community)
+        cg = CommunityDoc.objects.create(text='', community=community)
 
         community.community_guidelines=cg
         community.save()
@@ -105,8 +104,8 @@ def initCommunity(request):
         community = s[0]
         community.community_name = title
         community.team_id = title
-        community.access_token = res['access_token']
-        community.refresh_token = res['refresh_token']
+        community.access_token = access_token
+        community.refresh_token = refresh_token
         community.save()
 
     logger.info(community.access_token)
