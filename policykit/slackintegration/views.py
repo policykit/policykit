@@ -91,7 +91,7 @@ def oauth(request):
                 if res2['ok']:
                     for user in res2['members']:
                         if not user['deleted']:
-                            u,_ = SlackUser.objects.create(username=user['id'], readable_name=user['real_name'], community=community)
+                            SlackUser.objects.create(username=user['id'], readable_name=user['real_name'], community=community)
                 
                 user_group.community = community
                 user_group.save()
