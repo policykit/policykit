@@ -97,7 +97,14 @@ def oauth(request):
                     access_token=res['access_token'],
                     base_role=user_group
                     )
-            
+                user_group.community = community
+                user_group.save()
+                    
+                cg = CommunityDoc.objects.create(text='', community=community)
+                    
+                community.community_guidelines=cg
+                community.save()
+
                 #get the list of users, create SlackUser object for each user
                 data2 = parse.urlencode({
                     'token':community.access_token
@@ -112,17 +119,9 @@ def oauth(request):
                     for user in res2['members']:
                         if not user['deleted'] and not user['is_bot']:
                             u,_ = SlackUser.objects.get_or_create(username=user['id'], readable_name=user['real_name'], community=community)
-                        elif user['is_bot']:
+                                #elif user['is_bot']:
                             #store bot id somewhere
                             
-                user_group.community = community
-                user_group.save()
-
-                cg = CommunityDoc.objects.create(text='',
-                                                 community=community)
-
-                community.community_guidelines=cg
-                community.save()
 
             else:
                 community = s[0]
