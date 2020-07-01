@@ -99,7 +99,7 @@ def oauth(request):
                 #https://api.slack.com/methods/users.list
                 if res2['ok']:
                     for user in res2['members']:
-                        if (not user['deleted']) and (not user['is_bot']) and (user['id'] != res['authed_user']['id']):
+                        if (not user['deleted']) and (not user['is_bot']) and (user['id'] != 'USLACKBOT') and (user['id'] != res['authed_user']['id']):
                             u,_ = SlackUser.objects.get_or_create(username=user['id'], readable_name=user['real_name'], community=community)
                         #elif user['is_bot']:
                             #store bot id somewhere
