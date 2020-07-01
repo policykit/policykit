@@ -1,0 +1,35 @@
+{% load i18n static %}
+
+{% block extrahead %}
+<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+{% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block usertools %}
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+<P><b>Configure PolicyKit for your Reddit account</b><BR></P>
+
+<form action="/reddit/initCommunity" method="post">
+  <label for="subreddits">Choose a Subreddit:</label>
+  <select name="subreddit">
+    {% for subreddit in subreddits %}
+      <option value="{{ subreddit }}">{{ subreddit }}</option>
+    {% endfor %}
+  </select>
+  <input type="hidden" name="access_token" value="{{ access_token }}">
+  <input type="hidden" name="refresh_token" value="{{ refresh_token }}">
+  <input type="submit" value="Continue">
+</form>
+
+{% endblock %}
