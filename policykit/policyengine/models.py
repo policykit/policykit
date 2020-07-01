@@ -54,8 +54,8 @@ class Community(PolymorphicModel):
             p.policy_conditional_code = "return PASSED"
             p.policy_action_code = "action.execute()"
             p.policy_failure_code = "pass"
-            p.explanation = "Starter Policy: all policies pass"
-            p.policy_name = "Starter name"
+            p.explanation = "All policy changes automatically pass"
+            p.policy_name = "Starter Policy"
             
             proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
             p.proposal = proposal
