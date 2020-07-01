@@ -117,8 +117,7 @@ def oauth(request):
                 if resInfo['user']['is_admin'] == False:
                     response = redirect('/login?error=user_is_not_an_admin')
                     return response
-                            
-
+                
                 _ = SlackUser.objects.create(username=res['authed_user']['id'],
                                                              access_token=res['authed_user']['access_token'],
                                                              is_community_admin=True,
