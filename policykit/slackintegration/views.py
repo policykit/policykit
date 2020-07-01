@@ -71,25 +71,7 @@ def oauth(request):
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
-            
-            if not user.exists():
-                # Checks that user is admin
-                data = parse.urlencode({
-                                       'token': res['access_token'],
-                                       'user': res['authed_user']['id']
-                                       }).encode()
-                reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=data)
-                respInfo = urllib.request.urlopen(reqInfo)
-                resInfo = json.loads(respInfo.read())
-                
-                if resInfo['user']['is_admin'] == False:
-                    response = redirect('/login?error=user_is_not_an_admin')
-                    return response
-                        
-                _ = SlackUser.objects.create(username=res['authed_user']['id'],
-                                            access_token=res['authed_user']['access_token'],
-                                            is_community_admin=True,
-                                            community=community)
+        
             if not s.exists():
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],
@@ -117,12 +99,30 @@ def oauth(request):
                 #https://api.slack.com/methods/users.list
                 if res2['ok']:
                     for user in res2['members']:
-                        if not user['deleted'] and not user['is_bot']:
+                        if not user['deleted'] and not user['is_bot'] and user['id'] != res['authed_user']['id']:
                             u,_ = SlackUser.objects.get_or_create(username=user['id'], readable_name=user['real_name'], community=community)
-                                #elif user['is_bot']:
+                        #elif user['is_bot']:
                             #store bot id somewhere
                             
+            if not user.exists():
+                # Checks that user is admin
+                data = parse.urlencode({
+                                       'token': res['access_token'],
+                                       'user': res['authed_user']['id']
+                                       }).encode()
+                reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=data)
+                respInfo = urllib.request.urlopen(reqInfo)
+                resInfo = json.loads(respInfo.read())
+                    
+                if resInfo['user']['is_admin'] == False:
+                    response = redirect('/login?error=user_is_not_an_admin')
+                    return response
+                            
 
+                _ = SlackUser.objects.create(username=res['authed_user']['id'],
+                                                             access_token=res['authed_user']['access_token'],
+                                                             is_community_admin=True,
+                                                             community=community)
             else:
                 community = s[0]
                 community.community_name = res['team']['name']
