@@ -119,7 +119,7 @@ def oauth(request):
                                                          is_community_admin=True,
                                                          community=community)
                             elif new_user['is_bot']:
-                                community.bot_id = new_user['id']d
+                                community.bot_id = new_user['id']
                             else:
                                 u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
                 
