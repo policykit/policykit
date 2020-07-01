@@ -94,7 +94,7 @@ def oauth(request):
                     )
                 user_group.community = community
                 user_group.save()
-                    
+                
                 cg = CommunityDoc.objects.create(text='', community=community)
                     
                 community.community_guidelines=cg
@@ -114,7 +114,7 @@ def oauth(request):
                     for new_user in res2['members']:
                         if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
                             if new_user['id'] == res['authed_user']['id']:
-                                u,_ = SlackUser.objects.get_or_create(username=res['authed_user']['id'], readable_name=new_user['real_name']
+                                u,_ = SlackUser.objects.get_or_create(username=res['authed_user']['id'], readable_name=new_user['real_name'],
                                                          access_token=res['authed_user']['access_token'],
                                                          is_community_admin=True,
                                                          community=community)
