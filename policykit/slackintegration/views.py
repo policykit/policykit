@@ -101,8 +101,8 @@ def oauth(request):
                     for new_user in res2['members']:
                         if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT') and (new_user['id'] != res['authed_user']['id']):
                             u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
-                        #elif user['is_bot']:
-                            #store bot id somewhere
+                            #elif new_user['is_bot']:
+                            #community.bot_id = new_user['id']
                             
             if not user.exists():
                 # Checks that user is admin
@@ -151,24 +151,6 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 
     return False
 
-#creates slackUser object along with the readable name and user_id
-#def create_slack_user(community, user_id):
-    #getting the user's readable name
-    #data = parse.urlencode({
-    #    'token':community.access_token, #takes bot access token
-#    'user':user_id
-#   }).encode()
-        
-#   req = urllib.request.Request('https://slack.com/api/users.profile.get', data=data)
-#   resp = urllib.request.urlopen(req)
-#   res = json.loads(resp.read().decode('utf-8'))
-# if res['ok']:
-#        u,_ = SlackUser.objects.get_or_create(username=user_id, readable_name=res['profile']['real_name'], community=community)
-#        return u
-#    else:
-#        return
-
-
 @csrf_exempt
 def action(request):
     json_data = json.loads(request.body)
@@ -196,7 +178,6 @@ def action(request):
                 new_api_action.name = event['channel']['name']
                 new_api_action.channel = event['channel']['id']
                 
-                #u = create_slack_user(community, event['user'])
                 u,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                     community=community)
                 new_api_action.initiator = u
@@ -211,7 +192,6 @@ def action(request):
                 new_api_action.channel = event['channel']
                 new_api_action.time_stamp = event['ts']
                 
-                #u = create_slack_user(community, event['user'])
                 u,_ = SlackUser.objects.get_or_create(username=event['user'], community=community)
 
                 new_api_action.initiator = u
@@ -221,12 +201,10 @@ def action(request):
                 new_api_action = SlackJoinConversation()
                 new_api_action.community = community
                 if event.get('inviter'):
-                    #u = create_slack_user(community, event['inviter'])
                     u,_ = SlackUser.objects.get_or_create(username=event['inviter'],
                                                           community=community)
                     new_api_action.initiator = u
                 else:
-                    #u = create_slack_user(community, event['user'])
                     u,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                           community=community)
                     new_api_action.initiator = u
@@ -239,7 +217,6 @@ def action(request):
                 new_api_action = SlackPinMessage()
                 new_api_action.community = community
                 
-                #u = create_slack_user(community, event['user'])
                 u,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                       community=community)
                 new_api_action.initiator = u
@@ -274,7 +251,6 @@ def action(request):
                     elif event['reaction'] == '-1':
                         value = False
                     
-                    #user = create_slack_user(community, event['user'])
                     user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                             community=action.community)
                     uv = BooleanVote.objects.filter(proposal=action.proposal,
@@ -297,7 +273,6 @@ def action(request):
                         num = NUMBERS_TEXT[event['reaction']]
                         voted_action = bundled_actions[num]
 
-                        #user = create_slack_user(community, event['user'])
                         user,_ = SlackUser.objects.get_or_create(username=event['user'],
                                                                community=voted_action.community)
                         uv = NumberVote.objects.filter(proposal=voted_action.proposal,
