@@ -19,6 +19,8 @@ class SlackCommunity(Community):
     API = 'https://slack.com/api/'
     
     team_id = models.CharField('team_id', max_length=150, unique=True)
+    
+    bot_id = models.CharField('bot_id', max_length=150, unique=True)
 
     access_token = models.CharField('access_token', 
                                     max_length=300, 
