@@ -109,9 +109,9 @@ Start apache2:
 Install RabbitMQ, Celery, and celery-beat.
 
 Start RabbitMQ:
-`sudo service rabbitmq-server status`
+`sudo service rabbitmq-server start`
 
-Inside /etc/systemd/system add configuration files for running celery and celery-beat as a processs:
+Inside /etc/systemd/system add configuration files for running celery and celery-beat as a process:
 
 File: celery.service
 ```
