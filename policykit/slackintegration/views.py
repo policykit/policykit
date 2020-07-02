@@ -67,11 +67,6 @@ def oauth(request):
                 login(request, user)
 
         elif state == "app":
-            s = SlackCommunity.objects.filter(team_id=res['team']['id'])
-            community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
-            user = SlackUser.objects.filter(username=res['authed_user']['id'])
-
             # Verify that user is admin before creating any communities / users
             dataAdmin = parse.urlencode({
                                    'token': res['access_token'],
@@ -83,6 +78,11 @@ def oauth(request):
             if resInfo['user']['is_admin'] == False:
                 response = redirect('/login?error=user_is_not_an_admin')
                 return response
+
+            s = SlackCommunity.objects.filter(team_id=res['team']['id'])
+            community = None
+            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
+            user = SlackUser.objects.filter(username=res['authed_user']['id'])
 
             if not s.exists():
                 community = SlackCommunity.objects.create(
