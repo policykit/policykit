@@ -46,7 +46,8 @@ def oauth(request):
 
     logger.info(res)
 
-    if req.GET.get('error') != 'access_denied':
+    console.log(res.error)
+    if res.error != 'access_denied':
         if state =="policykit_reddit_user_login":
             user = authenticate(request, oauth=res, platform="reddit")
             if user:
