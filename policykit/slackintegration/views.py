@@ -76,19 +76,20 @@ def oauth(request):
             respInfo = urllib.request.urlopen(reqInfo)
             resInfo = json.loads(respInfo.read())
             
+            if resInfo['user']['is_admin'] == False:
+                response = redirect('/login?error=user_is_not_an_admin')
+                return response
+            
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
-                                       
-            if resInfo['user']['is_admin'] == False:
-                response = redirect('/login?error=user_is_not_an_admin')
-                return response
         
             if not s.exists():
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],
                     team_id=res['team']['id'],
+                    bot_id=res['bot_user_id'],
                     access_token=res['access_token'],
                     base_role=user_group
                     )
@@ -125,6 +126,7 @@ def oauth(request):
                 community = s[0]
                 community.community_name = res['team']['name']
                 community.team_id = res['team']['id']
+                community.bot_id = res['bot_user_id']
                 community.access_token = res['access_token']
                 community.save()
 
