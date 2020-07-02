@@ -22,10 +22,15 @@ def oauth(request):
     logger.info(request)
 
     state = request.GET.get('state')
-
     code = request.GET.get('code')
+    error = request.GET.get('error')
 
     logger.info(code)
+
+    if error == 'access_denied':
+        # error message stating that the sign-in/add-to-reddit didn't work
+        response = redirect('/login?error=cancel')
+        return response
 
     data = parse.urlencode({
         'grant_type': 'authorization_code',
@@ -46,37 +51,31 @@ def oauth(request):
 
     logger.info(res)
 
-    print(res.error)
-    if res.error != 'access_denied':
-        if state =="policykit_reddit_user_login":
-            user = authenticate(request, oauth=res, platform="reddit")
-            if user:
-                    login(request, user)
+    if state =="policykit_reddit_user_login":
+        user = authenticate(request, oauth=res, platform="reddit")
+        if user:
+                login(request, user)
 
-        elif state == "policykit_reddit_mod_install":
-            req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
-            req.add_header('Authorization', 'bearer %s' % res['access_token'])
-            req.add_header("User-Agent", REDDIT_USER_AGENT)
-            resp = urllib.request.urlopen(req)
-            reddit_info = json.loads(resp.read().decode('utf-8'))
+    elif state == "policykit_reddit_mod_install":
+        req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
+        req.add_header('Authorization', 'bearer %s' % res['access_token'])
+        req.add_header("User-Agent", REDDIT_USER_AGENT)
+        resp = urllib.request.urlopen(req)
+        reddit_info = json.loads(resp.read().decode('utf-8'))
 
-            logger.info(reddit_info)
-            titles = []
+        logger.info(reddit_info)
+        titles = []
 
-            for item in reddit_info['data']['children']:
-                if item['data']['title'] != '':
-                    titles.append(item['data']['display_name'])
+        for item in reddit_info['data']['children']:
+            if item['data']['title'] != '':
+                titles.append(item['data']['display_name'])
 
-            if len(titles) > 0:
-                response = redirect('/configure?subreddits=' + ','.join(titles))
-                return response
+        if len(titles) > 0:
+            response = redirect('/configure?subreddits=' + ','.join(titles))
+            return response
 
-        response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
-        return response
-    else:
-        # error message stating that the sign-in/add-to-reddit didn't work
-        response = redirect('/login?error=cancel')
-        return response
+    response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
+    return response
 
 @csrf_exempt
 def initCommunity(request):
