@@ -33,7 +33,8 @@ ALLOWED_HOSTS = ['policykit.org',
                  'www.policykit.org',
                  'ec2-54-189-150-51.us-west-2.compute.amazonaws.com',
                  '54.189.150.51',
-                 '127.0.0.1']
+                 '127.0.0.1',
+                 'ec2-18-237-195-24.us-west-2.compute.amazonaws.com']
 
 
 # Application definition
