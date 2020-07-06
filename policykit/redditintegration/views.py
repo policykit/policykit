@@ -22,10 +22,15 @@ def oauth(request):
     logger.info(request)
 
     state = request.GET.get('state')
-
     code = request.GET.get('code')
+    error = request.GET.get('error')
 
     logger.info(code)
+
+    if error == 'access_denied':
+        # error message stating that the sign-in/add-to-reddit didn't work
+        response = redirect('/login?error=cancel')
+        return response
 
     data = parse.urlencode({
         'grant_type': 'authorization_code',
@@ -52,7 +57,6 @@ def oauth(request):
                 login(request, user)
 
     elif state == "policykit_reddit_mod_install":
-
         req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
         req.add_header('Authorization', 'bearer %s' % res['access_token'])
         req.add_header("User-Agent", REDDIT_USER_AGENT)
