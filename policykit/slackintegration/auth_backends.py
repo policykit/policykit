@@ -62,10 +62,6 @@ class SlackBackend(BaseBackend):
             return slack_user
         return None
 
-    def check_app(self, user_id):
-        try:
-
-        except:
 
     def get_user(self, user_id):
         try:
