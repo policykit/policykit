@@ -27,6 +27,7 @@ class SlackBackend(BaseBackend):
 
             slack_user = SlackUser.objects.filter(username=oauth['authed_user']['id'])
             
+
             if slack_user.exists() and slack_user[0].readable_name != None:
                 # update user info
                 slack_user = slack_user[0]
@@ -34,11 +35,12 @@ class SlackBackend(BaseBackend):
                 slack_user.community = s[0]
                 slack_user.password = oauth['authed_user']['access_token']
                 slack_user.save()
+                print ("user exists")
             else:
                 user_req = urllib.request.Request('https://slack.com/api/users.identity?', data=user_data)
                 user_resp = urllib.request.urlopen(user_req)
                 user_res = json.loads(user_resp.read().decode('utf-8'))
-
+                print ("user does not exists")
 
                 if slack_user.exists():
                     slack_user = slack_user[0]
@@ -60,6 +62,10 @@ class SlackBackend(BaseBackend):
             return slack_user
         return None
 
+    def check_app(self, user_id):
+        try:
+
+        except:
 
     def get_user(self, user_id):
         try:
