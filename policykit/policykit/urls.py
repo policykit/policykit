@@ -27,7 +27,7 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(
         template_name='policyadmin/login.html',
         extra_context={
-            'server_url': urllib.parse.quote(SERVER_URL),
+            'server_url': urllib.parse.quote(SERVER_URL, safe=''),
             'reddit_client_id': REDDIT_CLIENT_ID
         }
     )),
