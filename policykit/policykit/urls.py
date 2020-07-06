@@ -24,10 +24,13 @@ from policykit import configure
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
 
 urlpatterns = [
-    path('login/', views.LoginView.as_view(extra_context={
-        'server_url': urllib.parse.quote(SERVER_URL),
-        'reddit_client_id': REDDIT_CLIENT_ID
-    })),
+    path('login/', views.LoginView.as_view(
+        template_name='policyadmin/login.html',
+        extra_context={
+            'server_url': urllib.parse.quote(SERVER_URL),
+            'reddit_client_id': REDDIT_CLIENT_ID
+        }
+    )),
     path('', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
