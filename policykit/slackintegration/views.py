@@ -89,6 +89,7 @@ def oauth(request):
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],
                     team_id=res['team']['id'],
+                    community.bot_id = res['bot_user_id'],
                     access_token=res['access_token'],
                     base_role=user_group
                     )
@@ -125,6 +126,7 @@ def oauth(request):
                 community = s[0]
                 community.community_name = res['team']['name']
                 community.team_id = res['team']['id']
+                community.bot_id = res['bot_user_id']
                 community.access_token = res['access_token']
                 community.save()
 
