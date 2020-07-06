@@ -25,7 +25,7 @@ from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(extra_context={
-        'server_url': parse.quote(SERVER_URL),
+        'server_url': urllib.parse.quote(SERVER_URL),
         'reddit_client_id': REDDIT_CLIENT_ID
     })),
     path('', admin_site.urls),
