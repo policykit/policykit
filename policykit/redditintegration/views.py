@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from policykit.settings import REDDIT_CLIENT_SECRET
+from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 from django.shortcuts import redirect
 from redditintegration.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
@@ -30,12 +30,12 @@ def oauth(request):
     data = parse.urlencode({
         'grant_type': 'authorization_code',
         'code': code,
-        'redirect_uri': 'https://policykit.org/reddit/oauth',
+        'redirect_uri': SERVER_URL + '/reddit/oauth',
         }).encode()
 
     req = urllib.request.Request('https://www.reddit.com/api/v1/access_token', data=data)
 
-    credentials = ('%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET))
+    credentials = ('%s:%s' % (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET))
     encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
     req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
