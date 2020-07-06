@@ -68,11 +68,11 @@ def oauth(request):
 
         elif state == "app":
             # Checks that user is admin
-            data = parse.urlencode({
+            dataAdmin = parse.urlencode({
                 'token': res['access_token'],
                 'user': res['authed_user']['id']
             }).encode()
-            reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=data)
+            reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=dataAdmin)
             respInfo = urllib.request.urlopen(reqInfo)
             resInfo = json.loads(respInfo.read())
             
@@ -89,7 +89,7 @@ def oauth(request):
                 community = SlackCommunity.objects.create(
                     community_name=res['team']['name'],
                     team_id=res['team']['id'],
-                    community.bot_id = res['bot_user_id'],
+                    bot_id = res['bot_user_id'],
                     access_token=res['access_token'],
                     base_role=user_group
                     )
