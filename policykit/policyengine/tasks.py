@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policyengine.models import UserVote, NumberVote, BooleanVote, CommunityAction, CommunityActionBundle, Proposal, CommunityPolicy, CommunityUser, ProcessAction, ProcessPolicy
+from policyengine.models import UserVote, NumberVote, BooleanVote, CommunityAction, CommunityActionBundle, Proposal, CommunityPolicy, CommunityUser, ConstitutionAction, ConstitutionPolicy
 from policykit.celery import app
 from policyengine.views import *
 
@@ -45,9 +45,9 @@ def consider_proposed_actions():
         for policy in CommunityPolicy.objects.filter(community=action.community):
             _execute_policy(policy, action)
     
-    process_actions = ProcessAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    for action in process_actions:
-        for policy in ProcessPolicy.objects.filter(community=action.community):
+    constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
+    for action in constitution_actions:
+        for policy in ConstitutionPolicy.objects.filter(community=action.community):
             _execute_policy(policy, action)
     
 

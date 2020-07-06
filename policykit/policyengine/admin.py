@@ -90,14 +90,14 @@ class PolicyAdminSite(AdminSite):
 admin_site = PolicyAdminSite(name="policyadmin")
 
 
-class PolicykitAddProcessPolicyAdmin(admin.ModelAdmin):
+class PolicykitAddConstitutionPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
         obj.save()
 
-admin_site.register(PolicykitAddProcessPolicy, PolicykitAddProcessPolicyAdmin)
+admin_site.register(PolicykitAddConstitutionPolicy, PolicykitAddConstitutionPolicyAdmin)
 
 
 class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
@@ -126,7 +126,7 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
 admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
 
-class ProcessActionBundleAdmin(admin.ModelAdmin):
+class ConstitutionActionBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_actions', 'bundle_type')
     
     def save_model(self, request, obj, form, change):
@@ -138,7 +138,7 @@ class ProcessActionBundleAdmin(admin.ModelAdmin):
             obj.community = request.user.community
         obj.save()
 
-admin_site.register(ProcessActionBundle, ProcessActionBundleAdmin)
+admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
 
 class CommunityPolicyBundleAdmin(admin.ModelAdmin):
@@ -153,7 +153,7 @@ admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
 
 
 
-class ProcessPolicyBundleAdmin(admin.ModelAdmin):
+class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_policies', 'explanation')
     
     def save_model(self, request, obj, form, change):
@@ -161,7 +161,7 @@ class ProcessPolicyBundleAdmin(admin.ModelAdmin):
         obj.community = request.user.community
         obj.save()
 
-admin_site.register(ProcessPolicyBundle, ProcessPolicyBundleAdmin)
+admin_site.register(ConstitutionPolicyBundle, ConstitutionPolicyBundleAdmin)
 
 
 
@@ -264,15 +264,15 @@ class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPolicyAdmin)
 
 
-class PolicykitChangeProcessPolicyAdmin(admin.ModelAdmin):
-    fields= ('process_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
+class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
+    fields= ('constitution_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
 
-admin_site.register(PolicykitChangeProcessPolicy, PolicykitChangeProcessPolicyAdmin)
+admin_site.register(PolicykitChangeConstitutionPolicy, PolicykitChangeConstitutionPolicyAdmin)
 
 
 class PolicykitRemoveCommunityPolicyAdmin(admin.ModelAdmin):
@@ -286,15 +286,15 @@ class PolicykitRemoveCommunityPolicyAdmin(admin.ModelAdmin):
 admin_site.register(PolicykitRemoveCommunityPolicy, PolicykitRemoveCommunityPolicyAdmin)
 
 
-class PolicykitRemoveProcessPolicyAdmin(admin.ModelAdmin):
-    fields= ('process_policy','is_bundled')
+class PolicykitRemoveConstitutionPolicyAdmin(admin.ModelAdmin):
+    fields= ('constitution_policy','is_bundled')
     
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
         
-admin_site.register(PolicykitRemoveProcessPolicy, PolicykitRemoveProcessPolicyAdmin)
+admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstitutionPolicyAdmin)
 
 
 class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
