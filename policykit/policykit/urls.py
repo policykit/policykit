@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.views.generic import TemplateView
 import urllib.parse
 from policyengine.admin import admin_site
@@ -24,13 +24,10 @@ from policykit import configure
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
 
 urlpatterns = [
-    url(r'^login/$', views.login, {
-        'template_name': 'policyadmin/login.html',
-        'extra_context': {
-            'server_url': parse.quote(SERVER_URL),
-            'reddit_client_id': REDDIT_CLIENT_ID
-        }
-    }, name="login"),
+    path('login/', views.LoginView.as_view(extra_context={
+        'server_url': parse.quote(SERVER_URL),
+        'reddit_client_id': REDDIT_CLIENT_ID
+    })),
     path('', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
