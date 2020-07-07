@@ -66,7 +66,7 @@ def oauth(request):
             if user:
                 login(request, user)
             else:
-                response = redirect('/login?error=invalid_login')
+                response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
                 return response
 
         elif state == "app":
