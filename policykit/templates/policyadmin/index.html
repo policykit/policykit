@@ -34,6 +34,10 @@
 
 {% endblock %}
 
+{% block welcome-msg %}
+    <strong>{{ user.readable_name }}</strong>
+{% endblock %}
+
 {% block content %}
-    {{ dashboard.render }}    
+    {{ dashboard.render }}
 {% endblock %}
