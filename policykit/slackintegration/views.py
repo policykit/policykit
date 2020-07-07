@@ -95,7 +95,6 @@ def oauth(request):
                     )
                 user_group.community = community
                 user_group.save()
-
                 cg = CommunityDoc.objects.create(text='', community=community)
 
                 community.community_guidelines=cg
