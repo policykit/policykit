@@ -26,6 +26,7 @@ from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
 urlpatterns = [
     path('login/', views.LoginView.as_view(
         template_name='policyadmin/login.html',
+        redirect_field_name=''
         extra_context={
             'server_url': urllib.parse.quote(SERVER_URL, safe=''),
             'reddit_client_id': REDDIT_CLIENT_ID
