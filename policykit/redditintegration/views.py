@@ -49,6 +49,8 @@ def oauth(request):
         user = authenticate(request, oauth=res, platform="reddit")
         if user:
             login(request, user)
+            response = redirect('/')
+            return response
         else:
             response = redirect('/login?error=invalid_login')
             return response
