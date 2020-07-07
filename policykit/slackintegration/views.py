@@ -65,6 +65,9 @@ def oauth(request):
             user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
+            else:
+                response = redirect('/login?error=invalid_login')
+                return response
 
         elif state == "app":
             # Checks that user is admin
@@ -75,7 +78,7 @@ def oauth(request):
             reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=dataAdmin)
             respInfo = urllib.request.urlopen(reqInfo)
             resInfo = json.loads(respInfo.read())
-            
+
             if resInfo['user']['is_admin'] == False:
                 response = redirect('/login?error=user_is_not_an_admin')
                 return response
@@ -120,7 +123,7 @@ def oauth(request):
                                                          community=community)
                             else:
                                 u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
-                
+
             else:
                 community = s[0]
                 community.community_name = res['team']['name']
