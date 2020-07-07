@@ -49,6 +49,7 @@ def oauth(request):
         user = authenticate(request, oauth=res, platform="reddit")
         if user:
             login(request, user)
+            return;
         else:
             response = redirect('/login?error=invalid_login')
             return response
@@ -70,9 +71,9 @@ def oauth(request):
         if len(titles) > 0:
             response = redirect('/configure?subreddits=' + ','.join(titles))
             return response
-
-    response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
-    return response
+        else:
+            response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
+            return response
 
 @csrf_exempt
 def initCommunity(request):
