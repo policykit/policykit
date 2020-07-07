@@ -68,7 +68,7 @@ def oauth(request):
 
         elif state == "app":
             # Checks that user is admin
-            dataAdmin= parse.urlencode({
+            dataAdmin = parse.urlencode({
                 'token': res['access_token'],
                 'user': res['authed_user']['id']
             }).encode()

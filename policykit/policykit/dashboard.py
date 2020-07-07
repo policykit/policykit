@@ -29,8 +29,8 @@ class CustomIndexDashboard(Dashboard):
         
         
         self.children.append(PolicyModule(
-            policy_type="Process",
-            title="Passed Process Policies",
+            policy_type="Constitution",
+            title="Passed Constitution Policies",
             deletable=False,
             contrast=True,
             draggable=False,

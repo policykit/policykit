@@ -21,17 +21,17 @@ class ProposedActions(DashboardModule):
     def init_with_context(self, context):
         user = context['request'].user
         
-        proposed_processactions = ProcessAction.objects.filter(community=user.community,
+        proposed_constitutionactions = ConstitutionAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
         
         proposed_communityactions = CommunityAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
         
         
-        self.children.append({'process_actions': [],
+        self.children.append({'constitution_actions': [],
                               'community_actions': []})   
-        for i in proposed_processactions:
-            self.children['process_actions'].append({
+        for i in proposed_constitutionactions:
+            self.children['constitution_actions'].append({
                                                      'description': str(i)
                                                      })
         
@@ -112,8 +112,8 @@ class PolicyModule(DashboardModule):
     def init_with_context(self, context):
         if self.policy_type == "Community":
             policies = CommunityPolicy.objects
-        elif self.policy_type == "Process":
-            policies = ProcessPolicy.objects
+        elif self.policy_type == "Constitution":
+            policies = ConstitutionPolicy.objects
         
         policies = policies.filter(community=context['request'].user.community)
             
