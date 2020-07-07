@@ -22,7 +22,6 @@ def oauth(request):
     logger.info(request)
 
     state = request.GET.get('state')
-
     code = request.GET.get('code')
 
     logger.info(code)
@@ -46,13 +45,15 @@ def oauth(request):
 
     logger.info(res)
 
-    if state =="policykit_reddit_user_login":
+    if state == "policykit_reddit_user_login":
         user = authenticate(request, oauth=res, platform="reddit")
         if user:
-                login(request, user)
+            login(request, user)
+        else:
+            response = redirect('/login?error=invalid_login')
+            return response
 
     elif state == "policykit_reddit_mod_install":
-
         req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
         req.add_header('Authorization', 'bearer %s' % res['access_token'])
         req.add_header("User-Agent", REDDIT_USER_AGENT)
