@@ -65,6 +65,8 @@ def oauth(request):
             user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
+                response = redirect('/')
+                return response
 
         elif state == "app":
             # Verify that user is admin before creating any communities / users
