@@ -65,9 +65,10 @@ def oauth(request):
             user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
+                response = redirect('/')
             else:
                 response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
-                return response
+            return response
 
         elif state == "app":
             # Checks that user is admin

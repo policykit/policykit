@@ -14,12 +14,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views
 from django.urls import path
 from django.conf.urls import include
 from django.views.generic import TemplateView
+import urllib.parse
 from policyengine.admin import admin_site
+from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
 
 urlpatterns = [
+    path('login/', views.LoginView.as_view(
+        template_name='policyadmin/login.html',
+        extra_context={
+            'server_url': urllib.parse.quote(SERVER_URL, safe=''),
+            'reddit_client_id': REDDIT_CLIENT_ID
+        }
+    )),
     path('', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from policykit.settings import REDDIT_CLIENT_SECRET
+from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 from redditintegration.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
@@ -34,12 +34,12 @@ def oauth(request):
     data = parse.urlencode({
         'grant_type': 'authorization_code',
         'code': code,
-        'redirect_uri': 'https://policykit.org/reddit/oauth',
+        'redirect_uri': SERVER_URL + '/reddit/oauth',
         }).encode()
 
     req = urllib.request.Request('https://www.reddit.com/api/v1/access_token', data=data)
 
-    credentials = ('%s:%s' % ('QrZzzkLgVc1x6w', REDDIT_CLIENT_SECRET))
+    credentials = ('%s:%s' % (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET))
     encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
     req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
@@ -50,10 +50,15 @@ def oauth(request):
 
     logger.info(res)
 
-    if state =="policykit_reddit_user_login":
+    if state == "policykit_reddit_user_login":
         user = authenticate(request, oauth=res, platform="reddit")
         if user:
-                login(request, user)
+            login(request, user)
+            response = redirect('/')
+            return response
+        else:
+            response = redirect('/login?error=invalid_login')
+            return response
 
     elif state == "policykit_reddit_mod_install":
         req = urllib.request.Request('https://oauth.reddit.com/subreddits/mine/moderator')
