@@ -28,13 +28,18 @@ PolicyKit is currently logging to the path: /var/log/django
 You either need to create this folder or go into settings.py to change where it logs.
 
 5)
+Rename private_template.py to private.py. Fill in the variables with your API ids and secrets for the platforms you wish to integrate with.
+
+6)
 Check you can run the server with no problems:
 `python manage.py runserver`
 
-6)
+7)
 Now set up a database. You can use the default sqlite or mysql or another database of your choice. Make sure settings.py is pointing to the right database.
 
 Finally, run `python manage.py makemigrations` to migrate tables to the database.
+
+
 
 ## Potential Issues
 
