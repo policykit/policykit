@@ -1,7 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
-from django.shortcuts import redirect
 from redditintegration.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
@@ -23,8 +22,14 @@ def oauth(request):
 
     state = request.GET.get('state')
     code = request.GET.get('code')
+    error = request.GET.get('error')
 
     logger.info(code)
+
+    if error == 'access_denied':
+        # error message stating that the sign-in/add-to-reddit didn't work
+        response = redirect('/login?error=cancel')
+        return response
 
     data = parse.urlencode({
         'grant_type': 'authorization_code',
@@ -70,11 +75,15 @@ def oauth(request):
                 titles.append(item['data']['display_name'])
 
         if len(titles) > 0:
-            response = redirect('/configure?subreddits=' + ','.join(titles))
-            return response
-        else:
-            response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
-            return response
+            context = {
+                "subreddits": titles,
+                "access_token": res['access_token'],
+                "refresh_token": res['refresh_token']
+            }
+            return render(request, "policyadmin/configure.html", context)
+
+    response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
+    return response
 
 @csrf_exempt
 def initCommunity(request):

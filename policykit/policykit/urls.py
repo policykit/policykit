@@ -20,7 +20,6 @@ from django.conf.urls import include
 from django.views.generic import TemplateView
 import urllib.parse
 from policyengine.admin import admin_site
-from policykit import configure
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
 
 urlpatterns = [
@@ -38,5 +37,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
-    path('configure/', configure.configure)
 ]

@@ -44,9 +44,9 @@ class Community(PolymorphicModel):
         if not self.pk:
             super(Community, self).save(*args, **kwargs)
             
-            # create Starter ProcessPolicy
+            # create Starter ConstitutionPolicy
             
-            p = ProcessPolicy()
+            p = ConstitutionPolicy()
             p.community = self
             p.policy_filter_code = "return True"
             p.policy_init_code = "pass"
@@ -85,9 +85,9 @@ class Community(PolymorphicModel):
             p12 = Permission.objects.get(name='Can add communitypolicybundle')
             self.base_role.permissions.add(p12)
             
-            p11 = Permission.objects.get(name='Can add processactionbundle')
+            p11 = Permission.objects.get(name='Can add constitutionactionbundle')
             self.base_role.permissions.add(p11)
-            p12 = Permission.objects.get(name='Can add processpolicybundle')
+            p12 = Permission.objects.get(name='Can add constitutionpolicybundle')
             self.base_role.permissions.add(p12)
             
             p1 = Permission.objects.get(name='Can add policykit add role')
@@ -104,15 +104,15 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change community policy')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit change process policy')
+            p1 = Permission.objects.get(name='Can add policykit change constitution policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit remove community policy')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit remove process policy')
+            p1 = Permission.objects.get(name='Can add policykit remove constitution policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit add community policy')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit add process policy')
+            p1 = Permission.objects.get(name='Can add policykit add constitution policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change community doc')
             self.base_role.permissions.add(p1)
@@ -304,7 +304,7 @@ class BaseAction(models.Model):
         abstract = True   
 
 
-class ProcessAction(BaseAction, PolymorphicModel):
+class ConstitutionAction(BaseAction, PolymorphicModel):
     
     community = models.ForeignKey(Community,
                                    models.CASCADE)
@@ -316,11 +316,11 @@ class ProcessAction(BaseAction, PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
     
 
-    action_type = "ProcessAction"
+    action_type = "ConstitutionAction"
     
     class Meta:
-        verbose_name = 'processaction'
-        verbose_name_plural = 'processactions'
+        verbose_name = 'constitutionaction'
+        verbose_name_plural = 'constitutionactions'
         
         
     def pass_action(self):
@@ -335,11 +335,11 @@ class ProcessAction(BaseAction, PolymorphicModel):
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                             author=self.initiator)
             self.proposal = p
-            super(ProcessAction, self).save(*args, **kwargs)
+            super(ConstitutionAction, self).save(*args, **kwargs)
             
             if not self.is_bundled:
                 action = self
-                for policy in ProcessPolicy.objects.filter(community=self.community):
+                for policy in ConstitutionPolicy.objects.filter(community=self.community):
                     if check_filter_code(policy, action):
                         
                         initialize_code(policy, action)
@@ -354,14 +354,14 @@ class ProcessAction(BaseAction, PolymorphicModel):
                         else:
                             exec(policy.policy_notify_code)
         else:
-            super(ProcessAction, self).save(*args, **kwargs)
+            super(ConstitutionAction, self).save(*args, **kwargs)
 
 
-class ProcessActionBundle(BaseAction):
+class ConstitutionActionBundle(BaseAction):
       
-    bundled_actions = models.ManyToManyField(ProcessAction)
+    bundled_actions = models.ManyToManyField(ConstitutionAction)
     
-    action_type = "ProcessActionBundle"
+    action_type = "ConstitutionActionBundle"
     
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -374,7 +374,7 @@ class ProcessActionBundle(BaseAction):
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     def execute(self):
-        if self.bundle_type == ProcessActionBundle.BUNDLE:
+        if self.bundle_type == ConstitutionActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 action.execute()
                 action.pass_action()
@@ -385,16 +385,16 @@ class ProcessActionBundle(BaseAction):
         proposal.save()
 
     class Meta:
-        verbose_name = 'processactionbundle'
-        verbose_name_plural = 'processactionbundles'
+        verbose_name = 'constitutionactionbundle'
+        verbose_name_plural = 'constitutionactionbundles'
 
 
-@receiver(post_save, sender=ProcessActionBundle)
+@receiver(post_save, sender=ConstitutionActionBundle)
 @on_transaction_commit
-def after_processaction_bundle_save(sender, instance, **kwargs):
+def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
 
-    for policy in ProcessPolicy.objects.filter(community=action.community):
+    for policy in ConstitutionPolicy.objects.filter(community=action.community):
         if check_filter_code(policy, action):
             
             initialize_code(policy, action)
@@ -409,7 +409,7 @@ def after_processaction_bundle_save(sender, instance, **kwargs):
 
 
 
-class PolicykitChangeCommunityDoc(ProcessAction):    
+class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, 
                                       models.CASCADE)
     
@@ -425,7 +425,7 @@ class PolicykitChangeCommunityDoc(ProcessAction):
 
 
 
-class PolicykitAddRole(ProcessAction):
+class PolicykitAddRole(ConstitutionAction):
     
     name = models.CharField('name', max_length=300)
 
@@ -451,7 +451,7 @@ class PolicykitAddRole(ProcessAction):
         )
 
 
-class PolicykitDeleteRole(ProcessAction):
+class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole,
                              models.SET_NULL,
                              null=True)
@@ -466,7 +466,7 @@ class PolicykitDeleteRole(ProcessAction):
         )
 
 
-class PolicykitAddPermission(ProcessAction):
+class PolicykitAddPermission(ConstitutionAction):
     role = models.ForeignKey(CommunityRole,
                              models.CASCADE)
     
@@ -485,7 +485,7 @@ class PolicykitAddPermission(ProcessAction):
         )
 
 
-class PolicykitRemovePermission(ProcessAction):
+class PolicykitRemovePermission(ConstitutionAction):
     role = models.ForeignKey(CommunityRole,
                              models.CASCADE)
     
@@ -503,7 +503,7 @@ class PolicykitRemovePermission(ProcessAction):
         )
 
 
-class PolicykitAddUserRole(ProcessAction):
+class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole,
                              models.CASCADE)
     
@@ -521,7 +521,7 @@ class PolicykitAddUserRole(ProcessAction):
         )
 
 
-class PolicykitRemoveUserRole(ProcessAction):
+class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole,
                              models.CASCADE)
     
@@ -538,7 +538,7 @@ class PolicykitRemoveUserRole(ProcessAction):
             ('can_execute', 'Can execute policykit remove user role'),
         )
         
-class PolicykitAddCommunityPolicy(ProcessAction):    
+class PolicykitAddCommunityPolicy(ConstitutionAction):
     policy_filter_code = models.TextField(blank=True, default='')
     policy_init_code = models.TextField(blank=True, default='')
     policy_notify_code = models.TextField(blank=True, default='')
@@ -575,7 +575,7 @@ class PolicykitAddCommunityPolicy(ProcessAction):
         )
 
 
-class PolicykitAddProcessPolicy(ProcessAction):    
+class PolicykitAddConstitutionPolicy(ConstitutionAction):
     policy_filter_code = models.TextField(blank=True, default='')
     policy_init_code = models.TextField(blank=True, default='')
     policy_notify_code = models.TextField(blank=True, default='')
@@ -589,7 +589,7 @@ class PolicykitAddProcessPolicy(ProcessAction):
     explanation = models.TextField(null=True, blank=True)
     
     def execute(self):
-        policy = ProcessPolicy()
+        policy = ConstitutionPolicy()
         policy.policy_filter_code = self.policy_filter_code
         policy.policy_init_code = self.policy_init_code
         policy.policy_notify_code = self.policy_notify_code
@@ -606,11 +606,11 @@ class PolicykitAddProcessPolicy(ProcessAction):
         
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add process policy'),
+            ('can_execute', 'Can execute policykit add constitution policy'),
         )
        
         
-class PolicykitChangeCommunityPolicy(ProcessAction):
+class PolicykitChangeCommunityPolicy(ConstitutionAction):
     community_policy = models.ForeignKey('CommunityPolicy',
                                          models.CASCADE)
     
@@ -646,8 +646,8 @@ class PolicykitChangeCommunityPolicy(ProcessAction):
         )
         
         
-class PolicykitChangeProcessPolicy(ProcessAction):
-    process_policy = models.ForeignKey('ProcessPolicy',
+class PolicykitChangeConstitutionPolicy(ConstitutionAction):
+    constitution_policy = models.ForeignKey('ConstitutionPolicy',
                                          models.CASCADE)
     
     policy_filter_code = models.TextField(blank=True, default='')
@@ -663,26 +663,26 @@ class PolicykitChangeProcessPolicy(ProcessAction):
     explanation = models.TextField(null=True, blank=True)
     
     def execute(self):
-        self.process_policy.policy_filter_code = self.policy_filter_code
-        self.process_policy.policy_init_code = self.policy_init_code
-        self.process_policy.policy_notify_code = self.policy_notify_code
-        self.process_policy.policy_conditional_code = self.policy_conditional_code
-        self.process_policy.policy_action_code = self.policy_action_code
-        self.process_policy.policy_failure_code = self.policy_failure_code
-        self.process_policy.policy_text = self.policy_text
-        self.process_policy.policy_name = self.policy_name
-        self.process_policy.explanation = self.explanation
-        self.process_policy.save()
+        self.constitution_policy.policy_filter_code = self.policy_filter_code
+        self.constitution_policy.policy_init_code = self.policy_init_code
+        self.constitution_policy.policy_notify_code = self.policy_notify_code
+        self.constitution_policy.policy_conditional_code = self.policy_conditional_code
+        self.constitution_policy.policy_action_code = self.policy_action_code
+        self.constitution_policy.policy_failure_code = self.policy_failure_code
+        self.constitution_policy.policy_text = self.policy_text
+        self.constitution_policy.policy_name = self.policy_name
+        self.constitution_policy.explanation = self.explanation
+        self.constitution_policy.save()
         
         self.pass_action()
         
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit change process policy'),
+            ('can_execute', 'Can execute policykit change constitution policy'),
         )
 
 
-class PolicykitRemoveCommunityPolicy(ProcessAction):
+class PolicykitRemoveCommunityPolicy(ConstitutionAction):
     community_policy = models.ForeignKey('CommunityPolicy',
                                          models.SET_NULL,
                                          null=True)
@@ -698,19 +698,19 @@ class PolicykitRemoveCommunityPolicy(ProcessAction):
         )
         
 
-class PolicykitRemoveProcessPolicy(ProcessAction):
-    process_policy = models.ForeignKey('ProcessPolicy',
+class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
+    constitution_policy = models.ForeignKey('ConstitutionPolicy',
                                          models.SET_NULL,
                                          null=True)
     
     def execute(self):        
-        self.process_policy.delete()
+        self.constitution_policy.delete()
         
         self.pass_action()
         
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit remove process policy'),
+            ('can_execute', 'Can execute policykit remove constitution policy'),
         )
 
 
@@ -875,28 +875,28 @@ class BasePolicy(models.Model):
         abstract = True
     
     
-class ProcessPolicy(BasePolicy):    
+class ConstitutionPolicy(BasePolicy):
 
-    policy_type = "ProcessPolicy"
+    policy_type = "ConstitutionPolicy"
     
     class Meta:
-        verbose_name = 'processpolicy'
-        verbose_name_plural = 'processpolicies'
+        verbose_name = 'constitutionpolicy'
+        verbose_name_plural = 'constitutionpolicies'
 
         
     def __str__(self):
-        return ' '.join(['ProcessPolicy: ', self.explanation, 'for', self.community.community_name])
+        return ' '.join(['ConstitutionPolicy: ', self.explanation, 'for', self.community.community_name])
 
  
-class ProcessPolicyBundle(BaseAction):
+class ConstitutionPolicyBundle(BaseAction):
        
-    bundled_policies = models.ManyToManyField(ProcessPolicy)
+    bundled_policies = models.ManyToManyField(ConstitutionPolicy)
      
-    policy_type = "ProcessPolicyBundle"
+    policy_type = "ConstitutionPolicyBundle"
  
     class Meta:
-        verbose_name = 'processpolicybundle'
-        verbose_name_plural = 'processpolicybundles'
+        verbose_name = 'constitutionpolicybundle'
+        verbose_name_plural = 'constitutionpolicybundles'
  
     
 class CommunityPolicy(BasePolicy):
