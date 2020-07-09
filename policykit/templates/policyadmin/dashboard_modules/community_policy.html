@@ -30,7 +30,6 @@
                 <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
             </li>
             <script>
-                var codemirror_init = false;
                 var codeTypes = {
                     'filter': `{{ rule.policy_filter_code | safe }}`,
                     'init': `{{ rule.policy_init_code | safe }}`,
@@ -41,17 +40,14 @@
                 };
 
                 $('#accordion-{{rule.id}}').on('shown.bs.collapse', function() {
-                    if (!codemirror_init) {
-                        for (let type in codeTypes) {
-                            let textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
-                            let editor = CodeMirror.fromTextArea(textArea, {
-                              lineNumbers: true,
-                              readOnly: "nocursor"
-                            });
-                            editor.setValue(codeTypes[type]);
-                            editor.refresh();
-                        }
-                        codemirror_init = true;
+                    for (let type in codeTypes) {
+                        let textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
+                        let editor = CodeMirror.fromTextArea(textArea, {
+                          lineNumbers: true,
+                          readOnly: "nocursor"
+                        });
+                        editor.setValue(codeTypes[type]);
+                        editor.refresh();
                     }
                 });
             </script>
