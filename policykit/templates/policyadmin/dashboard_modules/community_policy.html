@@ -30,8 +30,8 @@
                 <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
             </li>
             <script>
-                let codemirror_init = false;
-                let codeTypes = {
+                var codemirror_init = false;
+                var codeTypes = {
                     'filter': `{{ rule.policy_filter_code | safe }}`,
                     'init': `{{ rule.policy_init_code | safe }}`,
                     'notify': `{{ rule.policy_notify_code | safe }}`,
