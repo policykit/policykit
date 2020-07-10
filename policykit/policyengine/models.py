@@ -123,8 +123,6 @@ class Community(PolymorphicModel):
 
 
 class CommunityRole(Group):
-    readable_name = models.CharField('readable_name', 
-                                      max_length=300, null=True)
 
     community = models.ForeignKey(Community,
                                    models.CASCADE,
