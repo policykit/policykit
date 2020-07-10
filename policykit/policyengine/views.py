@@ -9,11 +9,14 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def exec_code(code, wrapperStart, wrapperEnd, globals, locals):
+def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
 
-    exec(code, globals, locals)
+    if globals == None and locals == None:
+        exec(code)
+    else:
+        exec(code, globals, locals)
 
 def filter_policy(policy, action):
     _locals = locals()
@@ -65,21 +68,21 @@ def notify_policy(policy, action):
 
     wrapper_end = "\r\nnotify()"
 
-    exec_code(policy.policy_notify_code, wrapper_start, wrapper_end, None, None)
+    exec_code(policy.policy_notify_code, wrapper_start, wrapper_end)
 
 def pass_policy(policy, action):
     wrapper_start = "def success():\r\n"
 
     wrapper_end = "\r\nsuccess()"
 
-    exec_code(policy.policy_action_code, wrapper_start, wrapper_end, None, None)
+    exec_code(policy.policy_action_code, wrapper_start, wrapper_end)
 
 def fail_policy(policy, action):
     wrapper_start = "def fail():\r\n"
 
     wrapper_end = "\r\nfail()"
 
-    exec_code(policy.policy_failure_code, wrapper_start, wrapper_end, None, None)
+    exec_code(policy.policy_failure_code, wrapper_start, wrapper_end)
 
 def clean_up_proposals(action, executed):
     from policyengine.models import Proposal, CommunityActionBundle
