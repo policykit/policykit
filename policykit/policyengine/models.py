@@ -127,8 +127,8 @@ class CommunityRole(Group):
                                    models.CASCADE,
                                    null=True)
     
-    role_name = models.CharField('readable_name', 
-                                      max_length=300, null=True)
+   # role_name = models.CharField('readable_name', 
+    #                                  max_length=300, null=True)
 
     class Meta:
         verbose_name = 'communityrole'
@@ -139,7 +139,7 @@ class CommunityRole(Group):
         
     def __str__(self):
         if (self.role_name is not None):
-            return self.community.community_name + ': ' + self.role_name
+            return self.community.community_name + ': '
 
     
 
