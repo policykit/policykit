@@ -116,7 +116,22 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change community doc')
             self.base_role.permissions.add(p1)
-            
+        
+            p1 = Permission.objects.get(name='Can execute policykit change community policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit change constitution policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit remove community policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit remove constitution policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit add community policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit add constitution policy')
+            self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit change community doc')
+            self.base_role.permissions.add(p1)
+                
 
         else:
             super(Community, self).save(*args, **kwargs)
@@ -332,27 +347,35 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                            author=self.initiator)
-            self.proposal = p
-            super(ConstitutionAction, self).save(*args, **kwargs)
             
-            if not self.is_bundled:
-                action = self
-                for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                    if check_filter_code(policy, action):
-                        
-                        initialize_code(policy, action)
-                        
-                        cond_result = check_policy_code(policy, action)
-                        if cond_result == Proposal.PASSED:
-                            exec(policy.policy_action_code)
-                            
-                        elif cond_result == Proposal.FAILED:
-                            exec(policy.policy_failure_code)
-                            
-                        else:
-                            exec(policy.policy_notify_code)
+            #runs only if they have propose permission
+            #if initiator.has_perm('policyengine.add_communityaction'):
+            if True:
+                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                                author=self.initiator)
+                self.proposal = p
+                super(ConstitutionAction, self).save(*args, **kwargs)
+                
+                if not self.is_bundled:
+                    action = self
+                    #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
+                    #if action.initiator.has_perm('policyengine.can_execute'):
+                    #    exec(policy.policy_action_code)
+                    if True:
+                        for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                            if check_filter_code(policy, action):
+                                
+                                initialize_code(policy, action)
+                                
+                                cond_result = check_policy_code(policy, action)
+                                if cond_result == Proposal.PASSED:
+                                    exec(policy.policy_action_code)
+                                
+                                elif cond_result == Proposal.FAILED:
+                                    exec(policy.policy_failure_code)
+                                
+                                else:
+                                    exec(policy.policy_notify_code)
         else:
             super(ConstitutionAction, self).save(*args, **kwargs)
 
@@ -422,8 +445,6 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
         permissions = (
             ('can_execute', 'Can execute policykit change community doc'),
         )
-
-
 
 class PolicykitAddRole(ConstitutionAction):
     
@@ -758,30 +779,37 @@ class CommunityAction(BaseAction,PolymorphicModel):
         if not self.pk:
             # Runs only when object is new
             
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                        author=self.initiator)
+            #runs only if they have propose permission
+            #if self.initiator.has_perm('polyengine.add_communityaction'):
+            if True:
+                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                            author=self.initiator)
+                
+                self.proposal = p
             
-            self.proposal = p
+                super(CommunityAction, self).save(*args, **kwargs)
             
-            super(CommunityAction, self).save(*args, **kwargs)
-            
-            
-            if not self.is_bundled:
-                action = self
-                for policy in CommunityPolicy.objects.filter(community=self.community):
-                    if check_filter_code(policy, action):
-                        
-                        initialize_code(policy, action)
-                        
-                        cond_result = check_policy_code(policy, action)
-                        if cond_result == Proposal.PASSED:
-                            exec(policy.policy_action_code)
-                            
-                        elif cond_result == Proposal.FAILED:
-                            exec(policy.policy_failure_code)
-                            
-                        else:
-                            exec(policy.policy_notify_code)
+                if not self.is_bundled:
+                    action = self
+                    #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
+                    #if action.initiator.has_perm('policyengine.can_execute'):
+                    #    exec(policy.policy_action_code)
+                    #else:
+                    if True:
+                        for policy in CommunityPolicy.objects.filter(community=self.community):
+                            if check_filter_code(policy, action):
+                                
+                                initialize_code(policy, action)
+                                
+                                cond_result = check_policy_code(policy, action)
+                                if cond_result == Proposal.PASSED:
+                                    exec(policy.policy_action_code)
+                                
+                                elif cond_result == Proposal.FAILED:
+                                    exec(policy.policy_failure_code)
+                                
+                                else:
+                                    exec(policy.policy_notify_code)
 
         else:   
             super(CommunityAction, self).save(*args, **kwargs)

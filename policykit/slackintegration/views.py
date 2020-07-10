@@ -229,6 +229,11 @@ def action(request):
 
 
         if new_api_action and not policy_kit_action:
+            #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
+            #if action.initiator.has_perm('policyengine.can_execute'):
+            #    exec(policy.policy_action_code)
+            #else:
+                #here, if they are not allowed to propose the action, then do nothing
             for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
                 if check_filter_code(policy, new_api_action):
                     if not new_api_action.pk:
@@ -238,7 +243,7 @@ def action(request):
                     initialize_code(policy, new_api_action)
                     cond_result = check_policy_code(policy, new_api_action)
                     if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                        new_api_action.revert()
+                            new_api_action.revert()
 
 
 
