@@ -68,9 +68,9 @@ def notify_policy(policy, action):
     exec_code(policy.policy_notify_code, wrapper_start, wrapper_end, None, locals())
 
 def pass_policy(policy, action):
-    wrapper_start = "def success():\r\n"
+    wrapper_start = "def success(action):\r\n"
 
-    wrapper_end = "\r\nsuccess()"
+    wrapper_end = "\r\nsuccess(action)"
 
     exec_code(policy.policy_action_code, wrapper_start, wrapper_end, None, locals())
 
