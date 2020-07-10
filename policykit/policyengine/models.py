@@ -128,7 +128,7 @@ class CommunityRole(Group):
                                    models.CASCADE,
                                    null=True)
     
- #   role_name = models.CharField('readable_name', 
+    role_name = models.CharField('readable_name', 
                                       max_length=300, null=True)
 
     class Meta:
