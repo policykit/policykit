@@ -128,7 +128,7 @@ class CommunityRole(Group):
                                    models.CASCADE,
                                    null=True)
     
-    role_name = models.CharField('readable_name', 
+ #   role_name = models.CharField('readable_name', 
                                       max_length=300, null=True)
 
     class Meta:
@@ -139,7 +139,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
         
     def __str__(self):
-        return self.community.community_name + ': ' + self.role_name
+        return self.community.community_name + ': '
 
     
 
