@@ -24,7 +24,7 @@ def consider_proposed_actions():
                 else:
                     notify_policy(policy, action)
             else:
-                cond_result = check_policy_code(policy, action)
+                cond_result = check_policy(policy, action)
                 if cond_result == Proposal.PASSED:
                     pass_policy(policy, action)
                 elif cond_result == Proposal.FAILED:
