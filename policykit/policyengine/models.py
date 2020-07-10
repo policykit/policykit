@@ -138,7 +138,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
         
     def __str__(self):
-        if (role_name is not None):
+        if (self.role_name is not None):
             return self.community.community_name + ': ' + self.role_name
 
     
