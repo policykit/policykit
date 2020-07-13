@@ -7,7 +7,7 @@ def filter_test(code, shouldPass=True):
         filter_code(code)
         if shouldPass == False:
             print("Test case failed: " + e)
-    except NonWhitelistedCodeError e:
+    except NonWhitelistedCodeError as e:
         if shouldPass:
             print("Test case failed: " + e)
 
