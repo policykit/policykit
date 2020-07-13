@@ -231,7 +231,7 @@ def action(request):
         if new_api_action and not policy_kit_action:
             #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
             if new_api_action.initiator.has_perm('policyengine.can_execute_' + new_api_action.action_codename):
-                exec(policy.policy_action_code)
+                new_api_action.execute()
             else:
                 #here, if they are not allowed to propose the action, then do nothing
                 if new_api_action.initiator.has_perm('policyengine.add_' + new_api_action.action_codename):

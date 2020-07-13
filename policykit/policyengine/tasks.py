@@ -38,7 +38,7 @@ def consider_proposed_actions():
         
         #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
         if action.initiator.has_perm('policyengine.can_execute' + action.action_codename):
-            exec(policy.policy_action_code)
+            action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
@@ -47,7 +47,7 @@ def consider_proposed_actions():
     for action in bundle_actions:
         #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
         if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-            exec(policy.policy_action_code)
+            action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
@@ -56,7 +56,7 @@ def consider_proposed_actions():
     for action in constitution_actions:
         #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
         if action.initiator.has_perm('policyengine.can_execute' + action.action_codename):
-            exec(policy.policy_action_code)
+            action.execute()
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)

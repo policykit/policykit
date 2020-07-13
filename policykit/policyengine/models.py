@@ -351,7 +351,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
             # Runs only when object is new
             
             #runs only if they have propose permission
-            if initiator.has_perm('policyengine.add_' + self.action_codename):
+            if self.initiator.has_perm('policyengine.add_' + self.action_codename):
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
                 self.proposal = p
@@ -361,7 +361,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     action = self
                     #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
                     if action.initiator.has_perm('policyengine.can_execute' + action.action_codename):
-                        exec(policy.policy_action_code)
+                        action.execute()
                     if True:
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
                             if check_filter_code(policy, action):
@@ -419,7 +419,7 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
     
     if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-        exec(policy.policy_action_code)
+        action.execute()
     else:
         for policy in ConstitutionPolicy.objects.filter(community=action.community):
             if check_filter_code(policy, action):
@@ -822,7 +822,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                     action = self
                     #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
                     if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-                        exec(policy.policy_action_code)
+                        action.execute()
                     else:
                         for policy in CommunityPolicy.objects.filter(community=self.community):
                             if check_filter_code(policy, action):
