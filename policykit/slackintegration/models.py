@@ -158,9 +158,11 @@ class SlackPostMessage(CommunityAction):
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
     
+    action_codename = 'slackpostmessage'
+    
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute slack post message'),
+            ('can_execute_slackpostmessage', 'Can execute slack post message'),
         )
     
     def revert(self):
@@ -180,9 +182,11 @@ class SlackRenameConversation(CommunityAction):
     name = models.CharField('name', max_length=150)
     channel = models.CharField('channel', max_length=150)
     
+    action_codename = 'slackrenameconversation'
+    
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute slack rename conversation'),
+            ('can_execute_slackrenameconversation', 'Can execute slack rename conversation'),
         )
     
     def get_channel_info(self):
@@ -210,9 +214,11 @@ class SlackJoinConversation(CommunityAction):
     channel = models.CharField('channel', max_length=150)
     users = models.CharField('users', max_length=15)
     
+    action_codename = 'slackjoinconversation'
+    
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute slack join conversation'),
+            ('can_execute_slackjoinconversation', 'Can execute slack join conversation'),
         )
         
     def revert(self):
@@ -228,10 +234,12 @@ class SlackPinMessage(CommunityAction):
     AUTH = 'bot'
     channel = models.CharField('channel', max_length=150)
     timestamp = models.CharField('timestamp', max_length=150)
+    
+    action_codename = 'slackpinmessage'
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute slack pin message'),
+            ('can_execute_slackpinmessage', 'Can execute slack pin message'),
         )
 
     def revert(self):
@@ -247,9 +255,11 @@ class SlackScheduleMessage(CommunityAction):
     channel = models.CharField('channel', max_length=150)
     post_at = models.IntegerField('post at')
     
+    action_codename = 'slackschedulemessage'
+    
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute slack schedule message'),
+            ('can_execute_slackschedulemessage', 'Can execute slack schedule message'),
         )
 
 class SlackKickConversation(CommunityAction):
@@ -258,8 +268,10 @@ class SlackKickConversation(CommunityAction):
     user = models.CharField('user', max_length=15)
     channel = models.CharField('channel', max_length=150)
     
+    action_codename = 'slackkickconversation'
+    
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute slack kick conversation'),
+            ('can_execute_slackkickconversation', 'Can execute slack kick conversation'),
         )
 
