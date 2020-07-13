@@ -44,10 +44,10 @@ class FilterTests(TestCase):
         print("Testing importing of dangerous modules\n")
         for module in dangerous_modules:
             code = "import " + module
-            filter_test(code)
+            filter_test(code, shouldPass=False)
 
     def test_dangerous_functions(self):
         print("Testing calling of dangerous functions\n")
         for function in dangerous_functions:
             code = function + "()"
-            filter_test(code)
+            filter_test(code, shouldPass=False)
