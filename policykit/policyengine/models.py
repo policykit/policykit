@@ -132,6 +132,9 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can execute policykit change community doc')
             self.base_role.permissions.add(p1)
+        
+            p1 = Permission.objects.get(name='Can execute policykit add role')
+            self.base_role.permissions.add(p1)
                 
 
         else:
