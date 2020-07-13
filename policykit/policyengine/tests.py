@@ -1,6 +1,6 @@
 from django.test import TestCase
-from filter import *
-from exceptions import NonWhitelistedCodeError
+from policyengine.filter import *
+from policyengine.exceptions import NonWhitelistedCodeError
 
 def filter_test(code, shouldPass=True):
     try:

@@ -1,5 +1,5 @@
 import ast
-from exceptions import NonWhitelistedCodeError
+from policyengine.exceptions import NonWhitelistedCodeError
 
 IMPORT_ERROR_MESSAGE = "module cannot be imported because it is not in the list of whitelisted modules."
 FUNCTION_ERROR_MESSAGE = "function cannot be called because it is not in the list of whitelisted modules."
