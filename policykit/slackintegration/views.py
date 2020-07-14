@@ -86,7 +86,8 @@ def oauth(request):
 
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
+            user_group,_ = CommunityRole.objects.get_or_create(role_name="Slack: " + res['team']['name'] + ": Base User")
+            
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
 
             if not s.exists():
@@ -124,6 +125,7 @@ def oauth(request):
                                                          community=community)
                             else:
                                 u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
+                            u.save()
 
             else:
                 community = s[0]
@@ -231,10 +233,9 @@ def action(request):
         if new_api_action and not policy_kit_action:
             #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
             
-            '''if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
+            if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
                 new_api_action.execute()
-            else:'''
-            if True:
+            else:
                 for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
                     if check_filter_code(policy, new_api_action):
                         if not new_api_action.pk:
