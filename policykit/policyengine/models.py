@@ -574,30 +574,27 @@ class PolicykitAddCommunityPolicy(ConstitutionAction):
 
 
 class PolicykitAddConstitutionPolicy(ConstitutionAction):
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
+    name = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
-    policy_text = models.TextField(null=True, blank=True)
-    policy_name = models.TextField(null=True, blank=True)
-
-    explanation = models.TextField(null=True, blank=True)
+    filter = models.TextField(blank=True, default='')
+    initialize = models.TextField(blank=True, default='')
+    check = models.TextField(blank=True, default='')
+    notify = models.TextField(blank=True, default='')
+    success = models.TextField(blank=True, default='')
+    fail = models.TextField(blank=True, default='')
 
     def execute(self):
         policy = ConstitutionPolicy()
-        policy.policy_filter_code = self.policy_filter_code
-        policy.policy_init_code = self.policy_init_code
-        policy.policy_notify_code = self.policy_notify_code
-        policy.policy_conditional_code = self.policy_conditional_code
-        policy.policy_action_code = self.policy_action_code
-        policy.policy_failure_code = self.policy_failure_code
-        policy.policy_text = self.policy_text
-        policy.explanation = self.explanation
-        policy.is_bundled = self.is_bundled
         policy.community = self.community
+        policy.description = self.description
+        policy.is_bundled = self.is_bundled
+        policy.filter = self.filter
+        policy.initialize = self.initialize
+        policy.check = self.check
+        policy.notify = self.notify
+        policy.success = self.success
+        policy.fail = self.fail
         policy.save()
 
         self.pass_action()
