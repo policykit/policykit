@@ -86,7 +86,7 @@ def oauth(request):
 
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
-            user_group,_ = CommunityRole.objects.get_or_create(role_name="Slack: " + res['team']['name'] + ": Base User")
+            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
             
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
 
