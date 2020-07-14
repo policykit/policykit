@@ -43,7 +43,7 @@ def consider_proposed_actions():
         elif isinstance(action.community, RedditCommunity):
             app_name = 'redditintegration'
 
-        if action.initiator.has_perm(app_name + '.can_execute' + action.action_codename):
+        if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):
@@ -66,7 +66,7 @@ def consider_proposed_actions():
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in constitution_actions:
         #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-        if action.initiator.has_perm('policyengine.can_execute' + action.action_codename):
+        if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):

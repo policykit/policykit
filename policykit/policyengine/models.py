@@ -367,23 +367,23 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
             if not self.is_bundled:
                 action = self
                 #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-                if action.initiator.has_perm('policyengine.can_execute' + action.action_codename):
+                if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
                     action.execute()
-                if True:
-                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                        if check_filter_code(policy, action):
+
+                for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                    if check_filter_code(policy, action):
                                 
-                            initialize_code(policy, action)
+                        initialize_code(policy, action)
                                 
-                            cond_result = check_policy_code(policy, action)
-                            if cond_result == Proposal.PASSED:
-                                exec(policy.policy_action_code)
+                        cond_result = check_policy_code(policy, action)
+                        if cond_result == Proposal.PASSED:
+                            exec(policy.policy_action_code)
                                 
-                            elif cond_result == Proposal.FAILED:
-                                exec(policy.policy_failure_code)
+                        elif cond_result == Proposal.FAILED:
+                            exec(policy.policy_failure_code)
                                 
-                            else:
-                                exec(policy.policy_notify_code)
+                        else:
+                            exec(policy.policy_notify_code)
         else:
             super(ConstitutionAction, self).save(*args, **kwargs)
 
