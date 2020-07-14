@@ -367,23 +367,23 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
             if not self.is_bundled:
                 action = self
                 #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-                if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-                    action.execute()
-
-                for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                    if check_filter_code(policy, action):
-                                
-                        initialize_code(policy, action)
-                                
-                        cond_result = check_policy_code(policy, action)
-                        if cond_result == Proposal.PASSED:
-                            exec(policy.policy_action_code)
-                                
-                        elif cond_result == Proposal.FAILED:
-                            exec(policy.policy_failure_code)
-                                
-                        else:
-                            exec(policy.policy_notify_code)
+                '''if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+                    action.execute()'''
+                if True:
+                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                        if check_filter_code(policy, action):
+                            
+                            initialize_code(policy, action)
+                            
+                            cond_result = check_policy_code(policy, action)
+                            if cond_result == Proposal.PASSED:
+                                exec(policy.policy_action_code)
+                            
+                            elif cond_result == Proposal.FAILED:
+                                exec(policy.policy_failure_code)
+                            
+                            else:
+                                exec(policy.policy_notify_code)
         else:
             super(ConstitutionAction, self).save(*args, **kwargs)
 
@@ -425,9 +425,9 @@ class ConstitutionActionBundle(BaseAction):
 def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
     
-    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-        action.execute()
-    else:
+    '''if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        action.execute()'''
+    if True:
         for policy in ConstitutionPolicy.objects.filter(community=action.community):
             if check_filter_code(policy, action):
                     
@@ -832,9 +832,9 @@ class CommunityAction(BaseAction,PolymorphicModel):
             if not self.is_bundled:
                 action = self
                 #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-                if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
-                    action.execute()
-                else:
+                '''if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+                    action.execute()'''
+                if True:
                     for policy in CommunityPolicy.objects.filter(community=self.community):
                         if check_filter_code(policy, action):
                                 
@@ -893,9 +893,9 @@ class CommunityActionBundle(BaseAction):
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
     
-    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-        action.execute()
-    else:
+    '''if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        action.execute()'''
+    if True:
         if not action.community_post:
             for policy in CommunityPolicy.objects.filter(community=action.community):
                 if check_filter_code(policy, action):
