@@ -230,21 +230,20 @@ def action(request):
 
         if new_api_action and not policy_kit_action:
             #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-            if new_api_action.initiator.has_perm('policyengine.can_execute_' + new_api_action.action_codename):
+            
+            if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
                 new_api_action.execute()
             else:
-                #here, if they are not allowed to propose the action, then do nothing
-                if new_api_action.initiator.has_perm('policyengine.add_' + new_api_action.action_codename):
-                    for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
-                        if check_filter_code(policy, new_api_action):
-                            if not new_api_action.pk:
-                                new_api_action.community_origin = True
-                                new_api_action.is_bundled = False
-                                new_api_action.save()
-                            initialize_code(policy, new_api_action)
-                            cond_result = check_policy_code(policy, new_api_action)
-                            if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                                    new_api_action.revert()
+                for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
+                    if check_filter_code(policy, new_api_action):
+                        if not new_api_action.pk:
+                            new_api_action.community_origin = True
+                            new_api_action.is_bundled = False
+                            new_api_action.save()
+                        initialize_code(policy, new_api_action)
+                        cond_result = check_policy_code(policy, new_api_action)
+                        if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
+                            new_api_action.revert()
 
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
