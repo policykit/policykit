@@ -51,9 +51,9 @@ class Community(PolymorphicModel):
             p.policy_filter_code = "return True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
-            p.policy_conditional_code = "return PASSED"
-            p.policy_action_code = "action.execute()"
-            #p.policy_action_code = "pass"
+            p.policy_conditional_code = "return FAILED"
+            #p.policy_action_code = "action.execute()"
+            p.policy_action_code = "pass"
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"
             p.policy_name = "Starter name"
@@ -118,28 +118,8 @@ class Community(PolymorphicModel):
             p1 = Permission.objects.get(name='Can add policykit change community doc')
             self.base_role.permissions.add(p1)
         
-            p1 = Permission.objects.get(name='Can execute policykit change community policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit change constitution policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit remove community policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit remove constitution policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit add community policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit add constitution policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit change community doc')
-            self.base_role.permissions.add(p1)
-        
-            p1 = Permission.objects.get(name='Can execute policykit add role')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit add permission')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit remove permission')
-            self.base_role.permissions.add(p1)
-                
+        #p1 = Permission.objects.get(name='Can execute policykit remove constitution policy')
+        #    self.base_role.permissions.add(p1)
 
         else:
             super(Community, self).save(*args, **kwargs)
