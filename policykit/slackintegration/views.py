@@ -231,8 +231,7 @@ def action(request):
 
 
         if new_api_action and not policy_kit_action:
-            #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-            
+            #if they have execute permission, skip all policies
             if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
                 new_api_action.execute()
             else:

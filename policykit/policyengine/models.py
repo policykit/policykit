@@ -51,9 +51,8 @@ class Community(PolymorphicModel):
             p.policy_filter_code = "return True"
             p.policy_init_code = "pass"
             p.policy_notify_code = "pass"
-            p.policy_conditional_code = "return FAILED"
-            #p.policy_action_code = "action.execute()"
-            p.policy_action_code = "pass"
+            p.policy_conditional_code = "return PASSED"
+            p.policy_action_code = "action.execute()"
             p.policy_failure_code = "pass"
             p.explanation = "Starter Policy: all policies pass"
             p.policy_name = "Starter name"
@@ -346,7 +345,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                 
             if not self.is_bundled:
                 action = self
-                #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
+                #if they have execute permission, skip all policies
                 if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
                     action.execute()
                 else:
@@ -404,7 +403,7 @@ class ConstitutionActionBundle(BaseAction):
 @on_transaction_commit
 def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
-    
+    #if they have execute permission, skip all policies
     if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
         action.execute()
     else:
@@ -811,7 +810,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
             
             if not self.is_bundled:
                 action = self
-                #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
+                #if they have execute permission, skip all policies
                 if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
                     action.execute()
                 else:
@@ -872,7 +871,7 @@ class CommunityActionBundle(BaseAction):
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
-    
+    #if they have execute permission, skip all policies
     if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
         action.execute()
     else:
