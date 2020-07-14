@@ -32,12 +32,18 @@ def consider_proposed_actions():
     #need to check if user has view permission for admin site?
     #need to check if user has execute permission here
     community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
+    app_name = ''
     for action in community_actions:
         
         logger.info(action)
         
         #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-        if action.initiator.has_perm('policyengine.can_execute' + action.action_codename):
+        if isinstance(action.community, SlackCommunity):
+            app_name = 'slackintegration'
+        elif isinstance(action.community, RedditCommunity):
+            app_name = 'redditintegration'
+
+        if action.initiator.has_perm(app_name + '.can_execute' + action.action_codename):
             action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):
@@ -46,7 +52,12 @@ def consider_proposed_actions():
     bundle_actions = CommunityActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in bundle_actions:
         #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-        if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        if isinstance(action.community, SlackCommunity):
+            app_name = 'slackintegration'
+        elif isinstance(action.community, RedditCommunity):
+            app_name = 'redditintegration'
+        
+        if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):

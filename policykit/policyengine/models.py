@@ -816,9 +816,13 @@ class CommunityAction(BaseAction,PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            
+            app_name = ''
+            if isinstance(self.community, SlackCommunity):
+                app_name = 'slackintegration'
+            elif isinstance(self.community, RedditCommunity):
+                app_name = 'redditintegration'
             #runs only if they have propose permission
-            if self.initiator.has_perm('polyengine.add_' + self.action_codename):
+            if self.initiator.has_perm(app_name + '.add_' + self.action_codename):
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                             author=self.initiator)
                 
@@ -829,7 +833,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, then skip all this, and just let them 'exec' the code, with the action_code
-                    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+                    if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
                         for policy in CommunityPolicy.objects.filter(community=self.community):
