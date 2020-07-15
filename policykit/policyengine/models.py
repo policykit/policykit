@@ -25,17 +25,13 @@ def on_transaction_commit(func):
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name',
                               max_length=1000)
-
     base_role = models.OneToOneField('CommunityRole',
                                      models.CASCADE,
                                      related_name='base_community')
-
     community_guidelines = models.OneToOneField('CommunityDoc',
                                      models.CASCADE,
                                      related_name='base_doc_community',
                                      null=True)
-
-
 
     def notify_action(self, action, policy, users):
         pass
@@ -45,17 +41,16 @@ class Community(PolymorphicModel):
             super(Community, self).save(*args, **kwargs)
 
             # create Starter ConstitutionPolicy
-
             p = ConstitutionPolicy()
             p.community = self
-            p.policy_filter_code = "return True"
-            p.policy_init_code = "pass"
-            p.policy_notify_code = "pass"
-            p.policy_conditional_code = "return PASSED"
-            p.policy_action_code = "action.execute()"
-            p.policy_failure_code = "pass"
-            p.explanation = "Starter Policy: all policies pass"
-            p.policy_name = "Starter name"
+            p.filter = "return True"
+            p.initialize = "pass"
+            p.check = "return PASSED"
+            p.notify = "pass"
+            p.success = "action.execute()"
+            p.fail = "pass"
+            p.description = "Starter Policy: all policies pass"
+            p.name = "Starter name"
 
             proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
             p.proposal = proposal
@@ -116,19 +111,13 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change community doc')
             self.base_role.permissions.add(p1)
-
-
         else:
             super(Community, self).save(*args, **kwargs)
 
 
 class CommunityRole(Group):
-    community = models.ForeignKey(Community,
-                                   models.CASCADE,
-                                   null=True)
-
-    role_name = models.CharField('readable_name',
-                                      max_length=300, null=True)
+    community = models.ForeignKey(Community, models.CASCADE, null=True)
+    role_name = models.CharField('readable_name', max_length=300, null=True)
 
     class Meta:
         verbose_name = 'communityrole'
@@ -141,19 +130,10 @@ class CommunityRole(Group):
         return self.community.community_name + ': ' + self.role_name
 
 
-
 class CommunityUser(User, PolymorphicModel):
-
-    readable_name = models.CharField('readable_name',
-                                      max_length=300, null=True)
-
-    community = models.ForeignKey(Community,
-                                   models.CASCADE)
-
-
-    access_token = models.CharField('access_token',
-                                     max_length=300, null=True)
-
+    readable_name = models.CharField('readable_name', max_length=300, null=True)
+    community = models.ForeignKey(Community, models.CASCADE)
+    access_token = models.CharField('access_token', max_length=300, null=True)
     is_community_admin = models.BooleanField(default=False)
 
     def __str__(self):
@@ -161,22 +141,15 @@ class CommunityUser(User, PolymorphicModel):
 
 
 class CommunityDoc(models.Model):
-
     text = models.TextField()
-
-    community = models.ForeignKey(Community,
-                                   models.CASCADE)
-
-
+    community = models.ForeignKey(Community, models.CASCADE)
 
     def change_text(self, text):
         self.text = text
         self.save()
 
 
-
 class DataStore(models.Model):
-
     data_store = models.TextField()
 
     def _get_data_store(self):
@@ -209,8 +182,7 @@ class DataStore(models.Model):
 
 
 class LogAPICall(models.Model):
-    community = models.ForeignKey(Community,
-                                   models.CASCADE)
+    community = models.ForeignKey(Community, models.CASCADE)
     proposal_time = models.DateTimeField(auto_now_add=True)
     call_type = models.CharField('call_type', max_length=300)
     extra_info = models.TextField()
@@ -228,6 +200,14 @@ class LogAPICall(models.Model):
 
 
 class Proposal(models.Model):
+    PROPOSED = 'proposed'
+    FAILED = 'failed'
+    PASSED = 'passed'
+    STATUS = [
+        (PROPOSED, 'proposed'),
+        (FAILED, 'failed'),
+        (PASSED, 'passed')
+    ]
 
     author = models.ForeignKey(
         CommunityUser,
@@ -236,19 +216,7 @@ class Proposal(models.Model):
         blank=True,
         null=True
         )
-
     proposal_time = models.DateTimeField(auto_now_add=True)
-
-    PROPOSED = 'proposed'
-    FAILED = 'failed'
-    PASSED = 'passed'
-
-    STATUS = [
-            (PROPOSED, 'proposed'),
-            (FAILED, 'failed'),
-            (PASSED, 'passed')
-        ]
-
     status = models.CharField(choices=STATUS, max_length=10)
 
     def get_yes_votes(self, users=None):
@@ -271,7 +239,6 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
 
-
     def save(self, *args, **kwargs):
         if not self.pk:
             ds = DataStore.objects.create()
@@ -280,20 +247,10 @@ class Proposal(models.Model):
 
 
 class BaseAction(models.Model):
-    community = models.ForeignKey(Community,
-        models.CASCADE,
-        verbose_name='community',
-    )
-
-    community_post = models.CharField('community_post',
-                                         max_length=300, null=True)
-
-    proposal = models.OneToOneField(Proposal,
-                                 models.CASCADE)
-
-
+    community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
+    community_post = models.CharField('community_post', max_length=300, null=True)
+    proposal = models.OneToOneField(Proposal, models.CASCADE)
     is_bundled = models.BooleanField(default=False)
-
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
@@ -305,16 +262,9 @@ class BaseAction(models.Model):
 
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
-
-    community = models.ForeignKey(Community,
-                                   models.CASCADE)
-
-    initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE,
-                                null=True)
-
+    community = models.ForeignKey(Community, models.CASCADE)
+    initiator = models.ForeignKey(CommunityUser, models.CASCADE, null=True)
     is_bundled = models.BooleanField(default=False)
-
 
     action_type = "ConstitutionAction"
 
@@ -322,12 +272,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         verbose_name = 'constitutionaction'
         verbose_name_plural = 'constitutionactions'
 
-
     def pass_action(self):
         proposal = self.proposal
         proposal.status = Proposal.PASSED
         proposal.save()
-
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -344,10 +292,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
 
                         initialize_policy(policy, action)
 
-                        cond_result = check_policy(policy, action)
-                        if cond_result == Proposal.PASSED:
+                        check_result = check_policy(policy, action)
+                        if check_result == Proposal.PASSED:
                             pass_policy(policy, action)
-                        elif cond_result == Proposal.FAILED:
+                        elif check_result == Proposal.FAILED:
                             fail_policy(policy, action)
                         else:
                             notify_policy(policy, action)
@@ -356,19 +304,16 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
 
 
 class ConstitutionActionBundle(BaseAction):
-
-    bundled_actions = models.ManyToManyField(ConstitutionAction)
+    ELECTION = 'election'
+    BUNDLE = 'bundle'
+    BUNDLE_TYPE = [
+        (ELECTION, 'election'),
+        (BUNDLE, 'bundle')
+    ]
 
     action_type = "ConstitutionActionBundle"
 
-    ELECTION = 'election'
-    BUNDLE = 'bundle'
-
-    BUNDLE_TYPE = [
-            (ELECTION, 'election'),
-            (BUNDLE, 'bundle')
-        ]
-
+    bundled_actions = models.ManyToManyField(ConstitutionAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     def execute(self):
@@ -397,20 +342,17 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
 
             initialize_policy(policy, action)
 
-            cond_result = check_policy(policy, action)
-            if cond_result == Proposal.PASSED:
+            check_result = check_policy(policy, action)
+            if check_result == Proposal.PASSED:
                 pass_policy(policy, action)
-            elif cond_result == Proposal.FAILED:
+            elif check_result == Proposal.FAILED:
                 fail_policy(policy, action)
             else:
                 notify_policy(policy, action)
 
 
-
 class PolicykitChangeCommunityDoc(ConstitutionAction):
-    community_doc = models.ForeignKey(CommunityDoc,
-                                      models.CASCADE)
-
+    community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
 
     def execute(self):
@@ -422,25 +364,18 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
         )
 
 
-
 class PolicykitAddRole(ConstitutionAction):
-
     name = models.CharField('name', max_length=300)
-
     permissions = models.ManyToManyField(Permission)
-
 
     def __str__(self):
         perms = ""
         return "Add Role -  name: " + self.name + ", permissions: "
 
-
     def execute(self):
-        g,_ = CommunityRole.objects.get_or_create(name=self.name)
-
+        g, _ = CommunityRole.objects.get_or_create(name=self.name)
         for p in self.permissions.all():
             g.permissions.add(p)
-
         self.pass_action()
 
     class Meta:
@@ -450,9 +385,7 @@ class PolicykitAddRole(ConstitutionAction):
 
 
 class PolicykitDeleteRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole,
-                             models.SET_NULL,
-                             null=True)
+    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
     def execute(self):
         self.role.delete()
@@ -465,17 +398,13 @@ class PolicykitDeleteRole(ConstitutionAction):
 
 
 class PolicykitAddPermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-
+    role = models.ForeignKey(CommunityRole, models.CASCADE)
     permissions = models.ManyToManyField(Permission)
 
     def execute(self):
         for p in self.permissions.all():
             self.role.permissions.add(p)
-
         self.pass_action()
-
 
     class Meta:
         permissions = (
@@ -484,15 +413,12 @@ class PolicykitAddPermission(ConstitutionAction):
 
 
 class PolicykitRemovePermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-
+    role = models.ForeignKey(CommunityRole, models.CASCADE)
     permissions = models.ManyToManyField(Permission)
 
     def execute(self):
         for p in self.permissions.all():
             self.role.permissions.remove(p)
-
         self.pass_action()
 
     class Meta:
@@ -502,15 +428,12 @@ class PolicykitRemovePermission(ConstitutionAction):
 
 
 class PolicykitAddUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-
+    role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
     def execute(self):
         for u in self.users.all():
             self.role.user_set.add(u)
-
         self.pass_action()
 
     class Meta:
@@ -520,15 +443,12 @@ class PolicykitAddUserRole(ConstitutionAction):
 
 
 class PolicykitRemoveUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole,
-                             models.CASCADE)
-
+    role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
     def execute(self):
         for u in self.users.all():
             self.role.user_set.remove(u)
-
         self.pass_action()
 
     class Meta:
@@ -537,34 +457,29 @@ class PolicykitRemoveUserRole(ConstitutionAction):
         )
 
 class PolicykitAddCommunityPolicy(ConstitutionAction):
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
+    name = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
-    policy_name = models.TextField(null=True, blank=True)
-
-    policy_text = models.TextField(null=True, blank=True)
-
-    explanation = models.TextField(null=True, blank=True)
+    filter = models.TextField(blank=True, default='')
+    initialize = models.TextField(blank=True, default='')
+    check = models.TextField(blank=True, default='')
+    notify = models.TextField(blank=True, default='')
+    success = models.TextField(blank=True, default='')
+    fail = models.TextField(blank=True, default='')
 
     def execute(self):
         policy = CommunityPolicy()
-        policy.policy_filter_code = self.policy_filter_code
-        policy.policy_init_code = self.policy_init_code
-        policy.policy_notify_code = self.policy_notify_code
-        policy.policy_conditional_code = self.policy_conditional_code
-        policy.policy_action_code = self.policy_action_code
-        policy.policy_failure_code = self.policy_failure_code
-        policy.policy_text = self.policy_text
-        policy.policy_name = self.policy_name
-        policy.explanation = self.explanation
+        policy.name = self.name
+        policy.description = self.description
         policy.is_bundled = self.is_bundled
+        policy.filter = self.filter
+        policy.initialize = self.initialize
+        policy.check = self.check
+        policy.notify = self.notify
+        policy.success = self.success
+        policy.fail = self.fail
         policy.community = self.community
         policy.save()
-
         self.pass_action()
 
     class Meta:
@@ -596,7 +511,6 @@ class PolicykitAddConstitutionPolicy(ConstitutionAction):
         policy.success = self.success
         policy.fail = self.fail
         policy.save()
-
         self.pass_action()
 
     class Meta:
@@ -606,33 +520,28 @@ class PolicykitAddConstitutionPolicy(ConstitutionAction):
 
 
 class PolicykitChangeCommunityPolicy(ConstitutionAction):
-    community_policy = models.ForeignKey('CommunityPolicy',
-                                         models.CASCADE)
+    community_policy = models.ForeignKey('CommunityPolicy', models.CASCADE)
 
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
+    name = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
-    policy_text = models.TextField(null=True, blank=True)
-    policy_name = models.TextField(null=True, blank=True)
-    explanation = models.TextField(null=True, blank=True)
+    filter = models.TextField(blank=True, default='')
+    initialize = models.TextField(blank=True, default='')
+    check = models.TextField(blank=True, default='')
+    notify = models.TextField(blank=True, default='')
+    success = models.TextField(blank=True, default='')
+    fail = models.TextField(blank=True, default='')
 
     def execute(self):
-        self.community_policy.policy_filter_code = self.policy_filter_code
-        self.community_policy.policy_init_code = self.policy_init_code
-        self.community_policy.policy_notify_code = self.policy_notify_code
-        self.community_policy.policy_conditional_code = self.policy_conditional_code
-        self.community_policy.policy_action_code = self.policy_action_code
-        self.community_policy.policy_failure_code = self.policy_failure_code
-        self.community_policy.policy_text = self.policy_text
-        self.community_policy.policy_name = self.policy_name
-        self.community_policy.explanation = self.explanation
-
+        self.community_policy.name = self.name
+        self.community_policy.description = self.description
+        self.community_policy.filter = self.filter
+        self.community_policy.initialize = self.initialize
+        self.community_policy.check = self.check
+        self.community_policy.notify = self.notify
+        self.community_policy.success = self.success
+        self.community_policy.fail = self.fail
         self.community_policy.save()
-
         self.pass_action()
 
     class Meta:
@@ -642,33 +551,28 @@ class PolicykitChangeCommunityPolicy(ConstitutionAction):
 
 
 class PolicykitChangeConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('ConstitutionPolicy',
-                                         models.CASCADE)
+    constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
 
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
+    name = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
-    policy_text = models.TextField(null=True, blank=True)
-    policy_name = models.TextField(null=True, blank=True)
-
-    explanation = models.TextField(null=True, blank=True)
+    filter = models.TextField(blank=True, default='')
+    initialize = models.TextField(blank=True, default='')
+    check = models.TextField(blank=True, default='')
+    notify = models.TextField(blank=True, default='')
+    success = models.TextField(blank=True, default='')
+    fail = models.TextField(blank=True, default='')
 
     def execute(self):
-        self.constitution_policy.policy_filter_code = self.policy_filter_code
-        self.constitution_policy.policy_init_code = self.policy_init_code
-        self.constitution_policy.policy_notify_code = self.policy_notify_code
-        self.constitution_policy.policy_conditional_code = self.policy_conditional_code
-        self.constitution_policy.policy_action_code = self.policy_action_code
-        self.constitution_policy.policy_failure_code = self.policy_failure_code
-        self.constitution_policy.policy_text = self.policy_text
-        self.constitution_policy.policy_name = self.policy_name
-        self.constitution_policy.explanation = self.explanation
+        self.constitution_policy.name = self.name
+        self.constitution_policy.description = self.description
+        self.constitution_policy.filter = self.filter
+        self.constitution_policy.initialize = self.initialize
+        self.constitution_policy.check = self.check
+        self.constitution_policy.notify = self.notify
+        self.constitution_policy.success = self.success
+        self.constitution_policy.fail = self.fail
         self.constitution_policy.save()
-
         self.pass_action()
 
     class Meta:
@@ -684,7 +588,6 @@ class PolicykitRemoveCommunityPolicy(ConstitutionAction):
 
     def execute(self):
         self.community_policy.delete()
-
         self.pass_action()
 
     class Meta:
@@ -700,7 +603,6 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
 
     def execute(self):
         self.constitution_policy.delete()
-
         self.pass_action()
 
     class Meta:
@@ -709,26 +611,17 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         )
 
 
-
-
 class CommunityAction(BaseAction,PolymorphicModel):
     ACTION = None
     AUTH = 'app'
 
-    community = models.ForeignKey(Community,
-                                   models.CASCADE)
-
-    initiator = models.ForeignKey(CommunityUser,
-                                models.CASCADE)
-
+    community = models.ForeignKey(Community, models.CASCADE)
+    initiator = models.ForeignKey(CommunityUser, models.CASCADE)
     community_revert = models.BooleanField(default=False)
-
     community_origin = models.BooleanField(default=False)
-
     is_bundled = models.BooleanField(default=False)
 
     action_type = "CommunityAction"
-
 
     class Meta:
         verbose_name = 'communityaction'
@@ -748,18 +641,13 @@ class CommunityAction(BaseAction,PolymorphicModel):
         proposal.status = Proposal.PASSED
         proposal.save()
 
-
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                         author=self.initiator)
-
             self.proposal = p
-
             super(CommunityAction, self).save(*args, **kwargs)
-
 
             if not self.is_bundled:
                 action = self
@@ -768,10 +656,10 @@ class CommunityAction(BaseAction,PolymorphicModel):
 
                         initialize_policy(policy, action)
 
-                        cond_result = check_policy(policy, action)
-                        if cond_result == Proposal.PASSED:
+                        check_result = check_policy(policy, action)
+                        if check_result == Proposal.PASSED:
                             pass_policy(policy, action)
-                        elif cond_result == Proposal.FAILED:
+                        elif check_result == Proposal.FAILED:
                             fail_policy(policy, action)
                         else:
                             notify_policy(policy, action)
@@ -779,21 +667,16 @@ class CommunityAction(BaseAction,PolymorphicModel):
             super(CommunityAction, self).save(*args, **kwargs)
 
 
-
 class CommunityActionBundle(BaseAction):
-
-    bundled_actions = models.ManyToManyField(CommunityAction)
-
-    action_type = "CommunityActionBundle"
-
     ELECTION = 'election'
     BUNDLE = 'bundle'
-
     BUNDLE_TYPE = [
-            (ELECTION, 'election'),
-            (BUNDLE, 'bundle')
-        ]
+        (ELECTION, 'election'),
+        (BUNDLE, 'bundle')
+    ]
 
+    action_type = "CommunityActionBundle"
+    bundled_actions = models.ManyToManyField(CommunityAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     def execute(self):
@@ -806,7 +689,6 @@ class CommunityActionBundle(BaseAction):
         proposal = self.proposal
         proposal.status = Proposal.PASSED
         proposal.save()
-
 
     class Meta:
         verbose_name = 'communityactionbundle'
@@ -824,37 +706,30 @@ def after_bundle_save(sender, instance, **kwargs):
 
                 initialize_policy(policy, action)
 
-                cond_result = check_policy(policy, action)
-                if cond_result == Proposal.PASSED:
+                check_result = check_policy(policy, action)
+                if check_result == Proposal.PASSED:
                     pass_policy(policy, action)
-                elif cond_result == Proposal.FAILED:
+                elif check_result == Proposal.FAILED:
                     fail_policy(policy, action)
                 else:
                     notify_policy(policy, action)
 
 
-
 class BasePolicy(models.Model):
+    filter = models.TextField(blank=True, default='')
+    initialize = models.TextField(blank=True, default='')
+    check = models.TextField(blank=True, default='')
+    notify = models.TextField(blank=True, default='')
+    success = models.TextField(blank=True, default='')
+    fail = models.TextField(blank=True, default='')
 
-    policy_filter_code = models.TextField(blank=True, default='')
-    policy_init_code = models.TextField(blank=True, default='')
-    policy_notify_code = models.TextField(blank=True, default='')
-    policy_conditional_code = models.TextField(blank=True, default='')
-    policy_action_code = models.TextField(blank=True, default='')
-    policy_failure_code = models.TextField(blank=True, default='')
-
-    policy_text = models.TextField(null=True, blank=True)
-    policy_name = models.TextField(null=True, blank=True)
-
+    name = models.TextField(null=True, blank=True)
     community = models.ForeignKey(Community,
         models.CASCADE,
         verbose_name='community',
     )
-
-    explanation = models.TextField(null=True, blank=True)
-
+    description = models.TextField(null=True, blank=True)
     is_bundled = models.BooleanField(default=False)
-
     has_notified = models.BooleanField(default=False)
 
     data = models.OneToOneField(DataStore,
@@ -868,22 +743,18 @@ class BasePolicy(models.Model):
 
 
 class ConstitutionPolicy(BasePolicy):
-
     policy_type = "ConstitutionPolicy"
 
     class Meta:
         verbose_name = 'constitutionpolicy'
         verbose_name_plural = 'constitutionpolicies'
 
-
     def __str__(self):
-        return ' '.join(['ConstitutionPolicy: ', self.explanation, 'for', self.community.community_name])
+        return ' '.join(['ConstitutionPolicy: ', self.description, 'for', self.community.community_name])
 
 
 class ConstitutionPolicyBundle(BaseAction):
-
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
-
     policy_type = "ConstitutionPolicyBundle"
 
     class Meta:
@@ -892,22 +763,18 @@ class ConstitutionPolicyBundle(BaseAction):
 
 
 class CommunityPolicy(BasePolicy):
-
     policy_type = "CommunityPolicy"
 
     class Meta:
         verbose_name = 'communitypolicy'
         verbose_name_plural = 'communitypolicies'
 
-
     def __str__(self):
-        return ' '.join(['CommunityPolicy: ', self.explanation, 'for', self.community.community_name])
+        return ' '.join(['CommunityPolicy: ', self.description, 'for', self.community.community_name])
 
 
 class CommunityPolicyBundle(BaseAction):
-
     bundled_policies = models.ManyToManyField(CommunityPolicy)
-
     policy_type = "CommunityPolicyBundle"
 
     class Meta:
@@ -915,15 +782,9 @@ class CommunityPolicyBundle(BaseAction):
         verbose_name_plural = 'communitypolicybundles'
 
 
-
 class UserVote(models.Model):
-
-    user = models.ForeignKey(CommunityUser,
-                              models.CASCADE)
-
-    proposal = models.ForeignKey(Proposal,
-                                models.CASCADE)
-
+    user = models.ForeignKey(CommunityUser, models.CASCADE)
+    proposal = models.ForeignKey(Proposal, models.CASCADE)
     vote_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -932,6 +793,7 @@ class UserVote(models.Model):
 
 class BooleanVote(UserVote):
     boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected
+
 
 class NumberVote(UserVote):
     number_value = models.IntegerField(null=True)

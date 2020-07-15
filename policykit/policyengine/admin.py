@@ -194,7 +194,6 @@ admin_site.register(NumberVote, NumberVoteAdmin)
 
 
 class PolicykitAddRoleAdmin(admin.ModelAdmin):
-
     fields= ('name', 'permissions','is_bundled')
 
     def save_model(self, request, obj, form, change):
