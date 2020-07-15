@@ -464,7 +464,7 @@ class PolicykitRemoveUserRole(ConstitutionAction):
             ('can_execute', 'Can execute policykit remove user role'),
         )
 
-class EditorModel(models.Model):
+class EditorModel(PolymorphicModel):
     name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
