@@ -232,10 +232,12 @@ class RedditMakePost(CommunityAction):
     name = models.CharField('name',
                                max_length=100,
                                null=True)
+    
+    action_codename = 'redditmakepost'
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute reddit make post'),
+            ('can_execute_redditmakepost', 'Can execute reddit make post'),
         )
 
 

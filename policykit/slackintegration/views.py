@@ -246,7 +246,9 @@ def action(request):
                           if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
                               new_api_action.revert()
         else:
-            #create object with failed proposal?
+            p = Proposal.objects.create(status=Proposal.FAILED,
+                                        author=new_api_action.initiator)
+            new_api_action.proposal = p
 
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
