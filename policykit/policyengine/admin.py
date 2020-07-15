@@ -19,17 +19,17 @@ logger = logging.getLogger(__name__)
 class PolicyAdminSite(AdminSite):
     site_title = PROJECT_NAME
     site_header = PROJECT_NAME
-    
+
     index_title = gettext_lazy('Policy Authoring')
-    
+
     index_template = 'policyadmin/index.html'
     login_template = 'policyadmin/login.html'
-    
+
     def has_permission(self, request):
         if request.user.is_anonymous:
             return False
         return True
-    
+
 #     @never_cache
 #     def index(self, request, extra_context=None):
 #         """
@@ -37,14 +37,14 @@ class PolicyAdminSite(AdminSite):
 #         apps that have been registered in this site.
 #         """
 #         app_list = self.get_app_list(request)
-#  
-#         context = {**self.each_context(request), 
-#                    'title': self.index_title, 
+#
+#         context = {**self.each_context(request),
+#                    'title': self.index_title,
 #                    'app_list': app_list,
 #                    **(extra_context or {})}
-#  
+#
 #         request.current_app = self.name
-#  
+#
 #         return TemplateResponse(request, self.index_template or 'admin/index.html', context)
 
 
@@ -57,7 +57,7 @@ class PolicyAdminSite(AdminSite):
 #             # Already logged-in, redirect to admin index
 #             index_path = reverse('admin:index', current_app=self.name)
 #             return HttpResponseRedirect(index_path)
-# 
+#
 #         from django.contrib.auth.views import LoginView
 #         # Since this module gets imported in the application's root package,
 #         # it cannot import models from other applications at the module level,
@@ -73,8 +73,8 @@ class PolicyAdminSite(AdminSite):
 #                 REDIRECT_FIELD_NAME not in request.POST):
 #             context[REDIRECT_FIELD_NAME] = reverse('admin:index', current_app=self.name)
 #         context.update(extra_context or {})
-#         
-# 
+#
+#
 #         defaults = {
 #             'extra_context': context,
 #             'authentication_form': self.login_form or AdminAuthenticationForm,
@@ -91,8 +91,8 @@ admin_site = PolicyAdminSite(name="policyadmin")
 
 
 class PolicykitAddConstitutionPolicyAdmin(admin.ModelAdmin):
-    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
-    
+    fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
+
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
         obj.initiator = request.user
@@ -102,8 +102,8 @@ admin_site.register(PolicykitAddConstitutionPolicy, PolicykitAddConstitutionPoli
 
 
 class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
-    
+    fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
+
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
         obj.initiator = request.user
@@ -115,7 +115,7 @@ admin_site.register(PolicykitAddCommunityPolicy, PolicykitAddCommunityPolicyAdmi
 
 class CommunityActionBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_actions', 'bundle_type')
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.is_bundle = True
@@ -130,7 +130,7 @@ admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
 
 class ConstitutionActionBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_actions', 'bundle_type')
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.is_bundle = True
@@ -144,8 +144,8 @@ admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
 
 class CommunityPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies', 'explanation')
-    
+    fields= ('bundled_policies', 'description')
+
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
         obj.community = request.user.community
@@ -156,8 +156,8 @@ admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
 
 
 class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies', 'explanation')
-    
+    fields= ('bundled_policies', 'description')
+
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
         obj.community = request.user.community
@@ -169,7 +169,7 @@ admin_site.register(ConstitutionPolicyBundle, ConstitutionPolicyBundleAdmin)
 
 class BooleanVoteAdmin(admin.ModelAdmin):
     fields= ('proposal', 'boolean_value')
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.user = request.user
@@ -179,7 +179,7 @@ admin_site.register(BooleanVote, BooleanVoteAdmin)
 
 class NumberVoteAdmin(admin.ModelAdmin):
     fields= ('proposal', 'number_value')
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.user = request.user
@@ -189,75 +189,74 @@ admin_site.register(NumberVote, NumberVoteAdmin)
 
 
 class PolicykitAddRoleAdmin(admin.ModelAdmin):
-
     fields= ('name', 'permissions','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitAddRole, PolicykitAddRoleAdmin)
 
 
 class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
     fields= ('role','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
 
 
 class PolicykitAddPermissionAdmin(admin.ModelAdmin):
     fields= ('role','permissions','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
 
 
 class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
     fields= ('role','permissions','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
 
 
 
 class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
     fields= ('role','users','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitAddUserRole, PolicykitAddUserRoleAdmin)
 
 class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
     fields= ('role','users','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
 
 class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('community_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
-    
+    fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
@@ -267,8 +266,8 @@ admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPoli
 
 
 class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
-    fields= ('constitution_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
-    
+    fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
@@ -279,47 +278,46 @@ admin_site.register(PolicykitChangeConstitutionPolicy, PolicykitChangeConstituti
 
 class PolicykitRemoveCommunityPolicyAdmin(admin.ModelAdmin):
     fields= ('community_policy','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitRemoveCommunityPolicy, PolicykitRemoveCommunityPolicyAdmin)
 
 
 class PolicykitRemoveConstitutionPolicyAdmin(admin.ModelAdmin):
     fields= ('constitution_policy','is_bundled')
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstitutionPolicyAdmin)
 
 
 class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
     fields= ('community_doc', 'text',)
-    
+
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
-        
+
 admin_site.register(PolicykitChangeCommunityDoc, PolicykitChangeCommunityDocAdmin)
 
 
 
 
-# 
+#
 # class ActionAdmin(admin.ModelAdmin):
 #     pass
-# 
+#
 # admin_site.register(ActionMeasure, ActionAdmin)
-# 
+#
 # class CommunityIntegrationAdmin(admin.ModelAdmin):
 #     pass
-# 
+#
 # admin_site.register(CommunityIntegration, CommunityIntegrationAdmin)
-
