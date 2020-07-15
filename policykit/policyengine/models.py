@@ -17,12 +17,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Default values for code fields in editor
-DEFAULT_FILTER = "return True"
-DEFAULT_INITIALIZE = "pass"
-DEFAULT_CHECK = "return PASSED"
-DEFAULT_NOTIFY = "pass"
-DEFAULT_SUCCESS = "action.execute()"
-DEFAULT_FAIL = "pass"
+DEFAULT_FILTER = "# Replace this code with your custom Filter code\nreturn True"
+DEFAULT_INITIALIZE = "# Replace this code with your custom Initialize code\npass"
+DEFAULT_CHECK = "# Replace this code with your custom Check code\nreturn PASSED"
+DEFAULT_NOTIFY = "# Replace this code with your custom Notify code\npass"
+DEFAULT_SUCCESS = "# Replace this code with your custom Pass code\naction.execute()"
+DEFAULT_FAIL = "# Replace this code with your custom Fail code\npass"
 
 def on_transaction_commit(func):
     def inner(*args, **kwargs):
@@ -468,12 +468,30 @@ class EditorModel(models.Model):
     name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
-    filter = models.TextField(blank=True, default=DEFAULT_FILTER)
-    initialize = models.TextField(blank=True, default=DEFAULT_INITIALIZE)
-    check = models.TextField(blank=True, default=DEFAULT_CHECK)
-    notify = models.TextField(blank=True, default=DEFAULT_NOTIFY)
-    success = models.TextField(blank=True, default=DEFAULT_SUCCESS)
-    fail = models.TextField(blank=True, default=DEFAULT_FAIL)
+    filter = models.TextField(blank=True,
+        default=DEFAULT_FILTER,
+        verbose_name="Filter"
+    )
+    initialize = models.TextField(blank=True,
+        default=DEFAULT_INITIALIZE,
+        verbose_name="Initialize"
+    )
+    check = models.TextField(blank=True,
+        default=DEFAULT_CHECK,
+        verbose_name="Check"
+    )
+    notify = models.TextField(blank=True,
+        default=DEFAULT_NOTIFY,
+        verbose_name="Notify"
+    )
+    success = models.TextField(blank=True,
+        default=DEFAULT_SUCCESS,
+        verbose_name="Pass"
+    )
+    fail = models.TextField(blank=True,
+        default=DEFAULT_FAIL,
+        verbose_name="Fail"
+    )
 
 class PolicykitAddCommunityPolicy(EditorModel, ConstitutionAction):
     def execute(self):
