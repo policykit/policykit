@@ -108,7 +108,14 @@ admin_site.register(PolicykitAddConstitutionPolicy, PolicykitAddConstitutionPoli
 
 
 class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
+    fieldsets = (
+        ('Details', {
+            'fields': ('name', 'description', 'is_bundled')
+        }),
+        ('Code', {
+            'fields': ('filter', 'initialize', 'check', 'notify', 'success', 'fail')
+        })
+    )
 
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
@@ -149,7 +156,7 @@ admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
 
 class CommunityPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies', 'explanation')
+    fields= ('bundled_policies', 'description')
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
@@ -161,7 +168,7 @@ admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
 
 
 class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies', 'explanation')
+    fields= ('bundled_policies', 'description')
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
@@ -260,7 +267,14 @@ admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
 
 class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('community_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
+    fieldsets = (
+        ('Details', {
+            'fields': ('name', 'description', 'is_bundled')
+        }),
+        ('Code', {
+            'fields': ('filter', 'initialize', 'check', 'notify', 'success', 'fail')
+        })
+    )
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
@@ -271,8 +285,15 @@ admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPoli
 
 
 class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
-    fields= ('constitution_policy', 'policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
-
+    fieldsets = (
+        ('Details', {
+            'fields': ('name', 'description', 'is_bundled')
+        }),
+        ('Code', {
+            'fields': ('filter', 'initialize', 'check', 'notify', 'success', 'fail')
+        })
+    )
+    
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
