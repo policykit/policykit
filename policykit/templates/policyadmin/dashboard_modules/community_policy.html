@@ -15,6 +15,7 @@
                 {% if rule.is_bundled %}
                     Part of bundled policy: {{ rule.bundle.description }}<BR>
                 {% endif %}
+                <br/>
                 {{ rule.description }} <BR>
                 <label>Filter: </label>
                 <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
