@@ -6,7 +6,7 @@
         <div class="description">{{ fieldset.description|safe }}</div>
     {% endif %}
     {% for line in fieldset %}
-        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% if not line.has_visible_field %} hidden{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+        <div class="{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
             {% if line.fields|length_is:'1' %}{{ line.errors }}{% endif %}
             {% for field in line %}
                 <div{% if not line.fields|length_is:'1' %} class="fieldBox{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}"{% elif field.is_checkbox %} class="checkbox-row"{% endif %}>
@@ -28,7 +28,29 @@
                             <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
                             <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
                             <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
-                            <script src={% static "policyengine/js/editor.js" %}></script>
+                            <script>
+                              var name = '{{ field.field.name }}'
+                              if(['filter', 'initialize', 'check', 'notify', 'success', 'fail'].indexOf(name) >= 0) {
+                                var textArea = document.getElementById('id_{{ field.field.name }}');
+                                var editor = CodeMirror.fromTextArea(textArea, {
+                                    mode: 'python',
+                                    autoRefresh: true,
+                                    lineNumbers: true,
+                                    theme: 'eclipse'
+                                });
+                                editor.setValue(textArea.value);
+
+                                // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
+                                editor.on('inputRead', function onChange(editor, input) {
+                                    if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
+                                        return;
+                                    }
+                                    editor.showHint({
+                                        hint: CodeMirror.pythonHint
+                                    });
+                                });
+                              }
+                            </script>
                         {% endif %}
                     {% endif %}
                     {% if field.field.help_text %}

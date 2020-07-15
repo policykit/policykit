@@ -16,18 +16,18 @@
                     Part of bundled policy: {{ rule.bundle.description }}<BR>
                 {% endif %}
                 {{ rule.name }} <BR>
-                <label>Filter Code: </label>
+                <label>Filter: </label>
                 <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Init Code: </label>
-                <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Notify Code: </label>
+                <label>Inititialize: </label>
+                <textarea id="initialize_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Check: </label>
+                <textarea id="check_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Notify: </label>
                 <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Conditional Code: </label>
-                <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Action Code: </label>
-                <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Failure Code: </label>
-                <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Pass: </label>
+                <textarea id="success_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Fail: </label>
+                <textarea id="fail_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
             </li>
             <script>
                 var codemirror_init_{{rule.id}} = false;
