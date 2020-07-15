@@ -16,6 +16,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Default values for code fields in editor
+DEFAULT_FILTER = "return True"
+DEFAULT_INITIALIZE = "pass"
+DEFAULT_CHECK = "return PASSED"
+DEFAULT_NOTIFY = "pass"
+DEFAULT_SUCCESS = "action.execute()"
+DEFAULT_FAIL = "pass"
+
 def on_transaction_commit(func):
     def inner(*args, **kwargs):
         transaction.on_commit(lambda: func(*args, **kwargs))
@@ -456,17 +464,18 @@ class PolicykitRemoveUserRole(ConstitutionAction):
             ('can_execute', 'Can execute policykit remove user role'),
         )
 
-class PolicykitAddCommunityPolicy(ConstitutionAction):
+class EditorModel(models.Model):
     name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
-    filter = models.TextField(blank=True, default='')
-    initialize = models.TextField(blank=True, default='')
-    check = models.TextField(blank=True, default='')
-    notify = models.TextField(blank=True, default='')
-    success = models.TextField(blank=True, default='')
-    fail = models.TextField(blank=True, default='')
+    filter = models.TextField(blank=True, default=DEFAULT_FILTER)
+    initialize = models.TextField(blank=True, default=DEFAULT_INITIALIZE)
+    check = models.TextField(blank=True, default=DEFAULT_CHECK)
+    notify = models.TextField(blank=True, default=DEFAULT_NOTIFY)
+    success = models.TextField(blank=True, default=DEFAULT_SUCCESS)
+    fail = models.TextField(blank=True, default=DEFAULT_FAIL)
 
+class PolicykitAddCommunityPolicy(EditorModel, ConstitutionAction):
     def execute(self):
         policy = CommunityPolicy()
         policy.name = self.name
@@ -488,17 +497,7 @@ class PolicykitAddCommunityPolicy(ConstitutionAction):
         )
 
 
-class PolicykitAddConstitutionPolicy(ConstitutionAction):
-    name = models.TextField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-
-    filter = models.TextField(blank=True, default='')
-    initialize = models.TextField(blank=True, default='')
-    check = models.TextField(blank=True, default='')
-    notify = models.TextField(blank=True, default='')
-    success = models.TextField(blank=True, default='')
-    fail = models.TextField(blank=True, default='')
-
+class PolicykitAddConstitutionPolicy(EditorModel, ConstitutionAction):
     def execute(self):
         policy = ConstitutionPolicy()
         policy.community = self.community
@@ -519,18 +518,8 @@ class PolicykitAddConstitutionPolicy(ConstitutionAction):
         )
 
 
-class PolicykitChangeCommunityPolicy(ConstitutionAction):
+class PolicykitChangeCommunityPolicy(EditorModel, ConstitutionAction):
     community_policy = models.ForeignKey('CommunityPolicy', models.CASCADE)
-
-    name = models.TextField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-
-    filter = models.TextField(blank=True, default='')
-    initialize = models.TextField(blank=True, default='')
-    check = models.TextField(blank=True, default='')
-    notify = models.TextField(blank=True, default='')
-    success = models.TextField(blank=True, default='')
-    fail = models.TextField(blank=True, default='')
 
     def execute(self):
         self.community_policy.name = self.name
@@ -550,18 +539,8 @@ class PolicykitChangeCommunityPolicy(ConstitutionAction):
         )
 
 
-class PolicykitChangeConstitutionPolicy(ConstitutionAction):
+class PolicykitChangeConstitutionPolicy(EditorModel, ConstitutionAction):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
-
-    name = models.TextField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-
-    filter = models.TextField(blank=True, default='')
-    initialize = models.TextField(blank=True, default='')
-    check = models.TextField(blank=True, default='')
-    notify = models.TextField(blank=True, default='')
-    success = models.TextField(blank=True, default='')
-    fail = models.TextField(blank=True, default='')
 
     def execute(self):
         self.constitution_policy.name = self.name
