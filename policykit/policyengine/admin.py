@@ -122,7 +122,6 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
             obj.community_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
-            obj.initiator = request.user
             obj.community = request.user.community
         obj.save()
 
@@ -138,7 +137,6 @@ class ConstitutionActionBundleAdmin(admin.ModelAdmin):
             obj.community_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
-            obj.initiator = request.user
             obj.community = request.user.community
         obj.save()
 
@@ -162,7 +160,6 @@ class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
-        obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
 
@@ -207,7 +204,6 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
     fields= ('role','is_bundled')
     
     def save_model(self, request, obj, form, change):
-        obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
         
