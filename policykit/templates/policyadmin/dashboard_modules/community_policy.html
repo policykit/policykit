@@ -1,21 +1,21 @@
 <ul>
     {% for rule in module.children %}
     <!-- <button type="button" data-toggle="collapse" data-target="#rule-{{rule.id}}">{{ rule.explanation }}</button> -->
-    <div class="accordion" id="accordion-{{rule.id}}">
+    <div class="accordion" id="accordion-{{rule.policy_type}}-{{rule.id}}">
       <div class="card">
-        <div class="card-header" id="heading-{{rule.id}}">
-          <a data-toggle="collapse" data-parent="#accordion-{{rule.id}}" href="#rule-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.id}}">
-            {{ rule.description }}
+        <div class="card-header" id="heading-{{rule.policy_type}}-{{rule.id}}">
+          <a data-toggle="collapse" data-parent="#accordion-{{rule.policy_type}}-{{rule.id}}" href="#rule-{{rule.policy_type}}-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.policy_type}}-{{rule.id}}">
+            {{ rule.name }}
           </a>
         </div>
 
-        <div id="rule-{{rule.id}}" class="collapse" role="tabpanel" aria-labelledby="heading-{{rule.id}}" data-parent="#accordion-{{rule.id}}">
+        <div id="rule-{{rule.policy_type}}-{{rule.id}}" class="collapse" role="tabpanel" aria-labelledby="heading-{{rule.policy_type}}-{{rule.id}}" data-parent="#accordion-{{rule.policy_type}}-{{rule.id}}">
           <div class="card-body">
             <li>
                 {% if rule.is_bundled %}
                     Part of bundled policy: {{ rule.bundle.description }}<BR>
                 {% endif %}
-                {{ rule.name }} <BR>
+                {{ rule.description }} <BR>
                 <label>Filter: </label>
                 <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
                 <label>Inititialize: </label>
@@ -40,7 +40,7 @@
                     'fail': `{{ rule.fail | safe }}`
                 };
 
-                $('#accordion-{{rule.id}}').on('shown.bs.collapse', function() {
+                $('#accordion-{{rule.policy_type}}-{{rule.id}}').on('shown.bs.collapse', function() {
                     if (!codemirror_init_{{rule.id}}) {
                         for (let type in codeTypes_{{rule.id}}) {
                             let textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
