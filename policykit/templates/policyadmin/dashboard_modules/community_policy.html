@@ -30,8 +30,8 @@
                 <textarea id="fail_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
             </li>
             <script>
-                var codemirror_init_{{rule.id}} = false;
-                var codeTypes_{{rule.id}} = {
+                var codemirror_init_{{rule.policy_type}}_{{rule.id}} = false;
+                var codeTypes_{{rule.policy_type}}_{{rule.id}} = {
                     'filter': `{{ rule.filter | safe }}`,
                     'initialize': `{{ rule.initialize | safe }}`,
                     'check': `{{ rule.check | safe }}`,
@@ -41,17 +41,17 @@
                 };
 
                 $('#accordion-{{rule.policy_type}}-{{rule.id}}').on('shown.bs.collapse', function() {
-                    if (!codemirror_init_{{rule.id}}) {
-                        for (let type in codeTypes_{{rule.id}}) {
+                    if (!codemirror_init_{{rule.policy_type}}_{{rule.id}}) {
+                        for (let type in codeTypes_{{rule.policy_type}}_{{rule.id}}) {
                             let textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
                             let editor = CodeMirror.fromTextArea(textArea, {
                               lineNumbers: true,
                               readOnly: "nocursor"
                             });
-                            editor.setValue(codeTypes_{{rule.id}}[type]);
+                            editor.setValue(codeTypes_{{rule.policy_type}}_{{rule.id}}[type]);
                             editor.refresh();
                         }
-                        codemirror_init_{{rule.id}} = true;
+                        codemirror_init_{{rule.policy_type}}_{{rule.id}} = true;
                     }
                 });
             </script>
