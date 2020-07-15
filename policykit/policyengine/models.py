@@ -464,7 +464,7 @@ class PolicykitRemoveUserRole(ConstitutionAction):
             ('can_execute', 'Can execute policykit remove user role'),
         )
 
-class EditorModel(PolymorphicModel):
+class EditorModel(ConstitutionAction):
     name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
@@ -493,7 +493,7 @@ class EditorModel(PolymorphicModel):
         verbose_name="Fail"
     )
 
-class PolicykitAddCommunityPolicy(EditorModel, ConstitutionAction):
+class PolicykitAddCommunityPolicy(EditorModel):
     def execute(self):
         policy = CommunityPolicy()
         policy.name = self.name
@@ -515,7 +515,7 @@ class PolicykitAddCommunityPolicy(EditorModel, ConstitutionAction):
         )
 
 
-class PolicykitAddConstitutionPolicy(EditorModel, ConstitutionAction):
+class PolicykitAddConstitutionPolicy(EditorModel):
     def execute(self):
         policy = ConstitutionPolicy()
         policy.community = self.community
@@ -536,7 +536,7 @@ class PolicykitAddConstitutionPolicy(EditorModel, ConstitutionAction):
         )
 
 
-class PolicykitChangeCommunityPolicy(EditorModel, ConstitutionAction):
+class PolicykitChangeCommunityPolicy(EditorModel):
     community_policy = models.ForeignKey('CommunityPolicy', models.CASCADE)
 
     def execute(self):
@@ -557,7 +557,7 @@ class PolicykitChangeCommunityPolicy(EditorModel, ConstitutionAction):
         )
 
 
-class PolicykitChangeConstitutionPolicy(EditorModel, ConstitutionAction):
+class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
 
     def execute(self):
