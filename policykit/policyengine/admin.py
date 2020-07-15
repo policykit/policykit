@@ -94,6 +94,7 @@ class PolicykitAddConstitutionPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
 
@@ -104,6 +105,7 @@ class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
     fields= ('policy_filter_code', 'policy_init_code', 'policy_notify_code', 'policy_conditional_code', 'policy_action_code', 'policy_failure_code', 'policy_text', 'explanation', 'is_bundled', 'policy_name')
     
     def save_model(self, request, obj, form, change):
+        obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
 
@@ -120,6 +122,7 @@ class CommunityActionBundleAdmin(admin.ModelAdmin):
             obj.community_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
+            obj.initiator = request.user
             obj.community = request.user.community
         obj.save()
 
@@ -135,6 +138,7 @@ class ConstitutionActionBundleAdmin(admin.ModelAdmin):
             obj.community_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
+            obj.initiator = request.user
             obj.community = request.user.community
         obj.save()
 
@@ -158,6 +162,7 @@ class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
+        obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
 
