@@ -204,6 +204,7 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
         obj.community = request.user.community
+        obj.initiator = request.user
         obj.save()
         
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
