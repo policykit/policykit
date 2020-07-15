@@ -30,28 +30,28 @@
                 <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
             </li>
             <script>
-                var codemirror_init = false;
-                var codeTypes = {
-                    'filter': `{{ rule.policy_filter_code | safe }}`, 
-                    'init': `{{ rule.policy_init_code | safe }}`, 
-                    'notify': `{{ rule.policy_notify_code | safe }}`, 
-                    'conditional': `{{ rule.policy_conditional_code | safe }}`, 
-                    'action': `{{ rule.policy_action_code | safe }}`, 
+                var codemirror_init_{{rule.id}} = false;
+                var codeTypes_{{rule.id}} = {
+                    'filter': `{{ rule.policy_filter_code | safe }}`,
+                    'init': `{{ rule.policy_init_code | safe }}`,
+                    'notify': `{{ rule.policy_notify_code | safe }}`,
+                    'conditional': `{{ rule.policy_conditional_code | safe }}`,
+                    'action': `{{ rule.policy_action_code | safe }}`,
                     'failure': `{{ rule.policy_failure_code | safe }}`
                 };
 
                 $('#accordion-{{rule.id}}').on('shown.bs.collapse', function() {
-                    if (!codemirror_init) {
-                        for (var type in codeTypes) {
-                            var textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
-                            var editor = CodeMirror.fromTextArea(textArea, {
+                    if (!codemirror_init_{{rule.id}}) {
+                        for (let type in codeTypes_{{rule.id}}) {
+                            let textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
+                            let editor = CodeMirror.fromTextArea(textArea, {
                               lineNumbers: true,
                               readOnly: "nocursor"
                             });
-                            editor.setValue(codeTypes[type]);
+                            editor.setValue(codeTypes_{{rule.id}}[type]);
                             editor.refresh();
                         }
-                        codemirror_init = true;
+                        codemirror_init_{{rule.id}} = true;
                     }
                 });
             </script>

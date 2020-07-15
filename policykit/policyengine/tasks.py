@@ -10,28 +10,29 @@ from policyengine.views import *
 @shared_task
 def consider_proposed_actions():
     def _execute_policy(policy, action):
-        if check_filter_code(policy, action):
+
+        if filter_policy(policy, action):
             if not policy.has_notified:
-                initialize_code(policy, action)
-                
-                cond_result = check_policy_code(policy, action)
+                initialize_policy(policy, action)
+
+                cond_result = check_policy(policy, action)
                 if cond_result == Proposal.PASSED:
-                    exec(policy.policy_action_code)
+                    pass_policy(policy, action)
                 elif cond_result == Proposal.FAILED:
-                    exec(policy.policy_failure_code)
+                    fail_policy(policy, action)
                 else:
-                    exec(policy.policy_notify_code)
+                    notify_policy(policy, action)
             else:
-                cond_result = check_policy_code(policy, action)
+                cond_result = check_policy(policy, action)
                 if cond_result == Proposal.PASSED:
-                    exec(policy.policy_action_code)
+                    pass_policy(policy, action)
                 elif cond_result == Proposal.FAILED:
-                    exec(policy.policy_failure_code)
+                    fail_policy(policy, action)
 
     community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     app_name = ''
     for action in community_actions:
-        
+
         logger.info(action)
         
          #if they have execute permission, skip all policies
@@ -68,5 +69,3 @@ def consider_proposed_actions():
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
-    
-
