@@ -229,22 +229,24 @@ def action(request):
                 new_api_action.channel = event['channel_id']
                 new_api_action.timestamp = event['item']['message']['ts']
 
-
-        if new_api_action and not policy_kit_action:
-            #if they have execute permission, skip all policies
-            if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
-                new_api_action.execute()
-            else:
-                for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
-                  if filter_policy(policy, new_api_action):
-                      if not new_api_action.pk:
-                          new_api_action.community_origin = True
-                          new_api_action.is_bundled = False
-                          new_api_action.save()
-                      initialize_policy(policy, new_api_action)
-                      cond_result = check_policy(policy, new_api_action)
-                      if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                          new_api_action.revert()
+        if new_api_action.initiator.has_perm('slackintegration.add_' + new_api_action.action_codename):
+            if new_api_action and not policy_kit_action:
+                #if they have execute permission, skip all policies
+                if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
+                    new_api_action.execute()
+                else:
+                    for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
+                      if filter_policy(policy, new_api_action):
+                          if not new_api_action.pk:
+                              new_api_action.community_origin = True
+                              new_api_action.is_bundled = False
+                              new_api_action.save()
+                          initialize_policy(policy, new_api_action)
+                          cond_result = check_policy(policy, new_api_action)
+                          if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
+                              new_api_action.revert()
+        else:
+            #create object with failed proposal?
 
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
