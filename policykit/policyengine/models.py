@@ -119,6 +119,9 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change community doc')
             self.base_role.permissions.add(p1)
+            p1 = Permission.objects.get(name='Can execute policykit remove constitution policy')
+            self.base_role.permissions.add(p1)
+
         else:
             super(Community, self).save(*args, **kwargs)
 
@@ -275,7 +278,9 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
 
     action_type = "ConstitutionAction"
-
+    
+    action_codename = ''
+    
     class Meta:
         verbose_name = 'constitutionaction'
         verbose_name_plural = 'constitutionactions'
@@ -288,25 +293,31 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
+            
+            #runs only if they have propose permission
             p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                            author=self.initiator)
+                                                author=self.initiator)
             self.proposal = p
             super(ConstitutionAction, self).save(*args, **kwargs)
-
+            
             if not self.is_bundled:
                 action = self
-                for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                    if filter_policy(policy, action):
+                #if they have execute permission, skip all policies
+                if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+                    action.execute()
+                else:
+                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                      if filter_policy(policy, action):
 
-                        initialize_policy(policy, action)
+                          initialize_policy(policy, action)
 
-                        check_result = check_policy(policy, action)
-                        if check_result == Proposal.PASSED:
-                            pass_policy(policy, action)
-                        elif check_result == Proposal.FAILED:
-                            fail_policy(policy, action)
-                        else:
-                            notify_policy(policy, action)
+                          check_result = check_policy(policy, action)
+                          if check_result == Proposal.PASSED:
+                              pass_policy(policy, action)
+                          elif check_result == Proposal.FAILED:
+                              fail_policy(policy, action)
+                          else:
+                              notify_policy(policy, action)
         else:
             super(ConstitutionAction, self).save(*args, **kwargs)
 
@@ -344,37 +355,43 @@ class ConstitutionActionBundle(BaseAction):
 @on_transaction_commit
 def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
-
-    for policy in ConstitutionPolicy.objects.filter(community=action.community):
-        if filter_policy(policy, action):
-
-            initialize_policy(policy, action)
-
-            check_result = check_policy(policy, action)
-            if check_result == Proposal.PASSED:
-                pass_policy(policy, action)
-            elif check_result == Proposal.FAILED:
-                fail_policy(policy, action)
-            else:
-                notify_policy(policy, action)
-
+    #if they have execute permission, skip all policies
+    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        action.execute()
+    else:
+        for policy in ConstitutionPolicy.objects.filter(community=action.community):
+            if filter_policy(policy, action):
+                    
+                initialize_policy(policy, action)
+                
+                check_result = check_policy(policy, action)
+                if check_result == Proposal.PASSED:
+                  pass_policy(policy, action)
+                elif check_result == Proposal.FAILED:
+                  fail_policy(policy, action)
+                else:
+                  notify_policy(policy, action)
 
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
-
-    def execute(self):
+    
+    action_codename = 'policykitchangecommunitydoc'
+    
+    def execute(self):        
         self.community_doc.change_text(self.change_text)
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit change community doc'),
+            ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
         )
 
 
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     permissions = models.ManyToManyField(Permission)
+    
+    action_codename = 'policykitaddrole'
 
     def __str__(self):
         perms = ""
@@ -388,20 +405,22 @@ class PolicykitAddRole(ConstitutionAction):
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add role'),
+            ('can_execute_policykitaddrole', 'Can execute policykit add role'),
         )
 
 
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
+    action_codename = 'policykitdeleterole'
+  
     def execute(self):
         self.role.delete()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit delete role'),
+            ('can_execute_policykitdeleterole', 'Can execute policykit delete role'),
         )
 
 
@@ -409,14 +428,16 @@ class PolicykitAddPermission(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     permissions = models.ManyToManyField(Permission)
 
-    def execute(self):
+    action_codename = 'policykitaddpermission'
+    
+    def execute(self):        
         for p in self.permissions.all():
             self.role.permissions.add(p)
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add permission'),
+            ('can_execute_policykitaddpermission', 'Can execute policykit add permission'),
         )
 
 
@@ -424,14 +445,16 @@ class PolicykitRemovePermission(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     permissions = models.ManyToManyField(Permission)
 
-    def execute(self):
+    action_codename = 'policykitremovepermission'
+    
+    def execute(self):        
         for p in self.permissions.all():
             self.role.permissions.remove(p)
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit remove permission'),
+            ('can_execute_policykitremovepermission', 'Can execute policykit remove permission'),
         )
 
 
@@ -439,14 +462,16 @@ class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
-    def execute(self):
+    action_codename = 'policykitadduserrole'
+    
+    def execute(self):        
         for u in self.users.all():
             self.role.user_set.add(u)
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add user role'),
+            ('can_execute_policykitadduserrole', 'Can execute policykit add user role'),
         )
 
 
@@ -454,14 +479,16 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
-    def execute(self):
+    action_codename = 'policykitremoveuserrole'
+    
+    def execute(self):        
         for u in self.users.all():
             self.role.user_set.remove(u)
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit remove user role'),
+            ('can_execute_policykitremoveuserrole', 'Can execute policykit remove user role'),
         )
 
 class EditorModel(ConstitutionAction):
@@ -494,6 +521,8 @@ class EditorModel(ConstitutionAction):
     )
 
 class PolicykitAddCommunityPolicy(EditorModel):
+    action_codename = 'policykitaddcommunitypolicy'
+    
     def execute(self):
         policy = CommunityPolicy()
         policy.name = self.name
@@ -511,11 +540,13 @@ class PolicykitAddCommunityPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add community policy'),
+            ('can_execute_policykitaddcommunitypolicy', 'Can execute policykit add community policy'),
         )
 
 
 class PolicykitAddConstitutionPolicy(EditorModel):
+    action_codename = 'policykitaddconstitutionpolicy'
+    
     def execute(self):
         policy = ConstitutionPolicy()
         policy.community = self.community
@@ -532,13 +563,15 @@ class PolicykitAddConstitutionPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit add constitution policy'),
+            ('can_execute_policykitaddconstitutionpolicy', 'Can execute policykit add constitution policy'),
         )
 
 
 class PolicykitChangeCommunityPolicy(EditorModel):
     community_policy = models.ForeignKey('CommunityPolicy', models.CASCADE)
-
+    
+    action_codename = 'policykitchangecommunitypolicy'
+    
     def execute(self):
         self.community_policy.name = self.name
         self.community_policy.description = self.description
@@ -553,12 +586,14 @@ class PolicykitChangeCommunityPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit change community policy'),
+            ('can_execute_policykitchangecommunitypolicy', 'Can execute policykit change community policy'),
         )
 
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
+    
+    action_codename = 'policykitchangeconstitutionpolicy'
 
     def execute(self):
         self.constitution_policy.name = self.name
@@ -574,7 +609,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit change constitution policy'),
+            ('can_execute_policykitchangeconstitutionpolicy', 'Can execute policykit change constitution policy'),
         )
 
 
@@ -583,13 +618,15 @@ class PolicykitRemoveCommunityPolicy(ConstitutionAction):
                                          models.SET_NULL,
                                          null=True)
 
-    def execute(self):
+    action_codename = 'policykitremovecommunitypolicy'
+    
+    def execute(self):        
         self.community_policy.delete()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit remove community policy'),
+            ('can_execute_policykitremovecommunitypolicy', 'Can execute policykit remove community policy'),
         )
 
 
@@ -598,13 +635,16 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
                                          models.SET_NULL,
                                          null=True)
 
-    def execute(self):
+    action_codename = 'policykitremoveconstitutionpolicy'
+    
+    def execute(self):        
+
         self.constitution_policy.delete()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute policykit remove constitution policy'),
+            ('can_execute_policykitremoveconstitutionpolicy', 'Can execute policykit remove constitution policy'),
         )
 
 
@@ -619,7 +659,8 @@ class CommunityAction(BaseAction,PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
 
     action_type = "CommunityAction"
-
+    action_codename = ''
+    
     class Meta:
         verbose_name = 'communityaction'
         verbose_name_plural = 'communityactions'
@@ -641,25 +682,37 @@ class CommunityAction(BaseAction,PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
+            app_name = ''
+            if isinstance(self.community, SlackCommunity):
+                app_name = 'slackintegration'
+            elif isinstance(self.community, RedditCommunity):
+                app_name = 'redditintegration'
+            #runs only if they have propose permission
+            
             p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                        author=self.initiator)
+                                            author=self.initiator)
             self.proposal = p
             super(CommunityAction, self).save(*args, **kwargs)
 
             if not self.is_bundled:
                 action = self
-                for policy in CommunityPolicy.objects.filter(community=self.community):
-                    if filter_policy(policy, action):
+                #if they have execute permission, skip all policies
+                if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+                    action.execute()
+                else:
+                    for policy in CommunityPolicy.objects.filter(community=self.community):
+                        if filter_policy(policy, action):
 
-                        initialize_policy(policy, action)
+                          initialize_policy(policy, action)
 
-                        check_result = check_policy(policy, action)
-                        if check_result == Proposal.PASSED:
-                            pass_policy(policy, action)
-                        elif check_result == Proposal.FAILED:
-                            fail_policy(policy, action)
-                        else:
-                            notify_policy(policy, action)
+                          check_result = check_policy(policy, action)
+                          if check_result == Proposal.PASSED:
+                              pass_policy(policy, action)
+                          elif check_result == Proposal.FAILED:
+                              fail_policy(policy, action)
+                          else:
+                              notify_policy(policy, action)
+
         else:
             super(CommunityAction, self).save(*args, **kwargs)
 
@@ -697,20 +750,23 @@ class CommunityActionBundle(BaseAction):
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
 
-    if not action.community_post:
-        for policy in CommunityPolicy.objects.filter(community=action.community):
-            if filter_policy(policy, action):
+    #if they have execute permission, skip all policies
+    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        action.execute()
+    else:
+        if not action.community_post:
+            for policy in CommunityPolicy.objects.filter(community=action.community):
+              if filter_policy(policy, action):
 
-                initialize_policy(policy, action)
+                  initialize_policy(policy, action)
 
-                check_result = check_policy(policy, action)
-                if check_result == Proposal.PASSED:
-                    pass_policy(policy, action)
-                elif check_result == Proposal.FAILED:
-                    fail_policy(policy, action)
-                else:
-                    notify_policy(policy, action)
-
+                  check_result = check_policy(policy, action)
+                  if check_result == Proposal.PASSED:
+                      pass_policy(policy, action)
+                  elif check_result == Proposal.FAILED:
+                      fail_policy(policy, action)
+                  else:
+                      notify_policy(policy, action)
 
 class BasePolicy(models.Model):
     filter = models.TextField(blank=True, default='')

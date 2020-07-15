@@ -95,6 +95,7 @@ class PolicykitAddConstitutionPolicyAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
+        obj.initiator = request.user
         obj.save()
 
 admin_site.register(PolicykitAddConstitutionPolicy, PolicykitAddConstitutionPolicyAdmin)
@@ -105,6 +106,7 @@ class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
+        obj.initiator = request.user
         obj.save()
 
 admin_site.register(PolicykitAddCommunityPolicy, PolicykitAddCommunityPolicyAdmin)

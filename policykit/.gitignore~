@@ -1,0 +1,6 @@
+*.pyc
+private.py
+db.sqlite3
+.project
+static/*
+*migrations*

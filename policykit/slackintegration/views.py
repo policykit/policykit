@@ -87,6 +87,7 @@ def oauth(request):
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
+            
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
 
             if not s.exists():
@@ -124,6 +125,7 @@ def oauth(request):
                                                          community=community)
                             else:
                                 u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
+                            u.save()
 
             else:
                 community = s[0]
@@ -229,18 +231,20 @@ def action(request):
 
 
         if new_api_action and not policy_kit_action:
-            for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
-                if filter_policy(policy, new_api_action):
-                    if not new_api_action.pk:
-                        new_api_action.community_origin = True
-                        new_api_action.is_bundled = False
-                        new_api_action.save()
-                    initialize_policy(policy, new_api_action)
-                    cond_result = check_policy(policy, new_api_action)
-                    if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                        new_api_action.revert()
-
-
+            #if they have execute permission, skip all policies
+            if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
+                new_api_action.execute()
+            else:
+                for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
+                  if filter_policy(policy, new_api_action):
+                      if not new_api_action.pk:
+                          new_api_action.community_origin = True
+                          new_api_action.is_bundled = False
+                          new_api_action.save()
+                      initialize_policy(policy, new_api_action)
+                      cond_result = check_policy(policy, new_api_action)
+                      if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
+                          new_api_action.revert()
 
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
