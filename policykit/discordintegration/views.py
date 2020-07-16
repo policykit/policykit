@@ -23,18 +23,15 @@ def oauth(request):
     logger.info(code)
 
     data = parse.urlencode({
+        'client_id': DISCORD_CLIENT_ID,
+        'client_secret': DISCORD_CLIENT_SECRET,
         'grant_type': 'authorization_code',
         'code': code,
-        'redirect_uri': SERVER_URL + '/discord/oauth'
+        'redirect_uri': SERVER_URL + '/discord/oauth',
+        'scope': 'bot'
     }).encode()
 
-    req = urllib.request.Request('https://www.discord.com/api/v6/oauth2/token', data=data)
-
-    credentials = ('%s:%s' % (DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET))
-    encoded_credentials = base64.b64encode(credentials.encode('ascii'))
-
-    req.add_header('Authorization', 'Basic %s' % encoded_credentials.decode('ascii'))
-
+    req = urllib.request.Request('https://discord.com/api/v6/oauth2/token', data=data)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
@@ -51,7 +48,7 @@ def oauth(request):
             return response
 
     elif state == 'policykit_discord_mod_install':
-        req = urllib.request.Request('https://www.discord.com/api/v6/users/@me/guilds')
+        req = urllib.request.Request('https://discord.com/api/v6/users/@me/guilds')
         req.add_header('Authorization', 'bearer %s' % res['access_token'])
         resp = urllib.request.urlopen(req)
         user_guilds = json.loads(resp.read().decode('utf-8'))
