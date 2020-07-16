@@ -12,14 +12,16 @@ import json
 logger = logging.getLogger(__name__)
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
+    try:
+        filter_code(code)
+    except NonWhitelistedCodeError as e:
+        logger.error(e)
+        return
+
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
 
-    try:
-        filter_code(code)
-        exec(code, globals, locals)
-    except NonWhitelistedCodeError as e:
-        logger.error(e)
+    exec(code, globals, locals)
 
 def filter_policy(policy, action):
     _locals = locals()
