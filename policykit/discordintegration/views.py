@@ -50,7 +50,7 @@ def oauth(request):
             response = redirect('/login?error=invalid_login')
             return response
 
-    elif state = 'policykit_discord_mod_install':
+    elif state == 'policykit_discord_mod_install':
         req = urllib.request.Request('https://www.discord.com/api/v6/users/@me/guilds')
         req.add_header('Authorization', 'bearer %s' % res['access_token'])
         resp = urllib.request.urlopen(req)
