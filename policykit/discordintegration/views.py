@@ -32,6 +32,7 @@ def oauth(request):
     }).encode()
 
     req = urllib.request.Request('https://discord.com/api/v6/oauth2/token', data=data)
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
