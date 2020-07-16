@@ -17,7 +17,7 @@ class DiscordBackend(BaseBackend):
         if platform != 'discord':
             return None
 
-        req = urllib.request.Request('https://www.discord.com/api/v6/users/@me/guilds')
+        req = urllib.request.Request('https://www.discord.com/api/users/@me/guilds')
         req.add_header('Authorization', 'bearer %s' % oauth['access_token'])
         resp = urllib.request.urlopen(req)
         user_guilds = json.loads(resp.read().decode('utf-8'))
@@ -31,7 +31,7 @@ class DiscordBackend(BaseBackend):
                 community = s[0]
 
         if community:
-            req = urllib.request.Request('https://www.discord.com/api/v6/users/@me')
+            req = urllib.request.Request('https://www.discord.com/api/users/@me')
             req.add_header('Authorization', 'bearer %s' % oauth['access_token'])
             resp = urllib.request.urlopen(req)
             user_info = json.loads(resp.read().decode('utf-8'))
