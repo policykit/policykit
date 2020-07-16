@@ -180,7 +180,7 @@ LOGGING = {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
-        }
+        },
         'policyengine': {
             'handlers': ['file'],
             'level': 'DEBUG',
