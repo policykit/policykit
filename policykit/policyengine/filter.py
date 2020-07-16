@@ -316,7 +316,7 @@ class Filter(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Call(self, node):
-        if node.func.id not in whitelisted_functions:
+        if node.func.value.attr not in whitelisted_functions:
             raise NonWhitelistedCodeError(node.func.id, FUNCTION_ERROR_MESSAGE)
         self.generic_visit(node)
 
