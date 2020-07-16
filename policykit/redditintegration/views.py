@@ -76,6 +76,7 @@ def oauth(request):
 
         if len(titles) > 0:
             context = {
+                "platform": "reddit",
                 "subreddits": titles,
                 "access_token": res['access_token'],
                 "refresh_token": res['refresh_token']
