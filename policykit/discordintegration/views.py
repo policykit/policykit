@@ -25,16 +25,16 @@ def oauth(request):
     data = parse.urlencode({
         'grant_type': 'authorization_code',
         'code': code,
-        'redirect_uri': SERVER_URL + '/discord/oauth'
+        'redirect_uri': SERVER_URL + '/discord/oauth',
+        'scope': 'identify'
     }).encode()
 
-    req = urllib.request.Request('https://discord.com/api/oauth2/token', data=data)
+    req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
 
     credentials = ('%s:%s' % (DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET))
     encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
     req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
 
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
