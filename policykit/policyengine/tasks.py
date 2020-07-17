@@ -36,12 +36,7 @@ def consider_proposed_actions():
         logger.info(action)
         
          #if they have execute permission, skip all policies
-        if isinstance(action.community, SlackCommunity):
-            app_name = 'slackintegration'
-        elif isinstance(action.community, RedditCommunity):
-            app_name = 'redditintegration'
-
-        if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):
@@ -50,12 +45,8 @@ def consider_proposed_actions():
     bundle_actions = CommunityActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in bundle_actions:
         #if they have execute permission, skip all policies
-        if isinstance(action.community, SlackCommunity):
-            app_name = 'slackintegration'
-        elif isinstance(action.community, RedditCommunity):
-            app_name = 'redditintegration'
-        
-        if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in CommunityPolicy.objects.filter(community=action.community):
@@ -64,7 +55,7 @@ def consider_proposed_actions():
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in constitution_actions:
         #if they have execute permission, skip all policies
-        if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):

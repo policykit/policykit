@@ -234,6 +234,8 @@ class RedditMakePost(CommunityAction):
                                null=True)
     
     action_codename = 'redditmakepost'
+    
+    app_name = 'redditintegration'
 
     class Meta:
         permissions = (

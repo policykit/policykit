@@ -294,6 +294,8 @@ class BaseAction(models.Model):
 
 
     is_bundled = models.BooleanField(default=False)
+    
+    app_name = 'policyengine'
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,
@@ -337,7 +339,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
             # Runs only when object is new
             
             #runs only if they have propose permission
-            if self.initiator.has_perm('policyengine.add_' + self.action_codename):
+            if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                     author=self.initiator)
                 self.proposal = p
@@ -346,7 +348,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
-                    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
@@ -405,9 +407,9 @@ class ConstitutionActionBundle(BaseAction):
 @on_transaction_commit
 def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
-    if action.initiator.has_perm('policyengine.add_' + action.action_codename):
+    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
         #if they have execute permission, skip all policies
-        if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action.app_name + 'can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
@@ -446,7 +448,7 @@ class PolicykitAddRole(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
     
     action_codename = 'policykitaddrole'
-
+    
     def __str__(self):
         perms = ""
         return "Add Role -  name: " + self.name + ", permissions: "
@@ -694,7 +696,7 @@ class PolicykitChangeConstitutionPolicy(ConstitutionAction):
     explanation = models.TextField(null=True, blank=True)
     
     action_codename = 'policykitchangeconstitutionpolicy'
-
+    
     def execute(self):
         self.constitution_policy.policy_filter_code = self.policy_filter_code
         self.constitution_policy.policy_init_code = self.policy_init_code
@@ -796,14 +798,9 @@ class CommunityAction(BaseAction,PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            app_name = ''
-            if isinstance(self.community, SlackCommunity):
-                app_name = 'slackintegration'
-            elif isinstance(self.community, RedditCommunity):
-                app_name = 'redditintegration'
-            #runs only if they have propose permission
             
-            if self.initiator.has_perm(app_name + '.add_' + self.action_codename):
+            #runs only if they have propose permission
+            if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
                 self.proposal = p
@@ -813,7 +810,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
-                    if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
                         for policy in CommunityPolicy.objects.filter(community=self.community):
@@ -843,6 +840,8 @@ class CommunityActionBundle(BaseAction):
     bundled_actions = models.ManyToManyField(CommunityAction)
 
     action_type = "CommunityActionBundle"
+    
+    app_name = 'policyengine'
 
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -876,15 +875,9 @@ class CommunityActionBundle(BaseAction):
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
     
-    app_name = ''
-    if isinstance(self.community, SlackCommunity):
-        app_name = 'slackintegration'
-    elif isinstance(self.community, RedditCommunity):
-        app_name = 'redditintegration'
-    
-    if action.initiator.has_perm(app_name + '.add_' + action.action_codename):
+    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
         #if they have execute permission, skip all policies
-        if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             if not action.community_post:
