@@ -25,8 +25,7 @@ def oauth(request):
     data = parse.urlencode({
         'grant_type': 'authorization_code',
         'code': code,
-        'redirect_uri': SERVER_URL + '/discord/oauth',
-        'scope': 'identify'
+        'redirect_uri': SERVER_URL + '/discord/oauth'
     }).encode()
 
     req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
