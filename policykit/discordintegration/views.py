@@ -19,8 +19,14 @@ def oauth(request):
 
     state = request.GET.get('state')
     code = request.GET.get('code')
+    error = request.GET.get('error')
 
     logger.info(code)
+
+    if error == 'access_denied':
+        # error message stating that the sign-in/add-to-discord didn't work
+        response = redirect('/login?error=cancel')
+        return response
 
     data = parse.urlencode({
         'client_id': DISCORD_CLIENT_ID,
