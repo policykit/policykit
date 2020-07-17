@@ -262,12 +262,9 @@ class BaseAction(models.Model):
     community_post = models.CharField('community_post', max_length=300, null=True)
     proposal = models.OneToOneField(Proposal, models.CASCADE)
     is_bundled = models.BooleanField(default=False)
-<<<<<<< HEAD
     
     app_name = 'policyengine'
 
-=======
->>>>>>> 369533ab0c16377caaccc287f715643c5f45ec03
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
@@ -731,16 +728,11 @@ class CommunityAction(BaseAction,PolymorphicModel):
 
 
 class CommunityActionBundle(BaseAction):
-<<<<<<< HEAD
 
     bundled_actions = models.ManyToManyField(CommunityAction)
 
     action_type = "CommunityActionBundle"
     
-    app_name = 'policyengine'
-
-=======
->>>>>>> 369533ab0c16377caaccc287f715643c5f45ec03
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
