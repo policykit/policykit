@@ -1,57 +1,59 @@
 <ul>
     {% for rule in module.children %}
     <!-- <button type="button" data-toggle="collapse" data-target="#rule-{{rule.id}}">{{ rule.explanation }}</button> -->
-    <div class="accordion" id="accordion-{{rule.id}}">
+    <div class="accordion" id="accordion-{{rule.policy_type}}-{{rule.id}}">
       <div class="card">
-        <div class="card-header" id="heading-{{rule.id}}">
-          <a data-toggle="collapse" data-parent="#accordion-{{rule.id}}" href="#rule-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.id}}">
-            {{ rule.explanation }}
+        <div class="card-header" id="heading-{{rule.policy_type}}-{{rule.id}}">
+          <a data-toggle="collapse" data-parent="#accordion-{{rule.policy_type}}-{{rule.id}}" href="#rule-{{rule.policy_type}}-{{rule.id}}" aria-expanded="true" aria-controls="rule-{{rule.policy_type}}-{{rule.id}}">
+            {{ rule.name }}
           </a>
         </div>
 
-        <div id="rule-{{rule.id}}" class="collapse" role="tabpanel" aria-labelledby="heading-{{rule.id}}" data-parent="#accordion-{{rule.id}}">
+        <div id="rule-{{rule.policy_type}}-{{rule.id}}" class="collapse" role="tabpanel" aria-labelledby="heading-{{rule.policy_type}}-{{rule.id}}" data-parent="#accordion-{{rule.policy_type}}-{{rule.id}}">
           <div class="card-body">
             <li>
                 {% if rule.is_bundled %}
-                    Part of bundled policy: {{ rule.bundle.explanation }}<BR>
+                    Part of bundled policy: {{ rule.bundle.description }}<BR>
                 {% endif %}
-                {{ rule.policy_name }} <BR>
-                <label>Filter Code: </label>
+                <label><b>Description</b></label><BR>
+                {{ rule.description }} <BR><BR>
+                <label><b>Code</b></label><BR>
+                <label>Filter: </label>
                 <textarea id="filter_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Init Code: </label>
-                <textarea id="init_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Notify Code: </label>
+                <label>Inititialize: </label>
+                <textarea id="initialize_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Check: </label>
+                <textarea id="check_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Notify: </label>
                 <textarea id="notify_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Conditional Code: </label>
-                <textarea id="conditional_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Action Code: </label>
-                <textarea id="action_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
-                <label>Failure Code: </label>
-                <textarea id="failure_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Pass: </label>
+                <textarea id="success_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
+                <label>Fail: </label>
+                <textarea id="fail_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}"></textarea> <BR>
             </li>
             <script>
-                var codemirror_init_{{rule.id}} = false;
-                var codeTypes_{{rule.id}} = {
-                    'filter': `{{ rule.policy_filter_code | safe }}`,
-                    'init': `{{ rule.policy_init_code | safe }}`,
-                    'notify': `{{ rule.policy_notify_code | safe }}`,
-                    'conditional': `{{ rule.policy_conditional_code | safe }}`,
-                    'action': `{{ rule.policy_action_code | safe }}`,
-                    'failure': `{{ rule.policy_failure_code | safe }}`
+                var codemirror_init_{{rule.policy_type}}_{{rule.id}} = false;
+                var codeTypes_{{rule.policy_type}}_{{rule.id}} = {
+                    'filter': `{{ rule.filter | safe }}`,
+                    'initialize': `{{ rule.initialize | safe }}`,
+                    'check': `{{ rule.check | safe }}`,
+                    'notify': `{{ rule.notify | safe }}`,
+                    'success': `{{ rule.success | safe }}`,
+                    'fail': `{{ rule.fail | safe }}`
                 };
 
-                $('#accordion-{{rule.id}}').on('shown.bs.collapse', function() {
-                    if (!codemirror_init_{{rule.id}}) {
-                        for (let type in codeTypes_{{rule.id}}) {
+                $('#accordion-{{rule.policy_type}}-{{rule.id}}').on('shown.bs.collapse', function() {
+                    if (!codemirror_init_{{rule.policy_type}}_{{rule.id}}) {
+                        for (let type in codeTypes_{{rule.policy_type}}_{{rule.id}}) {
                             let textArea = document.getElementById(type + '_{{rule.policy_type}}_{{rule.status}}_{{ rule.id }}');
                             let editor = CodeMirror.fromTextArea(textArea, {
                               lineNumbers: true,
                               readOnly: "nocursor"
                             });
-                            editor.setValue(codeTypes_{{rule.id}}[type]);
+                            editor.setValue(codeTypes_{{rule.policy_type}}_{{rule.id}}[type]);
                             editor.refresh();
                         }
-                        codemirror_init_{{rule.id}} = true;
+                        codemirror_init_{{rule.policy_type}}_{{rule.id}} = true;
                     }
                 });
             </script>

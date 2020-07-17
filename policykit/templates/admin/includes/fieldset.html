@@ -30,7 +30,21 @@
                             <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
                             <script>
                               var name = '{{ field.field.name }}'
-                              if(name.includes('code')) {
+
+                              if (name == 'name') {
+                                var nameTextArea = document.getElementById('id_name');
+                                nameTextArea.setAttribute('rows', 1);
+                                nameTextArea.setAttribute('required', true);
+                                nameTextArea.style.resize = 'none';
+                                nameTextArea.style.borderColor = 'black';
+                                nameTextArea.style.whiteSpace = 'nowrap';
+                              } else if (name == 'description') {
+                                var descriptionTextArea = document.getElementById('id_description');
+                                descriptionTextArea.setAttribute('rows', 6);
+                                descriptionTextArea.setAttribute('required', true);
+                                descriptionTextArea.style.resize = 'none';
+                                descriptionTextArea.style.borderColor = 'black';
+                              } else if (['filter', 'initialize', 'check', 'notify', 'success', 'fail'].indexOf(name) >= 0) {
                                 var textArea = document.getElementById('id_{{ field.field.name }}');
                                 var editor = CodeMirror.fromTextArea(textArea, {
                                     mode: 'python',
