@@ -32,6 +32,7 @@ def oauth(request):
 
     req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    req.add_header("User-Agent", "Mozilla/5.0")
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
