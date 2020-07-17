@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
+from policyengine.filter import *
+from policyengine.exceptions import NonWhitelistedCodeError
 import urllib.request
 import urllib.parse
 import logging
@@ -10,6 +12,12 @@ import json
 logger = logging.getLogger(__name__)
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
+    try:
+        filter_code(code)
+    except NonWhitelistedCodeError as e:
+        logger.error(e)
+        return
+
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
 
