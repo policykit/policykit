@@ -21,7 +21,7 @@ def refresh_access_token(refresh_token):
         'refresh_token': refresh_token
         }).encode()
 
-    req = urllib.request.Request('https://discord.com/api/oauth2/token', data=data)
+    req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
 
     credentials = ('%s:%s' % (DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET))
     encoded_credentials = base64.b64encode(credentials.encode('ascii'))
@@ -33,7 +33,7 @@ def refresh_access_token(refresh_token):
     return res
 
 class DiscordCommunity(Community):
-    API = 'https://discord.com/api/'
+    API = 'https://discordapp.com/api/'
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     access_token = models.CharField('access_token', max_length=300, unique=True)
@@ -156,7 +156,7 @@ class DiscordPostMessage(CommunityAction):
 
     class Meta:
         permissions = (
-            ('can_execute', 'Can execute discord post message'),
+            ('can_execute_discord_post_message', 'Can execute discord post message'),
         )
 
     def revert(self):
