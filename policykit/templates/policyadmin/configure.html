@@ -37,7 +37,7 @@
     <label for="guilds">Choose a Guild:</label>
     <select name="guild">
       {% for guild_id, guild_name in guilds %}
-        <option value="{{ guild_id + ':' + guild_name }}">{{ guild_name }}</option>
+        <option value="{{guild_id}}:{{guild_name}}">{{ guild_name }}</option>
       {% endfor %}
     </select>
     <input type="hidden" name="access_token" value="{{ access_token }}">
