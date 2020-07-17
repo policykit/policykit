@@ -368,7 +368,7 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
     if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
         #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + 'can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
@@ -772,19 +772,8 @@ class CommunityActionBundle(BaseAction):
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
-<<<<<<< HEAD
     
     if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-=======
-
-    app_name = ''
-    if isinstance(self.community, SlackCommunity):
-        app_name = 'slackintegration'
-    elif isinstance(self.community, RedditCommunity):
-        app_name = 'redditintegration'
-    
-    if action.initiator.has_perm(app_name + '.add_' + action.action_codename):
->>>>>>> 369533ab0c16377caaccc287f715643c5f45ec03
         #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()

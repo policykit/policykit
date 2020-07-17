@@ -30,7 +30,6 @@ def consider_proposed_actions():
                     fail_policy(policy, action)
 
     community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    app_name = ''
     for action in community_actions:
 
         logger.info(action)
