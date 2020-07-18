@@ -1,7 +1,7 @@
 from django.db import models
 from policyengine.models import Community, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
-from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
+from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
 from urllib import parse
 import base64
@@ -26,10 +26,12 @@ def refresh_access_token(refresh_token):
     credentials = ('%s:%s' % (DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET))
     encoded_credentials = base64.b64encode(credentials.encode('ascii'))
 
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
     req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
-
+    req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
+    
     return res
 
 class DiscordCommunity(Community):
@@ -44,9 +46,9 @@ class DiscordCommunity(Community):
         self.access_token = res['access_token']
         self.save()
 
-    def notify_action(self, action, policy, users=None):
+    def notify_action(self, action, policy, users=None, template=None, channel=None):
         from discordintegration.views import post_policy
-        post_policy(policy, action, users)
+        post_policy(policy, action, users, template, channel)
 
     def save(self, *args, **kwargs):
         super(DiscordCommunity, self).save(*args, **kwargs)
@@ -73,12 +75,12 @@ class DiscordCommunity(Community):
             if action and action.AUTH == 'user':
                 user = action.initiator
                 if user.access_token:
-                    req.add_header('Authorization', 'Bearer %s' % user.access_token)
+                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
                     user_token = True
                 else:
-                    req.add_header('Authorization', 'Bearer %s' % self.access_token)
+                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
             else:
-                req.add_header('Authorization', 'Bearer %s' % self.access_token)
+                req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
 
             logger.info(req.headers)
             resp = urllib.request.urlopen(req)
@@ -95,9 +97,9 @@ class DiscordCommunity(Community):
                 req = urllib.request.Request(self.API + url, data)
                 if action and action.AUTH == 'user':
                     user = action.initiator
-                    req.add_header('Authorization', 'Bearer %s' % user.access_token)
+                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
                 else:
-                    req.add_header('Authorization', 'Bearer %s' % self.access_token)
+                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
                 resp = urllib.request.urlopen(req)
                 res = json.loads(resp.read().decode('utf-8'))
             else:
@@ -141,8 +143,27 @@ class DiscordCommunity(Community):
                     continue
 
             res = LogAPICall.make_api_call(self, data, call)
+
+            if delete_policykit_post:
+                posted_action = None
+                if action.is_bundled:
+                    bundle = action.communityactionbundle_set.all()
+                    if bundle.exists():
+                        posted_action = bundle[0]
+                else:
+                    posted_action = action
+
+                if posted_action.community_post:
+                    data = {}
+                    call = ('channels/%s/messages/%s' % (obj.channel, posted_action.community_post))
+                    _ = LogAPICall.make_api_call(self, data, call)
+
             if res['ok']:
                 clean_up_proposals(action, True)
+            else:
+                error_message = res['error']
+                logger.info(error_message)
+                clean_up_proposals(action, False)
         else:
             clean_up_proposals(action, True)
 
@@ -161,9 +182,18 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(CommunityAction):
-    ACTION = 'chat.postMessage'
+    data = {}
+    call = ('guilds/%s/channels' % self.community.team_id)
+    channels = LogAPICall.make_api_call(self, data, call)
+
+    choices = []
+    for c in channels:
+        choices.append((c['id'], c['name']))
+
     text = models.TextField()
-    channel = models.CharField('channel', max_length=150)
+    channel = models.CharField(choices=choices)
+
+    ACTION = ('channels/%s/messages' % channel)
 
     action_codename = 'discordpostmessage'
 
@@ -173,8 +203,5 @@ class DiscordPostMessage(CommunityAction):
         )
 
     def revert(self):
-        values = {
-            'channel': self.channel,
-            'text': self.text
-        }
-        super.revert(values, 'chat.delete')
+        values = {}
+        super.revert(values, ('channels/%s/messages/%s' % (self.channel, self.id)))

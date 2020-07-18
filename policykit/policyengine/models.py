@@ -8,6 +8,12 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
+
+# NOTE: do NOT keep these following three lines in -- just throwing them in for testing purposes since code not working rn as is
+from slackintegration.models import SlackCommunity
+from redditintegration.models import RedditCommunity
+from discordintegration.models import DiscordCommunity
+
 import urllib
 import json
 
@@ -278,9 +284,9 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
 
     action_type = "ConstitutionAction"
-    
+
     action_codename = ''
-    
+
     class Meta:
         verbose_name = 'constitutionaction'
         verbose_name_plural = 'constitutionactions'
@@ -293,13 +299,13 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            
+
             #runs only if they have propose permission
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
             self.proposal = p
             super(ConstitutionAction, self).save(*args, **kwargs)
-            
+
             if not self.is_bundled:
                 action = self
                 #if they have execute permission, skip all policies
@@ -361,9 +367,9 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     else:
         for policy in ConstitutionPolicy.objects.filter(community=action.community):
             if filter_policy(policy, action):
-                    
+
                 initialize_policy(policy, action)
-                
+
                 check_result = check_policy(policy, action)
                 if check_result == Proposal.PASSED:
                   pass_policy(policy, action)
@@ -375,10 +381,10 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
-    
+
     action_codename = 'policykitchangecommunitydoc'
-    
-    def execute(self):        
+
+    def execute(self):
         self.community_doc.change_text(self.change_text)
 
     class Meta:
@@ -390,7 +396,7 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     permissions = models.ManyToManyField(Permission)
-    
+
     action_codename = 'policykitaddrole'
 
     def __str__(self):
@@ -413,7 +419,7 @@ class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
     action_codename = 'policykitdeleterole'
-  
+
     def execute(self):
         self.role.delete()
         self.pass_action()
@@ -429,8 +435,8 @@ class PolicykitAddPermission(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddpermission'
-    
-    def execute(self):        
+
+    def execute(self):
         for p in self.permissions.all():
             self.role.permissions.add(p)
         self.pass_action()
@@ -446,8 +452,8 @@ class PolicykitRemovePermission(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitremovepermission'
-    
-    def execute(self):        
+
+    def execute(self):
         for p in self.permissions.all():
             self.role.permissions.remove(p)
         self.pass_action()
@@ -463,8 +469,8 @@ class PolicykitAddUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitadduserrole'
-    
-    def execute(self):        
+
+    def execute(self):
         for u in self.users.all():
             self.role.user_set.add(u)
         self.pass_action()
@@ -480,8 +486,8 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
-    
-    def execute(self):        
+
+    def execute(self):
         for u in self.users.all():
             self.role.user_set.remove(u)
         self.pass_action()
@@ -522,7 +528,7 @@ class EditorModel(ConstitutionAction):
 
 class PolicykitAddCommunityPolicy(EditorModel):
     action_codename = 'policykitaddcommunitypolicy'
-    
+
     def execute(self):
         policy = CommunityPolicy()
         policy.name = self.name
@@ -546,7 +552,7 @@ class PolicykitAddCommunityPolicy(EditorModel):
 
 class PolicykitAddConstitutionPolicy(EditorModel):
     action_codename = 'policykitaddconstitutionpolicy'
-    
+
     def execute(self):
         policy = ConstitutionPolicy()
         policy.community = self.community
@@ -569,9 +575,9 @@ class PolicykitAddConstitutionPolicy(EditorModel):
 
 class PolicykitChangeCommunityPolicy(EditorModel):
     community_policy = models.ForeignKey('CommunityPolicy', models.CASCADE)
-    
+
     action_codename = 'policykitchangecommunitypolicy'
-    
+
     def execute(self):
         self.community_policy.name = self.name
         self.community_policy.description = self.description
@@ -592,7 +598,7 @@ class PolicykitChangeCommunityPolicy(EditorModel):
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
-    
+
     action_codename = 'policykitchangeconstitutionpolicy'
 
     def execute(self):
@@ -619,8 +625,8 @@ class PolicykitRemoveCommunityPolicy(ConstitutionAction):
                                          null=True)
 
     action_codename = 'policykitremovecommunitypolicy'
-    
-    def execute(self):        
+
+    def execute(self):
         self.community_policy.delete()
         self.pass_action()
 
@@ -636,8 +642,8 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
                                          null=True)
 
     action_codename = 'policykitremoveconstitutionpolicy'
-    
-    def execute(self):        
+
+    def execute(self):
 
         self.constitution_policy.delete()
         self.pass_action()
@@ -660,7 +666,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
 
     action_type = "CommunityAction"
     action_codename = ''
-    
+
     class Meta:
         verbose_name = 'communityaction'
         verbose_name_plural = 'communityactions'
@@ -687,8 +693,10 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 app_name = 'slackintegration'
             elif isinstance(self.community, RedditCommunity):
                 app_name = 'redditintegration'
+            elif isinstance(self.community, DiscordCommunity):
+                app_name = 'discordintegration'
             #runs only if they have propose permission
-            
+
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                             author=self.initiator)
             self.proposal = p

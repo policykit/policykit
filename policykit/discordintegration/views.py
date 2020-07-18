@@ -116,14 +116,23 @@ def action(request):
     json_data = json.loads(request.body)
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
-    action_type = json_data.get('type')
 
-def post_policy(policy, action, users, template=None):
+def post_policy(policy, action, users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
 
     policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'
 
     if not template:
-        pollicy_message = policy_message_default
+        policy_message = policy_message_default
     else:
         policy_message = template
+
+    data = {
+        'content': policy_message
+    }
+
+    call = ('channels/%s/messages' % channel)
+    res = LogAPICall.make_api_call(policy.community, data, call)
+
+    action.community_post = res['id']
+    action.save()
