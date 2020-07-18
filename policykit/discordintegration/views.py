@@ -115,3 +115,6 @@ def action(request):
     json_data = json.loads(request.body)
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
+    action_type = json_data.get('type')
+
+    if action_type == "event_callback"

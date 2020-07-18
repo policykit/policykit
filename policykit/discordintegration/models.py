@@ -109,12 +109,11 @@ class DiscordCommunity(Community):
         from policyengine.views import clean_up_proposals
 
         logger.info('here')
-
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
             logger.info('EXECUTING ACTION BELOW:')
-            call = obj.ACTION
+            call = self.API + obj.ACTION
             logger.info(call)
 
             obj_fields = []
@@ -132,6 +131,20 @@ class DiscordCommunity(Community):
                     obj_fields.append(f.name)
 
             data = {}
+
+            for item in obj_fields:
+                try:
+                    if item != 'id':
+                        value = getattr(obj, item)
+                        data[item] = value
+                except obj.DoesNotExist:
+                    continue
+
+            res = LogAPICall.make_api_call(self, data, call)
+            if res['ok']:
+                clean_up_proposals(action, True)
+        else:
+            clean_up_proposals(action, True)
 
 class DiscordUser(CommunityUser):
     refresh_token = models.CharField('refresh_token', max_length=500, null=True)
