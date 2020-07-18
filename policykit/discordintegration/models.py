@@ -193,7 +193,7 @@ class DiscordPostMessage(CommunityAction):
             self.choices.append((c['id'], c['name']))
 
     text = models.TextField()
-    channel = models.CharField(choices=choices)
+    channel = models.CharField(choices=self.choices)
 
     ACTION = ('channels/%s/messages' % channel)
 
