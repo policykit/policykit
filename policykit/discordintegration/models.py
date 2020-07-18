@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DISCORD_ACTIONS = []
+DISCORD_ACTIONS = ['discordpostmessage']
 
 # Create your models here.
 
@@ -156,7 +156,7 @@ class DiscordPostMessage(CommunityAction):
 
     class Meta:
         permissions = (
-            ('can_execute_discord_post_message', 'Can execute discord post message'),
+            ('can_execute_discordpostmessage', 'Can execute discord post message'),
         )
 
     def revert(self):
