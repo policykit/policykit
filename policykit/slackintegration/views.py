@@ -87,7 +87,7 @@ def oauth(request):
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
-            
+
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
 
             if not s.exists():
@@ -300,12 +300,12 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
     from policyengine.models import LogAPICall, CommunityActionBundle
 
     if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
-        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
+        policy_message_default = "This action is governed by the following policy: " + policy.description + '. Decide between options below:\n'
         bundled_actions = action.bundled_actions.all()
         for num, a in enumerate(bundled_actions):
             policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
     else:
-        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+        policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote with :thumbsup: or :thumbsdown: on this post.'
 
     values = {'token': policy.community.access_token}
 

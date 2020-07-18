@@ -136,7 +136,7 @@ def action(request):
 def post_policy(policy, action, users, template=None):
     from policyengine.models import LogAPICall
 
-    policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote by replying +1 or -1 to this post.'
+    policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'
 
     if not template:
         policy_message = policy_message_default
