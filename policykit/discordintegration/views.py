@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
+from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 from discordintegration.models import DiscordCommunity, DiscordUser
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
@@ -59,7 +59,7 @@ def oauth(request):
     elif state == 'policykit_discord_mod_install':
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s' % guild_id)
         req.add_header("Content-Type", "application/json")
-        req.add_header('Authorization', 'Bot NzMzMjA4OTkwOTE3MzI5MDA3.XxJF1A.4AxekmdWSBd-IkjwvwIz_WD2nl8')
+        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
         resp = urllib.request.urlopen(req)
         guild_info = json.loads(resp.read().decode('utf-8'))
