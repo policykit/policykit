@@ -66,7 +66,7 @@ def oauth(request):
 
         s = DiscordCommunity.objects.filter(team_id=guild_id)
         community = None
-        user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discord: " + guild_name + ": Base User")
+        user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discord: " + guild_info['name'] + ": Base User")
 
         if not s.exists():
             community = DiscordCommunity.objects.create(
