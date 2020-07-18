@@ -702,18 +702,18 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 """if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
                     action.execute()
                 else:"""
-                    for policy in CommunityPolicy.objects.filter(community=self.community):
-                        if filter_policy(policy, action):
+                for policy in CommunityPolicy.objects.filter(community=self.community):
+                    if filter_policy(policy, action):
 
-                          initialize_policy(policy, action)
+                      initialize_policy(policy, action)
 
-                          check_result = check_policy(policy, action)
-                          if check_result == Proposal.PASSED:
-                              pass_policy(policy, action)
-                          elif check_result == Proposal.FAILED:
-                              fail_policy(policy, action)
-                          else:
-                              notify_policy(policy, action)
+                      check_result = check_policy(policy, action)
+                      if check_result == Proposal.PASSED:
+                          pass_policy(policy, action)
+                      elif check_result == Proposal.FAILED:
+                          fail_policy(policy, action)
+                      else:
+                          notify_policy(policy, action)
 
         else:
             super(CommunityAction, self).save(*args, **kwargs)
