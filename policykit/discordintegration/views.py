@@ -19,6 +19,7 @@ def oauth(request):
 
     state = request.GET.get('state')
     code = request.GET.get('code')
+    guild_id = request.GET.get('guild_id')
     error = request.GET.get('error')
 
     logger.info(code)
@@ -56,16 +57,6 @@ def oauth(request):
             return response
 
     elif state == 'policykit_discord_mod_install':
-        req = urllib.request.Request('https://discordapp.com/api/oauth2/applications/@me')
-        req.add_header('Authorization', 'Bearer %s' % res['access_token'])
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
-        app_info = json.loads(resp.read().decode('utf-8'))
-
-        logger.info(app_info)
-
-        guild_id = app_info['guild_id']
-
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s' % guild_id)
         req.add_header('Authorization', 'Bearer %s' % res['access_token'])
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
