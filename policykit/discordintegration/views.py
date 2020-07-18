@@ -35,7 +35,7 @@ def oauth(request):
         'grant_type': 'authorization_code',
         'code': code,
         'redirect_uri': SERVER_URL + '/discord/oauth',
-        'scope': 'bot identify guilds'
+        'scope': 'bot%20identify%20guilds'
     }).encode()
 
     req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
