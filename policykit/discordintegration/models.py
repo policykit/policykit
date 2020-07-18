@@ -73,12 +73,12 @@ class DiscordCommunity(Community):
             if action and action.AUTH == 'user':
                 user = action.initiator
                 if user.access_token:
-                    req.add_header('Authorization', 'bearer %s' % user.access_token)
+                    req.add_header('Authorization', 'Bearer %s' % user.access_token)
                     user_token = True
                 else:
-                    req.add_header('Authorization', 'bearer %s' % self.access_token)
+                    req.add_header('Authorization', 'Bearer %s' % self.access_token)
             else:
-                req.add_header('Authorization', 'bearer %s' % self.access_token)
+                req.add_header('Authorization', 'Bearer %s' % self.access_token)
 
             logger.info(req.headers)
             resp = urllib.request.urlopen(req)
@@ -95,9 +95,9 @@ class DiscordCommunity(Community):
                 req = urllib.request.Request(self.API + url, data)
                 if action and action.AUTH == 'user':
                     user = action.initiator
-                    req.add_header('Authorization', 'bearer %s' % user.access_token)
+                    req.add_header('Authorization', 'Bearer %s' % user.access_token)
                 else:
-                    req.add_header('Authorization', 'bearer %s' % self.access_token)
+                    req.add_header('Authorization', 'Bearer %s' % self.access_token)
                 resp = urllib.request.urlopen(req)
                 res = json.loads(resp.read().decode('utf-8'))
             else:

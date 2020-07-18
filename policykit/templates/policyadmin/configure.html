@@ -31,19 +31,6 @@
     <input type="hidden" name="refresh_token" value="{{ refresh_token }}">
     <input type="submit" value="Continue">
   </form>
-{% elif platform == "discord" %}
-  <P><b>Configure PolicyKit for your Discord account</b><BR></P>
-  <form action="/discord/initCommunity" method="post">
-    <label for="guilds">Choose a Guild:</label>
-    <select name="guild">
-      {% for guild_id, guild_name in guilds %}
-        <option value="{{guild_id}}:{{guild_name}}">{{ guild_name }}</option>
-      {% endfor %}
-    </select>
-    <input type="hidden" name="access_token" value="{{ access_token }}">
-    <input type="hidden" name="refresh_token" value="{{ refresh_token }}">
-    <input type="submit" value="Continue">
-  </form>
 {% endif %}
 
 {% endblock %}
