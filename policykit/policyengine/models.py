@@ -8,12 +8,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
-
-# NOTE: do NOT keep these following three lines in -- just throwing them in for testing purposes since code not working rn as is
-from slackintegration.models import SlackCommunity
-from redditintegration.models import RedditCommunity
-from discordintegration.models import DiscordCommunity
-
 import urllib
 import json
 
@@ -688,13 +682,13 @@ class CommunityAction(BaseAction,PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            app_name = ''
+            """app_name = ''
             if isinstance(self.community, SlackCommunity):
                 app_name = 'slackintegration'
             elif isinstance(self.community, RedditCommunity):
                 app_name = 'redditintegration'
             elif isinstance(self.community, DiscordCommunity):
-                app_name = 'discordintegration'
+                app_name = 'discordintegration'"""
             #runs only if they have propose permission
 
             p = Proposal.objects.create(status=Proposal.PROPOSED,
@@ -705,9 +699,9 @@ class CommunityAction(BaseAction,PolymorphicModel):
             if not self.is_bundled:
                 action = self
                 #if they have execute permission, skip all policies
-                if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
+                """if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
                     action.execute()
-                else:
+                else:"""
                     for policy in CommunityPolicy.objects.filter(community=self.community):
                         if filter_policy(policy, action):
 
