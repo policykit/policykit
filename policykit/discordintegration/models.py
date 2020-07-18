@@ -1,6 +1,7 @@
 from django.db import models
 from policyengine.models import Community, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
+from django.utils.functional import lazy
 from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
 from urllib import parse
@@ -183,17 +184,18 @@ class DiscordUser(CommunityUser):
 
 class DiscordPostMessage(CommunityAction):
 
-    def __init__(self):
+    """def __init__(self):
         data = {}
         call = ('guilds/%s/channels' % self.community.team_id)
         channels = LogAPICall.make_api_call(self, data, call)
 
         self.choices = []
         for c in channels:
-            self.choices.append((c['id'], c['name']))
+            self.choices.append((c['id'], c['name']))"""
 
+    choices = ("General", "General") # just for testing purposes
     text = models.TextField()
-    channel = models.CharField(choices=self.choices)
+    channel = models.CharField(choices=choices)
 
     ACTION = ('channels/%s/messages' % channel)
 
