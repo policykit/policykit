@@ -31,7 +31,7 @@ def refresh_access_token(refresh_token):
     req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
-    
+
     return res
 
 class DiscordCommunity(Community):
@@ -182,13 +182,15 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(CommunityAction):
-    data = {}
-    call = ('guilds/%s/channels' % self.community.team_id)
-    channels = LogAPICall.make_api_call(self, data, call)
 
-    choices = []
-    for c in channels:
-        choices.append((c['id'], c['name']))
+    def __init__(self):
+        data = {}
+        call = ('guilds/%s/channels' % self.community.team_id)
+        channels = LogAPICall.make_api_call(self, data, call)
+
+        self.choices = []
+        for c in channels:
+            self.choices.append((c['id'], c['name']))
 
     text = models.TextField()
     channel = models.CharField(choices=choices)
