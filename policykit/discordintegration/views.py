@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 from discordintegration.models import DiscordCommunity, DiscordUser, DiscordPostMessage
 from policyengine.models import *
@@ -116,6 +117,8 @@ def action(request):
     json_data = json.loads(request.body)
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
+
+    return HttpResponse("")
 
 def post_policy(policy, action, users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
