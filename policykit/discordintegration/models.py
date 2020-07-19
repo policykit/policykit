@@ -88,7 +88,6 @@ class DiscordCommunity(Community):
             res = json.loads(resp.read().decode('utf-8'))
         except urllib.error.HTTPError as e:
             if e.reason == 'Unauthorized':
-
                 if user_token:
                     duser = user.discorduser
                     duser.refresh_access_token()
@@ -198,6 +197,7 @@ class DiscordPostMessage(CommunityAction):
     channel = models.CharField(choices=choices)
 
     ACTION = ('channels/%s/messages' % channel)
+    AUTH = 'user'
 
     action_codename = 'discordpostmessage'
 
