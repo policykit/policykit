@@ -155,7 +155,7 @@ class DiscordCommunity(Community):
 
                 if posted_action.community_post:
                     data = {}
-                    call = ('channels/%s/messages/%s' % (obj.channel, posted_action.community_post))
+                    call = 'channels/{0}/messages/{1}'.format(obj.channel, posted_action.community_post)
                     _ = LogAPICall.make_api_call(self, data, call)
 
             if res['ok']:
@@ -196,7 +196,7 @@ class DiscordPostMessage(CommunityAction):
     text = models.TextField()
     channel = models.CharField(choices=choices)
 
-    ACTION = ('channels/%s/messages' % channel)
+    ACTION = 'channels/{0}/messages'.format(channel)
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
@@ -208,4 +208,4 @@ class DiscordPostMessage(CommunityAction):
 
     def revert(self):
         values = {}
-        super.revert(values, ('channels/%s/messages/%s' % (self.channel, self.id)))
+        super.revert(values, 'channels/{0}/messages/{1}'.format(self.channel, self.id))
