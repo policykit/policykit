@@ -194,10 +194,9 @@ class DiscordPostMessage(CommunityAction):
 
     choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
     text = models.TextField()
-    channel = models.CharField(choices=choices)
+    channel = models.CharField(max_length=18, choices=choices)
 
-    #ACTION = 'channels/{0}/messages'.format(channel)
-    ACTION = 'channels/733209360549019691/messagesds' # solely for testing purposes
+    ACTION = 'channels/{0}/messages'.format(channel)
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
