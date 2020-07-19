@@ -196,7 +196,8 @@ class DiscordPostMessage(CommunityAction):
     text = models.TextField()
     channel = models.CharField(choices=choices)
 
-    ACTION = 'channels/{0}/messages'.format(channel)
+    #ACTION = 'channels/{0}/messages'.format(channel)
+    ACTION = 'channels/733209360549019691/messagesds' # solely for testing purposes
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
