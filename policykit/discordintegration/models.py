@@ -192,7 +192,7 @@ class DiscordPostMessage(CommunityAction):
         for c in channels:
             self.choices.append((c['id'], c['name']))"""
 
-    choices = [("General", "General")] # just for testing purposes
+    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
     text = models.TextField()
     channel = models.CharField(choices=choices)
 
