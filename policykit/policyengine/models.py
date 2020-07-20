@@ -71,6 +71,8 @@ class Community(PolymorphicModel):
             
             for perm in mod_user_perms:
                 mod_user_role.genericpermission_set.create(name = perm)
+    
+            mod_user_role.make_community_role()
 
         else:
             super(Community, self).save(*args, **kwargs)
