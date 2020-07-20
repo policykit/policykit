@@ -231,6 +231,14 @@ class GenericRole(models.Model):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
     
     name = models.TextField(blank=True, null=True, default='')
+    
+    community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
+
+    def make_community_role(self):
+        c = CommunityRole()
+        c.community = self.community
+        c.role_name = self.name
+        c.save()
 
 class GenericPermission(models.Model):
     role = models.ForeignKey(GenericRole, on_delete=models.CASCADE)
