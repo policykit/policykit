@@ -245,7 +245,7 @@ class GenericRole(models.Model):
     def make_community_role(self):
         c = None
         if self.is_base_role:
-            c = community.base_role
+            c = self.community.base_role
             self.is_base_role = False
         else:
             c = CommunityRole()
