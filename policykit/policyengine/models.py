@@ -253,7 +253,7 @@ class GenericRole(models.Model):
             c.role_name = self.name
     
         for perm in self.genericpermission_set.all():
-            p1 = Permissions.objects.get(name=perm.name)
+            p1 = Permission.objects.get(name=perm.name)
             c.permissions.add(p1)
         
         c.save()
