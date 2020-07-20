@@ -192,7 +192,7 @@ class GenericPolicy(models.Model):
     
     community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
 
-    def make_constitution_policy():
+    def make_constitution_policy(self):
         p = ConstitutionPolicy()
         p.community = self.community
         p.filter = self.filter
@@ -208,7 +208,7 @@ class GenericPolicy(models.Model):
         p.proposal = proposal
         p.save()
 
-    def make_community_policy():
+    def make_community_policy(self):
         p = CommunityPolicy()
         p.community = self.community
         p.filter = self.filter
