@@ -209,6 +209,8 @@ class GenericPolicy(models.Model):
         proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
         p.proposal = proposal
         p.save()
+    
+        return p
 
     def make_community_policy(self):
         p = CommunityPolicy()
@@ -226,6 +228,8 @@ class GenericPolicy(models.Model):
         p.proposal = proposal
         p.save()
 
+        return p
+
     def __str__(self):
         return self.community + ": " + self.name
 
@@ -240,7 +244,12 @@ class GenericRole(models.Model):
         c = CommunityRole()
         c.community = self.community
         c.role_name = self.name
+        for perm in self.genericpermission_set.all():
+            c.permissions.add(perm)
+        
         c.save()
+
+        return c
 
 class GenericPermission(models.Model):
     role = models.ForeignKey(GenericRole, on_delete=models.CASCADE)
