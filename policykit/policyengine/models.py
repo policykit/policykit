@@ -65,7 +65,7 @@ class Community(PolymorphicModel):
                                                    )
             policy1.make_constitution_policy()
             
-            mod_user_role = GenericRole.objects.create(name = "Base User", starterkit = mod_user_starterkit, community = self)
+            mod_user_role = GenericRole.objects.create(name = "Base User", starterkit = mod_user_starterkit, community = self, is_base_role = True)
             
             mod_user_perms = ['can add boolean vote', 'Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add communityactionbundle', 'Can add communitypolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change community policy', 'Can add policykit change constitution policy', 'Can add policykit remove community policy', 'Can add policykit remove constitution policy', 'Can add policykit add community policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
             
@@ -239,9 +239,17 @@ class GenericRole(models.Model):
     name = models.TextField(blank=True, null=True, default='')
     
     community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
+    
+    is_base_role = models.BooleanField(default=False)
 
     def make_community_role(self):
-        c = CommunityRole()
+        c = None
+        if(is_base_role):
+            c = community.base_role
+            self.is_base_role = False
+        else:
+            c = CommunityRole()
+        
         c.community = self.community
         c.role_name = self.name
         for perm in self.genericpermission_set.all():
