@@ -41,6 +41,9 @@ def discord_listener_actions():
         resp = urllib.request.urlopen(req)
         channels = json.loads(resp.read().decode('utf-8'))
 
+        logger.info('Channels loaded (discord listener)')
+        logger.info(channels)
+
         for channel in channels:
             channel_id = channel['id']
             logger.info('Channel:')
