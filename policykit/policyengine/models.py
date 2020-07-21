@@ -51,7 +51,7 @@ class Community(PolymorphicModel):
             starterkit = StarterKit.objects.get(name = "Default Starter Kit")
             policy1 = starterkit.genericpolicy_set.get(name = "Starter name")
             policy1.make_constitution_policy(self)
-            base_role = starterkit.genericrole_set.geT(name = "Base User")
+            base_role = starterkit.genericrole_set.geT(role_name = "Base User")
             base_role.make_community_role(self)
         
         else:
@@ -216,7 +216,7 @@ class GenericPolicy(models.Model):
 class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
     
-    name = models.TextField(blank=True, null=True, default='')
+    role_name = models.TextField(blank=True, null=True, default='')
     
     community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
     
@@ -230,7 +230,7 @@ class GenericRole(Group):
         else:
             c = CommunityRole()
             c.community = community
-            c.role_name = self.name
+            c.role_name = self.role_name
     
         for perm in self.permissions.all():
             c.permissions.add(perm)

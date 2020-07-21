@@ -31,7 +31,7 @@ policy1 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
         
-default_base_role = GenericRole.objects.create(name = "Base User", starterkit = mod_user_starterkit, is_base_role = True)
+default_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = mod_user_starterkit, is_base_role = True)
             
 default_perms = ['can add boolean vote', 'Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add communityactionbundle', 'Can add communitypolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change community policy', 'Can add policykit change constitution policy', 'Can add policykit remove community policy', 'Can add policykit remove constitution policy', 'Can add policykit add community policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
             
