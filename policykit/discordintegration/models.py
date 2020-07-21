@@ -190,6 +190,16 @@ class DiscordPostMessage(CommunityAction):
 
     def execute(self):
         if not self.community_revert:
-            res = self.community.make_call('channels/%s/messages' % channel)
-            self.id = res['id']
+            data = parse.urlencode({
+                'content': text
+            }).encode()
+
+            req = urllib.request.Request('https://discordapp.com/api/channels/%s/messages' % channel)
+            req.add_header("Content-Type", "application/json")
+            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+            resp = urllib.request.urlopen(req)
+            message = json.loads(resp.read().decode('utf-8'))
+
+            self.id = message['id']
         super().execute()
