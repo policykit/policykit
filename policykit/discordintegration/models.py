@@ -183,16 +183,21 @@ class DiscordUser(CommunityUser):
 
 class DiscordPostMessage(CommunityAction):
 
-    """def __init__(self):
-        data = {}
-        call = ('guilds/%s/channels' % self.community.team_id)
-        channels = LogAPICall.make_api_call(self, data, call)
+    def get_choices(self):
+        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % self.community.team_id)
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        resp = urllib.request.urlopen(req)
+        channels = json.loads(resp.read().decode('utf-8'))
 
-        self.choices = []
+        channelTuples = []
         for c in channels:
-            self.choices.append((c['id'], c['name']))"""
+            channelTuples.append((c['id'], c['name']))
+        return channelTuples
 
-    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
+    choices = get_choices()
+
     text = models.TextField()
     channel = models.CharField(max_length=18, choices=choices)
 
@@ -209,3 +214,9 @@ class DiscordPostMessage(CommunityAction):
     def revert(self):
         values = {}
         super.revert(values, 'channels/{0}/messages/{1}'.format(self.channel, self.id))
+
+    def execute(self):
+        if not self.community_revert:
+            res = self.community.make_call('channels/%s/messages' % channel)
+            self.id = res['id']
+        super().execute()
