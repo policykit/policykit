@@ -184,9 +184,9 @@ class DiscordUser(CommunityUser):
 class DiscordPostMessage(CommunityAction):
 
     guild_id = None
-    choices = []
+    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
 
-    def __init__(self, *args, **kwargs):
+    """def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.guild_id = self.community.team_id
 
@@ -198,7 +198,7 @@ class DiscordPostMessage(CommunityAction):
         channels = json.loads(resp.read().decode('utf-8'))
 
         for c in channels:
-            self.choices.append((c['id'], c['name']))
+            self.choices.append((c['id'], c['name']))"""
 
     text = models.TextField()
     channel = models.CharField(max_length=18, choices=choices)
