@@ -13,9 +13,6 @@ logger = logging.getLogger(__name__)
 
 DISCORD_ACTIONS = ['discordpostmessage']
 
-# Create your models here.
-
-
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
         'grant_type': 'refresh_token',
@@ -72,6 +69,8 @@ class DiscordCommunity(Community):
         call_info = self.API + url
 
         req = urllib.request.Request(call_info, data)
+        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
 
