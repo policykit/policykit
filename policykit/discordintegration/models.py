@@ -69,41 +69,12 @@ class DiscordCommunity(Community):
         else:
             data = None
 
-        try:
-            user_token = False
-            req = urllib.request.Request(self.API + url, data)
+        call_info = self.API + url
 
-            if action and action.AUTH == 'user':
-                user = action.initiator
-                if user.access_token:
-                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-                    user_token = True
-                else:
-                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-            else:
-                req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+        req = urllib.request.Request(call_info, data)
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
 
-            logger.info(req.headers)
-            resp = urllib.request.urlopen(req)
-            res = json.loads(resp.read().decode('utf-8'))
-        except urllib.error.HTTPError as e:
-            if e.reason == 'Unauthorized':
-                if user_token:
-                    duser = user.discorduser
-                    duser.refresh_access_token()
-                else:
-                    self.refresh_access_token()
-
-                req = urllib.request.Request(self.API + url, data)
-                if action and action.AUTH == 'user':
-                    user = action.initiator
-                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-                else:
-                    req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-                resp = urllib.request.urlopen(req)
-                res = json.loads(resp.read().decode('utf-8'))
-            else:
-                logger.info(e)
         return res
 
     def execute_community_action(self, action, delete_policykit_post=True):
