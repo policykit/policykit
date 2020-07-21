@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, CommunityAction
+from policyengine.models import Community, CommunityUser, PlatformAction
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
@@ -54,7 +54,7 @@ class SlackCommunity(Community):
             self.base_role.permissions.add(p)
             
             
-    def execute_community_action(self, action, delete_policykit_post=True):
+    def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
         
@@ -73,8 +73,8 @@ class SlackCommunity(Community):
                                   'community',
                                   'initiator',
                                   'communityapi_ptr',
-                                  'communityaction',
-                                  'communityactionbundle',
+                                  'platformaction',
+                                  'platformactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -115,7 +115,7 @@ class SlackCommunity(Community):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.communityactionbundle_set.all()
+                    bundle = action.platformactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
@@ -153,7 +153,7 @@ class SlackUser(CommunityUser):
         group.user_set.add(self)
 
     
-class SlackPostMessage(CommunityAction):
+class SlackPostMessage(PlatformAction):
     ACTION = 'chat.postMessage'
     AUTH = 'admin_bot'
     text = models.TextField()
@@ -175,7 +175,7 @@ class SlackPostMessage(CommunityAction):
                 }
         super().revert(values, 'chat.delete')
     
-class SlackRenameConversation(CommunityAction):
+class SlackRenameConversation(PlatformAction):
     ACTION = 'conversations.rename'
     AUTH = 'admin_user'
     
@@ -211,7 +211,7 @@ class SlackRenameConversation(CommunityAction):
                 }
         super().revert(values, 'conversations.rename')
         
-class SlackJoinConversation(CommunityAction):
+class SlackJoinConversation(PlatformAction):
     ACTION = 'conversations.invite'
     AUTH = 'admin_user'
     channel = models.CharField('channel', max_length=150)
@@ -233,7 +233,7 @@ class SlackJoinConversation(CommunityAction):
                 }
         super().revert(values, 'conversations.kick')
 
-class SlackPinMessage(CommunityAction):
+class SlackPinMessage(PlatformAction):
     ACTION = 'pins.add'
     AUTH = 'bot'
     channel = models.CharField('channel', max_length=150)
@@ -254,7 +254,7 @@ class SlackPinMessage(CommunityAction):
                 }
         super().revert(values, 'pins.remove')
 
-class SlackScheduleMessage(CommunityAction):
+class SlackScheduleMessage(PlatformAction):
     ACTION = 'chat.scheduleMessage'
     text = models.TextField()
     channel = models.CharField('channel', max_length=150)
@@ -268,7 +268,7 @@ class SlackScheduleMessage(CommunityAction):
             ('can_execute_slackschedulemessage', 'Can execute slack schedule message'),
         )
 
-class SlackKickConversation(CommunityAction):
+class SlackKickConversation(PlatformAction):
     ACTION = 'conversations.kick'
     AUTH = 'user'
     user = models.CharField('user', max_length=15)
