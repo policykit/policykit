@@ -31,7 +31,7 @@ def discord_listener_actions():
     logger.info("discord listener executing")
     for community in DiscordCommunity.objects.all():
         logger.info('Community: ')
-        logger.info(community)
+        logger.info(dir(community))
         actions = []
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % community.team_id)
