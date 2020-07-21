@@ -39,6 +39,7 @@ def discord_listener_actions():
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        logger.info('Sending request')
         resp = urllib.request.urlopen(req)
         logger.info('Response:')
         logger.info(resp)
