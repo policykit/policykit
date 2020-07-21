@@ -196,7 +196,7 @@ class DiscordPostMessage(CommunityAction):
             channelTuples.append((c['id'], c['name']))
         return channelTuples
 
-    choices = get_choices()
+    choices = get_choices(self)
 
     text = models.TextField()
     channel = models.CharField(max_length=18, choices=choices)
