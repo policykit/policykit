@@ -31,11 +31,7 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 
 @shared_task
 def discord_listener_actions():
-    logger.info("discord listener executing")
     for community in DiscordCommunity.objects.all():
-        logger.info('Community:')
-        logger.info(community.community_name)
-        logger.info(community.team_id)
         actions = []
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % community.team_id)
@@ -45,13 +41,8 @@ def discord_listener_actions():
         resp = urllib.request.urlopen(req)
         channels = json.loads(resp.read().decode('utf-8'))
 
-        logger.info('Channels loaded (discord listener)')
-        logger.info(channels)
-
         for channel in channels:
             channel_id = channel['id']
-            logger.info('Channel:')
-            logger.info(channel['name'])
 
             call_type = ('channels/%s/messages' % channel_id)
 
