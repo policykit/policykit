@@ -183,32 +183,22 @@ class DiscordUser(CommunityUser):
 
 class DiscordPostMessage(CommunityAction):
 
-    @staticmethod
-    def get_choices():
-        req = urllib.request.Request('https://discordapp.com/api/oauth2/applications/@me')
-        req.add_header("Content-Type", "application/x-www-form-urlencoded")
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
+    guild_id = None
+    choices = []
 
-        logger.info(res)
+    def __init__(self, *args, **kwargs):
+        super(models.Model, self).__init__(*args, **kwargs)
+        self.guild_id = self.community.team_id
 
-        guild_id = res['guild_id']
-
-        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % guild_id)
+        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % self.guild_id)
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
         resp = urllib.request.urlopen(req)
         channels = json.loads(resp.read().decode('utf-8'))
 
-        channelTuples = []
         for c in channels:
-            channelTuples.append((c['id'], c['name']))
-        return channelTuples
-
-    choices = get_choices.__func__()
+            self.choices.append((c['id'], c['name']))
 
     text = models.TextField()
     channel = models.CharField(max_length=18, choices=choices)
