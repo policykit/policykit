@@ -187,7 +187,7 @@ class DiscordPostMessage(CommunityAction):
     choices = []
 
     def __init__(self, *args, **kwargs):
-        super(models.Model, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.guild_id = self.community.team_id
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % self.guild_id)
