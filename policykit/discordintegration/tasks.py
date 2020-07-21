@@ -52,6 +52,7 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
+                logger.info(message['content'])
                 if not is_policykit_action(community, message['id'], 'id', call_type):
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
 
