@@ -262,7 +262,7 @@ class PolicykitChangePlatformPolicyAdmin(admin.ModelAdmin):
         obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(PolicykitChangeplatformPolicy, PolicykitChangePlatformPolicyAdmin)
+admin_site.register(PolicykitChangePlatformPolicy, PolicykitChangePlatformPolicyAdmin)
 
 
 class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
