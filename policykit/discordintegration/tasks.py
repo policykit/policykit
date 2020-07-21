@@ -29,9 +29,7 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 @shared_task
 def discord_listener_actions():
     for community in DiscordCommunity.objects.all():
-
-        print(json.parse(community))
-
+        logger.info(community)
         actions = []
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % community.team_id)
