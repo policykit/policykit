@@ -50,7 +50,7 @@ class Community(PolymorphicModel):
 
             # create Starter ConstitutionPolicy
             p = ConstitutionPolicy()
-            p.community = self
+            p.platform = self
             p.filter = "return True"
             p.initialize = "pass"
             p.check = "return PASSED"
@@ -83,9 +83,9 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p3)
             self.base_role.permissions.add(p4)
 
-            p11 = Permission.objects.get(name='Can add communityactionbundle')
+            p11 = Permission.objects.get(name='Can add platformactionbundle')
             self.base_role.permissions.add(p11)
-            p12 = Permission.objects.get(name='Can add communitypolicybundle')
+            p12 = Permission.objects.get(name='Can add platformpolicybundle')
             self.base_role.permissions.add(p12)
 
             p11 = Permission.objects.get(name='Can add constitutionactionbundle')
@@ -105,19 +105,19 @@ class Community(PolymorphicModel):
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit remove user role')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit change community policy')
+            p1 = Permission.objects.get(name='Can add policykit change platform policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit change constitution policy')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit remove community policy')
+            p1 = Permission.objects.get(name='Can add policykit remove platform policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit remove constitution policy')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit add community policy')
+            p1 = Permission.objects.get(name='Can add policykit add platform policy')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can add policykit add constitution policy')
             self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit change community doc')
+            p1 = Permission.objects.get(name='Can add policykit change platform doc')
             self.base_role.permissions.add(p1)
             p1 = Permission.objects.get(name='Can execute policykit remove constitution policy')
             self.base_role.permissions.add(p1)
@@ -529,11 +529,11 @@ class EditorModel(ConstitutionAction):
         verbose_name="Fail"
     )
 
-class PolicykitAddCommunityPolicy(EditorModel):
-    action_codename = 'policykitaddcommunitypolicy'
+class PolicykitAddPlatformPolicy(EditorModel):
+    action_codename = 'policykitaddplatformpolicy'
     
     def execute(self):
-        policy = CommunityPolicy()
+        policy = PlatformPolicy()
         policy.name = self.name
         policy.description = self.description
         policy.is_bundled = self.is_bundled
@@ -549,7 +549,7 @@ class PolicykitAddCommunityPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute_policykitaddcommunitypolicy', 'Can execute policykit add community policy'),
+            ('can_execute_policykitplatformpolicy', 'Can execute policykit add platform policy'),
         )
 
 
@@ -576,26 +576,26 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         )
 
 
-class PolicykitChangeCommunityPolicy(EditorModel):
-    community_policy = models.ForeignKey('CommunityPolicy', models.CASCADE)
+class PolicykitChangePlatformPolicy(EditorModel):
+    platform_policy = models.ForeignKey('PlatformPolicy', models.CASCADE)
     
-    action_codename = 'policykitchangecommunitypolicy'
+    action_codename = 'policykitchangeplatformpolicy'
     
     def execute(self):
-        self.community_policy.name = self.name
-        self.community_policy.description = self.description
-        self.community_policy.filter = self.filter
-        self.community_policy.initialize = self.initialize
-        self.community_policy.check = self.check
-        self.community_policy.notify = self.notify
-        self.community_policy.success = self.success
-        self.community_policy.fail = self.fail
-        self.community_policy.save()
+        self.platform_policy.name = self.name
+        self.platform_policy.description = self.description
+        self.platform_policy.filter = self.filter
+        self.platform_policy.initialize = self.initialize
+        self.platform_policy.check = self.check
+        self.platform_policy.notify = self.notify
+        self.platform_policy.success = self.success
+        self.platform_policy.fail = self.fail
+        self.platform_policy.save()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute_policykitchangecommunitypolicy', 'Can execute policykit change community policy'),
+            ('can_execute_policykitchangeplatformpolicy', 'Can execute policykit change platform policy'),
         )
 
 
@@ -622,20 +622,20 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         )
 
 
-class PolicykitRemoveCommunityPolicy(ConstitutionAction):
-    community_policy = models.ForeignKey('CommunityPolicy',
+class PolicykitRemovePlatformPolicy(ConstitutionAction):
+    platform_policy = models.ForeignKey('PlatformPolicy',
                                          models.SET_NULL,
                                          null=True)
 
-    action_codename = 'policykitremovecommunitypolicy'
+    action_codename = 'policykitremoveplatformpolicy'
     
     def execute(self):        
-        self.community_policy.delete()
+        self.platform_policy.delete()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute_policykitremovecommunitypolicy', 'Can execute policykit remove community policy'),
+            ('can_execute_policykitremoveplatformpolicy', 'Can execute policykit remove platform policy'),
         )
 
 
@@ -657,7 +657,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         )
 
 
-class CommunityAction(BaseAction,PolymorphicModel):
+class PlatformAction(BaseAction,PolymorphicModel):
     ACTION = None
     AUTH = 'app'
 
@@ -667,12 +667,12 @@ class CommunityAction(BaseAction,PolymorphicModel):
     community_origin = models.BooleanField(default=False)
     is_bundled = models.BooleanField(default=False)
 
-    action_type = "CommunityAction"
+    action_type = "PlatformAction"
     action_codename = ''
     
     class Meta:
-        verbose_name = 'communityaction'
-        verbose_name_plural = 'communityactions'
+        verbose_name = 'platformaction'
+        verbose_name_plural = 'platformactions'
 
     def revert(self, values, call):
         _ = LogAPICall.make_api_call(self.community, values, call)
@@ -680,7 +680,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         self.save()
 
     def execute(self):
-        self.community.execute_community_action(self)
+        self.community.execute_platform_action(self)
         self.pass_action()
 
     def pass_action(self):
@@ -698,7 +698,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                                                 author=self.initiator)
                 self.proposal = p
 
-                super(CommunityAction, self).save(*args, **kwargs)
+                super(PlatformAction, self).save(*args, **kwargs)
                 
                 if not self.is_bundled:
                     action = self
@@ -706,7 +706,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
-                        for policy in CommunityPolicy.objects.filter(community=self.community):
+                        for policy in PlatformPolicy.objects.filter(community=self.community):
                             if filter_policy(policy, action):
 
                                 initialize_policy(policy, action)
@@ -724,14 +724,14 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 self.proposal = p
 
         else:
-            super(CommunityAction, self).save(*args, **kwargs)
+            super(PlatformAction, self).save(*args, **kwargs)
 
 
-class CommunityActionBundle(BaseAction):
+class PlatformActionBundle(BaseAction):
 
-    bundled_actions = models.ManyToManyField(CommunityAction)
+    bundled_actions = models.ManyToManyField(PlatformAction)
 
-    action_type = "CommunityActionBundle"
+    action_type = "PlatformActionBundle"
     
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -740,14 +740,14 @@ class CommunityActionBundle(BaseAction):
         (BUNDLE, 'bundle')
     ]
 
-    action_type = "CommunityActionBundle"
-    bundled_actions = models.ManyToManyField(CommunityAction)
+    action_type = "PlatformActionBundle"
+    bundled_actions = models.ManyToManyField(PlatformAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     def execute(self):
-        if self.bundle_type == CommunityActionBundle.BUNDLE:
+        if self.bundle_type == PlatformActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
-                self.community.execute_community_action(action)
+                self.community.execute_platform_action(action)
                 action.pass_action()
 
     def pass_action(self):
@@ -756,11 +756,11 @@ class CommunityActionBundle(BaseAction):
         proposal.save()
 
     class Meta:
-        verbose_name = 'communityactionbundle'
-        verbose_name_plural = 'communityactionbundles'
+        verbose_name = 'platformactionbundle'
+        verbose_name_plural = 'platformactionbundles'
 
 
-@receiver(post_save, sender=CommunityActionBundle)
+@receiver(post_save, sender=PlatformActionBundle)
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
@@ -771,7 +771,7 @@ def after_bundle_save(sender, instance, **kwargs):
             action.execute()
         else:
             if not action.community_post:
-                for policy in CommunityPolicy.objects.filter(community=action.community):
+                for policy in PlatformPolicy.objects.filter(community=action.community):
                   if filter_policy(policy, action):
 
                       initialize_policy(policy, action)
@@ -831,24 +831,24 @@ class ConstitutionPolicyBundle(BaseAction):
         verbose_name_plural = 'constitutionpolicybundles'
 
 
-class CommunityPolicy(BasePolicy):
-    policy_type = "CommunityPolicy"
+class PlatformPolicy(BasePolicy):
+    policy_type = "PlatformPolicy"
 
     class Meta:
-        verbose_name = 'communitypolicy'
-        verbose_name_plural = 'communitypolicies'
+        verbose_name = 'platformpolicy'
+        verbose_name_plural = 'platformpolicies'
 
     def __str__(self):
-        return ' '.join(['CommunityPolicy: ', self.description, 'for', self.community.community_name])
+        return ' '.join(['PlatformPolicy: ', self.description, 'for', self.community.community_name])
 
 
-class CommunityPolicyBundle(BaseAction):
-    bundled_policies = models.ManyToManyField(CommunityPolicy)
-    policy_type = "CommunityPolicyBundle"
+class PlatformPolicyBundle(BaseAction):
+    bundled_policies = models.ManyToManyField(PlatformPolicy)
+    policy_type = "PlatformPolicyBundle"
 
     class Meta:
-        verbose_name = 'communitypolicybundle'
-        verbose_name_plural = 'communitypolicybundles'
+        verbose_name = 'platformpolicybundle'
+        verbose_name_plural = 'platformpolicybundles'
 
 
 class UserVote(models.Model):
