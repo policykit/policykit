@@ -94,38 +94,38 @@ class PolicykitAddConstitutionPolicyAdmin(admin.ModelAdmin):
     fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
 
     def save_model(self, request, obj, form, change):
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.initiator = request.user
         obj.save()
 
 admin_site.register(PolicykitAddConstitutionPolicy, PolicykitAddConstitutionPolicyAdmin)
 
 
-class PolicykitAddCommunityPolicyAdmin(admin.ModelAdmin):
+class PolicykitAddPlatformPolicyAdmin(admin.ModelAdmin):
     fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
 
     def save_model(self, request, obj, form, change):
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.initiator = request.user
         obj.save()
 
-admin_site.register(PolicykitAddCommunityPolicy, PolicykitAddCommunityPolicyAdmin)
+admin_site.register(PolicykitAddPlatformPolicy, PolicykitAddPlatformPolicyAdmin)
 
 
 
-class CommunityActionBundleAdmin(admin.ModelAdmin):
+class PlatformActionBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_actions', 'bundle_type')
 
     def save_model(self, request, obj, form, change):
         if not change:
             obj.is_bundle = True
-            obj.community_origin = False
+            obj.platform_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
-            obj.community = request.user.community
+            obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(CommunityActionBundle, CommunityActionBundleAdmin)
+admin_site.register(PlatformActionBundle, PlatformActionBundleAdmin)
 
 
 class ConstitutionActionBundleAdmin(admin.ModelAdmin):
@@ -134,24 +134,24 @@ class ConstitutionActionBundleAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.is_bundle = True
-            obj.community_origin = False
+            obj.platform_origin = False
             p = Proposal.objects.create(author=request.user, status=Proposal.PROPOSED)
             obj.proposal = p
-            obj.community = request.user.community
+            obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
 
-class CommunityPolicyBundleAdmin(admin.ModelAdmin):
+class PlatformPolicyBundleAdmin(admin.ModelAdmin):
     fields= ('bundled_policies', 'description')
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(CommunityPolicyBundle, CommunityPolicyBundleAdmin)
+admin_site.register(platformPolicyBundle, platformPolicyBundleAdmin)
 
 
 
@@ -160,7 +160,7 @@ class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(ConstitutionPolicyBundle, ConstitutionPolicyBundleAdmin)
@@ -193,7 +193,7 @@ class PolicykitAddRoleAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitAddRole, PolicykitAddRoleAdmin)
@@ -204,7 +204,7 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
@@ -215,7 +215,7 @@ class PolicykitAddPermissionAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
@@ -226,7 +226,7 @@ class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
@@ -238,7 +238,7 @@ class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitAddUserRole, PolicykitAddUserRoleAdmin)
@@ -248,21 +248,21 @@ class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
 
-class PolicykitChangeCommunityPolicyAdmin(admin.ModelAdmin):
+class PolicykitChangePlatformPolicyAdmin(admin.ModelAdmin):
     fields = ('name', 'description', 'is_bundled', 'filter', 'initialize', 'check', 'notify', 'success', 'fail')
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(PolicykitChangeCommunityPolicy, PolicykitChangeCommunityPolicyAdmin)
+admin_site.register(PolicykitChangeplatformPolicy, PolicykitChangePlatformPolicyAdmin)
 
 
 class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
@@ -270,21 +270,21 @@ class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitChangeConstitutionPolicy, PolicykitChangeConstitutionPolicyAdmin)
 
 
-class PolicykitRemoveCommunityPolicyAdmin(admin.ModelAdmin):
-    fields= ('community_policy','is_bundled')
+class PolicykitRemovePlatformPolicyAdmin(admin.ModelAdmin):
+    fields= ('platform_policy','is_bundled')
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(PolicykitRemoveCommunityPolicy, PolicykitRemoveCommunityPolicyAdmin)
+admin_site.register(PolicykitRemovePlatformPolicy, PolicykitRemovePlatformPolicyAdmin)
 
 
 class PolicykitRemoveConstitutionPolicyAdmin(admin.ModelAdmin):
@@ -292,21 +292,21 @@ class PolicykitRemoveConstitutionPolicyAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
 admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstitutionPolicyAdmin)
 
 
-class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
-    fields= ('community_doc', 'text',)
+class PolicykitChangePlatformDocAdmin(admin.ModelAdmin):
+    fields= ('platform_doc', 'text',)
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
-        obj.community = request.user.community
+        obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(PolicykitChangeCommunityDoc, PolicykitChangeCommunityDocAdmin)
+admin_site.register(PolicykitChangePlatformDoc, PolicykitChangePlatformDocAdmin)
 
 
 
@@ -317,7 +317,7 @@ admin_site.register(PolicykitChangeCommunityDoc, PolicykitChangeCommunityDocAdmi
 #
 # admin_site.register(ActionMeasure, ActionAdmin)
 #
-# class CommunityIntegrationAdmin(admin.ModelAdmin):
+# class platformIntegrationAdmin(admin.ModelAdmin):
 #     pass
 #
-# admin_site.register(CommunityIntegration, CommunityIntegrationAdmin)
+# admin_site.register(platformIntegration, platformIntegrationAdmin)
