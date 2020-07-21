@@ -183,7 +183,7 @@ class DiscordUser(CommunityUser):
 
 class DiscordPostMessage(CommunityAction):
 
-    def get_choices(self):
+    def __get_choices(self):
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % self.community.team_id)
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
@@ -196,7 +196,7 @@ class DiscordPostMessage(CommunityAction):
             channelTuples.append((c['id'], c['name']))
         return channelTuples
 
-    choices = get_choices(self)
+    choices = self.__get_choices()
 
     text = models.TextField()
     channel = models.CharField(max_length=18, choices=choices)
