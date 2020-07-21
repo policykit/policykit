@@ -48,32 +48,12 @@ class Community(PolymorphicModel):
         if not self.pk:
             super(Community, self).save(*args, **kwargs)
             
-            #create Starter Kit
-            mod_user_starterkit = StarterKit(name = "Mod/User Starter Kit")
-            mod_user_starterkit.save()
-            
-            policy1 = GenericPolicy.objects.create(filter = "return True",
-                                                   initialize = "pass",
-                                                   check = "return PASSED",
-                                                   notify = "pass",
-                                                   success = "action.execute()",
-                                                   fail = "pass",
-                                                   description = "Starter Policy: all policies pass",
-                                                   name = "Starter name",
-                                                   starterkit = mod_user_starterkit,
-                                                   community = self
-                                                   )
-            policy1.make_constitution_policy()
-            
-            mod_user_role = GenericRole.objects.create(name = "Base User", starterkit = mod_user_starterkit, community = self, is_base_role = True)
-            
-            mod_user_perms = ['can add boolean vote', 'Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add communityactionbundle', 'Can add communitypolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change community policy', 'Can add policykit change constitution policy', 'Can add policykit remove community policy', 'Can add policykit remove constitution policy', 'Can add policykit add community policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
-            
-            for perm in mod_user_perms:
-                mod_user_role.genericpermission_set.create(name = perm)
-    
-            mod_user_role.make_community_role()
-
+            starterkit = StarterKit.objects.get(name = "Default Starter Kit")
+            policy1 = starterkit.genericpolicy_set.get(name = "Starter name")
+            policy1.make_constitution_policy(self)
+            base_role = starterkit.genericrole_set.geT(name = "Base User")
+            base_role.make_community_role(self)
+        
         else:
             super(Community, self).save(*args, **kwargs)
 
@@ -192,11 +172,11 @@ class GenericPolicy(models.Model):
 
     has_notified = models.BooleanField(default=False)
     
-    community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
+    is_constitution = models.BooleanField(default=True)
 
-    def make_constitution_policy(self):
+    def make_constitution_policy(self, community):
         p = ConstitutionPolicy()
-        p.community = self.community
+        p.community = community
         p.filter = self.filter
         p.initialize = self.initialize
         p.check = self.check
@@ -212,9 +192,9 @@ class GenericPolicy(models.Model):
     
         return p
 
-    def make_community_policy(self):
+    def make_community_policy(self, community):
         p = CommunityPolicy()
-        p.community = self.community
+        p.community = community
         p.filter = self.filter
         p.initialize = self.initialize
         p.check = self.check
@@ -231,9 +211,9 @@ class GenericPolicy(models.Model):
         return p
 
     def __str__(self):
-        return self.community + ": " + self.name
+        return self.name
 
-class GenericRole(models.Model):
+class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
     
     name = models.TextField(blank=True, null=True, default='')
@@ -242,28 +222,22 @@ class GenericRole(models.Model):
     
     is_base_role = models.BooleanField(default=False)
 
-    def make_community_role(self):
+    def make_community_role(self, community):
         c = None
         if self.is_base_role:
-            c = self.community.base_role
+            c = community.base_role
             self.is_base_role = False
         else:
             c = CommunityRole()
-            c.community = self.community
+            c.community = community
             c.role_name = self.name
     
-        for perm in self.genericpermission_set.all():
-            p1 = Permission.objects.get(name=perm.name)
-            c.permissions.add(p1)
+        for perm in self.permissions.all():
+            c.permissions.add(perm)
         
         c.save()
 
         return c
-
-class GenericPermission(models.Model):
-    role = models.ForeignKey(GenericRole, on_delete=models.CASCADE)
-
-    name = models.TextField(blank=True, default='')
 
 
 class Proposal(models.Model):
