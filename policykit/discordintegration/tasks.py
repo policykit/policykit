@@ -28,6 +28,7 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 
 @shared_task
 def discord_listener_actions():
+    logger.info("discord listener executing")
     for community in DiscordCommunity.objects.all():
         logger.info('Community: ' + community)
         actions = []
