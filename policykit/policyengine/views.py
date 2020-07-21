@@ -90,14 +90,14 @@ def fail_policy(policy, action):
     exec_code(policy.fail, wrapper_start, wrapper_end, None, locals())
 
 def clean_up_proposals(action, executed):
-    from policyengine.models import Proposal, CommunityActionBundle
+    from policyengine.models import Proposal, PlatformActionBundle
 
     if action.is_bundled:
-        bundle = action.communityactionbundle_set.all()
+        bundle = action.platformactionbundle_set.all()
         if bundle.exists():
             bundle = bundle[0]
             # TO DO - remove all of this
-            if bundle.bundle_type == CommunityActionBundle.ELECTION:
+            if bundle.bundle_type == PlatformActionBundle.ELECTION:
                 for a in bundle.bundled_actions.all():
                     if a != action:
                         p = a.proposal

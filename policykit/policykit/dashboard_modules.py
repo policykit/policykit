@@ -24,7 +24,7 @@ class ProposedActions(DashboardModule):
         proposed_constitutionactions = ConstitutionAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
 
-        proposed_communityactions = PlatformAction.objects.filter(community=user.community,
+        proposed_platformactions = PlatformAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
 
 
@@ -111,7 +111,7 @@ class PolicyModule(DashboardModule):
 
     def init_with_context(self, context):
         if self.policy_type == "Platform":
-            policies = CommunityPolicy.objects
+            policies = PlatformPolicy.objects
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
 
