@@ -7,6 +7,9 @@ from policykit.settings import DISCORD_BOT_TOKEN
 from policyengine.models import Proposal, LogAPICall, CommunityPolicy, CommunityAction, BooleanVote, NumberVote
 from discordintegration.models import DiscordCommunity, DiscordUser, DiscordPostMessage
 from policyengine.views import filter_policy, check_policy, initialize_policy
+from urllib import parse
+import urllib.request
+import json
 import datetime
 import logging
 import json
