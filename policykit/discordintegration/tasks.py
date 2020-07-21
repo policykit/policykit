@@ -30,8 +30,8 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 def discord_listener_actions():
     logger.info("discord listener executing")
     for community in DiscordCommunity.objects.all():
-        logger.info('Community: ')
-        logger.info(dir(community))
+        logger.info('Community:')
+        logger.info(community.community_name)
         actions = []
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % community.team_id)
@@ -43,6 +43,8 @@ def discord_listener_actions():
 
         for channel in channels:
             channel_id = channel['id']
+            logger.info('Channel:')
+            logger.info(channel['name'])
 
             call_type = ('channels/%s/messages' % channel_id)
 
@@ -54,8 +56,10 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
+                logger.info('Message:')
                 logger.info(message['content'])
                 if not is_policykit_action(community, message['id'], 'id', call_type):
+                    logger.info('not already policykit action')
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
 
                     if not post_exists.exists():
