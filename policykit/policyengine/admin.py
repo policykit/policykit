@@ -151,7 +151,7 @@ class PlatformPolicyBundleAdmin(admin.ModelAdmin):
         obj.platform = request.user.platform
         obj.save()
 
-admin_site.register(platformPolicyBundle, platformPolicyBundleAdmin)
+admin_site.register(PlatformPolicyBundle, PlatformPolicyBundleAdmin)
 
 
 

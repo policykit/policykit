@@ -35,7 +35,7 @@ class ProposedActions(DashboardModule):
                                                      'description': str(i)
                                                      })
 
-        for i in proposed_communityactions:
+        for i in proposed_platformactions:
             self.children['platform_actions'].append({
                                                      'description': str(i)
                                                      })
