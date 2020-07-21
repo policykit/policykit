@@ -24,19 +24,19 @@ class ProposedActions(DashboardModule):
         proposed_constitutionactions = ConstitutionAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
 
-        proposed_communityactions = CommunityAction.objects.filter(community=user.community,
+        proposed_communityactions = PlatformAction.objects.filter(community=user.community,
                                                                proposal__status=Proposal.PROPOSED)
 
 
         self.children.append({'constitution_actions': [],
-                              'community_actions': []})
+                              'platform_actions': []})
         for i in proposed_constitutionactions:
             self.children['constitution_actions'].append({
                                                      'description': str(i)
                                                      })
 
         for i in proposed_communityactions:
-            self.children['community_actions'].append({
+            self.children['platform_actions'].append({
                                                      'description': str(i)
                                                      })
 
@@ -93,9 +93,9 @@ class PolicyModule(DashboardModule):
     deletable = False
     show_title = True
 
-    policy_type = "Community"
+    policy_type = "Platform"
 
-    def __init__(self, policy_type="Community", title=None, **kwargs):
+    def __init__(self, policy_type="Platform", title=None, **kwargs):
         kwargs.update({'policy_type': policy_type})
         super(PolicyModule, self).__init__(title, **kwargs)
 
@@ -110,7 +110,7 @@ class PolicyModule(DashboardModule):
 
 
     def init_with_context(self, context):
-        if self.policy_type == "Community":
+        if self.policy_type == "Platform":
             policies = CommunityPolicy.objects
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
