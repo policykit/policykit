@@ -192,7 +192,11 @@ class DiscordPostMessage(CommunityAction):
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
 
-        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % res['guild_id'])
+        logger.info(res)
+
+        guild_id = res['guild_id']
+
+        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % guild_id)
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
