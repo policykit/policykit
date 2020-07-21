@@ -154,6 +154,7 @@ class DiscordUser(CommunityUser):
 class DiscordPostMessage(CommunityAction):
 
     guild_id = None
+    id = None
     choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
 
     """def __init__(self, *args, **kwargs):
@@ -193,12 +194,7 @@ class DiscordPostMessage(CommunityAction):
                 'content': text
             }).encode()
 
-            req = urllib.request.Request('https://discordapp.com/api/channels/%s/messages' % channel)
-            req.add_header("Content-Type", "application/json")
-            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-            resp = urllib.request.urlopen(req)
-            message = json.loads(resp.read().decode('utf-8'))
+            message = self.community.make_call('channels/%s/messages' % channel, data)
 
             self.id = message['id']
         super().execute()
