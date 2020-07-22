@@ -77,6 +77,8 @@ def discord_listener_actions():
                         new_api_action.initiator = u
                         actions.append(new_api_action)
 
+                        logger.info('successfully created new action')
+
         for action in actions:
             for policy in CommunityPolicy.objects.filter(community=action.community):
                 if filter_policy(policy, action):
