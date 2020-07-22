@@ -178,6 +178,7 @@ class DiscordPostMessage(CommunityAction):
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
+    action_type = "DiscordPostMessage"
 
     class Meta:
         permissions = (
