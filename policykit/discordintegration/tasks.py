@@ -16,7 +16,7 @@ import json
 logger = logging.getLogger(__name__)
 
 def is_policykit_action(integration, test_a, test_b, api_name):
-    current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
+    current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
     logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
                                             call_type=integration.API + api_name)
 
