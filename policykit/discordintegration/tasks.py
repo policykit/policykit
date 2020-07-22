@@ -23,6 +23,8 @@ def is_policykit_action(integration, test_a, test_b, api_name):
     if logs.exists():
         for log in logs:
             j_info = json.loads(log.extra_info)
+            logger.info("extra info:")
+            logger.info(j_info)
             if test_a == j_info[test_b]:
                 return True
 
