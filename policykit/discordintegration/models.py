@@ -1,10 +1,10 @@
 from django.db import models
 from policyengine.models import Community, CommunityUser, CommunityAction
 from django.contrib.auth.models import Permission, ContentType, User
-from django.utils.functional import lazy
 from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
 from urllib import parse
+import urllib.request
 import base64
 import json
 import logging
