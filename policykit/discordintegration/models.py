@@ -195,6 +195,9 @@ class DiscordPostMessage(CommunityAction):
     def execute(self):
         logger.info('executing')
         if not self.community_revert:
+            logger.info('gateway call')
+            res = self.community.make_call('gateway/bot')
+
             logger.info('about to call')
             message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
 
