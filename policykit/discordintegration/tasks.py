@@ -74,6 +74,7 @@ def discord_listener_actions():
                                                                community=community)
                         new_api_action.initiator = u
                         actions.append(new_api_action)
+                        logger.info('added action')
 
         logger.info("ACTION TIME!!!")
         for action in actions:

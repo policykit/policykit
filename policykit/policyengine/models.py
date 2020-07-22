@@ -680,6 +680,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         proposal.save()
 
     def save(self, *args, **kwargs):
+        logger.info('entered save')
         if not self.pk:
             # Runs only when object is new
             """app_name = ''
@@ -691,28 +692,40 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 app_name = 'discordintegration'"""
             #runs only if they have propose permission
 
+            logger.info('about to create proposal')
             p = Proposal.objects.create(status=Proposal.PROPOSED,
                                             author=self.initiator)
             self.proposal = p
             super(CommunityAction, self).save(*args, **kwargs)
 
+            logger.info('about to enter policy routine')
             if not self.is_bundled:
+                logger.info('not bundled')
                 action = self
                 #if they have execute permission, skip all policies
                 """if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
                     action.execute()
                 else:"""
                 for policy in CommunityPolicy.objects.filter(community=self.community):
+                    logger.info('Save Policy:')
+                    logger.info(policy)
                     if filter_policy(policy, action):
+                      logger.info('Save Filter')
 
                       initialize_policy(policy, action)
+                      logger.info('Save Init')
 
                       check_result = check_policy(policy, action)
+                      logger.info('Save Check:')
+                      logger.info(check_result)
                       if check_result == Proposal.PASSED:
+                          logger.info('About to PASS')
                           pass_policy(policy, action)
                       elif check_result == Proposal.FAILED:
+                          logger.info('About to FAIL')
                           fail_policy(policy, action)
                       else:
+                          logger.info('About to NOTIFY')
                           notify_policy(policy, action)
 
         else:
