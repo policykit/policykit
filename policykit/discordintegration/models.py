@@ -198,6 +198,15 @@ class DiscordPostMessage(CommunityAction):
             logger.info('gateway call')
             res = self.community.make_call('gateway/bot')
 
+            gateway_url = res['url']
+
+            logger.info('connect to gateway call')
+            req = urllib.request.Request(gateway_url)
+            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+            resp = urllib.request.urlopen(req)
+            hello_payload = json.loads(resp.read().decode('utf-8'))
+
             logger.info('about to call')
             message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
 
