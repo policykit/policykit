@@ -10,10 +10,13 @@ import json
 logger = logging.getLogger(__name__)
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
+    logger.info('in exec code')
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
+    logger.info('built code')
 
     exec(code, globals, locals)
+    logger.info('ran exec')
 
 def filter_policy(policy, action):
     _locals = locals()
@@ -73,12 +76,14 @@ def notify_policy(policy, action):
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
 def pass_policy(policy, action):
+    logger.info('entered pass policy')
     _locals = locals()
 
     wrapper_start = "def success(policy, action):\r\n"
 
     wrapper_end = "\r\nsuccess(policy, action)"
 
+    logger.info('about to run exec code')
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
