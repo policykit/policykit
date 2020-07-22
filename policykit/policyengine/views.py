@@ -18,9 +18,9 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
 def filter_policy(policy, action):
     _locals = locals()
 
-    wrapper_start = "def filter():\r\n"
+    wrapper_start = "def filter(policy, action):\r\n"
 
-    wrapper_end = "\r\nfilter_pass = filter()"
+    wrapper_end = "\r\nfilter_pass = filter(policy, action)"
 
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
@@ -30,9 +30,9 @@ def filter_policy(policy, action):
         return False
 
 def initialize_policy(policy, action):
-    wrapper_start = "def initialize():\r\n"
+    wrapper_start = "def initialize(policy, action):\r\n"
 
-    wrapper_end = "\r\ninitialize()"
+    wrapper_end = "\r\ninitialize(policy, action)"
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, globals(), locals())
 
@@ -61,23 +61,23 @@ def check_policy(policy, action):
         return Proposal.PROPOSED
 
 def notify_policy(policy, action):
-    wrapper_start = "def notify():\r\n"
+    wrapper_start = "def notify(policy, action):\r\n"
 
-    wrapper_end = "\r\nnotify()"
+    wrapper_end = "\r\nnotify(policy, action)"
 
     exec_code(policy.notify, wrapper_start, wrapper_end, None, locals())
 
 def pass_policy(policy, action):
-    wrapper_start = "def success(action):\r\n"
+    wrapper_start = "def success(policy, action):\r\n"
 
-    wrapper_end = "\r\nsuccess(action)"
+    wrapper_end = "\r\nsuccess(policy, action)"
 
     exec_code(policy.success, wrapper_start, wrapper_end, None, locals())
 
 def fail_policy(policy, action):
-    wrapper_start = "def fail():\r\n"
+    wrapper_start = "def fail(policy, action):\r\n"
 
-    wrapper_end = "\r\nfail()"
+    wrapper_end = "\r\nfail(policy, action)"
 
     exec_code(policy.fail, wrapper_start, wrapper_end, None, locals())
 
