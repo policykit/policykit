@@ -87,9 +87,12 @@ def discord_listener_actions():
                     if not action.pk:
                         action.community_origin = True
                         action.is_bundled = False
+                        logger.info('about to save')
                         action.save()
                         logger.info('action saved')
+                    logger.info('not pk')
                     check_result = check_policy(policy, action)
+                    logger.info('Check results:')
                     logger.info(check_result)
                     if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
                         logger.info('revert')
