@@ -14,6 +14,7 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
     logger.info('built code')
+    logger.info(code)
 
     exec(code, globals, locals)
     logger.info('ran exec')

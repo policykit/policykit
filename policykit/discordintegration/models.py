@@ -190,12 +190,18 @@ class DiscordPostMessage(CommunityAction):
         super.revert(values, 'channels/{0}/messages/{1}'.format(self.channel, self.id))
 
     def execute(self):
+        logger.info('executing')
         if not self.community_revert:
+            logger.info('no revert')
             data = parse.urlencode({
                 'content': text
             }).encode()
 
+            logger.info('about to call')
             message = self.community.make_call('channels/%s/messages' % channel, data)
 
+            logger.info('called')
             self.id = message['id']
+        logger.info('executing super now')
         super().execute()
+        logger.info('done with execute finally')
