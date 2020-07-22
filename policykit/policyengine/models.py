@@ -721,12 +721,15 @@ class CommunityAction(BaseAction,PolymorphicModel):
                       if check_result == Proposal.PASSED:
                           logger.info('About to PASS')
                           pass_policy(policy, action)
+                          logger.info('PASSED')
                       elif check_result == Proposal.FAILED:
                           logger.info('About to FAIL')
                           fail_policy(policy, action)
+                          logger.info('FAILED')
                       else:
                           logger.info('About to NOTIFY')
                           notify_policy(policy, action)
+                          logger.info('NOTIFIED')
 
         else:
             super(CommunityAction, self).save(*args, **kwargs)
