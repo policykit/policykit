@@ -70,8 +70,11 @@ class DiscordCommunity(Community):
 
         req = urllib.request.Request(call_info, data)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+        req.add_header('Content-Type', 'application/json')
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        logger.info('sent request in make_call')
         resp = urllib.request.urlopen(req)
+        logger.info('received response in make_call')
         res = json.loads(resp.read().decode('utf-8'))
 
         return res
