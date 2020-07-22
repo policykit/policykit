@@ -194,11 +194,11 @@ class DiscordPostMessage(CommunityAction):
         if not self.community_revert:
             logger.info('no revert')
             data = parse.urlencode({
-                'content': text
+                'content': self.text
             }).encode()
 
             logger.info('about to call')
-            message = self.community.make_call('channels/%s/messages' % channel, data)
+            message = self.community.make_call('channels/%s/messages' % self.channel, data)
 
             logger.info('called')
             self.id = message['id']
