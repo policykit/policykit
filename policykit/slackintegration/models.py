@@ -158,7 +158,8 @@ class SlackPostMessage(CommunityAction):
     channel = models.CharField('channel', max_length=150)
 
     action_codename = 'slackpostmessage'
-
+    app_name = 'slackintegration'
+    
     class Meta:
         permissions = (
             ('can_execute_slackpostmessage', 'Can execute slack post message'),
@@ -182,7 +183,8 @@ class SlackRenameConversation(CommunityAction):
     channel = models.CharField('channel', max_length=150)
 
     action_codename = 'slackrenameconversation'
-
+    app_name = 'slackintegration'
+    
     class Meta:
         permissions = (
             ('can_execute_slackrenameconversation', 'Can execute slack rename conversation'),
@@ -214,7 +216,8 @@ class SlackJoinConversation(CommunityAction):
     users = models.CharField('users', max_length=15)
 
     action_codename = 'slackjoinconversation'
-
+    app_name = 'slackintegration'
+    
     class Meta:
         permissions = (
             ('can_execute_slackjoinconversation', 'Can execute slack join conversation'),
@@ -235,6 +238,7 @@ class SlackPinMessage(CommunityAction):
     timestamp = models.CharField('timestamp', max_length=150)
 
     action_codename = 'slackpinmessage'
+    app_name = 'slackintegration'
 
     class Meta:
         permissions = (
@@ -255,7 +259,8 @@ class SlackScheduleMessage(CommunityAction):
     post_at = models.IntegerField('post at')
 
     action_codename = 'slackschedulemessage'
-
+    app_name = 'slackintegration'
+    
     class Meta:
         permissions = (
             ('can_execute_slackschedulemessage', 'Can execute slack schedule message'),
@@ -268,7 +273,8 @@ class SlackKickConversation(CommunityAction):
     channel = models.CharField('channel', max_length=150)
 
     action_codename = 'slackkickconversation'
-
+    app_name = 'slackintegration'
+    
     class Meta:
         permissions = (
             ('can_execute_slackkickconversation', 'Can execute slack kick conversation'),
