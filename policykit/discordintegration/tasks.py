@@ -65,8 +65,6 @@ def discord_listener_actions():
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
 
                     if not post_exists.exists():
-                        logger.info('make new action')
-
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
@@ -77,11 +75,15 @@ def discord_listener_actions():
                         new_api_action.initiator = u
                         actions.append(new_api_action)
 
-                        logger.info('successfully created new action')
-
+        logger.info("ACTION TIME!!!")
         for action in actions:
+            logger.info("Action:")
+            logger.info(action)
             for policy in CommunityPolicy.objects.filter(community=action.community):
+                logger.info("Policy:")
+                logger.info(policy)
                 if filter_policy(policy, action):
+                    logger.info("passed filter")
                     if not action.pk:
                         action.community_origin = True
                         action.is_bundled = False
