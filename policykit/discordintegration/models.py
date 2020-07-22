@@ -198,7 +198,7 @@ class DiscordPostMessage(CommunityAction):
             }).encode()
 
             logger.info('about to call')
-            message = self.community.make_call('channels/%s/messages' % self.channel, data)
+            message = self.community.make_call('channels/%s/messages' % self.channel, values=data)
 
             logger.info('called')
             self.id = message['id']
