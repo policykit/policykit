@@ -200,11 +200,28 @@ class DiscordPostMessage(CommunityAction):
 
             gateway_url = res['url']
 
-            logger.info('connect to gateway call')
+            logger.info('create connection to gateway')
             from websocket import create_connection
             ws = create_connection(gateway_url)
+            logger.info('receive hello from gateway')
+            helloPayload = ws.recv()
+            logger.info('send identify to gateway')
+            identifyData = {
+                "op": 2,
+                "d": {
+                    "token": DISCORD_BOT_TOKEN,
+                    "properties": {
+                        "$os": "linux",
+                        "$browser": "disco",
+                        "$device": "disco"
+                    }
+                }
+            }
+            ws.send(json.dumps(identifyData))
+            logger.info('receive ready from gateway')
+            readyPayload = ws.recv()
 
-            logger.info('about to call')
+            logger.info('about to call execute make_call')
             message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
 
             logger.info('called')
