@@ -190,10 +190,8 @@ class DiscordPostMessage(CommunityAction):
 
     def revert(self):
         logger.info('reverting')
-        logger.info(self.channel)
-        logger.info(self.id)
         values = {}
-        super.revert(values, 'channels/%s/messages/%s' % (self.channel, self.id))
+        super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id))
         logger.info('done with revert finally')
 
     def execute(self):
