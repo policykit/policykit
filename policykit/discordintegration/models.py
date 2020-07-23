@@ -231,6 +231,5 @@ class DiscordPostMessage(CommunityAction):
 
             logger.info('called')
             self.id = message['id']
-        logger.info('executing super now')
-        super().execute()
+        super().pass_action()
         logger.info('done with execute finally')
