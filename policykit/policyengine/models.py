@@ -222,8 +222,6 @@ class GenericRole(Group):
     
     role_name = models.TextField(blank=True, null=True, default='')
     
-    community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
-    
     is_base_role = models.BooleanField(default=False)
 
     def make_community_role(self, community):
