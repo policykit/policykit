@@ -100,7 +100,7 @@ def oauth(request):
     return response
 
 @csrf_exempt
-def initCommunity(request):
+def initSlackCommunity(request):
     res = request.POST['res']
     starterkit = request.POST['starterkit']
     

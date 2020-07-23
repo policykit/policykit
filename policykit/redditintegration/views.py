@@ -97,7 +97,7 @@ def getStarterKit(request):
     return render(request, "policyadmin/init_starterkit_reddit.html", context)
 
 @csrf_exempt
-def initCommunity(request):
+def initRedditCommunity(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
     refresh_token = request.POST['refresh_token']
