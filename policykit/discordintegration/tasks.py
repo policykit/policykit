@@ -62,13 +62,14 @@ def discord_listener_actions():
                 logger.info(message['content'])
                 if not is_policykit_action(community, message['id'], 'id', call_type):
                     logger.info('not already policykit action')
-                    post_exists = DiscordPostMessage.objects.filter(id=message['id'])
 
+                    post_exists = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post_exists.exists():
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
                         new_api_action.channel = message['channel_id']
+                        new_api_action.id = message['id']
 
                         u,_ = DiscordUser.objects.get_or_create(username=message['author']['id'],
                                                                community=community)
