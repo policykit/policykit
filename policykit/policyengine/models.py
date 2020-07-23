@@ -47,81 +47,17 @@ class Community(PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             super(Community, self).save(*args, **kwargs)
-
-            # create Starter ConstitutionPolicy
-            p = ConstitutionPolicy()
-            p.community = self
-            p.filter = "return True"
-            p.initialize = "pass"
-            p.check = "return PASSED"
-            p.notify = "pass"
-            p.success = "action.execute()"
-            p.fail = "pass"
-            p.description = "Starter Policy: all policies pass"
-            p.name = "Starter name"
-
-            proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-            p.proposal = proposal
-            p.save()
-
-            # starter permissions for usergroup
-            p1 = Permission.objects.get(name='Can add boolean vote')
-            p2 = Permission.objects.get(name='Can change boolean vote')
-            p3 = Permission.objects.get(name='Can delete boolean vote')
-            p4 = Permission.objects.get(name='Can view boolean vote')
-            self.base_role.permissions.add(p1)
-            self.base_role.permissions.add(p2)
-            self.base_role.permissions.add(p3)
-            self.base_role.permissions.add(p4)
-
-            p1 = Permission.objects.get(name='Can add number vote')
-            p2 = Permission.objects.get(name='Can change number vote')
-            p3 = Permission.objects.get(name='Can delete number vote')
-            p4 = Permission.objects.get(name='Can view number vote')
-            self.base_role.permissions.add(p1)
-            self.base_role.permissions.add(p2)
-            self.base_role.permissions.add(p3)
-            self.base_role.permissions.add(p4)
-
-            p11 = Permission.objects.get(name='Can add communityactionbundle')
-            self.base_role.permissions.add(p11)
-            p12 = Permission.objects.get(name='Can add communitypolicybundle')
-            self.base_role.permissions.add(p12)
-
-            p11 = Permission.objects.get(name='Can add constitutionactionbundle')
-            self.base_role.permissions.add(p11)
-            p12 = Permission.objects.get(name='Can add constitutionpolicybundle')
-            self.base_role.permissions.add(p12)
-
-            p1 = Permission.objects.get(name='Can add policykit add role')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit delete role')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit add permission')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit remove permission')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit add user role')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit remove user role')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit change community policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit change constitution policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit remove community policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit remove constitution policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit add community policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit add constitution policy')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can add policykit change community doc')
-            self.base_role.permissions.add(p1)
-            p1 = Permission.objects.get(name='Can execute policykit remove constitution policy')
-            self.base_role.permissions.add(p1)
-
+            
+            starterkit = kwargs.get('starterkit')
+            for policy in starterkit.genericpolicy_set.all():
+                if policy.is_constitution:
+                    policy.make_constitution_policy(self)
+                else:
+                    policy.make_community_policy(self)
+            
+            for role in starterkit.genericrole_set.all():
+                role.make_community_role(self)
+        
         else:
             super(Community, self).save(*args, **kwargs)
 
@@ -208,6 +144,102 @@ class LogAPICall(models.Model):
         res = community.make_call(call, values=values, action=action, method=method)
         logger.info("COMMUNITY API RESPONSE")
         return res
+
+
+class StarterKit(models.Model):
+    name = models.TextField(null=True, blank=True, default = '')
+
+    def __str__(self):
+        return self.name
+
+
+class GenericPolicy(models.Model):
+    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
+    
+    name = models.TextField(null=True, blank=True)
+    
+    description = models.TextField(null=True, blank=True, default = '')
+    
+    filter = models.TextField(null=True, blank=True, default='')
+    
+    initialize = models.TextField(null=True, blank=True, default='')
+    
+    check = models.TextField(null=True, blank=True, default='')
+    
+    notify = models.TextField(null=True, blank=True, default='')
+    
+    success = models.TextField(null=True, blank=True, default='')
+    
+    fail = models.TextField(null=True, blank=True, default='')
+
+    is_bundled = models.BooleanField(default=False)
+
+    has_notified = models.BooleanField(default=False)
+    
+    is_constitution = models.BooleanField(default=True)
+
+    def make_constitution_policy(self, community):
+        p = ConstitutionPolicy()
+        p.community = community
+        p.filter = self.filter
+        p.initialize = self.initialize
+        p.check = self.check
+        p.notify = self.notify
+        p.success = self.success
+        p.fail = self.fail
+        p.description = self.description
+        p.name = self.name
+        
+        proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+        p.proposal = proposal
+        p.save()
+    
+        return p
+
+    def make_community_policy(self, community):
+        p = CommunityPolicy()
+        p.community = community
+        p.filter = self.filter
+        p.initialize = self.initialize
+        p.check = self.check
+        p.notify = self.notify
+        p.success = self.success
+        p.fail = self.fail
+        p.description = self.description
+        p.name = self.name
+        
+        proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+        p.proposal = proposal
+        p.save()
+
+        return p
+
+    def __str__(self):
+        return self.name
+
+class GenericRole(Group):
+    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
+    
+    role_name = models.TextField(blank=True, null=True, default='')
+    
+    is_base_role = models.BooleanField(default=False)
+
+    def make_community_role(self, community):
+        c = None
+        if self.is_base_role:
+            c = community.base_role
+            self.is_base_role = False
+        else:
+            c = CommunityRole()
+            c.community = community
+            c.role_name = self.role_name
+    
+        for perm in self.permissions.all():
+            c.permissions.add(perm)
+        
+        c.save()
+
+        return c
 
 
 class Proposal(models.Model):
