@@ -1,0 +1,35 @@
+
+{% load i18n static %}
+
+{% block extrahead %}
+<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+{% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block usertools %}
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+<P><b>Choose a Starter Kit for your Community</b><BR></P>
+
+<form action="/slack/initCommunity" method="post">
+    <label for="starterkit">Choose a System of Governance:</label>
+    <select name="starterkit">
+        {% for kit in starterkits %}
+        <option value="{{ kit }}">{{ kit.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="hidden" name="res" value="{{ res }}">
+    <input type="submit" value="Choose">
+</form>
+
+{% endblock %}

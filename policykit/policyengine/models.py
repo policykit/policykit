@@ -241,6 +241,9 @@ class GenericRole(Group):
 
         return c
 
+    def __str__(self):
+        return self.role_name
+
 
 class Proposal(models.Model):
     PROPOSED = 'proposed'

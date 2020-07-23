@@ -86,10 +86,21 @@ def oauth(request):
     return response
 
 @csrf_exempt
+def getStarterKit(request):
+    context = {
+        "subreddit": request.POST['subreddit'],
+        "access_token": request.POST['access_token'],
+        "refresh_token": request.POST['refresh_token'],
+        "starterkits": StarterKit.objects.all()
+    }
+    return render(request, "policyadmin/init_starterkit_reddit.html", context)
+
+@csrf_exempt
 def initCommunity(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
     refresh_token = request.POST['refresh_token']
+    starterkit = request.POST['starterkit']
 
     s = RedditCommunity.objects.filter(team_id=title)
 
@@ -110,7 +121,7 @@ def initCommunity(request):
         cg = CommunityDoc.objects.create(text='', community=community)
 
         community.community_guidelines=cg
-        community.save()
+        community.save(starterkit=starterkit)
 
     else:
         community = s[0]

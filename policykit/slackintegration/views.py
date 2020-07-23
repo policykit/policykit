@@ -84,56 +84,11 @@ def oauth(request):
                 response = redirect('/login?error=user_is_not_an_admin')
                 return response
 
-            s = SlackCommunity.objects.filter(team_id=res['team']['id'])
-            community = None
-            user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
-            
-            user = SlackUser.objects.filter(username=res['authed_user']['id'])
-
-            if not s.exists():
-                community = SlackCommunity.objects.create(
-                    community_name=res['team']['name'],
-                    team_id=res['team']['id'],
-                    bot_id = res['bot_user_id'],
-                    access_token=res['access_token'],
-                    base_role=user_group
-                    )
-                user_group.community = community
-                user_group.save()
-                cg = CommunityDoc.objects.create(text='', community=community)
-
-                community.community_guidelines=cg
-                community.save()
-
-                #get the list of users, create SlackUser object for each user
-                data2 = parse.urlencode({
-                    'token':community.access_token
-                }).encode()
-
-                req2 = urllib.request.Request('https://slack.com/api/users.list', data=data2)
-                resp2 = urllib.request.urlopen(req2)
-                res2 = json.loads(resp2.read().decode('utf-8'))
-
-                #https://api.slack.com/methods/users.list
-                if res2['ok']:
-                    for new_user in res2['members']:
-                        if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
-                            if new_user['id'] == res['authed_user']['id']:
-                                u,_ = SlackUser.objects.get_or_create(username=res['authed_user']['id'], readable_name=new_user['real_name'],
-                                                         access_token=res['authed_user']['access_token'],
-                                                         is_community_admin=True,
-                                                         community=community)
-                            else:
-                                u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
-                            u.save()
-
-            else:
-                community = s[0]
-                community.community_name = res['team']['name']
-                community.team_id = res['team']['id']
-                community.bot_id = res['bot_user_id']
-                community.access_token = res['access_token']
-                community.save()
+            context = {
+                "starterkits": StarterKit.objects.all(),
+                "res":res
+            }
+            return render(request, "policyadmin/init_starterkit_slack.html", context)
 
     else:
         # error message stating that the sign-in/add-to-slack didn't work
@@ -142,6 +97,65 @@ def oauth(request):
 
     response = redirect('/login?success=true')
     return response
+
+@csrf_exempt
+def initCommunity(request):
+    res = request.POST['res']
+    starterkit = request.POST['starterkit']
+    
+    s = SlackCommunity.objects.filter(team_id=res['team']['id'])
+    community = None
+    user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
+    
+    user = SlackUser.objects.filter(username=res['authed_user']['id'])
+
+    if not s.exists():
+        community = SlackCommunity.objects.create(
+            community_name=res['team']['name'],
+            team_id=res['team']['id'],
+            bot_id = res['bot_user_id'],
+            access_token=res['access_token'],
+            base_role=user_group
+            )
+        user_group.community = community
+        user_group.save()
+        cg = CommunityDoc.objects.create(text='', community=community)
+
+        community.community_guidelines=cg
+        
+        community.save(starterkit=starterkit)
+
+        #get the list of users, create SlackUser object for each user
+        data2 = parse.urlencode({
+            'token':community.access_token
+        }).encode()
+
+        req2 = urllib.request.Request('https://slack.com/api/users.list', data=data2)
+        resp2 = urllib.request.urlopen(req2)
+        res2 = json.loads(resp2.read().decode('utf-8'))
+
+        #https://api.slack.com/methods/users.list
+        if res2['ok']:
+            for new_user in res2['members']:
+                if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
+                    if new_user['id'] == res['authed_user']['id']:
+                        u,_ = SlackUser.objects.get_or_create(username=res['authed_user']['id'], readable_name=new_user['real_name'],
+                                                 access_token=res['authed_user']['access_token'],
+                                                 is_community_admin=True,
+                                                 community=community)
+                    else:
+                        u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
+                    u.save()
+    
+
+
+    else:
+        community = s[0]
+        community.community_name = res['team']['name']
+        community.team_id = res['team']['id']
+        community.bot_id = res['bot_user_id']
+        community.access_token = res['access_token']
+        community.save()
 
 
 def is_policykit_action(integration, test_a, test_b, api_name):
@@ -156,6 +170,8 @@ def is_policykit_action(integration, test_a, test_b, api_name):
                 return True
 
     return False
+
+
 
 @csrf_exempt
 def action(request):
