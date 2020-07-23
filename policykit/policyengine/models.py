@@ -262,6 +262,9 @@ class BaseAction(models.Model):
     community_post = models.CharField('community_post', max_length=300, null=True)
     proposal = models.OneToOneField(Proposal, models.CASCADE)
     is_bundled = models.BooleanField(default=False)
+    
+    app_name = 'policyengine'
+
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
@@ -295,29 +298,34 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
             # Runs only when object is new
 
             #runs only if they have propose permission
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                                author=self.initiator)
-            self.proposal = p
-            super(ConstitutionAction, self).save(*args, **kwargs)
+            if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
+                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                                    author=self.initiator)
+                self.proposal = p
+                super(ConstitutionAction, self).save(*args, **kwargs)
+                
+                if not self.is_bundled:
+                    action = self
+                    #if they have execute permission, skip all policies
+                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                        action.execute()
+                    else:
+                        for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                          if filter_policy(policy, action):
 
-            if not self.is_bundled:
-                action = self
-                #if they have execute permission, skip all policies
-                if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-                    action.execute()
-                else:
-                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                      if filter_policy(policy, action):
+                              initialize_policy(policy, action)
 
-                          initialize_policy(policy, action)
-
-                          check_result = check_policy(policy, action)
-                          if check_result == Proposal.PASSED:
-                              pass_policy(policy, action)
-                          elif check_result == Proposal.FAILED:
-                              fail_policy(policy, action)
-                          else:
-                              notify_policy(policy, action)
+                              check_result = check_policy(policy, action)
+                              if check_result == Proposal.PASSED:
+                                  pass_policy(policy, action)
+                              elif check_result == Proposal.FAILED:
+                                  fail_policy(policy, action)
+                              else:
+                                  notify_policy(policy, action)
+            else:
+                p = Proposal.objects.create(status=Proposal.FAILED,
+                                            author=self.initiator)
+                self.proposal = p
         else:
             super(ConstitutionAction, self).save(*args, **kwargs)
 
@@ -355,22 +363,23 @@ class ConstitutionActionBundle(BaseAction):
 @on_transaction_commit
 def after_constitutionaction_bundle_save(sender, instance, **kwargs):
     action = instance
-    #if they have execute permission, skip all policies
-    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-        action.execute()
-    else:
-        for policy in ConstitutionPolicy.objects.filter(community=action.community):
-            if filter_policy(policy, action):
-
-                initialize_policy(policy, action)
-
-                check_result = check_policy(policy, action)
-                if check_result == Proposal.PASSED:
-                  pass_policy(policy, action)
-                elif check_result == Proposal.FAILED:
-                  fail_policy(policy, action)
-                else:
-                  notify_policy(policy, action)
+    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+        #if they have execute permission, skip all policies
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+            action.execute()
+        else:
+            for policy in ConstitutionPolicy.objects.filter(community=action.community):
+                if filter_policy(policy, action):
+                  
+                    initialize_policy(policy, action)
+                    
+                    check_result = check_policy(policy, action)
+                    if check_result == Proposal.PASSED:
+                      pass_policy(policy, action)
+                    elif check_result == Proposal.FAILED:
+                      fail_policy(policy, action)
+                    else:
+                      notify_policy(policy, action)
 
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
@@ -392,7 +401,7 @@ class PolicykitAddRole(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddrole'
-
+    
     def __str__(self):
         perms = ""
         return "Add Role -  name: " + self.name + ", permissions: "
@@ -594,7 +603,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
 
     action_codename = 'policykitchangeconstitutionpolicy'
-
+    
     def execute(self):
         self.constitution_policy.name = self.name
         self.constitution_policy.description = self.description
@@ -682,60 +691,46 @@ class CommunityAction(BaseAction,PolymorphicModel):
     def save(self, *args, **kwargs):
         logger.info('entered save')
         if not self.pk:
-            # Runs only when object is new
-            """app_name = ''
-            if isinstance(self.community, SlackCommunity):
-                app_name = 'slackintegration'
-            elif isinstance(self.community, RedditCommunity):
-                app_name = 'redditintegration'
-            elif isinstance(self.community, DiscordCommunity):
-                app_name = 'discordintegration'"""
             #runs only if they have propose permission
+            if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
+                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                                                author=self.initiator)
+                self.proposal = p
 
-            logger.info('about to create proposal')
-            p = Proposal.objects.create(status=Proposal.PROPOSED,
+                super(CommunityAction, self).save(*args, **kwargs)
+                
+                if not self.is_bundled:
+                    action = self
+                    #if they have execute permission, skip all policies
+                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                        action.execute()
+                    else:
+                        for policy in CommunityPolicy.objects.filter(community=self.community):
+                            if filter_policy(policy, action):
+
+                                initialize_policy(policy, action)
+
+                                check_result = check_policy(policy, action)
+                                if check_result == Proposal.PASSED:
+                                    pass_policy(policy, action)
+                                elif check_result == Proposal.FAILED:
+                                    fail_policy(policy, action)
+                                else:
+                                    notify_policy(policy, action)
+            else:
+                p = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
-            self.proposal = p
-            super(CommunityAction, self).save(*args, **kwargs)
-
-            logger.info('about to enter policy routine')
-            if not self.is_bundled:
-                logger.info('not bundled')
-                action = self
-                #if they have execute permission, skip all policies
-                """if action.initiator.has_perm(app_name + '.can_execute_' + action.action_codename):
-                    action.execute()
-                else:"""
-                for policy in CommunityPolicy.objects.filter(community=self.community):
-                    logger.info('Save Policy:')
-                    logger.info(policy)
-                    if filter_policy(policy, action):
-                      logger.info('Save Filter')
-
-                      initialize_policy(policy, action)
-                      logger.info('Save Init')
-
-                      check_result = check_policy(policy, action)
-                      logger.info('Save Check:')
-                      logger.info(check_result)
-                      if check_result == Proposal.PASSED:
-                          logger.info('About to PASS')
-                          pass_policy(policy, action)
-                          logger.info('PASSED')
-                      elif check_result == Proposal.FAILED:
-                          logger.info('About to FAIL')
-                          fail_policy(policy, action)
-                          logger.info('FAILED')
-                      else:
-                          logger.info('About to NOTIFY')
-                          notify_policy(policy, action)
-                          logger.info('NOTIFIED')
-
+                self.proposal = p
         else:
             super(CommunityAction, self).save(*args, **kwargs)
 
 
 class CommunityActionBundle(BaseAction):
+
+    bundled_actions = models.ManyToManyField(CommunityAction)
+
+    action_type = "CommunityActionBundle"
+    
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -767,25 +762,26 @@ class CommunityActionBundle(BaseAction):
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
+    
+    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+        #if they have execute permission, skip all policies
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+            action.execute()
+        else:
+            if not action.community_post:
+                for policy in CommunityPolicy.objects.filter(community=action.community):
+                  if filter_policy(policy, action):
 
-    #if they have execute permission, skip all policies
-    if action.initiator.has_perm('policyengine.can_execute_' + action.action_codename):
-        action.execute()
-    else:
-        if not action.community_post:
-            for policy in CommunityPolicy.objects.filter(community=action.community):
-              if filter_policy(policy, action):
+                      initialize_policy(policy, action)
 
-                  initialize_policy(policy, action)
-
-                  check_result = check_policy(policy, action)
-                  if check_result == Proposal.PASSED:
-                      pass_policy(policy, action)
-                  elif check_result == Proposal.FAILED:
-                      fail_policy(policy, action)
-                  else:
-                      notify_policy(policy, action)
-
+                      check_result = check_policy(policy, action)
+                      if check_result == Proposal.PASSED:
+                          pass_policy(policy, action)
+                      elif check_result == Proposal.FAILED:
+                          fail_policy(policy, action)
+                      else:
+                          notify_policy(policy, action)
+                          
 class BasePolicy(models.Model):
     filter = models.TextField(blank=True, default='')
     initialize = models.TextField(blank=True, default='')

@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
+from policyengine.filter import *
+from policyengine.exceptions import NonWhitelistedCodeError
 import urllib.request
 import urllib.parse
 import logging
@@ -10,7 +12,12 @@ import json
 logger = logging.getLogger(__name__)
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    logger.info('in exec code')
+    """try:
+        filter_code(code)
+    except NonWhitelistedCodeError as e:
+        logger.error(e)
+        return"""
+
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
     logger.info('built code')
@@ -77,7 +84,6 @@ def notify_policy(policy, action):
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
 def pass_policy(policy, action):
-    logger.info('entered pass policy')
     _locals = locals()
 
     wrapper_start = "def success(policy, action):\r\n"
@@ -89,7 +95,7 @@ def pass_policy(policy, action):
 
 def fail_policy(policy, action):
     _locals = locals()
-
+    
     wrapper_start = "def fail(policy, action):\r\n"
 
     wrapper_end = "\r\nfail(policy, action)"
