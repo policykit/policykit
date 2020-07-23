@@ -34,7 +34,8 @@ ALLOWED_HOSTS = ['policykit.org',
                  'ec2-54-189-150-51.us-west-2.compute.amazonaws.com',
                  '54.189.150.51',
                  '127.0.0.1',
-                 'ec2-34-222-165-120.us-west-2.compute.amazonaws.com']
+                 'ec2-34-222-165-120.us-west-2.compute.amazonaws.com',
+                 '34.222.165.120']
 
 
 # Application definition
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     'policyengine',
     'slackintegration',
     'redditintegration',
+    'discordintegration'
 ]
 
 MIDDLEWARE = [
@@ -120,7 +122,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-AUTHENTICATION_BACKENDS = ['redditintegration.auth_backends.RedditBackend',
+AUTHENTICATION_BACKENDS = ['discordintegration.auth_backends.DiscordBackend',
+                           'redditintegration.auth_backends.RedditBackend',
                            'slackintegration.auth_backends.SlackBackend',
                            'django.contrib.auth.backends.ModelBackend']
 
@@ -174,6 +177,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'discordintegration': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'policyengine': {
             'handlers': ['file'],
             'level': 'DEBUG',
@@ -185,7 +193,7 @@ LOGGING = {
 
 from celery.schedules import crontab
 
-CELERY_BROKER_URL = 'amqp://' 
+CELERY_BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 
@@ -198,7 +206,11 @@ CELERY_BEAT_SCHEDULE = {
  'reddit-listener-beat': {
        'task': 'redditintegration.tasks.reddit_listener_actions',
        'schedule': 60.0,
-    }    
+    },
+ 'discord-listener-beat': {
+       'task': 'discordintegration.tasks.discord_listener_actions',
+       'schedule': 60.0,
+    }
 }
 
 
@@ -207,4 +219,3 @@ JET_DEFAULT_THEME = 'default'
 
 JET_INDEX_DASHBOARD = 'policykit.dashboard.CustomIndexDashboard'
 JET_APP_INDEX_DASHBOARD = 'policykit.dashboard.CustomAppIndexDashboard'
-
