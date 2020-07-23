@@ -28,8 +28,14 @@
         <option value="{{ kit }}">{{ kit.name }}</option>
         {% endfor %}
     </select>
-    <input type="hidden" name="res" value="{{ res }}">
+    <input type="hidden" name="teamname" value="{{ teamname }}">
+    <input type="hidden" name="teamid" value="{{ teamid }}">
+    <input type="hidden" name="user_name" value="{{ user_name }}">
+    <input type="hidden" name="botid" value="{{ botid }}">
+    <input type="hidden" name="accesstoken" value="{{ accesstoken }}">
+    <input type="hidden" name="user_accesstoken" value="{{ user_accesstoken }}">
     <input type="submit" value="Choose">
+        
 </form>
 
 {% endblock %}
