@@ -232,6 +232,9 @@ class RedditMakePost(PlatformAction):
     name = models.CharField('name',
                                max_length=100,
                                null=True)
+    communityaction_ptr = models.CharField('ptr',
+                               max_length=100,
+                               null=True)
     
     action_codename = 'redditmakepost'
     
