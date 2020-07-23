@@ -7,4 +7,5 @@ urlpatterns = [
     path('oauth', views.oauth),
     path('action', views.action),
     path('initCommunity', views.initCommunity)
+    path('getStarterKit', views.getStarterKit)
 ]
