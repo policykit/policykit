@@ -199,13 +199,13 @@ class LogAPICall(models.Model):
     extra_info = models.TextField()
 
     @classmethod
-    def make_api_call(cls, community, values, call, action=None):
+    def make_api_call(cls, community, values, call, action=None, method=None):
         logger.info("COMMUNITY API CALL")
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
-        res = community.make_call(call, values=values, action=action)
+        res = community.make_call(call, values=values, action=action, method=method)
         logger.info("COMMUNITY API RESPONSE")
         return res
 
@@ -674,9 +674,9 @@ class CommunityAction(BaseAction,PolymorphicModel):
         verbose_name = 'communityaction'
         verbose_name_plural = 'communityactions'
 
-    def revert(self, values, call):
+    def revert(self, values, call, method=None):
         logger.info('Community Action: started make_api_call')
-        _ = LogAPICall.make_api_call(self.community, values, call)
+        _ = LogAPICall.make_api_call(self.community, values, call, method=method)
         logger.info('Community Action: finished make_api_call')
         self.community_revert = True
         self.save()

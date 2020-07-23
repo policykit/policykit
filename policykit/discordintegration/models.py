@@ -56,7 +56,7 @@ class DiscordCommunity(Community):
         for p in perms:
             self.base_role.permissions.add(p)
 
-    def make_call(self, url, values=None, action=None):
+    def make_call(self, url, values=None, action=None, method=None):
         logger.info(self.API + url)
 
         if values:
@@ -68,7 +68,10 @@ class DiscordCommunity(Community):
 
         call_info = self.API + url
 
-        req = urllib.request.Request(call_info, data)
+        if method:
+            req = urllib.request.Request(call_info, data, method=method)
+        else:
+            req = urllib.request.Request(call_info, data)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header('Content-Type', 'application/json')
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
@@ -191,7 +194,7 @@ class DiscordPostMessage(CommunityAction):
     def revert(self):
         logger.info('reverting')
         values = {}
-        super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id))
+        super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
         logger.info('done with revert finally')
 
     def execute(self):
