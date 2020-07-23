@@ -184,6 +184,7 @@ class DiscordPostMessage(CommunityAction):
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
+    app_name = 'discordintegration'
     action_type = "DiscordPostMessage"
 
     class Meta:

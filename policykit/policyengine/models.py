@@ -693,6 +693,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
     def save(self, *args, **kwargs):
         logger.info('entered save')
         if not self.pk:
+            logger.info('is pk')
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
                 logger.info('has propose permission')
@@ -726,6 +727,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                                     logger.info('notify (save)')
                                     notify_policy(policy, action)
             else:
+                logger.info('does not have propose permission')
                 p = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
                 self.proposal = p
