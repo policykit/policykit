@@ -262,7 +262,7 @@ class BaseAction(models.Model):
     community_post = models.CharField('community_post', max_length=300, null=True)
     proposal = models.OneToOneField(Proposal, models.CASCADE)
     is_bundled = models.BooleanField(default=False)
-    
+
     app_name = 'policyengine'
 
     data = models.OneToOneField(DataStore,
@@ -303,7 +303,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                                                     author=self.initiator)
                 self.proposal = p
                 super(ConstitutionAction, self).save(*args, **kwargs)
-                
+
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
@@ -370,9 +370,9 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
                 if filter_policy(policy, action):
-                  
+
                     initialize_policy(policy, action)
-                    
+
                     check_result = check_policy(policy, action)
                     if check_result == Proposal.PASSED:
                       pass_policy(policy, action)
@@ -401,7 +401,7 @@ class PolicykitAddRole(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddrole'
-    
+
     def __str__(self):
         perms = ""
         return "Add Role -  name: " + self.name + ", permissions: "
@@ -603,7 +603,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
 
     action_codename = 'policykitchangeconstitutionpolicy'
-    
+
     def execute(self):
         self.constitution_policy.name = self.name
         self.constitution_policy.description = self.description
@@ -675,7 +675,9 @@ class CommunityAction(BaseAction,PolymorphicModel):
         verbose_name_plural = 'communityactions'
 
     def revert(self, values, call):
+        logger.info('Community Action: started make_api_call')
         _ = LogAPICall.make_api_call(self.community, values, call)
+        logger.info('Community Action: finished make_api_call')
         self.community_revert = True
         self.save()
 
@@ -698,7 +700,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
                 self.proposal = p
 
                 super(CommunityAction, self).save(*args, **kwargs)
-                
+
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
@@ -730,7 +732,7 @@ class CommunityActionBundle(BaseAction):
     bundled_actions = models.ManyToManyField(CommunityAction)
 
     action_type = "CommunityActionBundle"
-    
+
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -762,7 +764,7 @@ class CommunityActionBundle(BaseAction):
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
-    
+
     if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
         #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
@@ -781,7 +783,7 @@ def after_bundle_save(sender, instance, **kwargs):
                           fail_policy(policy, action)
                       else:
                           notify_policy(policy, action)
-                          
+
 class BasePolicy(models.Model):
     filter = models.TextField(blank=True, default='')
     initialize = models.TextField(blank=True, default='')
