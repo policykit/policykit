@@ -48,11 +48,15 @@ class Community(PolymorphicModel):
         if not self.pk:
             super(Community, self).save(*args, **kwargs)
             
-            starterkit = StarterKit.objects.get(name = "Default Starter Kit")
-            policy1 = starterkit.genericpolicy_set.get(name = "Starter name")
-            policy1.make_constitution_policy(self)
-            base_role = starterkit.genericrole_set.geT(role_name = "Base User")
-            base_role.make_community_role(self)
+            starterkit = kwargs.get('starterkit')
+            for policy in starterkit.genericpolicy_set.all():
+                if policy.is_constitution:
+                    policy.make_constitution_policy(self)
+                else:
+                    policy.make_community_policy(self)
+            
+            for role in starterkit.genericrole_set.all():
+                role.make_community_role(self)
         
         else:
             super(Community, self).save(*args, **kwargs)
