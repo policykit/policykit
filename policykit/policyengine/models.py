@@ -695,6 +695,7 @@ class CommunityAction(BaseAction,PolymorphicModel):
         if not self.pk:
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
+                logger.info('has propose permission')
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
                 self.proposal = p
@@ -705,19 +706,24 @@ class CommunityAction(BaseAction,PolymorphicModel):
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                        logger.info('has execute permission')
                         action.execute()
                     else:
                         for policy in CommunityPolicy.objects.filter(community=self.community):
+                            logger.info('save: policy checking')
                             if filter_policy(policy, action):
 
                                 initialize_policy(policy, action)
 
                                 check_result = check_policy(policy, action)
                                 if check_result == Proposal.PASSED:
+                                    logger.info('passed (save)')
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
+                                    logger.info('failed (save)')
                                     fail_policy(policy, action)
                                 else:
+                                    logger.info('notify (save)')
                                     notify_policy(policy, action)
             else:
                 p = Proposal.objects.create(status=Proposal.FAILED,
