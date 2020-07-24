@@ -37,7 +37,7 @@ def reddit_listener_actions():
     for community in RedditCommunity.objects.all():
         actions = []
 
-        res = community.make_call('r/policykit/about/unmoderated')
+        res = community.make_call('r/my_cabbages/about/unmoderated')
 
         call_type = 'api/submit'
 
