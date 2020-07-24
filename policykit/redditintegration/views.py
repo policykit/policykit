@@ -122,7 +122,7 @@ def initRedditCommunity(request):
         cg = CommunityDoc.objects.create(text='', community=community)
 
         community.community_guidelines=cg
-        community.save(starterkit=starterkit)
+        community.save()
 
     else:
         community = s[0]

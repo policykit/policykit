@@ -135,7 +135,7 @@ def initSlackCommunity(request):
 
         community.community_guidelines=cg
         
-        community.save(starterkit=starterkit)
+        community.save()
 
         #get the list of users, create SlackUser object for each user
         data2 = parse.urlencode({
