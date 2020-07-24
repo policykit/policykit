@@ -94,8 +94,6 @@ def oauth(request):
                 "user_accesstoken": res['authed_user']['access_token']
             }
             return render(request, "policyadmin/init_starterkit_slack.html", context)
-                
-
     else:
         # error message stating that the sign-in/add-to-slack didn't work
         response = redirect('/login?error=cancel')
@@ -170,6 +168,9 @@ def initSlackCommunity(request):
         community.access_token = accesstoken
         community.starterkit = starterkit
         community.save()
+    
+    response = redirect('/login?success=true')
+    return response
 
 
 def is_policykit_action(integration, test_a, test_b, api_name):
