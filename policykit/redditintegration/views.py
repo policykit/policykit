@@ -101,7 +101,8 @@ def initRedditCommunity(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
     refresh_token = request.POST['refresh_token']
-    starterkit = request.POST['starterkit']
+    starterkit_name = request.POST['starterkit']
+    starterkit = StarterKit.objects.get(name=starterkit_name)
 
     s = RedditCommunity.objects.filter(team_id=title)
 

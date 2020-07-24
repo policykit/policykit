@@ -112,7 +112,8 @@ def initSlackCommunity(request):
     botid = request.POST['botid']
     accesstoken = request.POST['accesstoken']
     user_accesstoken = request.POST['user_accesstoken']
-    starterkit = request.POST['starterkit']
+    starterkit_name = request.POST['starterkit']
+    starterkit = StarterKit.objects.get(name=starterkit_name)
     
     s = SlackCommunity.objects.filter(team_id=teamid)
     community = None
