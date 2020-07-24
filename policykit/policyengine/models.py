@@ -41,10 +41,9 @@ class Community(PolymorphicModel):
                                      related_name='base_doc_community',
                                      null=True)
     
-    starterkit = models.OneToOneField('StarterKit',
-                                      models.CASCADE,
-                                      related_name='starter_kit',
-                                      null=True)
+    starterkit = models.ForeignKey(StarterKit,
+                                   models.CASCADE,
+                                   null=True)
 
     def notify_action(self, action, policy, users):
         pass
