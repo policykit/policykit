@@ -40,6 +40,11 @@ class Community(PolymorphicModel):
                                      models.CASCADE,
                                      related_name='base_doc_community',
                                      null=True)
+    
+    starterkit = models.OnetoOneField('StarterKit',
+                                      models.CASCADE,
+                                      related_name='starter_kit',
+                                      null=True)
 
     def notify_action(self, action, policy, users):
         pass
@@ -48,7 +53,7 @@ class Community(PolymorphicModel):
         if not self.pk:
             super(Community, self).save(*args, **kwargs)
             
-            starterkit = kwargs.get('starterkit')
+            starterkit = self.starterkit
             for policy in starterkit.genericpolicy_set.all():
                 if policy.is_constitution:
                     policy.make_constitution_policy(self)
