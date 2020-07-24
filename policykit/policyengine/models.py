@@ -41,7 +41,7 @@ class Community(PolymorphicModel):
                                      related_name='base_doc_community',
                                      null=True)
     
-    starterkit = models.OnetoOneField('StarterKit',
+    starterkit = models.OneToOneField('StarterKit',
                                       models.CASCADE,
                                       related_name='starter_kit',
                                       null=True)
