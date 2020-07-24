@@ -92,7 +92,6 @@ def oauth(request):
                 "botid": res['bot_user_id'],
                 "accesstoken": res['access_token'],
                 "user_accesstoken": res['authed_user']['access_token']
-            
             }
             return render(request, "policyadmin/init_starterkit_slack.html", context)
                 
@@ -127,7 +126,8 @@ def initSlackCommunity(request):
             team_id = teamid,
             bot_id = botid,
             access_token = accesstoken,
-            base_role = user_group
+            base_role = user_group,
+            starterkit = starterkit
             )
         user_group.community = community
         user_group.save()
@@ -167,6 +167,7 @@ def initSlackCommunity(request):
         community.team_id = teamid
         community.bot_id = botid
         community.access_token = accesstoken
+        community.starterkit = starterkit
         community.save()
 
 
