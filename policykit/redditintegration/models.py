@@ -51,7 +51,7 @@ class RedditCommunity(Community):
                                null=True)
 
 
-    def make_call(self, url, values=None, action=None):
+    def make_call(self, url, values=None, action=None, method=None):
         logger.info(self.API + url)
 
         if values:
