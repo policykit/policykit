@@ -145,7 +145,7 @@ def discord_listener_actions():
                             else:
                                 val = False
 
-                            if bool_vote.exist():
+                            if bool_vote.exists():
                                 vote = bool_vote[0]
                                 if vote.boolean_value != val:
                                     vote.boolean_value = val
