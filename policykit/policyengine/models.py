@@ -55,24 +55,6 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
-'''    def save(self, *args, **kwargs):
-        if not self.pk:
-            super(Community, self).save(*args, **kwargs)
-            
-            starterkit = self.starterkit
-            for policy in starterkit.genericpolicy_set.all():
-                if policy.is_constitution:
-                    policy.make_constitution_policy(self)
-                else:
-                    policy.make_community_policy(self)
-            
-            for role in starterkit.genericrole_set.all():
-                role.make_community_role(self)
-        
-        else:
-            super(Community, self).save(*args, **kwargs)'''
-
-
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.CharField('readable_name', max_length=300, null=True)
