@@ -51,7 +51,7 @@ class RedditCommunity(Community):
                                null=True)
 
 
-    def make_call(self, url, values=None, action=None):
+    def make_call(self, url, values=None, action=None, method=None):
         logger.info(self.API + url)
 
         if values:
@@ -236,6 +236,8 @@ class RedditMakePost(CommunityAction):
     action_codename = 'redditmakepost'
     
     app_name = 'redditintegration'
+    
+    action_type = "RedditMakePost"
 
     class Meta:
         permissions = (

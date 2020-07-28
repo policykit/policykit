@@ -3,6 +3,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
 from policyengine.filter import *
 from policyengine.exceptions import NonWhitelistedCodeError
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 import urllib.request
 import urllib.parse
 import logging
@@ -133,3 +135,27 @@ def clean_up_proposals(action, executed):
     else:
         p.status = Proposal.FAILED
     p.save()
+
+@csrf_exempt
+def initialize_starterkit(request):
+    from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
+    
+    starterkit_name = request.POST['starterkit']
+    community_name = request.POST['community_name']
+    
+    starter_kit = StarterKit.objects.get(name=starterkit_name)
+    community = Community.objects.get(community_name=community_name)
+    
+    for policy in starter_kit.genericpolicy_set.all():
+        if policy.is_constitution:
+            policy.make_constitution_policy(community)
+        else:
+            policy.make_community_policy(community)
+    
+    for role in starter_kit.genericrole_set.all():
+        role.make_community_role(community)
+
+    response = redirect('/login?success=true')
+    return response
+
+#pass in the community

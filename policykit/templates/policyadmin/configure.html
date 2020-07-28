@@ -18,19 +18,18 @@
 
 {% block content %}
 
-{% if platform == "reddit" %}
-  <P><b>Configure PolicyKit for your Reddit account</b><BR></P>
-  <form action="/reddit/initCommunity" method="post">
-    <label for="subreddits">Choose a Subreddit:</label>
-    <select name="subreddit">
-      {% for subreddit in subreddits %}
-        <option value="{{ subreddit }}">{{ subreddit }}</option>
-      {% endfor %}
-    </select>
-    <input type="hidden" name="access_token" value="{{ access_token }}">
-    <input type="hidden" name="refresh_token" value="{{ refresh_token }}">
-    <input type="submit" value="Continue">
-  </form>
-{% endif %}
+<P><b>Configure PolicyKit for your Reddit account</b><BR></P>
+
+<form action="/reddit/init_community_reddit" method="post">
+  <label for="subreddits">Choose a Subreddit:</label>
+  <select name="subreddit">
+    {% for subreddit in subreddits %}
+      <option value="{{ subreddit }}">{{ subreddit }}</option>
+    {% endfor %}
+  </select>
+  <input type="hidden" name="access_token" value="{{ access_token }}">
+  <input type="hidden" name="refresh_token" value="{{ refresh_token }}">
+  <input type="submit" value="Continue">
+</form>
 
 {% endblock %}
