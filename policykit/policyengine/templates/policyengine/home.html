@@ -1,0 +1,73 @@
+{% extends "policyengine/base.html" %}
+{% load static %}
+{% block content %}
+     	<div class="pusher">
+			  <div class="masthead">
+
+			    <div class="container">
+			      <div class="ui secondary inverted right menu" id="nav">
+			      	<div class="toc item" style="margin-left: 50px;"></div>
+			      	<div class="right menu">
+			      		<!-- <a class="item active" href="https://github.com/amyxzhang/policykit">Github Repo</a> -->
+				    </div>
+			      </div>
+			    </div>
+
+			    <div class="ui stackable grid container" id="main">
+			    	<div class="row">
+			    		<div class="seven wide column main-left">
+			    			<img src={% static "policyengine/img/logo.png" %} style="width:200px;">
+			    			<BR><BR>
+			    			
+			    			<h2 class="header">
+					        PolicyKit
+					      </h2>
+					      <h3>A tool for building and evolving governance in online communities.</h3>
+					       </div>
+					    <div class="one wide column"></div>
+					    <div class="eight wide column main-right">
+					    	
+		          <h5>
+					      	Consider the platforms you use for online communities today. 
+					      	These platforms only offer governance options that are top-down, autocratic, and punitive,
+					      	involving admins and mods. 
+					    But what if platforms could provide other types of governance, such as
+					      		more democratic ones?
+					      		What if communities could <i>build for themselves</i> the governance that suits
+					      		their needs and values?
+					      </h5>
+					      <h5>
+					      	PolicyKit empowers online community members to 
+					      	<b>concisely author a wide range of governance procedures</b> and <b>automatically carry out those
+					      	procedures</b> on their home platforms.
+					      	Inspired by Nobel economist Elinor Ostrom, we've developed a framework that
+					      	describes governance as a series of <i>actions</i> and <i>policies</i>, written in short programming scripts.
+					      	We're now building out an editor, software libraries, and connectors 
+					      	to platforms like Slack, Reddit, and Discord for 
+					      	communities to author actions and policies.
+					      </h5>
+					      <h5>
+					      	See our ACM UIST 2020 paper and video for more details.
+					      </h5>
+					      
+					      <!-- <h6>Brought to you by the <a class="underline-link" href="http://haystack.csail.mit.edu/">Haystack Group</a> at MIT CSAIL.</h6> -->
+					   
+					    </div>
+			      </div>
+			      
+			    
+
+			  </div>
+			  
+			  <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" class="triangle">
+			    <polygon fill="white" points="0,100 100,0 100,100"></polygon>
+			  </svg> -->
+
+		   
+		     </div>
+
+
+		   
+			  
+			  
+{% endblock %}

@@ -11,6 +11,10 @@ import json
 
 logger = logging.getLogger(__name__)
 
+def homepage(request):
+    return render(request, 'policyengine/home.html', {})
+    
+
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     try:
         filter_code(code)

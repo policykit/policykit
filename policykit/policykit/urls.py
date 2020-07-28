@@ -16,11 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
-from django.conf.urls import include
+from django.conf.urls import include, url
 from django.views.generic import TemplateView
 import urllib.parse
 from policyengine.admin import admin_site
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
+from policyengine import views as policyviews
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(
@@ -30,7 +31,8 @@ urlpatterns = [
             'reddit_client_id': REDDIT_CLIENT_ID
         }
     )),
-    path('', admin_site.urls),
+    url('', policyviews.homepage),
+    path('main', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
