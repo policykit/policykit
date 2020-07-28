@@ -134,7 +134,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    starterkit_name = request.POST['staterkit']
+    starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     
     starter_kit = StarterKit.objects.get(name=starterkit_name)
