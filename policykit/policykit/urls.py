@@ -24,7 +24,7 @@ from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID
 from policyengine import views as policyviews
 
 urlpatterns = [
-    path('main/login/', views.LoginView.as_view(
+    path('login/', views.LoginView.as_view(
         template_name='policyadmin/login.html',
         extra_context={
             'server_url': urllib.parse.quote(SERVER_URL, safe=''),
