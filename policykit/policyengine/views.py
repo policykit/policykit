@@ -3,7 +3,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
 from policyengine.filter import *
 from policyengine.exceptions import NonWhitelistedCodeError
-from policyengine.models import *
 from django.views.decorators.csrf import csrf_exempt
 import urllib.request
 import urllib.parse
@@ -134,6 +133,8 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
+    from policyengine.models import StarterKit, GenericRole, GenericPolicy
+    
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     
