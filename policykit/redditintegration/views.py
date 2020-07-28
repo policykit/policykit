@@ -91,8 +91,6 @@ def initCommunityReddit(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
     refresh_token = request.POST['refresh_token']
-    starterkit_name = request.POST['starterkit']
-    starterkit = StarterKit.objects.get(name=starterkit_name)
 
     s = RedditCommunity.objects.filter(team_id=title)
 
@@ -106,7 +104,6 @@ def initCommunityReddit(request):
             access_token=access_token,
             refresh_token=refresh_token,
             base_role=user_group,
-            starterkit=starterkit
             )
         user_group.community = community
         user_group.save()
@@ -122,7 +119,6 @@ def initCommunityReddit(request):
         community.team_id = title
         community.access_token = access_token
         community.refresh_token = refresh_token
-        community.starterkit = starterkit
         community.save()
 
         response = redirect('/login?success=true')

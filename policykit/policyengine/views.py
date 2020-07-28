@@ -135,15 +135,9 @@ def clean_up_proposals(action, executed):
 def initialize_starterkit():
     starterkit_name = request.POST['staterkit']
     community_name = request.POST['community_name']
-    platform = request.POST['platform']
     
     starter_kit = StarterKit.objects.get(name=starterkit_name)
     community = Community.objects.get(community_name=community_name)
-    
-    '''if platform == "slack":
-        community = SlackCommunity.objects.get(community_name=community_name)
-    else:
-        community = RedditCommunity.objects.get(community_name=community_name)'''
     
     for policy in starter_kit.genericpolicy_set.all():
         if policy.is_constitution:

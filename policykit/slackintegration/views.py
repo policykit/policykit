@@ -128,10 +128,10 @@ def oauth(request):
                             u.save()
             else:
                 community = s[0]
-                community.community_name = teamname
-                community.team_id = teamid
-                community.bot_id = botid
-                community.access_token = accesstoken
+                community.community_name = res['team']['name']
+                community.team_id = res['team']['id']
+                community.bot_id = res['bot_user_id']
+                community.access_token = res['access_token']
                 community.save()
     
                 response = redirect('/login?success=true')
