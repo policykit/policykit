@@ -32,7 +32,6 @@ urlpatterns = [
             'discord_client_id': DISCORD_CLIENT_ID
         }
     )),
-    url('', policyviews.homepage),
     path('main', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
@@ -40,5 +39,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
-    path('discord/', include('discordintegration.urls'))
+    path('discord/', include('discordintegration.urls')),
+    url('', policyviews.homepage),
 ]
