@@ -147,7 +147,7 @@ def initialize_starterkit(request):
         else:
             policy.make_community_policy(community)
     
-    for role in starterkit.genericrole_set.all():
+    for role in starter_kit.genericrole_set.all():
         role.make_community_role(community)
 
     response = redirect('/login?success=true')
