@@ -131,7 +131,7 @@ def clean_up_proposals(action, executed):
         p.status = Proposal.FAILED
     p.save()
 
-
+@csrf_exempt
 def initialize_starterkit():
     starterkit_name = request.POST['staterkit']
     community_name = request.POST['community_name']
