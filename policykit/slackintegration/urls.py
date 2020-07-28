@@ -5,6 +5,5 @@ from slackintegration import views
 
 urlpatterns = [
     path('oauth', views.oauth),
-    path('action', views.action),
-    path('initSlackCommunity', views.initSlackCommunity)
+    path('action', views.action)
 ]

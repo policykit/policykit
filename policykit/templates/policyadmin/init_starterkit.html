@@ -1,0 +1,37 @@
+
+{% load i18n static %}
+
+{% block extrahead %}
+<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+{% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block usertools %}
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+<P><b>Choose a Starter Kit for your Community</b><BR></P>
+
+<form action="/policyengine/initialize_starterkit" method="post">
+    <label for="starterkit">Choose a System of Governance:</label>
+    <select name="starterkit">
+        {% for kit in starterkits %}
+        <option value="{{ kit }}">{{ kit }}</option>
+        {% endfor %}
+    </select>
+    <input type="hidden" name="community_name" value="{{ community_name }}">
+    <input type="hidden" name="platform" value="{{ platform }}">
+    <input type="submit" value="Choose">
+        
+</form>
+
+{% endblock %}

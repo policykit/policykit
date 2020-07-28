@@ -55,7 +55,7 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
-    def save(self, *args, **kwargs):
+'''    def save(self, *args, **kwargs):
         if not self.pk:
             super(Community, self).save(*args, **kwargs)
             
@@ -70,7 +70,7 @@ class Community(PolymorphicModel):
                 role.make_community_role(self)
         
         else:
-            super(Community, self).save(*args, **kwargs)
+            super(Community, self).save(*args, **kwargs)'''
 
 
 class CommunityRole(Group):

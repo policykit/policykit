@@ -3,6 +3,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
 from policyengine.filter import *
 from policyengine.exceptions import NonWhitelistedCodeError
+from policyengine.models import *
+from slackintegration.models import SlackCommunity
+from redditintegration.models import RedditCommunity
 import urllib.request
 import urllib.parse
 import logging
@@ -129,3 +132,31 @@ def clean_up_proposals(action, executed):
     else:
         p.status = Proposal.FAILED
     p.save()
+
+
+def initialize_starterkit():
+    starterkit_name = request.POST['staterkit']
+    community_name = request.POST['community_name']
+    platform = request.POST['platform']
+    
+    starter_kit = StarterKit.objects.get(name=starterkit_name)
+    community = None
+    
+    if platform == "slack":
+        community = SlackCommunity.objects.get(community_name=community_name)
+    else:
+        community = RedditCommunity.objects.get(community_name=community_name)
+    
+    for policy in starter_kit.genericpolicy_set.all():
+        if policy.is_constitution:
+            policy.make_constitution_policy(community)
+        else:
+            policy.make_community_policy(community)
+    
+    for role in starterkit.genericrole_set.all():
+        role.make_community_role(community)
+
+    response = redirect('/login?success=true')
+    return response
+
+#pass in the community
