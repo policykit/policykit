@@ -15,6 +15,20 @@ import json
 
 logger = logging.getLogger(__name__)
 
+# Used for Boolean and Number voting
+EMOJI_LIKE_ENCODED = '%f0%9f%91%8d'
+EMOJI_DISLIKE_ENCODED = '%f0%9f%91%8e'
+EMOJI_ZERO_ENCODED = '0%ef%b8%8f%e2%83%a3'
+EMOJI_ONE_ENCODED = '1%ef%b8%8f%e2%83%a3'
+EMOJI_TWO_ENCODED = '2%ef%b8%8f%e2%83%a3'
+EMOJI_THREE_ENCODED = '3%ef%b8%8f%e2%83%a3'
+EMOJI_FOUR_ENCODED = '4%ef%b8%8f%e2%83%a3'
+EMOJI_FIVE_ENCODED = '5%ef%b8%8f%e2%83%a3'
+EMOJI_SIX_ENCODED = '6%ef%b8%8f%e2%83%a3'
+EMOJI_SEVEN_ENCODED = '7%ef%b8%8f%e2%83%a3'
+EMOJI_EIGHT_ENCODED = '8%ef%b8%8f%e2%83%a3'
+EMOJI_NINE_ENCODED = '9%ef%b8%8f%e2%83%a3'
+
 def is_policykit_action(integration, test_a, test_b, api_name):
     community_post = DiscordPostMessage.objects.filter(community_post=test_a)
     if community_post.exists():
@@ -99,3 +113,42 @@ def discord_listener_actions():
                     if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
                         logger.info('revert')
                         action.revert()
+
+        # Boolean voting
+
+        proposed_actions = CommunityAction.objects.filter(
+            community=community,
+            proposal_status=Proposal.PROPOSED,
+            community_post__isnull=False
+        )
+
+        for proposed_action in proposed_actions:
+            channel_id = proposed_action.channel
+            message_id = proposed_action.id
+
+            for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED, EMOJI_ZERO_ENCODED, EMOJI_ONE_ENCODED, EMOJI_TWO_ENCODED, EMOJI_THREE_ENCODED, EMOJI_FOUR_ENCODED, EMOJI_FIVE_ENCODED, EMOJI_SIX_ENCODED, EMOJI_SEVEN_ENCODED, EMOJI_EIGHT_ENCODED, EMOJI_NINE_ENCODED]:
+                call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
+                users_with_reaction = community.make_call(call)
+
+                for user in users_with_reaction:
+                    u = DiscordUser.objects.filter(username=user.id, community=community)
+
+                    if u.exists():
+                        u = u[0]
+
+                        # Check for Boolean votes
+                        if reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
+                            bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
+
+                            if reaction == EMOJI_LIKE_ENCODED:
+                                val = True
+                            else:
+                                val = False
+
+                            if bool_vote.exists():
+                                vote = bool_vote[0]
+                                if vote.boolean_value != val:
+                                    vote.boolean_value = val
+                                    vote.save()
+                            else:
+                                b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
