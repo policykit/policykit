@@ -54,7 +54,7 @@ def oauth(request):
         user = authenticate(request, oauth=res, platform="reddit")
         if user:
             login(request, user)
-            response = redirect('/')
+            response = redirect('/main')
             return response
         else:
             response = redirect('/login?error=invalid_login')
@@ -109,7 +109,7 @@ def init_community_reddit(request):
         user_group.save()
 
         cg = CommunityDoc.objects.create(text='', community=community)
-        
+
         community.community_guidelines=cg
         community.save()
 
