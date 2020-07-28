@@ -87,7 +87,7 @@ def oauth(request):
     return response
 
 @csrf_exempt
-def initCommunityReddit(request):
+def init_community_reddit(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
     refresh_token = request.POST['refresh_token']

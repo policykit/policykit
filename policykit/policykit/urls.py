@@ -38,5 +38,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
-    path('discord/', include('discordintegration.urls'))
+    path('discord/', include('discordintegration.urls')),
 ]
