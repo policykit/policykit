@@ -30,6 +30,13 @@ def on_transaction_commit(func):
 
     return inner
 
+
+class StarterKit(models.Model):
+    name = models.TextField(null=True, blank=True, default = '')
+    
+    def __str__(self):
+        return self.name
+
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name',
                               max_length=1000)
@@ -43,24 +50,6 @@ class Community(PolymorphicModel):
 
     def notify_action(self, action, policy, users):
         pass
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            super(Community, self).save(*args, **kwargs)
-            
-            starterkit = kwargs.get('starterkit')
-            for policy in starterkit.genericpolicy_set.all():
-                if policy.is_constitution:
-                    policy.make_constitution_policy(self)
-                else:
-                    policy.make_community_policy(self)
-            
-            for role in starterkit.genericrole_set.all():
-                role.make_community_role(self)
-        
-        else:
-            super(Community, self).save(*args, **kwargs)
-
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
@@ -144,14 +133,6 @@ class LogAPICall(models.Model):
         res = community.make_call(call, values=values, action=action, method=method)
         logger.info("COMMUNITY API RESPONSE")
         return res
-
-
-class StarterKit(models.Model):
-    name = models.TextField(null=True, blank=True, default = '')
-
-    def __str__(self):
-        return self.name
-
 
 class GenericPolicy(models.Model):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
@@ -240,6 +221,9 @@ class GenericRole(Group):
         c.save()
 
         return c
+
+    def __str__(self):
+        return self.role_name
 
 
 class Proposal(models.Model):
