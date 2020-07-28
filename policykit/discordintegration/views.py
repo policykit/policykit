@@ -50,7 +50,7 @@ def oauth(request):
         user = authenticate(request, oauth=res, platform='discord')
         if user:
             login(request, user)
-            response = redirect('/')
+            response = redirect('/main')
             return response
         else:
             response = redirect('/login?error=invalid_login')

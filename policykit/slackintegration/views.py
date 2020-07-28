@@ -65,7 +65,7 @@ def oauth(request):
             user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
-                response = redirect('/')
+                response = redirect('/main')
             else:
                 response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
             return response
@@ -83,7 +83,7 @@ def oauth(request):
             if resInfo['user']['is_admin'] == False:
                 response = redirect('/login?error=user_is_not_an_admin')
                 return response
-            
+
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
@@ -133,7 +133,7 @@ def oauth(request):
                 community.bot_id = res['bot_user_id']
                 community.access_token = res['access_token']
                 community.save()
-    
+
                 response = redirect('/login?success=true')
                 return response
 
