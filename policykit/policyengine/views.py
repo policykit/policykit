@@ -133,7 +133,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, GenericRole, GenericPolicy
+    from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
     
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
