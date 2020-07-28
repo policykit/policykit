@@ -4,8 +4,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from policyengine.filter import *
 from policyengine.exceptions import NonWhitelistedCodeError
 from policyengine.models import *
-from slackintegration.models import SlackCommunity
-from redditintegration.models import RedditCommunity
 import urllib.request
 import urllib.parse
 import logging
@@ -140,12 +138,12 @@ def initialize_starterkit():
     platform = request.POST['platform']
     
     starter_kit = StarterKit.objects.get(name=starterkit_name)
-    community = None
+    community = Community.objects.get(community_name=community_name)
     
-    if platform == "slack":
+    '''if platform == "slack":
         community = SlackCommunity.objects.get(community_name=community_name)
     else:
-        community = RedditCommunity.objects.get(community_name=community_name)
+        community = RedditCommunity.objects.get(community_name=community_name)'''
     
     for policy in starter_kit.genericpolicy_set.all():
         if policy.is_constitution:
