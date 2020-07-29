@@ -86,7 +86,7 @@
                                       marker.style.color = '#ff0000'
                                       marker.innerHTML = '●'
 
-                                      let tooltip = document.createElement('span')
+                                      /*let tooltip = document.createElement('span')
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
                                       tooltip.style.borderWidth = '1px'
@@ -98,9 +98,9 @@
                                         tooltip.style.visibility = "hidden"
                                       }
                                       tooltip.innerText = data.error
-                                      marker.appendChild(tooltip)
+                                      marker.appendChild(tooltip)*/
 
-                                      console.log('about to set marker')
+                                      console.log('about to set marker: ' + data.lineno)
 
                                       editor.setGutterMarker(data.lineno, 'warnings', marker)
                                       console.log('set marker')
