@@ -160,10 +160,10 @@ def initialize_starterkit(request):
 
 @csrf_exempt
 def error_check(request):
-    code = request.POST['code']
+    data = json.loads(request.body)
 
     try:
-        filter_code(code)
+        filter_code(data.code)
     except NonWhitelistedCodeError as e:
         return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
     return JsonResponse({ 'is_error': False })
