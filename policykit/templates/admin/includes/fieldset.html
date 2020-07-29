@@ -65,14 +65,15 @@
                                 });
 
                                 editor.on('change', function onChange(editor, input) {
-                                  code = editor.getValue()
+                                  let formData = new FormData()
+                                  formData.append('code', editor.getValue())
 
                                   fetch('../../../policyengine/error_check', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json'
                                     },
-                                    body: JSON.stringify({ 'code': code })
+                                    body: formData
                                   })
                                   .then(response => response.json())
                                   .then(data => {
