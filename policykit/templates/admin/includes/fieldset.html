@@ -88,11 +88,11 @@
                                       tooltip.style.color = '#000000'
                                       tooltip.style.borderWidth = '1px'
                                       tooltip.style.borderColor = '#000000'
-                                      tooltip.onmouseover = function (this) {
-                                        this.style.visibility = "visible"
+                                      tooltip.onmouseover = function (tooltip) {
+                                        tooltip.style.visibility = "visible"
                                       }
-                                      tooltip.onmouseout = function (this) {
-                                        this.style.visibility = "hidden"
+                                      tooltip.onmouseout = function (tooltip) {
+                                        tooltip.style.visibility = "hidden"
                                       }
                                       tooltip.innerText = data.error
                                       marker.appendChild(tooltip)
