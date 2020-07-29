@@ -76,9 +76,11 @@
                                   })
                                   .then(response => response.json())
                                   .then(data => {
+                                    console.log('got data')
                                     editor.clearGutter('warnings')
 
                                     if (data.is_error) {
+                                      console.log('is error')
                                       let marker = document.createElement('div')
                                       marker.style.backgroundColor = '#ff0000'
                                       marker.style.borderRadius = '50%'
@@ -97,7 +99,10 @@
                                       tooltip.innerText = data.error
                                       marker.appendChild(tooltip)
 
+                                      console.log('about to set marker')
+
                                       editor.setGutterMarker(data.lineno, 'warnings', marker)
+                                      console.log('set marker')
                                     }
                                   })
                                 })
