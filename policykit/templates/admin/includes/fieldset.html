@@ -78,13 +78,13 @@
                                   .then(response => response.json())
                                   .then(data => {
                                     console.log('got data')
-                                    editor.clearGutter('warnings')
+                                    //editor.clearGutter('warnings')
 
                                     if (data.is_error) {
                                       console.log('is error')
                                       let marker = document.createElement('div')
-                                      marker.style.backgroundColor = '#ff0000'
-                                      marker.style.borderRadius = '50%'
+                                      marker.style.color = '#ff0000'
+                                      marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
                                       tooltip.style.backgroundColor = '#f5f5b5'
