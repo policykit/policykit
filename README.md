@@ -39,7 +39,8 @@ Now set up a database. You can use the default sqlite or mysql or another databa
 
 Finally, run `python manage.py makemigrations` to migrate tables to the database.
 
-
+8)
+Run the script 'policyengine/scripts/starterkits.py'. This sets up the starter systems of governance that you can choose to integrate into your community. In order to do so, first enter the shell with `python manage.py shell`, then navigate into the scripts folder. From there, run `exec(open('starterkits.py').read())`. 
 
 ## Potential Issues
 
