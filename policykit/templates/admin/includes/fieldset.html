@@ -63,6 +63,44 @@
                                         hint: CodeMirror.pythonHint
                                     });
                                 });
+
+                                editor.on('change', function onChange(editor, input) {
+                                  code = editor.getValue()
+
+                                  fetch('../../../policyengine/error_check', {
+                                    method: 'GET',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ 'code': code })
+                                  })
+                                  .then(response => response.json())
+                                  .then(data => {
+                                    editor.clearGutter('warnings')
+
+                                    if (data.is_error) {
+                                      let marker = document.createElement('div')
+                                      marker.style.backgroundColor = '#ff0000'
+                                      marker.style.borderRadius = '50%'
+
+                                      let tooltip = document.createElement('span')
+                                      tooltip.style.backgroundColor = '#f5f5b5'
+                                      tooltip.style.color = '#000000'
+                                      tooltip.style.borderWidth = '1px'
+                                      tooltip.style.borderColor = '#000000'
+                                      tooltip.onmouseover = function (this) {
+                                        this.style.visibility = "visible"
+                                      }
+                                      tooltip.onmouseout = function (this) {
+                                        this.style.visibility = "hidden"
+                                      }
+                                      tooltip.innerText = data.error
+                                      marker.appendChild(tooltip)
+
+                                      editor.setGutterMarker(data.lineno, 'warnings', marker)
+                                    }
+                                  })
+                                })
                               }
                             </script>
                         {% endif %}
