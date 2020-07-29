@@ -83,7 +83,8 @@
                                     if (data.is_error) {
                                       console.log('is error')
                                       var marker_{{field.field.name}} = document.createElement('div')
-                                      marker_{{field.field.name}}.style.color = '#ff0000'
+                                      marker_{{field.field.name}}.style.backgroundColor = '#ff0000'
+                                      marker_{{field.field.name}}.style.width = '10px !important'
                                       marker_{{field.field.name}}.innerHTML = '●'
 
                                       /*let tooltip = document.createElement('span')
