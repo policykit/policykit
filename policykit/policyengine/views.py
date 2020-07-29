@@ -160,7 +160,7 @@ def initialize_starterkit(request):
 
 @csrf_exempt
 def error_check(request):
-    code = request.POST['post']
+    code = request.POST['code']
 
     try:
         filter_code(code)
