@@ -163,7 +163,7 @@ def error_check(request):
     data = json.loads(request.body)
 
     try:
-        filter_code(data.code)
+        filter_code(data['code'])
     except NonWhitelistedCodeError as e:
         return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
     return JsonResponse({ 'is_error': False })
