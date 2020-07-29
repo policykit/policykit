@@ -3,6 +3,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse
 from policyengine.filter import *
 from policyengine.exceptions import NonWhitelistedCodeError
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 import urllib.request
 import urllib.parse
 import logging
@@ -11,24 +13,31 @@ import json
 
 logger = logging.getLogger(__name__)
 
+def homepage(request):
+    return render(request, 'policyengine/home.html', {})
+    
+
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    try:
+    """try:
         filter_code(code)
     except NonWhitelistedCodeError as e:
         logger.error(e)
-        return
+        return"""
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
+    logger.info('built code')
+    logger.info(code)
 
     exec(code, globals, locals)
+    logger.info('ran exec')
 
 def filter_policy(policy, action):
     _locals = locals()
 
-    wrapper_start = "def filter():\r\n"
+    wrapper_start = "def filter(policy, action):\r\n"
 
-    wrapper_end = "\r\nfilter_pass = filter()"
+    wrapper_end = "\r\nfilter_pass = filter(policy, action)"
 
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
@@ -38,11 +47,14 @@ def filter_policy(policy, action):
         return False
 
 def initialize_policy(policy, action):
-    wrapper_start = "def initialize():\r\n"
+    _locals = locals()
+    _globals = globals()
 
-    wrapper_end = "\r\ninitialize()"
+    wrapper_start = "def initialize(policy, action):\r\n"
 
-    exec_code(policy.initialize, wrapper_start, wrapper_end, globals(), locals())
+    wrapper_end = "\r\ninitialize(policy, action)"
+
+    exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
     policy.has_notified = True
     policy.save()
@@ -69,25 +81,32 @@ def check_policy(policy, action):
         return Proposal.PROPOSED
 
 def notify_policy(policy, action):
-    wrapper_start = "def notify():\r\n"
+    _locals = locals()
 
-    wrapper_end = "\r\nnotify()"
+    wrapper_start = "def notify(policy, action):\r\n"
 
-    exec_code(policy.notify, wrapper_start, wrapper_end, None, locals())
+    wrapper_end = "\r\nnotify(policy, action)"
+
+    exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
 def pass_policy(policy, action):
-    wrapper_start = "def success(action):\r\n"
+    _locals = locals()
 
-    wrapper_end = "\r\nsuccess(action)"
+    wrapper_start = "def success(policy, action):\r\n"
 
-    exec_code(policy.success, wrapper_start, wrapper_end, None, locals())
+    wrapper_end = "\r\nsuccess(policy, action)"
+
+    logger.info('about to run exec code')
+    exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
-    wrapper_start = "def fail():\r\n"
+    _locals = locals()
+    
+    wrapper_start = "def fail(policy, action):\r\n"
 
-    wrapper_end = "\r\nfail()"
+    wrapper_end = "\r\nfail(policy, action)"
 
-    exec_code(policy.fail, wrapper_start, wrapper_end, None, locals())
+    exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
 def clean_up_proposals(action, executed):
     from policyengine.models import Proposal, PlatformActionBundle
@@ -116,3 +135,27 @@ def clean_up_proposals(action, executed):
     else:
         p.status = Proposal.FAILED
     p.save()
+
+@csrf_exempt
+def initialize_starterkit(request):
+    from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
+    
+    starterkit_name = request.POST['starterkit']
+    community_name = request.POST['community_name']
+    
+    starter_kit = StarterKit.objects.get(name=starterkit_name)
+    community = Community.objects.get(community_name=community_name)
+    
+    for policy in starter_kit.genericpolicy_set.all():
+        if policy.is_constitution:
+            policy.make_constitution_policy(community)
+        else:
+            policy.make_community_policy(community)
+    
+    for role in starter_kit.genericrole_set.all():
+        role.make_community_role(community)
+
+    response = redirect('/login?success=true')
+    return response
+
+#pass in the community

@@ -32,8 +32,8 @@ def consider_proposed_actions():
     platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in platform_actions:
 
-        logger.info(action)
-        
+        #logger.info(action)
+
          #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
@@ -50,7 +50,7 @@ def consider_proposed_actions():
         else:
             for policy in PlatformPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
-    
+
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in constitution_actions:
         #if they have execute permission, skip all policies

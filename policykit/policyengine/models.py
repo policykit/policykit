@@ -30,6 +30,13 @@ def on_transaction_commit(func):
 
     return inner
 
+
+class StarterKit(models.Model):
+    name = models.TextField(null=True, blank=True, default = '')
+    
+    def __str__(self):
+        return self.name
+
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name',
                               max_length=1000)
@@ -126,6 +133,7 @@ class Community(PolymorphicModel):
             super(Community, self).save(*args, **kwargs)
 
 
+
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.CharField('readable_name', max_length=300, null=True)
@@ -199,15 +207,106 @@ class LogAPICall(models.Model):
     extra_info = models.TextField()
 
     @classmethod
-    def make_api_call(cls, community, values, call, action=None):
+    def make_api_call(cls, community, values, call, action=None, method=None):
         logger.info("COMMUNITY API CALL")
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
-        res = community.make_call(call, values=values, action=action)
+        res = community.make_call(call, values=values, action=action, method=method)
         logger.info("COMMUNITY API RESPONSE")
         return res
+
+class GenericPolicy(models.Model):
+    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
+    
+    name = models.TextField(null=True, blank=True)
+    
+    description = models.TextField(null=True, blank=True, default = '')
+    
+    filter = models.TextField(null=True, blank=True, default='')
+    
+    initialize = models.TextField(null=True, blank=True, default='')
+    
+    check = models.TextField(null=True, blank=True, default='')
+    
+    notify = models.TextField(null=True, blank=True, default='')
+    
+    success = models.TextField(null=True, blank=True, default='')
+    
+    fail = models.TextField(null=True, blank=True, default='')
+
+    is_bundled = models.BooleanField(default=False)
+
+    has_notified = models.BooleanField(default=False)
+    
+    is_constitution = models.BooleanField(default=True)
+
+    def make_constitution_policy(self, community):
+        p = ConstitutionPolicy()
+        p.community = community
+        p.filter = self.filter
+        p.initialize = self.initialize
+        p.check = self.check
+        p.notify = self.notify
+        p.success = self.success
+        p.fail = self.fail
+        p.description = self.description
+        p.name = self.name
+        
+        proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+        p.proposal = proposal
+        p.save()
+    
+        return p
+
+    def make_community_policy(self, community):
+        p = CommunityPolicy()
+        p.community = community
+        p.filter = self.filter
+        p.initialize = self.initialize
+        p.check = self.check
+        p.notify = self.notify
+        p.success = self.success
+        p.fail = self.fail
+        p.description = self.description
+        p.name = self.name
+        
+        proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+        p.proposal = proposal
+        p.save()
+
+        return p
+
+    def __str__(self):
+        return self.name
+
+class GenericRole(Group):
+    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
+    
+    role_name = models.TextField(blank=True, null=True, default='')
+    
+    is_base_role = models.BooleanField(default=False)
+
+    def make_community_role(self, community):
+        c = None
+        if self.is_base_role:
+            c = community.base_role
+            self.is_base_role = False
+        else:
+            c = CommunityRole()
+            c.community = community
+            c.role_name = self.role_name
+    
+        for perm in self.permissions.all():
+            c.permissions.add(perm)
+        
+        c.save()
+
+        return c
+
+    def __str__(self):
+        return self.role_name
 
 
 class Proposal(models.Model):
@@ -262,7 +361,7 @@ class BaseAction(models.Model):
     community_post = models.CharField('community_post', max_length=300, null=True)
     proposal = models.OneToOneField(Proposal, models.CASCADE)
     is_bundled = models.BooleanField(default=False)
-    
+
     app_name = 'policyengine'
 
     data = models.OneToOneField(DataStore,
@@ -281,9 +380,9 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
 
     action_type = "ConstitutionAction"
-    
+
     action_codename = ''
-    
+
     class Meta:
         verbose_name = 'constitutionaction'
         verbose_name_plural = 'constitutionactions'
@@ -296,14 +395,14 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             # Runs only when object is new
-            
+
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                     author=self.initiator)
                 self.proposal = p
                 super(ConstitutionAction, self).save(*args, **kwargs)
-                
+
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
@@ -370,9 +469,9 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
                 if filter_policy(policy, action):
-                  
+
                     initialize_policy(policy, action)
-                    
+
                     check_result = check_policy(policy, action)
                     if check_result == Proposal.PASSED:
                       pass_policy(policy, action)
@@ -384,10 +483,10 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
-    
+
     action_codename = 'policykitchangecommunitydoc'
-    
-    def execute(self):        
+
+    def execute(self):
         self.community_doc.change_text(self.change_text)
 
     class Meta:
@@ -399,9 +498,9 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     permissions = models.ManyToManyField(Permission)
-    
+
     action_codename = 'policykitaddrole'
-    
+
     def __str__(self):
         perms = ""
         return "Add Role -  name: " + self.name + ", permissions: "
@@ -422,7 +521,7 @@ class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
     action_codename = 'policykitdeleterole'
-  
+
     def execute(self):
         self.role.delete()
         self.pass_action()
@@ -438,8 +537,8 @@ class PolicykitAddPermission(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddpermission'
-    
-    def execute(self):        
+
+    def execute(self):
         for p in self.permissions.all():
             self.role.permissions.add(p)
         self.pass_action()
@@ -455,8 +554,8 @@ class PolicykitRemovePermission(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitremovepermission'
-    
-    def execute(self):        
+
+    def execute(self):
         for p in self.permissions.all():
             self.role.permissions.remove(p)
         self.pass_action()
@@ -472,8 +571,8 @@ class PolicykitAddUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitadduserrole'
-    
-    def execute(self):        
+
+    def execute(self):
         for u in self.users.all():
             self.role.user_set.add(u)
         self.pass_action()
@@ -489,8 +588,8 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
-    
-    def execute(self):        
+
+    def execute(self):
         for u in self.users.all():
             self.role.user_set.remove(u)
         self.pass_action()
@@ -532,6 +631,7 @@ class EditorModel(ConstitutionAction):
 class PolicykitAddPlatformPolicy(EditorModel):
     action_codename = 'policykitaddplatformpolicy'
     
+
     def execute(self):
         policy = PlatformPolicy()
         policy.name = self.name
@@ -555,7 +655,7 @@ class PolicykitAddPlatformPolicy(EditorModel):
 
 class PolicykitAddConstitutionPolicy(EditorModel):
     action_codename = 'policykitaddconstitutionpolicy'
-    
+
     def execute(self):
         policy = ConstitutionPolicy()
         policy.community = self.community
@@ -581,6 +681,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
     
     action_codename = 'policykitchangeplatformpolicy'
     
+
     def execute(self):
         self.platform_policy.name = self.name
         self.platform_policy.description = self.description
@@ -601,9 +702,9 @@ class PolicykitChangePlatformPolicy(EditorModel):
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
-    
+
     action_codename = 'policykitchangeconstitutionpolicy'
-    
+
     def execute(self):
         self.constitution_policy.name = self.name
         self.constitution_policy.description = self.description
@@ -631,6 +732,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     
     def execute(self):        
         self.platform_policy.delete()
+
         self.pass_action()
 
     class Meta:
@@ -645,8 +747,8 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
                                          null=True)
 
     action_codename = 'policykitremoveconstitutionpolicy'
-    
-    def execute(self):        
+
+    def execute(self):
 
         self.constitution_policy.delete()
         self.pass_action()
@@ -669,13 +771,15 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
     action_type = "PlatformAction"
     action_codename = ''
-    
+
     class Meta:
         verbose_name = 'platformaction'
         verbose_name_plural = 'platformactions'
 
-    def revert(self, values, call):
-        _ = LogAPICall.make_api_call(self.community, values, call)
+    def revert(self, values, call, method=None):
+        logger.info('Community Action: started make_api_call')
+        _ = LogAPICall.make_api_call(self.community, values, call, method=method)
+        logger.info('Community Action: finished make_api_call')
         self.community_revert = True
         self.save()
 
@@ -689,40 +793,48 @@ class PlatformAction(BaseAction,PolymorphicModel):
         proposal.save()
 
     def save(self, *args, **kwargs):
+        logger.info('entered save')
         if not self.pk:
-            # Runs only when object is new
-            
+            logger.info('is pk')
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
+                logger.info('has propose permission')
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
                 self.proposal = p
 
                 super(PlatformAction, self).save(*args, **kwargs)
                 
+
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                        logger.info('has execute permission')
                         action.execute()
                     else:
                         for policy in PlatformPolicy.objects.filter(community=self.community):
+
+                            logger.info('save: policy checking')
                             if filter_policy(policy, action):
 
                                 initialize_policy(policy, action)
 
                                 check_result = check_policy(policy, action)
                                 if check_result == Proposal.PASSED:
+                                    logger.info('passed (save)')
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
+                                    logger.info('failed (save)')
                                     fail_policy(policy, action)
                                 else:
+                                    logger.info('notify (save)')
                                     notify_policy(policy, action)
             else:
+                logger.info('does not have propose permission')
                 p = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
                 self.proposal = p
-
         else:
             super(PlatformAction, self).save(*args, **kwargs)
 
@@ -733,6 +845,7 @@ class PlatformActionBundle(BaseAction):
 
     action_type = "PlatformActionBundle"
     
+
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -764,7 +877,7 @@ class PlatformActionBundle(BaseAction):
 @on_transaction_commit
 def after_bundle_save(sender, instance, **kwargs):
     action = instance
-    
+
     if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
         #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
@@ -783,7 +896,7 @@ def after_bundle_save(sender, instance, **kwargs):
                           fail_policy(policy, action)
                       else:
                           notify_policy(policy, action)
-                          
+
 class BasePolicy(models.Model):
     filter = models.TextField(blank=True, default='')
     initialize = models.TextField(blank=True, default='')

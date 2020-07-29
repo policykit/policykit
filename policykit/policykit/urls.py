@@ -16,25 +16,29 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
-from django.conf.urls import include
+from django.conf.urls import include, url
 from django.views.generic import TemplateView
 import urllib.parse
 from policyengine.admin import admin_site
-from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID
+from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID
+from policyengine import views as policyviews
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(
         template_name='policyadmin/login.html',
         extra_context={
             'server_url': urllib.parse.quote(SERVER_URL, safe=''),
-            'reddit_client_id': REDDIT_CLIENT_ID
+            'reddit_client_id': REDDIT_CLIENT_ID,
+            'discord_client_id': DISCORD_CLIENT_ID
         }
     )),
-    path('', admin_site.urls),
+    path('main/', admin_site.urls),
     path('policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     path('admin/', admin.site.urls),
     path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
+    path('discord/', include('discordintegration.urls')),
+    url(r'^$', policyviews.homepage),
 ]

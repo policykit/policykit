@@ -1,6 +1,6 @@
 from django.urls import path
 
-from slackintegration import views
+from discordintegration import views
 
 
 urlpatterns = [

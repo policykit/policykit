@@ -65,7 +65,7 @@ def oauth(request):
             user = authenticate(request, oauth=res, platform="slack")
             if user:
                 login(request, user)
-                response = redirect('/')
+                response = redirect('/main')
             else:
                 response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
             return response
@@ -87,7 +87,7 @@ def oauth(request):
             s = SlackCommunity.objects.filter(team_id=res['team']['id'])
             community = None
             user_group,_ = CommunityRole.objects.get_or_create(name="Slack: " + res['team']['name'] + ": Base User")
-            
+
             user = SlackUser.objects.filter(username=res['authed_user']['id'])
 
             if not s.exists():
@@ -126,7 +126,6 @@ def oauth(request):
                             else:
                                 u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
                             u.save()
-
             else:
                 community = s[0]
                 community.community_name = res['team']['name']
@@ -135,6 +134,15 @@ def oauth(request):
                 community.access_token = res['access_token']
                 community.save()
 
+                response = redirect('/login?success=true')
+                return response
+
+            context = {
+                "starterkits": [kit.name for kit in StarterKit.objects.all()],
+                "community_name": community.community_name,
+                "platform": "slack"
+            }
+            return render(request, "policyadmin/init_starterkit.html", context)
     else:
         # error message stating that the sign-in/add-to-slack didn't work
         response = redirect('/login?error=cancel')
@@ -156,6 +164,8 @@ def is_policykit_action(integration, test_a, test_b, api_name):
                 return True
 
     return False
+
+
 
 @csrf_exempt
 def action(request):
@@ -305,11 +315,12 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
 
     if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
         policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
+
         bundled_actions = action.bundled_actions.all()
         for num, a in enumerate(bundled_actions):
             policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
     else:
-        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote with :thumbsup: or :thumbsdown: on this post.'
+        policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote with :thumbsup: or :thumbsdown: on this post.'
 
     values = {'token': policy.community.access_token}
 

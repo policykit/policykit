@@ -54,7 +54,7 @@ def oauth(request):
         user = authenticate(request, oauth=res, platform="reddit")
         if user:
             login(request, user)
-            response = redirect('/')
+            response = redirect('/main')
             return response
         else:
             response = redirect('/login?error=invalid_login')
@@ -76,6 +76,7 @@ def oauth(request):
 
         if len(titles) > 0:
             context = {
+                "platform": "reddit",
                 "subreddits": titles,
                 "access_token": res['access_token'],
                 "refresh_token": res['refresh_token']
@@ -86,7 +87,7 @@ def oauth(request):
     return response
 
 @csrf_exempt
-def initCommunity(request):
+def init_community_reddit(request):
     title = request.POST['subreddit']
     access_token = request.POST['access_token']
     refresh_token = request.POST['refresh_token']
@@ -102,7 +103,7 @@ def initCommunity(request):
             team_id=title,
             access_token=access_token,
             refresh_token=refresh_token,
-            base_role=user_group
+            base_role=user_group,
             )
         user_group.community = community
         user_group.save()
@@ -120,10 +121,17 @@ def initCommunity(request):
         community.refresh_token = refresh_token
         community.save()
 
+        response = redirect('/login?success=true')
+        return response
+
     logger.info(community.access_token)
 
-    response = redirect('/login?success=true')
-    return response
+    context = {
+        "starterkits": [kit.name for kit in StarterKit.objects.all()],
+        "community_name": community.community_name,
+        "platform": "reddit"
+    }
+    return render(request, "policyadmin/init_starterkit.html", context)
 
 @csrf_exempt
 def action(request):
@@ -135,7 +143,7 @@ def action(request):
 def post_policy(policy, action, users, template=None):
     from policyengine.models import LogAPICall
 
-    policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Vote by replying +1 or -1 to this post.'
+    policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'
 
     if not template:
         policy_message = policy_message_default
