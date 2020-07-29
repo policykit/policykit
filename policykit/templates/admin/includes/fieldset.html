@@ -65,8 +65,8 @@
                                     });
                                 });
 
-                                editor.on('change', function onChange(editor, input) {
-                                  code = editor.getValue()
+                                editor.on('change', function (cm, onj) {
+                                  code = cm.getValue()
 
                                   fetch('../../../policyengine/error_check', {
                                     method: 'POST',
@@ -102,7 +102,7 @@
 
                                       console.log('about to set marker: ' + data.lineno)
 
-                                      editor.setGutterMarker(data.lineno, 'warnings', marker)
+                                      cm.setGutterMarker(data.lineno, 'warnings', marker)
                                       console.log('set marker')
                                     }
                                   })
