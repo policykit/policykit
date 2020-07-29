@@ -31,11 +31,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['policykit.org',
                  'www.policykit.org',
-                 'ec2-54-189-150-51.us-west-2.compute.amazonaws.com',
-                 '54.189.150.51',
+                 'ec2-52-41-245-161.us-west-2.compute.amazonaws.com',
+                 '52.41.245.161',
                  '127.0.0.1',
-                 'ec2-34-222-165-120.us-west-2.compute.amazonaws.com',
-                 '34.222.165.120']
+                 'ec2-54-190-197-117.us-west-2.compute.amazonaws.com',
+                 '54.190.197.117']
 
 
 # Application definition
