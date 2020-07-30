@@ -649,7 +649,7 @@ class PolicykitAddPlatformPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute_policykitplatformpolicy', 'Can execute policykit add platform policy'),
+            ('can_execute_addpolicykitplatformpolicy', 'Can execute policykit add platform policy'),
         )
 
 
