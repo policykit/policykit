@@ -51,7 +51,7 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: ['warnings']
+                                    gutters: ['CodeMirror-linenumbers', 'warnings_{{field.field.name}}']
                                 });
                                 editor_{{field.field.name}}.setValue(textArea.value);
 
@@ -65,8 +65,8 @@
                                     });
                                 });
 
-                                editor_{{field.field.name}}.on('changes', (editor, obj) => {
-                                  code = editor.getValue()
+                                editor_{{field.field.name}}.on('change', (cm, change) => {
+                                  code = cm.getValue()
 
                                   fetch('../../../policyengine/error_check', {
                                     method: 'POST',
@@ -78,13 +78,11 @@
                                   .then(response => response.json())
                                   .then(data => {
                                     console.log('got data')
-                                    editor.clearGutter('warnings')
 
                                     if (data.is_error) {
                                       console.log('is error')
                                       var marker_{{field.field.name}} = document.createElement('div')
-                                      marker_{{field.field.name}}.style.backgroundColor = '#ff0000'
-                                      marker_{{field.field.name}}.style.width = '10px !important'
+                                      marker_{{field.field.name}}.style.color = '#ff0000'
                                       marker_{{field.field.name}}.innerHTML = '●'
 
                                       /*let tooltip = document.createElement('span')
@@ -103,7 +101,7 @@
 
                                       console.log('about to set marker: ' + data.lineno)
 
-                                      editor.setGutterMarker(data.lineno, 'warnings', marker_{{field.field.name}})
+                                      cm.setGutterMarker(data.lineno, 'warnings_{{field.field.name}}', marker_{{field.field.name}})
                                       console.log('set marker')
                                     }
                                   })
