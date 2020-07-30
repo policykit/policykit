@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 def homepage(request):
     return render(request, 'policyengine/home.html', {})
-    
+
+def v2(request):
+    return render(request, 'policyengine/v2/index.html', {})
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     """try:
@@ -101,7 +103,7 @@ def pass_policy(policy, action):
 
 def fail_policy(policy, action):
     _locals = locals()
-    
+
     wrapper_start = "def fail(policy, action):\r\n"
 
     wrapper_end = "\r\nfail(policy, action)"
@@ -139,19 +141,19 @@ def clean_up_proposals(action, executed):
 @csrf_exempt
 def initialize_starterkit(request):
     from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
-    
+
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
-    
+
     starter_kit = StarterKit.objects.get(name=starterkit_name)
     community = Community.objects.get(community_name=community_name)
-    
+
     for policy in starter_kit.genericpolicy_set.all():
         if policy.is_constitution:
             policy.make_constitution_policy(community)
         else:
             policy.make_community_policy(community)
-    
+
     for role in starter_kit.genericrole_set.all():
         role.make_community_role(community)
 
