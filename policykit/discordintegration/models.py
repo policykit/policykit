@@ -157,7 +157,7 @@ class DiscordUser(CommunityUser):
         group = self.community.base_role
         group.user_set.add(self)
 
-class DiscordPostMessage(CommunityAction):
+class DiscordPostMessage(PlatformAction):
 
     guild_id = None
     id = None
