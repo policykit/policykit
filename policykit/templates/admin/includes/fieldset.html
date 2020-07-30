@@ -91,11 +91,11 @@
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
                                       tooltip.style.border = '1px solid #999'
-                                      tooltip.onmouseover = function (tooltip) {
-                                        tooltip.style.visibility = 'visible'
+                                      tooltip.onmouseover = function () {
+                                        this.style.visibility = 'visible'
                                       }
-                                      tooltip.onmouseout = function (tooltip) {
-                                        tooltip.style.visibility = 'hidden'
+                                      tooltip.onmouseout = function () {
+                                        this.style.visibility = 'hidden'
                                       }
                                       tooltip.innerHTML = data.error
                                       marker.appendChild(tooltip)
