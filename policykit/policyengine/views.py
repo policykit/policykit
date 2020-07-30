@@ -150,7 +150,7 @@ def initialize_starterkit(request):
         if policy.is_constitution:
             policy.make_constitution_policy(community)
         else:
-            policy.make_community_policy(community)
+            policy.make_platform_policy(community)
 
     for role in starter_kit.genericrole_set.all():
         role.make_community_role(community)

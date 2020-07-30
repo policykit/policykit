@@ -82,7 +82,7 @@ class DiscordCommunity(Community):
 
         return res
 
-    def execute_community_action(self, action, delete_policykit_post=True):
+    def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
 
