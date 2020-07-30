@@ -81,22 +81,25 @@
 
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
-                                      marker.style.position = 'relative'
                                       marker.style.color = '#ff0000'
+                                      marker.style.width = '10px !important'
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
                                       tooltip.style.position = 'absolute'
-                                      tooltip.style.zIndex = '1'
+                                      tooltip.style.display = 'none'
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
-                                      tooltip.style.borderWidth = '1px'
-                                      tooltip.style.borderColor = '#000000'
+                                      tooltip.style.border = '1px solid #999'
+                                      tooltip.style.padding = '2px'
+                                      tooltip.style.width = '300px'
+                                      tooltip.style.left = '15px'
+                                      tooltip.style.top = '-1em'
                                       tooltip.onmouseover = function (tooltip) {
-                                        tooltip.style.visibility = "visible"
+                                        tooltip.style.display = 'block'
                                       }
                                       tooltip.onmouseout = function (tooltip) {
-                                        tooltip.style.visibility = "hidden"
+                                        tooltip.style.display = 'none'
                                       }
                                       tooltip.innerText = data.error
                                       marker.appendChild(tooltip)
