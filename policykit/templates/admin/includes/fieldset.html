@@ -51,7 +51,7 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: ['CodeMirror-linenumbers', {className: 'warnings_{{field.field.name}}', style: 'width: 10px !important'}],
+                                    gutters: [{className: 'warnings_{{field.field.name}}', style: 'width: 10px !important'}, 'CodeMirror-linenumbers'],
                                     value: textArea.value
                                 });
 
@@ -82,13 +82,11 @@
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
                                       marker.style.color = '#ff0000'
-                                      /*marker.style.width = '10px !important'
-                                      marker.style.position = 'relative'*/
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
                                       tooltip.innerHTML = data.error
-                                      /*tooltip.style.position = 'absolute'
+                                      tooltip.style.position = 'absolute'
                                       tooltip.style.zIndex = '100'
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
@@ -102,7 +100,7 @@
                                       }
                                       marker.onmouseout = function () {
                                         this.childNodes[0].style.visibility = 'hidden'
-                                      }*/
+                                      }
 
                                       cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
                                     }
