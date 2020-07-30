@@ -82,7 +82,6 @@
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
                                       marker.style.color = '#ff0000'
-                                      marker.style.width = '10px !important'
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
@@ -101,7 +100,7 @@
                                       tooltip.onmouseout = function (tooltip) {
                                         tooltip.style.display = 'none'
                                       }
-                                      tooltip.innerText = data.error
+                                      tooltip.innerHTML = data.error
                                       marker.appendChild(tooltip)
 
                                       cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
