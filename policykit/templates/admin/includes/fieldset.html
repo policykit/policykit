@@ -51,7 +51,7 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: ['CodeMirror-linenumbers', ('warnings_{{field.field.name}}', 'width: 10px')],
+                                    gutters: ['CodeMirror-linenumbers', {className: 'warnings_{{field.field.name}}', style: 'width: 10px !important'}],
                                     value: textArea.value
                                 });
 
