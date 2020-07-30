@@ -82,6 +82,8 @@
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
                                       marker.style.color = '#ff0000'
+                                      marker.style.width = '10px !important'
+                                      marker.style.position = 'relative'
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
@@ -91,9 +93,9 @@
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
                                       tooltip.style.border = '1px solid #999'
-                                      tooltip.style.width = '400px'
+                                      /*tooltip.style.width = '400px'
                                       tooltip.style.left = '15px'
-                                      tooltip.style.top = '-1em'
+                                      tooltip.style.top = '-1em'*/
                                       marker.appendChild(tooltip)
                                       marker.onmouseover = function () {
                                         this.childNodes[0].style.visibility = 'visible'
