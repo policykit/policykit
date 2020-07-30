@@ -25,15 +25,13 @@
                             <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
                             <style>
                               .marker {
-                                color: #ff0000;
-                                position: relative;
+                                background-color: #ff0000;
+                                width: 10px !important;
                               }
 
                               .marker .tooltip {
-                                visibility: hidden;
-                                position: absolute;
                                 display: none;
-                                z-index: 1;
+                                position: absolute;
                                 background-color: #f5f5b5;
                                 color: #000000;
                                 border: 1px solid #999;
@@ -43,7 +41,7 @@
                               }
 
                               .marker:hover .tooltip {
-                                visibility: visible;
+                                display: block;
                               }
                             </style>
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
@@ -74,7 +72,7 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: [{className: 'warnings_{{field.field.name}}', style: 'width: 16px !important;padding-left: 4px;'}, 'CodeMirror-linenumbers'],
+                                    gutters: ['warnings_{{field.field.name}}'],
                                     value: textArea.value
                                 });
 
@@ -103,16 +101,16 @@
                                     cm.clearGutter('warnings_{{field.field.name}}')
 
                                     if (data.is_error) {
-                                      const marker_{{field.field.name}} = document.createElement('div')
-                                      marker_{{field.field.name}}.classList.add('marker')
-                                      marker_{{field.field.name}}.innerHTML = '●'
+                                      const marker = document.createElement('div')
+                                      marker.classList.add('marker')
+                                      marker.innerHTML = '●'
 
-                                      const tooltip_{{field.field.name}} = document.createElement('div')
-                                      tooltip_{{field.field.name}}.classList.add('tooltip')
-                                      tooltip_{{field.field.name}}.innerHTML = data.error
-                                      marker_{{field.field.name}}.appendChild(tooltip_{{field.field.name}})
+                                      const tooltip = document.createElement('div')
+                                      tooltip.classList.add('tooltip')
+                                      tooltip.innerHTML = data.error
+                                      marker.appendChild(tooltip)
 
-                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker_{{field.field.name}})
+                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
                                     }
                                   })
                                 })
