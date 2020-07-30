@@ -46,7 +46,6 @@
                                 visibility: visible;
                               }
                             </style>
-                            <link rel="stylesheet" href="./editor.css">
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
@@ -105,11 +104,11 @@
 
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
-                                      marker.className = 'marker'
+                                      marker.classList.add('marker')
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
-                                      tooltip.className = 'tooltip'
+                                      tooltip.classList.add('tooltip')
                                       tooltip.innerHTML = data.error
                                       marker.appendChild(tooltip)
 
