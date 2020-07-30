@@ -141,7 +141,7 @@ class RedditCommunity(Community):
                 if f.name not in ['polymorphic_ctype',
                                   'community',
                                   'initiator',
-                                  'communityaction_ptr',
+                                  'platformaction_ptr',
                                   'platformaction',
                                   'platformactionbundle',
                                   'community_revert',
@@ -232,7 +232,7 @@ class RedditMakePost(PlatformAction):
     name = models.CharField('name',
                                max_length=100,
                                null=True)
-    communityaction_ptr = models.CharField('ptr',
+    platformaction_ptr = models.CharField('ptr',
                                max_length=100,
                                null=True)
     
