@@ -179,8 +179,8 @@ class GenericPolicy(models.Model):
     
         return p
 
-    def make_community_policy(self, community):
-        p = CommunityPolicy()
+    def make_platform_policy(self, community):
+        p = PlatformPolicy()
         p.community = community
         p.filter = self.filter
         p.initialize = self.initialize
