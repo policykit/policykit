@@ -94,7 +94,6 @@ class PolicyModule(DashboardModule):
     show_title = True
 
     policy_type = "Platform"
-    policies = None
 
     def __init__(self, policy_type="Platform", title=None, **kwargs):
         kwargs.update({'policy_type': policy_type})
@@ -111,6 +110,8 @@ class PolicyModule(DashboardModule):
 
 
     def init_with_context(self, context):
+        policies = None
+
         if self.policy_type == "Platform":
             policies = PlatformPolicy.objects
         elif self.policy_type == "Constitution":
