@@ -25,8 +25,9 @@
                             <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
                             <style>
                               .marker {
-                                background-color: #ff0000;
+                                color: #ff0000;
                                 width: 10px !important;
+                                margin-left: 4px;
                               }
 
                               .marker .tooltip {
@@ -34,9 +35,10 @@
                                 position: absolute;
                                 background-color: #f5f5b5;
                                 color: #000000;
-                                border: 1px solid #999;
+                                border: 1px solid #000000;
+                                padding: 2px;
                                 width: 400px;
-                                left: 15px;
+                                left: 10px;
                                 top: -1em;
                               }
 
