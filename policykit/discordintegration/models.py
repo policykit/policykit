@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, CommunityAction
+from policyengine.models import Community, CommunityUser, PlatformAction
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
@@ -100,8 +100,8 @@ class DiscordCommunity(Community):
                                   'community',
                                   'initiator',
                                   'communityapi_ptr',
-                                  'communityaction',
-                                  'communityactionbundle',
+                                  'platformaction',
+                                  'platformactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -123,7 +123,7 @@ class DiscordCommunity(Community):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.communityactionbundle_set.all()
+                    bundle = action.platformyactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
@@ -157,7 +157,7 @@ class DiscordUser(CommunityUser):
         group = self.community.base_role
         group.user_set.add(self)
 
-class DiscordPostMessage(CommunityAction):
+class DiscordPostMessage(PlatformAction):
 
     guild_id = None
     id = None
