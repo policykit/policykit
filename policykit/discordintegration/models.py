@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, CommunityAction
+from policyengine.models import Community, CommunityUser, PlatformAction
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
@@ -157,7 +157,7 @@ class DiscordUser(CommunityUser):
         group = self.community.base_role
         group.user_set.add(self)
 
-class DiscordPostMessage(CommunityAction):
+class DiscordPostMessage(PlatformAction):
 
     guild_id = None
     id = None

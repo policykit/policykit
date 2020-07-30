@@ -245,7 +245,7 @@ def action(request):
                 if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
                     new_api_action.execute()
                 else:
-                    for policy in CommunityPolicy.objects.filter(community=new_api_action.community):
+                    for policy in PlatformPolicy.objects.filter(community=new_api_action.community):
                       if filter_policy(policy, new_api_action):
                           if not new_api_action.pk:
                               new_api_action.community_origin = True
@@ -263,7 +263,7 @@ def action(request):
         if event.get('type') == 'reaction_added':
             ts = event['item']['ts']
             action = None
-            action_res = CommunityAction.objects.filter(community_post=ts)
+            action_res = PlatformAction.objects.filter(community_post=ts)
             if action_res.exists():
                 action = action_res[0]
 
@@ -285,7 +285,7 @@ def action(request):
                         uv = BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
 
             if action == None:
-                action_res = CommunityActionBundle.objects.filter(community_post=ts)
+                action_res = PlatformActionBundle.objects.filter(community_post=ts)
                 if action_res.exists():
                     action = action_res[0]
 
@@ -311,10 +311,11 @@ def action(request):
 
 
 def post_policy(policy, action, users=None, post_type='channel', template=None, channel=None):
-    from policyengine.models import LogAPICall, CommunityActionBundle
+    from policyengine.models import LogAPICall, PlatformActionBundle
 
-    if action.action_type == "CommunityActionBundle" and action.bundle_type == CommunityActionBundle.ELECTION:
-        policy_message_default = "This action is governed by the following policy: " + policy.description + '. Decide between options below:\n'
+    if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
+        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
+
         bundled_actions = action.bundled_actions.all()
         for num, a in enumerate(bundled_actions):
             policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
@@ -379,7 +380,7 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
             if channel:
                 values['channel'] = channel
             else:
-                if action.action_type == "CommunityAction":
+                if action.action_type == "PlatformAction":
                     values['channel'] = action.channel
                 else:
                     a = action.bundled_actions.all()[0]
@@ -395,7 +396,7 @@ def post_policy(policy, action, users=None, post_type='channel', template=None, 
         if channel:
             values['channel'] = channel
         else:
-            if action.action_type == "CommunityAction":
+            if action.action_type == "PlatformAction":
                 values['channel'] = action.channel
             else:
                 a = action.bundled_actions.all()[0]

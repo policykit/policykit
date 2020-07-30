@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policyengine.models import Proposal, LogAPICall, CommunityPolicy, CommunityAction, BooleanVote, NumberVote
+from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatfoormAction, BooleanVote, NumberVote
 from redditintegration.models import RedditCommunity, RedditUser, RedditMakePost
 from policyengine.views import filter_policy, check_policy, initialize_policy
 import datetime
@@ -64,7 +64,7 @@ def reddit_listener_actions():
 
 
         for action in actions:
-            for policy in CommunityPolicy.objects.filter(community=action.community):
+            for policy in PlatformPolicy.objects.filter(community=action.community):
                 if filter_policy(policy, action):
                     if not action.pk:
                         action.community_origin = True
@@ -81,7 +81,7 @@ def reddit_listener_actions():
 
         # look for votes
 
-        proposed_actions = CommunityAction.objects.filter(community=community,
+        proposed_actions = PlatformAction.objects.filter(community=community,
                                                           proposal__status=Proposal.PROPOSED,
                                                           community_post__isnull=False
                                                           )

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from policyengine.filter import *
 from policyengine.exceptions import NonWhitelistedCodeError
 from django.views.decorators.csrf import csrf_exempt
@@ -20,11 +20,11 @@ def v2(request):
     return render(request, 'policyengine/v2/index.html', {})
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    """try:
+    try:
         filter_code(code)
     except NonWhitelistedCodeError as e:
         logger.error(e)
-        return"""
+        return
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
@@ -111,14 +111,14 @@ def fail_policy(policy, action):
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
 def clean_up_proposals(action, executed):
-    from policyengine.models import Proposal, CommunityActionBundle
+    from policyengine.models import Proposal, PlatformActionBundle
 
     if action.is_bundled:
-        bundle = action.communityactionbundle_set.all()
+        bundle = action.platformactionbundle_set.all()
         if bundle.exists():
             bundle = bundle[0]
             # TO DO - remove all of this
-            if bundle.bundle_type == CommunityActionBundle.ELECTION:
+            if bundle.bundle_type == PlatformActionBundle.ELECTION:
                 for a in bundle.bundled_actions.all():
                     if a != action:
                         p = a.proposal
@@ -159,5 +159,15 @@ def initialize_starterkit(request):
 
     response = redirect('/login?success=true')
     return response
+
+@csrf_exempt
+def error_check(request):
+    data = json.loads(request.body)
+
+    try:
+        filter_code(data['code'])
+    except NonWhitelistedCodeError as e:
+        return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
+    return JsonResponse({ 'is_error': False })
 
 #pass in the community

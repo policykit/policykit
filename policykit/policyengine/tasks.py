@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policyengine.models import UserVote, NumberVote, BooleanVote, CommunityAction, CommunityActionBundle, Proposal, CommunityPolicy, CommunityUser, ConstitutionAction, ConstitutionPolicy
+from policyengine.models import UserVote, NumberVote, BooleanVote, PlatformAction, PlatformActionBundle, Proposal, PlatformPolicy, CommunityUser, ConstitutionAction, ConstitutionPolicy
 from policykit.celery import app
 from policyengine.views import *
 
@@ -29,8 +29,8 @@ def consider_proposed_actions():
                 elif check_result == Proposal.FAILED:
                     fail_policy(policy, action)
 
-    community_actions = CommunityAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    for action in community_actions:
+    platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
+    for action in platform_actions:
 
         #logger.info(action)
 
@@ -38,17 +38,17 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in CommunityPolicy.objects.filter(community=action.community):
+            for policy in PlatformPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
 
-    bundle_actions = CommunityActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
+    bundle_actions = PlatformActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in bundle_actions:
         #if they have execute permission, skip all policies
 
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in CommunityPolicy.objects.filter(community=action.community):
+            for policy in PlatformPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
 
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)

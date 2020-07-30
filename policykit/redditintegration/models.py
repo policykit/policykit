@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, CommunityAction
+from policyengine.models import Community, CommunityUser, PlatformAction
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
@@ -121,7 +121,7 @@ class RedditCommunity(Community):
             self.base_role.permissions.add(p)
 
 
-    def execute_community_action(self, action, delete_policykit_post=True):
+    def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
 
@@ -142,8 +142,8 @@ class RedditCommunity(Community):
                                   'community',
                                   'initiator',
                                   'communityaction_ptr',
-                                  'communityaction',
-                                  'communityactionbundle',
+                                  'platformaction',
+                                  'platformactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled',
@@ -177,7 +177,7 @@ class RedditCommunity(Community):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.communityactionbundle_set.all()
+                    bundle = action.platformactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
@@ -216,7 +216,7 @@ class RedditUser(CommunityUser):
         group.user_set.add(self)
 
 
-class RedditMakePost(CommunityAction):
+class RedditMakePost(PlatformAction):
     ACTION = 'api/submit'
     AUTH = 'user'
 
@@ -230,6 +230,9 @@ class RedditMakePost(CommunityAction):
                                default="self")
 
     name = models.CharField('name',
+                               max_length=100,
+                               null=True)
+    communityaction_ptr = models.CharField('ptr',
                                max_length=100,
                                null=True)
     
