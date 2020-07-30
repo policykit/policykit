@@ -87,6 +87,7 @@
                                       let tooltip = document.createElement('span')
                                       tooltip.innerHTML = data.error
                                       tooltip.style.position = 'absolute'
+                                      tooltip.style.display = 'none'
                                       tooltip.style.zIndex = '100'
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
@@ -96,10 +97,10 @@
                                       tooltip.style.top = '-1em'
                                       marker.appendChild(tooltip)
                                       marker.onmouseover = function () {
-                                        this.childNodes[0].style.visibility = 'visible'
+                                        this.childNodes[0].style.display = 'block'
                                       }
                                       marker.onmouseout = function () {
-                                        this.childNodes[0].style.visibility = 'hidden'
+                                        this.childNodes[0].style.display = 'none'
                                       }
 
                                       cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
