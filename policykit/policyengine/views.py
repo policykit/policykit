@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
+def v2(request):
+    return render(request, 'policyengine/v2/index.html', {})
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     try:
