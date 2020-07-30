@@ -23,6 +23,29 @@
                             <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
                             <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
                             <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
+                            <style>
+                              .marker {
+                                color: #ff0000;
+                                width: 10px !important;
+                                margin-left: 4px;
+                              }
+
+                              .marker .tooltip {
+                                display: none;
+                                position: absolute;
+                                background-color: #f5f5b5;
+                                color: #000000;
+                                border: 1px solid #000000;
+                                padding: 2px;
+                                width: 400px;
+                                left: 10px;
+                                top: -1em;
+                              }
+
+                              .marker:hover .tooltip {
+                                display: block;
+                              }
+                            </style>
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
@@ -46,16 +69,17 @@
                                 descriptionTextArea.style.borderColor = 'black';
                               } else if (['filter', 'initialize', 'check', 'notify', 'success', 'fail'].indexOf(name) >= 0) {
                                 var textArea = document.getElementById('id_{{ field.field.name }}');
-                                var editor = CodeMirror.fromTextArea(textArea, {
+                                var editor_{{field.field.name}} = CodeMirror.fromTextArea(textArea, {
                                     mode: 'python',
                                     autoRefresh: true,
                                     lineNumbers: true,
-                                    theme: 'eclipse'
+                                    theme: 'eclipse',
+                                    gutters: ['warnings_{{field.field.name}}'],
+                                    value: textArea.value
                                 });
-                                editor.setValue(textArea.value);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
-                                editor.on('inputRead', function onChange(editor, input) {
+                                editor_{{field.field.name}}.on('inputRead', function onChange(editor, input) {
                                     if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
                                         return;
                                     }
@@ -63,6 +87,35 @@
                                         hint: CodeMirror.pythonHint
                                     });
                                 });
+
+                                editor_{{field.field.name}}.on('change', (cm, change) => {
+                                  code = cm.getValue()
+
+                                  fetch('../../../policyengine/error_check', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ 'code': code })
+                                  })
+                                  .then(response => response.json())
+                                  .then(data => {
+                                    cm.clearGutter('warnings_{{field.field.name}}')
+
+                                    if (data.is_error) {
+                                      const marker = document.createElement('div')
+                                      marker.classList.add('marker')
+                                      marker.innerHTML = '●'
+
+                                      const tooltip = document.createElement('div')
+                                      tooltip.classList.add('tooltip')
+                                      tooltip.innerHTML = data.error
+                                      marker.appendChild(tooltip)
+
+                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
+                                    }
+                                  })
+                                })
                               }
                             </script>
                         {% endif %}
