@@ -51,9 +51,9 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: ['CodeMirror-linenumbers', 'warnings_{{field.field.name}}']
+                                    gutters: ['warnings_{{field.field.name}}'],
+                                    value: textArea.value
                                 });
-                                editor_{{field.field.name}}.setValue(textArea.value);
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
                                 editor_{{field.field.name}}.on('inputRead', function onChange(editor, input) {
@@ -77,10 +77,9 @@
                                   })
                                   .then(response => response.json())
                                   .then(data => {
-                                    console.log('got data')
+                                    cm.clearGutter('warnings_{{field.field.name}}')
 
                                     if (data.is_error) {
-                                      console.log('is error')
                                       var marker_{{field.field.name}} = document.createElement('div')
                                       marker_{{field.field.name}}.style.color = '#ff0000'
                                       marker_{{field.field.name}}.innerHTML = '●'
@@ -99,10 +98,7 @@
                                       tooltip.innerText = data.error
                                       marker.appendChild(tooltip)*/
 
-                                      console.log('about to set marker: ' + data.lineno)
-
-                                      cm.setGutterMarker(data.lineno, 'warnings_{{field.field.name}}', marker_{{field.field.name}})
-                                      console.log('set marker')
+                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker_{{field.field.name}})
                                     }
                                   })
                                 })
