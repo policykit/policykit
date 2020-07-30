@@ -326,10 +326,11 @@ class Filter(ast.NodeVisitor):
         elif isinstance(node.func, ast.Attribute):
             module_name = node.func.value.id
             function_name = node.func.attr
-            if module_name not in whitelisted_modules:
-                raise NonWhitelistedCodeError(module_name + "." + function_name, node.lineno, FUNCTION_MODULE_ERROR_MESSAGE)
-            if function_name not in whitelisted_modules[module_name] and module_name not in policyengine_modules:
-                raise NonWhitelistedCodeError(module_name + "." + function_name, node.lineno,FUNCTION_MODULE_ERROR_MESSAGE)
+            if module_name not in policyengine_modules:
+                if module_name not in whitelisted_modules:
+                    raise NonWhitelistedCodeError(module_name + "." + function_name, node.lineno, FUNCTION_MODULE_ERROR_MESSAGE)
+                if function_name not in whitelisted_modules[module_name]:
+                    raise NonWhitelistedCodeError(module_name + "." + function_name, node.lineno, FUNCTION_MODULE_ERROR_MESSAGE)
         self.generic_visit(node)
 
 def filter_code(code):
