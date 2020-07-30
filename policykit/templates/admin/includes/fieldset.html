@@ -51,9 +51,8 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: ['warnings_{{field.field.name}}'],
-                                    value: textArea.value,
-                                    lineSeparator: '\r\n'
+                                    gutters: ['CodeMirror-linenumbers', 'warnings_{{field.field.name}}'],
+                                    value: textArea.value
                                 });
 
                                 // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
@@ -81,11 +80,11 @@
                                     cm.clearGutter('warnings_{{field.field.name}}')
 
                                     if (data.is_error) {
-                                      var marker_{{field.field.name}} = document.createElement('div')
-                                      marker_{{field.field.name}}.style.color = '#ff0000'
-                                      marker_{{field.field.name}}.innerHTML = '●'
+                                      let marker = document.createElement('div')
+                                      marker.style.color = '#ff0000'
+                                      marker.innerHTML = '●'
 
-                                      /*let tooltip = document.createElement('span')
+                                      let tooltip = document.createElement('span')
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
                                       tooltip.style.borderWidth = '1px'
@@ -97,9 +96,9 @@
                                         tooltip.style.visibility = "hidden"
                                       }
                                       tooltip.innerText = data.error
-                                      marker.appendChild(tooltip)*/
+                                      marker.appendChild(tooltip)
 
-                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker_{{field.field.name}})
+                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
                                     }
                                   })
                                 })
