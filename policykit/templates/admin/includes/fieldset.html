@@ -82,10 +82,13 @@
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
                                       marker.style.color = '#ff0000'
+                                      marker.style.position = 'relative'
+                                      marker.style.width = '10px !important'
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
                                       tooltip.style.position = 'absolute'
+                                      tooltip.style.zIndex = '1'
                                       tooltip.style.display = 'none'
                                       tooltip.style.backgroundColor = '#f5f5b5'
                                       tooltip.style.color = '#000000'
