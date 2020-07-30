@@ -93,9 +93,9 @@ class PolicyModule(DashboardModule):
     deletable = False
     show_title = True
 
-    policy_type = "Platform"
+    policy_type = "Community"
 
-    def __init__(self, policy_type= "Platform", title=None, **kwargs):
+    def __init__(self, policy_type= "Community", title=None, **kwargs):
         kwargs.update({'policy_type': policy_type})
         super(PolicyModule, self).__init__(title, **kwargs)
 
@@ -110,7 +110,7 @@ class PolicyModule(DashboardModule):
 
 
     def init_with_context(self, context):
-        if self.policy_type == "Platform":
+        if self.policy_type == "Community":
             policies = PlatformPolicy.objects
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
