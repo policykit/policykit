@@ -23,6 +23,7 @@
                             <link rel="stylesheet" href={% static "codemirror/lib/codemirror.css" %}>
                             <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
                             <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
+                            <link rel="stylesheet" href="./editor.css">
                             <script src={% static "codemirror/lib/codemirror.js" %}></script>
                             <script src={% static "codemirror/mode/python/python.js" %}></script>
                             <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
@@ -51,7 +52,7 @@
                                     autoRefresh: true,
                                     lineNumbers: true,
                                     theme: 'eclipse',
-                                    gutters: [{className: 'warnings_{{field.field.name}}', style: 'width: 16px !important'}, 'CodeMirror-linenumbers'],
+                                    gutters: [{className: 'warnings_{{field.field.name}}', style: 'width: 16px !important;padding-left: 4px;'}, 'CodeMirror-linenumbers'],
                                     value: textArea.value
                                 });
 
@@ -81,29 +82,13 @@
 
                                     if (data.is_error) {
                                       let marker = document.createElement('div')
-                                      marker.style.color = '#ff0000'
-                                      marker.style.width = '10px !important'
-                                      marker.style.position = 'relative'
+                                      marker.className = 'marker'
                                       marker.innerHTML = '●'
 
                                       let tooltip = document.createElement('span')
+                                      tooltip.className = 'tooltip'
                                       tooltip.innerHTML = data.error
-                                      tooltip.style.position = 'absolute'
-                                      tooltip.style.display = 'none'
-                                      tooltip.style.zIndex = '100'
-                                      tooltip.style.backgroundColor = '#f5f5b5'
-                                      tooltip.style.color = '#000000'
-                                      tooltip.style.border = '1px solid #999'
-                                      tooltip.style.width = '400px'
-                                      tooltip.style.left = '15px'
-                                      tooltip.style.top = '-1em'
                                       marker.appendChild(tooltip)
-                                      marker.onmouseover = function () {
-                                        this.childNodes[0].style.display = 'block'
-                                      }
-                                      marker.onmouseout = function () {
-                                        this.childNodes[0].style.display = 'none'
-                                      }
 
                                       cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
                                     }
