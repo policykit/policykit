@@ -103,16 +103,16 @@
                                     cm.clearGutter('warnings_{{field.field.name}}')
 
                                     if (data.is_error) {
-                                      let marker = document.createElement('div')
-                                      marker.classList.add('marker')
-                                      marker.innerHTML = '●'
+                                      const marker_{{field.field.name}} = document.createElement('div')
+                                      marker_{{field.field.name}}.classList.add('marker')
+                                      marker_{{field.field.name}}.innerHTML = '●'
 
-                                      let tooltip = document.createElement('span')
-                                      tooltip.classList.add('tooltip')
-                                      tooltip.innerHTML = data.error
-                                      marker.appendChild(tooltip)
+                                      const tooltip_{{field.field.name}} = document.createElement('div')
+                                      tooltip_{{field.field.name}}.classList.add('tooltip')
+                                      tooltip_{{field.field.name}}.innerHTML = data.error
+                                      marker_{{field.field.name}}.appendChild(tooltip_{{field.field.name}})
 
-                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
+                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker_{{field.field.name}})
                                     }
                                   })
                                 })
