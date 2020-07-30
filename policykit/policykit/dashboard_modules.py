@@ -95,7 +95,7 @@ class PolicyModule(DashboardModule):
 
     policy_type = "Platform"
 
-    def __init__(self, policy_type="Platform", title=None, **kwargs):
+    def __init__(self, policy_type= "Platform", title=None, **kwargs):
         kwargs.update({'policy_type': policy_type})
         super(PolicyModule, self).__init__(title, **kwargs)
 
