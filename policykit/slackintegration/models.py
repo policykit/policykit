@@ -145,11 +145,6 @@ class SlackUser(CommunityUser):
                                max_length=500,
                                null=True)
 
-    def save(self, *args, **kwargs):
-        super(SlackUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
-
     
 class SlackPostMessage(PlatformAction):
     ACTION = 'chat.postMessage'

@@ -140,7 +140,7 @@ def oauth(request):
             context = {
                 "starterkits": [kit.name for kit in StarterKit.objects.all()],
                 "community_name": community.community_name,
-                "platform": "slack"
+                "creator_token": res['authed_user']['access_token']
             }
             return render(request, "policyadmin/init_starterkit.html", context)
     else:

@@ -210,11 +210,6 @@ class RedditUser(CommunityUser):
         self.access_token = res['access_token']
         self.save()
 
-    def save(self, *args, **kwargs):
-        super(RedditUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
-
 
 class RedditMakePost(PlatformAction):
     ACTION = 'api/submit'

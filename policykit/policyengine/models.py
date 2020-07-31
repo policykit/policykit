@@ -77,6 +77,11 @@ class CommunityUser(User, PolymorphicModel):
     def __str__(self):
         return self.username + '@' + self.community.community_name
 
+    def save(self, *args, **kwargs):
+        super(CommunityUser, self).save(*args, **kwargs)
+        group = self.community.base_role
+        group.user_set.add(self)
+
 
 class CommunityDoc(models.Model):
     text = models.TextField()
@@ -206,8 +211,10 @@ class GenericRole(Group):
     role_name = models.TextField(blank=True, null=True, default='')
     
     is_base_role = models.BooleanField(default=False)
+    
+    user_group = models.TextField(blank=True, null=True, default='')
 
-    def make_community_role(self, community):
+    def make_community_role(self, community, creator_token=None):
         c = None
         if self.is_base_role:
             c = community.base_role
@@ -216,12 +223,27 @@ class GenericRole(Group):
             c = CommunityRole()
             c.community = community
             c.role_name = self.role_name
-    
+        
         for perm in self.permissions.all():
             c.permissions.add(perm)
         
+        if self.user_group == "admins":
+            group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+            for user in group:
+                c.user_set.add(user)
+        elif self.user_group == "nonadmins":
+            group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+            for user in group:
+                c.user_set.add(user)
+        elif self.user_group == "all":
+            group = CommunityUser.objects.filter(community = community)
+            for user in group:
+                c.user_set.add(user)
+        elif self.user_group == "creator":
+            user = CommunityUser.objects.get(access_token=creator_token)
+            c.user_set.add(user)
+                        
         c.save()
-
         return c
 
     def __str__(self):
