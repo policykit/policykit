@@ -343,5 +343,8 @@ def filter_code(code):
     tree = ast.parse(code)
 
     filter = Filter()
-    filter.visit(tree)
+    try:
+        filter.visit(tree)
+    except SyntaxError as e:
+        pass
     return filter.getErrors()

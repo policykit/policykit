@@ -175,11 +175,8 @@ def error_check(request):
     except SyntaxError as e:
         errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
 
-    try:
-        filter_errors = filter_code(code)
-        errors.extend(filter_errors)
-    except SyntaxError as e:
-        pass
+    filter_errors = filter_code(code)
+    errors.extend(filter_errors)
 
     if len(errors) > 0:
         return JsonResponse({ 'is_error': True, 'errors': errors })
