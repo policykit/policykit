@@ -95,7 +95,6 @@ class PolicyModule(DashboardModule):
 
     policy_type = "Platform"
     
-    policies = policies.filter(community=context['request'].user.community)
     def __init__(self, policy_type= "Platform", title=None, **kwargs):
         kwargs.update({'policy_type': policy_type})
         super(PolicyModule, self).__init__(title, **kwargs)
@@ -116,9 +115,10 @@ class PolicyModule(DashboardModule):
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
 
-    
+        new_policies = policies.filter(community=context['request'].user.community)
 
-        for i in policies:
+
+        for i in new_policies:
             self.children.append({'policy_type': self.policy_type,
                                   'is_bundled': i.is_bundled,
                                   'id': i.id,
