@@ -164,16 +164,22 @@ def error_check(request):
     data = json.loads(request.body)
     code = data['code']
 
+    errors = []
+
+    # Note: only catches first SyntaxError in code
+    #   when user fixes this error, then it will catch the next one, and so on
+    #   could use linter, but that has false positives sometimes
+    #   since syntax errors often affect future code
     try:
         parser.suite(code)
     except SyntaxError as e:
-        return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
+        errors.append({ type: 'syntax', lineno: e.lineno, code: e.text, message: str(e) })
 
-    try:
-        filter_code(code)
-    except NonWhitelistedCodeError as e:
-        return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
+    filter_errors = filter_code(code)
+    errors.extend(filter_errors)
 
+    if len(errors) > 0:
+        return JsonResponse({ 'is_error': True, errors: errors })
     return JsonResponse({ 'is_error': False })
 
 #pass in the community

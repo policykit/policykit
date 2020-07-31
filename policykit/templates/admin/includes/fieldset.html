@@ -103,16 +103,20 @@
                                     cm.clearGutter('warnings_{{field.field.name}}')
 
                                     if (data.is_error) {
-                                      const marker = document.createElement('div')
-                                      marker.classList.add('marker')
-                                      marker.innerHTML = '●'
+                                      for (const error of data.errors) {
+                                        const message = 'Line ' + error.lineno + ': "' + error.code + '" ' + error.message
 
-                                      const tooltip = document.createElement('div')
-                                      tooltip.classList.add('tooltip')
-                                      tooltip.innerHTML = data.error
-                                      marker.appendChild(tooltip)
+                                        const marker = document.createElement('div')
+                                        marker.classList.add('marker')
+                                        marker.innerHTML = '●'
 
-                                      cm.setGutterMarker(data.lineno - 1, 'warnings_{{field.field.name}}', marker)
+                                        const tooltip = document.createElement('div')
+                                        tooltip.classList.add('tooltip')
+                                        tooltip.innerHTML = message
+                                        marker.appendChild(tooltip)
+
+                                        cm.setGutterMarker(error.lineno - 1, 'warnings_{{field.field.name}}', marker)
+                                      }
                                     }
                                   })
                                 })
