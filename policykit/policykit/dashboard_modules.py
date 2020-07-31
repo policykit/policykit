@@ -114,7 +114,7 @@ class PolicyModule(DashboardModule):
             policies = PlatformPolicy.objects
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
-        logger.error("Test!!")
+        logger.error("Test!!" + self.policy_type)
 
 
         new_policies = policies.filter(community=context['request'].user.community)
