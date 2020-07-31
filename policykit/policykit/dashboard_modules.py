@@ -110,13 +110,13 @@ class PolicyModule(DashboardModule):
 
 
     def init_with_context(self, context):
-        if (self.policy_type == "Community"):
+        if (self.policy_type == "Community"): #testing to see if error shows up when policy type is set to community
             self.policy_type = "Platform"
         if self.policy_type == "Platform":
             policies = PlatformPolicy.objects
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
-        logger.error("Test!!" + self.policy_type)
+    
 
 
         new_policies = policies.filter(community=context['request'].user.community)
