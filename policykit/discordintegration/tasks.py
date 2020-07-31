@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from celery.schedules import crontab
 from policykit.settings import DISCORD_BOT_TOKEN
-from policyengine.models import Proposal, LogAPICall, CommunityPolicy, CommunityAction, BooleanVote, NumberVote
+from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
 from discordintegration.models import DiscordCommunity, DiscordUser, DiscordPostMessage
 from policyengine.views import filter_policy, check_policy, initialize_policy
 from urllib import parse
@@ -95,7 +95,7 @@ def discord_listener_actions():
         for action in actions:
             logger.info("Action:")
             logger.info(action)
-            for policy in CommunityPolicy.objects.filter(community=action.community):
+            for policy in PlatformPolicy.objects.filter(community=action.community):
                 logger.info("Policy:")
                 logger.info(policy)
                 if filter_policy(policy, action):
@@ -116,7 +116,7 @@ def discord_listener_actions():
 
         # Boolean voting
 
-        proposed_actions = CommunityAction.objects.filter(
+        proposed_actions = PlatformAction.objects.filter(
             community=community,
             proposal_status=Proposal.PROPOSED,
             community_post__isnull=False

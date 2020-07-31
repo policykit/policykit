@@ -1,28 +1,31 @@
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from policyengine.filter import *
-from policyengine.exceptions import NonWhitelistedCodeError
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 import urllib.request
 import urllib.parse
 import logging
 import json
+import parser
 
 
 logger = logging.getLogger(__name__)
 
 def homepage(request):
     return render(request, 'policyengine/home.html', {})
-    
+
+def v2(request):
+    return render(request, 'policyengine/v2/index.html', {})
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    """try:
-        filter_code(code)
-    except NonWhitelistedCodeError as e:
-        logger.error(e)
-        return"""
+    errors = filter_code(code)
+    if len(errors) > 0:
+        logger.error('Filter errors:')
+        for error in errors:
+            logger.error(error.message)
+        return
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
@@ -101,7 +104,7 @@ def pass_policy(policy, action):
 
 def fail_policy(policy, action):
     _locals = locals()
-    
+
     wrapper_start = "def fail(policy, action):\r\n"
 
     wrapper_end = "\r\nfail(policy, action)"
@@ -139,24 +142,48 @@ def clean_up_proposals(action, executed):
 @csrf_exempt
 def initialize_starterkit(request):
     from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
-    
+
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
-    creator_token = request.POST['creator_token']
-    
     starter_kit = StarterKit.objects.get(name=starterkit_name)
     community = Community.objects.get(community_name=community_name)
-    
+
     for policy in starter_kit.genericpolicy_set.all():
         if policy.is_constitution:
             policy.make_constitution_policy(community)
         else:
-            policy.make_community_policy(community)
-    
+            policy.make_platform_policy(community)
+
     for role in starter_kit.genericrole_set.all():
-        role.make_community_role(community, creator_token)
+        role.make_community_role(community)
 
     response = redirect('/main/login?success=true')
     return response
+
+@csrf_exempt
+def error_check(request):
+    data = json.loads(request.body)
+    code = data['code']
+
+    errors = []
+
+    # Note: only catches first SyntaxError in code
+    #   when user fixes this error, then it will catch the next one, and so on
+    #   could use linter, but that has false positives sometimes
+    #   since syntax errors often affect future code
+    try:
+        parser.suite(code)
+    except SyntaxError as e:
+        errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
+
+    try:
+        filter_errors = filter_code(code)
+        errors.extend(filter_errors)
+    except SyntaxError as e:
+        pass
+
+    if len(errors) > 0:
+        return JsonResponse({ 'is_error': True, 'errors': errors })
+    return JsonResponse({ 'is_error': False })
 
 #pass in the community
