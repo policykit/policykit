@@ -123,7 +123,7 @@ class DiscordCommunity(Community):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.platformyactionbundle_set.all()
+                    bundle = action.platformactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
