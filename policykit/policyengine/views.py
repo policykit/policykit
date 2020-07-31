@@ -2,13 +2,13 @@ from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from policyengine.filter import *
-from policyengine.exceptions import NonWhitelistedCodeError
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 import urllib.request
 import urllib.parse
 import logging
 import json
+import parser
 
 
 logger = logging.getLogger(__name__)
@@ -20,10 +20,11 @@ def v2(request):
     return render(request, 'policyengine/v2/index.html', {})
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    try:
-        filter_code(code)
-    except NonWhitelistedCodeError as e:
-        logger.error(e)
+    errors = filter_code(code)
+    if len(errors) > 0:
+        logger.error('Filter errors:')
+        for error in errors:
+            logger.error(error.message)
         return
 
     lines = ['  ' + item for item in code.splitlines()]
@@ -163,11 +164,27 @@ def initialize_starterkit(request):
 @csrf_exempt
 def error_check(request):
     data = json.loads(request.body)
+    code = data['code']
+
+    errors = []
+
+    # Note: only catches first SyntaxError in code
+    #   when user fixes this error, then it will catch the next one, and so on
+    #   could use linter, but that has false positives sometimes
+    #   since syntax errors often affect future code
+    try:
+        parser.suite(code)
+    except SyntaxError as e:
+        errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
 
     try:
-        filter_code(data['code'])
-    except NonWhitelistedCodeError as e:
-        return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
+        filter_errors = filter_code(code)
+        errors.extend(filter_errors)
+    except SyntaxError as e:
+        pass
+
+    if len(errors) > 0:
+        return JsonResponse({ 'is_error': True, 'errors': errors })
     return JsonResponse({ 'is_error': False })
 
 #pass in the community
