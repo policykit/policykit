@@ -173,13 +173,13 @@ def error_check(request):
     try:
         parser.suite(code)
     except SyntaxError as e:
-        errors.append({ type: 'syntax', lineno: e.lineno, code: e.text, message: str(e) })
+        errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
 
     filter_errors = filter_code(code)
     errors.extend(filter_errors)
 
     if len(errors) > 0:
-        return JsonResponse({ 'is_error': True, errors: errors })
+        return JsonResponse({ 'is_error': True, 'errors': errors })
     return JsonResponse({ 'is_error': False })
 
 #pass in the community

@@ -315,25 +315,25 @@ class Filter(ast.NodeVisitor):
     def visit_Import(self, node):
         for module_alias in node.names:
             if module_alias.name not in whitelisted_modules:
-                self.errors.append({ type: 'filter', lineno: node.lineno, code: module_alias.name, message: IMPORT_ERROR_MESSAGE })
+                self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_alias.name, 'message': IMPORT_ERROR_MESSAGE })
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node):
-        self.errors.append({ type: 'filter', lineno: node.lineno, code: module_alias.names[0].name, message: DISALLOW_FROM_IMPORT_ERROR_MESSAGE })
+        self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_alias.names[0].name, 'message': DISALLOW_FROM_IMPORT_ERROR_MESSAGE })
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Name):
             function_name = node.func.id
             if function_name not in whitelisted_builtins:
-                self.errors.append({ type: 'filter', lineno: node.lineno, code: function_name, message: FUNCTION_BUILTIN_ERROR_MESSAGE })
+                self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': function_name, 'message': FUNCTION_BUILTIN_ERROR_MESSAGE })
         elif isinstance(node.func, ast.Attribute):
             module_name = node.func.value.id
             function_name = node.func.attr
             if module_name not in policyengine_modules:
                 if module_name not in whitelisted_modules:
-                    self.errors.append({ type: 'filter', lineno: node.lineno, code: module_name + "." + function_name, message: FUNCTION_MODULE_ERROR_MESSAGE })
+                    self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
                 if function_name not in whitelisted_modules[module_name]:
-                    self.errors.append({ type: 'filter', lineno: node.lineno, code: module_name + "." + function_name, message: FUNCTION_MODULE_ERROR_MESSAGE })
+                    self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
         self.generic_visit(node)
 
     def getErrors(self):
