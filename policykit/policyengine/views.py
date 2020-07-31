@@ -142,6 +142,7 @@ def initialize_starterkit(request):
     
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
+    creator_token = request.POST['creator_token']
     
     starter_kit = StarterKit.objects.get(name=starterkit_name)
     community = Community.objects.get(community_name=community_name)
@@ -153,9 +154,9 @@ def initialize_starterkit(request):
             policy.make_community_policy(community)
     
     for role in starter_kit.genericrole_set.all():
-        role.make_community_role(community)
+        role.make_community_role(community, creator_token)
 
-    response = redirect('/login?success=true')
+    response = redirect('/main/login?success=true')
     return response
 
 #pass in the community
