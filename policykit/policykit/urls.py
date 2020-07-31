@@ -20,7 +20,7 @@ from django.conf.urls import include, url
 from django.views.generic import TemplateView
 import urllib.parse
 from policyengine.admin import admin_site
-from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID
+from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID, VERSION
 from policyengine import views as policyviews
 
 urlpatterns = [
@@ -32,8 +32,8 @@ urlpatterns = [
             'discord_client_id': DISCORD_CLIENT_ID
         }
     )),
-    path('main/', admin_site.urls),
-    path('policyengine/', include('policyengine.urls')),
+    path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
+    path('main/policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     path('admin/', admin.site.urls),
