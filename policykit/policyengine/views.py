@@ -165,13 +165,13 @@ def error_check(request):
     code = data['code']
 
     try:
-        filter_code(code)
-    except NonWhitelistedCodeError as e:
+        parser.suite(code)
+    except SyntaxError as e:
         return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
 
     try:
-        parser.suite(code)
-    except SyntaxError as e:
+        filter_code(code)
+    except NonWhitelistedCodeError as e:
         return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
 
     return JsonResponse({ 'is_error': False })
