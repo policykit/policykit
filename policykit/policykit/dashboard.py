@@ -39,7 +39,7 @@ class CustomIndexDashboard(Dashboard):
         ))
         
         self.children.append(PolicyModule(
-            policy_type="PlatformPolicy",
+            policy_type="Platform",
             title="Passed Platform Policies",
             deletable=False,
             contrast=True,
