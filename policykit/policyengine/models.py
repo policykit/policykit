@@ -179,8 +179,8 @@ class GenericPolicy(models.Model):
     
         return p
 
-    def make_community_policy(self, community):
-        p = CommunityPolicy()
+    def make_platform_policy(self, community):
+        p = PlatformPolicy()
         p.community = community
         p.filter = self.filter
         p.initialize = self.initialize
@@ -568,7 +568,7 @@ class PolicykitAddPlatformPolicy(EditorModel):
 
     class Meta:
         permissions = (
-            ('can_execute_policykitplatformpolicy', 'Can execute policykit add platform policy'),
+            ('can_execute_addpolicykitplatformpolicy', 'Can execute policykit add platform policy'),
         )
 
 
@@ -762,7 +762,6 @@ class PlatformActionBundle(BaseAction):
 
     bundled_actions = models.ManyToManyField(PlatformAction)
 
-    action_type = "PlatformActionBundle"
     
 
     ELECTION = 'election'

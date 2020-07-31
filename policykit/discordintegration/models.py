@@ -82,7 +82,7 @@ class DiscordCommunity(Community):
 
         return res
 
-    def execute_community_action(self, action, delete_policykit_post=True):
+    def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
 
@@ -100,8 +100,8 @@ class DiscordCommunity(Community):
                                   'community',
                                   'initiator',
                                   'communityapi_ptr',
-                                  'communityaction',
-                                  'communityactionbundle',
+                                  'platformaction',
+                                  'platformactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -123,7 +123,7 @@ class DiscordCommunity(Community):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.communityactionbundle_set.all()
+                    bundle = action.platformactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
