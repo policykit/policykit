@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from policyengine.filter import *
-from policyengine.exceptions import NonWhitelistedCodeError
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 import urllib.request
@@ -19,10 +18,11 @@ def homepage(request):
 
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    try:
-        filter_code(code)
-    except NonWhitelistedCodeError as e:
-        logger.error(e)
+    errors = filter_code(code)
+    if len(errors) > 0:
+        logger.error('Filter errors:')
+        for error in errors:
+            logger.error(error.message)
         return
 
     lines = ['  ' + item for item in code.splitlines()]
