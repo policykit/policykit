@@ -9,6 +9,7 @@ import urllib.request
 import urllib.parse
 import logging
 import json
+import parser
 
 
 logger = logging.getLogger(__name__)
@@ -161,11 +162,18 @@ def initialize_starterkit(request):
 @csrf_exempt
 def error_check(request):
     data = json.loads(request.body)
+    code = data['code']
 
     try:
-        filter_code(data['code'])
+        filter_code(code)
     except NonWhitelistedCodeError as e:
         return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
+
+    try:
+        parser.suite(code)
+    except SyntaxError as e:
+        return JsonResponse({ 'is_error': True, 'error': str(e), 'lineno': e.lineno })
+
     return JsonResponse({ 'is_error': False })
 
 #pass in the community
