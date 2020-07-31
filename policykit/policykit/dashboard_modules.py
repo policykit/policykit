@@ -110,12 +110,11 @@ class PolicyModule(DashboardModule):
 
 
     def init_with_context(self, context):
-        if self.policy_type == "Platform" or self.policy_type == "Community":
+        if self.policy_type == "Community":
             policies = PlatformPolicy.objects
         elif self.policy_type == "Constitution":
             policies = ConstitutionPolicy.objects
-        else:
-            policies = ConstitutionPolicy.objects
+
 
         new_policies = policies.filter(community=context['request'].user.community)
 
