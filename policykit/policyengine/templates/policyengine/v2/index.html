@@ -1,73 +1,210 @@
-{% extends "policyengine/base.html" %}
 {% load static %}
-{% block content %}
-     	<div class="pusher">
-			  <div class="masthead">
+<!DOCTYPE html>
+<html lang="en">
 
-			    <div class="container">
-			      <div class="ui secondary inverted right menu" id="nav">
-			      	<div class="toc item" style="margin-left: 50px;"></div>
-			      	<div class="right menu">
-			      		<!-- <a class="item active" href="https://github.com/amyxzhang/policykit">Github Repo</a> -->
-				    </div>
-			      </div>
-			    </div>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-			    <div class="ui stackable grid container" id="main">
-			    	<div class="row">
-			    		<div class="seven wide column main-left">
-			    			<img src={% static "policyengine/img/logo.png" %} style="width:200px;">
-			    			<BR><BR>
+  <title>PolicyKit</title>
 
-			    			<h2 class="header">
-					        PolicyKit
-					      </h2>
-					      <h3>A tool for building and evolving governance in online communities.</h3>
-					       </div>
-					    <div class="one wide column"></div>
-					    <div class="eight wide column main-right">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&family=Itim&family=Karla:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-		          <h5>
-					      	Consider the platforms you use for online communities today.
-					      	These platforms only offer governance options that are top-down, autocratic, and punitive,
-					      	involving admins and mods.
-					    But what if platforms could provide other types of governance, such as
-					      		more democratic ones?
-					      		What if communities could <i>build for themselves</i> the governance that suits
-					      		their needs and values?
-					      </h5>
-					      <h5>
-					      	PolicyKit empowers online community members to
-					      	<b>concisely author a wide range of governance procedures</b> and <b>automatically carry out those
-					      	procedures</b> on their home platforms.
-					      	Inspired by Nobel economist Elinor Ostrom, we've developed a framework that
-					      	describes governance as a series of <i>actions</i> and <i>policies</i>, written in short programming scripts.
-					      	We're now building out an editor, software libraries, and connectors
-					      	to platforms like Slack, Reddit, and Discord for
-					      	communities to author actions and policies.
-					      </h5>
-					      <h5>
-					      	See our ACM UIST 2020 paper and video for more details.
-					      </h5>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-					      <!-- <h6>Brought to you by the <a class="underline-link" href="http://haystack.csail.mit.edu/">Haystack Group</a> at MIT CSAIL.</h6> -->
+	<style>
+    body {
+      margin: 0px;
+      padding: 0px;
+      background: linear-gradient(45deg, #8EC5FC, #E0C3FC) fixed;
+    }
 
-					    </div>
-			      </div>
+    .header {
+      height: 8vh;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 1vh 3% 1vh 1%;
+      overflow: hidden;
+    }
 
+    .body {
+      display: flex;
+      flex-direction: row;
+      width: 80%;
+      min-height: 90vh;
+      margin: 0% 10%;
+    }
 
+    .brandLogo {
+      width: 100px;
+    }
 
-			  </div>
+    .brandName {
+      font-family: 'Baloo Da 2', sans-serif;
+      font-size: 2.5em;
+      color: #000000;
+      margin-left: 2%;
+    }
 
-			  <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" class="triangle">
-			    <polygon fill="white" points="0,100 100,0 100,100"></polygon>
-			  </svg> -->
+    .profilePicture {
+      width: 60px;
+      border-radius: 50%;
+      margin-left: auto;
+    }
 
+    .profileName {
+      color: #ffffff;
+      padding: 0% 1%;
+      font-family: 'Karla', sans-serif;
+      font-weight: normal;
+      font-size: 1.5em;
+    }
 
-		     </div>
+    .profileArrow {
+      color: #ffffff;
+      font-size: 2.5em;
+    }
 
+    .leftCol {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 60%;
+      height: 90vh;
+    }
 
+    .rightCol {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 40%;
+      height: 80vh;
+      padding-top: 5%;
+    }
 
+    .searchBar {
+      display: flex;
+      width: 100%;
+      border-radius: 50px;
+      border-width: 0px;
+      padding: 10px 20px;
+      background-color: #f8f9f9;
+      outline: none;
+      font-family: 'Karla', sans-serif;
+      font-size: 1em;
+    }
 
+    .proposeButton {
+      display: flex;
+      max-width: 70%;
+      padding: 2% 20%;
+      border-width: 0px;
+      border-radius: 10px;
+      background-color: #2196f3;
+      color: #ffffff;
+      line-height: 1.5em;
+      font-family: 'Karla', sans-serif;
+      font-weight: bold;
+      font-size: 1.5em;
+      box-shadow: 1px 1px 1px grey;
+      outline: none;
+      margin-bottom: 3%;
+    }
 
-{% endblock %}
+    .sidebarPanel {
+      display: flex;
+      width: 70%;
+      min-height: 40%;
+      margin-top: 3%;
+      margin-bottom: 3%;
+      background-color: #ffffff;
+      border-radius: 5px;
+    }
+
+    .sidebarPanelHeader {
+      width: 100%;
+      height: 15%;
+      background-color: #2196f3;
+      border-radius: 5px 5px 0 0;
+    }
+
+    .sidebarPanelTitle {
+      line-height: 15%;
+      color: #ffffff;
+      text-align: center;
+      font-family: 'Karla', sans-serif;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    .actionPanel {
+      width: 100%;
+      margin-top: 5%;
+    }
+
+    .actionPanelHeader {
+      color: #ffffff;
+      font-family: 'Karla', sans-serif;
+      font-weight: bold;
+      font-size: 2em;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
+    <h2 class="brandName">PolicyKit</h2>
+
+    <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+    <h3 class="profileName">rickygv</h3>
+    <i class="material-icons profileArrow">arrow_drop_down</i>
+  </div>
+
+  <div class="body">
+    <div class="leftCol">
+      <input type="text" class="searchBar" placeholder="Search...">
+
+      <div class="actionPanel">
+        <h3 class="actionPanelHeader">Pending actions</h3>
+      </div>
+
+      <div class="actionPanel">
+        <h3 class="actionPanelHeader">Everything else</h3>
+      </div>
+    </div>
+
+    <div class="rightCol">
+      <input type="button" class="proposeButton" value="Propose Action">
+
+      <div class="sidebarPanel">
+        <div class="sidebarPanelHeader">
+          <h4 class="sidebarPanelTitle">Users</h4>
+        </div>
+      </div>
+
+      <div class="sidebarPanel">
+        <div class="sidebarPanelHeader">
+          <h4 class="sidebarPanelTitle">Community Guidelines</h4>
+        </div>
+      </div>
+
+      <div class="sidebarPanel">
+        <div class="sidebarPanelHeader">
+          <h4 class="sidebarPanelTitle">Community Policies</h4>
+        </div>
+      </div>
+
+      <div class="sidebarPanel">
+        <div class="sidebarPanelHeader">
+          <h4 class="sidebarPanelTitle">Constitution Policies</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
