@@ -46,7 +46,7 @@ policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
         
-default_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = default_starterkit, is_base_role = True,  user_group = "all")
+default_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = default_starterkit, is_base_role = True, user_group = "all")
             
 default_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
             
@@ -148,7 +148,13 @@ democracy_policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-democracy_policy3 = GenericPolicy.objects.create(filter = "return True",
+democracy_policy3 = GenericPolicy.objects.create(
+                                       filter = """
+                                           if not action.initiator.groups.filter(name = "Moderator").exists():
+                                               return True
+                                           else:
+                                               return False
+                                           """,
                                        initialize = "pass",
                                        check = """
                                            import math
@@ -265,7 +271,7 @@ jury_policy1 = GenericPolicy.objects.create(filter = "return True",
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
-                                       description = "Starter Constitution Policy: constitutions actions must be passed by random jury of 3 members",
+                                       description = "Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
                                        name = "Only Actions Passed by Jury Pass",
                                        starterkit = jury_starterkit,
                                        is_constitution = True,
@@ -287,24 +293,24 @@ jury_policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-jury_policy3 = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = """
-                                           if action.initiator.groups.filter(name = "Moderator").exists():
-                                           return PASSED
-                                           else:
-                                           return FAILED
-                                           """,
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: constitution actions pass if proposed by moderator",
-                                       name = "All Constitution Actions from Moderators Pass",
-                                       starterkit = jury_starterkit,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       has_notified = False,
-                                       )
+    #jury_policy3 = GenericPolicy.objects.create(filter = "return True",
+    #                                       initialize = "pass",
+    #                                  check = """
+    #                                      if action.initiator.groups.filter(name = "Moderator").exists():
+    #                                      return PASSED
+    #                                       else:
+    #                                       return FAILED
+    #                                       """,
+    #                                   notify = "pass",
+    #                                   success = "action.execute()",
+    #                                   fail = "pass",
+    #                                   description = "Starter Constitution Policy: constitution actions pass if proposed by moderator",
+    #                                   name = "All Constitution Actions from Moderators Pass",
+    #                                   starterkit = jury_starterkit,
+    #                                   is_constitution = True,
+    #                                   is_bundled = False,
+    #                                   has_notified = False,
+    #                                   )
 
 jury_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = jury_starterkit, is_base_role = True, user_group = "all")
 
