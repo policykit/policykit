@@ -149,7 +149,7 @@ democracy_policy2 = GenericPolicy.objects.create(filter = "return True",
                                        )
 
 democracy_policy3 = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass"
+                                       initialize = "pass",
                                        check = """
                                            import math
                                            
