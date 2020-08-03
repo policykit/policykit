@@ -1,9 +1,8 @@
-from django.shortcuts import render
+from django.contrib.auth import get_user
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import redirect
-from django.template import RequestContext
+from django.shortcuts import render, redirect
 from policyengine.filter import *
 from policykit.settings import SERVER_URL
 import urllib.request
@@ -19,9 +18,10 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
-    return render(request, 'policyengine/v2/index.html', RequestContext(request, {
-        'server_url': SERVER_URL
-    }))
+    return render(request, 'policyengine/v2/index.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request)
+    })
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
