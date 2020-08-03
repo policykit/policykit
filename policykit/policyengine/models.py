@@ -32,7 +32,7 @@ def on_transaction_commit(func):
 
 
 class StarterKit(models.Model):
-    name = models.TextField(null=True, blank=True, default = '', unique=True)
+    name = models.TextField(null=True, blank=True, default = '')
     
     def __str__(self):
         return self.name
