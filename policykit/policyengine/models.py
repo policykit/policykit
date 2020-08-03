@@ -208,7 +208,7 @@ class GenericPolicy(models.Model):
 class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
     
-    name = models.TextField(blank=True, null=True, default='')
+    role_name = models.TextField(blank=True, null=True, default='')
     
     is_base_role = models.BooleanField(default=False)
     
@@ -222,7 +222,7 @@ class GenericRole(Group):
         else:
             c = CommunityRole()
             c.community = community
-            c.name = self.name
+            c.name = self.role_name
         
         for perm in self.permissions.all():
             c.permissions.add(perm)
@@ -247,7 +247,7 @@ class GenericRole(Group):
         return c
 
     def __str__(self):
-        return self.name
+        return self.role_name
 
 
 class Proposal(models.Model):

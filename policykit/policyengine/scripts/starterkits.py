@@ -46,7 +46,7 @@ policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
         
-default_base_role = GenericRole.objects.create(name = "Base User", starterkit = default_starterkit, is_base_role = True, user_group = "all")
+default_base_role = GenericRole.objects.create(role_name = "Base User", name = "Base User", starterkit = default_starterkit, is_base_role = True, user_group = "all")
             
 default_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
             
@@ -91,9 +91,9 @@ mod_user_policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-mod_user_base_role = GenericRole.objects.create(name = "Mod/User: Base User", starterkit = mod_user_starterkit, is_base_role = True, user_group = "nonadmins")
+mod_user_base_role = GenericRole.objects.create(role_name = "Mod/User: Base User", name = "Mod/User: Base User", starterkit = mod_user_starterkit, is_base_role = True, user_group = "nonadmins")
 
-mod_user_mod_role = GenericRole.objects.create(name = "Moderator", starterkit = mod_user_starterkit, is_base_role = True, user_group = "admins")
+mod_user_mod_role = GenericRole.objects.create(role_name = "Moderator", name = "Moderator", starterkit = mod_user_starterkit, is_base_role = True, user_group = "admins")
 
 mod_user_base_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
 
@@ -180,9 +180,9 @@ democracy_policy3 = GenericPolicy.objects.create(
                                        has_notified = False,
                                        )
 
-democracy_base_role = GenericRole.objects.create(name = "Democracy: Base User", starterkit = democracy_starterkit, is_base_role = True, user_group = "nonadmins")
+democracy_base_role = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User", starterkit = democracy_starterkit, is_base_role = True, user_group = "nonadmins")
 
-democracy_mod_role = GenericRole.objects.create(name = "Democracy: Moderator", starterkit = democracy_starterkit, is_base_role = True, user_group = "admins")
+democracy_mod_role = GenericRole.objects.create(role_name = "Democracy: Moderator", name = "Democracy: Moderator", starterkit = democracy_starterkit, is_base_role = True, user_group = "admins")
 
 democracy_base_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
 
@@ -233,9 +233,9 @@ benev_policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-benev_dictator_base_role = GenericRole.objects.create(name = "Benevolent Dictator: Base User", starterkit = benev_dictator_starterkit, is_base_role = True, user_group = "all")
+benev_dictator_base_role = GenericRole.objects.create(role_name = "Benevolent Dictator: Base User", name = "Benevolent Dictator: Base User", starterkit = benev_dictator_starterkit, is_base_role = True, user_group = "all")
 
-benev_dictator_dictator_role = GenericRole.objects.create(name = "Benevolent Dictator", starterkit = benev_dictator_starterkit, is_base_role = True, user_group = "creator")
+benev_dictator_dictator_role = GenericRole.objects.create(role_name = "Benevolent Dictator", name = "Benevolent Dictator", starterkit = benev_dictator_starterkit, is_base_role = True, user_group = "creator")
 
 benev_dictator_base_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
@@ -316,7 +316,7 @@ jury_policy2 = GenericPolicy.objects.create(filter = "return True",
     #                                   has_notified = False,
     #                                   )
 
-jury_base_role = GenericRole.objects.create(name = "Jury: Base User", starterkit = jury_starterkit, is_base_role = True, user_group = "all")
+jury_base_role = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User", starterkit = jury_starterkit, is_base_role = True, user_group = "all")
 
 jury_base_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
