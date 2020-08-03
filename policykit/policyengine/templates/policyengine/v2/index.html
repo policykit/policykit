@@ -230,7 +230,7 @@
         <div class="profileDropdownElement">
           <h4>Help</h4>
         </div>
-        <div class="profileDropdownElement">
+        <div class="profileDropdownElement" id="logout">
           <h4>Log Out</h4>
         </div>
       </div>
@@ -283,6 +283,7 @@
     document.getElementById("brand").addEventListener("click", navHome);
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
     document.getElementById("profile").addEventListener("mouseout", hideDropdown);
+    document.getElementById("logout").addEventListener("click", logout);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"
@@ -302,6 +303,10 @@
       for (let i = 0; i < dropdownElements.length; i++) {
         dropdownElements[i].style.display = "none"
       }
+    }
+
+    function logout() {
+      window.location.href = "{{server_url}}/logout/"
     }
   </script>
 </body>

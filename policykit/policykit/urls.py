@@ -32,6 +32,7 @@ urlpatterns = [
             'discord_client_id': DISCORD_CLIENT_ID
         }
     )),
+    path('logout/', policyviews.logout),
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
     path('main/policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS

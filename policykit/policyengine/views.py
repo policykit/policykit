@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user
+from django.contrib.auth import get_user, logout
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -22,6 +22,10 @@ def v2(request):
         'server_url': SERVER_URL,
         'user': get_user(request)
     })
+
+def logout(request):
+    logout(request)
+    return redirect('/login')
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
