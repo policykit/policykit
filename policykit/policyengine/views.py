@@ -19,7 +19,7 @@ def homepage(request):
 
 def v2(request):
     return render(request, 'policyengine/v2/index.html', {
-        'server_url': urllib.parse.quote(SERVER_URL, safe='')
+        'server_url': SERVER_URL
     })
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
