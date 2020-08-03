@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user, logout
+from django.contrib.auth import get_user
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -24,6 +24,7 @@ def v2(request):
     })
 
 def logout(request):
+    from django.contrib.auth import logout
     logout(request)
     return redirect('/login')
 
