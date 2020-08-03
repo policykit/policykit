@@ -50,6 +50,10 @@ def filter_policy(policy, action):
         return False
 
 def initialize_policy(policy, action):
+    from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
+    
+    users = CommunityUser.objects.filter(community=policy.community)
+    
     _locals = locals()
     _globals = globals()
 
