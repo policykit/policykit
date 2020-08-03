@@ -32,7 +32,7 @@ def on_transaction_commit(func):
 
 
 class StarterKit(models.Model):
-    name = models.TextField(null=True, blank=True, default = '')
+    name = models.TextField(null=True, blank=True, default = '', unique=True)
     
     def __str__(self):
         return self.name
@@ -144,7 +144,7 @@ class LogAPICall(models.Model):
 class GenericPolicy(models.Model):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
     
-    name = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True, default = '')
     
     description = models.TextField(null=True, blank=True, default = '')
     
