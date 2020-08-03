@@ -227,9 +227,9 @@ benev_policy2 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-benev_dictator_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = democracy_starterkit, is_base_role = True, user_group = "all")
+benev_dictator_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = benev_dictator_starterkit, is_base_role = True, user_group = "all")
 
-benev_dictator_dictator_role = GenericRole.objects.create(role_name = "Benevolent Dictator", starterkit = democracy_starterkit, is_base_role = True, user_group = "creator")
+benev_dictator_dictator_role = GenericRole.objects.create(role_name = "Benevolent Dictator", starterkit = benev_dictator_starterkit, is_base_role = True, user_group = "creator")
 
 benev_dictator_base_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
@@ -306,7 +306,7 @@ jury_policy3 = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-jury_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = democracy_starterkit, is_base_role = True, user_group = "all")
+jury_base_role = GenericRole.objects.create(role_name = "Base User", starterkit = jury_starterkit, is_base_role = True, user_group = "all")
 
 jury_base_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
