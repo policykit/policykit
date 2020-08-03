@@ -217,8 +217,8 @@
 
     <div class="profile" id="profile">
       <div class="profileButton">
-        <h3 class="profileName">rickygv</h3>
-        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+        <h3 class="profileName">{{user.readable_name}}</h3>
+        <img class="profilePicture" src="{{user.avatar|default_if_none:"https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp"}}">
       </div>
       <div class="profileDropdown">
         <div class="profileDropdownElement">

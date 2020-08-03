@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
+from django.template import RequestContext
 from policyengine.filter import *
 from policykit.settings import SERVER_URL
 import urllib.request
@@ -18,9 +19,9 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
-    return render(request, 'policyengine/v2/index.html', {
+    return render(request, 'policyengine/v2/index.html', RequestContext(request, {
         'server_url': SERVER_URL
-    })
+    }))
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
