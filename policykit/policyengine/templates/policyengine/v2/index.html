@@ -21,12 +21,14 @@
     }
 
     .header {
-      height: 8vh;
+      position: sticky;
+      top: 0;
+      height: 7vh;
       display: flex;
       flex-direction: row;
       align-items: center;
-      padding: 1vh 3% 1vh 1%;
-      overflow: hidden;
+      background-color: #ffffff;
+      border-bottom: 1px solid #e5e7e9;
     }
 
     .body {
@@ -35,36 +37,88 @@
       width: 80%;
       min-height: 90vh;
       margin: 0% 10%;
+      padding-top: 1%;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 1vh;
+    }
+
+    .brand:hover {
+      cursor: pointer;
     }
 
     .brandLogo {
-      width: 100px;
+      width: 60px;
     }
 
     .brandName {
       font-family: 'Baloo Da 2', sans-serif;
-      font-size: 2.5em;
+      font-size: 2em;
       color: #000000;
-      margin-left: 2%;
+      margin-left: 5%;
+    }
+
+    .profile {
+      margin-left: auto;
+      width: 10%;
+      height: 100%;
+      border: 1px solid #ffffff;
+      padding-right: 10px;
+    }
+
+    .profileButton {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .profile:hover {
+      cursor: pointer;
     }
 
     .profilePicture {
-      width: 60px;
+      width: 40px;
       border-radius: 50%;
-      margin-left: auto;
+      margin-left: 5%;
     }
 
     .profileName {
-      color: #ffffff;
+      color: #000000;
       padding: 0% 1%;
       font-family: 'Karla', sans-serif;
       font-weight: normal;
       font-size: 1.5em;
     }
 
-    .profileArrow {
-      color: #ffffff;
-      font-size: 2.5em;
+    .profileDropdown {
+      z-index: 1;
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      border: none;
+    }
+
+    .profileDropdownElement {
+      display: none;
+      background-color: #ffffff;
+      padding-left: 10px;
+      font-family: 'Karla', sans-serif;
+      font-weight: normal;
+      font-size: 1em;
+    }
+
+    .profileDropdownElement:hover {
+      color: #808b96;
     }
 
     .leftCol {
@@ -156,12 +210,31 @@
 
 <body>
   <div class="header">
-    <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
-    <h2 class="brandName">PolicyKit</h2>
+    <div class="brand" id="brand">
+      <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
+      <h2 class="brandName">PolicyKit</h2>
+    </div>
 
-    <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
-    <h3 class="profileName">rickygv</h3>
-    <i class="material-icons profileArrow">arrow_drop_down</i>
+    <div class="profile" id="profile">
+      <div class="profileButton">
+        <h3 class="profileName">rickygv</h3>
+        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+      </div>
+      <div class="profileDropdown">
+        <div class="profileDropdownElement">
+          <h4>Switch Community</h4>
+        </div>
+        <div class="profileDropdownElement">
+          <h4>Settings</h4>
+        </div>
+        <div class="profileDropdownElement">
+          <h4>Help</h4>
+        </div>
+        <div class="profileDropdownElement">
+          <h4>Log Out</h4>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="body">
@@ -205,6 +278,32 @@
       </div>
     </div>
   </div>
+
+  <script>
+    document.getElementById("brand").addEventListener("click", navHome);
+    document.getElementById("profile").addEventListener("mouseover", showDropdown);
+    document.getElementById("profile").addEventListener("mouseout", hideDropdown);
+
+    function navHome() {
+      window.location.href = "https://policykit-dashboard.glitch.me/"
+    }
+
+    function showDropdown() {
+      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
+      for (let i = 0; i < dropdownElements.length; i++) {
+        dropdownElements[i].style.display = "inline-block"
+      }
+      document.getElementById("profile").style.border = "1px solid #e5e7e9"
+    }
+
+    function hideDropdown() {
+      document.getElementById("profile").style.border = "1px solid #ffffff"
+      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
+      for (let i = 0; i < dropdownElements.length; i++) {
+        dropdownElements[i].style.display = "none"
+      }
+    }
+  </script>
 </body>
 
 </html>
