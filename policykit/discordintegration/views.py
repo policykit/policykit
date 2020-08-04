@@ -104,10 +104,15 @@ def oauth(request):
             community.refresh_token = res['refresh_token']
             community.save()
 
-        logger.info(community.access_token)
+            response = redirect('/login?success=true')
+            return response
 
-        response = redirect('/login?success=true')
-        return response
+        context = {
+            "starterkits": [kit.name for kit in StarterKit.objects.all()],
+            "community_name": community.community_name,
+            "platform": "discord"
+        }
+        return render(request, "policyadmin/init_starterkit.html", context)
 
     response = redirect('/login?error=no_owned_guilds_found')
     return response
