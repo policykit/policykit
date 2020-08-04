@@ -222,6 +222,7 @@ class GenericRole(Group):
         else:
             c = CommunityRole()
             c.community = community
+            c.role_name = self.role_name
             c.name = self.role_name
         
         for perm in self.permissions.all():
