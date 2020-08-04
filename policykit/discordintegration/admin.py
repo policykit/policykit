@@ -14,3 +14,14 @@ class DiscordPostMessageAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(DiscordPostMessage, DiscordPostMessageAdmin)
+
+class DiscordRenameChannelAdmin(admin.ModelAdmin):
+    fields = ('channel', 'name', 'is_bundled')
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.initiator = request.user
+            obj.community = request.user.community
+        obj.save()
+
+admin_site.register(DiscordRenameChannel, DiscordRenameChannelAdmin)
