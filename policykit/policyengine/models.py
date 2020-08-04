@@ -40,6 +40,7 @@ class StarterKit(models.Model):
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name',
                               max_length=1000)
+
     base_role = models.OneToOneField('CommunityRole',
                                      models.CASCADE,
                                      related_name='base_community')
@@ -67,7 +68,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.community.community_name + ': ' + self.community.base_role
+        return self.community.community_name + ': ' + self.community.role_name
 
 
 class CommunityUser(User, PolymorphicModel):
