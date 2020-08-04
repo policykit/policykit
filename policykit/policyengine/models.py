@@ -47,6 +47,8 @@ class Community(PolymorphicModel):
                                      models.CASCADE,
                                      related_name='base_doc_community',
                                      null=True)
+    role_name = models.CharField('readable_name', max_length=300, null=True)
+
 
     def notify_action(self, action, policy, users):
         pass
@@ -55,7 +57,6 @@ class Community(PolymorphicModel):
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
-    role_name = models.CharField('readable_name', max_length=300, null=True)
 
     class Meta:
         verbose_name = 'communityrole'
@@ -65,7 +66,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.community.community_name + ': ' 
+        return self.community.community_name + ': ' + self.community.role_name
 
 
 class CommunityUser(User, PolymorphicModel):
