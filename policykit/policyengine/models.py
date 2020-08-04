@@ -65,7 +65,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.base_role
+        return self.community.base_role
 
 
 class CommunityUser(User, PolymorphicModel):
