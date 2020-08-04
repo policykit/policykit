@@ -61,11 +61,11 @@ mod_user_starterkit.save()
 mod_user_policy1 = GenericPolicy.objects.create(filter = "return True",
                                        initialize = "pass",
                                        check = """
-                                           if action.initiator.groups.filter(name = "Moderator").exists():
-                                               return PASSED
-                                           else:
-                                               return FAILED
-                                           """,
+if action.initiator.groups.filter(name = "Moderator").exists():
+    return PASSED
+else:
+    return FAILED
+                                       """,
                                        notify = "pass",
                                        success = "action.execute()",
                                        fail = "pass",
@@ -118,10 +118,10 @@ democracy_starterkit.save()
 democracy_policy1 = GenericPolicy.objects.create(filter = "return True",
                                        initialize = "pass",
                                        check = """
-                                           if action.initiator.groups.filter(name = "Moderator").exists():
-                                               return PASSED
-                                           else:
-                                               return FAILED
+if action.initiator.groups.filter(name = "Moderator").exists():
+    return PASSED
+else:
+    return FAILED
                                            """,
                                        notify = "pass",
                                        success = "action.execute()",
@@ -157,18 +157,18 @@ democracy_policy3 = GenericPolicy.objects.create(
                                            """,
                                        initialize = "pass",
                                        check = """
-                                           import math
+import math
                                            
-                                           voter_users = users.filter(groups__name__in=['Moderator'])
-                                           yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
-                                           if len(yes_votes) >= math.ceil(voter_users.count()/2):
-                                               return PASSED
-                                           elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
-                                               return FAILED
+voter_users = users.filter(groups__name__in=['Moderator'])
+yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
+if len(yes_votes) >= math.ceil(voter_users.count()/2):
+    return PASSED
+elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
+    return FAILED
                                            """,
                                        notify = """
-                                           voter_users = users.filter(groups__name__in=['Moderator'])
-                                           action.platform.notify_users(action, policy, users=voter_users,
+voter_users = users.filter(groups__name__in=['Moderator'])
+action.platform.notify_users(action, policy, users=voter_users,
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
@@ -203,10 +203,10 @@ benev_dictator_starterkit.save()
 benev_policy1 = GenericPolicy.objects.create(filter = "return True",
                                        initialize = "pass",
                                        check = """
-                                           if action.initiator.groups.filter(name = "Benevolent Dictator").exists():
-                                               return PASSED
-                                           else:
-                                               return FAILED
+if action.initiator.groups.filter(name = "Benevolent Dictator").exists():
+    return PASSED
+else:
+    return FAILED
                                            """,
                                        notify = "pass",
                                        success = "action.execute()",
@@ -255,23 +255,23 @@ jury_starterkit.save()
 
 jury_policy1 = GenericPolicy.objects.create(filter = "return True",
                                        initialize = """
-                                           usernames = [u.username for u in users]
-                                           jury = random.sample(usernames, k=3)
-                                           action.data.add('jury', jury)
+usernames = [u.username for u in users]
+jury = random.sample(usernames, k=3)
+action.data.add('jury', jury)
                                            """,
                                        check = """
-                                           jury = action.data.get('jury')
-                                           jury_users = users.filter(username__in=jury)
-                                           yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
-                                           if len(yes_votes) >= 2:
-                                               return PASSED
-                                           elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
-                                               return FAILED
+jury = action.data.get('jury')
+jury_users = users.filter(username__in=jury)
+yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
+if len(yes_votes) >= 2:
+   return PASSED
+elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
+   return FAILED
                                            """,
                                        notify = """
-                                           jury = action.data.get('jury')
-                                           jury_users = users.filter(username__in=jury)
-                                           action.platform.notify_users(action, policy, users=jury_users,
+jury = action.data.get('jury')
+jury_users = users.filter(username__in=jury)
+action.platform.notify_users(action, policy, users=jury_users,
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
