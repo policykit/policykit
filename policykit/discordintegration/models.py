@@ -250,9 +250,7 @@ class DiscordRenameChannel(PlatformAction):
 
     def execute(self):
         if not self.community_revert:
-            data = urllib.parse.urlencode({"name": self.name})
-            data = data.encode('utf-8')
-
+            data = json.dumps({"name": self.name}).encode('utf-8')
             call_info = self.community.API + ('channels/%s' % self.channel)
 
             req = urllib.request.Request(call_info, data, method='PATCH')
