@@ -62,6 +62,7 @@ def discord_listener_actions():
         for channel in channels:
             channel_id = channel['id']
 
+            # Post Message
             call_type = ('channels/%s/messages' % channel_id)
 
             req = urllib.request.Request('https://discordapp.com/api/channels/%s/messages' % channel_id)
@@ -72,11 +73,7 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
-                logger.info('Message:')
-                logger.info(message['content'])
                 if not is_policykit_action(community, message['id'], 'id', call_type):
-                    logger.info('not already policykit action')
-
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post_exists.exists():
                         new_api_action = DiscordPostMessage()
@@ -89,29 +86,27 @@ def discord_listener_actions():
                                                                community=community)
                         new_api_action.initiator = u
                         actions.append(new_api_action)
-                        logger.info('added action')
 
-        logger.info("ACTION TIME!!!")
+            # Rename Channel
+            call_type = ('channels/%s' % channel_id)
+
+            if not is_policykit_action(community, channel['name'], 'name', call_type):
+                new_api_action = DiscordRenameChannel()
+                new_api_action.community = community
+                new_api_action.name = channel['name']
+                new_api_action.channel = channel['id']
+
+                actions.append(new_api_action)
+
         for action in actions:
-            logger.info("Action:")
-            logger.info(action)
             for policy in PlatformPolicy.objects.filter(community=action.community):
-                logger.info("Policy:")
-                logger.info(policy)
                 if filter_policy(policy, action):
-                    logger.info("passed filter")
                     if not action.pk:
                         action.community_origin = True
                         action.is_bundled = False
-                        logger.info('about to save')
                         action.save()
-                        logger.info('action saved')
-                    logger.info('not pk')
                     check_result = check_policy(policy, action)
-                    logger.info('Check results:')
-                    logger.info(check_result)
                     if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
-                        logger.info('revert')
                         action.revert()
 
         # Boolean voting
