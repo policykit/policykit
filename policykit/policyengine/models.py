@@ -57,7 +57,7 @@ class Community(PolymorphicModel):
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
-    role_name = models.CharField('readable_name', max_length=300, null=True)
+    role_name = models.TextField('readable_name', max_length=300, null=True)
 
 
     class Meta:
