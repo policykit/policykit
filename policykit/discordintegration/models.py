@@ -11,7 +11,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DISCORD_ACTIONS = ['discordpostmessage']
+DISCORD_ACTIONS = [
+                    'discordpostmessage',
+                    'discordrenamechannel'
+                  ]
 
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
@@ -73,7 +76,7 @@ class DiscordCommunity(Community):
         else:
             req = urllib.request.Request(call_info, data)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header('Content-Type', 'application/json')
+        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
         logger.info('sent request in make_call')
         resp = urllib.request.urlopen(req)
@@ -193,25 +196,18 @@ class DiscordPostMessage(PlatformAction):
         )
 
     def revert(self):
-        logger.info('reverting')
         values = {}
         super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
-        logger.info('done with revert finally')
 
     def execute(self):
-        logger.info('executing')
         if not self.community_revert:
-            logger.info('gateway call')
             res = self.community.make_call('gateway/bot')
 
             gateway_url = res['url']
 
-            logger.info('create connection to gateway')
             from websocket import create_connection
             ws = create_connection(gateway_url)
-            logger.info('receive hello from gateway')
             helloPayload = ws.recv()
-            logger.info('send identify to gateway')
             identifyData = {
                 "op": 2,
                 "d": {
@@ -224,13 +220,42 @@ class DiscordPostMessage(PlatformAction):
                 }
             }
             ws.send(json.dumps(identifyData))
-            logger.info('receive ready from gateway')
             readyPayload = ws.recv()
 
-            logger.info('about to call execute make_call')
             message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
 
-            logger.info('called')
             self.id = message['id']
         super().pass_action()
-        logger.info('done with execute finally')
+
+class DiscordRenameChannel(PlatformAction):
+
+    guild_id = None
+    id = None
+    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
+
+    channel = models.CharField(max_length=18, choices=choices)
+    name = models.TextField()
+
+    ACTION = 'channels/{0}'.format(channel)
+    AUTH = 'user'
+
+    action_codename = 'discordrenamechannel'
+    app_name = 'discordintegration'
+    action_type = "DiscordRenameChannel"
+
+    class Meta:
+        permissions = (
+            ('can_execute_discordrenamechannel', 'Can execute discord rename channel'),
+        )
+
+    def execute(self):
+        if not self.community_revert:
+            data = json.dumps({"name": self.name}).encode('utf-8')
+            call_info = self.community.API + ('channels/%s' % self.channel)
+
+            req = urllib.request.Request(call_info, data, method='PATCH')
+            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+            req.add_header('Content-Type', 'application/json')
+            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+            resp = urllib.request.urlopen(req)
+        super().pass_action()
