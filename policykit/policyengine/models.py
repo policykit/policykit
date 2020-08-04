@@ -56,7 +56,6 @@ class Community(PolymorphicModel):
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
-
     role_name = models.CharField('readable_name', max_length=300, null=True)
 
 
@@ -68,7 +67,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.community.base_role)
+        return self.community.community_name + ': ' + str(self.community.base_role)
 
 
 class CommunityUser(User, PolymorphicModel):
