@@ -250,5 +250,14 @@ class DiscordRenameChannel(PlatformAction):
 
     def execute(self):
         if not self.community_revert:
-            self.community.make_call('channels/%s' % self.channel, {'name': self.name}, method='PATCH')
+            data = urllib.parse.urlencode({"name": self.name})
+            data = data.encode('utf-8')
+
+            call_info = self.community.API + ('channels/%s' % self.channel)
+
+            req = urllib.request.Request(call_info, data, method='PATCH')
+            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+            req.add_header('Content-Type', 'application/json')
+            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+            resp = urllib.request.urlopen(req)
         super().pass_action()
