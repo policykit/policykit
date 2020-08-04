@@ -166,7 +166,7 @@ def initialize_starterkit(request):
     for role in starter_kit.genericrole_set.all():
         role.make_community_role(community)
 
-    response = redirect('/main/login?success=true')
+    response = redirect('/login?success=true')
     return response
 
 @csrf_exempt
