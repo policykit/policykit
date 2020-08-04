@@ -49,7 +49,6 @@ class Community(PolymorphicModel):
                                      related_name='base_doc_community',
                                      null=True)
 
-
     def notify_action(self, action, policy, users):
         pass
 
