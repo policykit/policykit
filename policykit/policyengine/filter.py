@@ -346,7 +346,7 @@ class Filter(ast.NodeVisitor):
                 elif function_name not in policyengine_functions:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
             elif isinstance(calling_node, ast.Attribute):
-                calling_name = calling_node.value.id
+                calling_name = calling_node.attr
                 if function_name not in policyengine_functions:
                     self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
 
