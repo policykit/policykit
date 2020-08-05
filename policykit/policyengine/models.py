@@ -881,7 +881,7 @@ class PlatformPolicyBundle(BaseAction):
                 self.community.execute_platform_policy(action)
                 action.pass_action()
 
-    def pass_action(self):
+    def pass_policy(self):
         proposal = self.proposal
         proposal.status = Proposal.PASSED
         proposal.save()
