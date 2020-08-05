@@ -343,13 +343,14 @@
     for (let i = 0; i < Object.keys(DEFAULT_VALUES).length; i++) {
       var code_id = Object.keys(DEFAULT_VALUES)[i];
       var textArea = document.getElementById(code_id);
-      editors[i] = CodeMirror.fromTextArea(textArea, {
+      editors.push(CodeMirror.fromTextArea(textArea, {
           mode: 'python',
           autoRefresh: true,
           lineNumbers: true,
           theme: 'eclipse',
           gutters: ['warnings_' + i]
-      }).setValue(DEFAULT_VALUES[code_id]);
+      }));
+      editors[i].setValue(DEFAULT_VALUES[code_id]);
 
       // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
       editors[i].on('inputRead', function onChange(editor, input) {
