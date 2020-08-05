@@ -344,9 +344,8 @@
           autoRefresh: true,
           lineNumbers: true,
           theme: 'eclipse',
-          gutters: ['warnings_{{codeArea}}'],
-          value: DEFAULT_VALUES[codeArea]
-      });
+          gutters: ['warnings_{{codeArea}}']
+      }).setvalue(DEFAULT_VALUES[codeArea]);
 
       // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
       editor_{{codeArea}}.on('inputRead', function onChange(editor, input) {
