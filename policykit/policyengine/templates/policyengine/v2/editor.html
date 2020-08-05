@@ -286,8 +286,8 @@
       <div class="form-row">
         <div class="col-sm-1"></div>
         <div class="col-sm-11">
-          <button type="button" class="btn btn-success">Propose Policy</button>
-          <button type="button" class="btn btn-warning">Add to Policy Bundle</button>
+          <button type="button" class="btn btn-success" id="propose">Propose Policy</button>
+          <button type="button" class="btn btn-warning" id="addtobundle">Add to Policy Bundle</button>
         </div>
       </div>
     </form>
@@ -304,6 +304,8 @@
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
     document.getElementById("profile").addEventListener("mouseout", hideDropdown);
     document.getElementById("logout").addEventListener("click", logout);
+    document.getElementById("propose").addEventListener("click", propose);
+    document.getElementById("addtobundle").addEventListener("click", addToBundle);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"
@@ -327,6 +329,14 @@
 
     function logout() {
       window.location.href = "{{server_url}}/logout/"
+    }
+
+    function propose() {
+      window.location.href = "{{server_url}}/main/"
+    }
+
+    function addToBundle() {
+      window.location.href = "{{server_url}}/main/"
     }
 
     const DEFAULT_VALUES = {
