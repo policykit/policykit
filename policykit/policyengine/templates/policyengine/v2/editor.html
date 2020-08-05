@@ -342,6 +342,7 @@
 
     for (let i = 0; i < Object.keys(DEFAULT_VALUES).length; i++) {
       var textArea = document.getElementById(Object.keys(DEFAULT_VALUES)[i]);
+      console.log(DEFAULT_VALUES[textArea]);
       editors[i] = CodeMirror.fromTextArea(textArea, {
           mode: 'python',
           autoRefresh: true,
