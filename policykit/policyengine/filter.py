@@ -343,11 +343,10 @@ class Filter(ast.NodeVisitor):
                 if calling_name in whitelisted_modules:
                     if function_name not in whitelisted_modules[calling_name]:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
-                else:
-                    if function_name not in policyengine_functions:
+                elif function_name not in policyengine_functions:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
-            else:
-                calling_name = calling_node.attr
+            elif isinstance(calling_node, ast.Attribute):
+                calling_name = calling_node.value.id
                 if function_name not in policyengine_functions:
                     self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
 
