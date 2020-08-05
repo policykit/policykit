@@ -98,5 +98,5 @@ class FilterTests(TestCase):
 
     def test_policy_code(self):
         for i in range(len(code)):
-            print("Testing policy code " + i + "\n")
+            print("Testing policy code " + str(i) + "\n")
             filter_test(code[i])
