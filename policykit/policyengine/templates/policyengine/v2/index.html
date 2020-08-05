@@ -61,6 +61,17 @@
       font-size: 2em;
       color: #000000;
       margin-left: 5%;
+      white-space: nowrap;
+    }
+
+    .communityName {
+      font-family: 'Baloo Da 2', sans-serif;
+      font-weight: bold;
+      font-size: 1.4em;
+      color: #000000;
+      margin-left: 3%;
+      line-height: 1.4em;
+      white-space: nowrap;
     }
 
     .profile {
@@ -97,6 +108,7 @@
       font-family: 'Karla', sans-serif;
       font-weight: normal;
       font-size: 1.5em;
+      white-space: nowrap;
     }
 
     .profileDropdown {
@@ -213,6 +225,7 @@
     <div class="brand" id="brand">
       <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
       <h2 class="brandName">PolicyKit</h2>
+      <h3 class="communityName">| {{user.community.community_name}}</h3>
     </div>
 
     <div class="profile" id="profile">
