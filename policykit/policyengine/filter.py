@@ -300,8 +300,14 @@ whitelisted_modules = {
 
 policyengine_modules = [
     'action',
+    'data',
+    'filter',
+    'groups',
+    'initiator',
+    'platform',
     'policies',
     'policy',
+    'proposal',
     'users',
     'roles',
     'votes',
