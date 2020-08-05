@@ -298,19 +298,20 @@ whitelisted_modules = {
     ],
 }
 
-policyengine_modules = [
-    'action',
-    'data',
+policyengine_functions = [
+    'add',
+    'count',
+    'execute',
+    'exists',
     'filter',
-    'groups',
-    'initiator',
-    'platform',
-    'policies',
-    'policy',
-    'proposal',
-    'users',
-    'roles',
-    'votes',
+    'get',
+    'get_boolean_votes',
+    'get_no_votes',
+    'get_number_votes',
+    'get_users',
+    'get_yes_votes',
+    'notify_users',
+    'time_elapsed',
 ]
 
 class Filter(ast.NodeVisitor):
@@ -328,18 +329,28 @@ class Filter(ast.NodeVisitor):
         self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_alias.names[0].name, 'message': DISALLOW_FROM_IMPORT_ERROR_MESSAGE })
 
     def visit_Call(self, node):
+        lineno = node.lineno
+
         if isinstance(node.func, ast.Name):
-            function_name = node.func.id
-            if function_name not in whitelisted_builtins:
-                self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': function_name, 'message': FUNCTION_BUILTIN_ERROR_MESSAGE })
+            name = node.func.id
+            if name not in whitelisted_builtins:
+                self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': name, 'message': FUNCTION_BUILTIN_ERROR_MESSAGE })
         elif isinstance(node.func, ast.Attribute):
-            module_name = node.func.value.id
-            function_name = node.func.attr
-            if module_name not in policyengine_modules:
-                if module_name not in whitelisted_modules:
-                    self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
-                if function_name not in whitelisted_modules[module_name]:
-                    self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
+            calling_node = node.func.value
+            if isinstance(calling_node, ast.Name):
+                calling_name = calling_node.id
+                function_name = node.func.attr
+                if calling_name in whitelisted_modules:
+                    if function_name not in whitelisted_modules[calling_name]:
+                        self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
+                else:
+                    if function_name not in policyengine_functions:
+                        self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
+            else:
+                calling_name = calling_node.attr
+                if function_name not in policyengine_functions:
+                    self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
+
         self.generic_visit(node)
 
     def getErrors(self):
