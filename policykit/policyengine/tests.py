@@ -40,9 +40,9 @@ action.execute()
 # Code 2
 """
 if action.initiator.groups.filter(name = "Moderator").exists():
-return PASSED
+    return PASSED
 else:
-return FAILED
+    return FAILED
 """,
 
 # Code 3
@@ -52,9 +52,9 @@ import math
 voter_users = users.filter(groups__name__in=['Moderator'])
 yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
-return PASSED
+    return PASSED
 elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
-return FAILED
+    return FAILED
 """,
 
 # Code 4
@@ -70,9 +70,9 @@ jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
 if len(yes_votes) >= 2:
-return PASSED
+    return PASSED
 elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
-return FAILED
+    return FAILED
 """,
 ]
 
