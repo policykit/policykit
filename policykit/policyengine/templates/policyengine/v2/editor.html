@@ -328,6 +328,15 @@
       window.location.href = "{{server_url}}/logout/"
     }
 
+    const DEFAULT_VALUES = {
+      'filter': "# Replace this code with your custom Filter code\nreturn True\n\n",
+      'initialize': "# Replace this code with your custom Initialize code\npass\n\n",
+      'check': "# Replace this code with your custom Check code\nreturn PASSED\n\n",
+      'notify': "# Replace this code with your custom Notify code\npass\n\n",
+      'pass': "# Replace this code with your custom Pass code\naction.execute()\n\n",
+      'fail': "# Replace this code with your custom Fail code\npass\n\n"
+    }
+
     for (codeArea of ['filter', 'initialize', 'check', 'notify', 'pass', 'fail']) {
       var textArea = document.getElementById(codeArea);
       var editor_{{codeArea}} = CodeMirror.fromTextArea(textArea, {
@@ -336,7 +345,7 @@
           lineNumbers: true,
           theme: 'eclipse',
           gutters: ['warnings_{{codeArea}}'],
-          value: textArea.value
+          value: DEFAULT_VALUES[codeArea]
       });
 
       // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
