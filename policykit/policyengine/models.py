@@ -224,6 +224,7 @@ class GenericRole(Group):
             c.community = community
             c.role_name = self.role_name
             c.name = self.role_name
+            c.save()
         
         for perm in self.permissions.all():
             c.permissions.add(perm)
