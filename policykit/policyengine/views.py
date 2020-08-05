@@ -172,6 +172,9 @@ def initialize_starterkit(request):
     for role in starter_kit.genericrole_set.all():
         role.make_community_role(community, creator_token)
 
+    logger.info('starterkit initialized')
+    logger.info('creator_token' + creator_token)
+
     response = redirect('/login?success=true')
     return response
 
