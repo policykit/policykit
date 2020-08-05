@@ -251,7 +251,7 @@
     </div>
 
     <div class="rightCol">
-      <input type="button" class="proposeButton" value="Propose Action">
+      <input type="button" class="proposeButton" value="Propose Action" id="proposeAction">
 
       <div class="sidebarPanel">
         <div class="sidebarPanelHeader">
@@ -284,6 +284,7 @@
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
     document.getElementById("profile").addEventListener("mouseout", hideDropdown);
     document.getElementById("logout").addEventListener("click", logout);
+    document.getElementById("proposeAction").addEventListener("click", navEditor);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"
@@ -307,6 +308,10 @@
 
     function logout() {
       window.location.href = "{{server_url}}/logout/"
+    }
+
+    function navEditor() {
+      window.location.href = "{{server_url}}/main/editor/"
     }
   </script>
 </body>
