@@ -358,7 +358,7 @@
           autoRefresh: true,
           lineNumbers: true,
           theme: 'eclipse',
-          gutters: ['warnings_' + i]
+          gutters: ['warnings']
       }));
       editors[i].setValue(DEFAULT_VALUES[code_id]);
 
@@ -384,7 +384,7 @@
         })
         .then(response => response.json())
         .then(data => {
-          cm.clearGutter('warnings_' + i)
+          cm.clearGutter('warnings')
 
           if (data.is_error) {
             for (const error of data.errors) {
@@ -399,7 +399,7 @@
               tooltip.innerHTML = message
               marker.appendChild(tooltip)
 
-              cm.setGutterMarker(error.lineno - 1, 'warnings_' + i, marker)
+              cm.setGutterMarker(error.lineno - 1, 'warnings', marker)
             }
           }
         })
