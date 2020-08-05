@@ -399,6 +399,8 @@
               tooltip.innerHTML = message
               marker.appendChild(tooltip)
 
+              console.log(message);
+
               cm.setGutterMarker(error.lineno - 1, 'warnings', marker)
             }
           }
