@@ -28,7 +28,6 @@
     .header {
       position: sticky;
       top: 0;
-      z-index: 999;
       height: 7vh;
       display: flex;
       flex-direction: row;
@@ -42,8 +41,8 @@
       flex-direction: row;
       width: 80%;
       min-height: 90vh;
-      margin: 0% 10%;
-      padding-top: 1%;
+      margin: 0 10vw;
+      padding-top: 3vh;
     }
 
     .brand {
@@ -64,14 +63,15 @@
 
     .brandName {
       font-family: 'Baloo Da 2', sans-serif;
-      font-size: 2em;
+      font-weight: bold;
+      font-size: 2.3em;
       color: #000000;
       margin-left: 5%;
     }
 
     .profile {
       margin-left: auto;
-      width: 10%;
+      width: 12%;
       height: 100%;
       border: 1px solid #ffffff;
       padding-right: 10px;
@@ -102,7 +102,8 @@
       padding: 0% 1%;
       font-family: 'Karla', sans-serif;
       font-weight: normal;
-      font-size: 1.5em;
+      font-size: 1.7em;
+      margin-bottom: 0.85em;
     }
 
     .profileDropdown {
@@ -117,10 +118,13 @@
     .profileDropdownElement {
       display: none;
       background-color: #ffffff;
-      padding-left: 10px;
+      padding: 0.5em 30px 0.5em 10px;
+    }
+
+    .profileDropdownElement h4 {
+      font-weight: bold;
+      font-size: 1.2em;
       font-family: 'Karla', sans-serif;
-      font-weight: normal;
-      font-size: 1em;
     }
 
     .profileDropdownElement:hover {
@@ -156,6 +160,14 @@
 
     .form-group {
       margin-bottom: 20px;
+    }
+
+    .control-label {
+      font-size: 1.2em;
+    }
+
+    .btn {
+      font-size: 1.2em;
     }
 
     .marker {
