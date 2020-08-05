@@ -28,6 +28,12 @@ def logout(request):
     logout(request)
     return redirect('/login')
 
+def editor(request):
+    return render(request, 'policyengine/v2/editor.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request)
+    })
+
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
     if len(errors) > 0:
