@@ -299,7 +299,7 @@ admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstituti
 
 
 class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
-    fields= ('text',)
+    fields= ('change_text',)
     readonly_fields = ('community_doc',)
 
     def save_model(self, request, obj, form, change):
