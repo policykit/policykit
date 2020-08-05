@@ -300,6 +300,30 @@
   <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
   <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
 
+  <style>
+    .marker {
+      color: #ff0000;
+      width: 10px !important;
+      margin-left: 4px;
+    }
+
+    .marker .tooltip {
+      display: none;
+      position: absolute;
+      background-color: #f5f5b5;
+      color: #000000;
+      border: 1px solid #000000;
+      padding: 2px;
+      width: 400px;
+      left: 10px;
+      top: -1em;
+    }
+
+    .marker:hover .tooltip {
+      display: block;
+    }
+  </style>
+
   <script>
     document.getElementById("brand").addEventListener("click", navHome);
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
