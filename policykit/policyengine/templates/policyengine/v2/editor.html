@@ -172,7 +172,7 @@
     }
 
     .marker {
-      color: #ff0000;
+      color: #00ff00;
       width: 10px !important;
       margin-left: 4px;
     }
@@ -398,8 +398,6 @@
               tooltip.classList.add('tooltip')
               tooltip.innerHTML = message
               marker.appendChild(tooltip)
-
-              console.log(message);
 
               cm.setGutterMarker(error.lineno - 1, 'warnings', marker)
             }
