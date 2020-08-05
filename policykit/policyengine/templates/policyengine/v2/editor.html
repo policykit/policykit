@@ -375,7 +375,7 @@
       editors[i].on('change', (cm, change) => {
         code = cm.getValue()
 
-        fetch('../../../policyengine/error_check', {
+        fetch('../../../main/policyengine/error_check', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
