@@ -760,10 +760,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
 class PlatformActionBundle(BaseAction):
 
-    bundled_actions = models.ManyToManyField(PlatformAction)
-
-    
-
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -862,6 +858,8 @@ class ConstitutionPolicyBundle(BaseAction):
         verbose_name_plural = 'constitutionpolicybundles'
 
 
+
+
 class PlatformPolicy(BasePolicy):
     policy_type = "PlatformPolicy"
 
@@ -877,10 +875,27 @@ class PlatformPolicyBundle(BaseAction):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
     policy_type = "PlatformPolicyBundle"
 
+    def execute(self):
+        if self.bundle_type == PlatformPolicyBundle.BUNDLE:
+            for action in self.bundled_actions.all():
+                self.community.execute_platform_policy(action)
+                action.pass_action()
+
+    def pass_action(self):
+        proposal = self.proposal
+        proposal.status = Proposal.PASSED
+        proposal.save()
+
+
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
+    
 
+  
+
+    
+    
 
 class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
