@@ -92,6 +92,7 @@ whitelisted_modules = {
     "datetime": [
         "MINYEAR",
         "MAXYEAR",
+        "timedelta",
     ],
     "datetime.date": [
         "ctime",
