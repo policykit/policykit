@@ -875,26 +875,14 @@ class PlatformPolicyBundle(BaseAction):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
     policy_type = "PlatformPolicyBundle"
 
-    def execute(self):
-        if self.bundle_type == PlatformPolicyBundle.BUNDLE:
-            for action in self.bundled_actions.all():
-                self.community.execute_platform_policy(action)
-                action.pass_action()
-
-    def pass_policy(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
-
+    
 
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
     
 
-  
 
-    
     
 
 class UserVote(models.Model):
