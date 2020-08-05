@@ -34,7 +34,7 @@ urlpatterns = [
     )),
     path('logout/', policyviews.logout),
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
-    path('main/editor', policyviews.editor),
+    path('main/editor/', policyviews.editor),
     path('main/policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
