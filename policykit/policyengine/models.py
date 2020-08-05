@@ -893,7 +893,29 @@ class PlatformPolicyBundle(BaseAction):
     
 
   
+@receiver(post_save, sender=PlatformPolicyBundle)
+@on_transaction_commit
+def after_policybundle_save(sender, instance, **kwargs):
+    action = instance
 
+    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+        #if they have execute permission, skip all policies
+        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+            action.execute()
+        else:
+            if not action.community_post:
+                for policy in PlatformPolicy.objects.filter(community=action.community):
+                  if filter_policy(policy, action):
+
+                      initialize_policy(policy, action)
+
+                      check_result = check_policy(policy, action)
+                      if check_result == Proposal.PASSED:
+                          pass_policy(policy, action)
+                      elif check_result == Proposal.FAILED:
+                          fail_policy(policy, action)
+                      else:
+                          notify_policy(policy, action)
     
     
 
