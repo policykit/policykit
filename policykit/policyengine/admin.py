@@ -129,7 +129,7 @@ admin_site.register(PlatformActionBundle, PlatformActionBundleAdmin)
 
 
 class ConstitutionActionBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_actions', 'policy_type')
+    fields= ('bundled_actions', 'bundle_type')
 
     def save_model(self, request, obj, form, change):
         if not change:
