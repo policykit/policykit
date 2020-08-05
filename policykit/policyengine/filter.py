@@ -337,9 +337,9 @@ class Filter(ast.NodeVisitor):
                 self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': name, 'message': FUNCTION_BUILTIN_ERROR_MESSAGE })
         elif isinstance(node.func, ast.Attribute):
             calling_node = node.func.value
+            function_name = node.func.attr
             if isinstance(calling_node, ast.Name):
                 calling_name = calling_node.id
-                function_name = node.func.attr
                 if calling_name in whitelisted_modules:
                     if function_name not in whitelisted_modules[calling_name]:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
