@@ -299,7 +299,8 @@ admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstituti
 
 
 class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
-    fields= ('community_doc', 'text',)
+    fields= ('text',)
+    readonly_fields = ('community_doc',)
 
     def save_model(self, request, obj, form, change):
         obj.initiator = request.user
