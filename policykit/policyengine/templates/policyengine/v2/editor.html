@@ -318,7 +318,7 @@
 
     for (codeArea of ['filter', 'initialize', 'check', 'notify', 'pass', 'fail']) {
       var textArea = document.getElementById(codeArea);
-      var editor = CodeMirror.fromTextArea(textArea, {
+      var editor_{{codeArea}} = CodeMirror.fromTextArea(textArea, {
           mode: 'python',
           autoRefresh: true,
           lineNumbers: true,
