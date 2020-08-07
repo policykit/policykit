@@ -112,15 +112,6 @@ class RedditCommunity(Community):
         post_policy(policy, action, users)
 
 
-    def save(self, *args, **kwargs):
-        super(RedditCommunity, self).save(*args, **kwargs)
-
-        content_types = ContentType.objects.filter(model__in=REDDIT_ACTIONS)
-        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
-        for p in perms:
-            self.base_role.permissions.add(p)
-
-
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
