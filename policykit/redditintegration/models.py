@@ -106,19 +106,17 @@ class RedditCommunity(Community):
         self.access_token = res['access_token']
         self.save()
 
-
-    def notify_action(self, action, policy, users=None):
-        from redditintegration.views import post_policy
-        post_policy(policy, action, users)
-
-
     def save(self, *args, **kwargs):
         super(RedditCommunity, self).save(*args, **kwargs)
-
+        
         content_types = ContentType.objects.filter(model__in=REDDIT_ACTIONS)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
+
+    def notify_action(self, action, policy, users=None):
+        from redditintegration.views import post_policy
+        post_policy(policy, action, users)
 
 
     def execute_platform_action(self, action, delete_policykit_post=True):
@@ -209,11 +207,6 @@ class RedditUser(CommunityUser):
         res = refresh_access_token(self.refresh_token)
         self.access_token = res['access_token']
         self.save()
-
-    def save(self, *args, **kwargs):
-        super(RedditUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
 
 
 class RedditMakePost(PlatformAction):

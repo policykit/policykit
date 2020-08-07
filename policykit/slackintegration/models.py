@@ -44,15 +44,15 @@ class SlackCommunity(Community):
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         return res
-
+    
     def save(self, *args, **kwargs):
         super(SlackCommunity, self).save(*args, **kwargs)
-
+        
         content_types = ContentType.objects.filter(model__in=SLACK_ACTIONS)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
-                        
+    
     def execute_platform_action(self, action, delete_policykit_post=True):
 
         from policyengine.models import LogAPICall, CommunityUser
@@ -144,11 +144,6 @@ class SlackUser(CommunityUser):
     avatar = models.CharField('avatar',
                                max_length=500,
                                null=True)
-
-    def save(self, *args, **kwargs):
-        super(SlackUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
 
     
 class SlackPostMessage(PlatformAction):
