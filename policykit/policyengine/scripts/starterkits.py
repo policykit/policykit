@@ -52,7 +52,7 @@ testing_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete 
 
 #view and propose permissions for platform actions
             
-for perm in default_perms:
+for perm in testing_perms:
     p1 = Permission.objects.get(name=perm)
     testing_base_role.permissions.add(p1)
 
