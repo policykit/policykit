@@ -38,6 +38,8 @@ def refresh_access_token(refresh_token):
 class DiscordCommunity(Community):
     API = 'https://discordapp.com/api/'
 
+    platform = "discord"
+
     team_id = models.CharField('team_id', max_length=150, unique=True)
     access_token = models.CharField('access_token', max_length=300, unique=True)
     refresh_token = models.CharField('refresh_token', max_length=500, null=True)

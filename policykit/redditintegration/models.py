@@ -40,6 +40,8 @@ def refresh_access_token(refresh_token):
 class RedditCommunity(Community):
     API = 'https://oauth.reddit.com/'
 
+    platform = "reddit"
+
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
     access_token = models.CharField('access_token',
@@ -108,7 +110,7 @@ class RedditCommunity(Community):
 
     def save(self, *args, **kwargs):
         super(RedditCommunity, self).save(*args, **kwargs)
-        
+
         content_types = ContentType.objects.filter(model__in=REDDIT_ACTIONS)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
@@ -228,11 +230,11 @@ class RedditMakePost(PlatformAction):
     communityaction_ptr = models.CharField('ptr',
                                max_length=100,
                                null=True)
-    
+
     action_codename = 'redditmakepost'
-    
+
     app_name = 'redditintegration'
-    
+
     action_type = "RedditMakePost"
 
     class Meta:

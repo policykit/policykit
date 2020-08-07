@@ -148,7 +148,8 @@
         font-family: "Montserrat", sans-serif;
         font-size: 1.2em;
         font-weight: bold;
-        margin-top: 5vh;
+        margin-top: 2.5vh;
+        margin-bottom: 2.5vh;
         background-color: #2196f3;
         color: #ffffff;
         padding: 0.5em 1% 0.5em 1%;
@@ -219,30 +220,52 @@
     </div>
 
     <div class="body">
-      <div class="actionMenu" id="slackActionsHeader">
-        <h3 class="actionMenuHeading">SLACK ACTIONS</h3>
-        <span class="material-icons actionMenuIcon">add_circle_outline</span>
-      </div>
-      <div class="actionCollapsible" id="slackActions">
-        <div class="actionButton">
-          <p>Join Conversation</p>
+      {% if user.community.platform == "slack" %}
+        <div class="actionMenu" id="slackActionsHeader">
+          <h3 class="actionMenuHeading">SLACK ACTIONS</h3>
+          <span class="material-icons actionMenuIcon">add_circle_outline</span>
         </div>
-        <div class="actionButton">
-          <p>Kick from Conversation</p>
+        <div class="actionCollapsible" id="slackActions">
+          <div class="actionButton">
+            <p>Join Conversation</p>
+          </div>
+          <div class="actionButton">
+            <p>Kick from Conversation</p>
+          </div>
+          <div class="actionButton">
+            <p>Pin Message</p>
+          </div>
+          <div class="actionButton">
+            <p>Post Message</p>
+          </div>
+          <div class="actionButton">
+            <p>Rename Conversation</p>
+          </div>
+          <div class="actionButton">
+            <p>Schedule Message</p>
+          </div>
         </div>
-        <div class="actionButton">
-          <p>Pin Message</p>
+      {% elif user.community.platform == "reddit" %}
+        <div class="actionMenu" id="redditActionsHeader">
+          <h3 class="actionMenuHeading">REDDIT ACTIONS</h3>
+          <span class="material-icons actionMenuIcon">add_circle_outline</span>
         </div>
-        <div class="actionButton">
-          <p>Post Message</p>
+        <div class="actionCollapsible" id="redditActions">
         </div>
-        <div class="actionButton">
-          <p>Rename Conversation</p>
+      {% elif user.community.platform == "discord" %}
+        <div class="actionMenu" id="discordActionsHeader">
+          <h3 class="actionMenuHeading">DISCORD ACTIONS</h3>
+          <span class="material-icons actionMenuIcon">add_circle_outline</span>
         </div>
-        <div class="actionButton">
-          <p>Schedule Message</p>
+        <div class="actionCollapsible" id="discordActions">
+          <div class="actionButton">
+            <p>Post Message</p>
+          </div>
+          <div class="actionButton">
+            <p>Rename Channel</p>
+          </div>
         </div>
-      </div>
+      {% endif %}
 
       <div class="actionMenu" id="constitutionPoliciesHeader">
         <h3 class="actionMenuHeading">CONSTITUTION POLICIES</h3>
@@ -320,7 +343,7 @@
       document.getElementById("profile").addEventListener("mouseover", showDropdown);
       document.getElementById("profile").addEventListener("mouseout", hideDropdown);
       document.getElementById("logout").addEventListener("click", logout);
-      document.getElementById("slackActionsHeader").addEventListener("click", toggleActionMenu)
+      document.getElementById("{{user.community.platform}}ActionsHeader").addEventListener("click", toggleActionMenu)
       document.getElementById("constitutionPoliciesHeader").addEventListener("click", toggleActionMenu)
       document.getElementById("platformPoliciesHeader").addEventListener("click", toggleActionMenu)
       document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu)

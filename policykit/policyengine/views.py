@@ -35,9 +35,11 @@ def editor(request):
     })
 
 def actions(request):
+    user = get_user(request)
+
     return render(request, 'policyengine/v2/actions.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request)
+        'user': get_user(request),
     })
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):

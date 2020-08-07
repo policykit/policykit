@@ -18,6 +18,8 @@ SLACK_ACTIONS = ['slackpostmessage',
 class SlackCommunity(Community):
     API = 'https://slack.com/api/'
 
+    platform = "slack"
+
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
     access_token = models.CharField('access_token',
@@ -44,15 +46,15 @@ class SlackCommunity(Community):
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         return res
-    
+
     def save(self, *args, **kwargs):
         super(SlackCommunity, self).save(*args, **kwargs)
-        
+
         content_types = ContentType.objects.filter(model__in=SLACK_ACTIONS)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
-    
+
     def execute_platform_action(self, action, delete_policykit_post=True):
 
         from policyengine.models import LogAPICall, CommunityUser
@@ -145,7 +147,7 @@ class SlackUser(CommunityUser):
                                max_length=500,
                                null=True)
 
-    
+
 class SlackPostMessage(PlatformAction):
     ACTION = 'chat.postMessage'
     AUTH = 'admin_bot'
@@ -154,7 +156,7 @@ class SlackPostMessage(PlatformAction):
 
     action_codename = 'slackpostmessage'
     app_name = 'slackintegration'
-    
+
     class Meta:
         permissions = (
             ('can_execute_slackpostmessage', 'Can execute slack post message'),
@@ -167,7 +169,7 @@ class SlackPostMessage(PlatformAction):
                   'channel': self.channel
                 }
         super().revert(values, 'chat.delete')
-    
+
 class SlackRenameConversation(PlatformAction):
     ACTION = 'conversations.rename'
     AUTH = 'admin_user'
@@ -179,7 +181,7 @@ class SlackRenameConversation(PlatformAction):
 
     action_codename = 'slackrenameconversation'
     app_name = 'slackintegration'
-    
+
     class Meta:
         permissions = (
             ('can_execute_slackrenameconversation', 'Can execute slack rename conversation'),
@@ -203,7 +205,7 @@ class SlackRenameConversation(PlatformAction):
                 'channel': self.channel
                 }
         super().revert(values, 'conversations.rename')
-        
+
 class SlackJoinConversation(PlatformAction):
     ACTION = 'conversations.invite'
     AUTH = 'admin_user'
@@ -212,7 +214,7 @@ class SlackJoinConversation(PlatformAction):
 
     action_codename = 'slackjoinconversation'
     app_name = 'slackintegration'
-    
+
     class Meta:
         permissions = (
             ('can_execute_slackjoinconversation', 'Can execute slack join conversation'),
@@ -255,7 +257,7 @@ class SlackScheduleMessage(PlatformAction):
 
     action_codename = 'slackschedulemessage'
     app_name = 'slackintegration'
-    
+
     class Meta:
         permissions = (
             ('can_execute_slackschedulemessage', 'Can execute slack schedule message'),
@@ -269,7 +271,7 @@ class SlackKickConversation(PlatformAction):
 
     action_codename = 'slackkickconversation'
     app_name = 'slackintegration'
-    
+
     class Meta:
         permissions = (
             ('can_execute_slackkickconversation', 'Can execute slack kick conversation'),
