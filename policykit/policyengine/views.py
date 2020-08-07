@@ -34,6 +34,12 @@ def editor(request):
         'user': get_user(request)
     })
 
+def actions(request):
+    return render(request, 'policyengine/v2/actions.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request)
+    })
+
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
     if len(errors) > 0:
@@ -66,9 +72,9 @@ def filter_policy(policy, action):
 
 def initialize_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
-    
+
     users = CommunityUser.objects.filter(community=policy.community)
-    
+
     _locals = locals()
     _globals = globals()
 
@@ -165,7 +171,7 @@ def initialize_starterkit(request):
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
-    
+
     starter_kit = StarterKit.objects.get(name=starterkit_name)
     community = Community.objects.get(community_name=community_name)
 
