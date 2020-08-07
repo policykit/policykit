@@ -271,10 +271,10 @@
         <span class="material-icons actionMenuIcon">add_circle_outline</span>
       </div>
       <div class="actionCollapsible" id="constitutionPolicies">
-        <div class="actionButton">
+        <div class="actionButton" id="addConstitutionPolicy">
           <p>Add Constitution Policy</p>
         </div>
-        <div class="actionButton">
+        <div class="actionButton" id="editConstitutionPolicy">
           <p>Edit Constitution Policy</p>
         </div>
         <div class="actionButton">
@@ -287,10 +287,10 @@
         <span class="material-icons actionMenuIcon">add_circle_outline</span>
       </div>
       <div class="actionCollapsible" id="platformPolicies">
-        <div class="actionButton">
+        <div class="actionButton" id="addPlatformPolicy">
           <p>Add Platform Policy</p>
         </div>
-        <div class="actionButton">
+        <div class="actionButton" id="editPlatformPolicy">
           <p>Edit Platform Policy</p>
         </div>
         <div class="actionButton">
@@ -348,6 +348,11 @@
       document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu)
       document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu)
 
+      document.getElementById("addConstitutionPolicy").addEventListener("click", navEditor)
+      document.getElementById("editConstitutionPolicy").addEventListener("click", navEditor)
+      document.getElementById("addPlatformPolicy").addEventListener("click", navEditor)
+      document.getElementById("editPlatformPolicy").addEventListener("click", navEditor)
+
       function navHome() {
         window.location.href = "{{server_url}}/main/"
       }
@@ -379,6 +384,10 @@
         } else {
           actions.style.maxHeight = actions.scrollHeight + "px";
         }
+      }
+
+      function navEditor() {
+        window.location.href = "{{server_url}}/editor/"
       }
     </script>
   </body>
