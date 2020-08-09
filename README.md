@@ -54,7 +54,7 @@ Initialize a webserver. Thus far, we have been running in Ubuntu 18.04, and the 
 
 Add PolicyKit to the server by uploading the codebase or using `git clone`. Create a virtualenv and install all requirements into the virtualenv as above.
 
-Remember to run `python manage.py collectstatic` to collect static files into a /static/ folder.
+Remember to run `python manage.py collectstatic` to collect static files into a static/ folder.
 
 
 Install Apache2.
