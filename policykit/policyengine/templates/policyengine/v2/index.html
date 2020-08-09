@@ -308,7 +308,7 @@
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
     document.getElementById("profile").addEventListener("mouseout", hideDropdown);
     document.getElementById("logout").addEventListener("click", logout);
-    document.getElementById("proposeAction").addEventListener("click", navEditor);
+    document.getElementById("proposeAction").addEventListener("click", navActions);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"
@@ -334,8 +334,8 @@
       window.location.href = "{{server_url}}/logout/"
     }
 
-    function navEditor() {
-      window.location.href = "{{server_url}}/main/editor/"
+    function navActions() {
+      window.location.href = "{{server_url}}/main/actions/"
     }
   </script>
 </body>
