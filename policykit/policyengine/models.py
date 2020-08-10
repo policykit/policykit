@@ -786,7 +786,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
 
 class PlatformActionBundle(BaseAction):
-
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
