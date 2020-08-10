@@ -40,6 +40,8 @@ def refresh_access_token(refresh_token):
 class RedditCommunity(Community):
     API = 'https://oauth.reddit.com/'
 
+    platform = "reddit"
+
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
     access_token = models.CharField('access_token',
@@ -106,12 +108,6 @@ class RedditCommunity(Community):
         self.access_token = res['access_token']
         self.save()
 
-
-    def notify_action(self, action, policy, users=None):
-        from redditintegration.views import post_policy
-        post_policy(policy, action, users)
-
-
     def save(self, *args, **kwargs):
         super(RedditCommunity, self).save(*args, **kwargs)
 
@@ -119,6 +115,10 @@ class RedditCommunity(Community):
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
+
+    def notify_action(self, action, policy, users=None):
+        from redditintegration.views import post_policy
+        post_policy(policy, action, users)
 
 
     def execute_platform_action(self, action, delete_policykit_post=True):
@@ -210,11 +210,6 @@ class RedditUser(CommunityUser):
         self.access_token = res['access_token']
         self.save()
 
-    def save(self, *args, **kwargs):
-        super(RedditUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
-
 
 class RedditMakePost(PlatformAction):
     ACTION = 'api/submit'
@@ -235,11 +230,11 @@ class RedditMakePost(PlatformAction):
     communityaction_ptr = models.CharField('ptr',
                                max_length=100,
                                null=True)
-    
+
     action_codename = 'redditmakepost'
-    
+
     app_name = 'redditintegration'
-    
+
     action_type = "RedditMakePost"
 
     class Meta:

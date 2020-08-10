@@ -1,0 +1,394 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PolicyKit</title>
+
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&family=Itim&family=Karla:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        background-color: #e5e7e9;
+      }
+
+      .header {
+        position: sticky;
+        top: 0;
+        height: 7vh;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background-color: #ffffff;
+        border-bottom: 1px solid #e5e7e9;
+      }
+
+      .body {
+        width: 80%;
+        min-height: 90vh;
+        margin: 0 10vw;
+        padding-top: 3vh;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 1vh;
+      }
+
+      .brand:hover {
+        cursor: pointer;
+      }
+
+      .brandLogo {
+        width: 60px;
+      }
+
+      .brandName {
+        font-family: "Baloo Da 2", sans-serif;
+        font-weight: bold;
+        font-size: 2.3em;
+        color: #000000;
+        margin-left: 5%;
+        line-height: 2.3em;
+        white-space: nowrap;
+      }
+
+      .communityName {
+        font-family: "Baloo Da 2", sans-serif;
+        font-weight: bold;
+        font-size: 1.4em;
+        color: #000000;
+        margin-left: 3%;
+        line-height: 1.4em;
+        white-space: nowrap;
+      }
+
+      .profile {
+        margin-left: auto;
+        width: 12%;
+        height: 100%;
+        border: 1px solid #ffffff;
+        padding-right: 10px;
+      }
+
+      .profileButton {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+      }
+
+      .profile:hover {
+        cursor: pointer;
+      }
+
+      .profilePicture {
+        width: 40px;
+        border-radius: 50%;
+        margin-left: 5%;
+      }
+
+      .profileName {
+        color: #000000;
+        padding: 0% 1%;
+        font-family: "Karla", sans-serif;
+        font-weight: normal;
+        font-size: 1.7em;
+        margin-bottom: 0.85em;
+        white-space: nowrap;
+      }
+
+      .profileDropdown {
+        z-index: 1;
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border: none;
+      }
+
+      .profileDropdownElement {
+        display: none;
+        background-color: #ffffff;
+        padding: 0.5em 30px 0.5em 10px;
+      }
+
+      .profileDropdownElement h4 {
+        font-weight: bold;
+        font-size: 1.2em;
+        font-family: "Karla", sans-serif;
+      }
+
+      .profileDropdownElement:hover {
+        color: #808b96;
+      }
+
+      .actionMenu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 40%;
+        height: 2.8em;
+        cursor: pointer;
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 5vh;
+        background-color: #2196f3;
+        color: #ffffff;
+        padding: 0.5em 1% 0.5em 1%;
+        border-radius: 10px 10px 0 0;
+      }
+
+      .actionMenuHeading {
+        margin-top: 0;
+        display: flex;
+      }
+
+      .actionMenuIcon {
+        display: flex;
+        margin-left: auto;
+      }
+
+      .actionCollapsible {
+        width: 40%;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+        background-color: #ffffff;
+      }
+
+      .actionButton {
+        background-color: #ffffff;
+        font-weight: bold;
+        font-size: 1.2em;
+        font-family: "Karla", sans-serif;
+        padding: 0.5em 5%;
+        cursor: pointer;
+      }
+
+      .actionButton:hover {
+        color: #808b96;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      <div class="brand" id="brand">
+        <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
+        <h2 class="brandName">PolicyKit</h2>
+        <h3 class="communityName">| {{user.community.community_name}}</h3>
+      </div>
+
+      <div class="profile" id="profile">
+        <div class="profileButton">
+          <h3 class="profileName">{{user.readable_name}}</h3>
+          <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+        </div>
+        <div class="profileDropdown">
+          <div class="profileDropdownElement">
+            <h4>Switch Community</h4>
+          </div>
+          <div class="profileDropdownElement">
+            <h4>Settings</h4>
+          </div>
+          <div class="profileDropdownElement">
+            <h4>Help</h4>
+          </div>
+          <div class="profileDropdownElement" id="logout">
+            <h4>Log Out</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="body">
+      {% if user.community.platform == "slack" %}
+        <div class="actionMenu" id="slackActionsHeader">
+          <h3 class="actionMenuHeading">SLACK ACTIONS</h3>
+          <span class="material-icons actionMenuIcon">add_circle_outline</span>
+        </div>
+        <div class="actionCollapsible" id="slackActions">
+          <div class="actionButton">
+            <p>Join Conversation</p>
+          </div>
+          <div class="actionButton">
+            <p>Kick from Conversation</p>
+          </div>
+          <div class="actionButton">
+            <p>Pin Message</p>
+          </div>
+          <div class="actionButton">
+            <p>Post Message</p>
+          </div>
+          <div class="actionButton">
+            <p>Rename Conversation</p>
+          </div>
+          <div class="actionButton">
+            <p>Schedule Message</p>
+          </div>
+        </div>
+      {% elif user.community.platform == "reddit" %}
+        <div class="actionMenu" id="redditActionsHeader">
+          <h3 class="actionMenuHeading">REDDIT ACTIONS</h3>
+          <span class="material-icons actionMenuIcon">add_circle_outline</span>
+        </div>
+        <div class="actionCollapsible" id="redditActions">
+        </div>
+      {% elif user.community.platform == "discord" %}
+        <div class="actionMenu" id="discordActionsHeader">
+          <h3 class="actionMenuHeading">DISCORD ACTIONS</h3>
+          <span class="material-icons actionMenuIcon">add_circle_outline</span>
+        </div>
+        <div class="actionCollapsible" id="discordActions">
+          <div class="actionButton">
+            <p>Post Message</p>
+          </div>
+          <div class="actionButton">
+            <p>Rename Channel</p>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="actionMenu" id="constitutionPoliciesHeader">
+        <h3 class="actionMenuHeading">CONSTITUTION POLICIES</h3>
+        <span class="material-icons actionMenuIcon">add_circle_outline</span>
+      </div>
+      <div class="actionCollapsible" id="constitutionPolicies">
+        <div class="actionButton" id="addConstitutionPolicy">
+          <p>Add Constitution Policy</p>
+        </div>
+        <div class="actionButton" id="editConstitutionPolicy">
+          <p>Edit Constitution Policy</p>
+        </div>
+        <div class="actionButton">
+          <p>Remove Constitution Policy</p>
+        </div>
+      </div>
+
+      <div class="actionMenu" id="platformPoliciesHeader">
+        <h3 class="actionMenuHeading">PLATFORM POLICIES</h3>
+        <span class="material-icons actionMenuIcon">add_circle_outline</span>
+      </div>
+      <div class="actionCollapsible" id="platformPolicies">
+        <div class="actionButton" id="addPlatformPolicy">
+          <p>Add Platform Policy</p>
+        </div>
+        <div class="actionButton" id="editPlatformPolicy">
+          <p>Edit Platform Policy</p>
+        </div>
+        <div class="actionButton">
+          <p>Remove Platform Policy</p>
+        </div>
+      </div>
+
+      <div class="actionMenu" id="rolesHeader">
+        <h3 class="actionMenuHeading">ROLES / PERMISSIONS</h3>
+        <span class="material-icons actionMenuIcon">add_circle_outline</span>
+      </div>
+      <div class="actionCollapsible" id="roles">
+        <div class="actionButton">
+          <p>Add Role</p>
+        </div>
+        <div class="actionButton">
+          <p>Edit Role</p>
+        </div>
+        <div class="actionButton">
+          <p>Remove Role</p>
+        </div>
+        <div class="actionButton">
+          <p>Add User to Role</p>
+        </div>
+        <div class="actionButton">
+          <p>Remove User from Role</p>
+        </div>
+      </div>
+
+      <div class="actionMenu" id="documentsHeader">
+        <h3 class="actionMenuHeading">COMMUNITY DOCUMENTS</h3>
+        <span class="material-icons actionMenuIcon">add_circle_outline</span>
+      </div>
+      <div class="actionCollapsible" id="documents">
+        <div class="actionButton">
+          <p>Add Document</p>
+        </div>
+        <div class="actionButton">
+          <p>Edit Document</p>
+        </div>
+        <div class="actionButton">
+          <p>Remove Document</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("brand").addEventListener("click", navHome);
+      document.getElementById("profile").addEventListener("mouseover", showDropdown);
+      document.getElementById("profile").addEventListener("mouseout", hideDropdown);
+      document.getElementById("logout").addEventListener("click", logout);
+      document.getElementById("{{user.community.platform}}ActionsHeader").addEventListener("click", toggleActionMenu)
+      document.getElementById("constitutionPoliciesHeader").addEventListener("click", toggleActionMenu)
+      document.getElementById("platformPoliciesHeader").addEventListener("click", toggleActionMenu)
+      document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu)
+      document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu)
+
+      document.getElementById("addConstitutionPolicy").addEventListener("click", navEditor)
+      document.getElementById("editConstitutionPolicy").addEventListener("click", navEditor)
+      document.getElementById("addPlatformPolicy").addEventListener("click", navEditor)
+      document.getElementById("editPlatformPolicy").addEventListener("click", navEditor)
+
+      function navHome() {
+        window.location.href = "{{server_url}}/main/"
+      }
+
+      function showDropdown() {
+        var dropdownElements = document.getElementsByClassName("profileDropdownElement");
+        for (let i = 0; i < dropdownElements.length; i++) {
+          dropdownElements[i].style.display = "inline-block"
+        }
+        document.getElementById("profile").style.border = "1px solid #e5e7e9"
+      }
+
+      function hideDropdown() {
+        document.getElementById("profile").style.border = "1px solid #ffffff"
+        var dropdownElements = document.getElementsByClassName("profileDropdownElement");
+        for (let i = 0; i < dropdownElements.length; i++) {
+          dropdownElements[i].style.display = "none"
+        }
+      }
+
+      function logout() {
+        window.location.href = "{{server_url}}/logout/"
+      }
+
+      function toggleActionMenu() {
+        var actions = event.currentTarget.nextElementSibling;
+        if (actions.style.maxHeight) {
+          actions.style.maxHeight = null;
+        } else {
+          actions.style.maxHeight = actions.scrollHeight + "px";
+        }
+      }
+
+      function navEditor() {
+        window.location.href = "{{server_url}}/main/editor/"
+      }
+    </script>
+  </body>
+</html>

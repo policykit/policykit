@@ -40,7 +40,7 @@ Now set up a database. You can use the default sqlite or mysql or another databa
 Finally, run `python manage.py makemigrations` to migrate tables to the database.
 
 8)
-Run the script 'policyengine/scripts/starterkits.py'. This sets up the starter systems of governance that you can choose to integrate into your community. In order to do so, first enter the shell with `python manage.py shell`, then navigate into the scripts folder. From there, run `exec(open('starterkits.py').read())`. 
+Run the script 'policyengine/scripts/starterkits.py'. This sets up the starter systems of governance that you can choose to integrate into your community. In order to do so, first enter the shell with `python manage.py shell`, then run `exec(open('policyengine/scripts/starterkits.py').read())`. 
 
 ## Potential Issues
 
@@ -53,6 +53,9 @@ It's possible that you may receive the error `InvalidBasesError: Cannot resolve 
 Initialize a webserver. Thus far, we have been running in Ubuntu 18.04, and the below instructions work for that OS. 
 
 Add PolicyKit to the server by uploading the codebase or using `git clone`. Create a virtualenv and install all requirements into the virtualenv as above.
+
+Remember to run `python manage.py collectstatic` to collect static files into a static/ folder.
+
 
 Install Apache2.
 

@@ -33,13 +33,15 @@ def on_transaction_commit(func):
 
 class StarterKit(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
-    
+
     def __str__(self):
         return self.name
 
 class Community(PolymorphicModel):
-    community_name = models.CharField('team_name',
-                              max_length=1000)
+    community_name = models.CharField('team_name', max_length=1000)
+
+    platform = None
+
     base_role = models.OneToOneField('CommunityRole',
                                      models.CASCADE,
                                      related_name='base_community')
@@ -55,7 +57,8 @@ class Community(PolymorphicModel):
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
-    role_name = models.CharField('readable_name', max_length=300, null=True)
+    role_name = models.TextField('readable_name', max_length=300, null=True)
+
 
     class Meta:
         verbose_name = 'communityrole'
@@ -65,7 +68,7 @@ class CommunityRole(Group):
         super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.community.community_name + ': ' + self.role_name
+        return str(self.role_name)
 
 
 class CommunityUser(User, PolymorphicModel):
@@ -76,6 +79,11 @@ class CommunityUser(User, PolymorphicModel):
 
     def __str__(self):
         return self.username + '@' + self.community.community_name
+
+    def save(self, *args, **kwargs):
+        super(CommunityUser, self).save(*args, **kwargs)
+        group = self.community.base_role
+        group.user_set.add(self)
 
 
 class CommunityDoc(models.Model):
@@ -138,27 +146,27 @@ class LogAPICall(models.Model):
 
 class GenericPolicy(models.Model):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-    
-    name = models.TextField(null=True, blank=True)
-    
+
+    name = models.TextField(null=True, blank=True, default = '')
+
     description = models.TextField(null=True, blank=True, default = '')
-    
+
     filter = models.TextField(null=True, blank=True, default='')
-    
+
     initialize = models.TextField(null=True, blank=True, default='')
-    
+
     check = models.TextField(null=True, blank=True, default='')
-    
+
     notify = models.TextField(null=True, blank=True, default='')
-    
+
     success = models.TextField(null=True, blank=True, default='')
-    
+
     fail = models.TextField(null=True, blank=True, default='')
 
     is_bundled = models.BooleanField(default=False)
 
     has_notified = models.BooleanField(default=False)
-    
+
     is_constitution = models.BooleanField(default=True)
 
     def make_constitution_policy(self, community):
@@ -172,11 +180,11 @@ class GenericPolicy(models.Model):
         p.fail = self.fail
         p.description = self.description
         p.name = self.name
-        
+
         proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
         p.proposal = proposal
         p.save()
-    
+
         return p
 
     def make_platform_policy(self, community):
@@ -190,7 +198,7 @@ class GenericPolicy(models.Model):
         p.fail = self.fail
         p.description = self.description
         p.name = self.name
-        
+
         proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
         p.proposal = proposal
         p.save()
@@ -202,12 +210,14 @@ class GenericPolicy(models.Model):
 
 class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-    
+
     role_name = models.TextField(blank=True, null=True, default='')
-    
+
     is_base_role = models.BooleanField(default=False)
 
-    def make_community_role(self, community):
+    user_group = models.TextField(blank=True, null=True, default='')
+
+    def make_community_role(self, community, creator_token=None):
         c = None
         if self.is_base_role:
             c = community.base_role
@@ -216,12 +226,29 @@ class GenericRole(Group):
             c = CommunityRole()
             c.community = community
             c.role_name = self.role_name
-    
+            c.name = community.community_name + ": " + self.role_name
+            c.save()
+
         for perm in self.permissions.all():
             c.permissions.add(perm)
-        
-        c.save()
 
+        if self.user_group == "admins":
+            group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+            for user in group:
+                c.user_set.add(user)
+        elif self.user_group == "nonadmins":
+            group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+            for user in group:
+                c.user_set.add(user)
+        elif self.user_group == "all":
+            group = CommunityUser.objects.filter(community = community)
+            for user in group:
+                c.user_set.add(user)
+        elif self.user_group == "creator":
+            user = CommunityUser.objects.get(access_token=creator_token)
+            c.user_set.add(user)
+
+        c.save()
         return c
 
     def __str__(self):
@@ -549,7 +576,7 @@ class EditorModel(ConstitutionAction):
 
 class PolicykitAddPlatformPolicy(EditorModel):
     action_codename = 'policykitaddplatformpolicy'
-    
+
 
     def execute(self):
         policy = PlatformPolicy()
@@ -597,9 +624,9 @@ class PolicykitAddConstitutionPolicy(EditorModel):
 
 class PolicykitChangePlatformPolicy(EditorModel):
     platform_policy = models.ForeignKey('PlatformPolicy', models.CASCADE)
-    
+
     action_codename = 'policykitchangeplatformpolicy'
-    
+
 
     def execute(self):
         self.platform_policy.name = self.name
@@ -648,8 +675,8 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
                                          null=True)
 
     action_codename = 'policykitremoveplatformpolicy'
-    
-    def execute(self):        
+
+    def execute(self):
         self.platform_policy.delete()
 
         self.pass_action()
@@ -723,7 +750,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
                 self.proposal = p
 
                 super(PlatformAction, self).save(*args, **kwargs)
-                
+
 
                 if not self.is_bundled:
                     action = self
@@ -760,6 +787,13 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
 class PlatformActionBundle(BaseAction):
 
+<<<<<<< HEAD
+=======
+    bundled_actions = models.ManyToManyField(PlatformAction)
+
+
+
+>>>>>>> b34b64fa46da419a87ed00556ba4884d70475e43
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
