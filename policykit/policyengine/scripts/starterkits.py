@@ -48,13 +48,18 @@ testing_policy2 = GenericPolicy.objects.create(filter = "return True",
         
 testing_base_role = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User", starterkit = testing_starterkit, is_base_role = True, user_group = "all")
             
-testing_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+testing_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+
+testing_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+testing_reddit_perms = ['Can add reddit make post', 'Can view reddit make post']
 
 #view and propose permissions for platform actions
-            
-for perm in testing_perms:
-    p1 = Permission.objects.get(name=perm)
-    testing_base_role.permissions.add(p1)
+
+testing_base_role.constitution_perms = json.dumps(testing_const_perms)
+testing_base_role.slack_perms = json.dumps(testing_slack_perms)
+testing_base_role.reddit_perms = json.dumps(testing_reddit_perms)
+testing_base_role.save()
 
 #starter kit for standard moderator/user structure
 admin_user_starterkit = StarterKit(name = "Admin and User Starter Kit")
@@ -99,21 +104,29 @@ admin_user_mod_role = GenericRole.objects.create(role_name = "Administrator", na
 
 admin_user_base_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
+admin_user_mod_slack_perms = ['Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+admin_user_mod_reddit_perms = ['Can view reddit make post']
+
 #view permissions for platform actions
 
-admin_user_mod_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+admin_user_mod_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+
+admin_user_mod_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+admin_user_mod_reddit_perms = ['Can add reddit make post', 'Can view reddit make post']
 
 #view and propose permissions for platform actions
 
+admin_user_base_role.constitution_perms = json.dumps(admin_user_base_const_perms)
+admin_user_base_role.slack_perms = json.dumps(admin_user_base_slack_perms)
+admin_user_base_role.reddit_perms = json.dumps(admin_user_base_reddit_perms)
+admin_user_base_role.save()
 
-for perm in admin_user_base_perms:
-    p1 = Permission.objects.get(name=perm)
-    admin_user_base_role.permissions.add(p1)
-
-for perm in admin_user_mod_perms:
-    p1 = Permission.objects.get(name=perm)
-    admin_user_mod_role.permissions.add(p1)
-
+admin_user_mod_role.constitution_perms = json.dumps(admin_user_mod_const_perms)
+admin_user_mod_role.slack_perms = json.dumps(admin_user_mod_slack_perms)
+admin_user_mod_role.reddit_perms = json.dumps(admin_user_mod_reddit_perms)
+admin_user_mod_role.save()
 
 #starter kit for basic democracy structure
 
@@ -170,21 +183,31 @@ democracy_base_role = GenericRole.objects.create(role_name = "Democracy: Base Us
 
 democracy_voter_role = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter", starterkit = democracy_starterkit, is_base_role = False, user_group = "admins")
 
-democracy_base_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+democracy_base_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+
+democracy_base_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+democracy_base_reddit_perms = ['Can add reddit make post', 'Can view reddit make post']
 
 #view and propose permissions for platform actions
 
-democracy_voter_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+democracy_voter_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+
+democracy_voter_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+democracy_voter_reddit_perms = ['Can add reddit make post', 'Can view reddit make post']
 
 #view and propose permissions for platform actions
 
-for perm in democracy_base_perms:
-    p1 = Permission.objects.get(name=perm)
-    democracy_base_role.permissions.add(p1)
+democracy_base_role.constitution_perms = json.dumps(democracy_base_const_perms)
+democracy_base_role.slack_perms = json.dumps(democracy_base_slack_perms)
+democracy_base_role.reddit_perms = json.dumps(democracy_base_reddit_perms)
+democracy_base_role.save()
 
-for perm in democracy_voter_perms:
-    p1 = Permission.objects.get(name=perm)
-    democracy_voter_role.permissions.add(p1)
+democracy_voter_role.constitution_perms = json.dumps(democracy_voter_const_perms)
+democracy_voter_role.slack_perms = json.dumps(democracy_voter_slack_perms)
+democracy_voter_role.reddit_perms = json.dumps(democracy_voter_reddit_perms)
+democracy_voter_role.save()
 
 #starter kit for dictator
 dictator_starterkit = StarterKit(name = "Dictator Starter Kit")
@@ -222,21 +245,27 @@ dictator_base_role = GenericRole.objects.create(role_name = "Dictator: Base User
 
 dictator_dictator_role = GenericRole.objects.create(role_name = "Dictator", name = "Dictator", starterkit = dictator_starterkit, is_base_role = False, user_group = "creator")
 
-dictator_base_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
+dictator_base_const_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
-#view and propose all platform actions
+dictator_base_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
 
-dictator_dictator_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can execute policykit add role', 'Can execute policykit delete role', 'Can execute policykit add permission', 'Can execute policykit remove permission', 'Can execute policykit add user role', 'Can execute policykit remove user role', 'Can execute policykit change platform policy', 'Can execute policykit change constitution policy', 'Can execute policykit remove platform policy', 'Can execute policykit remove constitution policy', 'Can execute policykit add platform policy', 'Can execute policykit add constitution policy', 'Can execute policykit change community doc']
+dictator_base_reddit_perms = ['Can add reddit make post', 'Can view reddit make post']
 
-#view, propose, execute all actions
+dictator_dictator_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can execute policykit add role', 'Can execute policykit delete role', 'Can execute policykit add permission', 'Can execute policykit remove permission', 'Can execute policykit add user role', 'Can execute policykit remove user role', 'Can execute policykit change platform policy', 'Can execute policykit change constitution policy', 'Can execute policykit remove platform policy', 'Can execute policykit remove constitution policy', 'Can execute policykit add platform policy', 'Can execute policykit add constitution policy', 'Can execute policykit change community doc']
 
-for perm in dictator_base_perms:
-    p1 = Permission.objects.get(name=perm)
-    dictator_base_role.permissions.add(p1)
+dictator_dictator_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message', 'Can execute slack post message', 'Can execute slack schedule message', 'Can execute slack rename conversation', 'Can execute slack kick conversation', 'Can execute slack join conversation', 'Can execute slack pin message']
 
-for perm in dictator_dictator_perms:
-    p1 = Permission.objects.get(name=perm)
-    dictator_dictator_role.permissions.add(p1)
+dictator_dictator_reddit_perms = ['Can add reddit make post', 'Can view reddit make post', 'Can execute reddit make post']
+
+dictator_base_role.constitution_perms = json.dumps(dictator_base_const_perms)
+dictator_base_role.slack_perms = json.dumps(dictator_base_slack_perms)
+dictator_base_role.reddit_perms = json.dumps(dictator_base_reddit_perms)
+dictator_base_role.save()
+
+dictator_dictator_role.constitution_perms = json.dumps(dictator_dictator_const_perms)
+dictator_dictator_role.slack_perms = json.dumps(dictator_dictator_slack_perms)
+dictator_dictator_role.reddit_perms = json.dumps(dictator_dictator_reddit_perms)
+dictator_dictator_role.save()
 
 #starter kit for jury
 jury_starterkit = StarterKit(name = "Jury Starter Kit")
@@ -288,11 +317,15 @@ jury_policy2 = GenericPolicy.objects.create(filter = "return True",
 
 jury_base_role = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User", starterkit = jury_starterkit, is_base_role = True, user_group = "all")
 
-jury_base_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+jury_base_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
+
+jury_base_slack_perms = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message', 'Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+jury_base_reddit_perms = ['Can add reddit make post', 'Can view reddit make post']
 
 #view and propose platform actions
 
-for perm in jury_base_perms:
-    p1 = Permission.objects.get(name=perm)
-    jury_base_role.permissions.add(p1)
-
+jury_base_role.constitution_perms = json.dumps(jury_base_const_perms)
+jury_base_role.slack_perms = json.dumps(jury_base_slack_perms)
+jury_base_role.reddit_perms = json.dumps(jury_base_reddit_perms)
+jury_base_role.save()

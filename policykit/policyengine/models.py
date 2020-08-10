@@ -216,8 +216,14 @@ class GenericRole(Group):
     is_base_role = models.BooleanField(default=False)
 
     user_group = models.TextField(blank=True, null=True, default='')
+    
+    constitution_perms = models.TextField(blank=True, null=True, default='')
+    
+    slack_perms = models.TextField(blank=True, null=True, default='')
+    
+    reddit_perms = models.TextField(blank=True, null=True, default='')
 
-    def make_community_role(self, community, creator_token=None):
+    def make_community_role(self, community, platform, creator_token=None):
         c = None
         if self.is_base_role:
             c = community.base_role
@@ -228,9 +234,17 @@ class GenericRole(Group):
             c.role_name = self.role_name
             c.name = community.community_name + ": " + self.role_name
             c.save()
-
-        for perm in self.permissions.all():
-            c.permissions.add(perm)
+        
+        jsonDec = json.decoder.JSONDecoder()
+        all_perms = jsonDec.decode(self.constitution_perms)
+        if platform == "slack":
+            all_perms = all_perms + jsonDec.decode(self.slack_perms)
+        elif platform == "reddit":
+            all_perms = all_perms + jsonDec.decode(self.reddit_perms)
+        
+        for perm in all_perms:
+            p1 = Permission.objects.get(name=perm)
+            c.permissions.add(p1)
 
         if self.user_group == "admins":
             group = CommunityUser.objects.filter(community = community, is_community_admin = True)
