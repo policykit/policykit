@@ -144,7 +144,7 @@ admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
 
 class PlatformPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies',)
+    fields= ('bundled_policies', 'description')
 
 
 
