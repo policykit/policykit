@@ -128,7 +128,7 @@ def init_community_reddit(request):
     context = {
         "starterkits": [kit.name for kit in StarterKit.objects.all()],
         "community_name": community.community_name,
-        "creator_token": access_token
+        "creator_token": access_token,
         "platform": "reddit"
     }
     return render(request, "policyadmin/init_starterkit.html", context)
