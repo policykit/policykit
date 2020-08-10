@@ -52,7 +52,7 @@ class SlackCommunity(Community):
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
-    
+
     def execute_platform_action(self, action, delete_policykit_post=True):
 
         from policyengine.models import LogAPICall, CommunityUser

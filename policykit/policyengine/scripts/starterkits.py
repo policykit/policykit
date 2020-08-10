@@ -296,5 +296,3 @@ for perm in jury_base_perms:
     p1 = Permission.objects.get(name=perm)
     jury_base_role.permissions.add(p1)
 
-"""
-    """
