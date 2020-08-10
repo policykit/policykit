@@ -787,13 +787,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
 class PlatformActionBundle(BaseAction):
 
-<<<<<<< HEAD
-=======
-    bundled_actions = models.ManyToManyField(PlatformAction)
-
-
-
->>>>>>> b34b64fa46da419a87ed00556ba4884d70475e43
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
