@@ -104,9 +104,9 @@ admin_user_mod_role = GenericRole.objects.create(role_name = "Administrator", na
 
 admin_user_base_const_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
-admin_user_mod_slack_perms = ['Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+admin_user_base_slack_perms = ['Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
 
-admin_user_mod_reddit_perms = ['Can view reddit make post']
+admin_user_base_reddit_perms = ['Can view reddit make post']
 
 #view permissions for platform actions
 
