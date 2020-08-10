@@ -158,7 +158,7 @@ admin_site.register(PlatformPolicyBundle, PlatformPolicyBundleAdmin)
 
 
 class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies',)
+    fields= ('bundled_policies', 'description')
     
 
     def save_model(self, request, obj, form, change):

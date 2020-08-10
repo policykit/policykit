@@ -849,7 +849,7 @@ class ConstitutionPolicy(BasePolicy):
         return ' '.join(['ConstitutionPolicy: ', self.description, 'for', self.community.community_name])
 
 
-class ConstitutionPolicyBundle(BaseAction):
+class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
     policy_type = "ConstitutionPolicyBundle"
 
@@ -871,7 +871,7 @@ class PlatformPolicy(BasePolicy):
         return ' '.join(['PlatformPolicy: ', self.description, 'for', self.community.community_name])
 
 
-class PlatformPolicyBundle(BaseAction):
+class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
     policy_type = "PlatformPolicyBundle"
 
