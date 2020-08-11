@@ -786,11 +786,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
 
 class PlatformActionBundle(BaseAction):
-
-    bundled_actions = models.ManyToManyField(PlatformAction)
-
-
-
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -880,14 +875,13 @@ class ConstitutionPolicy(BasePolicy):
         return ' '.join(['ConstitutionPolicy: ', self.description, 'for', self.community.community_name])
 
 
-class ConstitutionPolicyBundle(BaseAction):
+class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
     policy_type = "ConstitutionPolicyBundle"
 
     class Meta:
         verbose_name = 'constitutionpolicybundle'
         verbose_name_plural = 'constitutionpolicybundles'
-
 
 class PlatformPolicy(BasePolicy):
     policy_type = "PlatformPolicy"
@@ -900,15 +894,14 @@ class PlatformPolicy(BasePolicy):
         return ' '.join(['PlatformPolicy: ', self.description, 'for', self.community.community_name])
 
 
-class PlatformPolicyBundle(BaseAction):
+class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
     policy_type = "PlatformPolicyBundle"
 
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
-
-
+    
 class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
     proposal = models.ForeignKey(Proposal, models.CASCADE)
