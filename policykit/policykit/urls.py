@@ -28,6 +28,7 @@ urlpatterns = [
         template_name='policyadmin/login.html',
         extra_context={
             'server_url': urllib.parse.quote(SERVER_URL, safe=''),
+            'slack_client_id': SLACK_CLIENT_ID,
             'reddit_client_id': REDDIT_CLIENT_ID,
             'discord_client_id': DISCORD_CLIENT_ID
         }
