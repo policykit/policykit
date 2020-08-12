@@ -31,11 +31,12 @@ def on_transaction_commit(func):
     return inner
 
 
-class StarterKit(models.Model):
+class StarterKit(models.Model, PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
         return self.name
+
 
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
@@ -169,42 +170,6 @@ class GenericPolicy(models.Model):
 
     is_constitution = models.BooleanField(default=True)
 
-    def make_constitution_policy(self, community):
-        p = ConstitutionPolicy()
-        p.community = community
-        p.filter = self.filter
-        p.initialize = self.initialize
-        p.check = self.check
-        p.notify = self.notify
-        p.success = self.success
-        p.fail = self.fail
-        p.description = self.description
-        p.name = self.name
-
-        proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-        p.proposal = proposal
-        p.save()
-
-        return p
-
-    def make_platform_policy(self, community):
-        p = PlatformPolicy()
-        p.community = community
-        p.filter = self.filter
-        p.initialize = self.initialize
-        p.check = self.check
-        p.notify = self.notify
-        p.success = self.success
-        p.fail = self.fail
-        p.description = self.description
-        p.name = self.name
-
-        proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-        p.proposal = proposal
-        p.save()
-
-        return p
-
     def __str__(self):
         return self.name
 
@@ -217,57 +182,10 @@ class GenericRole(Group):
 
     user_group = models.TextField(blank=True, null=True, default='')
     
-    constitution_perms = models.TextField(blank=True, null=True, default='')
-    
-    slack_perms = models.TextField(blank=True, null=True, default='')
-    
-    reddit_perms = models.TextField(blank=True, null=True, default='')
-
-    def make_community_role(self, community, platform, creator_token=None):
-        c = None
-        if self.is_base_role:
-            c = community.base_role
-            self.is_base_role = False
-        else:
-            c = CommunityRole()
-            c.community = community
-            c.role_name = self.role_name
-            c.name = community.community_name + ": " + self.role_name
-            c.save()
-        
-        jsonDec = json.decoder.JSONDecoder()
-        all_perms = jsonDec.decode(self.constitution_perms)
-        if platform == "slack":
-            all_perms = all_perms + jsonDec.decode(self.slack_perms)
-        elif platform == "reddit":
-            all_perms = all_perms + jsonDec.decode(self.reddit_perms)
-        
-        for perm in all_perms:
-            p1 = Permission.objects.get(name=perm)
-            c.permissions.add(p1)
-
-        if self.user_group == "admins":
-            group = CommunityUser.objects.filter(community = community, is_community_admin = True)
-            for user in group:
-                c.user_set.add(user)
-        elif self.user_group == "nonadmins":
-            group = CommunityUser.objects.filter(community = community, is_community_admin = False)
-            for user in group:
-                c.user_set.add(user)
-        elif self.user_group == "all":
-            group = CommunityUser.objects.filter(community = community)
-            for user in group:
-                c.user_set.add(user)
-        elif self.user_group == "creator":
-            user = CommunityUser.objects.get(access_token=creator_token)
-            c.user_set.add(user)
-
-        c.save()
-        return c
+    plat_perm_set = models.ArrayField(models.CharField(max_length=200), blank=True)
 
     def __str__(self):
         return self.role_name
-
 
 class Proposal(models.Model):
     PROPOSED = 'proposed'

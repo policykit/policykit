@@ -15,6 +15,12 @@ SLACK_ACTIONS = ['slackpostmessage',
                  'slackpinmessage'
                  ]
 
+SLACK_VIEW_PERMS = ['Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+
+SLACK_PROPOSE_PERMS = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message']
+
+SLACK_EXECUTE_PERMS = ['Can execute slack post message', 'Can execute slack schedule message', 'Can execute slack rename conversation', 'Can execute slack kick conversation', 'Can execute slack join conversation', 'Can execute slack pin message']
+
 class SlackCommunity(Community):
     API = 'https://slack.com/api/'
 
@@ -268,3 +274,85 @@ class SlackKickConversation(PlatformAction):
         permissions = (
             ('can_execute_slackkickconversation', 'Can execute slack kick conversation'),
         )
+
+class SlackStarterKit(StarterKit):
+    def init_kit(self, community, creator_token=None):
+        for policy in self.genericpolicy_set.all():
+            if policy.is_constitution:
+                p = ConstitutionPolicy()
+                p.community = community
+                p.filter = policy.filter
+                p.initialize = policy.initialize
+                p.check = policy.check
+                p.notify = policy.notify
+                p.success = policy.success
+                p.fail = policy.fail
+                p.description = policy.description
+                p.name = policy.name
+                
+                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+                p.proposal = proposal
+                p.save()
+            
+            else:
+                p = PlatformPolicy()
+                p.community = community
+                p.filter = policy.filter
+                p.initialize = policy.initialize
+                p.check = policy.check
+                p.notify = policy.notify
+                p.success = policy.success
+                p.fail = policy.fail
+                p.description = policy.description
+                p.name = policy.name
+                
+                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+                p.proposal = proposal
+                p.save()
+    
+        for role in self.genericrole_set.all():
+            c = None
+            if role.is_base_role:
+                c = community.base_role
+                role.is_base_role = False
+            else:
+                c = CommunityRole()
+                c.community = community
+                c.role_name = self.role_name
+                c.name = "Slack: " + community.community_name + ": " + self.role_name
+                c.save()
+            
+            for perm in role.get_all_permissions():
+                c.permissions.add(perm)
+            
+            if role.plat_perm_set__contains=['view']:
+                for perm in SLACK_VIEW_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            elif role.plat_perm_set__contains=['propose']:
+                for perm in SLACK_PROPOSE_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            elif role.plat_perm_set__contains=['execute']:
+                for perm in SLACK_EXECUTE_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            
+            
+            if role.user_group == "admins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "nonadmins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "all":
+                group = CommunityUser.objects.filter(community = community)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "creator":
+                user = CommunityUser.objects.get(access_token=creator_token)
+                c.user_set.add(user)
+
+            c.save()
