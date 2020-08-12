@@ -32,7 +32,7 @@ def on_transaction_commit(func):
     return inner
 
 
-class StarterKit(models.Model, PolymorphicModel):
+class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
