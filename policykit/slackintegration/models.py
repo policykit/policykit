@@ -32,7 +32,7 @@ class SlackCommunity(Community):
         from slackintegration.views import post_policy
         post_policy(policy, action, users, post_type, template, channel)
 
-    def make_call(self, url, values=None):
+    def make_call(self, url, values=None, action=None, method=None):
         logger.info(url)
         if values:
             data = urllib.parse.urlencode(values)
