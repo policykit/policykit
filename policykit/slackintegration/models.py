@@ -78,7 +78,11 @@ class SlackCommunity(Community):
                                   'platformactionbundle',
                                   'community_revert',
                                   'community_origin',
-                                  'is_bundled'
+                                  'is_bundled',
+                                  'proposal',
+                                  'platformaction_ptr',
+                                  'data',
+                                  'community_post'
                                   ]:
                     obj_fields.append(f.name)
 
