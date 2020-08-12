@@ -34,7 +34,7 @@ urlpatterns = [
         }
     )),
     path('logout/', policyviews.logout),
-    path('main/login/', lambda request: redirect('login/', permanent=False)), # NOTE: this just fixes a bug in v1 dashboard URLs, doesn't affect v2 dashboard
+    path('main/login/', lambda request: redirect('/login', permanent=False)), # NOTE: this just fixes a bug in v1 dashboard URLs, doesn't affect v2 dashboard
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
     path('main/editor/', policyviews.editor),
     path('main/actions/', policyviews.actions),
