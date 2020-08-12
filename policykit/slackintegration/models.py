@@ -65,7 +65,7 @@ class SlackCommunity(Community):
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
             logger.info('EXECUTING ACTION BELOW:')
-            call = self.API + obj.ACTION
+            call = obj.ACTION
             logger.info(call)
 
             obj_fields = []
@@ -132,7 +132,7 @@ class SlackCommunity(Community):
                               'ts': posted_action.community_post,
                               'channel': obj.channel
                             }
-                    call = self.API + 'chat.delete'
+                    call = 'chat.delete'
                     _ = LogAPICall.make_api_call(self, values, call)
 
             if res['ok']:
