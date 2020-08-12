@@ -18,6 +18,7 @@ from django.contrib.auth import views
 from django.urls import path
 from django.conf.urls import include, url
 from django.views.generic import TemplateView
+from django.shortcuts import redirect
 import urllib.parse
 from policyengine.admin import admin_site
 from policykit.settings import SERVER_URL, SLACK_CLIENT_ID, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID, VERSION
@@ -34,6 +35,7 @@ urlpatterns = [
         }
     )),
     path('logout/', policyviews.logout),
+    path('main/login/', lambda request: redirect('/login', permanent=False)), # NOTE: this just fixes a bug in v1 dashboard URLs, doesn't affect v2 dashboard
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
     path('main/editor/', policyviews.editor),
     path('main/actions/', policyviews.actions),
