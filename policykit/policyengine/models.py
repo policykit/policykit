@@ -605,6 +605,7 @@ class PolicykitAddConstitutionPolicy(EditorModel):
     def execute(self):
         policy = ConstitutionPolicy()
         policy.community = self.community
+        policy.name = self.name
         policy.description = self.description
         policy.is_bundled = self.is_bundled
         policy.filter = self.filter
@@ -901,7 +902,7 @@ class PlatformPolicyBundle(BasePolicy):
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
-    
+
 class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
     proposal = models.ForeignKey(Proposal, models.CASCADE)
