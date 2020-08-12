@@ -20,7 +20,7 @@ from django.conf.urls import include, url
 from django.views.generic import TemplateView
 import urllib.parse
 from policyengine.admin import admin_site
-from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID, VERSION
+from policykit.settings import SERVER_URL, SLACK_CLIENT_ID, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID, VERSION
 from policyengine import views as policyviews
 
 urlpatterns = [
@@ -28,6 +28,7 @@ urlpatterns = [
         template_name='policyadmin/login.html',
         extra_context={
             'server_url': urllib.parse.quote(SERVER_URL, safe=''),
+            'slack_client_id': SLACK_CLIENT_ID,
             'reddit_client_id': REDDIT_CLIENT_ID,
             'discord_client_id': DISCORD_CLIENT_ID
         }
