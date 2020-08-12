@@ -144,7 +144,9 @@ admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
 
 class PlatformPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies', 'description')
+    fields= ('name', 'description', 'bundled_policies')
+
+
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
@@ -156,7 +158,8 @@ admin_site.register(PlatformPolicyBundle, PlatformPolicyBundleAdmin)
 
 
 class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
-    fields= ('bundled_policies', 'description')
+    fields= ('name', 'description', 'bundled_policies')
+    
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True

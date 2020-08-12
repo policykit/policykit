@@ -19,7 +19,7 @@
     body {
       margin: 0px;
       padding: 0px;
-      background: linear-gradient(45deg, #8EC5FC, #E0C3FC) fixed;
+      background-color: #ebecf1;
     }
 
     .header {
@@ -37,9 +37,9 @@
     .body {
       display: flex;
       flex-direction: row;
-      width: 80%;
+      width: 90vw;
       min-height: 90vh;
-      margin: 0 10vw;
+      margin: 0 5vw;
       padding-top: 3vh;
     }
 
@@ -48,8 +48,7 @@
       flex-direction: row;
       justify-content: flex-start;
       align-items: center;
-      text-align: center;
-      padding: 1vh;
+      padding: 1vh 2vw;
     }
 
     .brand:hover {
@@ -63,28 +62,29 @@
     .brandName {
       font-family: 'Baloo Da 2', sans-serif;
       font-weight: bold;
-      font-size: 2em;
-      color: #000000;
-      margin-left: 5%;
+      font-size: 2.3em;
+      color: #373456;
+      margin-left: 1vw;
+      line-height: 2.3em;
       white-space: nowrap;
     }
 
     .communityName {
       font-family: 'Baloo Da 2', sans-serif;
       font-weight: bold;
-      font-size: 1.4em;
-      color: #000000;
-      margin-left: 3%;
+      font-size: 1.6em;
+      color: #373456;
+      margin-left: 0.5vw;
       line-height: 1.4em;
       white-space: nowrap;
     }
 
     .profile {
       margin-left: auto;
-      width: 12%;
+      width: 13vw;
       height: 100%;
       border: 1px solid #ffffff;
-      padding-right: 10px;
+      padding-right: 2vw;
     }
 
     .profileButton {
@@ -104,15 +104,15 @@
     .profilePicture {
       width: 40px;
       border-radius: 50%;
-      margin-left: 5%;
+      margin-left: 1vw;
     }
 
     .profileName {
-      color: #000000;
+      color: #373456;
       padding: 0% 1%;
       font-family: 'Karla', sans-serif;
       font-weight: normal;
-      font-size: 1.5em;
+      font-size: 1.6em;
       white-space: nowrap;
     }
 
@@ -133,7 +133,7 @@
 
     .profileDropdownElement h4 {
       font-weight: bold;
-      font-size: 1em;
+      font-size: 1.2em;
       font-family: 'Karla', sans-serif;
     }
 
@@ -155,77 +155,76 @@
       align-items: center;
       width: 40%;
       height: 80vh;
-      padding-top: 5%;
     }
 
     .searchBar {
       display: flex;
-      width: 100%;
-      border-radius: 50px;
+      width: 90%;
+      margin-top: 1vh;
+      border-radius: 30px;
       border-width: 0px;
-      padding: 10px 20px;
-      background-color: #f8f9f9;
+      padding: 10px 30px;
+      background-color: #ffffff;
+      color: #ebecf1;
       outline: none;
       font-family: 'Karla', sans-serif;
-      font-size: 1em;
+      font-size: 1.2em;
     }
 
     .proposeButton {
-      display: flex;
-      width: 70%;
+      width: 80%;
       padding: 2% 20%;
       border-width: 0px;
-      border-radius: 10px;
-      background-color: #2196f3;
+      border-radius: 30px;
+      background-color: #4451b2;
       color: #ffffff;
-      line-height: 1.5em;
+      line-height: 1.7em;
       font-family: 'Karla', sans-serif;
       font-weight: bold;
-      font-size: 1.5em;
-      box-shadow: 1px 1px 1px grey;
+      font-size: 1.7em;
+      box-shadow: 0 0 2px #9fa2b5;
       outline: none;
-      margin-bottom: 3%;
+      margin-top: 1vh;
+      margin-bottom: 3vh;
     }
 
     .sidebarPanel {
       display: flex;
-      width: 70%;
-      min-height: 40%;
-      margin-top: 3%;
-      margin-bottom: 3%;
+      width: 80%;
+      min-height: 30vh;
+      margin-top: 1vh;
+      margin-bottom: 1vh;
       background-color: #ffffff;
-      border-radius: 5px;
-    }
-
-    .sidebarPanelHeader {
-      display: flex;
-      width: 100%;
-      height: 15%;
-      justify-content: center;
-      align-items: center;
-      background-color: #2196f3;
-      border-radius: 5px 5px 0 0;
+      border-radius: 30px;
+      box-shadow: 0 0 2px #9fa2b5;
     }
 
     .sidebarPanelTitle {
-      display: flex;
-      color: #ffffff;
+      color: #373456;
       font-family: 'Karla', sans-serif;
       font-weight: bold;
-      font-size: 1.2em;
-      text-align: center;
+      font-size: 1.8em;
+      padding-top: 2.6vh;
+      padding-left: 2vw;
     }
 
     .actionPanel {
-      width: 100%;
-      margin-top: 6vh;
+      display: flex;
+      width: 90%;
+      min-height: 35vh;
+      margin-top: 3vh;
+      background-color: #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 0 2px #9fa2b5;
     }
 
-    .actionPanelHeader {
-      color: #ffffff;
+    .actionPanelTitle {
+      color: #373456;
       font-family: 'Karla', sans-serif;
       font-weight: bold;
-      font-size: 2em;
+      font-size: 2.3em;
+      padding-top: 1.6vh;
+      padding-left: 2vw;
     }
 
   </style>
@@ -241,7 +240,7 @@
 
     <div class="profile" id="profile">
       <div class="profileButton">
-        <h3 class="profileName">{{user.readable_name}}</h3>
+        <h3 class="profileName">Hi, {{user.readable_name}}</h3>
         <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
       </div>
       <div class="profileDropdown">
@@ -263,14 +262,14 @@
 
   <div class="body">
     <div class="leftCol">
-      <input type="text" class="searchBar" placeholder="Search...">
+      <input type="text" class="searchBar" placeholder="Search">
 
       <div class="actionPanel">
-        <h3 class="actionPanelHeader">Pending actions</h3>
+        <h3 class="actionPanelTitle">Pending actions</h3>
       </div>
 
       <div class="actionPanel">
-        <h3 class="actionPanelHeader">Everything else</h3>
+        <h3 class="actionPanelTitle">All actions</h3>
       </div>
     </div>
 
@@ -278,27 +277,19 @@
       <input type="button" class="proposeButton" value="Propose Action" id="proposeAction">
 
       <div class="sidebarPanel">
-        <div class="sidebarPanelHeader">
-          <h4 class="sidebarPanelTitle">Users</h4>
-        </div>
+        <h4 class="sidebarPanelTitle">Users</h4>
       </div>
 
       <div class="sidebarPanel">
-        <div class="sidebarPanelHeader">
-          <h4 class="sidebarPanelTitle">Community Guidelines</h4>
-        </div>
+        <h4 class="sidebarPanelTitle">Community Guidelines</h4>
       </div>
 
       <div class="sidebarPanel">
-        <div class="sidebarPanelHeader">
-          <h4 class="sidebarPanelTitle">Community Policies</h4>
-        </div>
+        <h4 class="sidebarPanelTitle">Community Policies</h4>
       </div>
 
       <div class="sidebarPanel">
-        <div class="sidebarPanelHeader">
-          <h4 class="sidebarPanelTitle">Constitution Policies</h4>
-        </div>
+        <h4 class="sidebarPanelTitle">Constitution Policies</h4>
       </div>
     </div>
   </div>
@@ -319,11 +310,9 @@
       for (let i = 0; i < dropdownElements.length; i++) {
         dropdownElements[i].style.display = "inline-block"
       }
-      document.getElementById("profile").style.border = "1px solid #e5e7e9"
     }
 
     function hideDropdown() {
-      document.getElementById("profile").style.border = "1px solid #ffffff"
       var dropdownElements = document.getElementsByClassName("profileDropdownElement");
       for (let i = 0; i < dropdownElements.length; i++) {
         dropdownElements[i].style.display = "none"
