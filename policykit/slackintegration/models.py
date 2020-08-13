@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit
+from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 import json
