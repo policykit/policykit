@@ -298,15 +298,15 @@ class RedditStarterKit(StarterKit):
             for perm in role.get_all_permissions():
                 c.permissions.add(perm)
             
-            if role.plat_perm_set__contains=['view']:
+            if 'view' in role.plat_perm_set:
                 for perm in REDDIT_VIEW_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif role.plat_perm_set__contains=['propose']:
+            elif 'propose' in role.plat_perm_set:
                 for perm in REDDIT_PROPOSE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif role.plat_perm_set__contains=['execute']:
+            elif 'execute' in role.plat_perm_set:
                 for perm in REDDIT_EXECUTE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)

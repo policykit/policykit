@@ -183,8 +183,8 @@ class GenericRole(Group):
 
     user_group = models.TextField(blank=True, null=True, default='')
     
-    plat_perm_set = ArrayField(models.CharField(max_length=200), blank=True)
-
+    plat_perm_set = []
+    
     def __str__(self):
         return self.role_name
 
