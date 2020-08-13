@@ -11,6 +11,8 @@ from policyengine.views import check_policy, filter_policy, initialize_policy, p
 import urllib
 import json
 from policyengine.models import *
+from redditintegration.models import RedditStarterKit
+from slackintegration.models import SlackStarterKit
 
 import logging
 
