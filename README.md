@@ -82,7 +82,7 @@ File: 000-default.conf
 ...more below
 ```
 
-You may separately wish to configure PolicyKit to work under HTTPS (will be neccesary to interface with the Slack API for instance). If so, you'll need to get an SSL certificate (we use LetsEncrypt) and add the following file under /etc/apache2/sites-available/default-ssl.conf.
+You may separately wish to configure PolicyKit to work under HTTPS (will be neccesary to interface with the Slack API for instance). If so, you'll need to get an SSL certificate (we use LetsEncrypt) and add the following file under /etc/apache2/sites-available/default-ssl.conf. You may want to redirect HTTP calls to HTTPS - if so, you'll need to update the :80 config above.
 
 ```
 #<IfModule mod_ssl.c>
