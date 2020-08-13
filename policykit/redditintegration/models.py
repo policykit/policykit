@@ -283,7 +283,7 @@ class RedditStarterKit(StarterKit):
                 p.proposal = proposal
                 p.save()
     
-        for role in self.permissions.all():
+        for role in self.genericrole_set.all():
             c = None
             if role.is_base_role:
                 c = community.base_role
@@ -295,7 +295,7 @@ class RedditStarterKit(StarterKit):
                 c.name = "Reddit: " + community.community_name + ": " + self.role_name
                 c.save()
                 
-            for perm in role.get_all_permissions():
+            for perm in role.permissions.all():
                 c.permissions.add(perm)
             
             if 'view' in role.plat_perm_set:
