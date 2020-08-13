@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
-from redditintegration.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
+from redditintegration.models import RedditStarterKit, RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -76,7 +76,6 @@ def oauth(request):
 
         if len(titles) > 0:
             context = {
-                "platform": "reddit",
                 "subreddits": titles,
                 "access_token": res['access_token'],
                 "refresh_token": res['refresh_token']
@@ -127,9 +126,10 @@ def init_community_reddit(request):
     logger.info(community.access_token)
 
     context = {
-        "starterkits": [kit.name for kit in StarterKit.objects.all()],
+        "starterkits": [kit.name for kit in RedditStarterKit.objects.all()],
         "community_name": community.community_name,
-        "creator_token": access_token
+        "creator_token": access_token,
+        "platform": "reddit"
     }
     return render(request, "policyadmin/init_starterkit.html", context)
 

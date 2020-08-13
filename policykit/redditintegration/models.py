@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, PlatformAction
+from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
@@ -13,10 +13,13 @@ logger = logging.getLogger(__name__)
 
 REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
-REDDIT_ACTIONS = []
+REDDIT_ACTIONS = ['redditmakepost']
 
-# Create your models here.
+REDDIT_VIEW_PERMS = ['Can view reddit make post']
 
+REDDIT_PROPOSE_PERMS = ['Can add reddit make post']
+
+REDDIT_EXECUTE_PERMS = ['Can execute reddit make post']
 
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
@@ -107,14 +110,6 @@ class RedditCommunity(Community):
         res = refresh_access_token(self.refresh_token)
         self.access_token = res['access_token']
         self.save()
-
-    def save(self, *args, **kwargs):
-        super(RedditCommunity, self).save(*args, **kwargs)
-
-        content_types = ContentType.objects.filter(model__in=REDDIT_ACTIONS)
-        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
-        for p in perms:
-            self.base_role.permissions.add(p)
 
     def notify_action(self, action, policy, users=None):
         from redditintegration.views import post_policy
@@ -252,3 +247,87 @@ class RedditMakePost(PlatformAction):
         if not self.community_revert:
             self.community.make_call('api/approve', {'id': self.name})
         super().execute()
+
+class RedditStarterKit(StarterKit):
+    def init_kit(self, community, creator_token=None):
+        for policy in self.genericpolicy_set.all():
+            if policy.is_constitution:
+                p = ConstitutionPolicy()
+                p.community = community
+                p.filter = policy.filter
+                p.initialize = policy.initialize
+                p.check = policy.check
+                p.notify = policy.notify
+                p.success = policy.success
+                p.fail = policy.fail
+                p.description = policy.description
+                p.name = policy.name
+                
+                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+                p.proposal = proposal
+                p.save()
+            
+            else:
+                p = PlatformPolicy()
+                p.community = community
+                p.filter = policy.filter
+                p.initialize = policy.initialize
+                p.check = policy.check
+                p.notify = policy.notify
+                p.success = policy.success
+                p.fail = policy.fail
+                p.description = policy.description
+                p.name = policy.name
+                
+                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+                p.proposal = proposal
+                p.save()
+    
+        for role in self.genericrole_set.all():
+            c = None
+            if role.is_base_role:
+                c = community.base_role
+                role.is_base_role = False
+            else:
+                c = CommunityRole()
+                c.community = community
+                c.role_name = role.role_name
+                c.name = "Reddit: " + community.community_name + ": " + role.role_name
+                c.save()
+                
+            for perm in role.permissions.all():
+                c.permissions.add(perm)
+            
+            jsonDec = json.decoder.JSONDecoder()
+            perm_set = jsonDec.decode(role.plat_perm_set)
+            
+            if 'view' in perm_set:
+                for perm in REDDIT_VIEW_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            if 'propose' in perm_set:
+                for perm in REDDIT_PROPOSE_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            if 'execute' in perm_set:
+                for perm in REDDIT_EXECUTE_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            
+            if role.user_group == "admins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "nonadmins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "all":
+                group = CommunityUser.objects.filter(community = community)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "creator":
+                user = CommunityUser.objects.get(access_token=creator_token)
+                c.user_set.add(user)
+
+            c.save()
