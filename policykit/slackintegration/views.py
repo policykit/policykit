@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
 import json
-from slackintegration.models import SlackCommunity, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
+from slackintegration.models import SlackStarterKit, SlackCommunity, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
 from policyengine.models import *
 from policyengine.views import filter_policy, check_policy, initialize_policy
 from django.contrib.auth.models import User, Group
@@ -138,7 +138,7 @@ def oauth(request):
                 return response
 
             context = {
-                "starterkits": [kit.name for kit in StarterKit.objects.all()],
+                "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
                 "community_name": community.community_name,
                 "creator_token": res['authed_user']['access_token'],
                 "platform": "slack"

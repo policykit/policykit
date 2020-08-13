@@ -168,8 +168,10 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
-
+    from policyengine.models import Community
+    from redditintegration.models import RedditStarterKit
+    from slackintegration.models import SlackStarterKit
+    
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
