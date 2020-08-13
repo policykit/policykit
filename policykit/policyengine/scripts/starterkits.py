@@ -18,10 +18,10 @@ import logging
 
 #default starterkit -- all users have ability to view/propose actions + all actions pass automatically
 testing_starterkit_slack = SlackStarterKit(name = "Testing Starter Kit")
-testing_starterkit.save()
+testing_starterkit_slack.save()
 
 testing_starterkit_reddit = RedditStarterKit(name = "Testing Starter Kit")
-testing_starterkit.save()
+testing_starterkit_reddit.save()
     
 testing_policy1_slack = GenericPolicy.objects.create(filter = "return True",
                                        initialize = "pass",
@@ -436,10 +436,10 @@ for perm in dictator_dictator_const_perms:
 
 #starter kit for jury
 jury_starterkit_slack = SlackStarterKit(name = "Jury Starter Kit")
-jury_starterkit.save()
+jury_starterkit_slack.save()
 
 jury_starterkit_reddit = RedditStarterKit(name = "Jury Starter Kit")
-jury_starterkit.save()
+jury_starterkit_reddit.save()
 
 jury_policy1_slack = GenericPolicy.objects.create(filter = "return True",
                                        initialize = """
