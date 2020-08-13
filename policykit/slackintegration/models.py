@@ -276,6 +276,8 @@ class SlackKickConversation(PlatformAction):
         )
 
 class SlackStarterKit(StarterKit):
+    platform = "slack"
+    
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
             if policy.is_constitution:
