@@ -276,7 +276,7 @@ class SlackKickConversation(PlatformAction):
         )
 
 class SlackStarterKit(StarterKit):
-    platform = "slack"
+    platform = models.CharField(max_length=200, default="reddit")
     
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
