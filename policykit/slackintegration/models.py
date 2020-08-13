@@ -318,8 +318,8 @@ class SlackStarterKit(StarterKit):
             else:
                 c = CommunityRole()
                 c.community = community
-                c.role_name = self.role_name
-                c.name = "Slack: " + community.community_name + ": " + self.role_name
+                c.role_name = role.role_name
+                c.name = "Slack: " + community.community_name + ": " + role.role_name
                 c.save()
             
             for perm in role.permissions.all():
