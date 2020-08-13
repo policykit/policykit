@@ -322,7 +322,7 @@ class SlackStarterKit(StarterKit):
                 c.name = "Slack: " + community.community_name + ": " + self.role_name
                 c.save()
             
-            for perm in role.get_all_permissions():
+            for perm in role.permissions.all():
                 c.permissions.add(perm)
             
             if 'view' in role.plat_perm_set:

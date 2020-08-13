@@ -283,7 +283,7 @@ class RedditStarterKit(StarterKit):
                 p.proposal = proposal
                 p.save()
     
-        for role in self.genericrole_set.all():
+        for role in self.permissions.all():
             c = None
             if role.is_base_role:
                 c = community.base_role
