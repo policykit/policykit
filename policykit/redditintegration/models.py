@@ -298,15 +298,18 @@ class RedditStarterKit(StarterKit):
             for perm in role.permissions.all():
                 c.permissions.add(perm)
             
-            if 'view' in role.plat_perm_set:
+            jsonDec = json.decoder.JSONDecoder()
+            perm_set = jsonDec.decode(role.plat_perm_set)
+            
+            if 'view' in perm_set:
                 for perm in REDDIT_VIEW_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif 'propose' in role.plat_perm_set:
+            elif 'propose' in perm_set:
                 for perm in REDDIT_PROPOSE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif 'execute' in role.plat_perm_set:
+            elif 'execute' in perm_set:
                 for perm in REDDIT_EXECUTE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
