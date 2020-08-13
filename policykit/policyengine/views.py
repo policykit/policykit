@@ -172,6 +172,7 @@ def initialize_starterkit(request):
     from django.contrib.auth.models import Permission
     from redditintegration.models import RedditStarterKit
     from slackintegration.models import SlackStarterKit
+    from discordintegration.models import DiscordStarterKit
     
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
@@ -183,6 +184,8 @@ def initialize_starterkit(request):
         starter_kit = SlackStarterKit.objects.get(name=starterkit_name)
     elif platform == "reddit":
         starter_kit = RedditStarterKit.objects.get(name=starterkit_name)
+    elif platform == "discord":
+        starter_kit = DiscordStarterKit.objects.get(name=starterkit_name)
 
     community = Community.objects.get(community_name=community_name)
     starter_kit.init_kit(community, creator_token)

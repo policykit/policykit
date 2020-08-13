@@ -108,7 +108,7 @@ def oauth(request):
             return response
 
         context = {
-            "starterkits": [kit.name for kit in StarterKit.objects.all()],
+            "starterkits": [kit.name for kit in DiscordStarterKit.objects.all()],
             "community_name": community.community_name,
             "platform": "discord"
         }

@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, PlatformAction
+from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
@@ -15,6 +15,12 @@ DISCORD_ACTIONS = [
                     'discordpostmessage',
                     'discordrenamechannel'
                   ]
+
+REDDIT_VIEW_PERMS = ['Can view discord post message', 'Can view discord rename channel']
+
+REDDIT_PROPOSE_PERMS = ['Can add discord post message', 'Can add discord rename channel']
+
+REDDIT_EXECUTE_PERMS = ['Can execute discord post message', 'Can execute discord rename channel']
 
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
@@ -261,3 +267,88 @@ class DiscordRenameChannel(PlatformAction):
             req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
             resp = urllib.request.urlopen(req)
         super().pass_action()
+
+class DiscordStarterKit(StarterKit):
+    def init_kit(self, community, creator_token=None):
+        for policy in self.genericpolicy_set.all():
+            if policy.is_constitution:
+                p = ConstitutionPolicy()
+                p.community = community
+                p.filter = policy.filter
+                p.initialize = policy.initialize
+                p.check = policy.check
+                p.notify = policy.notify
+                p.success = policy.success
+                p.fail = policy.fail
+                p.description = policy.description
+                p.name = policy.name
+                
+                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+                p.proposal = proposal
+                p.save()
+            
+            else:
+                p = PlatformPolicy()
+                p.community = community
+                p.filter = policy.filter
+                p.initialize = policy.initialize
+                p.check = policy.check
+                p.notify = policy.notify
+                p.success = policy.success
+                p.fail = policy.fail
+                p.description = policy.description
+                p.name = policy.name
+                
+                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+                p.proposal = proposal
+                p.save()
+        
+        for role in self.genericrole_set.all():
+            c = None
+            if role.is_base_role:
+                c = community.base_role
+                role.is_base_role = False
+            else:
+                c = CommunityRole()
+                c.community = community
+                c.role_name = role.role_name
+                c.name = "Discord: " + community.community_name + ": " + role.role_name
+                c.save()
+            
+            for perm in role.permissions.all():
+                c.permissions.add(perm)
+            
+            jsonDec = json.decoder.JSONDecoder()
+            perm_set = jsonDec.decode(role.plat_perm_set)
+            
+            if 'view' in perm_set:
+                for perm in DISCORD_VIEW_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            if 'propose' in perm_set:
+                for perm in DISCORD_PROPOSE_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            if 'execute' in perm_set:
+                for perm in DISCORD_EXECUTE_PERMS:
+                    p1 = Permission.objects.get(name=perm)
+                    c.permissions.add(p1)
+            
+            if role.user_group == "admins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "nonadmins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "all":
+                group = CommunityUser.objects.filter(community = community)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "creator":
+                user = CommunityUser.objects.get(access_token=creator_token)
+                c.user_set.add(user)
+            
+            c.save()
+
