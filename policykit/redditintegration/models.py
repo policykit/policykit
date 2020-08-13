@@ -305,11 +305,11 @@ class RedditStarterKit(StarterKit):
                 for perm in REDDIT_VIEW_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif 'propose' in perm_set:
+            if 'propose' in perm_set:
                 for perm in REDDIT_PROPOSE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif 'execute' in perm_set:
+            if 'execute' in perm_set:
                 for perm in REDDIT_EXECUTE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
