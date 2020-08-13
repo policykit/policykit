@@ -269,8 +269,6 @@ class DiscordRenameChannel(PlatformAction):
         super().pass_action()
 
 class DiscordStarterKit(StarterKit):
-    platform = models.CharField(max_length=200, default="discord")
-    
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
             if policy.is_constitution:

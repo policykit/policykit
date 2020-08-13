@@ -18,13 +18,13 @@ from discordintegration.models import DiscordStarterKit
 import logging
 
 #default starterkit -- all users have ability to view/propose actions + all actions pass automatically
-testing_starterkit_slack = SlackStarterKit(name = "Testing Starter Kit")
+testing_starterkit_slack = SlackStarterKit(name = "Testing Starter Kit", platform = "slack")
 testing_starterkit_slack.save()
 
-testing_starterkit_reddit = RedditStarterKit(name = "Testing Starter Kit")
+testing_starterkit_reddit = RedditStarterKit(name = "Testing Starter Kit", platform = "reddit")
 testing_starterkit_reddit.save()
 
-testing_starterkit_discord = DiscordStarterKit(name = "Testing Starter Kit")
+testing_starterkit_discord = DiscordStarterKit(name = "Testing Starter Kit", platform = "discord")
 testing_starterkit_discord.save()
     
 testing_policy1_slack = GenericPolicy.objects.create(filter = "return True",
@@ -136,13 +136,13 @@ for perm in testing_const_perms:
 
 
 #starter kit for standard moderator/user structure
-admin_user_starterkit_slack = SlackStarterKit(name = "Admin and User Starter Kit")
+admin_user_starterkit_slack = SlackStarterKit(name = "Admin and User Starter Kit", platform = "slack")
 admin_user_starterkit_slack.save()
 
-admin_user_starterkit_reddit = RedditStarterKit(name = "Admin and User Starter Kit")
+admin_user_starterkit_reddit = RedditStarterKit(name = "Admin and User Starter Kit", platform = "reddit")
 admin_user_starterkit_reddit.save()
 
-admin_user_starterkit_discord = DiscordStarterKit(name = "Admin and User Starter Kit")
+admin_user_starterkit_discord = DiscordStarterKit(name = "Admin and User Starter Kit", platform = "discord")
 admin_user_starterkit_discord.save()
 
 admin_user_policy1_slack = GenericPolicy.objects.create(filter = "return True",
@@ -292,13 +292,13 @@ for perm in admin_user_mod_const_perms:
 
 #starter kit for basic democracy structure
 
-democracy_starterkit_slack = SlackStarterKit(name = "Democracy Starter Kit")
+democracy_starterkit_slack = SlackStarterKit(name = "Democracy Starter Kit", platform = "slack")
 democracy_starterkit_slack.save()
 
-democracy_starterkit_reddit = RedditStarterKit(name = "Democracy Starter Kit")
+democracy_starterkit_reddit = RedditStarterKit(name = "Democracy Starter Kit", platform = "reddit")
 democracy_starterkit_reddit.save()
 
-democracy_starterkit_discord = DiscordStarterKit(name = "Democracy Starter Kit")
+democracy_starterkit_discord = DiscordStarterKit(name = "Democracy Starter Kit", platform = "discord")
 democracy_starterkit_discord.save()
 
 democracy_policy1_slack = GenericPolicy.objects.create(filter = "return True",
@@ -486,13 +486,13 @@ for perm in democracy_voter_const_perms:
     democracy_voter_role_discord.permissions.add(p1)
 
 #starter kit for dictator
-dictator_starterkit_slack = SlackStarterKit(name = "Dictator Starter Kit")
+dictator_starterkit_slack = SlackStarterKit(name = "Dictator Starter Kit", platform = "slack")
 dictator_starterkit_slack.save()
 
-dictator_starterkit_reddit = RedditStarterKit(name = "Dictator Starter Kit")
+dictator_starterkit_reddit = RedditStarterKit(name = "Dictator Starter Kit", platform = "reddit")
 dictator_starterkit_reddit.save()
 
-dictator_starterkit_discord = DiscordStarterKit(name = "Dictator Starter Kit")
+dictator_starterkit_discord = DiscordStarterKit(name = "Dictator Starter Kit", platform = "discord")
 dictator_starterkit_discord.save()
 
 dictator_policy1_slack = GenericPolicy.objects.create(filter = "return True",
@@ -626,13 +626,13 @@ for perm in dictator_dictator_const_perms:
     dictator_dictator_role_discord.permissions.add(p1)
 
 #starter kit for jury
-jury_starterkit_slack = SlackStarterKit(name = "Jury Starter Kit")
+jury_starterkit_slack = SlackStarterKit(name = "Jury Starter Kit", platform = "slack")
 jury_starterkit_slack.save()
 
-jury_starterkit_reddit = RedditStarterKit(name = "Jury Starter Kit")
+jury_starterkit_reddit = RedditStarterKit(name = "Jury Starter Kit", platform = "reddit")
 jury_starterkit_reddit.save()
 
-jury_starterkit_discord = DiscordStarterKit(name = "Jury Starter Kit")
+jury_starterkit_discord = DiscordStarterKit(name = "Jury Starter Kit", platform = "discord")
 jury_starterkit_discord.save()
 
 jury_policy1_slack = GenericPolicy.objects.create(filter = "return True",
