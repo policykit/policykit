@@ -79,9 +79,9 @@ testing_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                                      has_notified = False,
                                                      )
         
-testing_base_role_slack = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User", starterkit = testing_starterkit_slack, is_base_role = True, user_group = "all")
+testing_base_role_slack = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Slack)", starterkit = testing_starterkit_slack, is_base_role = True, user_group = "all")
 
-testing_base_role_reddit = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User", starterkit = testing_starterkit_reddit, is_base_role = True, user_group = "all")
+testing_base_role_reddit = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Reddit)", starterkit = testing_starterkit_reddit, is_base_role = True, user_group = "all")
             
 testing_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
 
@@ -169,13 +169,13 @@ admin_user_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                                   has_notified = False,
                                                   )
 
-admin_user_base_role_slack = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User", starterkit = admin_user_starterkit_slack, is_base_role = True, user_group = "nonadmins")
+admin_user_base_role_slack = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Slack)", starterkit = admin_user_starterkit_slack, is_base_role = True, user_group = "nonadmins")
 
-admin_user_base_role_reddit = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User", starterkit = admin_user_starterkit_reddit, is_base_role = True, user_group = "nonadmins")
+admin_user_base_role_reddit = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Reddit)", starterkit = admin_user_starterkit_reddit, is_base_role = True, user_group = "nonadmins")
 
-admin_user_mod_role_slack = GenericRole.objects.create(role_name = "Administrator", name = "Administrator", starterkit = admin_user_starterkit_slack, is_base_role = False, user_group = "admins")
+admin_user_mod_role_slack = GenericRole.objects.create(role_name = "Administrator", name = "Administrator (Slack)", starterkit = admin_user_starterkit_slack, is_base_role = False, user_group = "admins")
 
-admin_user_mod_role_reddit = GenericRole.objects.create(role_name = "Administrator", name = "Administrator", starterkit = admin_user_starterkit_reddit, is_base_role = False, user_group = "admins")
+admin_user_mod_role_reddit = GenericRole.objects.create(role_name = "Administrator", name = "Administrator (Reddit)", starterkit = admin_user_starterkit_reddit, is_base_role = False, user_group = "admins")
 
 admin_user_base_const_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
@@ -303,13 +303,13 @@ action.platform.notify_users(action, policy, users=voter_users, text='Please vot
                                                        has_notified = False,
                                                        )
 
-democracy_base_role_slack = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User", starterkit = democracy_starterkit_slack, is_base_role = True, user_group = "nonadmins")
+democracy_base_role_slack = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Slack)", starterkit = democracy_starterkit_slack, is_base_role = True, user_group = "nonadmins")
 
-democracy_base_role_reddit = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User", starterkit = democracy_starterkit_reddit, is_base_role = True, user_group = "nonadmins")
+democracy_base_role_reddit = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Reddit)", starterkit = democracy_starterkit_reddit, is_base_role = True, user_group = "nonadmins")
 
-democracy_voter_role_slack = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter", starterkit = democracy_starterkit_slack, is_base_role = False, user_group = "admins")
+democracy_voter_role_slack = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter (Slack)", starterkit = democracy_starterkit_slack, is_base_role = False, user_group = "admins")
 
-democracy_voter_role_reddit = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter", starterkit = democracy_starterkit_reddit, is_base_role = False, user_group = "admins")
+democracy_voter_role_reddit = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter (Reddit)", starterkit = democracy_starterkit_reddit, is_base_role = False, user_group = "admins")
 
 democracy_base_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
 
@@ -400,13 +400,13 @@ dictator_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                                 has_notified = False,
                                                 )
 
-dictator_base_role_slack = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User", starterkit = dictator_starterkit_slack, is_base_role = True, user_group = "all")
+dictator_base_role_slack = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Slack)", starterkit = dictator_starterkit_slack, is_base_role = True, user_group = "all")
 
-dictator_base_role_reddit = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User", starterkit = dictator_starterkit_slack, is_base_role = True, user_group = "all")
+dictator_base_role_reddit = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Reddit)", starterkit = dictator_starterkit_slack, is_base_role = True, user_group = "all")
 
-dictator_dictator_role_slack = GenericRole.objects.create(role_name = "Dictator", name = "Dictator", starterkit = dictator_starterkit_slack, is_base_role = False, user_group = "creator")
+dictator_dictator_role_slack = GenericRole.objects.create(role_name = "Dictator", name = "Dictator (Slack)", starterkit = dictator_starterkit_slack, is_base_role = False, user_group = "creator")
 
-dictator_dictator_role_reddit = GenericRole.objects.create(role_name = "Dictator", name = "Dictator", starterkit = dictator_starterkit_reddit, is_base_role = False, user_group = "creator")
+dictator_dictator_role_reddit = GenericRole.objects.create(role_name = "Dictator", name = "Dictator (Reddit)", starterkit = dictator_starterkit_reddit, is_base_role = False, user_group = "creator")
 
 dictator_base_const_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit add permission', 'Can view policykit remove permission', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit change community doc']
 
@@ -529,9 +529,9 @@ jury_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                        has_notified = False,
                                        )
 
-jury_base_role_slack = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User", starterkit = jury_starterkit_slack, is_base_role = True, user_group = "all")
+jury_base_role_slack = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Slack)", starterkit = jury_starterkit_slack, is_base_role = True, user_group = "all")
 
-jury_base_role_reddit = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User", starterkit = jury_starterkit_reddit, is_base_role = True, user_group = "all")
+jury_base_role_reddit = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Reddit)", starterkit = jury_starterkit_reddit, is_base_role = True, user_group = "all")
 
 jury_base_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit add permission', 'Can add policykit remove permission', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit change community doc']
 
