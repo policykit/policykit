@@ -332,16 +332,15 @@ class SlackStarterKit(StarterKit):
                 for perm in SLACK_VIEW_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif 'propose' in perm_set:
+            if 'propose' in perm_set:
                 for perm in SLACK_PROPOSE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            elif 'execute' in perm_set:
+            if 'execute' in perm_set:
                 for perm in SLACK_EXECUTE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            
-            
+        
             if role.user_group == "admins":
                 group = CommunityUser.objects.filter(community = community, is_community_admin = True)
                 for user in group:
