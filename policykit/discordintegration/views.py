@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
-from discordintegration.models import DiscordCommunity, DiscordUser, DiscordPostMessage
+from discordintegration.models import DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
