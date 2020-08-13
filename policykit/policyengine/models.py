@@ -850,7 +850,7 @@ class BooleanVote(UserVote):
                           (True, 'Yes'),
                           (False, 'No')
                           )
-                          boolean_value = models.BooleanField(null = True, choices = TRUE_FALSE_CHOICES,
+    boolean_value = models.BooleanField(null = True, choices = TRUE_FALSE_CHOICES,
                                                                initial='', widget=forms.Select())) # yes/no, selected/not selected
 
 
