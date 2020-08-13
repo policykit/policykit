@@ -16,11 +16,11 @@ DISCORD_ACTIONS = [
                     'discordrenamechannel'
                   ]
 
-REDDIT_VIEW_PERMS = ['Can view discord post message', 'Can view discord rename channel']
+DISCORD_VIEW_PERMS = ['Can view discord post message', 'Can view discord rename channel']
 
-REDDIT_PROPOSE_PERMS = ['Can add discord post message', 'Can add discord rename channel']
+DISCORD_PROPOSE_PERMS = ['Can add discord post message', 'Can add discord rename channel']
 
-REDDIT_EXECUTE_PERMS = ['Can execute discord post message', 'Can execute discord rename channel']
+DISCORD_EXECUTE_PERMS = ['Can execute discord post message', 'Can execute discord rename channel']
 
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
