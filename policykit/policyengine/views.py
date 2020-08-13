@@ -168,23 +168,24 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, GenericRole, GenericPolicy, Community
-
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
+    from django.contrib.auth.models import Permission
+    from redditintegration.models import RedditStarterKit
+    from slackintegration.models import SlackStarterKit
+    
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
+    platform = request.POST['platform']
 
-    starter_kit = StarterKit.objects.get(name=starterkit_name)
+    starter_kit = None
+    if platform == "slack":
+        starter_kit = SlackStarterKit.objects.get(name=starterkit_name)
+    elif platform == "reddit":
+        starter_kit = RedditStarterKit.objects.get(name=starterkit_name)
+
     community = Community.objects.get(community_name=community_name)
-
-    for policy in starter_kit.genericpolicy_set.all():
-        if policy.is_constitution:
-            policy.make_constitution_policy(community)
-        else:
-            policy.make_platform_policy(community)
-
-    for role in starter_kit.genericrole_set.all():
-        role.make_community_role(community, creator_token)
+    starter_kit.init_kit(community, creator_token)
 
     logger.info('starterkit initialized')
     logger.info('creator_token' + creator_token)
