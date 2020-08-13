@@ -34,6 +34,8 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
+    
+    platform = models.CharField(max_length=200, default="")
 
     def __str__(self):
         return self.name
