@@ -1,0 +1,208 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>PolicyKit</title>
+
+  <link rel="stylesheet" href="{% static "bootstrap/css/semantic.min.css" %}">
+  <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&family=Itim&family=Karla:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+	<style>
+    body {
+      margin: 0px;
+      padding: 0px;
+      background-color: #ebecf1;
+    }
+
+    .header {
+      position: sticky;
+      z-index: 999;
+      top: 0;
+      height: 7vh;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      background-color: #ffffff;
+      border-bottom: 1px solid #e5e7e9;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 1vh 2vw;
+    }
+
+    .brand:hover {
+      cursor: pointer;
+    }
+
+    .brandLogo {
+      width: 60px;
+    }
+
+    .brandName {
+      font-family: 'Baloo Da 2', sans-serif;
+      font-weight: bold;
+      font-size: 2.3em;
+      color: #373456;
+      margin-left: 1vw;
+      line-height: 2.3em;
+      white-space: nowrap;
+    }
+
+    .communityName {
+      font-family: 'Baloo Da 2', sans-serif;
+      font-weight: bold;
+      font-size: 1.6em;
+      color: #373456;
+      margin-left: 0.5vw;
+      line-height: 1.4em;
+      white-space: nowrap;
+    }
+
+    .profile {
+      margin-left: auto;
+      width: 13vw;
+      height: 100%;
+      border: 1px solid #ffffff;
+      padding-right: 2vw;
+    }
+
+    .profileButton {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .profile:hover {
+      cursor: pointer;
+    }
+
+    .profilePicture {
+      width: 40px;
+      border-radius: 50%;
+      margin-left: 1vw;
+    }
+
+    .profileName {
+      color: #373456;
+      padding: 0% 1%;
+      font-family: 'Karla', sans-serif;
+      font-weight: normal;
+      font-size: 1.6em;
+      white-space: nowrap;
+    }
+
+    .profileDropdown {
+      z-index: 1;
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      border: none;
+    }
+
+    .profileDropdownElement {
+      display: none;
+      background-color: #ffffff;
+      padding: 0.5em 30px 0.5em 10px;
+    }
+
+    .profileDropdownElement h4 {
+      font-weight: bold;
+      font-size: 1.2em;
+      font-family: 'Karla', sans-serif;
+    }
+
+    .profileDropdownElement:hover {
+      color: #808b96;
+    }
+
+  </style>
+
+  {% block styles %}
+	{% endblock %}
+</head>
+
+<body>
+  <div class="header">
+    <div class="brand" id="brand">
+      <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
+      <h2 class="brandName">PolicyKit</h2>
+      <h3 class="communityName">| {{user.community.community_name}}</h3>
+    </div>
+
+    <div class="profile" id="profile">
+      <div class="profileButton">
+        <h3 class="profileName">Hi, {{user.readable_name}}</h3>
+        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+      </div>
+      <div class="profileDropdown">
+        <div class="profileDropdownElement">
+          <h4>Switch Community</h4>
+        </div>
+        <div class="profileDropdownElement">
+          <h4>Settings</h4>
+        </div>
+        <div class="profileDropdownElement">
+          <h4>Help</h4>
+        </div>
+        <div class="profileDropdownElement" id="logout">
+          <h4>Log Out</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% block content %}
+  {% endblock %}
+
+  <script>
+    document.getElementById("brand").addEventListener("click", navHome);
+    document.getElementById("profile").addEventListener("mouseover", showDropdown);
+    document.getElementById("profile").addEventListener("mouseout", hideDropdown);
+    document.getElementById("logout").addEventListener("click", logout);
+
+    function navHome() {
+      window.location.href = "{{server_url}}/main/"
+    }
+
+    function showDropdown() {
+      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
+      for (let i = 0; i < dropdownElements.length; i++) {
+        dropdownElements[i].style.display = "inline-block"
+      }
+    }
+
+    function hideDropdown() {
+      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
+      for (let i = 0; i < dropdownElements.length; i++) {
+        dropdownElements[i].style.display = "none"
+      }
+    }
+
+    function logout() {
+      window.location.href = "{{server_url}}/logout/"
+    }
+  </script>
+
+  {% block scripts %}
+	{% endblock %}
+</body>
+
+</html>
