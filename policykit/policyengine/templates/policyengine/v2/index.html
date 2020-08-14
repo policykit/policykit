@@ -60,7 +60,6 @@
   }
 
   .sidebarPanel {
-    display: flex;
     width: 80%;
     min-height: 30vh;
     margin-top: 1vh;
@@ -79,8 +78,20 @@
     padding-left: 2vw;
   }
 
+  .sidebarPanelContent {
+    width: 92%;
+    margin-left: 4%;
+    height: 20vh;
+    overflow: auto;
+  }
+
+  .sidebarPanelContent thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
+  }
+
   .actionPanel {
-    display: flex;
     width: 90%;
     min-height: 35vh;
     margin-top: 3vh;
@@ -119,6 +130,74 @@
 
     <div class="sidebarPanel">
       <h4 class="sidebarPanelTitle">Users</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Username</th>
+                <th scope="col">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+              <tr>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
     </div>
 
     <div class="sidebarPanel">
