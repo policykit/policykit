@@ -4,7 +4,6 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from policyengine.filter import *
-from policyengine.models import CommunityUser, CommunityRole
 from policykit.settings import SERVER_URL
 import urllib.request
 import urllib.parse
@@ -19,6 +18,8 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
+    from policyengine.models import CommunityUser, CommunityRole
+    
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
