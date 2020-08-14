@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from policyengine.filter import *
+from policyengine.models import *
 from policykit.settings import SERVER_URL
 import urllib.request
 import urllib.parse
