@@ -18,9 +18,37 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
+    user = get_user(request)
+
+    users = CommunityUser.objects.filter(community=user.community)
+    roles = CommunityRole.objects.filter(community=user.community)
+
+    # Indexing entries by username/name allows retrieval in O(1) rather than O(n)
+    user_data = {}
+    for u in users:
+        user_data[u.username] = {
+            'readable_name': u.readable_name,
+            'roles': []
+        }
+
+    role_data = {}
+    for r in roles:
+        role_data[r.name] = {
+            'permissions': [],
+            'users': []
+        }
+        for p in r.permissions.all():
+            role_data[r.name]['permissions'].append({ 'name': p.name })
+        for u in r.user_set.all():
+            cu = u.communityuser
+            role_data[r.name]['users'].append({ 'username': cu.readable_name })
+            user_data[cu.username]['roles'].append({ 'name': r.name })
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request)
+        'user': user,
+        'users': user_data,
+        'roles': role_data
     })
 
 def logout(request):
@@ -172,7 +200,7 @@ def initialize_starterkit(request):
     from django.contrib.auth.models import Permission
     from redditintegration.models import RedditStarterKit
     from slackintegration.models import SlackStarterKit
-    
+
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
