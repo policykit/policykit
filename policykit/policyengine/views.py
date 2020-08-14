@@ -18,12 +18,14 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
-    from policyengine.models import CommunityUser, CommunityRole
-    
+    from policyengine.models import CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
+
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
     roles = CommunityRole.objects.filter(community=user.community)
+    platform_policies = PlatformPolicy.objects.filter(community=user.community)
+    constitution_policies = ConstitutionPolicy.objects.filter(community=user.community)
 
     # Indexing entries by username/name allows retrieval in O(1) rather than O(n)
     user_data = {}
@@ -46,11 +48,41 @@ def v2(request):
             role_data[r.name]['users'].append({ 'username': cu.readable_name })
             user_data[cu.username]['roles'].append({ 'name': r.name })
 
+    platform_policy_data = {}
+    for pp in platform_policies:
+        platform_policy_data[pp.id] = {
+            'name': i.name,
+            'description': i.description,
+            'is_bundled': i.is_bundled,
+            'filter': i.filter,
+            'initialize': i.initialize,
+            'check': i.check,
+            'notify': i.notify,
+            'success': i.success,
+            'fail': i.fail
+        }
+
+    constitution_policy_data = {}
+    for cp in constitution_policies:
+        constitution_policy_data[cp.id] = {
+            'name': i.name,
+            'description': i.description,
+            'is_bundled': i.is_bundled,
+            'filter': i.filter,
+            'initialize': i.initialize,
+            'check': i.check,
+            'notify': i.notify,
+            'success': i.success,
+            'fail': i.fail
+        }
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
         'user': user,
         'users': user_data,
-        'roles': role_data
+        'roles': role_data,
+        'platform_policies': platform_policy_data,
+        'constitution_policies': constitution_policy_data
     })
 
 def logout(request):
