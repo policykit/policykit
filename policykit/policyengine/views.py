@@ -51,29 +51,29 @@ def v2(request):
     platform_policy_data = {}
     for pp in platform_policies:
         platform_policy_data[pp.id] = {
-            'name': i.name,
-            'description': i.description,
-            'is_bundled': i.is_bundled,
-            'filter': i.filter,
-            'initialize': i.initialize,
-            'check': i.check,
-            'notify': i.notify,
-            'success': i.success,
-            'fail': i.fail
+            'name': pp.name,
+            'description': pp.description,
+            'is_bundled': pp.is_bundled,
+            'filter': pp.filter,
+            'initialize': pp.initialize,
+            'check': pp.check,
+            'notify': pp.notify,
+            'success': pp.success,
+            'fail': pp.fail
         }
 
     constitution_policy_data = {}
     for cp in constitution_policies:
         constitution_policy_data[cp.id] = {
-            'name': i.name,
-            'description': i.description,
-            'is_bundled': i.is_bundled,
-            'filter': i.filter,
-            'initialize': i.initialize,
-            'check': i.check,
-            'notify': i.notify,
-            'success': i.success,
-            'fail': i.fail
+            'name': cp.name,
+            'description': cp.description,
+            'is_bundled': cp.is_bundled,
+            'filter': cp.filter,
+            'initialize': cp.initialize,
+            'check': cp.check,
+            'notify': cp.notify,
+            'success': cp.success,
+            'fail': cp.fail
         }
 
     return render(request, 'policyengine/v2/index.html', {
