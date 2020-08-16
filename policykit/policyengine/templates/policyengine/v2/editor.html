@@ -162,7 +162,40 @@
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
 
   function propose() {
-    window.location.href = "{{server_url}}/main/"
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const operation = urlParams.get('operation');
+
+    const name = document.getElementById("name").value
+    const description = document.getElementById("description").value
+    const filter = document.getElementById("filter").nextSibling.CodeMirror.getValue()
+    const initialize = document.getElementById("initialize").nextSibling.CodeMirror.getValue()
+    const check = document.getElementById("check").nextSibling.CodeMirror.getValue()
+    const notify = document.getElementById("notify").nextSibling.CodeMirror.getValue()
+    const success = document.getElementById("pass").nextSibling.CodeMirror.getValue()
+    const fail = document.getElementById("fail").nextSibling.CodeMirror.getValue()
+
+    fetch('../../../main/policyengine/policy_action_save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'type': type,
+        'operation': operation,
+        'name': name,
+        'description': description,
+        'is_bundled': false,
+        'filter': filter,
+        'initialize': initialize,
+        'check': check,
+        'notify': notify,
+        'success': success,
+        'fail': fail
+      })
+    }).then(response => {
+      window.location.href = "{{server_url}}/main/"
+    });
   }
 
   function addToBundle() {
