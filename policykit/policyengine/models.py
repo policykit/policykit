@@ -34,6 +34,8 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
+    
+    platform = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
         return self.name
@@ -846,7 +848,12 @@ class UserVote(models.Model):
 
 
 class BooleanVote(UserVote):
-    boolean_value = models.BooleanField(null=True) # yes/no, selected/not selected
+    TRUE_FALSE_CHOICES = (
+                          (True, 'Yes'),
+                          (False, 'No')
+                          )
+    boolean_value = models.BooleanField(null = True, choices = TRUE_FALSE_CHOICES,
+                                                               default= True) # yes/no, selected/not selected
 
 
 class NumberVote(UserVote):
