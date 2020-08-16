@@ -284,13 +284,13 @@ def policy_action_save(request):
 
     action = None
     if data['type'] == 'constitution' and data['operation'] == 'add':
-        action = PolicykitAddConstitutionPolicy.objects.create()
+        action = PolicykitAddConstitutionPolicy()
     elif data['type'] == 'platform' and data['operation'] == 'add':
-        action = PolicykitAddPlatformPolicy.objects.create()
+        action = PolicykitAddPlatformPolicy()
     elif data['type'] == 'constitution' and data['operation'] == 'change':
-        action = PolicykitChangeConstitutionPolicy.objects.create()
+        action = PolicykitChangeConstitutionPolicy()
     elif data['type'] == 'platform' and data['operation'] == 'change':
-        action = PolicykitChangePlatformPolicy.objects.create()
+        action = PolicykitChangePlatformPolicy()
     else:
         return HttpResponseBadRequest()
 
