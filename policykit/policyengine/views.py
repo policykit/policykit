@@ -18,9 +18,71 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
+    from policyengine.models import CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
+
+    user = get_user(request)
+
+    users = CommunityUser.objects.filter(community=user.community)
+    roles = CommunityRole.objects.filter(community=user.community)
+    platform_policies = PlatformPolicy.objects.filter(community=user.community)
+    constitution_policies = ConstitutionPolicy.objects.filter(community=user.community)
+
+    # Indexing entries by username/name allows retrieval in O(1) rather than O(n)
+    user_data = {}
+    for u in users:
+        user_data[u.username] = {
+            'readable_name': u.readable_name,
+            'roles': []
+        }
+
+    role_data = {}
+    for r in roles:
+        role_data[r.name] = {
+            'permissions': [],
+            'users': []
+        }
+        for p in r.permissions.all():
+            role_data[r.name]['permissions'].append({ 'name': p.name })
+        for u in r.user_set.all():
+            cu = u.communityuser
+            role_data[r.name]['users'].append({ 'username': cu.readable_name })
+            user_data[cu.username]['roles'].append({ 'name': r.name })
+
+    platform_policy_data = {}
+    for pp in platform_policies:
+        platform_policy_data[pp.id] = {
+            'name': pp.name,
+            'description': pp.description,
+            'is_bundled': pp.is_bundled,
+            'filter': pp.filter,
+            'initialize': pp.initialize,
+            'check': pp.check,
+            'notify': pp.notify,
+            'success': pp.success,
+            'fail': pp.fail
+        }
+
+    constitution_policy_data = {}
+    for cp in constitution_policies:
+        constitution_policy_data[cp.id] = {
+            'name': cp.name,
+            'description': cp.description,
+            'is_bundled': cp.is_bundled,
+            'filter': cp.filter,
+            'initialize': cp.initialize,
+            'check': cp.check,
+            'notify': cp.notify,
+            'success': cp.success,
+            'fail': cp.fail
+        }
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request)
+        'user': user,
+        'users': user_data,
+        'roles': role_data,
+        'platform_policies': platform_policy_data,
+        'constitution_policies': constitution_policy_data
     })
 
 def logout(request):
@@ -170,7 +232,7 @@ def clean_up_proposals(action, executed):
 def initialize_starterkit(request):
     from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
     from django.contrib.auth.models import Permission
-    
+
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']

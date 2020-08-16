@@ -60,7 +60,6 @@
   }
 
   .sidebarPanel {
-    display: flex;
     width: 80%;
     min-height: 30vh;
     margin-top: 1vh;
@@ -79,8 +78,20 @@
     padding-left: 2vw;
   }
 
+  .sidebarPanelContent {
+    width: 92%;
+    margin-left: 4%;
+    height: 20vh;
+    overflow: auto;
+  }
+
+  .sidebarPanelContent thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
+  }
+
   .actionPanel {
-    display: flex;
     width: 90%;
     min-height: 35vh;
     margin-top: 3vh;
@@ -119,6 +130,26 @@
 
     <div class="sidebarPanel">
       <h4 class="sidebarPanelTitle">Users</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Username</th>
+                <th scope="col">Roles</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in users.items %}
+                <tr>
+                  <td>{{value.readable_name}}</td>
+                  <td>{{key}}</td>
+                  <td>{% for r in value.roles %}{{r.name }}{% endfor %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
 
     <div class="sidebarPanel">
@@ -127,10 +158,46 @@
 
     <div class="sidebarPanel">
       <h4 class="sidebarPanelTitle">Community Policies</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in platform_policies.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>{{value.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
 
     <div class="sidebarPanel">
       <h4 class="sidebarPanelTitle">Constitution Policies</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in constitution_policies.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>{{value.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
   </div>
 </div>
