@@ -183,16 +183,16 @@
 
 {% block scripts %}
 <script>
-  document.getElementById("{{user.community.platform}}ActionsHeader").addEventListener("click", toggleActionMenu)
-  document.getElementById("constitutionPoliciesHeader").addEventListener("click", toggleActionMenu)
-  document.getElementById("platformPoliciesHeader").addEventListener("click", toggleActionMenu)
-  document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu)
-  document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu)
+  document.getElementById("{{user.community.platform}}ActionsHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("constitutionPoliciesHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("platformPoliciesHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu);
 
-  document.getElementById("addConstitutionPolicy").addEventListener("click", navEditor)
-  document.getElementById("editConstitutionPolicy").addEventListener("click", navEditor)
-  document.getElementById("addPlatformPolicy").addEventListener("click", navEditor)
-  document.getElementById("editPlatformPolicy").addEventListener("click", navEditor)
+  document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('constitution', 'add'); });
+  document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navEditor('constitution', 'change'); });
+  document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('platform', 'add'); });
+  document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navEditor('platform', 'change'); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -203,8 +203,8 @@
     }
   }
 
-  function navEditor() {
-    window.location.href = "{{server_url}}/main/editor/"
+  function navEditor(type, operation) {
+    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
   }
 </script>
 {% endblock %}

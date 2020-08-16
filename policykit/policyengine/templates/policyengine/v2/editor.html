@@ -162,7 +162,29 @@
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
 
   function propose() {
-    window.location.href = "{{server_url}}/main/"
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const operation = urlParams.get('operation');
+
+    fetch('../../../main/policyengine/policy_action_save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'type': type,
+        'operation': operation,
+        'name': document.getElementById("name").value,
+        'description': document.getElementById("description").value,
+        'is_bundled': false,
+        'filter': document.getElementById("filter").value,
+        'initialize': document.getElementById("initialize").value,
+        'check': document.getElementById("check").value,
+        'notify': document.getElementById("notify").value,
+        'success': document.getElementById("pass").value,
+        'fail': document.getElementById("fail").value
+      });
+    });
   }
 
   function addToBundle() {
