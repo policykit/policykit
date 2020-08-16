@@ -280,6 +280,7 @@ def policy_action_save(request):
     from policyengine.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
 
     user = get_user(request)
+    logger.info(request.body)
     data = json.loads(request.body)
 
     action = None
