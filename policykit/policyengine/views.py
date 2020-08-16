@@ -104,39 +104,6 @@ def actions(request):
         'user': get_user(request),
     })
 
-def policy_action_save(request):
-    from policyengine.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
-
-    user = get_user(request)
-    data = json.loads(request.body)
-
-    action = None
-    if data['type'] == 'constitution' and data['operation'] == 'add':
-        action = PolicykitAddConstitutionPolicy.objects.create()
-    elif data['type'] == 'platform' and data['operation'] == 'add':
-        action = PolicykitAddPlatformPolicy.objects.create()
-    elif data['type'] == 'constitution' and data['operation'] == 'change':
-        action = PolicykitChangeConstitutionPolicy.objects.create()
-    elif data['type'] == 'platform' and data['operation'] == 'change':
-        action = PolicykitChangePlatformPolicy.objects.create()
-    else:
-        return HttpResponseBadRequest()
-
-    action.community = user.community
-    action.initiator = user
-    action.name = data['name']
-    action.description = data['description']
-    action.is_bundled = data['is_bundled']
-    action.filter = data['filter']
-    action.initialize = data['initialize']
-    action.check = data['check']
-    action.notify = data['notify']
-    action.success = data['success']
-    action.fail = data['fail']
-    action.save()
-
-    return redirect('/main')
-
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
     if len(errors) > 0:
@@ -308,4 +275,36 @@ def error_check(request):
         return JsonResponse({ 'is_error': True, 'errors': errors })
     return JsonResponse({ 'is_error': False })
 
-#pass in the community
+@csrf_exempt
+def policy_action_save(request):
+    from policyengine.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
+
+    user = get_user(request)
+    data = json.loads(request.body)
+
+    action = None
+    if data['type'] == 'constitution' and data['operation'] == 'add':
+        action = PolicykitAddConstitutionPolicy.objects.create()
+    elif data['type'] == 'platform' and data['operation'] == 'add':
+        action = PolicykitAddPlatformPolicy.objects.create()
+    elif data['type'] == 'constitution' and data['operation'] == 'change':
+        action = PolicykitChangeConstitutionPolicy.objects.create()
+    elif data['type'] == 'platform' and data['operation'] == 'change':
+        action = PolicykitChangePlatformPolicy.objects.create()
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.name = data['name']
+    action.description = data['description']
+    action.is_bundled = data['is_bundled']
+    action.filter = data['filter']
+    action.initialize = data['initialize']
+    action.check = data['check']
+    action.notify = data['notify']
+    action.success = data['success']
+    action.fail = data['fail']
+    action.save()
+
+    return redirect('/main')
