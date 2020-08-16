@@ -166,6 +166,12 @@
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
 
+    console.log(type)
+
+    console.log(operation)
+
+    console.log(document.getElementById("check").value)
+
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
       headers: {
