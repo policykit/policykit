@@ -307,4 +307,4 @@ def policy_action_save(request):
     action.fail = data['fail']
     action.save()
 
-    return redirect('/main')
+    return HttpResponse()

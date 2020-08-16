@@ -193,6 +193,8 @@
         'success': success,
         'fail': fail
       })
+    }).then(response => {
+      window.location.href = "{{server_url}}/main/"
     });
   }
 
