@@ -166,11 +166,14 @@
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
 
-    console.log(type)
-
-    console.log(operation)
-
-    console.log(document.getElementById("check").nextSibling.CodeMirror.getValue())
+    const name = document.getElementById("name").value
+    const description = document.getElementById("description").value
+    const filter = document.getElementById("filter").nextSibling.CodeMirror.getValue()
+    const initialize = document.getElementById("initialize").nextSibling.CodeMirror.getValue()
+    const check = document.getElementById("check").nextSibling.CodeMirror.getValue()
+    const notify = document.getElementById("notify").nextSibling.CodeMirror.getValue()
+    const success = document.getElementById("pass").nextSibling.CodeMirror.getValue()
+    const fail = document.getElementById("fail").nextSibling.CodeMirror.getValue()
 
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
@@ -180,15 +183,15 @@
       body: JSON.stringify({
         'type': type,
         'operation': operation,
-        'name': document.getElementById("name").value,
-        'description': document.getElementById("description").value,
+        'name': name,
+        'description': description,
         'is_bundled': false,
-        'filter': document.getElementById("filter").value,
-        'initialize': document.getElementById("initialize").value,
-        'check': document.getElementById("check").value,
-        'notify': document.getElementById("notify").value,
-        'success': document.getElementById("pass").value,
-        'fail': document.getElementById("fail").value
+        'filter': filter,
+        'initialize': initialize,
+        'check': check,
+        'notify': notify,
+        'success': success,
+        'fail': fail
       })
     });
   }
