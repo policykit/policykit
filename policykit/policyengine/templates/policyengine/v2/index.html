@@ -287,7 +287,7 @@
 <div id="modal" class="modal">
   <div class="modal-content">
     <span id="close" class="close">&times;</span>
-    
+
     <div class="form-row">
       <label class="control-label col-sm-2" for="name">Name:</label>
       <div class="col-sm-10">
@@ -390,11 +390,17 @@
     document.getElementById("name").value = name;
     document.getElementById("description").value = description;
     editors[0].setValue(filter);
+    editors[0].refresh();
     editors[1].setValue(initialize);
+    editors[1].refresh();
     editors[2].setValue(check);
+    editors[2].refresh();
     editors[3].setValue(notify);
+    editors[3].refresh();
     editors[4].setValue(pass);
+    editors[4].refresh();
     editors[5].setValue(fail);
+    editors[5].refresh();
 
     document.getElementById("modal").style.display = "block";
   }
