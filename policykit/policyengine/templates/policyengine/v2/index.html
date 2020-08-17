@@ -250,7 +250,7 @@
             </thead>
             <tbody>
               {% for key, value in platform_policies.items %}
-                <tr>
+                <tr id="platform_{{key}}">
                   <td>{{key}}</td>
                   <td>{{value.name}}</td>
                 </tr>
@@ -354,6 +354,9 @@
 
 <script>
   document.getElementById("proposeAction").addEventListener("click", navActions);
+  {% for key, value in platform_policies.items %}
+    document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal(`{{value.name}}`, `{{value.description}}`, `{{value.filter}}`, `{{value.initialize}}`, `{{value.check}}`, `{{value.notify}}`, `{{value.pass}}`, `{{value.fail}}`); });
+  {% endfor %}
   {% for key, value in constitution_policies.items %}
     document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal(`{{value.name}}`, `{{value.description}}`, `{{value.filter}}`, `{{value.initialize}}`, `{{value.check}}`, `{{value.notify}}`, `{{value.pass}}`, `{{value.fail}}`); });
   {% endfor %}
@@ -377,13 +380,6 @@
 
   function navActions() {
     window.location.href = "{{server_url}}/main/actions/"
-  }
-
-  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it/7394787
-  function decodeHtml(html) {
-    var txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
   }
 
   function showModal(name, description, filter, initialize, check, notify, pass, fail) {
