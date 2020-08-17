@@ -390,17 +390,17 @@
     document.getElementById("name").value = name;
     document.getElementById("description").value = description;
     editors[0].setValue(filter);
-    editors[0].refresh();
+    setTimeout(editors[0].refresh(), 0);
     editors[1].setValue(initialize);
-    editors[1].refresh();
+    setTimeout(editors[1].refresh(), 0);
     editors[2].setValue(check);
-    editors[2].refresh();
+    setTimeout(editors[2].refresh(), 0);
     editors[3].setValue(notify);
-    editors[3].refresh();
+    setTimeout(editors[3].refresh(), 0);
     editors[4].setValue(pass);
-    editors[4].refresh();
+    setTimeout(editors[4].refresh(), 0);
     editors[5].setValue(fail);
-    editors[5].refresh();
+    setTimeout(editors[5].refresh(), 0);
 
     document.getElementById("modal").style.display = "block";
   }
