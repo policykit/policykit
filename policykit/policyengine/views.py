@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from policyengine.filter import *
@@ -18,9 +18,71 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
+    from policyengine.models import CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
+
+    user = get_user(request)
+
+    users = CommunityUser.objects.filter(community=user.community)
+    roles = CommunityRole.objects.filter(community=user.community)
+    platform_policies = PlatformPolicy.objects.filter(community=user.community)
+    constitution_policies = ConstitutionPolicy.objects.filter(community=user.community)
+
+    # Indexing entries by username/name allows retrieval in O(1) rather than O(n)
+    user_data = {}
+    for u in users:
+        user_data[u.username] = {
+            'readable_name': u.readable_name,
+            'roles': []
+        }
+
+    role_data = {}
+    for r in roles:
+        role_data[r.name] = {
+            'permissions': [],
+            'users': []
+        }
+        for p in r.permissions.all():
+            role_data[r.name]['permissions'].append({ 'name': p.name })
+        for u in r.user_set.all():
+            cu = u.communityuser
+            role_data[r.name]['users'].append({ 'username': cu.readable_name })
+            user_data[cu.username]['roles'].append({ 'name': r.name })
+
+    platform_policy_data = {}
+    for pp in platform_policies:
+        platform_policy_data[pp.id] = {
+            'name': pp.name,
+            'description': pp.description,
+            'is_bundled': pp.is_bundled,
+            'filter': pp.filter,
+            'initialize': pp.initialize,
+            'check': pp.check,
+            'notify': pp.notify,
+            'success': pp.success,
+            'fail': pp.fail
+        }
+
+    constitution_policy_data = {}
+    for cp in constitution_policies:
+        constitution_policy_data[cp.id] = {
+            'name': cp.name,
+            'description': cp.description,
+            'is_bundled': cp.is_bundled,
+            'filter': cp.filter,
+            'initialize': cp.initialize,
+            'check': cp.check,
+            'notify': cp.notify,
+            'success': cp.success,
+            'fail': cp.fail
+        }
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request)
+        'user': user,
+        'users': user_data,
+        'roles': role_data,
+        'platform_policies': platform_policy_data,
+        'constitution_policies': constitution_policy_data
     })
 
 def logout(request):
@@ -168,21 +230,15 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
+    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
     from django.contrib.auth.models import Permission
-    from redditintegration.models import RedditStarterKit
-    from slackintegration.models import SlackStarterKit
-    
+
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
     platform = request.POST['platform']
 
-    starter_kit = None
-    if platform == "slack":
-        starter_kit = SlackStarterKit.objects.get(name=starterkit_name)
-    elif platform == "reddit":
-        starter_kit = RedditStarterKit.objects.get(name=starterkit_name)
+    starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
 
     community = Community.objects.get(community_name=community_name)
     starter_kit.init_kit(community, creator_token)
@@ -219,4 +275,36 @@ def error_check(request):
         return JsonResponse({ 'is_error': True, 'errors': errors })
     return JsonResponse({ 'is_error': False })
 
-#pass in the community
+@csrf_exempt
+def policy_action_save(request):
+    from policyengine.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['type'] == 'constitution' and data['operation'] == 'add':
+        action = PolicykitAddConstitutionPolicy()
+    elif data['type'] == 'platform' and data['operation'] == 'add':
+        action = PolicykitAddPlatformPolicy()
+    elif data['type'] == 'constitution' and data['operation'] == 'change':
+        action = PolicykitChangeConstitutionPolicy()
+    elif data['type'] == 'platform' and data['operation'] == 'change':
+        action = PolicykitChangePlatformPolicy()
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.name = data['name']
+    action.description = data['description']
+    action.is_bundled = data['is_bundled']
+    action.filter = data['filter']
+    action.initialize = data['initialize']
+    action.check = data['check']
+    action.notify = data['notify']
+    action.success = data['success']
+    action.fail = data['fail']
+    action.save()
+
+    return HttpResponse()

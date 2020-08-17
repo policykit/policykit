@@ -1,332 +1,214 @@
+{% extends "policyengine/v2/dashboard_base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+{% block styles %}
+<style>
+  .body {
+    display: flex;
+    flex-direction: row;
+    width: 90vw;
+    min-height: 90vh;
+    margin: 0 5vw;
+    padding-top: 3vh;
+  }
 
-  <title>PolicyKit</title>
+  .leftCol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 60%;
+    height: 90vh;
+  }
 
-  <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+  .rightCol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40%;
+    height: 80vh;
+  }
 
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&family=Itim&family=Karla:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  .searchBar {
+    display: flex;
+    width: 90%;
+    margin-top: 1vh;
+    border-radius: 30px;
+    border-width: 0px;
+    padding: 10px 30px;
+    background-color: #ffffff;
+    color: #ebecf1;
+    outline: none;
+    font-family: 'Karla', sans-serif;
+    font-size: 1.2em;
+  }
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  .proposeButton {
+    width: 80%;
+    padding: 2% 20%;
+    border-width: 0px;
+    border-radius: 30px;
+    background-color: #4451b2;
+    color: #ffffff;
+    line-height: 1.7em;
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
+    font-size: 1.7em;
+    box-shadow: 0 0 2px #9fa2b5;
+    outline: none;
+    margin-top: 1vh;
+    margin-bottom: 3vh;
+  }
 
-	<style>
-    body {
-      margin: 0px;
-      padding: 0px;
-      background-color: #ebecf1;
-    }
+  .sidebarPanel {
+    width: 80%;
+    min-height: 30vh;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    background-color: #ffffff;
+    border-radius: 30px;
+    box-shadow: 0 0 2px #9fa2b5;
+  }
 
-    .header {
-      position: sticky;
-      z-index: 999;
-      top: 0;
-      height: 7vh;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e5e7e9;
-    }
+  .sidebarPanelTitle {
+    color: #373456;
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
+    font-size: 1.8em;
+    padding-top: 2.6vh;
+    padding-left: 2vw;
+  }
 
-    .body {
-      display: flex;
-      flex-direction: row;
-      width: 90vw;
-      min-height: 90vh;
-      margin: 0 5vw;
-      padding-top: 3vh;
-    }
+  .sidebarPanelContent {
+    width: 92%;
+    margin-left: 4%;
+    height: 20vh;
+    overflow: auto;
+  }
 
-    .brand {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-      padding: 1vh 2vw;
-    }
+  .sidebarPanelContent thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
+  }
 
-    .brand:hover {
-      cursor: pointer;
-    }
+  .actionPanel {
+    width: 90%;
+    min-height: 35vh;
+    margin-top: 3vh;
+    background-color: #ffffff;
+    border-radius: 30px;
+    box-shadow: 0 0 2px #9fa2b5;
+  }
 
-    .brandLogo {
-      width: 60px;
-    }
+  .actionPanelTitle {
+    color: #373456;
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
+    font-size: 2.3em;
+    padding-top: 1.6vh;
+    padding-left: 2vw;
+  }
+</style>
+{% endblock %}
 
-    .brandName {
-      font-family: 'Baloo Da 2', sans-serif;
-      font-weight: bold;
-      font-size: 2.3em;
-      color: #373456;
-      margin-left: 1vw;
-      line-height: 2.3em;
-      white-space: nowrap;
-    }
+{% block content %}
+<div class="body">
+  <div class="leftCol">
+    <input type="text" class="searchBar" placeholder="Search">
 
-    .communityName {
-      font-family: 'Baloo Da 2', sans-serif;
-      font-weight: bold;
-      font-size: 1.6em;
-      color: #373456;
-      margin-left: 0.5vw;
-      line-height: 1.4em;
-      white-space: nowrap;
-    }
-
-    .profile {
-      margin-left: auto;
-      width: 13vw;
-      height: 100%;
-      border: 1px solid #ffffff;
-      padding-right: 2vw;
-    }
-
-    .profileButton {
-      position: relative;
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-    }
-
-    .profile:hover {
-      cursor: pointer;
-    }
-
-    .profilePicture {
-      width: 40px;
-      border-radius: 50%;
-      margin-left: 1vw;
-    }
-
-    .profileName {
-      color: #373456;
-      padding: 0% 1%;
-      font-family: 'Karla', sans-serif;
-      font-weight: normal;
-      font-size: 1.6em;
-      white-space: nowrap;
-    }
-
-    .profileDropdown {
-      z-index: 1;
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      border: none;
-    }
-
-    .profileDropdownElement {
-      display: none;
-      background-color: #ffffff;
-      padding: 0.5em 30px 0.5em 10px;
-    }
-
-    .profileDropdownElement h4 {
-      font-weight: bold;
-      font-size: 1.2em;
-      font-family: 'Karla', sans-serif;
-    }
-
-    .profileDropdownElement:hover {
-      color: #808b96;
-    }
-
-    .leftCol {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 60%;
-      height: 90vh;
-    }
-
-    .rightCol {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 40%;
-      height: 80vh;
-    }
-
-    .searchBar {
-      display: flex;
-      width: 90%;
-      margin-top: 1vh;
-      border-radius: 30px;
-      border-width: 0px;
-      padding: 10px 30px;
-      background-color: #ffffff;
-      color: #ebecf1;
-      outline: none;
-      font-family: 'Karla', sans-serif;
-      font-size: 1.2em;
-    }
-
-    .proposeButton {
-      width: 80%;
-      padding: 2% 20%;
-      border-width: 0px;
-      border-radius: 30px;
-      background-color: #4451b2;
-      color: #ffffff;
-      line-height: 1.7em;
-      font-family: 'Karla', sans-serif;
-      font-weight: bold;
-      font-size: 1.7em;
-      box-shadow: 0 0 2px #9fa2b5;
-      outline: none;
-      margin-top: 1vh;
-      margin-bottom: 3vh;
-    }
-
-    .sidebarPanel {
-      display: flex;
-      width: 80%;
-      min-height: 30vh;
-      margin-top: 1vh;
-      margin-bottom: 1vh;
-      background-color: #ffffff;
-      border-radius: 30px;
-      box-shadow: 0 0 2px #9fa2b5;
-    }
-
-    .sidebarPanelTitle {
-      color: #373456;
-      font-family: 'Karla', sans-serif;
-      font-weight: bold;
-      font-size: 1.8em;
-      padding-top: 2.6vh;
-      padding-left: 2vw;
-    }
-
-    .actionPanel {
-      display: flex;
-      width: 90%;
-      min-height: 35vh;
-      margin-top: 3vh;
-      background-color: #ffffff;
-      border-radius: 30px;
-      box-shadow: 0 0 2px #9fa2b5;
-    }
-
-    .actionPanelTitle {
-      color: #373456;
-      font-family: 'Karla', sans-serif;
-      font-weight: bold;
-      font-size: 2.3em;
-      padding-top: 1.6vh;
-      padding-left: 2vw;
-    }
-
-  </style>
-</head>
-
-<body>
-  <div class="header">
-    <div class="brand" id="brand">
-      <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
-      <h2 class="brandName">PolicyKit</h2>
-      <h3 class="communityName">| {{user.community.community_name}}</h3>
+    <div class="actionPanel">
+      <h3 class="actionPanelTitle">Pending actions</h3>
     </div>
 
-    <div class="profile" id="profile">
-      <div class="profileButton">
-        <h3 class="profileName">Hi, {{user.readable_name}}</h3>
-        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
-      </div>
-      <div class="profileDropdown">
-        <div class="profileDropdownElement">
-          <h4>Switch Community</h4>
-        </div>
-        <div class="profileDropdownElement">
-          <h4>Settings</h4>
-        </div>
-        <div class="profileDropdownElement">
-          <h4>Help</h4>
-        </div>
-        <div class="profileDropdownElement" id="logout">
-          <h4>Log Out</h4>
-        </div>
-      </div>
+    <div class="actionPanel">
+      <h3 class="actionPanelTitle">All actions</h3>
     </div>
   </div>
 
-  <div class="body">
-    <div class="leftCol">
-      <input type="text" class="searchBar" placeholder="Search">
+  <div class="rightCol">
+    <input type="button" class="proposeButton" value="Propose Action" id="proposeAction">
 
-      <div class="actionPanel">
-        <h3 class="actionPanelTitle">Pending actions</h3>
-      </div>
-
-      <div class="actionPanel">
-        <h3 class="actionPanelTitle">All actions</h3>
-      </div>
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Users</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Username</th>
+                <th scope="col">Roles</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in users.items %}
+                <tr>
+                  <td>{{value.readable_name}}</td>
+                  <td>{{key}}</td>
+                  <td>{% for r in value.roles %}{{r.name }}{% endfor %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
 
-    <div class="rightCol">
-      <input type="button" class="proposeButton" value="Propose Action" id="proposeAction">
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Community Guidelines</h4>
+    </div>
 
-      <div class="sidebarPanel">
-        <h4 class="sidebarPanelTitle">Users</h4>
-      </div>
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Community Policies</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in platform_policies.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>{{value.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
 
-      <div class="sidebarPanel">
-        <h4 class="sidebarPanelTitle">Community Guidelines</h4>
-      </div>
-
-      <div class="sidebarPanel">
-        <h4 class="sidebarPanelTitle">Community Policies</h4>
-      </div>
-
-      <div class="sidebarPanel">
-        <h4 class="sidebarPanelTitle">Constitution Policies</h4>
-      </div>
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Constitution Policies</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in constitution_policies.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>{{value.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
   </div>
+</div>
+{% endblock %}
 
-  <script>
-    document.getElementById("brand").addEventListener("click", navHome);
-    document.getElementById("profile").addEventListener("mouseover", showDropdown);
-    document.getElementById("profile").addEventListener("mouseout", hideDropdown);
-    document.getElementById("logout").addEventListener("click", logout);
-    document.getElementById("proposeAction").addEventListener("click", navActions);
+{% block scripts %}
+<script>
+  document.getElementById("proposeAction").addEventListener("click", navActions);
 
-    function navHome() {
-      window.location.href = "{{server_url}}/main/"
-    }
-
-    function showDropdown() {
-      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
-      for (let i = 0; i < dropdownElements.length; i++) {
-        dropdownElements[i].style.display = "inline-block"
-      }
-    }
-
-    function hideDropdown() {
-      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
-      for (let i = 0; i < dropdownElements.length; i++) {
-        dropdownElements[i].style.display = "none"
-      }
-    }
-
-    function logout() {
-      window.location.href = "{{server_url}}/logout/"
-    }
-
-    function navActions() {
-      window.location.href = "{{server_url}}/main/actions/"
-    }
-  </script>
-</body>
-
-</html>
+  function navActions() {
+    window.location.href = "{{server_url}}/main/actions/"
+  }
+</script>
+{% endblock %}
