@@ -365,12 +365,19 @@
     window.location.href = "{{server_url}}/main/actions/"
   }
 
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it/7394787
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
   function showModal(policy) {
     document.getElementById("name").value = policy.name;
     document.getElementById("description").value = policy.description;
 
     for (let i = 0; i < code_ids.length; i++) {
-      editors[i].setValue(policy[code_ids[i]]);
+      editors[i].setValue(decodeHtml(policy[code_ids[i]]));
     }
 
     document.getElementById("modal").style.display = "block";
