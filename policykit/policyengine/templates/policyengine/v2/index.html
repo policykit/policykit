@@ -343,7 +343,7 @@
 <script>
   document.getElementById("proposeAction").addEventListener("click", navActions);
   {% for key, value in constitution_policies.items %}
-    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal({{value}}); });
+    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal(decodeHtml({{value}}); }));
   {% endfor %}
   document.getElementById("modal").addEventListener("click", hideModal);
 
@@ -377,7 +377,7 @@
     document.getElementById("description").value = policy.description;
 
     for (let i = 0; i < code_ids.length; i++) {
-      editors[i].setValue(decodeHtml(policy[code_ids[i]]));
+      editors[i].setValue(policy[code_ids[i]]);
     }
 
     document.getElementById("modal").style.display = "block";
