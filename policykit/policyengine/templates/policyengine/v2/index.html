@@ -173,6 +173,16 @@
     color: #373456;
   }
 
+  .close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover {
+    cursor: pointer;
+  }
+
   input[readonly] {
     background-color: #ffffff !important;
   }
@@ -275,6 +285,7 @@
 </div>
 
 <div id="modal" class="modal">
+  <span id="close" class="close">&times;</span>
   <div class="modal-content">
     <div class="form-row">
       <label class="control-label col-sm-2" for="name">Name:</label>
@@ -346,6 +357,7 @@
     document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal(`{{value.name}}`, `{{value.description}}`, `{{value.filter}}`, `{{value.initialize}}`, `{{value.check}}`, `{{value.notify}}`, `{{value.pass}}`, `{{value.fail}}`); });
   {% endfor %}
   document.getElementById("modal").addEventListener("click", hideModal);
+  document.getElementById("close").addEventListener("click", hideModal);
 
   const code_ids = ["filter", "initialize", "check", "notify", "pass", "fail"]
 
