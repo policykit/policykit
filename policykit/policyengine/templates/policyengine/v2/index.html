@@ -343,7 +343,7 @@
 <script>
   document.getElementById("proposeAction").addEventListener("click", navActions);
   {% for key, value in constitution_policies.items %}
-    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal("{{value.name}}"); });
+    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal("{{value.name}}", "{{value.description}}", "{{value.filter}}", "{{value.initialize}}", "{{value.check}}", "{{value.notify}}", "{{value.pass}}", "{{value.fail}}"); });
   {% endfor %}
   document.getElementById("modal").addEventListener("click", hideModal);
 
@@ -372,13 +372,15 @@
     return txt.value;
   }
 
-  function showModal(policy) {
-    document.getElementById("name").value = policy.name;
-    /*document.getElementById("description").value = policy.description;
-
-    for (let i = 0; i < code_ids.length; i++) {
-      editors[i].setValue(policy[code_ids[i]]);
-    }*/
+  function showModal(name, description, filter, initialize, check, notify, pass, fail) {
+    document.getElementById("name").value = name;
+    document.getElementById("description").value = description;
+    editors[0].setValue(filter);
+    editors[1].setValue(initialize);
+    editors[2].setValue(check);
+    editors[3].setValue(notify);
+    editors[4].setValue(pass);
+    editors[5].setValue(fail);
 
     document.getElementById("modal").style.display = "block";
   }
