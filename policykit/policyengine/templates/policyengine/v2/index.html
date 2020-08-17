@@ -387,8 +387,11 @@
   }
 
   function showModal(name, description, filter, initialize, check, notify, pass, fail) {
+    document.getElementById("modal").style.display = "block";
+
     document.getElementById("name").value = name;
     document.getElementById("description").value = description;
+
     editors[0].setValue(filter);
     setTimeout(editors[0].refresh(), 1);
     editors[1].setValue(initialize);
@@ -401,8 +404,6 @@
     setTimeout(editors[4].refresh(), 1);
     editors[5].setValue(fail);
     setTimeout(editors[5].refresh(), 1);
-
-    document.getElementById("modal").style.display = "block";
   }
 
   function hideModal(event) {
