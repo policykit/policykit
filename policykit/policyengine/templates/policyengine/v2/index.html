@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/theme/eclipse.min.css" />
+
 <style>
   .body {
     display: flex;
@@ -108,6 +111,75 @@
     padding-top: 1.6vh;
     padding-left: 2vw;
   }
+
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background-color: #ffffff;
+    margin: 5vh auto;
+    padding: 3% 2%;
+    border: 1px solid #888;
+    width: 60vw;
+    overflow: hidden;
+  }
+
+  .editor {
+    width: 90%;
+  }
+
+  .name {
+    width: 40%;
+  }
+
+  .description {
+    resize: none;
+    width: 40%;
+  }
+
+  .bundled {
+    width: auto;
+  }
+
+  .code {
+    resize: none;
+  }
+
+  .CodeMirror {
+    height: auto;
+    width: 60%;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+  }
+
+  .form-row {
+    margin-bottom: 4vh;
+  }
+
+  .control-label {
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #373456;
+  }
+
+  input[readonly] {
+    background-color: #ffffff !important;
+  }
+
+  textarea[readonly] {
+    background-color: #ffffff !important;
+  }
 </style>
 {% endblock %}
 
@@ -190,7 +262,7 @@
             </thead>
             <tbody>
               {% for key, value in constitution_policies.items %}
-                <tr>
+                <tr id="constitution_{{key}}">
                   <td>{{key}}</td>
                   <td>{{value.name}}</td>
                 </tr>
@@ -201,14 +273,114 @@
     </div>
   </div>
 </div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="name">Name:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control name" id="name" readonly>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="description">Description:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control description" id="description" readonly rows="6"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="filter">Filter:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control code" id="filter" readonly rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="initialize">Initialize:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control code" id="initialize" readonly rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="notify">Notify:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control code" id="notify" readonly rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="check">Check:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control code" id="check" readonly rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="pass">Pass:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control code" id="pass" readonly rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="fail">Fail:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control code" id="fail" readonly rows="3"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/addon/display/autorefresh.min.js"></script>
+
 <script>
   document.getElementById("proposeAction").addEventListener("click", navActions);
+  {% for key, value in constitution_policies.items %}
+    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal({{value}}); });
+  {% endfor %}
+  document.getElementById("modal").addEventListener("click", hideModal);
+
+  const code_ids = ["filter", "initialize", "check", "notify", "pass", "fail"]
+
+  var editors = [];
+
+  for (let i = 0; i < code_ids.length; i++) {
+    var textArea = document.getElementById(code_ids[i]);
+    editors.push(CodeMirror.fromTextArea(textArea, {
+        mode: 'python',
+        lineNumbers: true,
+        autoRefresh: true,
+        theme: 'eclipse'
+    }));
+  }
 
   function navActions() {
     window.location.href = "{{server_url}}/main/actions/"
+  }
+
+  function showModal(policy) {
+    document.getElementById("name").value = policy.name;
+    document.getElementById("description").value = policy.description;
+
+    for (let i = 0; i < code_ids.length; i++) {
+      editors[i].setValue(policy[code_ids[i]]);
+    }
+
+    document.getElementById("modal").style.display = "block";
+  }
+
+  function hideModal(event) {
+    if (event.target !== this) {
+      return;
+    }
+    document.getElementById("modal").style.display = "none";
   }
 </script>
 {% endblock %}
