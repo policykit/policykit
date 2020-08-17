@@ -393,17 +393,17 @@
     document.getElementById("description").value = description;
 
     editors[0].setValue(filter);
-    setTimeout(editors[0].refresh(), 1);
+    setTimeout(function(){ editors[0].refresh(); }, 1);
     editors[1].setValue(initialize);
-    setTimeout(editors[1].refresh(), 1);
+    setTimeout(function(){ editors[1].refresh(); }, 1);
     editors[2].setValue(check);
-    setTimeout(editors[2].refresh(), 1);
+    setTimeout(function(){ editors[2].refresh(); }, 1);
     editors[3].setValue(notify);
-    setTimeout(editors[3].refresh(), 1);
+    setTimeout(function(){ editors[3].refresh(); }, 1);
     editors[4].setValue(pass);
-    setTimeout(editors[4].refresh(), 1);
+    setTimeout(function(){ editors[4].refresh(); }, 1);
     editors[5].setValue(fail);
-    setTimeout(editors[5].refresh(), 1);
+    setTimeout(function(){ editors[5].refresh(); }, 1);
   }
 
   function hideModal(event) {
