@@ -226,8 +226,14 @@
                       </div>
                       <div class="content">
                           <div class="summary">
-                              Geeksforgeeks just
-                              launched new Courses.
+                              <tbody>
+                                  {% for key, value in platform_policies.items %}
+                                  <tr id="platform_{{key}}">
+                                      <td>{{key}}</td>
+                                      <td>{{value.name}}</td>
+                                  </tr>
+                                  {% endfor %}
+                              </tbody>
                               <div class="date">
                                   1 hour ago.
                               </div>
