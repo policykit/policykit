@@ -82,6 +82,7 @@ def oauth(request):
             }
             return render(request, "policyadmin/configure.html", context)
 
+
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
     return response
 
@@ -131,7 +132,7 @@ def init_community_reddit(request):
         "creator_token": access_token,
         "platform": "reddit"
     }
-    return render(request, "policyadmin/init_starterkit.html", context)
+    return render(request, "policyengine/init_starterkit.html", context)
 
 @csrf_exempt
 def action(request):
