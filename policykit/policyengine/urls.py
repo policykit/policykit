@@ -1,6 +1,5 @@
 from django.urls import path
 from policyengine import views
-from .feeds import LatestPostsFeed
 
 
 urlpatterns = [
