@@ -227,15 +227,15 @@
     }));
     {% if filter %}
       editors[i].setValue({{filter}})
-    {% else if initialize %}
+    {% elif initialize %}
       editors[i].setValue({{initialize}})
-    {% else if check %}
+    {% elif check %}
       editors[i].setValue({{check}})
-    {% else if notify %}
+    {% elif notify %}
       editors[i].setValue({{notify}})
-    {% else if success %}
+    {% elif success %}
       editors[i].setValue({{success}})
-    {% else if fail %}
+    {% elif fail %}
       editors[i].setValue({{fail}})
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
