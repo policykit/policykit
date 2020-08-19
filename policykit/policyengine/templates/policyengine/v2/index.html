@@ -4,6 +4,12 @@
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/theme/eclipse.min.css" />
+<!-- <link rel="stylesheet" type="text/css" href="semantic/dist/semantic.min.css">
+    <script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+    <script src="semantic/dist/semantic.min.js"></script> -->
 
 <style>
   .body {
@@ -216,35 +222,7 @@
               </script>
       </head>
       
-      <body>
-          <div style="margin-top: 20px"
-              class="ui container">
-              <div class="ui feed">
-                  <div class="event">
-                      <div class="label">
-                      <!--    <img src ="computer icon"></i> -->
-                      </div>
-                      <div class="content">
-                          <div class="summary">
-                              <a class="user">
-                                  {value.readable_name}
-                              <tbody>
-                                  {% for key, value in platform_policies.items %}
-                                  <tr id="platform_{{key}}">
-                                      <td>{{key}}</td>
-                                      <td>{{value.name}}</td>
-                                  </tr>
-                                  {% endfor %}
-                              </tbody>
-                              <div class="date">
-                                  1 hour ago.
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </body>
+      
       
     </div>
   </div>
