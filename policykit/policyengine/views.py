@@ -91,6 +91,8 @@ def logout(request):
     return redirect('/login')
 
 def editor(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy
+
     type = request.GET.get('type')
     policy_id = request.GET.get('policy')
 
