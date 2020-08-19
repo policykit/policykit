@@ -6,4 +6,4 @@ class policyEngineConfig(AppConfig):
 
     def ready(self):
         from actstream import registry
-        registry.register(self.get_model('PolicyEngineModel'))
+        registry.register(self.get_model('Community'))
