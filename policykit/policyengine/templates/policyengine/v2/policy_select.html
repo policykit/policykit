@@ -5,31 +5,53 @@
 <style>
   .body {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 80%;
-    min-height: 90vh;
     margin: 0 10vw;
     padding-top: 3vh;
   }
 
-  .btn {
+  .form-row {
+    margin-top: 3vh;
+    margin-bottom: 3vh;
+  }
+
+  .control-label {
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
     font-size: 1.2em;
+    color: #373456;
+  }
+
+  .dropdown {
+    width: 20%;
+    font-size: 1.2em;
+  }
+
+  .submitButton {
+    width: 10%;
+    font-size: 1.2em;
+    border-radius: 30px;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
-  <h3>Select a {{type}} policy to {{operation}}</h3>
+  <h3>Which {{type}} Policy would you like to {{operation}}?</h3>
 
-  <div class="form-horizontal">
-    <select id="policy">
-      {% for policy in policies %}
-        <option value="{{policy.id}}">{{policy.name}}</option>
-      {% endfor %}
-    </select>
-    <button class="btn btn-success" id="submit">{{operation}}</button>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="policy">Policy:</label>
+    <div class="col-sm-11">
+      <select class="dropdown" name="policy" id="policy">
+        {% for policy in policies %}
+          <option value="{{policy.id}}">{{policy.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
   </div>
+
+  <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
 </div>
 {% endblock %}
 
