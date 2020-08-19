@@ -91,7 +91,7 @@ def logout(request):
     return redirect('/login')
 
 def editor(request):
-    policy = request.POST['policy']
+    policy = request.GET.get('policy')
 
     return render(request, 'policyengine/v2/editor.html', {
         'server_url': SERVER_URL,
