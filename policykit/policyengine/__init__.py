@@ -1,2 +1,2 @@
-default_app_config = 'policyengine.apps.MyAppConfig'
+default_app_config = 'policyengine.apps.policyEngineConfig
 

@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class policyengineConfig(AppConfig):
+class policyEngineConfig(AppConfig):
     name = 'policyengine'
 
     def ready(self):
