@@ -45,7 +45,11 @@
     const select = document.getElementById("policy");
     const policy = select.options[select.selectedIndex].value;
 
-    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+    if (operation == "Change") {
+      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`
+    } else {
+      // TODO: add remove policy code here
+    }
   }
 </script>
 {% endblock %}
