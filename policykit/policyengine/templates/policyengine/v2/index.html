@@ -218,23 +218,10 @@
                       </div>
               <div class="content">
                   <div class="summary">
-                      <table class="table table-hover">
-                          <thead>
-                              <tr>
-                                  <th scope="col">Name</th>
-                                  <th scope="col">Username</th>
-                                  <th scope="col">Roles</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              {% for key, value in users.items %}
-                              <tr>
-                                  <td>{{value.readable_name}}</td>
-                                  <td>{{key}}</td>
-                                  <td>{% for r in value.roles %}{{r.name }}{% endfor %}</td>
-                              </tr>
-                              {% endfor %}
-                          </tbody>
+                       {% for key, value in recentactions.items %}
+                      <a class="user">
+                          Sreya Guha
+                      You added <a>Jenny Hess</a> to your <a>coworker</a> group.
                       <div class="date">
                           3 days ago
                       </div>
