@@ -42,14 +42,10 @@
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
 
-    var select = document.getElementById("policy");
-    var policy = select.options[select.selectedIndex].value;
+    const select = document.getElementById("policy");
+    const policy = select.options[select.selectedIndex].value;
 
-    if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`
-    } else {
-      // Todo: implement remove policy code
-    }
+    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
   }
 </script>
 {% endblock %}
