@@ -48,7 +48,11 @@
   document.getElementById("submit").addEventListener("click", submit);
 
   function submit() {
-    if ({{operation}} == "Change") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const operation = urlParams.get('operation');
+
+    if (operation == "Change") {
       window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
     } else {
       // Todo: implement remove policy code
