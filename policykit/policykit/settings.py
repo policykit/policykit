@@ -63,7 +63,7 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 ACTSTREAM_SETTINGS = {
-    'MANAGER': 'policykit.managers.myActionManager',
+    'MANAGER': 'policyengine.managers.myActionManager',
     'FETCH_RELATIONS': True,
     'USE_PREFETCH': True,
     'USE_JSONFIELD': False,
