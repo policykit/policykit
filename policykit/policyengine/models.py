@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from django.db.models.signals import post_save
+from actstream import action
 from django.dispatch import receiver
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
