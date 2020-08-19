@@ -47,5 +47,5 @@ urlpatterns = [
     path('reddit/', include('redditintegration.urls')),
     path('discord/', include('discordintegration.urls')),
     url(r'^$', policyviews.homepage),
-    ('^activity/', include('actstream.urls'))
+    url('^activity/', include('actstream.urls'))
 ]
