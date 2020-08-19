@@ -105,6 +105,7 @@ def selectpolicy(request):
     user = get_user(request)
     policies = None
     type = request.GET.get('type')
+    operation = request.GET.get('operation')
 
     if type == 'Platform':
         policies = PlatformPolicy.objects.filter(community=user.community)
@@ -116,7 +117,9 @@ def selectpolicy(request):
     return render(request, 'policyengine/v2/policy_select.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
-        'policies': policies
+        'policies': policies,
+        'type': type,
+        'operation': operation
     })
 
 def actions(request):
