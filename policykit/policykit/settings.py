@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'slackintegration',
     'redditintegration',
     'discordintegration',
-    'policykit.actstream'
+    'policyengine.actstream'
     
 ]
 
