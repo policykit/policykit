@@ -2,18 +2,6 @@
 <html>
     <head>
         <title>Page Title</title>
-        <script>
-            document.getElementById("testing").addEventListener("click", submit);
-            document.getElementById("admin").addEventListener("click", submit);
-            document.getElementById("democracy").addEventListener("click", submit);
-            document.getElementById("dictator").addEventListener("click", submit);
-            document.getElementById("jury").addEventListener("click", submit);
-
-            function submit(event) {
-                document.getElementById("starterkit").value = event.target.name
-                document.getElementById("form").submit();
-            }
-        </script>
     </head>
     <body>
         <div name = "policykit">
@@ -23,7 +11,7 @@
 
         <title name="choose">Choose a Starter Kit for your Community</title>
         
-        <input type="hidden" name="starterkit" id="starterkit">
+        <input type="hidden" name="starterkit" id="starterkit" value = "">
 
         <form action="/main/policyengine/initialize_starterkit" method="post" name="form">
             <label for="starterkit">Choose a System of Governance:</label>
@@ -44,5 +32,21 @@
             <input type="hidden" name="creator_token" value="{{ creator_token }}">
         </form>
         
+        <script>
+            document.getElementById("testing").addEventListener("click", submit);
+            document.getElementById("admin").addEventListener("click", submit);
+            document.getElementById("democracy").addEventListener("click", submit);
+            document.getElementById("dictator").addEventListener("click", submit);
+            document.getElementById("jury").addEventListener("click", submit);
+            
+            function submit(event) {
+                document.getElementById("starterkit").value = event.target.name
+                
+                document.getElementById("democracy").innerHTML = "fasdfasdfasdfasdfas"
+            }
+        </script>
+        
     </body>
 </html>
+
+<!--document.getElementById("form").submit();-->
