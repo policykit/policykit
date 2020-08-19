@@ -107,8 +107,9 @@ class PolicykitAddPlatformPolicyAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
         obj.initiator = request.user
-        obj.save()
         action.send(request.community, verb='Added')
+        obj.save()
+
 
 admin_site.register(PolicykitAddPlatformPolicy, PolicykitAddPlatformPolicyAdmin)
 
