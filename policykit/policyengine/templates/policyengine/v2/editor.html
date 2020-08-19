@@ -226,17 +226,17 @@
         gutters: ['warnings']
     }));
     {% if filter %}
-      editors[i].setValue({{filter}})
+      editors[i].setValue(`{{filter}}`)
     {% elif initialize %}
-      editors[i].setValue({{initialize}})
+      editors[i].setValue(`{{initialize}}`)
     {% elif check %}
-      editors[i].setValue({{check}})
+      editors[i].setValue(`{{check}}`)
     {% elif notify %}
-      editors[i].setValue({{notify}})
+      editors[i].setValue(`{{notify}}`)
     {% elif success %}
-      editors[i].setValue({{success}})
+      editors[i].setValue(`{{success}}`)
     {% elif fail %}
-      editors[i].setValue({{fail}})
+      editors[i].setValue(`{{fail}}`)
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
