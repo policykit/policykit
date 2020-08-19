@@ -38,6 +38,7 @@ urlpatterns = [
     path('main/login/', lambda request: redirect('/login', permanent=False)), # NOTE: this just fixes a bug in v1 dashboard URLs, doesn't affect v2 dashboard
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
     path('main/editor/', policyviews.editor),
+    path('main/selectpolicy/', policyviews.selectpolicy),
     path('main/actions/', policyviews.actions),
     path('main/policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS

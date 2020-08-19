@@ -91,9 +91,32 @@ def logout(request):
     return redirect('/login')
 
 def editor(request):
+    policy = request.POST['policy']
+
     return render(request, 'policyengine/v2/editor.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request)
+        'user': get_user(request),
+        'policy': policy
+    })
+
+def selectpolicy(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy
+
+    user = get_user(request)
+    policies = None
+    type = request.GET.get('type')
+
+    if type == 'Platform':
+        policies = PlatformPolicy.objects.filter(community=user.community)
+    elif type == 'Constitution':
+        policies = ConstitutionPolicy.objects.filter(community=user.community)
+    else:
+        return HttpResponseBadRequest()
+
+    return render(request, 'policyengine/v2/policy_select.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request),
+        'policies': policies
     })
 
 def actions(request):
@@ -283,13 +306,13 @@ def policy_action_save(request):
     user = get_user(request)
 
     action = None
-    if data['type'] == 'constitution' and data['operation'] == 'add':
+    if data['type'] == 'Constitution' and data['operation'] == 'Add':
         action = PolicykitAddConstitutionPolicy()
-    elif data['type'] == 'platform' and data['operation'] == 'add':
+    elif data['type'] == 'Platform' and data['operation'] == 'Add':
         action = PolicykitAddPlatformPolicy()
-    elif data['type'] == 'constitution' and data['operation'] == 'change':
+    elif data['type'] == 'Constitution' and data['operation'] == 'Change':
         action = PolicykitChangeConstitutionPolicy()
-    elif data['type'] == 'platform' and data['operation'] == 'change':
+    elif data['type'] == 'Platform' and data['operation'] == 'Change':
         action = PolicykitChangePlatformPolicy()
     else:
         return HttpResponseBadRequest()

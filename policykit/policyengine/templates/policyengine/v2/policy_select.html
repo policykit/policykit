@@ -1,0 +1,58 @@
+{% extends "policyengine/v2/dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+  .body {
+    display: flex;
+    flex-direction: row;
+    width: 80%;
+    min-height: 90vh;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 1.2em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  <h3>Select a {{type}} policy to {{operation}}</h3>
+
+  <form class="form-horizontal">
+    <div class="form-row">
+      <select name="policies" id="policy">
+        {% for policy in policies %}
+          <option value="{{policy.id}}">{{policy.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-row">
+      <button type="button" class="btn btn-success" id="submit">{{operation}}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+  document.getElementById("submit").addEventListener("click", submit);
+
+  function submit() {
+    if ({{operation}} == "Change") {
+      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+    } else {
+      // Todo: implement remove policy code
+    }
+  }
+</script>
+{% endblock %}
