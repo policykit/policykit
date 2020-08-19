@@ -1,3 +1,4 @@
+
 {% load i18n static %}
 
 {% block extrahead %}
@@ -18,31 +19,20 @@
 
 {% block content %}
 
-<div name = "policykit">
-    <img src = "images/logo.png" class="logo">
-    <h1>Policy Kit</h1>
-</div>
-
-<title name="choose">Choose a Starter Kit for your Community</title>
+<P><b>Choose a Starter Kit for your Community</b><BR></P>
 
 <form action="/main/policyengine/initialize_starterkit" method="post">
     <label for="starterkit">Choose a System of Governance:</label>
-    <div id="images" onclick="document.getElementById('starterkit').value=event.target.name">
-        <img src="images/testing.png" name="Testing Starter Kit"/>
-        
-        <img src="images/admin.png" name="Admin and User Starter Kit"/>
-        
-        <img src="images/democracy.png" name="Democracy Starter Kit"/>
-        
-        <img src="images/dictator.png" name="Dictator Starter Kit"/>
-        
-        <img src="images/jury.png" name="Jury Starter Kit"/>
-    </div>
-    
-    <input type="hidden" name="starterkit" id="starterkit">
+    <select name="starterkit">
+        {% for kit in starterkits %}
+        <option value="{{ kit }}">{{ kit }}</option>
+        {% endfor %}
+    </select>
     <input type="hidden" name="community_name" value="{{ community_name }}">
     <input type="hidden" name="platform" value="{{ platform }}">
     <input type="hidden" name="creator_token" value="{{ creator_token }}">
+    <input type="submit" value="Choose">
+        
 </form>
 
 {% endblock %}
