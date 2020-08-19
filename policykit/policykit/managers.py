@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from actstream.managers import ActionManager, stream
 
-class MyActionManager(ActionManager):
+class newsfeedManager(ActionManager):
     
     @stream
     def mystream(self, obj, verb='posted', time=None):

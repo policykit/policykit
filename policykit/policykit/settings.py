@@ -55,14 +55,14 @@ INSTALLED_APPS = [
     'slackintegration',
     'redditintegration',
     'discordintegration',
-    'policyengine.actstream'
+    'actstream'
     
 ]
 
 SITE_ID = 1
 
 ACTSTREAM_SETTINGS = {
-    'MANAGER': 'policyengine.managers.MyActionManager',
+    'MANAGER': 'policyengine.managers.newsfeedManager',
     'FETCH_RELATIONS': True,
     'USE_PREFETCH': True,
     'USE_JSONFIELD': False,
