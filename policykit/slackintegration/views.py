@@ -143,7 +143,7 @@ def oauth(request):
                 "creator_token": res['authed_user']['access_token'],
                 "platform": "slack"
             }
-            return render(request, "policyengine/init_starterkit.html", context)
+            return render(request, "policyengine/v2/init_starterkit.html", context)
     else:
         # error message stating that the sign-in/add-to-slack didn't work
         response = redirect('/login?error=cancel')

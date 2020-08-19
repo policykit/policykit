@@ -132,7 +132,7 @@ def init_community_reddit(request):
         "creator_token": access_token,
         "platform": "reddit"
     }
-    return render(request, "policyengine/init_starterkit.html", context)
+    return render(request, "policyengine/v2/init_starterkit.html", context)
 
 @csrf_exempt
 def action(request):
