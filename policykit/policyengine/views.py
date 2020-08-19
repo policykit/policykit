@@ -109,6 +109,8 @@ def editor(request):
             'server_url': SERVER_URL,
             'user': get_user(request),
             'policy': policy_id,
+            'name': policy.name,
+            'description': policy.description,
             'filter': policy.filter,
             'initialize': policy.initialize,
             'check': policy.check,
