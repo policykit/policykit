@@ -12,10 +12,6 @@
     padding-top: 3vh;
   }
 
-  .form-row {
-    margin-bottom: 20px;
-  }
-
   .btn {
     font-size: 1.2em;
   }
@@ -27,23 +23,17 @@
   <h3>Select a {{type}} policy to {{operation}}</h3>
 
   <form class="form-horizontal">
-    <div class="form-row">
-      <select name="policies" id="policy">
-        {% for policy in policies %}
-          <option value="{{policy.id}}">{{policy.name}}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div class="form-row">
-      <button type="button" class="btn btn-success" id="submit">{{operation}}</button>
-    </div>
+    <select name="policies" id="policy">
+      {% for policy in policies %}
+        <option value="{{policy.id}}">{{policy.name}}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-success" id="submit">{{operation}}</button>
   </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
-
 <script>
   document.getElementById("submit").addEventListener("click", submit);
 
@@ -52,8 +42,11 @@
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
 
+    var select = document.getElementById("policy");
+    var policy = select.options[select.selectedIndex].value;
+
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`
     } else {
       // Todo: implement remove policy code
     }
