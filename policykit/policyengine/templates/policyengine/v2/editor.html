@@ -204,6 +204,14 @@
     window.location.href = "{{server_url}}/main/"
   }
 
+  {% if name %}
+    document.getElementById('name').value = `{{name}}`
+  {% endif %}
+
+  {% if description %}
+    document.getElementById('description').value = `{{description}}`
+  {% endif %}
+
   const DEFAULT_VALUES = {
     "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
     "initialize": "# Replace this code with your custom Initialize code\npass\n\n",
@@ -225,17 +233,17 @@
         theme: 'eclipse',
         gutters: ['warnings']
     }));
-    {% if filter %}
+    {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
-    {% elif initialize %}
+    {% elif i == 1 and initialize %}
       editors[i].setValue(`{{initialize}}`)
-    {% elif check %}
+    {% elif i == 2 and check %}
       editors[i].setValue(`{{check}}`)
-    {% elif notify %}
+    {% elif i == 3 and notify %}
       editors[i].setValue(`{{notify}}`)
-    {% elif success %}
+    {% elif i == 4 and success %}
       editors[i].setValue(`{{success}}`)
-    {% elif fail %}
+    {% elif i == 5 and fail %}
       editors[i].setValue(`{{fail}}`)
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
