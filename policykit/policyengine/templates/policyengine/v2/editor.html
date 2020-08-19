@@ -183,6 +183,7 @@
       body: JSON.stringify({
         'type': type,
         'operation': operation,
+        'policy': policy,
         'name': name,
         'description': description,
         'is_bundled': false,
@@ -199,6 +200,7 @@
   }
 
   function addToBundle() {
+    // TODO: Implement add to bundle functionality here
     window.location.href = "{{server_url}}/main/"
   }
 
@@ -223,7 +225,21 @@
         theme: 'eclipse',
         gutters: ['warnings']
     }));
-    editors[i].setValue(DEFAULT_VALUES[code_id]);
+    {% if filter %}
+      editors[i].setValue({{filter}})
+    {% else if initialize %}
+      editors[i].setValue({{initialize}})
+    {% else if check %}
+      editors[i].setValue({{check}})
+    {% else if notify %}
+      editors[i].setValue({{notify}})
+    {% else if success %}
+      editors[i].setValue({{success}})
+    {% else if fail %}
+      editors[i].setValue({{fail}})
+    {% else %}
+      editors[i].setValue(DEFAULT_VALUES[code_id]);
+    {% endif %}
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
