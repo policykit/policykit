@@ -1,55 +1,40 @@
-{% load i18n static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Page Title</title>
+        <script>
+            function submit() {
+                document.getElementById("starterkit").value=event.target.name
+                document.getElementById("form").submit();
+            }
+        </script>
+    </head>
+    <body>
+        <div name = "policykit">
+            <img src = "images/logo.png" class="logo">
+            <h1>Policy Kit</h1>
+        </div>
 
-{% block extrahead %}
-<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
-{% endblock %}
+        <title name="choose">Choose a Starter Kit for your Community</title>
 
-{% block bodyclass %}{% endblock %}
-
-{% block usertools %}
-
-{% endblock %}
-
-{% block nav-global %}{% endblock %}
-
-{% block content_title %}{% endblock %}
-
-{% block breadcrumbs %}{% endblock %}
-
-{% block content %}
-
-<div name = "policykit">
-    <img src = "images/logo.png" class="logo">
-    <h1>Policy Kit</h1>
-</div>
-
-<title name="choose">Choose a Starter Kit for your Community</title>
-
-<form action="/main/policyengine/initialize_starterkit" method="post" name="form">
-    <label for="starterkit">Choose a System of Governance:</label>
-    <div id="images" onclick="submit()">
-        <img src="images/testing.png" name="Testing Starter Kit" width = "150" height = "100"/>
-        
-        <img src="images/admin.png" name="Admin and User Starter Kit" width = "150" height = "100"/>
-        
-        <img src="images/democracy.png" name="Democracy Starter Kit" width = "150" height = "100"/>
-        
-        <img src="images/dictator.png" name="Dictator Starter Kit" width = "150" height = "100"/>
-        
-        <img src="images/jury.png" name="Jury Starter Kit" width = "150" height = "100"/>
-    </div>
-    
-    <input type="hidden" name="starterkit" id="starterkit">
-    <input type="hidden" name="community_name" value="{{ community_name }}">
-    <input type="hidden" name="platform" value="{{ platform }}">
-    <input type="hidden" name="creator_token" value="{{ creator_token }}">
-</form>
-
-<script>
-    function submit() {
-        document.getElementById("starterkit").value=event.target.name
-        document.getElementById("form").submit();
-    }
-</script>
-
-{% endblock %}
+        <form action="/main/policyengine/initialize_starterkit" method="post" name="form">
+            <label for="starterkit">Choose a System of Governance:</label>
+            <div id="images" onclick="submit()">
+                <img src="images/testing.png" name="Testing Starter Kit" width = "150" height = "100"/>
+                
+                <img src="images/admin.png" name="Admin and User Starter Kit" width = "150" height = "100"/>
+                
+                <img src="images/democracy.png" name="Democracy Starter Kit" width = "150" height = "100"/>
+                
+                <img src="images/dictator.png" name="Dictator Starter Kit" width = "150" height = "100"/>
+                
+                <img src="images/jury.png" name="Jury Starter Kit" width = "150" height = "100"/>
+            </div>
+            
+            <input type="hidden" name="starterkit" id="starterkit">
+            <input type="hidden" name="community_name" value="{{ community_name }}">
+            <input type="hidden" name="platform" value="{{ platform }}">
+            <input type="hidden" name="creator_token" value="{{ creator_token }}">
+        </form>
+    </body>
+</html>
