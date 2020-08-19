@@ -22,14 +22,14 @@
 <div class="body">
   <h3>Select a {{type}} policy to {{operation}}</h3>
 
-  <form class="form-horizontal">
-    <select name="policies" id="policy">
+  <div class="form-horizontal">
+    <select id="policy">
       {% for policy in policies %}
         <option value="{{policy.id}}">{{policy.name}}</option>
       {% endfor %}
     </select>
     <button class="btn btn-success" id="submit">{{operation}}</button>
-  </form>
+  </div>
 </div>
 {% endblock %}
 
