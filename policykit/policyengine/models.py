@@ -528,6 +528,11 @@ class PolicykitAddPlatformPolicy(EditorModel):
         policy.community = self.community
         policy.save()
         self.pass_action()
+    
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+
+    post_save.connect(my_handler, sender= PolicykitAddPlatformPolicy)
 
     class Meta:
         permissions = (

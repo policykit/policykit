@@ -9,6 +9,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.translation import gettext_lazy
 from policykit.settings import PROJECT_NAME
 from policyengine.models import *
+from actstream import action
 import datetime
 import logging
 
@@ -107,7 +108,7 @@ class PolicykitAddPlatformPolicyAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.community = request.user.community
         obj.initiator = request.user
-        #    action.send(request.community, verb='Added')
+        action.send(request.community, verb='Added')
         obj.save()
 
 
