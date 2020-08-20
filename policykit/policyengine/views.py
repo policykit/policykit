@@ -10,6 +10,8 @@ import urllib.parse
 import logging
 import json
 import parser
+from actstream import action
+from actstream.models import target_stream
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +21,7 @@ def homepage(request):
 
 def v2(request):
     from policyengine.models import CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
-
+    
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
@@ -76,6 +78,9 @@ def v2(request):
             'fail': cp.fail
         }
 
+
+    group.target_actions.all()
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
         'user': user,
@@ -84,6 +89,8 @@ def v2(request):
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data
     })
+
+
 
 def logout(request):
     from django.contrib.auth import logout

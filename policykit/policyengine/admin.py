@@ -127,6 +127,7 @@ class PlatformActionBundleAdmin(admin.ModelAdmin):
             obj.proposal = p
             obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=PlatformActionBundle)
 
 admin_site.register(PlatformActionBundle, PlatformActionBundleAdmin)
 
@@ -142,6 +143,7 @@ class ConstitutionActionBundleAdmin(admin.ModelAdmin):
             obj.proposal = p
             obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=ConstitutionActionBundle)
 
 admin_site.register(ConstitutionActionBundle, ConstitutionActionBundleAdmin)
 
@@ -155,6 +157,8 @@ class PlatformPolicyBundleAdmin(admin.ModelAdmin):
         obj.is_bundle = True
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=PlatformPolicyBundle)
+
 
 admin_site.register(PlatformPolicyBundle, PlatformPolicyBundleAdmin)
 
@@ -168,6 +172,8 @@ class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
         obj.is_bundle = True
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=ConstitutionPolicyBundle)
+
 
 admin_site.register(ConstitutionPolicyBundle, ConstitutionPolicyBundleAdmin)
 
@@ -180,6 +186,8 @@ class BooleanVoteAdmin(admin.ModelAdmin):
         if not change:
             obj.user = request.user
         obj.save()
+        action.send(self.request.community, verb='voted', target=BooleanVote)
+
 
 admin_site.register(BooleanVote, BooleanVoteAdmin)
 
@@ -190,6 +198,7 @@ class NumberVoteAdmin(admin.ModelAdmin):
         if not change:
             obj.user = request.user
         obj.save()
+        action.send(self.request.community, verb='voted', target=NumberVote)
 
 admin_site.register(NumberVote, NumberVoteAdmin)
 
@@ -201,6 +210,7 @@ class PolicykitAddRoleAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=Community)
 
 admin_site.register(PolicykitAddRole, PolicykitAddRoleAdmin)
 
@@ -212,6 +222,8 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='deleted', target=Community)
+
 
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
 
@@ -223,6 +235,8 @@ class PolicykitAddPermissionAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=Community)
+
 
 admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
 
@@ -234,6 +248,8 @@ class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='removed', target=Community)
+
 
 admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
 
@@ -246,6 +262,8 @@ class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='added', target=Community)
+
 
 admin_site.register(PolicykitAddUserRole, PolicykitAddUserRoleAdmin)
 
@@ -256,6 +274,8 @@ class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='removed', target=Community)
+
 
 admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
@@ -267,6 +287,8 @@ class PolicykitChangePlatformPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='changed', target=platform_policy)
+
 
 admin_site.register(PolicykitChangePlatformPolicy, PolicykitChangePlatformPolicyAdmin)
 
@@ -278,6 +300,8 @@ class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='changed', target=constitution_policy)
+
 
 admin_site.register(PolicykitChangeConstitutionPolicy, PolicykitChangeConstitutionPolicyAdmin)
 
@@ -289,6 +313,7 @@ class PolicykitRemovePlatformPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='removed', target=platform_policy)
 
 admin_site.register(PolicykitRemovePlatformPolicy, PolicykitRemovePlatformPolicyAdmin)
 
@@ -300,6 +325,8 @@ class PolicykitRemoveConstitutionPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='removed', target=constitution_policy)
+
 
 admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstitutionPolicyAdmin)
 
@@ -311,6 +338,7 @@ class PolicykitChangeCommunityDocAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+        action.send(self.request.community, verb='removed', target=community_doc)
 
 admin_site.register(PolicykitChangeCommunityDoc, PolicykitChangeCommunityDocAdmin)
 

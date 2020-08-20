@@ -1,5 +1,7 @@
 {% extends "policyengine/v2/dashboard_base.html" %}
 {% load static %}
+{% load activity_tags %}
+
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.css" />
@@ -212,25 +214,34 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
       <div class="ui feed">
-          <div class="event">
-              <div class="label">
-               <!--   <img src="add images"> -->
-                      </div>
-              <div class="content">
-                  <div class="summary">
-                      <a class="user">
-                          Sreya Guha
-                      You added <a>Jenny Hess</a> to your <a>coworker</a> group.
-                      <div class="date">
-                          3 days ago
-                      </div>
-                      
-                  </div>
-              </div>
-          </div>
-      </div>
-      
-      
+          <p class="list-group-item-text pull-right">
+          {# Verb #}
+          <span class="glyphicon
+              {% if event.verb == 'added' %}
+                glyphicon-plus
+              {% elif event.verb == 'changed' %}
+                glyphicon-asterisk
+              {% elif event.verb == 'removed' %}
+                glyphicon-pencil
+              
+              {% endif %}
+              "></span>
+          {# Action object #}
+          {% if event.action_object %}
+            {% if event.action_object.get_absolute_url %}
+                <a href="{{ event.action_object.get_absolute_url }}">{{ event.action_object }}</a>
+          {% else %}
+            {{ event.action_object }}
+          {% endif %}
+          {% endif %}
+
+          {# Target #}
+          {#        {{ event.target }}#}
+          
+          {#  Time #}
+          {{ event.timestamp|timesince }} {% trans "ago" %}
+          </p>
+         
     </div>
   </div>
 
