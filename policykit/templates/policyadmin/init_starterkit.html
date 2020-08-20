@@ -20,15 +20,15 @@
         <form action="/main/policyengine/initialize_starterkit" method="post" name="form">
             <label for="starterkit">Choose a System of Governance:</label>
             <div id="images">
-                <img src="images/testing.png" id = "testing" name="Testing Starter Kit" width = "150" height = "100"/>
+                <img src="images/testing.png" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submit()"/>
                 
-                <img src="images/admin.png" id = "admin" name="Admin and User Starter Kit" width = "150" height = "100"/>
+                <img src="images/admin.png" id = "admin" name="Admin and User Starter Kit" width = "150" height = "100" onclick = "submit()"/>
                 
-                <img src="images/democracy.png" id = "democracy" name="Democracy Starter Kit" width = "150" height = "100"/>
+                <img src="images/democracy.png" id = "democracy" name="Democracy Starter Kit" width = "150" height = "100" onclick = "submit()"/>
                 
-                <img src="images/dictator.png" id = "dictator" name="Dictator Starter Kit" width = "150" height = "100" />
+                <img src="images/dictator.png" id = "dictator" name="Dictator Starter Kit" width = "150" height = "100" onclick = "submit()"/>
                 
-                <img src="images/jury.png" id = "jury" name="Jury Starter Kit" width = "150" height = "100"/>
+                <img src="images/jury.png" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submit()"/>
             </div>
             
             <input type="hidden" name="community_name" value="{{ community_name }}">
@@ -37,19 +37,11 @@
         </form>
         
         <script>
-            document.getElementById("testing").addEventListener("click", submit);
-            document.getElementById("admin").addEventListener("click", submit);
-            document.getElementById("democracy").addEventListener("click", submit);
-            document.getElementById("dictator").addEventListener("click", submit);
-            document.getElementById("jury").addEventListener("click", submit);
-            
             function submit(event) {
                 document.getElementById("starterkit").value = event.target.name
                 document.getElementById("kitthing").textValue = event.target.name
                 document.getElementById("hi").textValue = "supperoni"
-                
             }
-        
         
         </script>
         
