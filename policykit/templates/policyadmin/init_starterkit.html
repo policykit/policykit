@@ -9,9 +9,15 @@
             <h1>Policy Kit</h1>
         </div>
         
-        <textarea name="hi" id = "hi">Hello there </textarea>
+        <p id="heyo" style="color:green;
+        font-size: 20px;
+        font-weight: bold;">
+        </p>
         
-        <textarea name="kit" id = "kitthing">Starter Kit </textarea>
+        <p id="suppo" style="color:green;
+        font-size: 20px;
+        font-weight: bold;">
+        </p>
 
         <title name="choose">Choose a Starter Kit for your Community</title>
         
@@ -39,8 +45,8 @@
         <script>
             function submitFunc(event) {
                 document.getElementById("starterkit").value = event.target.name
-                document.getElementById("kitthing").textValue = event.target.name
-                document.getElementById("hi").textValue = "supperoni"
+                document.getElementById("heyo").innerHTML = event.target.name
+                document.getElementById("suppo").innerHTML = "supperoni"
             }
         
         </script>
