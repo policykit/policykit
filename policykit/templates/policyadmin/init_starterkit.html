@@ -8,6 +8,10 @@
             <img src = "images/logo.png" class="logo">
             <h1>Policy Kit</h1>
         </div>
+        
+        <textarea name="hi" id = "hi">Hello there <textarea />
+        
+        <textarea name="kit" id = "kitthing">Starter Kit <textarea />
 
         <title name="choose">Choose a Starter Kit for your Community</title>
         
@@ -41,8 +45,12 @@
             
             function submit(event) {
                 document.getElementById("starterkit").value = event.target.name
-                document.getElementById("democracy").innerHTML = event.target.name
+                document.getElementById("kitthing").textValue = event.target.name
+                document.getElementById("hi").textValue = "supperoni"
+                
             }
+        
+        
         </script>
         
     </body>
