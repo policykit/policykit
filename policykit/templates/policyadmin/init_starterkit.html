@@ -41,10 +41,9 @@
         </p>
 
         <title name="choose">Choose a Starter Kit for your Community</title>
-        
-        <input type="hidden" name="starterkit" id="starterkit" value = "">
 
         <form action="/main/policyengine/initialize_starterkit" method="post" name="form" id="form">
+            
             <label for="starterkit">Choose a System of Governance:</label>
             <div id="images">
                 <img src="images/testing.png" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
@@ -58,6 +57,7 @@
                 <img src="images/jury.png" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
             </div>
             
+            <input type="hidden" name="starterkit" id="starterkit" value = "">
             <input type="hidden" name="community_name" value="{{ community_name }}">
             <input type="hidden" name="platform" value="{{ platform }}">
             <input type="hidden" name="creator_token" value="{{ creator_token }}">
