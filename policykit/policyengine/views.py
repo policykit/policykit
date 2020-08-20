@@ -79,7 +79,7 @@ def v2(request):
         }
 
 
-    group.target_actions.all()
+    community.target_actions.all()
 
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
