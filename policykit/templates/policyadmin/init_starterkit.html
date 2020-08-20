@@ -1,3 +1,24 @@
+
+{% load i18n static %}
+
+{% block extrahead %}
+<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+{% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block usertools %}
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -26,15 +47,15 @@
         <form action="/main/policyengine/initialize_starterkit" method="post" name="form">
             <label for="starterkit">Choose a System of Governance:</label>
             <div id="images">
-                <img src="images/testing.png" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(this)"/>
+                <img src="images/testing.png" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
                 
-                <img src="images/admin.png" id = "admin" name="Admin and User Starter Kit" width = "150" height = "100" onclick = "submitFunc(this)"/>
+                <img src="images/admin.png" id = "admin" name="Admin and User Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
                 
-                <img src="images/democracy.png" id = "democracy" name="Democracy Starter Kit" width = "150" height = "100" onclick = "submitFunc(this)"/>
+                <img src="images/democracy.png" id = "democracy" name="Democracy Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
                 
-                <img src="images/dictator.png" id = "dictator" name="Dictator Starter Kit" width = "150" height = "100" onclick = "submitFunc(this)"/>
+                <img src="images/dictator.png" id = "dictator" name="Dictator Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
                 
-                <img src="images/jury.png" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submitFunc(this)"/>
+                <img src="images/jury.png" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
             </div>
             
             <input type="hidden" name="community_name" value="{{ community_name }}">
@@ -53,5 +74,7 @@
         
     </body>
 </html>
+
+{% endblock %}
 
 <!--document.getElementById("form").submit();-->
