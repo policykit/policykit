@@ -66,8 +66,7 @@
         <script>
             function submitFunc(event) {
                 document.getElementById("starterkit").value = event.target.name
-                document.getElementById("heyo").innerHTML = event.target.name
-                document.getElementById("suppo").innerHTML = "supperoni"
+                document.getElementById("form").submit()
             }
         
         </script>
@@ -76,5 +75,3 @@
 </html>
 
 {% endblock %}
-
-<!--document.getElementById("form").submit();-->
