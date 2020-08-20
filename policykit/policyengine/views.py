@@ -37,16 +37,16 @@ def v2(request):
 
     role_data = {}
     for r in roles:
-        role_data[r.name] = {
+        role_data[r.role_name] = {
             'permissions': [],
             'users': []
         }
         for p in r.permissions.all():
-            role_data[r.name]['permissions'].append({ 'name': p.name })
+            role_data[r.role_name]['permissions'].append({ 'name': p.name })
         for u in r.user_set.all():
             cu = u.communityuser
-            role_data[r.name]['users'].append({ 'username': cu.readable_name })
-            user_data[cu.username]['roles'].append({ 'name': r.name })
+            role_data[r.role_name]['users'].append({ 'username': cu.readable_name })
+            user_data[cu.username]['roles'].append({ 'name': r.role_name })
 
     platform_policy_data = {}
     for pp in platform_policies:
