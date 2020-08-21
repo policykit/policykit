@@ -362,3 +362,26 @@ def policy_action_save(request):
     action.save()
 
     return HttpResponse()
+
+@csrf_exempt
+def policy_action_remove(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['type'] == 'Constitution':
+        action = PolicykitRemoveConstitutionPolicy()
+        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+    elif data['type'] == 'Platform':
+        action = PolicykitRemovePlatformPolicy()
+        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.save()
+
+    return HttpResponse()

@@ -70,7 +70,18 @@
     if (operation == "Change") {
       window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`
     } else {
-      // TODO: add remove policy code here
+      fetch('../../../main/policyengine/policy_action_remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          'type': type,
+          'policy': policy
+        })
+      }).then(response => {
+        window.location.href = "{{server_url}}/main/"
+      });
     }
   }
 </script>
