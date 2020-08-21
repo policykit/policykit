@@ -165,6 +165,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
+    const policy = urlParams.get('policy');
 
     const name = document.getElementById("name").value
     const description = document.getElementById("description").value
@@ -183,6 +184,7 @@
       body: JSON.stringify({
         'type': type,
         'operation': operation,
+        'policy': policy,
         'name': name,
         'description': description,
         'is_bundled': false,
@@ -199,8 +201,17 @@
   }
 
   function addToBundle() {
+    // TODO: Implement add to bundle functionality here
     window.location.href = "{{server_url}}/main/"
   }
+
+  {% if name %}
+    document.getElementById('name').value = `{{name}}`
+  {% endif %}
+
+  {% if description %}
+    document.getElementById('description').value = `{{description}}`
+  {% endif %}
 
   const DEFAULT_VALUES = {
     "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
@@ -223,7 +234,21 @@
         theme: 'eclipse',
         gutters: ['warnings']
     }));
-    editors[i].setValue(DEFAULT_VALUES[code_id]);
+    {% if i == 0 and filter %}
+      editors[i].setValue(`{{filter}}`)
+    {% elif i == 1 and initialize %}
+      editors[i].setValue(`{{initialize}}`)
+    {% elif i == 2 and check %}
+      editors[i].setValue(`{{check}}`)
+    {% elif i == 3 and notify %}
+      editors[i].setValue(`{{notify}}`)
+    {% elif i == 4 and success %}
+      editors[i].setValue(`{{success}}`)
+    {% elif i == 5 and fail %}
+      editors[i].setValue(`{{fail}}`)
+    {% else %}
+      editors[i].setValue(DEFAULT_VALUES[code_id]);
+    {% endif %}
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {

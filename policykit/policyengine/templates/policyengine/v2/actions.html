@@ -120,7 +120,7 @@
     <div class="actionButton" id="editConstitutionPolicy">
       <p>Edit Constitution Policy</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removeConstitutionPolicy">
       <p>Remove Constitution Policy</p>
     </div>
   </div>
@@ -136,7 +136,7 @@
     <div class="actionButton" id="editPlatformPolicy">
       <p>Edit Platform Policy</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removePlatformPolicy">
       <p>Remove Platform Policy</p>
     </div>
   </div>
@@ -189,12 +189,14 @@
   document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu);
   document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu);
 
-  document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('constitution', 'add'); });
-  document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navEditor('constitution', 'change'); });
-  document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('platform', 'add'); });
-  document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navEditor('platform', 'change'); });
-  document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('change'); });
-  document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('remove'); });
+  document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('Constitution', 'Add'); });
+  document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', 'Change'); });
+  document.getElementById("removeConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Remove"); });
+  document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('Platform', 'Add'); });
+  document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', 'Change'); });
+  document.getElementById("removePlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Remove"); });
+  document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
+  document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -211,6 +213,9 @@
 
   function navRoleSelect(operation) {
     window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
+
+  function navPolicySelect(type, operation) {
+    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
   }
 </script>
 {% endblock %}

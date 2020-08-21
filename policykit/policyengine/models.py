@@ -34,7 +34,7 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
-    
+
     platform = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
@@ -184,9 +184,9 @@ class GenericRole(Group):
     is_base_role = models.BooleanField(default=False)
 
     user_group = models.TextField(blank=True, null=True, default='')
-    
+
     plat_perm_set = models.TextField(blank=True, null=True, default='')
-    
+
     def __str__(self):
         return self.role_name
 
@@ -384,7 +384,7 @@ class PolicykitAddRole(ConstitutionAction):
 
     def __str__(self):
         perms = ""
-        return "Add Role -  name: " + self.name + ", permissions: "
+        return "Add Role - name: " + self.name + ", permissions: "
 
     def execute(self):
         g, _ = CommunityRole.objects.get_or_create(name=self.name)
