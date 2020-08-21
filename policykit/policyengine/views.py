@@ -91,12 +91,37 @@ def logout(request):
     return redirect('/login')
 
 def editor(request):
-    policy = request.GET.get('policy')
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy
+
+    type = request.GET.get('type')
+    policy_id = request.GET.get('policy')
+
+    if policy_id:
+        policy = None
+        if type == 'Platform':
+            policy = PlatformPolicy.objects.filter(id=policy_id)[0]
+        elif type == 'Constitution':
+            policy = ConstitutionPolicy.objects.filter(id=policy_id)[0]
+        else:
+            return HttpResponseBadRequest()
+
+        return render(request, 'policyengine/v2/editor.html', {
+            'server_url': SERVER_URL,
+            'user': get_user(request),
+            'policy': policy_id,
+            'name': policy.name,
+            'description': policy.description,
+            'filter': policy.filter,
+            'initialize': policy.initialize,
+            'check': policy.check,
+            'notify': policy.notify,
+            'success': policy.success,
+            'fail': policy.fail
+        })
 
     return render(request, 'policyengine/v2/editor.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request),
-        'policy': policy
+        'user': get_user(request)
     })
 
 def selectpolicy(request):
@@ -303,7 +328,7 @@ def error_check(request):
 
 @csrf_exempt
 def policy_action_save(request):
-    from policyengine.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -311,12 +336,16 @@ def policy_action_save(request):
     action = None
     if data['type'] == 'Constitution' and data['operation'] == 'Add':
         action = PolicykitAddConstitutionPolicy()
+        action.is_bundled = data['is_bundled']
     elif data['type'] == 'Platform' and data['operation'] == 'Add':
         action = PolicykitAddPlatformPolicy()
+        action.is_bundled = data['is_bundled']
     elif data['type'] == 'Constitution' and data['operation'] == 'Change':
         action = PolicykitChangeConstitutionPolicy()
+        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
     elif data['type'] == 'Platform' and data['operation'] == 'Change':
         action = PolicykitChangePlatformPolicy()
+        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
     else:
         return HttpResponseBadRequest()
 
@@ -324,7 +353,6 @@ def policy_action_save(request):
     action.initiator = user
     action.name = data['name']
     action.description = data['description']
-    action.is_bundled = data['is_bundled']
     action.filter = data['filter']
     action.initialize = data['initialize']
     action.check = data['check']
