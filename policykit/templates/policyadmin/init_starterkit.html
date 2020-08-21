@@ -114,7 +114,7 @@
                 align-items: center;
             }
         
-            p {
+            .desc {
                 color: #373456;
                 padding: 0% 1%;
                 font-family: 'Karla', sans-serif;
@@ -187,19 +187,35 @@
             /* Modal Header */
             .modal-header {
                 padding: 2px 16px;
-                background-color: #5cb85c;
-                color: white;
+                background-color: #4451b2;
+                color: #ffffff;
+                font-family: 'Baloo Da 2', sans-serif;
             }
         
             /* Modal Body */
-            .modal-body {padding: 2px 16px;}
-            
+            .modal-body {
+                padding: 2px 16px;
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
             /* Modal Footer */
             .modal-footer {
-                padding: 2px 16px;
-                background-color: #5cb85c;
-                color: white;
-        }
+                padding: 16px 16px;
+                background-color: #4451b2;
+                color: #ffffff;
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
+            h3 {
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
+            .rectext {
+                color: FF9502;
+                font-weight: bold;
+                font-family: 'Baloo Da 2', sans-serif;
+                
+            }
         
         </style>
     </head>
@@ -210,20 +226,22 @@
             <h3 class = "communityName">| {{ community_name }}</h3>
         </div>
         
-        <!-- The Modal -->
         <div id="myModal" class="modal">
-            <!-- Modal content -->
             <div class="modal-content">
                 <div class="modal-header">
                     <span class="close">&times;</span>
-                    <h2>Modal Header</h2>
+                    <h2 id = "modalkitname">Testing Starter Kit</h2>
                 </div>
                 <div class="modal-body">
-                    <p>Some text in the Modal Body</p>
-                    <p>Some other text...</p>
+                    <h3>Policies:</h3>
+                        <ul id = "policylist"></ul>
+                    <h3>Roles:</h3>
+                    <ul id = "rolelist">
+                    </ul>
                 </div>
                 <div class="modal-footer">
-                    <h3>Modal Footer</h3>
+                    <span class = "rectext">Recommended for: </span><span id = "recfooter"></span><br><br>
+                    <span class = "rectext">Not Recommended for: </span><span id = "notrecfooter"></span>
                 </div>
             </div>
         </div>
@@ -235,43 +253,43 @@
                 <div class = "kit">
                     <h1 class = "titles">Testing</h1>
                     <img src="images/testing.png" class = "button" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
-                    <p>A Starter Kit that gives all members the community complete access to PolicyKit actions. </p>
-                    <button id="testBtn">Open Modal</button>
+                    <p class = "desc">A Starter Kit that gives all members the community complete access to PolicyKit actions. </p>
+                    <button id="testBtn" type="button">More Info</button>
                 </div>
                 
                 <div class = "kit">
                     <h1 class = "titles">Admin + User</h1>
                     <img src="images/admin.png" class = "button" id = "admin" name="Admin and User Starter Kit" onclick = "submitFunc(event)"/>
-                    <p> A Starter Kit that mimics a basic Moderator and User structure.  </p>
-                    <button id="adminBtn">Open Modal</button>
+                    <p class = "desc"> A Starter Kit that mimics a basic Moderator and User structure.  </p>
+                    <button id="adminBtn" type="button">More Info</button>
                 </div>
                 
                 <div class = "kit">
                     <h1 class = "titles">Democracy</h1>
                     <img src="images/democracy.png" class = "button" id = "democracy" name="Democracy Starter Kit" onclick = "submitFunc(event)"/>
-                    <p>A specified population of users votes in order to pass constitution actions</p>
-                    <button id="demoBtn">Open Modal</button>
+                    <p class = "desc">A specified population of users votes in order to pass constitution actions</p>
+                    <button id="demoBtn" type="button">More Info</button>
                 </div>
             
                 <div class = "kit">
                     <h1 class = "titles">Dictator</h1>
                     <img src="images/dictator.png" class = "button" id = "dictator" name="Dictator Starter Kit" onclick = "submitFunc(event)"/>
-                    <p>One user is given complete access and control over all policies and actions</p>
-                    <button id="dictBtn">Open Modal</button>
+                    <p class = "desc">One user is given complete access and control over all policies and actions</p>
+                    <button id="dictBtn" type="button">More Info</button>
                  </div>
                 
                 <div class = "kit">
                     <h1 class = "titles">Jury</h1>
                     <img src="images/jury.png" class = "button" id = "jury" name="Jury Starter Kit" onclick = "submitFunc(event)"/>
-                    <p>A random jury is called upon to vote whenever a constitution action is proposed.</p>
-                    <button id="juryBtn">Open Modal</button>
+                    <p class = "desc">A random jury is called upon to vote whenever a constitution action is proposed.</p>
+                    <button id="juryBtn" type="button">More Info</button>
                 </div>
                 
                 <div class = "kit">
                     <h1 class = "titles">Extra</h1>
-                    <img src="images/jury.png" class = "button" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
-                    <p>This does nothing.</p>
-                    <button id="extraBtn">Open Modal</button>
+                    <img src="images/meritocracy.png" class = "button" id = "jury" name="Jury Starter Kit" width = "150" height = "100"/>
+                    <p class = "desc">This does nothing.</p>
+                    <button id="extraBtn" type="button">More Info</button>
                 </div>
             </div>
             
@@ -292,41 +310,191 @@
             
             // Get the button that opens the modal
             var testBtn = document.getElementById("testBtn");
-            //ar adminBtn = document.getElementById("adminBtn");
-            //var demoBtn = document.getElementById("demoBtn");
-            //var dictBtn = document.getElementById("dictBtn");
-            //var juryBtn = document.getElementById("juryBtn");
-            //var extraBtn = document.getElementById("extraBtn");
+            var adminBtn = document.getElementById("adminBtn");
+            var demoBtn = document.getElementById("demoBtn");
+            var dictBtn = document.getElementById("dictBtn");
+            var juryBtn = document.getElementById("juryBtn");
+            var extraBtn = document.getElementById("extraBtn");
             
             // Get the <span> element that closes the modal
             var span = document.getElementsByClassName("close")[0];
             
             // When the user clicks on the button, open the modal
             testBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Testing Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("All Constitution Actions Pass: all constitution actions pass automatically"));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions pass automatically"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view and propose all actions (platform and constitution actions)"));
+                rolelist.appendChild(role1)
+                
+                document.getElementById("recfooter").innerHTML = "A smaller community of good-faith users looking to test out PolicyKit and gain maximum flexibility in creating subsequent policies and governance structures; community looking to allow members to easily test and experiment with PolicyKit.";
+                document.getElementById("notrecfooter").innerHTML = "Larger communities of users; communities with toxic users; communities that are looking for an immediate and substantial change to the governmental structure.";
+                
                 modal.style.display = "block";
             }
         
-            /*adminBtn.onclick = function() {
+            adminBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Admin and User Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("All Constitution Actions from Moderators Pass: constitution actions pass if proposed by user with Moderator role."));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions pass automatically"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                var role2 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view all actions (platform and constitution actions)"));
+                role2.appendChild(document.createTextNode("Moderator: can view and propose all actions (platform and constitution actions)"));
+
+                rolelist.appendChild(role1)
+                rolelist.appendChild(role2)
+                
+                document.getElementById("recfooter").innerHTML = "A community of any size of users and moderators looking to integrate PolicyKit smoothly into their community with minimal changes to their existing governmental structure. Because non-admins will be unable to pass constitution policies, the previous moderators of the site will be given the sole responsibility and ability to structure the community. This will allow for a safe onboarding process for all communities.";
+                document.getElementById("notrecfooter").innerHTML = "A moderator lead community looking to make substantial changes to their governmental structure; a community looking for more democratic participation from their users.";
+                
                 modal.style.display = "block";
                 
             }
         
             demoBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Democracy Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("Constitution Actions Voted In: all constitution actions must be approved by voters in voting process"));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions pass automatically"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                var role2 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view and propose all actions (platform and constitution)"));
+                role2.appendChild(document.createTextNode("Voter:  can view and propose all actions. (platform and constitution) Users with this role are called on to vote in order to pass proposed constitution actions "));
+                
+                rolelist.appendChild(role1)
+                rolelist.appendChild(role2)
+                
+                document.getElementById("recfooter").innerHTML = "A community looking to give all users the ability to play a part in creating the new governmental structure.";
+                document.getElementById("notrecfooter").innerHTML = "Communities looking for a smooth and controlled transition to new government.";
+                
                 modal.style.display = "block";
             }
         
             dictBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Dictator Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("No Constitution Actions Pass: no constitution actions pass (This policy is circumvented by the dictator, who has execute permissions)"));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions automatically pass"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                var role2 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view all constitution actions, can view and propose all platform actions  "));
+                role2.appendChild(document.createTextNode("Dictator: can view, propose, and execute all actions (platform and constitution)"));
+                
+                rolelist.appendChild(role1)
+                rolelist.appendChild(role2)
+                
+                document.getElementById("recfooter").innerHTML = "A community with a clear leader that would like to experiment with or build up a government with minimal distractions or feedback from others.";
+                document.getElementById("notrecfooter").innerHTML = "A community looking for more democratic participation from users; community looking for direct transition from moderator/user structure of before; community without a clear singular governmental leader.";
+                
                 modal.style.display = "block";
             }
         
             juryBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Jury Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("Constitution Actions Passed by Jury: all constitution actions that are proposed must be passed by a random jury of 3 members"));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions automatically pass"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                var role2 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view and propose all actions (platform, constitution)"));
+                
+                rolelist.appendChild(role1)
+                
+                document.getElementById("recfooter").innerHTML = "Communities that want to adopt a substantially new democratic governmental structure; communities that want to evenly distribute the burden of creating the democratic structure; communities with reliable good-faith members looking to work together to create a new system of governance.";
+                document.getElementById("notrecfooter").innerHTML = "Communities looking for a smooth and controlled transition to new government.";
+                
                 modal.style.display = "block";
             }
         
             extraBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Extra Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                document.getElementById("recfooter").innerHTML = "";
+                document.getElementById("notrecfooter").innerHTML = "";
+                
                 modal.style.display = "block";
             }
-        */
+        
             // When the user clicks on <span> (x), close the modal
             span.onclick = function() {
                 modal.style.display = "none";
