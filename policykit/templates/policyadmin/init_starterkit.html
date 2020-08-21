@@ -26,13 +26,22 @@
         <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
         <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&display=swap" rel="stylesheet">
         <style>
+            body {
+                margin: 0px;
+                padding: 0px;
+                background-color: #fffff;
+            }
         
             .brand {
+                z-index: 999;
+                top: 0;
+                height: 7vh;
                 display: flex;
                 flex-direction: row;
                 justify-content: flex-start;
                 align-items: center;
                 padding: 1vh 2vw;
+
             }
         
             .brandLogo {
