@@ -149,10 +149,10 @@
     <div class="actionButton">
       <p>Add Role</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="editRole">
       <p>Edit Role</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removeRole">
       <p>Remove Role</p>
     </div>
     <div class="actionButton">
@@ -193,6 +193,8 @@
   document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navEditor('constitution', 'change'); });
   document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('platform', 'add'); });
   document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navEditor('platform', 'change'); });
+  document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('change'); });
+  document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('remove'); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -205,6 +207,10 @@
 
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+  }
+
+  function navRoleSelect(operation) {
+    window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
   }
 </script>
 {% endblock %}
