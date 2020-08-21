@@ -104,7 +104,7 @@ def selectrole(request):
 
     roles = CommunityRole.objects.filter(community=user.community)
 
-    return render(request, 'policyengine/v2/policy_select.html', {
+    return render(request, 'policyengine/v2/role_select.html', {
         'server_url': SERVER_URL,
         'user': user,
         'roles': roles,
