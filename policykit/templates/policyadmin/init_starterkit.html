@@ -2,7 +2,7 @@
 {% load i18n static %}
 
 {% block extrahead %}
-<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+
 {% endblock %}
 
 {% block bodyclass %}{% endblock %}
@@ -22,39 +22,167 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Page Title</title>
+        <title>Policy Kit</title>
+        <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+        <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&display=swap" rel="stylesheet">
+        <style>
+        
+            .brand {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                padding: 1vh 2vw;
+            }
+        
+            .brandLogo {
+                width: 60px;
+            }
+        
+            .brandName {
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 2.3em;
+                color: #373456;
+                margin-left: 1vw;
+                line-height: 2.3em;
+                white-space: nowrap;
+            }
+        
+            .communityName {
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 1.6em;
+                color: #373456;
+                margin-left: 0.5vw;
+                line-height: 1.4em;
+                white-space: nowrap;
+            }
+        
+            .titles {
+                width: 272px;
+                height: 31px;
+                left: 584px;
+                top: 184px;
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 2.3em;
+                color: #373456;
+                line-height: 2.3em;
+                text-align: center;
+            }
+        
+            /*.logo {
+                width: 125px;
+                height: 95px;
+                left: 16px;
+                top: 15px;
+                filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+            }*/
+        
+            .button {
+                width: 204px;
+                height: 200px;
+                left: 944px;
+                top: 617px;
+                box-shadow: 10px 10px 4px rgba(0, 0, 0, 0.25);
+                border-radius: 65px;
+            }
+        
+            .button:hover {
+                cursor: pointer;
+            }
+        
+            label {
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 2.3em;
+                color: #373456;
+                line-height: 2.3em;
+                text-align: center;
+            }
+        
+            .images {
+                display: flex;
+                flex-flow: row wrap;
+                justify-content: center;
+            }
+        
+            .kit {
+                display:flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        
+            p {
+                color: #373456;
+                padding: 0% 1%;
+                font-family: 'Karla', sans-serif;
+                font-weight: normal;
+                font-size: 1em;
+                width: 200px;
+                text-align: center;
+            }
+        
+            label {
+                 font-family: 'Karla', sans-serif;
+                 font-weight: normal;
+                 font-size: 1.8em;
+                 color: #373456;
+                 line-height: 1.8em;
+                 display: block;
+                 text-align: center;
+                 line-height: 100%;
+            }
+        
+        </style>
     </head>
     <body>
-        <div name = "policykit">
-            <img src = "images/logo.png" class="logo">
-            <h1>Policy Kit</h1>
+        <div class="brand" id="brand">
+            <img class = "brandLogo" src = "images/logo.png"/>
+            <h2 class = "brandName">PolicyKit</h2>
+            <h3 class = "communityName">| {{ community_name }}</h3>
         </div>
-        
-        <p id="heyo" style="color:green;
-        font-size: 20px;
-        font-weight: bold;">
-        </p>
-        
-        <p id="suppo" style="color:green;
-        font-size: 20px;
-        font-weight: bold;">
-        </p>
-
-        <title name="choose">Choose a Starter Kit for your Community</title>
 
         <form action="/main/policyengine/initialize_starterkit" method="post" name="form" id="form">
             
             <label for="starterkit">Choose a System of Governance:</label>
-            <div id="images">
-                <img src="images/testing.png" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+            <div class="images">
+                <div class = "kit">
+                    <h1 class = "titles">Testing</h1>
+                    <img src="images/testing.png" class = "button" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                    <p>A Starter Kit that gives all members the community complete access to PolicyKit actions. </p>
+                </div>
                 
-                <img src="images/admin.png" id = "admin" name="Admin and User Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                <div class = "kit">
+                    <h1 class = "titles">Admin + User</h1>
+                    <img src="images/admin.png" class = "button" id = "admin" name="Admin and User Starter Kit" onclick = "submitFunc(event)"/>
+                    <p> A Starter Kit that mimics a basic Moderator and User structure.  </p>
+                </div>
                 
-                <img src="images/democracy.png" id = "democracy" name="Democracy Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                <div class = "kit">
+                    <h1 class = "titles">Democracy</h1>
+                    <img src="images/democracy.png" class = "button" id = "democracy" name="Democracy Starter Kit" onclick = "submitFunc(event)"/>
+                    <p>A specified population of users votes in order to pass constitution actions</p>
+                </div>
+            
+                <div class = "kit">
+                    <h1 class = "titles">Dictator</h1>
+                    <img src="images/dictator.png" class = "button" id = "dictator" name="Dictator Starter Kit" onclick = "submitFunc(event)"/>
+                    <p>One user is given complete access and control over all policies and actions</p>
+                 </div>
                 
-                <img src="images/dictator.png" id = "dictator" name="Dictator Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                <div class = "kit">
+                    <h1 class = "titles">Jury</h1>
+                    <img src="images/jury.png" class = "button" id = "jury" name="Jury Starter Kit" onclick = "submitFunc(event)"/>
+                    <p>A random jury is called upon to vote whenever a constitution action is proposed.</p>
+                </div>
                 
-                <img src="images/jury.png" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                <div class = "kit">
+                    <h1 class = "titles">Extra</h1>
+                    <img src="images/jury.png" class = "button" id = "jury" name="Jury Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                    <p>This does nothing.</p>
+                </div>
             </div>
             
             <input type="hidden" name="starterkit" id="starterkit" value = "">
@@ -75,3 +203,9 @@
 </html>
 
 {% endblock %}
+
+<!--body {
+ margin: 0px;
+ padding: 0px;
+ background-color: #ebecf1;
+ }-->
