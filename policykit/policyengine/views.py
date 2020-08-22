@@ -124,6 +124,19 @@ def editor(request):
         'user': get_user(request)
     })
 
+def selectrole(request):
+    from policyengine.models import CommunityRole
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+
+    return render(request, 'policyengine/v2/role_select.html', {
+        'server_url': SERVER_URL,
+        'user': user,
+        'roles': roles,
+
 def selectpolicy(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 

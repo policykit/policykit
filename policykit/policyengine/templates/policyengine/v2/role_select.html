@@ -1,0 +1,76 @@
+{% extends "policyengine/v2/dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+  .body {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+
+  .form-row {
+    margin-top: 3vh;
+    margin-bottom: 3vh;
+  }
+
+  .control-label {
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #373456;
+  }
+
+  .dropdown {
+    width: 20%;
+    font-size: 1.2em;
+  }
+
+  .submitButton {
+    width: 10%;
+    font-size: 1.2em;
+    border-radius: 30px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  <h3>Which Role would you like to {{operation}}?</h3>
+
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="role">Role:</label>
+    <div class="col-sm-11">
+      <select class="dropdown" name="role" id="role">
+        {% for role in roles %}
+          <option value="{{role.name}}">{{role.role_name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("submit").addEventListener("click", submit);
+
+  function submit() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const operation = urlParams.get('operation');
+
+    const select = document.getElementById("role");
+    const role = select.options[select.selectedIndex].value;
+
+    if (operation == "Change") {
+      // TODO: add change role code here
+    } else {
+      // TODO: add remove role code here
+    }
+  }
+</script>
+{% endblock %}
