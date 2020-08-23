@@ -11,7 +11,7 @@ import logging
 import json
 import parser
 from actstream import action
-from actstream.models import target_stream
+from actstream.models import model_stream
 
 
 logger = logging.getLogger(__name__)
@@ -78,8 +78,7 @@ def v2(request):
             'fail': cp.fail
         }
 
-
-    community.target_actions.all()
+    activity_stream = model_stream(request.Community)
 
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
@@ -88,6 +87,8 @@ def v2(request):
         'roles': role_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data
+        'activity_stream': activity_stream
+    
     })
 
 

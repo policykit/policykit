@@ -214,9 +214,9 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
       <div class="ui feed">
-          <p class="list-group-item-text pull-right">
+          {% for event in activity_stream %}
           {# Verb #}
-          <span class="glyphicon
+          <span class="glyphicon 
               {% if event.verb == 'added' %}
                 glyphicon-plus
               {% elif event.verb == 'changed' %}
@@ -229,7 +229,7 @@
           {# Action object #}
           {% if event.action_object %}
             {% if event.action_object.get_absolute_url %}
-                <a href="{{ event.action_object.get_absolute_url }}">{{ event.action_object }}</a>
+                {{ event.action_object }}
           {% else %}
             {{ event.action_object }}
           {% endif %}
@@ -240,7 +240,6 @@
           
           {#  Time #}
           {{ event.timestamp|timesince }} {% trans "ago" %}
-          </p>
          
     </div>
   </div>
