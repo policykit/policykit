@@ -78,7 +78,7 @@ def v2(request):
             'fail': cp.fail
         }
 
-    activity_stream = model_stream(request.PolicykitAddPlatformPolicy)
+    activity_stream = model_stream(request.CommunityUser)
 
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
