@@ -135,7 +135,8 @@ def selectrole(request):
     return render(request, 'policyengine/v2/role_select.html', {
         'server_url': SERVER_URL,
         'user': user,
-        'roles': roles,
+        'roles': roles
+    })
 
 def selectpolicy(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
