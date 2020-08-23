@@ -23,8 +23,12 @@
     color: #373456;
   }
 
-  .dropdown {
-    width: 20%;
+  .name {
+    width: 40%;
+  }
+
+  .permissionTable {
+    width: 40%;
     font-size: 1.2em;
   }
 
@@ -38,17 +42,34 @@
 
 {% block content %}
 <div class="body">
-  <h3>Which Role would you like to {{operation}}?</h3>
+  {% if operation == "Add" %}
+    <h3>Add a new Role</h3>
+  {% elif operation == "Change" %}
+    <h3>Change an existing Role</h3>
+  {% endif %}
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="role">Role:</label>
+    <label class="control-label col-sm-1" for="name">Name:</label>
     <div class="col-sm-11">
-      <select class="dropdown" name="role" id="role">
-        {% for role in roles %}
-          <option value="{{role.name}}">{{role.role_name}}</option>
-        {% endfor %}
-      </select>
+      <input type="text" class="form-control name" id="name" required>
     </div>
+  </div>
+
+  <div class="form-row">
+    <table class="table table-hover permissionTable">
+      <thead>
+        <tr>
+          <th scope="col">Select which Permissions the Role should have</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for permission in permissions %}
+          <tr>
+            <td>{{permission.name}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
@@ -60,16 +81,10 @@
   document.getElementById("submit").addEventListener("click", submit);
 
   function submit() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const operation = urlParams.get('operation');
-
-    const select = document.getElementById("role");
-    const role = select.options[select.selectedIndex].value;
-
-    if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/roleeditor?operation=${operation}`
+    if ({{operation}} == "Change") {
+      // TODO: add change role code here
     } else {
-      // TODO: add remove role code here
+      // TODO: add add role code here
     }
   }
 </script>

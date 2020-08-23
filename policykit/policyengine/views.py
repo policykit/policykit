@@ -139,6 +139,25 @@ def selectrole(request):
         'operation': operation
     })
 
+def roleeditor(request):
+    from policyengine.models import CommunityRole
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+    permissions = []
+    for r in roles:
+        for p in r.permissions.all():
+            permissions.append({ 'name': p.name })
+
+    return render(request, 'policyengine/v2/role_editor.html', {
+        'server_url': SERVER_URL,
+        'user': user,
+        'permissions': permissions,
+        'operation': operation
+    })
+
 def selectpolicy(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
