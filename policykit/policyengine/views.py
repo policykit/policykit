@@ -86,7 +86,7 @@ def v2(request):
         'users': user_data,
         'roles': role_data,
         'platform_policies': platform_policy_data,
-        'constitution_policies': constitution_policy_data
+        'constitution_policies': constitution_policy_data,
         'activity_stream': activity_stream
     
     })
