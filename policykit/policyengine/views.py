@@ -10,7 +10,7 @@ import urllib.parse
 import logging
 import json
 import parser
-from actstream import action
+from actstream import action 
 from actstream.models import model_stream
 
 
@@ -78,7 +78,7 @@ def v2(request):
             'fail': cp.fail
         }
 
-    activity_stream = model_stream(request.CommunityUser)
+    activity_stream = model_stream(request.CommunityUser) #this is to create the stream (in this case a model stream to show all actions from a model
 
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,

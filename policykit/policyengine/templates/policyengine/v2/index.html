@@ -210,13 +210,13 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>
     </div>
-
+    <!-- template tags for html (images can be replaced with better ones corresponding to the propose action task flow-->
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
       <div class="ui feed">
           {% for event in activity_stream %}
           {# Verb #}
-          <span class="glyphicon 
+          <span class="glyphicon
               {% if event.verb == 'added' %}
                 glyphicon-plus
               {% elif event.verb == 'changed' %}
@@ -226,17 +226,12 @@
               
               {% endif %}
               "></span>
-          {# Action object #}
           {% if event.action_object %}
-            {% if event.action_object.get_absolute_url %}
-                {{ event.action_object }}
+             {% display_action event.action_object %}
           {% else %}
-            {{ event.action_object }}
+             {% display_action event.action_object %}
           {% endif %}
           {% endif %}
-
-          {# Target #}
-          {#        {{ event.target }}#}
           
           {#  Time #}
           {{ event.timestamp|timesince }} {% trans "ago" %}

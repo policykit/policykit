@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
-
+#registry of model streams
 class policyEngineConfig(AppConfig):
     name = 'policyengine'
 
