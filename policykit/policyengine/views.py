@@ -480,3 +480,18 @@ def role_action_save(request):
         return HttpResponseBadRequest()
 
     return HttpResponse()
+
+@csrf_exempt
+def role_action_remove(request):
+    from policyengine.models import CommunityRole, PolicykitDeleteRole
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitDeleteRole()
+    action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    action.community = user.community
+    action.initiator = user
+    action.save()
+
+    return HttpResponse()

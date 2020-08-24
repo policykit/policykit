@@ -69,7 +69,17 @@
     if (operation == "Change") {
       window.location.href = `{{server_url}}/main/roleeditor?operation=${operation}&role=${role}`
     } else {
-      // TODO: add remove role code here
+      fetch('../../../main/policyengine/role_action_remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          'role': role
+        })
+      }).then(response => {
+        window.location.href = "{{server_url}}/main/"
+      });
     }
   }
 </script>
