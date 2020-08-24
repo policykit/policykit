@@ -148,7 +148,7 @@ def roleeditor(request):
     role_name = request.GET.get('role')
 
     roles = CommunityRole.objects.filter(community=user.community)
-    permissions = {}
+    permissions = set()
     for r in roles:
         for p in r.permissions.all():
             permissions.add(p.name)
