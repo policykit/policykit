@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -416,6 +417,23 @@ def policy_action_remove(request):
 
     action.community = user.community
     action.initiator = user
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def role_action_save(request):
+    from policyengine.models import CommunityRole, PolicykitAddRole
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitAddRole()
+    action.community = user.community
+    action.initiator = user
+    action.name = data['name']
+    action.save()
+    action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
     action.save()
 
     return HttpResponse()
