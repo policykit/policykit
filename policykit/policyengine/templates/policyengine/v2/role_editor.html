@@ -132,10 +132,10 @@
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        'name': {{name}},
+        'name': `{{name}}`,
         'role_name': name,
         'permissions': Array.from(selectedPermissions),
-        'operation': {{operation}}
+        'operation': `{{operation}}`
       })
     }).then(response => {
       window.location.href = "{{server_url}}/main/"
