@@ -81,8 +81,8 @@
       </thead>
       <tbody>
         {% for permission in permissions %}
-          <tr id="{{permission.name}}">
-            <td>{{permission.name}}</td>
+          <tr id="{{permission}}">
+            <td>{{permission}}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -96,11 +96,22 @@
 {% block scripts %}
 <script>
   {% for permission in permissions %}
-    document.getElementById("{{permission.name}}").addEventListener("click", function(){ toggleSelect("{{permission.name}}"); });
+    document.getElementById(`{{permission}}`).addEventListener("click", function(){ toggleSelect(`{{permission}}`); });
   {% endfor %}
   document.getElementById("submit").addEventListener("click", submit);
 
   var selectedPermissions = new Set();
+
+  {% if role_name %}
+    document.getElementById('name').value = `{{role_name}}`;
+  {% endif %}
+
+  {% if currentPermissions %}
+    {% for permissionName in currentPermissions %}
+      selectedPermissions.add(`{{permissionName}}`);
+      document.getElementById(`{{permissionName}}`).classList.add("selected");
+    {% endfor %}
+  {% endif %}
 
   function toggleSelect(permissionName) {
     if (selectedPermissions.has(permissionName)) {
@@ -113,24 +124,22 @@
   }
 
   function submit() {
-    if ("{{operation}}" == "Change") {
-      // TODO: add change role code here
-    } else {
-      const name = document.getElementById('name').value;
+    const name = document.getElementById('name').value;
 
-      fetch('../../../main/policyengine/role_action_save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          'name': name,
-          'permissions': Array.from(selectedPermissions)
-        })
-      }).then(response => {
-        window.location.href = "{{server_url}}/main/"
-      });
-    }
+    fetch('../../../main/policyengine/role_action_save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'name': `{{name}}`,
+        'role_name': name,
+        'permissions': Array.from(selectedPermissions),
+        'operation': `{{operation}}`
+      })
+    }).then(response => {
+      window.location.href = "{{server_url}}/main/"
+    });
   }
 </script>
 {% endblock %}

@@ -273,15 +273,17 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         proposal.status = Proposal.PASSED
         proposal.save()
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            # Runs only when object is new
+    def shouldCreate(self):
+        return not self.pk # Runs only when object is new
 
+    def save(self, *args, **kwargs):
+        if self.shouldCreate():
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
-                p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                                    author=self.initiator)
-                self.proposal = p
+                if not self.proposal:
+                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
+                else:
+                    self.proposal.status = Proposal.PROPOSED
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
@@ -303,10 +305,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                               else:
                                   notify_policy(policy, action)
             else:
-                p = Proposal.objects.create(status=Proposal.FAILED,
-                                            author=self.initiator)
-                self.proposal = p
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
+            if not self.pk: # Runs only when object is new
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
             super(ConstitutionAction, self).save(*args, **kwargs)
 
 
@@ -381,9 +383,13 @@ class PolicykitAddRole(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddrole'
+    ready = False
 
     def __str__(self):
         return "Add Role - name: " + self.name
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         role, _ = CommunityRole.objects.get_or_create(role_name=self.name, name=self.community.platform + ": " + self.community.community_name + ": " + self.name)
@@ -419,6 +425,10 @@ class PolicykitAddPermission(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddpermission'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for p in self.permissions.all():
@@ -436,6 +446,10 @@ class PolicykitRemovePermission(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitremovepermission'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for p in self.permissions.all():
