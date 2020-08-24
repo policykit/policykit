@@ -91,6 +91,7 @@ class CommunityUser(User, PolymorphicModel):
         group.user_set.add(self)
 
 
+
 class CommunityDoc(models.Model):
     text = models.TextField()
     community = models.ForeignKey(Community, models.CASCADE)
@@ -377,6 +378,10 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
         permissions = (
             ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
         )
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+    
+    post_save.connect(my_handler, sender=PolicykitChangeCommunityDoc)
 
 
 class PolicykitAddRole(ConstitutionAction):
