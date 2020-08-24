@@ -4,6 +4,9 @@
 {% block styles %}
 <link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
+<link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.js" %}">
+<link rel="stylesheet" href="{% static "codemirror/addon/hint/css-hint.js" %}">
+
 <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
 
 <style>
@@ -41,6 +44,7 @@
     height: auto;
     width: 60%;
     border: 1px solid #000000;
+    extraKeys: ("Ctrl-Space": "autocomplete")
   }
 
   .form-row {

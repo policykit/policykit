@@ -58,8 +58,8 @@ class Community(PolymorphicModel):
         pass
 
     def get_users(self):
-        logger.error("HERE!")
-        logger.error(CommunityUser.objects.filter(community=policy.community))
+        logger.info("HERE!")
+        logger.info(CommunityUser.objects.filter(community=policy.community))
         return CommunityUser.objects.filter(community=policy.community)
 
 
