@@ -621,7 +621,7 @@ class PolicykitAddConstitutionPolicy(EditorModel):
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was added')
     
-    post_save.connect(my_handler, sender= policyengine.ConstitutionPolicy)
+    post_save.connect(my_handler, sender= 'policyengine.ConstitutionPolicy')
 
 
 
@@ -677,7 +677,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was changed')
     
-    post_save.connect(my_handler, sender=ConstitutionPolicy)
+    post_save.connect(my_handler, sender='policyengine.ConstitutionPolicy')
 
 
 class PolicykitRemovePlatformPolicy(ConstitutionAction):
