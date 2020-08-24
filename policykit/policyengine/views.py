@@ -434,7 +434,7 @@ def role_action_save(request):
 
     action = PolicykitAddRole()
     action.name = data['name']
-    action.permissions = Permission.objects.filter(name__in=data['permissions'])
+    action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
     action.community = user.community
     action.initiator = user
     action.save()
