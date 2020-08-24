@@ -424,8 +424,12 @@ def policy_action_remove(request):
 def role_action_save(request):
     from policyengine.models import CommunityRole, PolicykitAddRole
 
+    logger.info('test')
+
     data = json.loads(request.body)
     user = get_user(request)
+
+    logger.info(data['name'])
 
     action = PolicykitAddRole()
     action.name = data['name']
@@ -433,5 +437,7 @@ def role_action_save(request):
     action.community = user.community
     action.initiator = user
     action.save()
+
+    logger.info('role saved')
 
     return HttpResponse()
