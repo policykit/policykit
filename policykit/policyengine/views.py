@@ -156,7 +156,7 @@ def roleeditor(request):
     data = {
         'server_url': SERVER_URL,
         'user': user,
-        'permissions': list(permissions),
+        'permissions': list(sorted(permissions)),
         'operation': operation
     }
 
