@@ -167,6 +167,7 @@ def roleeditor(request):
         currentPermissions = []
         for p in role.permissions.all():
             currentPermissions.append(p.name)
+        logger.info(currentPermissions)
         data['currentPermissions'] = currentPermissions
 
     return render(request, 'policyengine/v2/role_editor.html', data)
