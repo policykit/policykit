@@ -280,7 +280,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         if self.shouldCreate():
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
-                if self.proposal:
+                if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
                 else:
                     self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
