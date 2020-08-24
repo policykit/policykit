@@ -309,11 +309,11 @@ policyengine_functions = [
     'get_boolean_votes',
     'get_no_votes',
     'get_number_votes',
-    'get_users',
     'get_yes_votes',
     'notify_users',
     'time_elapsed',
-    'get_users'
+    'get_users',
+
 ]
 
 class Filter(ast.NodeVisitor):
