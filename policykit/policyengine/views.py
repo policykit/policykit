@@ -433,10 +433,11 @@ def role_action_save(request):
     logger.info(data['name'])
 
     action = PolicykitAddRole()
-    action.name = data['name']
-    action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
     action.community = user.community
     action.initiator = user
+    action.name = data['name']
+    action.save()
+    action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
     action.save()
 
     logger.info('role saved')
