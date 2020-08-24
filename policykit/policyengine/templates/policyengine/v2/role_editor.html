@@ -116,7 +116,20 @@
     if ({{operation}} == "Change") {
       // TODO: add change role code here
     } else {
-      // TODO: add add role code here
+      const name = document.getElementById('name').value;
+
+      fetch('../../../main/policyengine/role_action_save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          'name': name,
+          'permissions': Array.from(selectedPermissions)
+        })
+      }).then(response => {
+        window.location.href = "{{server_url}}/main/"
+      });
     }
   }
 </script>
