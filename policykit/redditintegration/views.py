@@ -82,6 +82,7 @@ def oauth(request):
             }
             return render(request, "policyadmin/configure.html", context)
 
+
     response = redirect('/login?error=no_subreddits_with_mod_privileges_found')
     return response
 

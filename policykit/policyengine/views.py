@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -39,16 +40,16 @@ def v2(request):
 
     role_data = {}
     for r in roles:
-        role_data[r.name] = {
+        role_data[r.role_name] = {
             'permissions': [],
             'users': []
         }
         for p in r.permissions.all():
-            role_data[r.name]['permissions'].append({ 'name': p.name })
+            role_data[r.role_name]['permissions'].append({ 'name': p.name })
         for u in r.user_set.all():
             cu = u.communityuser
-            role_data[r.name]['users'].append({ 'username': cu.readable_name })
-            user_data[cu.username]['roles'].append({ 'name': r.name })
+            role_data[r.role_name]['users'].append({ 'username': cu.readable_name })
+            user_data[cu.username]['roles'].append({ 'name': r.role_name })
 
     platform_policy_data = {}
     for pp in platform_policies:
@@ -99,9 +100,106 @@ def logout(request):
     return redirect('/login')
 
 def editor(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy
+
+    type = request.GET.get('type')
+    policy_id = request.GET.get('policy')
+
+    if policy_id:
+        policy = None
+        if type == 'Platform':
+            policy = PlatformPolicy.objects.filter(id=policy_id)[0]
+        elif type == 'Constitution':
+            policy = ConstitutionPolicy.objects.filter(id=policy_id)[0]
+        else:
+            return HttpResponseBadRequest()
+
+        return render(request, 'policyengine/v2/editor.html', {
+            'server_url': SERVER_URL,
+            'user': get_user(request),
+            'policy': policy_id,
+            'name': policy.name,
+            'description': policy.description,
+            'filter': policy.filter,
+            'initialize': policy.initialize,
+            'check': policy.check,
+            'notify': policy.notify,
+            'success': policy.success,
+            'fail': policy.fail
+        })
+
     return render(request, 'policyengine/v2/editor.html', {
         'server_url': SERVER_URL,
         'user': get_user(request)
+    })
+
+def selectrole(request):
+    from policyengine.models import CommunityRole
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+
+    return render(request, 'policyengine/v2/role_select.html', {
+        'server_url': SERVER_URL,
+        'user': user,
+        'roles': roles,
+        'operation': operation
+    })
+
+def roleeditor(request):
+    from policyengine.models import CommunityRole
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+    role_name = request.GET.get('role')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+    permissions = set()
+    for r in roles:
+        for p in r.permissions.all():
+            permissions.add(p.name)
+
+    data = {
+        'server_url': SERVER_URL,
+        'user': user,
+        'permissions': list(sorted(permissions)),
+        'operation': operation
+    }
+
+    if role_name:
+        role = CommunityRole.objects.filter(name=role_name)[0]
+        data['role_name'] = role.role_name
+        data['name'] = role_name
+        currentPermissions = []
+        for p in role.permissions.all():
+            currentPermissions.append(p.name)
+        data['currentPermissions'] = currentPermissions
+
+    return render(request, 'policyengine/v2/role_editor.html', data)
+
+def selectpolicy(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy
+
+    user = get_user(request)
+    policies = None
+    type = request.GET.get('type')
+    operation = request.GET.get('operation')
+
+    if type == 'Platform':
+        policies = PlatformPolicy.objects.filter(community=user.community)
+    elif type == 'Constitution':
+        policies = ConstitutionPolicy.objects.filter(community=user.community)
+    else:
+        return HttpResponseBadRequest()
+
+    return render(request, 'policyengine/v2/policy_select.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request),
+        'policies': policies,
+        'type': type,
+        'operation': operation
     })
 
 def actions(request):
@@ -285,20 +383,24 @@ def error_check(request):
 
 @csrf_exempt
 def policy_action_save(request):
-    from policyengine.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
 
     action = None
-    if data['type'] == 'constitution' and data['operation'] == 'add':
+    if data['type'] == 'Constitution' and data['operation'] == 'Add':
         action = PolicykitAddConstitutionPolicy()
-    elif data['type'] == 'platform' and data['operation'] == 'add':
+        action.is_bundled = data['is_bundled']
+    elif data['type'] == 'Platform' and data['operation'] == 'Add':
         action = PolicykitAddPlatformPolicy()
-    elif data['type'] == 'constitution' and data['operation'] == 'change':
+        action.is_bundled = data['is_bundled']
+    elif data['type'] == 'Constitution' and data['operation'] == 'Change':
         action = PolicykitChangeConstitutionPolicy()
-    elif data['type'] == 'platform' and data['operation'] == 'change':
+        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+    elif data['type'] == 'Platform' and data['operation'] == 'Change':
         action = PolicykitChangePlatformPolicy()
+        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
     else:
         return HttpResponseBadRequest()
 
@@ -306,7 +408,6 @@ def policy_action_save(request):
     action.initiator = user
     action.name = data['name']
     action.description = data['description']
-    action.is_bundled = data['is_bundled']
     action.filter = data['filter']
     action.initialize = data['initialize']
     action.check = data['check']
@@ -314,5 +415,76 @@ def policy_action_save(request):
     action.success = data['success']
     action.fail = data['fail']
     action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def policy_action_remove(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['type'] == 'Constitution':
+        action = PolicykitRemoveConstitutionPolicy()
+        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+    elif data['type'] == 'Platform':
+        action = PolicykitRemovePlatformPolicy()
+        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def role_action_save(request):
+    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    if data['operation'] == 'Add':
+        action = PolicykitAddRole()
+        action.community = user.community
+        action.initiator = user
+        action.name = data['role_name']
+        action.save()
+        action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
+        action.ready = True
+        action.save()
+    elif data['operation'] == 'Change':
+        role = CommunityRole.objects.filter(name=data['name'])[0]
+        currentPermissions = []
+        for p in role.permissions.all():
+            currentPermissions.append(p.name)
+
+        addedPermissions = list(set(data['permissions']) - set(currentPermissions))
+        if len(addedPermissions) > 0:
+            action = PolicykitAddPermission()
+            action.community = user.community
+            action.initiator = user
+            action.role = role
+            action.save()
+            action.permissions.set(Permission.objects.filter(name__in=addedPermissions))
+            action.ready = True
+            action.save()
+
+        removedPermissions = list(set(currentPermissions) - set(data['permissions']))
+        if len(removedPermissions) > 0:
+            action = PolicykitRemovePermission()
+            action.community = user.community
+            action.initiator = user
+            action.role = role
+            action.save()
+            action.permissions.set(Permission.objects.filter(name__in=removedPermissions))
+            action.ready = True
+            action.save()
+    else:
+        return HttpResponseBadRequest()
 
     return HttpResponse()
