@@ -148,15 +148,15 @@ def roleeditor(request):
     role_name = request.GET.get('role')
 
     roles = CommunityRole.objects.filter(community=user.community)
-    permissions = []
+    permissions = {}
     for r in roles:
         for p in r.permissions.all():
-            permissions.append({ 'name': p.name })
+            permissions.add(p.name)
 
     data = {
         'server_url': SERVER_URL,
         'user': user,
-        'permissions': permissions,
+        'permissions': list(permissions),
         'operation': operation
     }
 
@@ -165,11 +165,8 @@ def roleeditor(request):
         data['role_name'] = role.role_name
         data['name'] = role_name
         currentPermissions = []
-        logger.info(role)
-        logger.info(role.permissions.all())
         for p in role.permissions.all():
             currentPermissions.append(p.name)
-        logger.info(currentPermissions)
         data['currentPermissions'] = currentPermissions
 
     return render(request, 'policyengine/v2/role_editor.html', data)
