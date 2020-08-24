@@ -274,17 +274,16 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         proposal.save()
 
     def shouldCreate(self):
-        return self.pk == False
+        return not self.pk # Runs only when object is new
 
     def save(self, *args, **kwargs):
         if self.shouldCreate():
-            # Runs only when object is new
-
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
-                p = Proposal.objects.create(status=Proposal.PROPOSED,
-                                                    author=self.initiator)
-                self.proposal = p
+                if not self.proposal:
+                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
+                else:
+                    self.proposal.status = Proposal.PROPOSED
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
@@ -306,10 +305,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                               else:
                                   notify_policy(policy, action)
             else:
-                p = Proposal.objects.create(status=Proposal.FAILED,
-                                            author=self.initiator)
-                self.proposal = p
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
+            if not self.pk: # Runs only when object is new
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
             super(ConstitutionAction, self).save(*args, **kwargs)
 
 
