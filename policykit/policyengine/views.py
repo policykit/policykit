@@ -463,7 +463,7 @@ def role_action_save(request):
             action = PolicykitAddPermission()
             action.community = user.community
             action.initiator = user
-            action.role = data['name']
+            action.role = role
             action.save()
             action.permissions.set(Permission.objects.filter(name__in=addedPermissions))
             action.ready = True
@@ -474,7 +474,7 @@ def role_action_save(request):
             action = PolicykitRemovePermission()
             action.community = user.community
             action.initiator = user
-            action.role = data['name']
+            action.role = role
             action.save()
             action.permissions.set(Permission.objects.filter(name__in=removedPermissions))
             action.ready = True
