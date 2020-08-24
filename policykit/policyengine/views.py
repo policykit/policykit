@@ -447,6 +447,8 @@ def role_action_save(request):
         action.initiator = user
         action.name = data['role_name']
         action.save()
+        logger.info('adding')
+        logger.info(data['permissions'])
         action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
         action.save()
     elif data['operation'] == 'Change':
