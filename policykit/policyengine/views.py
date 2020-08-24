@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -433,7 +434,7 @@ def role_action_save(request):
 
     action = PolicykitAddRole()
     action.name = data['name']
-    action.permissions = CommunityRole.objects.filter(name__in=data['permissions'])
+    action.permissions = Permission.objects.filter(name__in=data['permissions'])
     action.community = user.community
     action.initiator = user
     action.save()
