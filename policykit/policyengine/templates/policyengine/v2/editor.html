@@ -240,8 +240,9 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
+        gutters: ['warnings'],
         extraKeys: ("Ctrl-Space":"autocomplete"),
-        gutters: ['warnings']
+
     }));
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
