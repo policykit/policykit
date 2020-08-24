@@ -381,7 +381,7 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was added')
     
-    post_save.connect(my_handler, sender=PolicykitChangeCommunityDoc)
+    post_save.connect(my_handler, sender=CommunityDoc)
 
 
 class PolicykitAddRole(ConstitutionAction):

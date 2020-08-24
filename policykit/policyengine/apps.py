@@ -18,4 +18,5 @@ class policyEngineConfig(AppConfig):
         registry.register(self.get_model('BooleanVote'))
         registry.register(self.get_model('NumberVote'))
         registry.register(self.get_model('Proposal'))
+        registry.register(self.get_model('CommunityDoc'))
 
