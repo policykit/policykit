@@ -273,8 +273,11 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         proposal.status = Proposal.PASSED
         proposal.save()
 
+    def shouldCreate(self):
+        return self.pk == False
+
     def save(self, *args, **kwargs):
-        if not self.pk:
+        if self.shouldCreate():
             # Runs only when object is new
 
             #runs only if they have propose permission
@@ -381,9 +384,13 @@ class PolicykitAddRole(ConstitutionAction):
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddrole'
+    ready = False
 
     def __str__(self):
         return "Add Role - name: " + self.name
+
+    def shouldCreate(self):
+        return ready
 
     def execute(self):
         role, _ = CommunityRole.objects.get_or_create(role_name=self.name, name=self.community.platform + ": " + self.community.community_name + ": " + self.name)
