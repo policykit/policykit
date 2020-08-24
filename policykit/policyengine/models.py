@@ -379,7 +379,7 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
             ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
         )
     def my_handler(sender, instance, created, **kwargs):
-        action.send(instance, verb='was added')
+        action.send(instance, verb='was changed')
     
     post_save.connect(my_handler, sender=CommunityDoc)
 
@@ -410,6 +410,12 @@ class PolicykitAddRole(ConstitutionAction):
             ('can_execute_policykitaddrole', 'Can execute policykit add role'),
         )
 
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+    
+    post_save.connect(my_handler, sender=CommunityUser)
+
+
 
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
@@ -424,6 +430,11 @@ class PolicykitDeleteRole(ConstitutionAction):
         permissions = (
             ('can_execute_policykitdeleterole', 'Can execute policykit delete role'),
         )
+
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was deleted')
+    
+    post_save.connect(my_handler, sender=CommunityUser)
 
 
 class PolicykitAddPermission(ConstitutionAction):
@@ -446,6 +457,11 @@ class PolicykitAddPermission(ConstitutionAction):
             ('can_execute_policykitaddpermission', 'Can execute policykit add permission'),
         )
 
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+    
+    post_save.connect(my_handler, sender=CommunityUser)
+
 
 class PolicykitRemovePermission(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
@@ -467,6 +483,11 @@ class PolicykitRemovePermission(ConstitutionAction):
             ('can_execute_policykitremovepermission', 'Can execute policykit remove permission'),
         )
 
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was removed')
+    
+    post_save.connect(my_handler, sender=CommunityUser)
+
 
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
@@ -484,6 +505,11 @@ class PolicykitAddUserRole(ConstitutionAction):
             ('can_execute_policykitadduserrole', 'Can execute policykit add user role'),
         )
 
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+    
+    post_save.connect(my_handler, sender=CommunityUser)
+
 
 class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
@@ -500,6 +526,11 @@ class PolicykitRemoveUserRole(ConstitutionAction):
         permissions = (
             ('can_execute_policykitremoveuserrole', 'Can execute policykit remove user role'),
         )
+
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was removed')
+    
+    post_save.connect(my_handler, sender=CommunityUser)
 
 class EditorModel(ConstitutionAction):
     name = models.TextField(null=True, blank=True)
@@ -549,15 +580,18 @@ class PolicykitAddPlatformPolicy(EditorModel):
         policy.save()
         self.pass_action()
     
-    def my_handler(sender, instance, created, **kwargs):
-        action.send(instance, verb='was added')
-    
-    post_save.connect(my_handler, sender= 'policyengine.PlatformPolicy')
 
     class Meta:
         permissions = (
             ('can_execute_addpolicykitplatformpolicy', 'Can execute policykit add platform policy'),
         )
+
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+    
+    post_save.connect(my_handler, sender= PlatformPolicy)
+
+    
 
 
 class PolicykitAddConstitutionPolicy(EditorModel):
@@ -584,6 +618,13 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         )
 
 
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was added')
+    
+    post_save.connect(my_handler, sender= ConstitutionPolicy)
+
+
+
 class PolicykitChangePlatformPolicy(EditorModel):
     platform_policy = models.ForeignKey('PlatformPolicy', models.CASCADE)
 
@@ -606,6 +647,10 @@ class PolicykitChangePlatformPolicy(EditorModel):
         permissions = (
             ('can_execute_policykitchangeplatformpolicy', 'Can execute policykit change platform policy'),
         )
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was changed')
+    
+    post_save.connect(my_handler, sender=  PlatformPolicy)
 
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
@@ -629,6 +674,10 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         permissions = (
             ('can_execute_policykitchangeconstitutionpolicy', 'Can execute policykit change constitution policy'),
         )
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was changed')
+    
+    post_save.connect(my_handler, sender=ConstitutionPolicy)
 
 
 class PolicykitRemovePlatformPolicy(ConstitutionAction):
@@ -648,6 +697,11 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
             ('can_execute_policykitremoveplatformpolicy', 'Can execute policykit remove platform policy'),
         )
 
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was removed')
+    
+    post_save.connect(my_handler, sender= PlatformPolicy)
+
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     constitution_policy = models.ForeignKey('ConstitutionPolicy',
@@ -665,6 +719,10 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         permissions = (
             ('can_execute_policykitremoveconstitutionpolicy', 'Can execute policykit remove constitution policy'),
         )
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was removed')
+    
+    post_save.connect(my_handler, sender= ConstitutionPolicy)
 
 
 class PlatformAction(BaseAction,PolymorphicModel):
