@@ -57,10 +57,7 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
-    def get_users(self):
-        logger.info("HERE!")
-        logger.info(CommunityUser.objects.filter(community=policy.community))
-        return CommunityUser.objects.filter(community=policy.community)
+
 
 
 
@@ -235,6 +232,9 @@ class Proposal(models.Model):
         else:
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
+    
+    def get_users(self):
+        return CommunityUser.objects.filter(community=policy.community)
 
     def save(self, *args, **kwargs):
         if not self.pk:
