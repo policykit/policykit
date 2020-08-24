@@ -44,7 +44,7 @@
     height: auto;
     width: 60%;
     border: 1px solid #000000;
-    extraKeys: ("Ctrl-Space": "autocomplete")
+    extraKeys: ("Ctrl-Space": "autocomplete");
   }
 
   .form-row {
@@ -160,11 +160,15 @@
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
+
 
 <script>
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
 
+  
   function propose() {
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');
@@ -236,6 +240,7 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
+        extraKeys: ("Ctrl-Space":"autocomplete"),
         gutters: ['warnings']
     }));
     {% if i == 0 and filter %}
