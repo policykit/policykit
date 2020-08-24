@@ -1,0 +1,123 @@
+{% extends "policyengine/v2/dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+  .body {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+
+  .form-row {
+    margin-top: 3vh;
+    margin-bottom: 3vh;
+  }
+
+  .control-label {
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #373456;
+  }
+
+  .name {
+    width: 40%;
+  }
+
+  .permissionTable {
+    width: 40%;
+    max-height: 40vh;
+    overflow: auto;
+    font-size: 1.2em;
+    background-color: #ffffff;
+  }
+
+  .permissionTable thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
+  }
+
+  .permissionTable:hover {
+    cursor: pointer;
+  }
+
+  .selected {
+    background-color: #b1b5cc;
+  }
+
+  .submitButton {
+    width: 10%;
+    font-size: 1.2em;
+    border-radius: 30px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  {% if operation == "Add" %}
+    <h3>Add a new Role</h3>
+  {% elif operation == "Change" %}
+    <h3>Change an existing Role</h3>
+  {% endif %}
+
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="name">Name:</label>
+    <div class="col-sm-11">
+      <input type="text" class="form-control name" id="name" required>
+    </div>
+  </div>
+
+  <div class="form-row permissionTable">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Select which Permissions the Role should have</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for permission in permissions %}
+          <tr id="{{permission.name}}">
+            <td>{{permission.name}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  {% for permission in permissions %}
+    document.getElementById("{{permission.name}}").addEventListener("click", function(){ toggleSelect("{{permission.name}}"); });
+  {% endfor %}
+  document.getElementById("submit").addEventListener("click", submit);
+
+  var selectedPermissions = new Set();
+
+  function toggleSelect(permissionName) {
+    if (selectedPermissions.has(permissionName)) {
+      selectedPermissions.delete(permissionName);
+      document.getElementById(permissionName).classList.remove("selected");
+    } else {
+      selectedPermissions.add(permissionName);
+      document.getElementById(permissionName).classList.add("selected");
+    }
+  }
+
+  function submit() {
+    if ({{operation}} == "Change") {
+      // TODO: add change role code here
+    } else {
+      // TODO: add add role code here
+    }
+  }
+</script>
+{% endblock %}

@@ -146,7 +146,7 @@
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
   <div class="actionCollapsible" id="roles">
-    <div class="actionButton">
+    <div class="actionButton" id="addRole">
       <p>Add Role</p>
     </div>
     <div class="actionButton" id="editRole">
@@ -195,6 +195,7 @@
   document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('Platform', 'Add'); });
   document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', 'Change'); });
   document.getElementById("removePlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Remove"); });
+  document.getElementById("addRole").addEventListener("click", function(){ navRoleAdd(); });
   document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
   document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
 
@@ -209,6 +210,10 @@
 
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+  }
+
+  function navRoleAdd() {
+    window.location.href = `{{server_url}}/main/roleeditor?operation=Add`
   }
 
   function navRoleSelect(operation) {
