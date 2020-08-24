@@ -45,6 +45,10 @@
     cursor: pointer;
   }
 
+  .selected {
+    background-color: #4451b2;
+  }
+
   .submitButton {
     width: 10%;
     font-size: 1.2em;
@@ -77,7 +81,7 @@
       </thead>
       <tbody>
         {% for permission in permissions %}
-          <tr>
+          <tr id="{{permission.name}}">
             <td>{{permission.name}}</td>
           </tr>
         {% endfor %}
@@ -91,7 +95,22 @@
 
 {% block scripts %}
 <script>
+  {% for permission in permissions %}
+    document.getElementById("{{permission.name}}").addEventListener("click", function(){ toggleSelect("{{permission.name}}"); });
+  {% endfor %}
   document.getElementById("submit").addEventListener("click", submit);
+
+  var selectedPermissions = new Set();
+
+  function toggleSelect(permissionName) {
+    if (selectedPermissions.has(permissionName)) {
+      selectedPermissions.delete(permissionName);
+      document.getElementById("{{permission.name}}").setAttribute("class", "selected");
+    } else {
+      selectedPermissions.add(permissionName);
+      document.getElementById("{{permission.name}}").removeAttribute("class");
+    }
+  }
 
   function submit() {
     if ({{operation}} == "Change") {
