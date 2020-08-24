@@ -313,6 +313,7 @@ policyengine_functions = [
     'get_yes_votes',
     'notify_users',
     'time_elapsed',
+    'get_users'
 ]
 
 class Filter(ast.NodeVisitor):
