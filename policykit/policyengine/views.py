@@ -165,6 +165,8 @@ def roleeditor(request):
         data['role_name'] = role.role_name
         data['name'] = role_name
         currentPermissions = []
+        logger.info(role)
+        logger.info(role.permissions.all())
         for p in role.permissions.all():
             currentPermissions.append(p.name)
         logger.info(currentPermissions)
@@ -447,8 +449,6 @@ def role_action_save(request):
         action.initiator = user
         action.name = data['role_name']
         action.save()
-        logger.info('adding')
-        logger.info(Permission.objects.filter(name__in=data['permissions']))
         action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
         action.save()
     elif data['operation'] == 'Change':
