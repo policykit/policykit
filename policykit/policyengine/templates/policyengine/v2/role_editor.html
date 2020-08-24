@@ -29,7 +29,15 @@
 
   .permissionTable {
     width: 40%;
+    max-height: 40vh;
+    overflow: auto;
     font-size: 1.2em;
+  }
+
+  .permissionTable thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
   }
 
   .submitButton {
@@ -55,8 +63,8 @@
     </div>
   </div>
 
-  <div class="form-row">
-    <table class="table table-hover permissionTable">
+  <div class="form-row permissionTable">
+    <table class="table table-hover">
       <thead>
         <tr>
           <th scope="col">Select which Permissions the Role should have</th>
