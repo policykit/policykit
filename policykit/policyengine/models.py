@@ -280,10 +280,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         if self.shouldCreate():
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
-                if not self.proposal:
-                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
-                else:
+                if self.proposal:
                     self.proposal.status = Proposal.PROPOSED
+                else:
+                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
