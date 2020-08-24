@@ -390,7 +390,7 @@ class PolicykitAddRole(ConstitutionAction):
         return "Add Role - name: " + self.name
 
     def shouldCreate(self):
-        return ready
+        return self.ready
 
     def execute(self):
         role, _ = CommunityRole.objects.get_or_create(role_name=self.name, name=self.community.platform + ": " + self.community.community_name + ": " + self.name)
