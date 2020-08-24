@@ -448,7 +448,8 @@ def role_action_save(request):
         action.community = user.community
         action.initiator = user
         action.name = data['role_name']
-        action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
+        for p in data['permissions']:
+            action.permissions.add(Permission.objects.filter(name=p))
         action.save()
     elif data['operation'] == 'Change':
         role = CommunityRole.objects.filter(name=data['name'])[0]
