@@ -105,12 +105,6 @@ class CommunityDoc(models.Model):
 class DataStore(models.Model):
     data_store = models.TextField()
 
-    def _get_data_store(self):
-        if self.data_store != '':
-            return json.loads(self.data_store)
-        else:
-            return {}
-
     def _set_data_store(self, obj):
         self.data_store = json.dumps(obj)
         self.save()
