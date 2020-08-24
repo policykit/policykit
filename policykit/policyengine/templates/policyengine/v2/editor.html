@@ -161,14 +161,7 @@
 <script>
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
-  document.getElementById("documentation").addEventListener("click", documentation);
 
-  function documentation() {
-      .then(response => {
-            window.location.href = "{{server_url}}/documentation/"
-            });
-  }
-  }
   function propose() {
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');
