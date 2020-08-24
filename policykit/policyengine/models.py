@@ -387,10 +387,14 @@ class PolicykitAddRole(ConstitutionAction):
 
     def execute(self):
         role, _ = CommunityRole.objects.get_or_create(role_name=self.name, name=self.community.platform + ": " + self.community.community_name + ": " + self.name)
+        logger.info('executing role')
+        logger.info(self.permissions.all())
         for p in self.permissions.all():
             role.permissions.add(p)
         role.community = self.community
         role.save()
+        logger.info(role.permissions.all())
+        logger.info('end executing role')
         self.pass_action()
 
     class Meta:
