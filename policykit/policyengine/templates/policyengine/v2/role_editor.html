@@ -105,10 +105,10 @@
   function toggleSelect(permissionName) {
     if (selectedPermissions.has(permissionName)) {
       selectedPermissions.delete(permissionName);
-      document.getElementById("{{permission.name}}").setAttribute("class", "selected");
+      document.getElementById(permissionName).setAttribute("class", "selected");
     } else {
       selectedPermissions.add(permissionName);
-      document.getElementById("{{permission.name}}").removeAttribute("class");
+      document.getElementById(permissionName).removeAttribute("class");
     }
   }
 
