@@ -438,7 +438,7 @@ def policy_action_remove(request):
 
 @csrf_exempt
 def role_action_save(request):
-    from policyengine.models import CommunityRole, PolicykitAddRole
+    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission
 
     data = json.loads(request.body)
     user = get_user(request)
