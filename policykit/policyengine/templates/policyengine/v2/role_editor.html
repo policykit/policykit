@@ -96,7 +96,7 @@
 {% block scripts %}
 <script>
   {% for permission in permissions %}
-    document.getElementById("{{permission.name}}").addEventListener("click", function(){ toggleSelect("{{permission.name}}"); });
+    document.getElementById(`{{permission.name}}`).addEventListener("click", function(){ toggleSelect(`{{permission.name}}`); });
   {% endfor %}
   document.getElementById("submit").addEventListener("click", submit);
 

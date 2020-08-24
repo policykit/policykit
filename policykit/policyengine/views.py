@@ -466,6 +466,7 @@ def role_action_save(request):
             action.role = data['name']
             action.save()
             action.permissions.set(Permission.objects.filter(name__in=addedPermissions))
+            action.ready = True
             action.save()
 
         removedPermissions = list(set(currentPermissions) - set(data['permissions']))
@@ -476,6 +477,7 @@ def role_action_save(request):
             action.role = data['name']
             action.save()
             action.permissions.set(Permission.objects.filter(name__in=removedPermissions))
+            action.ready = True
             action.save()
     else:
         return HttpResponseBadRequest()
