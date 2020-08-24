@@ -67,7 +67,7 @@
     const role = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      // TODO: add change role code here
+      window.location.href = `{{server_url}}/main/roleeditor?operation=${operation}&role=${role}`
     } else {
       // TODO: add remove role code here
     }

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -138,6 +139,37 @@ def selectrole(request):
         'roles': roles,
         'operation': operation
     })
+
+def roleeditor(request):
+    from policyengine.models import CommunityRole
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+    role_name = request.GET.get('role')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+    permissions = set()
+    for r in roles:
+        for p in r.permissions.all():
+            permissions.add(p.name)
+
+    data = {
+        'server_url': SERVER_URL,
+        'user': user,
+        'permissions': list(sorted(permissions)),
+        'operation': operation
+    }
+
+    if role_name:
+        role = CommunityRole.objects.filter(name=role_name)[0]
+        data['role_name'] = role.role_name
+        data['name'] = role_name
+        currentPermissions = []
+        for p in role.permissions.all():
+            currentPermissions.append(p.name)
+        data['currentPermissions'] = currentPermissions
+
+    return render(request, 'policyengine/v2/role_editor.html', data)
 
 def selectpolicy(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
@@ -398,5 +430,53 @@ def policy_action_remove(request):
     action.community = user.community
     action.initiator = user
     action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def role_action_save(request):
+    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    if data['operation'] == 'Add':
+        action = PolicykitAddRole()
+        action.community = user.community
+        action.initiator = user
+        action.name = data['role_name']
+        action.save()
+        action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
+        action.ready = True
+        action.save()
+    elif data['operation'] == 'Change':
+        role = CommunityRole.objects.filter(name=data['name'])[0]
+        currentPermissions = []
+        for p in role.permissions.all():
+            currentPermissions.append(p.name)
+
+        addedPermissions = list(set(data['permissions']) - set(currentPermissions))
+        if len(addedPermissions) > 0:
+            action = PolicykitAddPermission()
+            action.community = user.community
+            action.initiator = user
+            action.role = role
+            action.save()
+            action.permissions.set(Permission.objects.filter(name__in=addedPermissions))
+            action.ready = True
+            action.save()
+
+        removedPermissions = list(set(currentPermissions) - set(data['permissions']))
+        if len(removedPermissions) > 0:
+            action = PolicykitRemovePermission()
+            action.community = user.community
+            action.initiator = user
+            action.role = role
+            action.save()
+            action.permissions.set(Permission.objects.filter(name__in=removedPermissions))
+            action.ready = True
+            action.save()
+    else:
+        return HttpResponseBadRequest()
 
     return HttpResponse()
