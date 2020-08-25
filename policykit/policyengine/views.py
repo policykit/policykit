@@ -488,7 +488,6 @@ def role_action_remove(request):
     action.community = user.community
     action.initiator = user
     action.role = CommunityRole.objects.get(name=data['role'])
-    logger.info(action.role)
     action.save()
 
     return HttpResponse()
