@@ -275,13 +275,11 @@
                 }
                   }, {
                   hint: CodeMirror.pythonHint
-                  };}
+                  }}
         editor.showHint(options);
     });
     
-    {
-        hint: CodeMirror.pythonHint
-    }, {
+    
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
