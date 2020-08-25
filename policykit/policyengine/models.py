@@ -230,10 +230,11 @@ class Proposal(models.Model):
         return votes
     
     def get_total_vote_count(self, vote_type, vote_number = 0, users = None):
+        totalDict = {}
         if (vote_type == "boolean" or vote_type == "Boolean"):
             totaldict["True"] = len(get_yes_votes)
             totaldict["False"] = len(get_no_votes)
-        else if (vote_type == "Number" or vote_type == "number"):
+        elif vote_type == "Number" or vote_type == "number"):
             for vote_num in range(1, vote_number):
                 totalDict[vote_num] = get_number_votes(vote_num)
 
