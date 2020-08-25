@@ -212,11 +212,8 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
-    logger.info('built code')
-    logger.info(code)
 
     exec(code, globals, locals)
-    logger.info('ran exec')
 
 def filter_policy(policy, action):
     _locals = locals()
@@ -489,10 +486,10 @@ def role_action_remove(request):
     user = get_user(request)
 
     action = PolicykitDeleteRole()
-    action.role = CommunityRole.objects.filter(name=data['role'])[0]
-    logger.info(action.role)
     action.community = user.community
     action.initiator = user
+    action.role = CommunityRole.objects.get(name=data['role'])
+    logger.info(action.role)
     action.save()
 
     return HttpResponse()
