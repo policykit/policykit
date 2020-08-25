@@ -256,9 +256,6 @@
     {% endif %}
 
     
-    
-   
-    
 
     
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
@@ -270,7 +267,7 @@
         return {
             from: editor.getDoc().getCursor(),
             to: editor.getDoc().getCursor(),
-                  list: ['action.proposal', 'action.community', 'example', 'later', {CodeMirror.pythonHint}]
+                  list: ['action.proposal', 'action.community', CodeMirror.pythonHint]
                   }
                 }
                   };

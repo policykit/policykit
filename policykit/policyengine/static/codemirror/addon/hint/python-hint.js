@@ -64,6 +64,9 @@
   var pythonBuiltinsU = pythonBuiltins.toUpperCase().split(" ").join("() ").split(" ");
   var policyKitKeywords = "action policy users proposal community constitution";
   var policyKitKeywordsL = policyKitKeywords.split(" ");
+  var policyKitHelper = "proposal.get_yes_votes() proposal.get_no_votes() proposal.get_numbere_votes()"
+  var policyKitHelperL = policyKitHelper.split(" ");
+
 
   function getCompletions(token, context) {
     var found = [], start = token.string;
@@ -77,6 +80,9 @@
         forEach(pythonKeywordsL, maybeAdd);
         forEach(pythonKeywordsU, maybeAdd);
         forEach(policyKitKeywordsL, maybeAdd);
+        forEach(policyKitHelper, maybeAdd);
+        forEach(policyKitHelperL, maybeAdd);
+
     }
 
     if (context) {
