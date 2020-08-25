@@ -57,6 +57,8 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
+    def 
+
 
 
 class CommunityRole(Group):

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+    <head>
+            <title>Policy Kit</title>
+            <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+            <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&display=swap" rel="stylesheet">
+                <style>
+                    body {
+                        margin: 0px;
+                        padding: 0px;
+                        background-color: #fffff;
+                    }
+                .brand {
+                    z-index: 999;
+                    top: 0;
+                    height: 7vh;
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    align-items: center;
+                    padding: 1vh 2vw;
+                    
+                }
+                
+                .brandLogo {
+                    width: 60px;
+                }
+                
+                .brandName {
+                    font-family: 'Baloo Da 2', sans-serif;
+                    font-weight: bold;
+                    font-size: 2.3em;
+                    color: #373456;
+                    margin-left: 1vw;
+                    line-height: 2.3em;
+                    white-space: nowrap;
+                }
+                
+                .communityName {
+                    font-family: 'Baloo Da 2', sans-serif;
+                    font-weight: bold;
+                    font-size: 1.6em;
+                    color: #373456;
+                    margin-left: 0.5vw;
+                    line-height: 1.4em;
+                    white-space: nowrap;
+                }
+                
+                .titles {
+                    width: 272px;
+                    height: 31px;
+                    left: 584px;
+                    top: 184px;
+                    font-family: 'Baloo Da 2', sans-serif;
+                    font-weight: bold;
+                    font-size: 2.3em;
+                    color: #373456;
+                    line-height: 2.3em;
+                    text-align: center;
+                }
+                label {
+                    font-family: 'Baloo Da 2', sans-serif;
+                    font-weight: bold;
+                    font-size: 2.3em;
+                    color: #373456;
+                    line-height: 2.3em;
+                    text-align: center;
+                }
+                
+                .images {
+                    display: flex;
+                    flex-flow: row wrap;
+                    justify-content: center;
+                }
+                
+                /* The Modal (background) */
+                .modal {
+                    display: none; /* Hidden by default */
+                    position: fixed; /* Stay in place */
+                    z-index: 1; /* Sit on top */
+                    padding-top: 100px; /* Location of the box */
+                    left: 0;
+                    top: 0;
+                    width: 100%; /* Full width */
+                    height: 100%; /* Full height */
+                    overflow: auto; /* Enable scroll if needed */
+                    background-color: rgb(0,0,0); /* Fallback color */
+                    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                }
+            
+            /* Modal Content */
+            .modal-content {
+                position: relative;
+                background-color: #fefefe;
+                margin: auto;
+                padding: 0;
+                border: 1px solid #888;
+                width: 80%;
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+                -webkit-animation-name: animatetop;
+                -webkit-animation-duration: 0.4s;
+                animation-name: animatetop;
+                animation-duration: 0.4s
+            }
+            
+            .hide {
+                display: none;
+            }
+                
+                .myDIV:hover + .hide {
+                    display: block;
+                    color: red;
+                }
+                
+            /* Add Animation */
+            @-webkit-keyframes animatetop {
+                from {top:-300px; opacity:0}
+                to {top:0; opacity:1}
+            }
+            
+            @keyframes animatetop {
+                from {top:-300px; opacity:0}
+                to {top:0; opacity:1}
+            }
+            
+            /* The Close Button */
+            .close {
+                color: white;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+            
+            .close:hover,
+            .close:focus {
+                color: #000;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            
+            .modal-footer {
+                padding: 16px 16px;
+                background-color: #4451b2;
+                color: #ffffff;
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+                
+                h2 {
+                    font-family: 'Baloo Da 2', sans-serif;
+                }
+                h6 {
+                    font-family: 'Montserrat', sans-serif;
+                }
+                
+                .rectext {
+                    color: FF9502;
+                    font-weight: bold;
+                    font-family: 'Baloo Da 2', sans-serif;
+                    
+                }
+            </style>
+    </head>
+    <body>
+        <body>
+            <div class="brand" id="brand">
+                <img class = "brandLogo" src = {% static "policyengine/img/logo.png" %}>
+                    <h2 class = "brandName">PolicyKit</h2>
+                    <h3 class = "communityName">| {{ community_name }}</h3>
+                    </div>
+        <h2>Python scripting layer</h2>
+        <h6>PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies.</h6>
+        
+        
+        
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+            
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2>Example use of get_yes_votes</h2>
+                </div>
+                <div class="modal-body">
+                    <p>yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)</p>
+                </div>
+
+            </div>
+            
+        </div>
+        <div class="myDIV">action.proposal.get_yes_votes(users=None)</div>
+        <div class="myDIV">As default, returns a query set of all users who voted “yes” for a given proposal. Users can be specified.</div>
+        <div class="hide">Example usage:                     yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
+
+            
+        </div>
+        
+        <!-- Trigger/Open The Modal -->
+        <button id="myBtn">See example</button>
+        <script>
+            // Get the modal
+            var modal = document.getElementById("myModal");
+            
+            // Get the button that opens the modal
+            var btn = document.getElementById("myBtn");
+            
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+            
+            // When the user clicks the button, open the modal
+            btn.onclick = function() {
+                modal.style.display = "block";
+            }
+        
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+        
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        </script>
+        
+    </body>
+</html>
+
+{% endblock %}
