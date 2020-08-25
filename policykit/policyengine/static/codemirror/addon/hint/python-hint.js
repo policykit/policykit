@@ -80,7 +80,6 @@
         forEach(pythonKeywordsL, maybeAdd);
         forEach(pythonKeywordsU, maybeAdd);
         forEach(policyKitKeywordsL, maybeAdd);
-        forEach(policyKitHelper, maybeAdd);
         forEach(policyKitHelperL, maybeAdd);
 
     }
