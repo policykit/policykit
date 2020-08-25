@@ -57,8 +57,9 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
-    def get_users(self, users):
-        return users
+        #   def get_users(self, users):
+#      return users
+
 #users = CommunityUser.objects.filter(community=user.community)
 
 
@@ -228,8 +229,20 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
     
-    def get_users(self):
-        return CommunityUser.objects.filter(community=policy.community)
+    def get_total_vote_count(self, vote_type, vote_number = 0, bundle users):
+        if (vote_type == "boolean" || vote_type == "Boolean") {
+            totaldict["True"] = len(get_yes_votes)
+            totaldict["False"] = len(get_no_votes)
+            return totalDict;
+        } else if (vote_type == "Number" || vote_type == "number") {
+
+
+
+}
+
+
+    # def get_users(self):
+    #    return CommunityUser.objects.filter(community=policy.community)
 
     def save(self, *args, **kwargs):
         if not self.pk:
