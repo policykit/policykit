@@ -235,7 +235,7 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
     
-    def get_total_vote_count(self, vote_type, vote_number = 0, users = None):
+    def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
         totalDict = {}
         if (vote_type == "boolean" or vote_type == "Boolean"):
             totaldict["True"] = len(get_yes_votes)
