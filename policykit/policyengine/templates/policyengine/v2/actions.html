@@ -155,10 +155,10 @@
     <div class="actionButton" id="removeRole">
       <p>Remove Role</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="addUserToRole">
       <p>Add User to Role</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removeUserFromRole">
       <p>Remove User from Role</p>
     </div>
   </div>
@@ -198,6 +198,8 @@
   document.getElementById("addRole").addEventListener("click", function(){ navRoleAdd(); });
   document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
   document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
+  document.getElementById("addUserToRole").addEventListener("click", function(){ navRoleUsers('Add'); });
+  document.getElementById("removeUserFromRole").addEventListener("click", function(){ navRoleUsers('Remove'); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -222,6 +224,10 @@
 
   function navPolicySelect(type, operation) {
     window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  }
+
+  function navRoleUsers(operation) {
+    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
   }
 </script>
 {% endblock %}

@@ -39,6 +39,7 @@ urlpatterns = [
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
     path('main/editor/', policyviews.editor),
     path('main/selectrole/', policyviews.selectrole),
+    path('main/roleusers/', policyviews.roleusers),
     path('main/roleeditor/', policyviews.roleeditor),
     path('main/selectpolicy/', policyviews.selectpolicy),
     path('main/actions/', policyviews.actions),
