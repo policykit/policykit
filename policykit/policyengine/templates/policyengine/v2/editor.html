@@ -251,6 +251,42 @@
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
 
+    <div class="codeMirrorDictionaryHint" codemirror-dictionary-hint="[ 'Soccer', 'Cricket', 'Baseball', 'Kho Kho' ]"></div>
+    
+    var dictionary = [];
+    
+    try {
+        // JSON.parse fails loudly, requiring a try-catch to prevent error propagation
+        var dictionary = JSON.parse(
+                                    document.getElementById('myTextAreaId')
+                                    .closest('.codeMirrorDictionaryHintDiv')
+                                    .getAttribute('codemirror-dictionary-hint')
+                                    ) || [];
+    } catch(e) {}
+    
+    // Register our custom Codemirror hint plugin.
+    CodeMirror.registerHelper('hint', 'dictionaryHint', function(editor) {
+                              var cur = editor.getCursor();
+                              var curLine = editor.getLine(cur.line);
+                              var start = cur.ch;
+                              var end = start;
+                              while (end < curLine.length && /[\w$]/.test(curLine.charAt(end))) ++end;
+                              while (start && /[\w$]/.test(curLine.charAt(start - 1))) --start;
+                              var curWord = start !== end && curLine.slice(start, end);
+                              var regex = new RegExp('^' + curWord, 'i');
+                              return {
+                              list: (!curWord ? [] : dictionary.filter(function(item) {
+                                                                       return item.match(regex);
+                                                                       })).sort(),
+                              from: CodeMirror.Pos(cur.line, start),
+                              to: CodeMirror.Pos(cur.line, end)
+                              }
+                              });
+                              
+                              CodeMirror.commands.autocomplete = function(cm) {
+                                  CodeMirror.showHint(cm, CodeMirror.hint.dictionaryHint);
+                              };
+
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
