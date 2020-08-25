@@ -148,7 +148,6 @@
     </div>
   </form>
 </div>
-<div class="codeMirrorDictionaryHint" codemirror-dictionary-hint="[ 'Soccer', 'Cricket', 'Baseball', 'Kho Kho' ]"> </div>
 
 {% endblock %}
 
@@ -216,28 +215,6 @@
     document.getElementById('description').value = `{{description}}`
   {% endif %}
 
-  var dictionary = [];
-  CodeMirror.registerHelper('hint', 'dictionaryHint', function(editor) {
-                            var cur = editor.getCursor();
-                            var curLine = editor.getLine(cur.line);
-                            var start = cur.ch;
-                            var end = start;
-                            while (end < curLine.length && /[\w$]/.test(curLine.charAt(end))) ++end;
-                            while (start && /[\w$]/.test(curLine.charAt(start - 1))) --start;
-                            var curWord = start !== end && curLine.slice(start, end);
-                            var regex = new RegExp('^' + curWord, 'i');
-                            return {
-                            list: (!curWord ? [] : dictionary.filter(function(item) {
-                                                                     return item.match(regex);
-                                                                     })).sort(),
-                            from: CodeMirror.Pos(cur.line, start),
-                            to: CodeMirror.Pos(cur.line, end)
-                            }
-                            });
-                            
-                            CodeMirror.commands.autocomplete = function(cm) {
-                                CodeMirror.showHint(cm, CodeMirror.hint.dictionaryHint);
-                            };
 
   const DEFAULT_VALUES = {
     "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
@@ -258,6 +235,7 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
+        extraKeys: {"Ctrl-Space": "autocomplete"},
         gutters: ['warnings']
     }));
     {% if i == 0 and filter %}
