@@ -263,8 +263,16 @@
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-       
-        editor.showHint({hint: CodeMirror.pythonHint});
+                  var options = {{hint: function() {
+        return {
+            from: editor.getDoc().getCursor(),
+            to: editor.getDoc().getCursor(),
+                  list: ['action.proposal', 'action.community'] //sample
+                  }
+                }
+                  }, {hint: CodeMirror.pythonHint}};
+        editor.showHint(options);
+        //editor.showHint({hint: CodeMirror.pythonHint});
     });
 
 
