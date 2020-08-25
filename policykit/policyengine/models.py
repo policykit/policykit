@@ -411,7 +411,10 @@ class PolicykitDeleteRole(ConstitutionAction):
     action_codename = 'policykitdeleterole'
 
     def execute(self):
-        self.role.delete()
+        try:
+            self.role.delete()
+        except AssertionError: # Triggers if object has already been deleted
+            pass
         self.pass_action()
 
     class Meta:
