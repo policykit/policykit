@@ -71,6 +71,8 @@
 
 {% block scripts %}
 <script>
+  document.getElementById('submit').addEventListener("click", submit);
+  
   function submit() {
     const selectUser = document.getElementById("user");
     const user = selectUser.options[selectUser.selectedIndex].value;
