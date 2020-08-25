@@ -278,6 +278,11 @@
         //editor.showHint({hint: CodeMirror.pythonHint});
     });
     
+    <script>
+    CodeMirror.commands.autocomplete = function(cm) {
+        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
+    }
+    </script>
   
 
     editors[i].on('change', (cm, change) => {
