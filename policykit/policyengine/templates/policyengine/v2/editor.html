@@ -256,6 +256,9 @@
     {% endif %}
 
     
+    CodeMirror.commands.autocomplete = function(cm) {
+        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
+    }
 
     
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
@@ -270,7 +273,7 @@
                   list: ['action.proposal', 'action.community'] //sample
                   }
                 }
-                  }, {hint: CodeMirror.pythonHint}};
+                  };
         editor.showHint(options);
         //editor.showHint({hint: CodeMirror.pythonHint});
     });
