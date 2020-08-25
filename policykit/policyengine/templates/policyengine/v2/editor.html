@@ -265,27 +265,6 @@
     } catch(e) {}
     
     // Register our custom Codemirror hint plugin.
-    CodeMirror.registerHelper('hint', 'dictionaryHint', function(editor) {
-                              var cur = editor.getCursor();
-                              var curLine = editor.getLine(cur.line);
-                              var start = cur.ch;
-                              var end = start;
-                              while (end < curLine.length && /[\w$]/.test(curLine.charAt(end))) ++end;
-                              while (start && /[\w$]/.test(curLine.charAt(start - 1))) --start;
-                              var curWord = start !== end && curLine.slice(start, end);
-                              var regex = new RegExp('^' + curWord, 'i');
-                              return {
-                              list: (!curWord ? [] : dictionary.filter(function(item) {
-                                                                       return item.match(regex);
-                                                                       })).sort(),
-                              from: CodeMirror.Pos(cur.line, start),
-                              to: CodeMirror.Pos(cur.line, end)
-                              }
-                              });
-                              
-                              CodeMirror.commands.autocomplete = function(cm) {
-                                  CodeMirror.showHint(cm, CodeMirror.hint.dictionaryHint);
-                              };
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
@@ -297,13 +276,6 @@
         });
     });
     
-    var orig = CodeMirror.hint.python;
-    CodeMirror.hint.python = function(cm) {
-        var inner = orig(cm) || {from: cm.getCursor(), to: cm.getCursor(), list: []};
-        inner.list.push("bozo");
-        return inner;
-    };
-
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
 
