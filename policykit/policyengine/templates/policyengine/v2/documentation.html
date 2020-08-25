@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block styles %}
+
 <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Montserrat'>
 <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Source Sans Pro'>
 
@@ -57,25 +58,23 @@
     background-color: #b1b5cc;
 }
 
-
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="body">
+<body>
     <h3>Python Scripting Layer</h3>
-    <p class = "desc">  PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies. </p>
+    <p class = "desc">  PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies.
         
         The module defines the following functions:
-    
+     </p>
     <div class="functionName">
         <label>proposal.get_yes_votes(users=None)</label>
+</div>
         <div class = "functionDesc">
             <p> As default, returns a query set of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
             </p>
-            </div>
-            </div>
+
+        </div>
 </body>
 
-    {% endblock %}
     
