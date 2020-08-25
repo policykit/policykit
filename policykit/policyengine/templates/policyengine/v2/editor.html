@@ -256,14 +256,7 @@
 
     
     
-    try {
-        // JSON.parse fails loudly, requiring a try-catch to prevent error propagation
-        var dictionary = JSON.parse(
-                                    document.getElementById('myTextAreaId')
-                                    .closest('.codeMirrorDictionaryHintDiv')
-                                    .getAttribute('codemirror-dictionary-hint')
-                                    ) || [];
-    } catch(e) {}
+   
     
 
     CodeMirror.hint.python = function (editor) {
