@@ -258,7 +258,7 @@
     
    
     
-
+    window.onload=function()
     
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
@@ -274,8 +274,10 @@
                   }
                   }
                   }
-        editor.showHint({
-            hint: CodeMirror.pythonHint
+        editor.showHint(options)
+        //editor.showHint({
+                        
+       //     hint: CodeMirror.pythonHint
         });
     });
 
