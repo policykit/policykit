@@ -274,14 +274,10 @@
                   }
                 }
                   };
-        editor.showHint(options);
+        editor.showHint(options, CodeMirror.pythonHint );
         //editor.showHint({hint: CodeMirror.pythonHint});
     });
-    
-    CodeMirror.commands.autocomplete = function(cm) {
-        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
-    }
-  
+
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
