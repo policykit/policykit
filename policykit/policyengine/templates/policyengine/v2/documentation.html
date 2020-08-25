@@ -11,47 +11,55 @@
         padding-top: 3vh;
     }
 
-.form-row {
-    margin-top: 3vh;
-    margin-bottom: 3vh;
-}
 
-.control-label {
+.label {
     font-family: 'Karla', sans-serif;
     font-weight: bold;
     font-size: 1.2em;
     color: #373456;
 }
 
+.desc {
+    color: #373456;
+    padding: 0% 1%;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: normal;
+    font-size: 1em;
+    width: 200px;
+    text-align: center;
+}
 .name {
     width: 40%;
 }
 
-
+.functionName {
+    color: #373456;
+    padding: 0% 1%;
+    font-family: 'Courier New', sans-serif;
+    font-weight: normal;
+    font-size: 1em;
+    width: 200px;
+    text-align: center;
+}
 .selected {
     background-color: #b1b5cc;
 }
 
-.submitButton {
-    width: 10%;
-    font-size: 1.2em;
-    border-radius: 30px;
-}
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
     <h3>Python Scripting Layer</h3>
-    <h3> PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies.
-        </h3>
+    <p class = "desc">  PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies. </p>
+        
+        The module defines the following functions:
     
-    <div class="form-row">
-        <label class="control-label col-sm-1" for="name">Name:</label>
-        <div class="col-sm-11">
-            <input type="text" class="form-control name" id="name" required>
-                </div>
-    </div>
+    <div class="functionName">
+        <label>Name:</label>
+        <p> blah blah blah </p>
+            </div>
     
     {% endblock %}
     
