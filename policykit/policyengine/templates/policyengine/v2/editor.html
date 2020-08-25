@@ -158,7 +158,7 @@
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
 <script src={% static "codemirror/addon/hint/simple-hint.js" %}></script>
-<script src={% static "codemirror/addon/hint/simple-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.cs" %}></script>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
 
@@ -245,7 +245,6 @@
     CodeMirror.commands.autocomplete = function(cm) {
         CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
     }
-  }
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
     {% elif i == 1 and initialize %}
@@ -315,7 +314,7 @@
           }
         }
       })
-                  })
-                  
+    })
+  }
 </script>
 {% endblock %}
