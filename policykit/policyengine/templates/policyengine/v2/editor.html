@@ -216,6 +216,29 @@
     document.getElementById('description').value = `{{description}}`
   {% endif %}
 
+  var dictionary = [];
+  CodeMirror.registerHelper('hint', 'dictionaryHint', function(editor) {
+                            var cur = editor.getCursor();
+                            var curLine = editor.getLine(cur.line);
+                            var start = cur.ch;
+                            var end = start;
+                            while (end < curLine.length && /[\w$]/.test(curLine.charAt(end))) ++end;
+                            while (start && /[\w$]/.test(curLine.charAt(start - 1))) --start;
+                            var curWord = start !== end && curLine.slice(start, end);
+                            var regex = new RegExp('^' + curWord, 'i');
+                            return {
+                            list: (!curWord ? [] : dictionary.filter(function(item) {
+                                                                     return item.match(regex);
+                                                                     })).sort(),
+                            from: CodeMirror.Pos(cur.line, start),
+                            to: CodeMirror.Pos(cur.line, end)
+                            }
+                            });
+                            
+                            CodeMirror.commands.autocomplete = function(cm) {
+                                CodeMirror.showHint(cm, CodeMirror.hint.dictionaryHint);
+                            };
+
   const DEFAULT_VALUES = {
     "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
     "initialize": "# Replace this code with your custom Initialize code\npass\n\n",
@@ -254,7 +277,6 @@
     {% endif %}
 
     
-    var dictionary = [];
     
     try {
         // JSON.parse fails loudly, requiring a try-catch to prevent error propagation
@@ -275,28 +297,6 @@
             hint: CodeMirror.pythonHint
         });
     });
-    
-    CodeMirror.registerHelper('hint', 'dictionaryHint', function(editor) {
-                              var cur = editor.getCursor();
-                              var curLine = editor.getLine(cur.line);
-                              var start = cur.ch;
-                              var end = start;
-                              while (end < curLine.length && /[\w$]/.test(curLine.charAt(end))) ++end;
-                              while (start && /[\w$]/.test(curLine.charAt(start - 1))) --start;
-                              var curWord = start !== end && curLine.slice(start, end);
-                              var regex = new RegExp('^' + curWord, 'i');
-                              return {
-                              list: (!curWord ? [] : dictionary.filter(function(item) {
-                                                                       return item.match(regex);
-                                                                       })).sort(),
-                              from: CodeMirror.Pos(cur.line, start),
-                              to: CodeMirror.Pos(cur.line, end)
-                              }
-                              });
-                              
-                              CodeMirror.commands.autocomplete = function(cm) {
-                                  CodeMirror.showHint(cm, CodeMirror.hint.dictionaryHint);
-                              };
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
