@@ -275,9 +275,7 @@
                   }
                   }
                   };
-        editor.showHint({
-            hint: CodeMirror.pythonHint
-                        }, {options});
+        editor.showHint(options);
     });
 
     editors[i].on('change', (cm, change) => {
