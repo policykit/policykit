@@ -92,7 +92,7 @@ def logout(request):
     return redirect('/login')
 
 def documentation(request):
-    return render(request, 'main/documentation.html', {})
+    return render(request, 'policyengine/v2/documentation.html', {})
 
 def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
