@@ -258,10 +258,7 @@
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
-    CodeMirror.commands.autocomplete = function(cm) {
-        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
-    }
-    
+   
   
 
     
