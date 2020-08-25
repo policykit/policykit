@@ -57,8 +57,9 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
-
-
+    def get_users(self, users):
+        return users
+#users = CommunityUser.objects.filter(community=user.community)
 
 
 
