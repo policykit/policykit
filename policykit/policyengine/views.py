@@ -484,11 +484,14 @@ def role_action_remove(request):
     data = json.loads(request.body)
     user = get_user(request)
 
-    action = PolicykitDeleteRole()
-    action.community = user.community
-    action.initiator = user
-    action.role = CommunityRole.objects.get(name=data['role'])
-    logger.info(action.role)
-    action.save()
+    role = CommunityRole.objects.get(name=data['role'])
+
+    if role:
+        action = PolicykitDeleteRole()
+        action.community = user.community
+        action.initiator = user
+        action.role = role
+        logger.info(action.role)
+        action.save()
 
     return HttpResponse()
