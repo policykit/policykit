@@ -512,13 +512,12 @@ def role_action_users(request):
     else:
         return HttpResponseBadRequest()
 
-    role = CommunityRole.objects.filter(name=data['role'])[0]
-    users = CommunityUser.objects.filter(username=data['user'])
-
     action.community = user.community
     action.initiator = user
-    action.role = role
-    action.users = users
+    action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    action.save()
+    action.users.set(CommunityUser.objects.filter(username=data['user']))
+    action.ready = True
     action.save()
 
     return HttpResponse()
