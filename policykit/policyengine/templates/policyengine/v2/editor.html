@@ -239,7 +239,7 @@
         lineNumbers: true,
         theme: 'eclipse',
         extraKeys: {"Ctrl-Space": "autocomplete"},
-        matchBrackets: true
+        matchBrackets: true,
         gutters: ['warnings']
     }));
   
@@ -267,7 +267,7 @@
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-                  var options = {{hint: function() {
+                  var options = {hint: function() {
         return {
             from: editor.getDoc().getCursor(),
             to: editor.getDoc().getCursor(),
@@ -311,7 +311,7 @@
           }
         }
       })
-    })
+                  })
   }
 </script>
 {% endblock %}
