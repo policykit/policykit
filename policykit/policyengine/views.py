@@ -283,7 +283,6 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action)"
 
-    logger.info('about to run exec code')
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
