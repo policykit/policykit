@@ -266,17 +266,22 @@
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-                  var options = {
-                  hint: function() {
-                  return {
-                  from: editor.getDoc().getCursor(),
-                  to: editor.getDoc().getCursor(),
-                  list: ['foo', 'bar']
+        var options = {hint: function() {
+        return {
+            from: editor.getDoc().getCursor(),
+            to: editor.getDoc().getCursor(),
+            list: ['foo', 'bar']
                   }
-                  }
+                }
+                  }, {
+                  hint: CodeMirror.pythonHint
                   };
         editor.showHint(options);
     });
+    
+    {
+        hint: CodeMirror.pythonHint
+    }, {
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
