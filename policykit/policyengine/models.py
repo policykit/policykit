@@ -411,7 +411,7 @@ class PolicykitDeleteRole(ConstitutionAction):
     action_codename = 'policykitdeleterole'
 
     def execute(self):
-        if self.role.exists():
+        if self.role:
             self.role.delete()
         self.pass_action()
 
