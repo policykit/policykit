@@ -26,7 +26,7 @@
     font-weight: normal;
     font-size: 1em;
     width: 200px;
-    text-align: center;
+    text-align: left;
 }
 .name {
     width: 40%;
@@ -39,8 +39,20 @@
     font-weight: normal;
     font-size: 1em;
     width: 200px;
-    text-align: center;
+    text-align: left;
 }
+
+.functionDesc {
+    color: #373456;
+    padding: 0% 1%;
+    font-family: 'Lucida Console', sans-serif;
+    font-weight: normal;
+    font-size: 1em;
+    width: 200px;
+    text-align: left;
+    text-indent: 50px;
+}
+
 .selected {
     background-color: #b1b5cc;
 }
@@ -57,8 +69,11 @@
         The module defines the following functions:
     
     <div class="functionName">
-        <label>Name:</label>
-        <p> blah blah blah </p>
+        <label>proposal.get_yes_votes(users=None)</label>
+        <div class = "functionDesc">
+            <p> As default, returns a query set of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
+            </p>
+            </div>
             </div>
     
     {% endblock %}
