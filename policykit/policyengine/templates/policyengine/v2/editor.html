@@ -239,6 +239,9 @@
         extraKeys: {"Ctrl-Space": "autocomplete"},
         gutters: ['warnings']
     }));
+    CodeMirror.commands.autocomplete = function(cm) {
+        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
+    }
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
     {% elif i == 1 and initialize %}
@@ -256,9 +259,7 @@
     {% endif %}
 
     
-    CodeMirror.commands.autocomplete = function(cm) {
-        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
-    }
+  
 
     
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
