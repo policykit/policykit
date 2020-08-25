@@ -259,6 +259,13 @@
             hint: CodeMirror.pythonHint
         });
     });
+    
+    var orig = CodeMirror.hint.python;
+    CodeMirror.hint.python = function(cm) {
+        var inner = orig(cm) || {from: cm.getCursor(), to: cm.getCursor(), list: []};
+        inner.list.push("bozo");
+        return inner;
+    };
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
