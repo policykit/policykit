@@ -490,6 +490,7 @@ def role_action_remove(request):
 
     action = PolicykitDeleteRole()
     action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    logger.info(action.role)
     action.community = user.community
     action.initiator = user
     action.save()
