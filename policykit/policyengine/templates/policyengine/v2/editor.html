@@ -245,6 +245,7 @@
     CodeMirror.commands.autocomplete = function(cm) {
         CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
     }
+  }
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
     {% elif i == 1 and initialize %}
@@ -314,7 +315,7 @@
           }
         }
       })
-    })
-  }
+                  })
+                  
 </script>
 {% endblock %}
