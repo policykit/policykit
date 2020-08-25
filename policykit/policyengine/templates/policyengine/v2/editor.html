@@ -157,6 +157,8 @@
 <script src={% static "codemirror/mode/python/python.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.css" %}></script>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
 
@@ -237,6 +239,7 @@
         lineNumbers: true,
         theme: 'eclipse',
         extraKeys: {"Ctrl-Space": "autocomplete"},
+        matchBrackets: true
         gutters: ['warnings']
     }));
     CodeMirror.commands.autocomplete = function(cm) {
