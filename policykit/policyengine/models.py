@@ -229,16 +229,16 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
     
-    def get_total_vote_count(self, vote_type, vote_number = 0, bundle users):
+    def get_total_vote_count(self, vote_type, vote_number = 0, users = None):
         if (vote_type == "boolean" || vote_type == "Boolean") {
             totaldict["True"] = len(get_yes_votes)
             totaldict["False"] = len(get_no_votes)
-            return totalDict;
         } else if (vote_type == "Number" || vote_type == "number") {
-
-
-
+            for vote_num in range(1, vote_number):
+                totalDict[vote_num] = get_number_votes(vote_num)
 }
+        return totalDict;
+
 
 
     # def get_users(self):
