@@ -75,7 +75,7 @@
      </p>
 
 <div class="functionName">
-<label>action.execute</label>
+<label>action.execute()</label>
 </div>
 <div class = "functionDesc">
 <p>   Executes action governed by policy (e.g -- adds user to role)
@@ -187,7 +187,8 @@
 </label>
 </div>
 <div class = "functionDesc">
-<p>    Returns array of strings for roles for given user in community
+<p>     Returns a JSON object from the database
+
 
 </p>
 
@@ -197,7 +198,8 @@
 <label>action.datastore.set(key, value)</label>
 </div>
 <div class = "functionDesc">
-<p>    Returns array of strings for roles for given user in community
+<p>    Sets a JSON object in the database
+
 
 </p>
 
@@ -207,7 +209,8 @@
 <label>policy.datastore.set(key, value)</label>
 </div>
 <div class = "functionDesc">
-<p>    Returns array of strings for roles for given user in community
+<p>   Sets a JSON object in the database
+
 
 </p>
 
@@ -217,7 +220,8 @@
 <label>action.datastore.remove(key)</label>
 </div>
 <div class = "functionDesc">
-<p>    Returns array of strings for roles for given user in community
+<p>         Removes an entry
+
 
 </p>
 
@@ -227,7 +231,8 @@
 <label>policy.datastore.remove(key)</label>
 </div>
 <div class = "functionDesc">
-<p>    Returns array of strings for roles for given user in community
+<p>         Removes an entry
+
 
 </p>
 
@@ -237,9 +242,13 @@
 <label>action.platform.notify_users(action, policy, users = None, text = ‘Insert message here’)</label>
 </div>
 <div class = "functionDesc">
-<p>    Returns array of strings for roles for given user in community
-
+<p>       Notify users will vary slightly based on the different types of actions. There is a default notify action, an election bundle notify action and a combination bundle notify action. There are various types of notifications depending on the platform. In addition, the form of voting will also differ from various platforms.     Voting will differ based on different platforms as follows:
 </p>
+<p> Slack: Notifications will be received through slack channels and voted through by Slack emojis.
+</p>
+<p> Reddit: Notifications will be received through posts to the subreddit and voted through _____.
+</p>
+<p> Discord: Notifications will be received through Discord channels and voted through upvote/downvote emojis. </p>
 
 </div>
 </div>
