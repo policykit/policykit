@@ -55,7 +55,7 @@
     text-indent: 50px;
 }
 
-h3 {
+.title {
     padding-top: 3vh;
     padding-right: 3vh;
     padding-bottom: 3vh;
@@ -72,19 +72,180 @@ h3 {
 
 {% block content %}
 <body>
-    <h3>Python Scripting Layer</h3>
+    <title>Python Scripting Layer</title>
     <p class = "desc">  PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies.
         
         The module defines the following functions:
      </p>
+
+<div class="functionName">
+<label>action.execute</label>
+</div>
+<div class = "functionDesc">
+<p>   Executes action governed by policy (e.g -- adds user to role)
+
+</p>
+
+</div>
+
     <div class="functionName">
         <label>proposal.get_yes_votes(users=None)</label>
 </div>
         <div class = "functionDesc">
-            <p> As default, returns a query set of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
+            <p> As default, returns a list of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
             </p>
 
         </div>
+<div class="functionName">
+    <label>proposal.get_no_votes(users=None)</label>
+</div>
+    <div class = "functionDesc">
+<p> As default, returns a list of all users who voted “no” for a given proposal. If users is passed in, votes are returned only for those users.
+</p>
+
+</div>
+
+<div class="functionName">
+<label>proposal.get_number_votes(value=0, users=None)</label>
+</div>
+<div class = "functionDesc">
+<p> As default, returns a list of all users who voted “no” for a given proposal. If users is passed in, votes are returned only for those users.
+</p>
+
+</div>
+
+
+<div class="functionName">
+<label>proposal.get_raw_votes(users=None)
+    </label>
+    </div>
+    <div class = "functionDesc">
+<p>      Returns a dictionary where key is user ID and value is array of vote objects. Values are empty if the user hasn’t voted.
+
+</p>
+
+</div>
+
+
+<div class="functionName">
+<label>proposal.get_total_vote_count(vote_type, vote_number = 1, users = None)</label>
+</div>
+<div class = "functionDesc">
+<p> Returns a dictionary where key is vote category (true, false or bundle number) and value is vote count for given vote category. Vote_type should be entered as a string and vote_number refers to the case of number votes (defaults to 1). If users are passed in, votes are returned only for those users.
+
+</p>
+
+</div>
+
+
+<div class="functionName">
+<label>proposal.time_elapsed()</label>
+</div>
+<div class = "functionDesc">
+<p> Returns time elapsed since proposal proposed
+</p>
+
+</div>
+
+<div class="functionName">
+<label>community.get_users()</label>
+</div>
+<div class = "functionDesc">
+<p> Returns all users in a community in an array
+</p>
+
+</div>
+
+
+<div class="functionName">
+<label>roles.get(role, community)</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns a list of users for a given role in a community
+</p>
+
+</div>
+
+<div class="functionName">
+<label>CommunityUser.get_user_role()</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>action.datastore.get(key)</label>
+</div>
+<div class = "functionDesc">
+<p>       Returns a JSON object from the database
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>policy.datastore.get(key)
+</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>action.datastore.set(key, value)</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>policy.datastore.set(key, value)</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>action.datastore.remove(key)</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>policy.datastore.remove(key)</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
+
+<div class="functionName">
+<label>action.platform.notify_users(action, policy, users = None, text = ‘Insert message here’)</label>
+</div>
+<div class = "functionDesc">
+<p>    Returns array of strings for roles for given user in community
+
+</p>
+
+</div>
 </body>
 
     {% endblock %}
