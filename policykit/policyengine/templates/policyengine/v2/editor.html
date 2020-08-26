@@ -165,6 +165,7 @@
   
   function documentation() {
       window.location.href = `{{server_url}}/main/documentation`
+      window.open(`{{server_url}}/main/documentation`, '_blank');
   }
   function propose() {
     const urlParams = new URLSearchParams(window.location.search);
