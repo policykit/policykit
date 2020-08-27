@@ -79,7 +79,7 @@ def v2(request):
             'fail': cp.fail
         }
 
-    activity_stream = model_stream(request.CommunityUser) #this is to create the stream (in this case a model stream to show all actions from a model
+    activity_stream = model_stream(request.user) #this is to create the stream (in this case a model stream to show all actions from a model
 
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
