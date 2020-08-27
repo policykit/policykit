@@ -99,6 +99,9 @@ class CommunityDoc(models.Model):
         self.text = text
         self.save()
 
+    def save(self, *args, **kwargs):
+        super(CommunityDoc, self).save(*args, **kwargs)
+
 
 class DataStore(models.Model):
     data_store = models.TextField()
