@@ -91,7 +91,8 @@ class CommunityUser(User, PolymorphicModel):
 
 
 class CommunityDoc(models.Model):
-    text = models.TextField()
+    name = models.TextField(null=True, blank=True, default = '')
+    text = models.TextField(null=True, blank=True, default = '')
     community = models.ForeignKey(Community, models.CASCADE)
 
     def change_text(self, text):
