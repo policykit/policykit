@@ -95,6 +95,9 @@ class CommunityDoc(models.Model):
     text = models.TextField(null=True, blank=True, default = '')
     community = models.ForeignKey(Community, models.CASCADE)
 
+    def __str__(self):
+        return str(self.name)
+
     def change_text(self, text):
         self.text = text
         self.save()
