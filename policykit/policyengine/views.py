@@ -194,6 +194,14 @@ def selectpolicy(request):
         'operation': operation
     })
 
+def documenteditor(request):
+    from policyengine.models import CommunityDoc
+    
+    return render(request, 'policyengine/v2/editor.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request)
+    })
+
 def actions(request):
     user = get_user(request)
 
