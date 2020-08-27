@@ -398,6 +398,19 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
             ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
         )
 
+class PolicykitDeleteCommunityDoc(ConstitutionAction):
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+
+    action_codename = 'policykitdeletecommunitydoc'
+
+    def execute(self):
+        self.doc.delete()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),
+        )
 
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
