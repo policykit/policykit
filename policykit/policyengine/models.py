@@ -60,6 +60,7 @@ class Community(PolymorphicModel):
 
 
 
+
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
@@ -722,7 +723,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was removed')
     
-    post_save.connect(my_handler, sender= ConstitutionPolicy)
+    post_save.connect(my_handler, sender= 'policyengine.ConstitutionPolicy')
 
 
 class PlatformAction(BaseAction,PolymorphicModel):
