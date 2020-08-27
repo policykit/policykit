@@ -41,6 +41,7 @@ urlpatterns = [
     path('main/selectrole/', policyviews.selectrole),
     path('main/roleeditor/', policyviews.roleeditor),
     path('main/selectpolicy/', policyviews.selectpolicy),
+    path('main/documenteditor/', policyviews.documenteditor),
     path('main/actions/', policyviews.actions),
     path('main/policyengine/', include('policyengine.urls')),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS

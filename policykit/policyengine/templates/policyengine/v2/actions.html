@@ -168,13 +168,13 @@
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
   <div class="actionCollapsible" id="documents">
-    <div class="actionButton">
+    <div class="actionButton" id="addDocument">
       <p>Add Document</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="editDocument">
       <p>Edit Document</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removeDocument">
       <p>Remove Document</p>
     </div>
   </div>
@@ -198,6 +198,7 @@
   document.getElementById("addRole").addEventListener("click", function(){ navRoleAdd(); });
   document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
   document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
+  document.getElementById("addDocument").addEventListener("click", function(){ navDocumentAdd(); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -222,6 +223,10 @@
 
   function navPolicySelect(type, operation) {
     window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  }
+
+  function navDocumentAdd() {
+    window.location.href = `{{server_url}}/main/documenteditor?operation=Add`
   }
 </script>
 {% endblock %}
