@@ -700,7 +700,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was removed')
     
-    post_save.connect(my_handler, sender= PlatformPolicy)
+    post_save.connect(my_handler, sender= 'policyengine.PlatformPolicy')
 
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
