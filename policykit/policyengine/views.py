@@ -500,16 +500,24 @@ def role_action_save(request):
 
 @csrf_exempt
 def document_action_save(request):
+    logger.info('entered')
     from policyengine.models import PolicykitAddCommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
 
+    logger.info('about to create')
+
     action = PolicykitAddCommunityDoc()
     action.community = user.community
     action.initiator = user
+    logger.info('user')
     action.name = data['name']
+    logger.info('name')
     action.text = data['text']
+    logger.info('text')
     action.save()
+
+    logger.info('saved successfully')
 
     return HttpResponse()
