@@ -34,7 +34,6 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
-
     platform = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
@@ -43,26 +42,16 @@ class StarterKit(PolymorphicModel):
 
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
-
     platform = None
-
-    base_role = models.OneToOneField('CommunityRole',
-                                     models.CASCADE,
-                                     related_name='base_community')
-    community_guidelines = models.OneToOneField('CommunityDoc',
-                                     models.CASCADE,
-                                     related_name='base_doc_community',
-                                     null=True)
+    base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
     def notify_action(self, action, policy, users):
         pass
 
 
-
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
-
 
     class Meta:
         verbose_name = 'communityrole'
