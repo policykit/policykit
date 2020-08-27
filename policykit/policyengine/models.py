@@ -227,7 +227,7 @@ class Proposal(models.Model):
         if users:
             votes = NumberVote.objects.filter(number_value=value, proposal=self, user__in=users).values()
         else:
-            votes = (NumberVote.objects.filter(number_value=value, proposal=self).values()
+            votes = NumberVote.objects.filter(number_value=value, proposal=self).values()
         return votes
 
     def save(self, *args, **kwargs):
