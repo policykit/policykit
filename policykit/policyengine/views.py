@@ -81,7 +81,7 @@ def v2(request):
             'fail': cp.fail
         }
 
-    activity_stream = model_stream(request.PlatformPolicy)
+    activity_stream = model_stream(request.platform_policies)
  #this is to create the stream (in this case a model stream to show all actions from a model
 
     return render(request, 'policyengine/v2/index.html', {
