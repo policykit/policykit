@@ -79,10 +79,6 @@ def oauth(request):
             user_group.community = community
             user_group.save()
 
-            cg = CommunityDoc.objects.create(text='', community=community)
-            community.community_guidelines=cg
-            community.save()
-
             # Get the list of users and create a DiscordUser object for each user
             req = urllib.request.Request('https://discordapp.com/api/guilds/%s/members' % guild_id)
             req.add_header("Content-Type", "application/json")
