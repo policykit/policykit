@@ -236,7 +236,25 @@
     </div>
 
     <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Community Guidelines</h4>
+      <h4 class="sidebarPanelTitle">Community Documents</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in docs.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>{{value.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
 
     <div class="sidebarPanel">

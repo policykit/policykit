@@ -364,6 +364,26 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
                     else:
                       notify_policy(policy, action)
 
+class PolicykitAddCommunityDoc(ConstitutionAction):
+    name = models.TextField()
+    text = models.TextField()
+
+    action_codename = 'policykitaddcommunitydoc'
+
+    def __str__(self):
+        return "Add Document - name: " + self.name
+
+    def execute(self):
+        doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
+        doc.community = self.community
+        doc.save()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitaddcommunitydoc', 'Can execute policykit add community doc'),
+        )
+
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
