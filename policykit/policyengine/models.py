@@ -218,16 +218,16 @@ class Proposal(models.Model):
 
     def get_boolean_votes(self, value=False, users=None):
         if users:
-            votes = list(BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users))
+            votes = BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users).values()
         else:
-            votes = list(BooleanVote.objects.filter(boolean_value=False, proposal=self))
+            votes = BooleanVote.objects.filter(boolean_value=False, proposal=self).values()
         return votes
 
     def get_number_votes(self, value=0, users=None):
         if users:
-            votes = list(NumberVote.objects.filter(number_value=value, proposal=self, user__in=users))
+            votes = NumberVote.objects.filter(number_value=value, proposal=self, user__in=users).values()
         else:
-            votes = list(NumberVote.objects.filter(number_value=value, proposal=self))
+            votes = (NumberVote.objects.filter(number_value=value, proposal=self).values()
         return votes
 
     def save(self, *args, **kwargs):
