@@ -196,7 +196,7 @@ def selectpolicy(request):
 
 def documenteditor(request):
     from policyengine.models import CommunityDoc
-    
+
     return render(request, 'policyengine/v2/editor.html', {
         'server_url': SERVER_URL,
         'user': get_user(request)
@@ -487,4 +487,8 @@ def role_action_save(request):
     else:
         return HttpResponseBadRequest()
 
+    return HttpResponse()
+
+@csrf_exempt
+def document_action_save(request):
     return HttpResponse()
