@@ -513,9 +513,9 @@ def document_action_save(request):
     action.initiator = user
     logger.info('user')
     action.name = data['name']
-    logger.info('name' + name)
+    logger.info('name' + action.name)
     action.text = data['text']
-    logger.info('text' + text)
+    logger.info('text' + action.text)
     action.save()
 
     logger.info('saved successfully')

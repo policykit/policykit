@@ -93,7 +93,7 @@ class CommunityUser(User, PolymorphicModel):
 class CommunityDoc(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
     text = models.TextField(null=True, blank=True, default = '')
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(Community, models.CASCADE, null=True)
 
     def __str__(self):
         return str(self.name)
