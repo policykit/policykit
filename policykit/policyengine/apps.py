@@ -7,6 +7,7 @@ class policyEngineConfig(AppConfig):
     def ready(self):
         from actstream import registry
         registry.register(self.get_model('PlatformPolicy'))
+         registry.register(self.get_model('RedditUser'))
         registry.register(self.get_model('PlatformAction'))
         registry.register(self.get_model('PlatformActionBundle'))
         registry.register(self.get_model('ConstitutionPolicy'))
