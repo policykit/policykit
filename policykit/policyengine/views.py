@@ -220,11 +220,8 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
-    logger.info('built code')
-    logger.info(code)
 
     exec(code, globals, locals)
-    logger.info('ran exec')
 
 def filter_policy(policy, action):
     _locals = locals()
@@ -294,7 +291,6 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action)"
 
-    logger.info('about to run exec code')
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
@@ -491,4 +487,19 @@ def role_action_save(request):
 
 @csrf_exempt
 def document_action_save(request):
+  return HttpResponse()
+
+@csrf_exempt
+def role_action_remove(request):
+    from policyengine.models import CommunityRole, PolicykitDeleteRole
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitDeleteRole()
+    action.community = user.community
+    action.initiator = user
+    action.role = CommunityRole.objects.get(name=data['role'])
+    action.save()
+
     return HttpResponse()
