@@ -250,9 +250,9 @@ class Proposal(models.Model):
         if users:
             for i in users:
                 votingDict[i] = [BooleanVote.objects.filter(boolean_value= value, proposal=self, user__in=users)]
-                else:
-                for i in users:
-                    votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
+        else:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
         return users
 
 
