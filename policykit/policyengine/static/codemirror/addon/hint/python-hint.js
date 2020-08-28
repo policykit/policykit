@@ -77,6 +77,7 @@
         forEach(pythonKeywordsL, maybeAdd);
         forEach(pythonKeywordsU, maybeAdd);
         forEach(policyKitKeywordsL, maybeAdd);
+
     }
 
     if (context) {
