@@ -315,7 +315,7 @@ policyengine_functions = [
     'time_elapsed',
     'get_raw_number_votes',
     'get_raw_boolean_votes'
-    'get_community_roles,
+    'get_community_roles',
     'get_users_in_roles'
     
 ]
