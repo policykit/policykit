@@ -74,6 +74,8 @@ class CommunityRole(Group):
         return str(self.role_name)
 
 
+
+
 class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', max_length=300, null=True)
     community = models.ForeignKey(Community, models.CASCADE)
@@ -87,6 +89,8 @@ class CommunityUser(User, PolymorphicModel):
         super(CommunityUser, self).save(*args, **kwargs)
         group = self.community.base_role
         group.user_set.add(self)
+
+
 
 
 class CommunityDoc(models.Model):
@@ -189,6 +193,7 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
+
 class Proposal(models.Model):
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -228,6 +233,27 @@ class Proposal(models.Model):
         else:
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
+    
+    def get_raw_number_votes(self, value = 0, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self)]
+        return users
+                
+    def get_raw_boolean_votes(self, value, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value= value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
+        return users
+
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -279,10 +305,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         if self.shouldCreate():
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
-                if not self.proposal:
-                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
-                else:
+                if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
+                else:
+                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
@@ -410,7 +436,10 @@ class PolicykitDeleteRole(ConstitutionAction):
     action_codename = 'policykitdeleterole'
 
     def execute(self):
-        self.role.delete()
+        try:
+            self.role.delete()
+        except AssertionError: # Triggers if object has already been deleted
+            pass
         self.pass_action()
 
     class Meta:

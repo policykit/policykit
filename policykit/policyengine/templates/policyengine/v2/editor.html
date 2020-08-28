@@ -149,12 +149,17 @@
     </div>
   </form>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src={% static "codemirror/lib/codemirror.js" %}></script>
+<script src={% static "codemirror/lib/codemirror.css" %}></script>
 <script src={% static "codemirror/mode/python/python.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.cs" %}></script>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
 
@@ -218,6 +223,7 @@
     document.getElementById('description').value = `{{description}}`
   {% endif %}
 
+
   const DEFAULT_VALUES = {
     "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
     "initialize": "# Replace this code with your custom Initialize code\npass\n\n",
@@ -237,8 +243,14 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        matchBrackets: true,
         gutters: ['warnings']
     }));
+    CodeMirror.commands.autocomplete = function(cm) {
+        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
+    }
+
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
     {% elif i == 1 and initialize %}
@@ -254,16 +266,27 @@
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
+   
+  
 
+    
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-        editor.showHint({
-            hint: CodeMirror.pythonHint
-        });
+                  var options = {hint: function() {
+        return {
+            from: editor.getDoc().getCursor(),
+            to: editor.getDoc().getCursor(),
+                  list: ['action.proposal', 'action.community'] //sample
+                  }
+                }
+                  };
+        editor.showHint(options);
+        //editor.showHint({hint: CodeMirror.pythonHint});
     });
+
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
@@ -296,7 +319,7 @@
           }
         }
       })
-    })
+                  })
   }
 </script>
 {% endblock %}
