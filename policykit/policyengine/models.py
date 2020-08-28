@@ -75,6 +75,8 @@ class CommunityRole(Group):
         return str(self.role_name)
 
 
+
+
 class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', max_length=300, null=True)
     community = models.ForeignKey(Community, models.CASCADE)
@@ -88,6 +90,8 @@ class CommunityUser(User, PolymorphicModel):
         super(CommunityUser, self).save(*args, **kwargs)
         group = self.community.base_role
         group.user_set.add(self)
+
+
 
 
 class CommunityDoc(models.Model):
@@ -190,6 +194,7 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
+
 class Proposal(models.Model):
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -229,6 +234,27 @@ class Proposal(models.Model):
         else:
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
+    
+    def get_raw_number_votes(self, value = 0, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self)]
+        return users
+                
+    def get_raw_boolean_votes(self, value, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value= value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
+        return users
+
 
     def save(self, *args, **kwargs):
         if not self.pk:
