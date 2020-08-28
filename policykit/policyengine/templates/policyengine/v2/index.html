@@ -213,6 +213,7 @@
 
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
+      
     </div>
   </div>
 
@@ -405,6 +406,13 @@
     }));
   }
 
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
   function navActions() {
     window.location.href = "{{server_url}}/main/actions/"
   }
@@ -412,8 +420,8 @@
   function showModal(name, description, filter, initialize, check, notify, pass, fail) {
     document.getElementById("modal").style.display = "block";
 
-    document.getElementById("name").value = name;
-    document.getElementById("description").value = description;
+    document.getElementById("name").value = decodeHtml(name);
+    document.getElementById("description").value = decodeHtml(description);
 
     editors[0].setValue(filter);
     setTimeout(function(){ editors[0].refresh(); }, 1);
