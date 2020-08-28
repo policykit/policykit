@@ -110,15 +110,27 @@ font-family: 'Montserrat';
 
 
 <div class="functionName">
-<label>proposal.get_raw_votes(users=None)
+<label>proposal.get_raw_boolean_votes(users=None)
     </label>
     </div>
     <div class = "functionDesc">
-<p>      Returns a dictionary where key is user ID and value is array of vote objects. Values are empty if the user hasn’t voted.
+<p>      Returns a dictionary where key is user ID and value is array of Boolean Vote objects. Values are empty if the user hasn’t voted.
 
 </p>
 
 </div>
+
+<div class="functionName">
+<label>proposal.get_raw_number_votes(users=None)
+</label>
+</div>
+<div class = "functionDesc">
+<p>      Returns a dictionary where key is user ID and value is array of Number Vote objects. Values are empty if the user hasn’t voted.
+
+</p>
+
+</div>
+
 
 
 <div class="functionName">
@@ -174,7 +186,7 @@ font-family: 'Montserrat';
 <label>action.datastore.get(key)</label>
 </div>
 <div class = "functionDesc">
-<p>       Returns a JSON object from the database
+<p>       Accesses a model field, data_store, that has JSON objects storing action object. In particular, accesses the database.
 
 </p>
 
@@ -185,7 +197,7 @@ font-family: 'Montserrat';
 </label>
 </div>
 <div class = "functionDesc">
-<p>     Returns a JSON object from the database
+<p>     Accesses a model field, data_store, that has JSON objects storing policy object. In particular, accesses the database.
 
 
 </p>
@@ -196,7 +208,7 @@ font-family: 'Montserrat';
 <label>action.datastore.set(key, value)</label>
 </div>
 <div class = "functionDesc">
-<p>    Sets a JSON object in the database
+<p>    Sets a model field, data_store, that stores JSON objects to a particular action.
 
 
 </p>
@@ -207,7 +219,7 @@ font-family: 'Montserrat';
 <label>policy.datastore.set(key, value)</label>
 </div>
 <div class = "functionDesc">
-<p>   Sets a JSON object in the database
+<p>   Sets a model field, data_store, that stores JSON objects to a particular policy.
 
 
 </p>
@@ -218,7 +230,7 @@ font-family: 'Montserrat';
 <label>action.datastore.remove(key)</label>
 </div>
 <div class = "functionDesc">
-<p>         Removes an entry
+<p>         Removes an entry (JSON object action) corresponding to key in database.
 
 
 </p>
@@ -229,7 +241,7 @@ font-family: 'Montserrat';
 <label>policy.datastore.remove(key)</label>
 </div>
 <div class = "functionDesc">
-<p>         Removes an entry
+<p>         Removes an entry (JSON object policy) corresponding to key in database.
 
 
 </p>
@@ -242,9 +254,9 @@ font-family: 'Montserrat';
 <div class = "functionDesc">
 <p>       Notify users will vary slightly based on the different types of actions. There is a default notify action, an election bundle notify action and a combination bundle notify action. There are various types of notifications depending on the platform. In addition, the form of voting will also differ from various platforms.     Voting will differ based on different platforms as follows:
 </p>
-<p> Slack: Notifications will be received through slack channels and voted through by Slack emojis.
+<p> Slack: Notifications will be received through slack channels with a parameter for direct messages and multiparty direct messages (default set as channel) and voted through by Slack emojis. Votes in upvote, downvote and number emojis are used only in the case of elections.
 </p>
-<p> Reddit: Notifications will be received through posts to the subreddit and voted in replies.
+<p> Reddit: Notifications will be received through posts to the subreddit and voted in replies. In particular, users should comment containing "+1" or "-1" as a reply to the notification post.
 </p>
 <p> Discord: Notifications will be received through Discord channels and voted through upvote/downvote emojis. </p>
 
