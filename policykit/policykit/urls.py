@@ -39,6 +39,7 @@ urlpatterns = [
     path('main/', policyviews.v2 if VERSION == "v2" else admin_site.urls),
     path('main/editor/', policyviews.editor),
     path('main/selectrole/', policyviews.selectrole),
+    path('main/roleusers/', policyviews.roleusers),
     path('main/roleeditor/', policyviews.roleeditor),
     path('main/selectpolicy/', policyviews.selectpolicy),
     path('main/documenteditor/', policyviews.documenteditor),
@@ -47,6 +48,7 @@ urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     path('admin/', admin.site.urls),
+    path('main/documentation', policyviews.documentation),
     path('slack/', include('slackintegration.urls')),
     path('reddit/', include('redditintegration.urls')),
     path('discord/', include('discordintegration.urls')),

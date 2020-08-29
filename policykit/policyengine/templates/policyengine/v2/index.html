@@ -236,7 +236,15 @@
                 <tr>
                   <td>{{value.readable_name}}</td>
                   <td>{{key}}</td>
-                  <td>{% for r in value.roles %}{{r.name }}{% endfor %}</td>
+                  <td>
+                    {% for r in value.roles %}
+                      {% if forloop.last %}
+                        {{r.name}}
+                      {% else %}
+                        {{r.name}},
+                      {% endif %}
+                    {% endfor %}
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>

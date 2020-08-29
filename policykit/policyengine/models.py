@@ -58,7 +58,6 @@ class Community(PolymorphicModel):
         pass
 
 
-
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
@@ -496,6 +495,10 @@ class PolicykitAddUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitadduserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():
@@ -513,6 +516,10 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():
