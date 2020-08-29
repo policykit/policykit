@@ -496,6 +496,10 @@ class PolicykitAddUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitadduserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():
@@ -513,6 +517,10 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():

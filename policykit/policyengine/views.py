@@ -140,6 +140,22 @@ def selectrole(request):
         'operation': operation
     })
 
+def roleusers(request):
+    from policyengine.models import CommunityRole, CommunityUser
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+    users = CommunityUser.objects.filter(community=user.community)
+
+    return render(request, 'policyengine/v2/role_users.html', {
+        'server_url': SERVER_URL,
+        'roles': roles,
+        'users': users,
+        'operation': operation
+    })
+
 def roleeditor(request):
     from policyengine.models import CommunityRole
 
@@ -474,6 +490,31 @@ def role_action_save(request):
             action.save()
     else:
         return HttpResponseBadRequest()
+
+    return HttpResponse()
+
+@csrf_exempt
+def role_action_users(request):
+    from policyengine.models import CommunityRole, CommunityUser, PolicykitAddUserRole, PolicykitRemoveUserRole
+    
+    data = json.loads(request.body)
+    user = get_user(request)
+    
+    action = None
+    if data['operation'] == 'Add':
+        action = PolicykitAddUserRole()
+    elif data['operation'] == 'Remove':
+        action = PolicykitRemoveUserRole()
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    action.save()
+    action.users.set(CommunityUser.objects.filter(username=data['user']))
+    action.ready = True
+    action.save()
 
     return HttpResponse()
 
