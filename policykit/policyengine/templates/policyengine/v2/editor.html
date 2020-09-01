@@ -144,6 +144,7 @@
       <div class="col-sm-11">
         <button type="button" class="btn btn-success" id="propose">Propose Policy</button>
         <button type="button" class="btn btn-warning" id="addtobundle">Add to Policy Bundle</button>
+        <button type = "button" class = "btn btn-warning" id="documentation">See python documentation</button>
       </div>
     </div>
   </form>
@@ -165,7 +166,11 @@
 <script>
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
-
+  document.getElementById("documentation").addEventListener("click", documentation);
+  
+  function documentation() {
+      window.open(`{{server_url}}/main/documentation`, '_blank');
+  }
   function propose() {
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');

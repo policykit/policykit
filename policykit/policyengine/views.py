@@ -100,6 +100,9 @@ def logout(request):
     logout(request)
     return redirect('/login')
 
+def documentation(request):
+    return render(request, 'policyengine/v2/documentation.html', {})
+
 def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
@@ -146,6 +149,22 @@ def selectrole(request):
         'server_url': SERVER_URL,
         'user': user,
         'roles': roles,
+        'operation': operation
+    })
+
+def roleusers(request):
+    from policyengine.models import CommunityRole, CommunityUser
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+    users = CommunityUser.objects.filter(community=user.community)
+
+    return render(request, 'policyengine/v2/role_users.html', {
+        'server_url': SERVER_URL,
+        'roles': roles,
+        'users': users,
         'operation': operation
     })
 
@@ -495,17 +514,26 @@ def role_action_save(request):
     return HttpResponse()
 
 @csrf_exempt
-def document_action_save(request):
-    from policyengine.models import PolicykitAddCommunityDoc
+def role_action_users(request):
+    from policyengine.models import CommunityRole, CommunityUser, PolicykitAddUserRole, PolicykitRemoveUserRole
     
     data = json.loads(request.body)
     user = get_user(request)
-    
-    action = PolicykitAddCommunityDoc()
+
+    action = None
+    if data['operation'] == 'Add':
+        action = PolicykitAddUserRole()
+    elif data['operation'] == 'Remove':
+        action = PolicykitRemoveUserRole()
+    else:
+        return HttpResponseBadRequest()
+
     action.community = user.community
     action.initiator = user
-    action.name = data['name']
-    action.text = data['text']
+    action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    action.save()
+    action.users.set(CommunityUser.objects.filter(username=data['user']))
+    action.ready = True
     action.save()
 
     return HttpResponse()
@@ -521,6 +549,22 @@ def role_action_remove(request):
     action.community = user.community
     action.initiator = user
     action.role = CommunityRole.objects.get(name=data['role'])
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def document_action_save(request):
+    from policyengine.models import PolicykitAddCommunityDoc
+    
+    data = json.loads(request.body)
+    user = get_user(request)
+    
+    action = PolicykitAddCommunityDoc()
+    action.community = user.community
+    action.initiator = user
+    action.name = data['name']
+    action.text = data['text']
     action.save()
 
     return HttpResponse()
