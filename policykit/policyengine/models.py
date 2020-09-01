@@ -34,7 +34,6 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
-
     platform = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
@@ -43,16 +42,8 @@ class StarterKit(PolymorphicModel):
 
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
-
     platform = None
-
-    base_role = models.OneToOneField('CommunityRole',
-                                     models.CASCADE,
-                                     related_name='base_community')
-    community_guidelines = models.OneToOneField('CommunityDoc',
-                                     models.CASCADE,
-                                     related_name='base_doc_community',
-                                     null=True)
+    base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
     def notify_action(self, action, policy, users):
         pass
@@ -61,7 +52,6 @@ class Community(PolymorphicModel):
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
-
 
     class Meta:
         verbose_name = 'communityrole'
@@ -94,12 +84,19 @@ class CommunityUser(User, PolymorphicModel):
 
 
 class CommunityDoc(models.Model):
-    text = models.TextField()
-    community = models.ForeignKey(Community, models.CASCADE)
+    name = models.TextField(null=True, blank=True, default = '')
+    text = models.TextField(null=True, blank=True, default = '')
+    community = models.ForeignKey(Community, models.CASCADE, null=True)
+
+    def __str__(self):
+        return str(self.name)
 
     def change_text(self, text):
         self.text = text
         self.save()
+
+    def save(self, *args, **kwargs):
+        super(CommunityDoc, self).save(*args, **kwargs)
 
 
 class DataStore(models.Model):
@@ -388,6 +385,26 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
                     else:
                       notify_policy(policy, action)
 
+class PolicykitAddCommunityDoc(ConstitutionAction):
+    name = models.TextField()
+    text = models.TextField()
+
+    action_codename = 'policykitaddcommunitydoc'
+
+    def __str__(self):
+        return "Add Document - name: " + self.name
+
+    def execute(self):
+        doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
+        doc.community = self.community
+        doc.save()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitaddcommunitydoc', 'Can execute policykit add community doc'),
+        )
+
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
@@ -402,6 +419,19 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
             ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
         )
 
+class PolicykitDeleteCommunityDoc(ConstitutionAction):
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+
+    action_codename = 'policykitdeletecommunitydoc'
+
+    def execute(self):
+        self.doc.delete()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),
+        )
 
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)

@@ -218,6 +218,10 @@
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
   }
+  
+  function navPolicySelect(type, operation) {
+    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  }
 
   function navRoleAdd() {
     window.location.href = `{{server_url}}/main/roleeditor?operation=Add`
@@ -226,17 +230,13 @@
   function navRoleSelect(operation) {
     window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
   }
-
-  function navPolicySelect(type, operation) {
-    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  
+  function navRoleUsers(operation) {
+    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
   }
 
   function navDocumentAdd() {
     window.location.href = `{{server_url}}/main/documenteditor?operation=Add`
-  }
-  
-  function navRoleUsers(operation) {
-    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
   }
 </script>
 {% endblock %}

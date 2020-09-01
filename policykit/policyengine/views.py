@@ -19,12 +19,13 @@ def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
 def v2(request):
-    from policyengine.models import CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
+    from policyengine.models import CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
     roles = CommunityRole.objects.filter(community=user.community)
+    docs = CommunityDoc.objects.filter(community=user.community)
     platform_policies = PlatformPolicy.objects.filter(community=user.community)
     constitution_policies = ConstitutionPolicy.objects.filter(community=user.community)
 
@@ -48,6 +49,13 @@ def v2(request):
             cu = u.communityuser
             role_data[r.role_name]['users'].append({ 'username': cu.readable_name })
             user_data[cu.username]['roles'].append({ 'name': r.role_name })
+
+    doc_data = {}
+    for d in docs:
+        doc_data[d.id] = {
+            'name': d.name,
+            'text': d.text
+        }
 
     platform_policy_data = {}
     for pp in platform_policies:
@@ -82,6 +90,7 @@ def v2(request):
         'user': user,
         'users': user_data,
         'roles': role_data,
+        'docs': doc_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data
     })
@@ -510,7 +519,7 @@ def role_action_users(request):
     
     data = json.loads(request.body)
     user = get_user(request)
-    
+
     action = None
     if data['operation'] == 'Add':
         action = PolicykitAddUserRole()
@@ -535,7 +544,7 @@ def role_action_remove(request):
 
     data = json.loads(request.body)
     user = get_user(request)
-
+    
     action = PolicykitDeleteRole()
     action.community = user.community
     action.initiator = user
@@ -546,4 +555,16 @@ def role_action_remove(request):
 
 @csrf_exempt
 def document_action_save(request):
-  return HttpResponse()
+    from policyengine.models import PolicykitAddCommunityDoc
+    
+    data = json.loads(request.body)
+    user = get_user(request)
+    
+    action = PolicykitAddCommunityDoc()
+    action.community = user.community
+    action.initiator = user
+    action.name = data['name']
+    action.text = data['text']
+    action.save()
+
+    return HttpResponse()
