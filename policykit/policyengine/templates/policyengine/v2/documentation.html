@@ -69,6 +69,8 @@ font-family: 'Montserrat';
     <h3>Python Scripting Layer</h3>
     <p class = "desc">  PolicyKit is intended to empower community members to author governance procedures. The intention of these helper functions and python scripting is to make writing policies an easier process with more information easily accessible. It should encourage members of communities with less technical experience to participate in governance as well as help experienced members of the community craft policies.
         </p>
+<p class = "desc">  As PolicyKit relies on Django, some of the helper functions return QuerySets. QuerySets have multiple methods including filtering, ordering and annotating. More details about using QuerySets can be found <a href = 'https://docs.djangoproject.com/en/3.0/ref/models/querysets/'> here </a>.
+</p>
       <p class = "desc">  The module defines the following functions:
      </p>
 
@@ -86,7 +88,7 @@ font-family: 'Montserrat';
         <label>proposal.get_yes_votes(users=None)</label>
 </div>
         <div class = "functionDesc">
-            <p> As default, returns a list of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
+            <p> As default, returns a QuerySet of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
             </p>
 
         </div>
@@ -103,7 +105,7 @@ font-family: 'Montserrat';
 <label>proposal.get_number_votes(value=0, users=None)</label>
 </div>
 <div class = "functionDesc">
-<p> As default, returns a list of all users who voted “no” for a given proposal. If users is passed in, votes are returned only for those users.
+<p> As default, returns a QuerySet of all users who voted “no” for a given proposal. If users is passed in, votes are returned only for those users.
 </p>
 
 </div>
@@ -158,16 +160,6 @@ font-family: 'Montserrat';
 </div>
 <div class = "functionDesc">
 <p> Returns all users in a community in an array
-</p>
-
-</div>
-
-
-<div class="functionName">
-<label>roles.get(role, community)</label>
-</div>
-<div class = "functionDesc">
-<p>    Returns a list of users for a given role in a community
 </p>
 
 </div>

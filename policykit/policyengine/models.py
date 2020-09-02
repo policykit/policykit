@@ -194,7 +194,6 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
-
 class Proposal(models.Model):
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -266,7 +265,6 @@ class Proposal(models.Model):
                 votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
         return users
 
->>>>>>> master
 
     def save(self, *args, **kwargs):
         if not self.pk:
