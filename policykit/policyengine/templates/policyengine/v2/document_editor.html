@@ -1,0 +1,106 @@
+{% extends "policyengine/v2/dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+
+<style>
+  .body {
+    display: flex;
+    flex-direction: row;
+    width: 80%;
+    min-height: 90vh;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+
+  .editor {
+    width: 100%;
+  }
+
+  .name {
+    width: 40%;
+  }
+
+  .text {
+    resize: none;
+    width: 60%;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .control-label {
+    font-size: 1.2em;
+  }
+
+  .btn {
+    font-size: 1.2em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  <form class="form-horizontal editor">
+    <div class="form-row">
+      <label class="control-label col-sm-1" for="name">Name:</label>
+      <div class="col-sm-11">
+        <input type="text" class="form-control name" id="name" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-1" for="text">Text:</label>
+      <div class="col-sm-11">
+        <textarea class="form-control text" id="text" required rows="12"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-11">
+        <button type="button" class="btn btn-success" id="propose">Create Document</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("propose").addEventListener("click", propose);
+
+  function propose() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const operation = urlParams.get('operation');
+    const doc = urlParams.get('doc');
+
+    const name = document.getElementById("name").value
+    const text = document.getElementById("text").value
+
+    fetch('../../../main/policyengine/document_action_save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'operation': operation,
+        'doc': doc,
+        'name': name,
+        'text': text
+      })
+    }).then(response => {
+      window.location.href = "{{server_url}}/main/"
+    });
+  }
+
+  {% if name %}
+    document.getElementById('name').value = `{{name}}`
+  {% endif %}
+
+  {% if text %}
+    document.getElementById('text').value = `{{text}}`
+  {% endif %}
+</script>
+{% endblock %}

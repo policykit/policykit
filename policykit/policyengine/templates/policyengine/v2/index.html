@@ -11,9 +11,9 @@
   .body {
     display: flex;
     flex-direction: row;
-    width: 90vw;
+    width: 80vw;
     min-height: 90vh;
-    margin: 0 5vw;
+    margin: 0 10vw;
     padding-top: 3vh;
   }
 
@@ -37,6 +37,7 @@
     display: flex;
     width: 90%;
     margin-top: 1vh;
+    margin-right: auto;
     border-radius: 30px;
     border-width: 0px;
     padding: 10px 30px;
@@ -62,6 +63,11 @@
     outline: none;
     margin-top: 1vh;
     margin-bottom: 3vh;
+    margin-left: auto;
+  }
+
+  .proposeButton:hover {
+    background-color: #3b4699;
   }
 
   .sidebarPanel {
@@ -69,6 +75,7 @@
     min-height: 30vh;
     margin-top: 1vh;
     margin-bottom: 1vh;
+    margin-left: auto;
     background-color: #ffffff;
     border-radius: 30px;
     box-shadow: 0 0 2px #9fa2b5;
@@ -98,6 +105,7 @@
 
   .actionPanel {
     width: 90%;
+    margin-right: auto;
     min-height: 35vh;
     margin-top: 3vh;
     background-color: #ffffff;
@@ -242,7 +250,15 @@
                 <tr>
                   <td>{{value.readable_name}}</td>
                   <td>{{key}}</td>
-                  <td>{% for r in value.roles %}{{r.name }}{% endfor %}</td>
+                  <td>
+                    {% for r in value.roles %}
+                      {% if forloop.last %}
+                        {{r.name}}
+                      {% else %}
+                        {{r.name}},
+                      {% endif %}
+                    {% endfor %}
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -251,11 +267,29 @@
     </div>
 
     <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Community Guidelines</h4>
+      <h4 class="sidebarPanelTitle">Community Documents</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in docs.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>{{value.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
     </div>
 
     <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Community Policies</h4>
+      <h4 class="sidebarPanelTitle">Platform Policies</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <thead>
@@ -394,6 +428,13 @@
     }));
   }
 
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
   function navActions() {
     window.location.href = "{{server_url}}/main/actions/"
   }
@@ -401,8 +442,8 @@
   function showModal(name, description, filter, initialize, check, notify, pass, fail) {
     document.getElementById("modal").style.display = "block";
 
-    document.getElementById("name").value = name;
-    document.getElementById("description").value = description;
+    document.getElementById("name").value = decodeHtml(name);
+    document.getElementById("description").value = decodeHtml(description);
 
     editors[0].setValue(filter);
     setTimeout(function(){ editors[0].refresh(); }, 1);

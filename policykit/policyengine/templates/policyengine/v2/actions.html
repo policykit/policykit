@@ -21,10 +21,14 @@
     font-size: 1.2em;
     font-weight: bold;
     margin-top: 5vh;
-    background-color: #2196f3;
+    background-color: #4451b2;
     color: #ffffff;
     padding: 0.5em 1% 0.5em 1%;
     border-radius: 10px 10px 0 0;
+  }
+
+  .actionMenu:hover {
+    background-color: #3b4699;
   }
 
   .actionMenuHeading {
@@ -155,10 +159,10 @@
     <div class="actionButton" id="removeRole">
       <p>Remove Role</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="addUserToRole">
       <p>Add User to Role</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removeUserFromRole">
       <p>Remove User from Role</p>
     </div>
   </div>
@@ -168,13 +172,13 @@
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
   <div class="actionCollapsible" id="documents">
-    <div class="actionButton">
+    <div class="actionButton" id="addDocument">
       <p>Add Document</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="editDocument">
       <p>Edit Document</p>
     </div>
-    <div class="actionButton">
+    <div class="actionButton" id="removeDocument">
       <p>Remove Document</p>
     </div>
   </div>
@@ -198,6 +202,9 @@
   document.getElementById("addRole").addEventListener("click", function(){ navRoleAdd(); });
   document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
   document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
+  document.getElementById("addUserToRole").addEventListener("click", function(){ navRoleUsers('Add'); });
+  document.getElementById("removeUserFromRole").addEventListener("click", function(){ navRoleUsers('Remove'); });
+  document.getElementById("addDocument").addEventListener("click", function(){ navDocumentAdd(); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -211,6 +218,10 @@
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
   }
+  
+  function navPolicySelect(type, operation) {
+    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  }
 
   function navRoleAdd() {
     window.location.href = `{{server_url}}/main/roleeditor?operation=Add`
@@ -219,9 +230,13 @@
   function navRoleSelect(operation) {
     window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
   }
+  
+  function navRoleUsers(operation) {
+    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
+  }
 
-  function navPolicySelect(type, operation) {
-    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  function navDocumentAdd() {
+    window.location.href = `{{server_url}}/main/documenteditor?operation=Add`
   }
 </script>
 {% endblock %}
