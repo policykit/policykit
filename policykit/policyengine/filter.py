@@ -313,7 +313,7 @@ policyengine_functions = [
     'time_elapsed',
     'get_users',
     'get_total_vote_count',
-    'genericrole_set.all;
+    'genericrole_set.all',
     'get_raw_number_votes',
     'get_raw_boolean_votes',
     'remove',
