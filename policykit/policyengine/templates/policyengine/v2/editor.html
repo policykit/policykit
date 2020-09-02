@@ -173,17 +173,13 @@
 <script>
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
-<<<<<<< HEAD
-
-  
-=======
   document.getElementById("documentation").addEventListener("click", documentation);
   
   function documentation() {
       window.open(`{{server_url}}/main/documentation`, '_blank');
   }
->>>>>>> master
-  function propose() {
+
+function propose() {
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
@@ -255,19 +251,11 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
-<<<<<<< HEAD
         gutters: ['warnings'],
-       
-
-=======
         extraKeys: {"Ctrl-Space": "autocomplete"},
         matchBrackets: true,
         gutters: ['warnings']
->>>>>>> master
     }));
-    CodeMirror.commands.autocomplete = function(cm) {
-        CodeMirror.simpleHint(cm, CodeMirror.pythonHint);
-    }
 
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
@@ -295,14 +283,7 @@
         }
                   var options = {hint: function() {
         return {
-            from: editor.getDoc().getCursor(),
-            to: editor.getDoc().getCursor(),
-                  list: ['action.proposal', 'action.community'] //sample
-                  }
-                }
-                  };
-        editor.showHint(options);
-        //editor.showHint({hint: CodeMirror.pythonHint});
+            editor.showHint({hint: CodeMirror.pythonHint});
     });
 
 

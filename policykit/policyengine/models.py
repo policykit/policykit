@@ -235,7 +235,6 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
     
-<<<<<<< HEAD
     def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
         totalDict = {}
         if (vote_type == "boolean" or vote_type == "Boolean"):
@@ -246,7 +245,7 @@ class Proposal(models.Model):
                 totalDict[vote_num] = get_number_votes(vote_num)
 
         return totalDict
-=======
+
     def get_raw_number_votes(self, value = 0, users = None):
         votingDict = {}
         if users:
