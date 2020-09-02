@@ -34,7 +34,6 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
-
     platform = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
@@ -43,16 +42,8 @@ class StarterKit(PolymorphicModel):
 
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
-
     platform = None
-
-    base_role = models.OneToOneField('CommunityRole',
-                                     models.CASCADE,
-                                     related_name='base_community')
-    community_guidelines = models.OneToOneField('CommunityDoc',
-                                     models.CASCADE,
-                                     related_name='base_doc_community',
-                                     null=True)
+    base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
     def notify_action(self, action, policy, users):
         pass
@@ -62,11 +53,9 @@ class Community(PolymorphicModel):
 
 
 
-
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
-
 
     class Meta:
         verbose_name = 'communityrole'
@@ -77,6 +66,8 @@ class CommunityRole(Group):
 
     def __str__(self):
         return str(self.role_name)
+
+
 
 
 class CommunityUser(User, PolymorphicModel):
@@ -94,13 +85,22 @@ class CommunityUser(User, PolymorphicModel):
         group.user_set.add(self)
 
 
+
+
 class CommunityDoc(models.Model):
-    text = models.TextField()
-    community = models.ForeignKey(Community, models.CASCADE)
+    name = models.TextField(null=True, blank=True, default = '')
+    text = models.TextField(null=True, blank=True, default = '')
+    community = models.ForeignKey(Community, models.CASCADE, null=True)
+
+    def __str__(self):
+        return str(self.name)
 
     def change_text(self, text):
         self.text = text
         self.save()
+
+    def save(self, *args, **kwargs):
+        super(CommunityDoc, self).save(*args, **kwargs)
 
 
 class DataStore(models.Model):
@@ -194,6 +194,7 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
+
 class Proposal(models.Model):
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -234,6 +235,7 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
     
+<<<<<<< HEAD
     def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
         totalDict = {}
         if (vote_type == "boolean" or vote_type == "Boolean"):
@@ -244,6 +246,28 @@ class Proposal(models.Model):
                 totalDict[vote_num] = get_number_votes(vote_num)
 
         return totalDict
+=======
+    def get_raw_number_votes(self, value = 0, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self)]
+        return users
+                
+    def get_raw_boolean_votes(self, value, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value= value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
+        return users
+
+>>>>>>> master
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -378,6 +402,26 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
                     else:
                       notify_policy(policy, action)
 
+class PolicykitAddCommunityDoc(ConstitutionAction):
+    name = models.TextField()
+    text = models.TextField()
+
+    action_codename = 'policykitaddcommunitydoc'
+
+    def __str__(self):
+        return "Add Document - name: " + self.name
+
+    def execute(self):
+        doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
+        doc.community = self.community
+        doc.save()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitaddcommunitydoc', 'Can execute policykit add community doc'),
+        )
+
 class PolicykitChangeCommunityDoc(ConstitutionAction):
     community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
     change_text = models.TextField()
@@ -392,6 +436,19 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
             ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
         )
 
+class PolicykitDeleteCommunityDoc(ConstitutionAction):
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+
+    action_codename = 'policykitdeletecommunitydoc'
+
+    def execute(self):
+        self.doc.delete()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),
+        )
 
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
@@ -426,7 +483,10 @@ class PolicykitDeleteRole(ConstitutionAction):
     action_codename = 'policykitdeleterole'
 
     def execute(self):
-        self.role.delete()
+        try:
+            self.role.delete()
+        except AssertionError: # Triggers if object has already been deleted
+            pass
         self.pass_action()
 
     class Meta:
@@ -482,6 +542,10 @@ class PolicykitAddUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitadduserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():
@@ -499,6 +563,10 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():

@@ -100,10 +100,6 @@ def oauth(request):
                     )
                 user_group.community = community
                 user_group.save()
-                cg = CommunityDoc.objects.create(text='', community=community)
-
-                community.community_guidelines=cg
-                community.save()
 
                 #get the list of users, create SlackUser object for each user
                 data2 = parse.urlencode({

@@ -3,44 +3,42 @@
 ## Getting Started
 
 1)
-PolicyKit requires python 3.
+PolicyKit requires Python 3.
 
-I recommend that you use virtualenv.
-Once you have that created, activate the virtualenv and run:
+**It is recommended that you install requirements in a virtual environment, although this is not required.**
+
+Once you have downloaded PolicyKit from this GitHub repository, the next step is to install the dependencies which PolicyKit needs to run. First, `cd` into the `policykit` directory. You should use the `pip` package installer to `install` the dependencies from the requirements file (`-r`) called `requirements.txt` by running the following command:
 
 `pip install -r requirements.txt`
 
 2)
-One of our libraries, django-jet, does not work with Django 3.0 yet.
-To fix this, find the `jet/dashboard/models.py` and `jet/models.py` files in your django-jet installation.
-If you used virtualenv, this should be in path_to_your_ve/your_ve_name/lib/python3.7/site-packages/jet/
+PolicyKit uses Django 3.0 as well as the django-jet library. However, django-jet is incompatible with Django 3.0.
 
-In both files, replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`
+To fix this, you need to find the `jet/dashboard/models.py` and `jet/models.py` files in your django-jet installation. If you used a virtual environment, this should be in `path_to_your_ve/your_ve_name/lib/python3.7/site-packages/jet/`.
+
+In both files, replace the line `from django.utils.encoding import python_2_unicode_compatible` with `from six import python_2_unicode_compatible`.
 
 3)
-Put
-`SLACK_CLIENT_SECRET = ''`
-`REDDIT_CLIENT_SECRET = ''`
-in a file called private.py in the same file as your manage.py file. These store API secret keys that you will need to fill out if you wish to query the Slack or Reddit API.
+Next, `cd` back into the `policykit` directory. Create a copy (`cp`) of the file `private_template.py` and name your copy `private.py` by running the following command:
+
+`cp private_template.py private.py`
+
+You should store all of your secret values and keys in `private.py`.
 
 4)
-PolicyKit is currently logging to the path: /var/log/django
-You either need to create this folder or go into settings.py to change where it logs.
+PolicyKit requires a directory to send logs to. By default, it logs to the path: `/var/log/django`. You either need to create a folder at this path or go into settings.py to change where it logs.
 
 5)
-Rename private_template.py to private.py. Fill in the variables with your API ids and secrets for the platforms you wish to integrate with.
-
-6)
-Check you can run the server with no problems:
+Check that you can run the server with no problems. To do so, `cd` into the `policykit` directory and run the following command:
 `python manage.py runserver`
 
-7)
+6)
 Now set up a database. You can use the default sqlite or mysql or another database of your choice. Make sure settings.py is pointing to the right database.
 
-Finally, run `python manage.py makemigrations` to migrate tables to the database.
+Finally, `cd` back into the `policykit` directory and run `python manage.py makemigrations` to migrate tables to the database.
 
-8)
-Run the script 'policyengine/scripts/starterkits.py'. This sets up the starter systems of governance that you can choose to integrate into your community. In order to do so, first enter the shell with `python manage.py shell`, then run `exec(open('policyengine/scripts/starterkits.py').read())`. 
+7)
+Next, you need to set up the governance starter kits that you can choose from to initialize your community's governance. In order to do so, from the `policykit` directory you need to first enter the shell by executing the command `python manage.py shell`. After running this command, the shell prompt should display. From this prompt, run the following command: `exec(open('policyengine/scripts/starterkits.py').read())`.
 
 ## Potential Issues
 
