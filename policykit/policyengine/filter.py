@@ -306,17 +306,18 @@ policyengine_functions = [
     'exists',
     'filter',
     'get',
-    'get_boolean_votes',
     'get_no_votes',
     'get_number_votes',
-    'get_users',
     'get_yes_votes',
     'notify_users',
     'time_elapsed',
+    'get_users',
+    'get_total_vote_count',
+    'genericrole_set.all',
     'get_raw_number_votes',
-    'get_raw_boolean_votes'
-    'get_community_roles',
-    'get_users_in_roles'
+    'get_raw_boolean_votes',
+    'remove',
+    'set'
     
 ]
 

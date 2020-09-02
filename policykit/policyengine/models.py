@@ -48,6 +48,10 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
+    def get_users(self, users):
+      return users
+
+
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
@@ -101,7 +105,7 @@ class CommunityDoc(models.Model):
 
 class DataStore(models.Model):
     data_store = models.TextField()
-
+    
     def _get_data_store(self):
         if self.data_store != '':
             return json.loads(self.data_store)
@@ -190,7 +194,6 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
-
 class Proposal(models.Model):
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -231,6 +234,17 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
     
+    def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
+        totalDict = {}
+        if (vote_type == "boolean" or vote_type == "Boolean"):
+            totaldict["True"] = len(get_yes_votes)
+            totaldict["False"] = len(get_no_votes)
+        elif vote_type == "Number" or vote_type == "number":
+            for vote_num in range(1, vote_number):
+                totalDict[vote_num] = get_number_votes(vote_num)
+
+        return totalDict
+
     def get_raw_number_votes(self, value = 0, users = None):
         votingDict = {}
         if users:
