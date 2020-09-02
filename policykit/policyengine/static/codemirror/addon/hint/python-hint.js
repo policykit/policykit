@@ -62,7 +62,7 @@
 + "dict hex object slice coerce dir id oct sorted intern ";
   var pythonBuiltinsL = pythonBuiltins.split(" ").join("() ").split(" ");
   var pythonBuiltinsU = pythonBuiltins.toUpperCase().split(" ").join("() ").split(" ");
-  var policyKitKeywords = "action policy users proposal community constitution";
+ var policyKitKeywords = "action policy users proposal community constitution get_no_votes get_number_votes get_yes_votes notify_users time_elapsed get_users genericrole_set.all get_raw_boolean_votes get_raw_number_votes remove set get" ;
   var policyKitKeywordsL = policyKitKeywords.split(" ");
 
   function getCompletions(token, context) {
