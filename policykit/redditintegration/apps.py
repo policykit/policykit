@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class RedditintegrationConfig(AppConfig):
+class redditIntegrationConfig(AppConfig):
     name = 'redditintegration'
 
     def ready(self):
