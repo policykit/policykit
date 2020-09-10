@@ -13,7 +13,6 @@ class policyEngineConfig(AppConfig):
         registry.register(self.get_model('ConstitutionAction'))
         registry.register(self.get_model('ConstitutionActionBundle'))
         registry.register(self.get_model('CommunityUser'))
-        registry.register(self.get_model('RedditUser'))
         registry.register(self.get_model('CommunityRole'))
         #registry.register(self.get_model('UserVote'))
         registry.register(self.get_model('BooleanVote'))
