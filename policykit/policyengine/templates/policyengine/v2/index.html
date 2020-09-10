@@ -215,7 +215,7 @@
       <h3 class="actionPanelTitle">All actions</h3>
       <div class="ui feed">
           {% for event in activity_stream %}
-          {# Verb #}
+         <!--  {# Verb #} -->
           <span class="glyphicon
               {% if event.verb == 'added' %}
                 glyphicon-plus
@@ -232,8 +232,8 @@
              {% display_action event.action_object %}
           {% endif %}
           
-          {#  Time #}
-          {{ event.timestamp|timesince }} 
+        <!--  {#  Time #}
+          {{ event.timestamp|timesince }}  -->
          
     </div>
   </div>
