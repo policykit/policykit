@@ -71,6 +71,14 @@
 <script>
   document.getElementById("propose").addEventListener("click", propose);
 
+  {% if name %}
+    document.getElementById('name').value = `{{name}}`;
+  {% endif %}
+
+  {% if text %}
+    document.getElementById('text').value = `{{text}}`;
+  {% endif %}
+
   function propose() {
     const urlParams = new URLSearchParams(window.location.search);
     const operation = urlParams.get('operation');

@@ -241,10 +241,22 @@ def selectdocument(request):
 def documenteditor(request):
     from policyengine.models import CommunityDoc
 
-    return render(request, 'policyengine/v2/document_editor.html', {
+    user = get_user(request)
+    operation = request.GET.get('operation')
+    doc_name = request.GET.get('doc_name')
+
+    data = {
         'server_url': SERVER_URL,
-        'user': get_user(request)
-    })
+        'user': user,
+        'operation': operation
+    }
+
+    if doc_name:
+        doc = CommunityDoc.objects.filter(name=doc_name)[0]
+        data['name'] = doc_name
+        data['text'] = doc.text
+
+    return render(request, 'policyengine/v2/document_editor.html', data)
 
 def actions(request):
     user = get_user(request)

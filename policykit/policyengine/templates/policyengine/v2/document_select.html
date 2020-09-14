@@ -75,7 +75,7 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          'doc': doc
+          'doc_name': doc
         })
       }).then(response => {
         window.location.href = "{{server_url}}/main/"
