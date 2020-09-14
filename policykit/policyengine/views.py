@@ -583,12 +583,19 @@ def role_action_remove(request):
 
 @csrf_exempt
 def document_action_save(request):
-    from policyengine.models import PolicykitAddCommunityDoc
+    from policyengine.models import PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
 
-    action = PolicykitAddCommunityDoc()
+    action = None
+    if data['operation'] == 'Add':
+        action = PolicykitAddCommunityDoc()
+    elif data['operation'] == 'Change':
+        action = PolicykitChangeCommunityDoc()
+    else:
+        return HttpResponseBadRequest()
+
     action.community = user.community
     action.initiator = user
     action.name = data['name']
