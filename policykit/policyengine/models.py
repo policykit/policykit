@@ -411,16 +411,16 @@ class PolicykitAddCommunityDoc(ConstitutionAction):
         )
 
 class PolicykitChangeCommunityDoc(ConstitutionAction):
-    community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
     name = models.TextField()
     text = models.TextField()
 
     action_codename = 'policykitchangecommunitydoc'
 
     def execute(self):
-        self.community_doc.name = self.name
-        self.community_doc.text = self.text
-        self.community_doc.save()
+        self.doc.name = self.name
+        self.doc.text = self.text
+        self.doc.save()
         self.pass_action()
 
     class Meta:
