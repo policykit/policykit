@@ -607,4 +607,15 @@ def document_action_save(request):
 
 @csrf_exempt
 def document_action_remove(request):
+    from policyengine.models import CommunityDoc, PolicykitDeleteCommunityDoc
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitDeleteCommunityDoc()
+    action.community = user.community
+    action.initiator = user
+    action.doc = CommunityDoc.objects.get(id=data['doc'])
+    action.save()
+
     return HttpResponse()
