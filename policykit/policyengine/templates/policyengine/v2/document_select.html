@@ -67,7 +67,7 @@
     const doc = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc=${doc}`
+      window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc_name=${doc}`
     } else {
       fetch('../../../main/policyengine/document_action_remove', {
         method: 'POST',
