@@ -52,7 +52,6 @@ class Community(PolymorphicModel):
       return users
 
 
-
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
@@ -66,8 +65,6 @@ class CommunityRole(Group):
 
     def __str__(self):
         return str(self.role_name)
-
-
 
 
 class CommunityUser(User, PolymorphicModel):
@@ -85,8 +82,6 @@ class CommunityUser(User, PolymorphicModel):
         group.user_set.add(self)
 
 
-
-
 class CommunityDoc(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
     text = models.TextField(null=True, blank=True, default = '')
@@ -95,17 +90,13 @@ class CommunityDoc(models.Model):
     def __str__(self):
         return str(self.name)
 
-    def change_text(self, text):
-        self.text = text
-        self.save()
-
     def save(self, *args, **kwargs):
         super(CommunityDoc, self).save(*args, **kwargs)
 
 
 class DataStore(models.Model):
     data_store = models.TextField()
-    
+
     def _get_data_store(self):
         if self.data_store != '':
             return json.loads(self.data_store)
@@ -233,7 +224,7 @@ class Proposal(models.Model):
         else:
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
-    
+
     def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
         totalDict = {}
         if (vote_type == "boolean" or vote_type == "Boolean"):
@@ -254,7 +245,7 @@ class Proposal(models.Model):
             for i in users:
                 votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self)]
         return users
-                
+
     def get_raw_boolean_votes(self, value, users = None):
         votingDict = {}
         if users:
@@ -420,13 +411,17 @@ class PolicykitAddCommunityDoc(ConstitutionAction):
         )
 
 class PolicykitChangeCommunityDoc(ConstitutionAction):
-    community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
-    change_text = models.TextField()
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+    name = models.TextField()
+    text = models.TextField()
 
     action_codename = 'policykitchangecommunitydoc'
 
     def execute(self):
-        self.community_doc.change_text(self.change_text)
+        self.doc.name = self.name
+        self.doc.text = self.text
+        self.doc.save()
+        self.pass_action()
 
     class Meta:
         permissions = (

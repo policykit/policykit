@@ -6,15 +6,11 @@
 <style>
   .body {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 80%;
     min-height: 90vh;
     margin: 0 10vw;
     padding-top: 3vh;
-  }
-
-  .editor {
-    width: 100%;
   }
 
   .name {
@@ -27,22 +23,33 @@
   }
 
   .form-row {
-    margin-bottom: 20px;
+    margin-top: 3vh;
+    margin-bottom: 3vh;
   }
 
   .control-label {
+    font-family: 'Karla', sans-serif;
+    font-weight: bold;
     font-size: 1.2em;
+    color: #373456;
   }
 
-  .btn {
+  .submitButton {
+    width: 10%;
     font-size: 1.2em;
+    border-radius: 30px;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
-  <form class="form-horizontal editor">
+  {% if operation == "Add" %}
+    <h3>Add a new Document</h3>
+  {% elif operation == "Change" %}
+    <h3>Change an existing Document</h3>
+  {% endif %}
+
     <div class="form-row">
       <label class="control-label col-sm-1" for="name">Name:</label>
       <div class="col-sm-11">
@@ -57,19 +64,21 @@
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-11">
-        <button type="button" class="btn btn-success" id="propose">Create Document</button>
-      </div>
-    </div>
-  </form>
+    <button class="btn btn-success submitButton" id="propose">{{operation}}</button>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
   document.getElementById("propose").addEventListener("click", propose);
+
+  {% if name %}
+    document.getElementById('name').value = `{{name}}`;
+  {% endif %}
+
+  {% if text %}
+    document.getElementById('text').value = `{{text}}`;
+  {% endif %}
 
   function propose() {
     const urlParams = new URLSearchParams(window.location.search);
