@@ -593,7 +593,7 @@ def document_action_save(request):
         action = PolicykitAddCommunityDoc()
     elif data['operation'] == 'Change':
         action = PolicykitChangeCommunityDoc()
-        action.doc = CommunityDoc.objects.filter(id=data['doc'])
+        action.doc = CommunityDoc.objects.filter(id=data['doc'])[0]
     else:
         return HttpResponseBadRequest()
 
