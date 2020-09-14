@@ -10,5 +10,6 @@ urlpatterns = [
     path('role_action_save', views.role_action_save),
     path('role_action_remove', views.role_action_remove),
     path('role_action_users', views.role_action_users),
-    path('document_action_save', views.document_action_save)
+    path('document_action_save', views.document_action_save),
+    path('document_action_remove', views.document_action_remove)
 ]

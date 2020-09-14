@@ -205,6 +205,8 @@
   document.getElementById("addUserToRole").addEventListener("click", function(){ navRoleUsers('Add'); });
   document.getElementById("removeUserFromRole").addEventListener("click", function(){ navRoleUsers('Remove'); });
   document.getElementById("addDocument").addEventListener("click", function(){ navDocumentAdd(); });
+  document.getElementById("editDocument").addEventListener("click", function(){ navDocumentSelect('Change'); });
+  document.getElementById("removeDocument").addEventListener("click", function(){ navDocumentSelect('Remove'); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
@@ -218,7 +220,7 @@
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
   }
-  
+
   function navPolicySelect(type, operation) {
     window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
   }
@@ -230,13 +232,17 @@
   function navRoleSelect(operation) {
     window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
   }
-  
+
   function navRoleUsers(operation) {
     window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
   }
 
   function navDocumentAdd() {
     window.location.href = `{{server_url}}/main/documenteditor?operation=Add`
+  }
+
+  function navDocumentSelect(operation) {
+    window.location.href = `{{server_url}}/main/selectdocument?operation=${operation}`
   }
 </script>
 {% endblock %}
