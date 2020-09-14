@@ -243,7 +243,7 @@ def documenteditor(request):
 
     user = get_user(request)
     operation = request.GET.get('operation')
-    doc_name = request.GET.get('doc_name')
+    doc_id = request.GET.get('doc')
 
     data = {
         'server_url': SERVER_URL,
@@ -251,9 +251,9 @@ def documenteditor(request):
         'operation': operation
     }
 
-    if doc_name:
-        doc = CommunityDoc.objects.filter(name=doc_name)[0]
-        data['name'] = doc_name
+    if doc_id:
+        doc = CommunityDoc.objects.filter(id=doc_id)[0]
+        data['name'] = doc.name
         data['text'] = doc.text
 
     return render(request, 'policyengine/v2/document_editor.html', data)
@@ -583,7 +583,7 @@ def role_action_remove(request):
 
 @csrf_exempt
 def document_action_save(request):
-    from policyengine.models import PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
+    from policyengine.models import CommunityDoc, PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -593,6 +593,7 @@ def document_action_save(request):
         action = PolicykitAddCommunityDoc()
     elif data['operation'] == 'Change':
         action = PolicykitChangeCommunityDoc()
+        action.doc = CommunityDoc.objects.filter(id=data['doc'])
     else:
         return HttpResponseBadRequest()
 
