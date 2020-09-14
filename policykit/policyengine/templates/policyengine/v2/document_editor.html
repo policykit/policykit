@@ -42,6 +42,12 @@
 
 {% block content %}
 <div class="body">
+  {% if operation == "Add" %}
+    <h3>Add a new Document</h3>
+  {% elif operation == "Change" %}
+    <h3>Change an existing Document</h3>
+  {% endif %}
+
   <form class="form-horizontal editor">
     <div class="form-row">
       <label class="control-label col-sm-1" for="name">Name:</label>
@@ -60,7 +66,7 @@
     <div class="form-row">
       <div class="col-sm-1"></div>
       <div class="col-sm-11">
-        <button type="button" class="btn btn-success" id="propose">Create Document</button>
+        <button type="button" class="btn btn-success" id="propose">{{operation}}</button>
       </div>
     </div>
   </form>
