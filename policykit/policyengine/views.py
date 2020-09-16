@@ -22,6 +22,8 @@ def v2(request):
     from policyengine.models import CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
     user = get_user(request)
+    if user.is_authenticated == False:
+        return redirect('/login')
 
     users = CommunityUser.objects.filter(community=user.community)
     roles = CommunityRole.objects.filter(community=user.community)
