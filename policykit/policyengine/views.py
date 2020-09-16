@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
@@ -18,12 +19,11 @@ logger = logging.getLogger(__name__)
 def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
+@login_required(login_url='/login')
 def v2(request):
     from policyengine.models import CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
     user = get_user(request)
-    if user.is_authenticated == False:
-        return redirect('/login')
 
     users = CommunityUser.objects.filter(community=user.community)
     roles = CommunityRole.objects.filter(community=user.community)
