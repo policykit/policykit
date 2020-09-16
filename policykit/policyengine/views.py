@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
+@login_required(login_url='/login')
 def v2(request):
     from policyengine.models import CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
@@ -100,9 +102,11 @@ def logout(request):
     logout(request)
     return redirect('/login')
 
+@login_required(login_url='/login')
 def documentation(request):
     return render(request, 'policyengine/v2/documentation.html', {})
 
+@login_required(login_url='/login')
 def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
@@ -137,6 +141,7 @@ def editor(request):
         'user': get_user(request)
     })
 
+@login_required(login_url='/login')
 def selectrole(request):
     from policyengine.models import CommunityRole
 
@@ -152,6 +157,7 @@ def selectrole(request):
         'operation': operation
     })
 
+@login_required(login_url='/login')
 def roleusers(request):
     from policyengine.models import CommunityRole, CommunityUser
 
@@ -168,6 +174,7 @@ def roleusers(request):
         'operation': operation
     })
 
+@login_required(login_url='/login')
 def roleeditor(request):
     from policyengine.models import CommunityRole
 
@@ -199,6 +206,7 @@ def roleeditor(request):
 
     return render(request, 'policyengine/v2/role_editor.html', data)
 
+@login_required(login_url='/login')
 def selectpolicy(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
@@ -222,6 +230,7 @@ def selectpolicy(request):
         'operation': operation
     })
 
+@login_required(login_url='/login')
 def selectdocument(request):
     from policyengine.models import CommunityDoc
 
@@ -238,6 +247,7 @@ def selectdocument(request):
         'operation': operation
     })
 
+@login_required(login_url='/login')
 def documenteditor(request):
     from policyengine.models import CommunityDoc
 
@@ -258,6 +268,7 @@ def documenteditor(request):
 
     return render(request, 'policyengine/v2/document_editor.html', data)
 
+@login_required(login_url='/login')
 def actions(request):
     user = get_user(request)
 
