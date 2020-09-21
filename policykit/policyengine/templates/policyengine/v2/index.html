@@ -272,7 +272,7 @@
                     {% elif value.users.count == 2 %}
                       {{value.users.0}} and {{value.users.1}}
                     {% elif value.users.count >= 3 %}
-                      {{value.users.0}}, {{value.users.1}} and {{value.users.count - 2}} more...
+                      {{value.users.0}}, {{value.users.1}} and {{value.users.count|add:"-2"}} more...
                     {% endif %}
                   </td>
                 </tr>
