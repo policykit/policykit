@@ -87,8 +87,6 @@ def v2(request):
             'fail': cp.fail
         }
 
-    logger.info(role_data)
-
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
         'user': user,
