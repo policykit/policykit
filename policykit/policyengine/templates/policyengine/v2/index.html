@@ -267,11 +267,11 @@
                 <tr>
                   <td>{{key}}</td>
                   <td>
-                    {% if value.users.count == 1 %}
+                    {% if value.users|length == 1 %}
                       {{value.users.0.username}}
-                    {% elif value.users.count == 2 %}
+                    {% elif value.users|length == 2 %}
                       {{value.users.0.username}} and {{value.users.1.username}}
-                    {% elif value.users.count >= 3 %}
+                    {% elif value.users|length >= 3 %}
                       {{value.users.0.username}}, {{value.users.1.username}} and {{value.users.count|add:"-2"}} more...
                     {% endif %}
                   </td>
