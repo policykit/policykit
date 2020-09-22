@@ -294,7 +294,7 @@
             </thead>
             <tbody>
               {% for key, value in docs.items %}
-                <tr>
+                <tr id="document_{{key}}">
                   <td>{{key}}</td>
                   <td>{{value.name}}</td>
                 </tr>
@@ -350,9 +350,29 @@
   </div>
 </div>
 
+<div id="modal_code" class="modal">
+  <div class="modal-content">
+    <div class="close">&times;</div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="doc_name">Name:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control name" id="doc_name" readonly>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="doc_text">Text:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control description" id="doc_text" readonly rows="10"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="modal" class="modal">
   <div class="modal-content">
-    <div id="close" class="close">&times;</div>
+    <div class="close">&times;</div>
 
     <div class="form-row">
       <label class="control-label col-sm-2" for="name">Name:</label>
@@ -421,13 +441,43 @@
 <script>
   document.getElementById("proposeAction").addEventListener("click", navActions);
   {% for key, value in platform_policies.items %}
-    document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal(`{{value.name}}`, `{{value.description}}`, `{{value.filter}}`, `{{value.initialize}}`, `{{value.check}}`, `{{value.notify}}`, `{{value.success}}`, `{{value.fail}}`); });
+    document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal('code', {
+      name: `{{value.name}}`,
+      description: `{{value.description}}`,
+      filter: `{{value.filter}}`,
+      initialize: `{{value.initialize}}`,
+      check: `{{value.check}}`,
+      notify: `{{value.notify}}`,
+      pass: `{{value.success}}`,
+      fail: `{{value.fail}}`
+    }); });
   {% endfor %}
   {% for key, value in constitution_policies.items %}
-    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal(`{{value.name}}`, `{{value.description}}`, `{{value.filter}}`, `{{value.initialize}}`, `{{value.check}}`, `{{value.notify}}`, `{{value.success}}`, `{{value.fail}}`); });
+    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal('code', {
+      name: `{{value.name}}`,
+      description: `{{value.description}}`,
+      filter: `{{value.filter}}`,
+      initialize: `{{value.initialize}}`,
+      check: `{{value.check}}`,
+      notify: `{{value.notify}}`,
+      pass: `{{value.success}}`,
+      fail: `{{value.fail}}`
+    }); });
   {% endfor %}
-  document.getElementById("modal").addEventListener("click", hideModal);
-  document.getElementById("close").addEventListener("click", hideModal);
+  {% for key, value in docs.items %}
+    document.getElementById("document_{{key}}").addEventListener("click", function(){ showModal('doc', {
+      name: `{{value.name}}`,
+      text: `{{value.text}}`
+    }); });
+  {% endfor %}
+  modals = document.getElementsByClassName("modal");
+  for (let i = 0; i < modals.length; i++) {
+    modals[i].addEventListener("click", hideModal);
+  }
+  closeButtons = document.getElementsByClassName("close");
+  for (let i = 0; i < closeButtons.length; i++) {
+    closeButtons[i].addEventListener("click", hideModal);
+  }
 
   const code_ids = ["filter", "initialize", "check", "notify", "pass", "fail"]
 
@@ -455,31 +505,38 @@
     window.location.href = "{{server_url}}/main/actions/"
   }
 
-  function showModal(name, description, filter, initialize, check, notify, pass, fail) {
-    document.getElementById("modal").style.display = "block";
+  function showModal(type, modalData) {
+    if (type == 'code') {
+      document.getElementById("modal").style.display = "block";
+      document.getElementById("name").value = decodeHtml(modalData.name);
+      document.getElementById("description").value = decodeHtml(modalData.description);
 
-    document.getElementById("name").value = decodeHtml(name);
-    document.getElementById("description").value = decodeHtml(description);
-
-    editors[0].setValue(filter);
-    setTimeout(function(){ editors[0].refresh(); }, 1);
-    editors[1].setValue(initialize);
-    setTimeout(function(){ editors[1].refresh(); }, 1);
-    editors[2].setValue(check);
-    setTimeout(function(){ editors[2].refresh(); }, 1);
-    editors[3].setValue(notify);
-    setTimeout(function(){ editors[3].refresh(); }, 1);
-    editors[4].setValue(pass);
-    setTimeout(function(){ editors[4].refresh(); }, 1);
-    editors[5].setValue(fail);
-    setTimeout(function(){ editors[5].refresh(); }, 1);
+      editors[0].setValue(modalData.filter);
+      setTimeout(function(){ editors[0].refresh(); }, 1);
+      editors[1].setValue(modalData.initialize);
+      setTimeout(function(){ editors[1].refresh(); }, 1);
+      editors[2].setValue(modalData.check);
+      setTimeout(function(){ editors[2].refresh(); }, 1);
+      editors[3].setValue(modalData.notify);
+      setTimeout(function(){ editors[3].refresh(); }, 1);
+      editors[4].setValue(modalData.pass);
+      setTimeout(function(){ editors[4].refresh(); }, 1);
+      editors[5].setValue(modalData.fail);
+      setTimeout(function(){ editors[5].refresh(); }, 1);
+    } else if (type == 'doc') {
+      document.getElementById("modal_code").style.display = "block";
+      document.getElementById('doc_name').value = decodeHtml(modalData.name);
+      document.getElementById('doc_text').value = decodeHtml(modalData.text);
+    }
   }
 
   function hideModal(event) {
-    if (event.target !== this) {
-      return;
+    if (event.target !== this) return;
+
+    modals = document.getElementsByClassName("modal");
+    for (let i = 0; i < modals.length; i++) {
+      modals[i].style.display = "none";
     }
-    document.getElementById("modal").style.display = "none";
   }
 </script>
 {% endblock %}
