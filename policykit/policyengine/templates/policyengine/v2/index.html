@@ -213,7 +213,7 @@
 
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
-      
+
     </div>
   </div>
 
@@ -244,6 +244,36 @@
                         {{r.name}},
                       {% endif %}
                     {% endfor %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Roles</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Users</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key, value in roles.items %}
+                <tr>
+                  <td>{{key}}</td>
+                  <td>
+                    {% if value.users|length == 1 %}
+                      {{value.users.0.username}}
+                    {% elif value.users|length == 2 %}
+                      {{value.users.0.username}} and {{value.users.1.username}}
+                    {% elif value.users|length >= 3 %}
+                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users.count|add:"-2"}} more...
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
