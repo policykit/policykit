@@ -411,7 +411,7 @@
 <script>
   document.getElementById("proposeAction").addEventListener("click", navActions);
   {% for key, value in platform_policies.items %}
-    var modalData = {
+    document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal('code', {
       name: `{{value.name}}`,
       description: `{{value.description}}`,
       filter: `{{value.filter}}`,
@@ -420,11 +420,10 @@
       notify: `{{value.notify}}`,
       pass: `{{value.success}}`,
       fail: `{{value.fail}}`
-    }
-    document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal('code', modalData); });
+    }); });
   {% endfor %}
   {% for key, value in constitution_policies.items %}
-    var modalData = {
+    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal('code', {
       name: `{{value.name}}`,
       description: `{{value.description}}`,
       filter: `{{value.filter}}`,
@@ -433,15 +432,13 @@
       notify: `{{value.notify}}`,
       pass: `{{value.success}}`,
       fail: `{{value.fail}}`
-    }
-    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal('code', modalData); });
+    }); });
   {% endfor %}
   {% for key, value in docs.items %}
-    var modalData = {
+    document.getElementById("document_{{key}}").addEventListener("click", function(){ showModal('doc', {
       name: `{{value.name}}`,
       text: `{{value.text}}`
-    }
-    document.getElementById("document_{{key}}").addEventListener("click", function(){ showModal('doc', modalData); });
+    }); });
   {% endfor %}
   modals = document.getElementsByClassName("modal");
   for (let i = 0; i < modals.length; i++) {
