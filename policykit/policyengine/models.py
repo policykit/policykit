@@ -476,48 +476,31 @@ class PolicykitDeleteRole(ConstitutionAction):
             ('can_execute_policykitdeleterole', 'Can execute policykit delete role'),
         )
 
-
-class PolicykitAddPermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
+class PolicykitEditRole(ConstitutionAction):
+    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
+    name = models.CharField('name', max_length=300)
+    description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
 
-    action_codename = 'policykitaddpermission'
+    action_codename = 'policykiteditrole'
     ready = False
 
     def shouldCreate(self):
         return self.ready
 
     def execute(self):
+        self.role.role_name = self.name
+        self.role.description = self.description
+        self.role.permissions.clear()
         for p in self.permissions.all():
             self.role.permissions.add(p)
+        self.role.save()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute_policykitaddpermission', 'Can execute policykit add permission'),
+            ('can_execute_policykiteditrole', 'Can execute policykit edit role'),
         )
-
-
-class PolicykitRemovePermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
-    permissions = models.ManyToManyField(Permission)
-
-    action_codename = 'policykitremovepermission'
-    ready = False
-
-    def shouldCreate(self):
-        return self.ready
-
-    def execute(self):
-        for p in self.permissions.all():
-            self.role.permissions.remove(p)
-        self.pass_action()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitremovepermission', 'Can execute policykit remove permission'),
-        )
-
 
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
