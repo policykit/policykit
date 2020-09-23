@@ -164,6 +164,7 @@ class GenericPolicy(models.Model):
 class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
     role_name = models.TextField(blank=True, null=True, default='')
+    description = models.TextField(blank=True, null=True, default='')
     is_base_role = models.BooleanField(default=False)
     user_group = models.TextField(blank=True, null=True, default='')
     plat_perm_set = models.TextField(blank=True, null=True, default='')
