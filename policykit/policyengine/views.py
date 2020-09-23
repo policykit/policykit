@@ -12,6 +12,7 @@ import urllib.parse
 import logging
 import json
 import parser
+import html
 
 
 logger = logging.getLogger(__name__)
@@ -518,12 +519,12 @@ def role_action_save(request):
         action = PolicykitAddRole()
     elif data['operation'] == 'Change':
         action = PolicykitEditRole()
-        logger.info(data['name'])
+        logger.info(html.unescape(data['name']))
         logger.info(CommunityRole.objects.filter(name=data['name']))
         roles = CommunityRole.objects.filter(community=user.community)
         for r in roles:
             logger.info(r.name)
-        action.role = CommunityRole.objects.filter(name=data['name'])[0]
+        action.role = CommunityRole.objects.filter(name=html.unescape(data['name']))[0]
     else:
         return HttpResponseBadRequest()
 
