@@ -519,11 +519,6 @@ def role_action_save(request):
         action = PolicykitAddRole()
     elif data['operation'] == 'Change':
         action = PolicykitEditRole()
-        logger.info(html.unescape(data['name']))
-        logger.info(CommunityRole.objects.filter(name=data['name']))
-        roles = CommunityRole.objects.filter(community=user.community)
-        for r in roles:
-            logger.info(r.name)
         action.role = CommunityRole.objects.filter(name=html.unescape(data['name']))[0]
     else:
         return HttpResponseBadRequest()
