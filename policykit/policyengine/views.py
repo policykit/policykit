@@ -12,6 +12,7 @@ import urllib.parse
 import logging
 import json
 import parser
+import html
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ def v2(request):
     role_data = {}
     for r in roles:
         role_data[r.role_name] = {
+            'description': r.description,
             'permissions': [],
             'users': []
         }
@@ -199,6 +201,7 @@ def roleeditor(request):
         role = CommunityRole.objects.filter(name=role_name)[0]
         data['role_name'] = role.role_name
         data['name'] = role_name
+        data['description'] = role.description
         currentPermissions = []
         for p in role.permissions.all():
             currentPermissions.append(p.name)
@@ -506,49 +509,28 @@ def policy_action_remove(request):
 
 @csrf_exempt
 def role_action_save(request):
-    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission
+    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitEditRole
 
     data = json.loads(request.body)
     user = get_user(request)
 
+    action = None
     if data['operation'] == 'Add':
         action = PolicykitAddRole()
-        action.community = user.community
-        action.initiator = user
-        action.name = data['role_name']
-        action.save()
-        action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
-        action.ready = True
-        action.save()
     elif data['operation'] == 'Change':
-        role = CommunityRole.objects.filter(name=data['name'])[0]
-        currentPermissions = []
-        for p in role.permissions.all():
-            currentPermissions.append(p.name)
-
-        addedPermissions = list(set(data['permissions']) - set(currentPermissions))
-        if len(addedPermissions) > 0:
-            action = PolicykitAddPermission()
-            action.community = user.community
-            action.initiator = user
-            action.role = role
-            action.save()
-            action.permissions.set(Permission.objects.filter(name__in=addedPermissions))
-            action.ready = True
-            action.save()
-
-        removedPermissions = list(set(currentPermissions) - set(data['permissions']))
-        if len(removedPermissions) > 0:
-            action = PolicykitRemovePermission()
-            action.community = user.community
-            action.initiator = user
-            action.role = role
-            action.save()
-            action.permissions.set(Permission.objects.filter(name__in=removedPermissions))
-            action.ready = True
-            action.save()
+        action = PolicykitEditRole()
+        action.role = CommunityRole.objects.filter(name=html.unescape(data['name']))[0]
     else:
         return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.name = data['role_name']
+    action.description = data['description']
+    action.save()
+    action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
+    action.ready = True
+    action.save()
 
     return HttpResponse()
 

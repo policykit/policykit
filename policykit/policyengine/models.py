@@ -55,6 +55,7 @@ class Community(PolymorphicModel):
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
+    description = models.TextField(null=True, blank=True, default='')
 
     class Meta:
         verbose_name = 'communityrole'
@@ -145,27 +146,16 @@ class LogAPICall(models.Model):
 
 class GenericPolicy(models.Model):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-
     name = models.TextField(null=True, blank=True, default = '')
-
     description = models.TextField(null=True, blank=True, default = '')
-
     filter = models.TextField(null=True, blank=True, default='')
-
     initialize = models.TextField(null=True, blank=True, default='')
-
     check = models.TextField(null=True, blank=True, default='')
-
     notify = models.TextField(null=True, blank=True, default='')
-
     success = models.TextField(null=True, blank=True, default='')
-
     fail = models.TextField(null=True, blank=True, default='')
-
     is_bundled = models.BooleanField(default=False)
-
     has_notified = models.BooleanField(default=False)
-
     is_constitution = models.BooleanField(default=True)
 
     def __str__(self):
@@ -173,13 +163,10 @@ class GenericPolicy(models.Model):
 
 class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-
     role_name = models.TextField(blank=True, null=True, default='')
-
+    description = models.TextField(blank=True, null=True, default='')
     is_base_role = models.BooleanField(default=False)
-
     user_group = models.TextField(blank=True, null=True, default='')
-
     plat_perm_set = models.TextField(blank=True, null=True, default='')
 
     def __str__(self):
@@ -288,7 +275,6 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
 
     action_type = "ConstitutionAction"
-
     action_codename = ''
 
     class Meta:
@@ -444,6 +430,7 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
 
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
+    description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddrole'
@@ -456,7 +443,11 @@ class PolicykitAddRole(ConstitutionAction):
         return self.ready
 
     def execute(self):
-        role, _ = CommunityRole.objects.get_or_create(role_name=self.name, name=self.community.platform + ": " + self.community.community_name + ": " + self.name)
+        role, _ = CommunityRole.objects.get_or_create(
+            role_name=self.name,
+            name=self.community.platform + ": " + self.community.community_name + ": " + self.name,
+            description=self.description
+        )
         for p in self.permissions.all():
             role.permissions.add(p)
         role.community = self.community
@@ -486,48 +477,31 @@ class PolicykitDeleteRole(ConstitutionAction):
             ('can_execute_policykitdeleterole', 'Can execute policykit delete role'),
         )
 
-
-class PolicykitAddPermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
+class PolicykitEditRole(ConstitutionAction):
+    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
+    name = models.CharField('name', max_length=300)
+    description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
 
-    action_codename = 'policykitaddpermission'
+    action_codename = 'policykiteditrole'
     ready = False
 
     def shouldCreate(self):
         return self.ready
 
     def execute(self):
+        self.role.role_name = self.name
+        self.role.description = self.description
+        self.role.permissions.clear()
         for p in self.permissions.all():
             self.role.permissions.add(p)
+        self.role.save()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute_policykitaddpermission', 'Can execute policykit add permission'),
+            ('can_execute_policykiteditrole', 'Can execute policykit edit role'),
         )
-
-
-class PolicykitRemovePermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
-    permissions = models.ManyToManyField(Permission)
-
-    action_codename = 'policykitremovepermission'
-    ready = False
-
-    def shouldCreate(self):
-        return self.ready
-
-    def execute(self):
-        for p in self.permissions.all():
-            self.role.permissions.remove(p)
-        self.pass_action()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitremovepermission', 'Can execute policykit remove permission'),
-        )
-
 
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)

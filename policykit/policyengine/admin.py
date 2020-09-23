@@ -159,7 +159,7 @@ admin_site.register(PlatformPolicyBundle, PlatformPolicyBundleAdmin)
 
 class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
     fields= ('name', 'description', 'bundled_policies')
-    
+
 
     def save_model(self, request, obj, form, change):
         obj.is_bundle = True
@@ -211,29 +211,6 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
         obj.save()
 
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
-
-
-class PolicykitAddPermissionAdmin(admin.ModelAdmin):
-    fields= ('role','permissions','is_bundled')
-
-    def save_model(self, request, obj, form, change):
-        obj.initiator = request.user
-        obj.community = request.user.community
-        obj.save()
-
-admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
-
-
-class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
-    fields= ('role','permissions','is_bundled')
-
-    def save_model(self, request, obj, form, change):
-        obj.initiator = request.user
-        obj.community = request.user.community
-        obj.save()
-
-admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
-
 
 
 class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
