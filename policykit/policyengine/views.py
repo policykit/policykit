@@ -522,7 +522,7 @@ def role_action_save(request):
         logger.info(CommunityRole.objects.filter(name=data['name']))
         roles = CommunityRole.objects.filter(community=user.community)
         for r in roles:
-            logger.info(r)
+            logger.info(r.name)
         action.role = CommunityRole.objects.filter(name=data['name'])[0]
     else:
         return HttpResponseBadRequest()
