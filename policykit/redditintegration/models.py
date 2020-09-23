@@ -262,11 +262,11 @@ class RedditStarterKit(StarterKit):
                 p.fail = policy.fail
                 p.description = policy.description
                 p.name = policy.name
-                
+
                 proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
                 p.proposal = proposal
                 p.save()
-            
+
             else:
                 p = PlatformPolicy()
                 p.community = community
@@ -278,11 +278,11 @@ class RedditStarterKit(StarterKit):
                 p.fail = policy.fail
                 p.description = policy.description
                 p.name = policy.name
-                
+
                 proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
                 p.proposal = proposal
                 p.save()
-    
+
         for role in self.genericrole_set.all():
             c = None
             if role.is_base_role:
@@ -293,14 +293,15 @@ class RedditStarterKit(StarterKit):
                 c.community = community
                 c.role_name = role.role_name
                 c.name = "Reddit: " + community.community_name + ": " + role.role_name
+                c.description = role.description
                 c.save()
-                
+
             for perm in role.permissions.all():
                 c.permissions.add(perm)
-            
+
             jsonDec = json.decoder.JSONDecoder()
             perm_set = jsonDec.decode(role.plat_perm_set)
-            
+
             if 'view' in perm_set:
                 for perm in REDDIT_VIEW_PERMS:
                     p1 = Permission.objects.get(name=perm)
@@ -313,7 +314,7 @@ class RedditStarterKit(StarterKit):
                 for perm in REDDIT_EXECUTE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            
+
             if role.user_group == "admins":
                 group = CommunityUser.objects.filter(community = community, is_community_admin = True)
                 for user in group:
