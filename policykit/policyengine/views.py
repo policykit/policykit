@@ -42,6 +42,7 @@ def v2(request):
     role_data = {}
     for r in roles:
         role_data[r.role_name] = {
+            'description': r.description,
             'permissions': [],
             'users': []
         }
@@ -516,6 +517,7 @@ def role_action_save(request):
         action.community = user.community
         action.initiator = user
         action.name = data['role_name']
+        action.description = data['description']
         action.save()
         action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
         action.ready = True
