@@ -1,9 +1,13 @@
 from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
+from actstream import action 
+from actstream.models import model_stream
+from actstream.models import target_stream
 from policyengine.filter import *
 from policykit.settings import SERVER_URL
 import urllib.request
@@ -11,10 +15,7 @@ import urllib.parse
 import logging
 import json
 import parser
-from actstream import action 
-from actstream.models import model_stream
-from actstream.models import target_stream
-
+import html
 
 
 logger = logging.getLogger(__name__)
@@ -22,13 +23,15 @@ logger = logging.getLogger(__name__)
 def homepage(request):
     return render(request, 'policyengine/home.html', {})
 
+@login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import Community, CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
+    from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
     
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
     roles = CommunityRole.objects.filter(community=user.community)
+    docs = CommunityDoc.objects.filter(community=user.community)
     platform_policies = PlatformPolicy.objects.filter(community=user.community)
     constitution_policies = ConstitutionPolicy.objects.filter(community=user.community)
 
@@ -43,6 +46,7 @@ def v2(request):
     role_data = {}
     for r in roles:
         role_data[r.role_name] = {
+            'description': r.description,
             'permissions': [],
             'users': []
         }
@@ -52,6 +56,13 @@ def v2(request):
             cu = u.communityuser
             role_data[r.role_name]['users'].append({ 'username': cu.readable_name })
             user_data[cu.username]['roles'].append({ 'name': r.role_name })
+
+    doc_data = {}
+    for d in docs:
+        doc_data[d.id] = {
+            'name': d.name,
+            'text': d.text
+        }
 
     platform_policy_data = {}
     for pp in platform_policies:
@@ -89,6 +100,7 @@ def v2(request):
         'user': user,
         'users': user_data,
         'roles': role_data,
+        'docs': doc_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
         'activity_stream': activity_stream
@@ -102,6 +114,11 @@ def logout(request):
     logout(request)
     return redirect('/login')
 
+@login_required(login_url='/login')
+def documentation(request):
+    return render(request, 'policyengine/v2/documentation.html', {})
+
+@login_required(login_url='/login')
 def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
@@ -136,6 +153,7 @@ def editor(request):
         'user': get_user(request)
     })
 
+@login_required(login_url='/login')
 def selectrole(request):
     from policyengine.models import CommunityRole
 
@@ -151,6 +169,24 @@ def selectrole(request):
         'operation': operation
     })
 
+@login_required(login_url='/login')
+def roleusers(request):
+    from policyengine.models import CommunityRole, CommunityUser
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+
+    roles = CommunityRole.objects.filter(community=user.community)
+    users = CommunityUser.objects.filter(community=user.community)
+
+    return render(request, 'policyengine/v2/role_users.html', {
+        'server_url': SERVER_URL,
+        'roles': roles,
+        'users': users,
+        'operation': operation
+    })
+
+@login_required(login_url='/login')
 def roleeditor(request):
     from policyengine.models import CommunityRole
 
@@ -175,6 +211,7 @@ def roleeditor(request):
         role = CommunityRole.objects.filter(name=role_name)[0]
         data['role_name'] = role.role_name
         data['name'] = role_name
+        data['description'] = role.description
         currentPermissions = []
         for p in role.permissions.all():
             currentPermissions.append(p.name)
@@ -182,6 +219,7 @@ def roleeditor(request):
 
     return render(request, 'policyengine/v2/role_editor.html', data)
 
+@login_required(login_url='/login')
 def selectpolicy(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
@@ -205,6 +243,45 @@ def selectpolicy(request):
         'operation': operation
     })
 
+@login_required(login_url='/login')
+def selectdocument(request):
+    from policyengine.models import CommunityDoc
+
+    user = get_user(request)
+    documents = None
+    operation = request.GET.get('operation')
+
+    documents = CommunityDoc.objects.filter(community=user.community)
+
+    return render(request, 'policyengine/v2/document_select.html', {
+        'server_url': SERVER_URL,
+        'user': get_user(request),
+        'documents': documents,
+        'operation': operation
+    })
+
+@login_required(login_url='/login')
+def documenteditor(request):
+    from policyengine.models import CommunityDoc
+
+    user = get_user(request)
+    operation = request.GET.get('operation')
+    doc_id = request.GET.get('doc')
+
+    data = {
+        'server_url': SERVER_URL,
+        'user': user,
+        'operation': operation
+    }
+
+    if doc_id:
+        doc = CommunityDoc.objects.filter(id=doc_id)[0]
+        data['name'] = doc.name
+        data['text'] = doc.text
+
+    return render(request, 'policyengine/v2/document_editor.html', data)
+
+@login_required(login_url='/login')
 def actions(request):
     user = get_user(request)
 
@@ -223,11 +300,8 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
-    logger.info('built code')
-    logger.info(code)
 
     exec(code, globals, locals)
-    logger.info('ran exec')
 
 def filter_policy(policy, action):
     _locals = locals()
@@ -297,7 +371,6 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action)"
 
-    logger.info('about to run exec code')
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
@@ -446,48 +519,106 @@ def policy_action_remove(request):
 
 @csrf_exempt
 def role_action_save(request):
-    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitAddPermission, PolicykitRemovePermission
+    from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitEditRole
 
     data = json.loads(request.body)
     user = get_user(request)
 
+    action = None
     if data['operation'] == 'Add':
         action = PolicykitAddRole()
-        action.community = user.community
-        action.initiator = user
-        action.name = data['role_name']
-        action.save()
-        action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
-        action.ready = True
-        action.save()
     elif data['operation'] == 'Change':
-        role = CommunityRole.objects.filter(name=data['name'])[0]
-        currentPermissions = []
-        for p in role.permissions.all():
-            currentPermissions.append(p.name)
-
-        addedPermissions = list(set(data['permissions']) - set(currentPermissions))
-        if len(addedPermissions) > 0:
-            action = PolicykitAddPermission()
-            action.community = user.community
-            action.initiator = user
-            action.role = role
-            action.save()
-            action.permissions.set(Permission.objects.filter(name__in=addedPermissions))
-            action.ready = True
-            action.save()
-
-        removedPermissions = list(set(currentPermissions) - set(data['permissions']))
-        if len(removedPermissions) > 0:
-            action = PolicykitRemovePermission()
-            action.community = user.community
-            action.initiator = user
-            action.role = role
-            action.save()
-            action.permissions.set(Permission.objects.filter(name__in=removedPermissions))
-            action.ready = True
-            action.save()
+        action = PolicykitEditRole()
+        action.role = CommunityRole.objects.filter(name=html.unescape(data['name']))[0]
     else:
         return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.name = data['role_name']
+    action.description = data['description']
+    action.save()
+    action.permissions.set(Permission.objects.filter(name__in=data['permissions']))
+    action.ready = True
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def role_action_users(request):
+    from policyengine.models import CommunityRole, CommunityUser, PolicykitAddUserRole, PolicykitRemoveUserRole
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['operation'] == 'Add':
+        action = PolicykitAddUserRole()
+    elif data['operation'] == 'Remove':
+        action = PolicykitRemoveUserRole()
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    action.save()
+    action.users.set(CommunityUser.objects.filter(username=data['user']))
+    action.ready = True
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def role_action_remove(request):
+    from policyengine.models import CommunityRole, PolicykitDeleteRole
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitDeleteRole()
+    action.community = user.community
+    action.initiator = user
+    action.role = CommunityRole.objects.get(name=data['role'])
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def document_action_save(request):
+    from policyengine.models import CommunityDoc, PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['operation'] == 'Add':
+        action = PolicykitAddCommunityDoc()
+    elif data['operation'] == 'Change':
+        action = PolicykitChangeCommunityDoc()
+        action.doc = CommunityDoc.objects.filter(id=data['doc'])[0]
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.name = data['name']
+    action.text = data['text']
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def document_action_remove(request):
+    from policyengine.models import CommunityDoc, PolicykitDeleteCommunityDoc
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitDeleteCommunityDoc()
+    action.community = user.community
+    action.initiator = user
+    action.doc = CommunityDoc.objects.get(id=data['doc'])
+    action.save()
 
     return HttpResponse()

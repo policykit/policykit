@@ -35,7 +35,6 @@ def on_transaction_commit(func):
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
-
     platform = models.TextField(null=True, blank=True, default = '')
 
     def __str__(self):
@@ -44,27 +43,21 @@ class StarterKit(PolymorphicModel):
 
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
-
     platform = None
-
-    base_role = models.OneToOneField('CommunityRole',
-                                     models.CASCADE,
-                                     related_name='base_community')
-    community_guidelines = models.OneToOneField('CommunityDoc',
-                                     models.CASCADE,
-                                     related_name='base_doc_community',
-                                     null=True)
+    base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
     def notify_action(self, action, policy, users):
         pass
 
+    def get_users(self, users):
+      return users
 
 
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
-
+    description = models.TextField(null=True, blank=True, default='')
 
     class Meta:
         verbose_name = 'communityrole'
@@ -94,12 +87,15 @@ class CommunityUser(User, PolymorphicModel):
 
 
 class CommunityDoc(models.Model):
-    text = models.TextField()
-    community = models.ForeignKey(Community, models.CASCADE)
+    name = models.TextField(null=True, blank=True, default = '')
+    text = models.TextField(null=True, blank=True, default = '')
+    community = models.ForeignKey(Community, models.CASCADE, null=True)
 
-    def change_text(self, text):
-        self.text = text
-        self.save()
+    def __str__(self):
+        return str(self.name)
+
+    def save(self, *args, **kwargs):
+        super(CommunityDoc, self).save(*args, **kwargs)
 
 
 class DataStore(models.Model):
@@ -153,27 +149,16 @@ class LogAPICall(models.Model):
 
 class GenericPolicy(models.Model):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-
     name = models.TextField(null=True, blank=True, default = '')
-
     description = models.TextField(null=True, blank=True, default = '')
-
     filter = models.TextField(null=True, blank=True, default='')
-
     initialize = models.TextField(null=True, blank=True, default='')
-
     check = models.TextField(null=True, blank=True, default='')
-
     notify = models.TextField(null=True, blank=True, default='')
-
     success = models.TextField(null=True, blank=True, default='')
-
     fail = models.TextField(null=True, blank=True, default='')
-
     is_bundled = models.BooleanField(default=False)
-
     has_notified = models.BooleanField(default=False)
-
     is_constitution = models.BooleanField(default=True)
 
     def __str__(self):
@@ -181,13 +166,10 @@ class GenericPolicy(models.Model):
 
 class GenericRole(Group):
     starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-
     role_name = models.TextField(blank=True, null=True, default='')
-
+    description = models.TextField(blank=True, null=True, default='')
     is_base_role = models.BooleanField(default=False)
-
     user_group = models.TextField(blank=True, null=True, default='')
-
     plat_perm_set = models.TextField(blank=True, null=True, default='')
 
     def __str__(self):
@@ -233,6 +215,38 @@ class Proposal(models.Model):
             votes = NumberVote.objects.filter(number_value=value, proposal=self)
         return votes
 
+    def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
+        totalDict = {}
+        if (vote_type == "boolean" or vote_type == "Boolean"):
+            totaldict["True"] = len(get_yes_votes)
+            totaldict["False"] = len(get_no_votes)
+        elif vote_type == "Number" or vote_type == "number":
+            for vote_num in range(1, vote_number):
+                totalDict[vote_num] = get_number_votes(vote_num)
+
+        return totalDict
+
+    def get_raw_number_votes(self, value = 0, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self)]
+        return users
+
+    def get_raw_boolean_votes(self, value, users = None):
+        votingDict = {}
+        if users:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value= value, proposal=self, user__in=users)]
+        else:
+            for i in users:
+                votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
+        return users
+
+
     def save(self, *args, **kwargs):
         if not self.pk:
             ds = DataStore.objects.create()
@@ -264,7 +278,6 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
 
     action_type = "ConstitutionAction"
-
     action_codename = ''
 
     class Meta:
@@ -283,10 +296,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         if self.shouldCreate():
             #runs only if they have propose permission
             if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
-                if not self.proposal:
-                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
-                else:
+                if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
+                else:
+                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
@@ -366,14 +379,38 @@ def after_constitutionaction_bundle_save(sender, instance, **kwargs):
                     else:
                       notify_policy(policy, action)
 
+class PolicykitAddCommunityDoc(ConstitutionAction):
+    name = models.TextField()
+    text = models.TextField()
+
+    action_codename = 'policykitaddcommunitydoc'
+
+    def __str__(self):
+        return "Add Document - name: " + self.name
+
+    def execute(self):
+        doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
+        doc.community = self.community
+        doc.save()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitaddcommunitydoc', 'Can execute policykit add community doc'),
+        )
+
 class PolicykitChangeCommunityDoc(ConstitutionAction):
-    community_doc = models.ForeignKey(CommunityDoc, models.CASCADE)
-    change_text = models.TextField()
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+    name = models.TextField()
+    text = models.TextField()
 
     action_codename = 'policykitchangecommunitydoc'
 
     def execute(self):
-        self.community_doc.change_text(self.change_text)
+        self.doc.name = self.name
+        self.doc.text = self.text
+        self.doc.save()
+        self.pass_action()
 
     class Meta:
         permissions = (
@@ -384,9 +421,23 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
     
     post_save.connect(my_handler, sender=CommunityDoc)
 
+class PolicykitDeleteCommunityDoc(ConstitutionAction):
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+
+    action_codename = 'policykitdeletecommunitydoc'
+
+    def execute(self):
+        self.doc.delete()
+        self.pass_action()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),
+        )
 
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
+    description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykitaddrole'
@@ -399,7 +450,11 @@ class PolicykitAddRole(ConstitutionAction):
         return self.ready
 
     def execute(self):
-        role, _ = CommunityRole.objects.get_or_create(role_name=self.name, name=self.community.platform + ": " + self.community.community_name + ": " + self.name)
+        role, _ = CommunityRole.objects.get_or_create(
+            role_name=self.name,
+            name=self.community.platform + ": " + self.community.community_name + ": " + self.name,
+            description=self.description
+        )
         for p in self.permissions.all():
             role.permissions.add(p)
         role.community = self.community
@@ -424,7 +479,10 @@ class PolicykitDeleteRole(ConstitutionAction):
     action_codename = 'policykitdeleterole'
 
     def execute(self):
-        self.role.delete()
+        try:
+            self.role.delete()
+        except AssertionError: # Triggers if object has already been deleted
+            pass
         self.pass_action()
 
     class Meta:
@@ -438,24 +496,30 @@ class PolicykitDeleteRole(ConstitutionAction):
     post_save.connect(my_handler, sender=CommunityUser)
 
 
-class PolicykitAddPermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
+class PolicykitEditRole(ConstitutionAction):
+    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
+    name = models.CharField('name', max_length=300)
+    description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
 
-    action_codename = 'policykitaddpermission'
+    action_codename = 'policykiteditrole'
     ready = False
 
     def shouldCreate(self):
         return self.ready
 
     def execute(self):
+        self.role.role_name = self.name
+        self.role.description = self.description
+        self.role.permissions.clear()
         for p in self.permissions.all():
             self.role.permissions.add(p)
+        self.role.save()
         self.pass_action()
 
     class Meta:
         permissions = (
-            ('can_execute_policykitaddpermission', 'Can execute policykit add permission'),
+            ('can_execute_policykiteditrole', 'Can execute policykit edit role'),
         )
 
     def my_handler(sender, instance, created, **kwargs):
@@ -463,12 +527,11 @@ class PolicykitAddPermission(ConstitutionAction):
     
     post_save.connect(my_handler, sender=CommunityUser)
 
-
-class PolicykitRemovePermission(ConstitutionAction):
+class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
-    permissions = models.ManyToManyField(Permission)
+    users = models.ManyToManyField(CommunityUser)
 
-    action_codename = 'policykitremovepermission'
+    action_codename = 'policykitadduserrole'
     ready = False
 
     def shouldCreate(self):
@@ -517,6 +580,10 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
+    ready = False
+
+    def shouldCreate(self):
+        return self.ready
 
     def execute(self):
         for u in self.users.all():

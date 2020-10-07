@@ -4,6 +4,9 @@
 {% block styles %}
 <link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
+<link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.js" %}">
+<link rel="stylesheet" href="{% static "codemirror/addon/hint/css-hint.js" %}">
+
 <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
 
 <style>
@@ -41,6 +44,7 @@
     height: auto;
     width: 60%;
     border: 1px solid #000000;
+    extraKeys: ("Ctrl-Space": "autocomplete");
   }
 
   .form-row {
@@ -144,24 +148,38 @@
       <div class="col-sm-11">
         <button type="button" class="btn btn-success" id="propose">Propose Policy</button>
         <button type="button" class="btn btn-warning" id="addtobundle">Add to Policy Bundle</button>
+        <button type = "button" class = "btn btn-warning" id="documentation">See python documentation</button>
       </div>
     </div>
   </form>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src={% static "codemirror/lib/codemirror.js" %}></script>
+<script src={% static "codemirror/lib/codemirror.css" %}></script>
 <script src={% static "codemirror/mode/python/python.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.cs" %}></script>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
+
 
 <script>
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
+  document.getElementById("documentation").addEventListener("click", documentation);
+  
+  function documentation() {
+      window.open(`{{server_url}}/main/documentation`, '_blank');
+  }
 
-  function propose() {
+function propose() {
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');
     const operation = urlParams.get('operation');
@@ -213,6 +231,7 @@
     document.getElementById('description').value = `{{description}}`
   {% endif %}
 
+
   const DEFAULT_VALUES = {
     "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
     "initialize": "# Replace this code with your custom Initialize code\npass\n\n",
@@ -232,8 +251,12 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
+        gutters: ['warnings'],
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        matchBrackets: true,
         gutters: ['warnings']
     }));
+
     {% if i == 0 and filter %}
       editors[i].setValue(`{{filter}}`)
     {% elif i == 1 and initialize %}
@@ -249,16 +272,18 @@
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
+   
+  
 
+    
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-        editor.showHint({
-            hint: CodeMirror.pythonHint
-        });
+        editor.showHint({ hint: CodeMirror.pythonHint });
     });
+
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
@@ -291,7 +316,7 @@
           }
         }
       })
-    })
+                  })
   }
 </script>
 {% endblock %}

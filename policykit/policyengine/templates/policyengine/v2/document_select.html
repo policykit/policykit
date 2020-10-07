@@ -38,14 +38,14 @@
 
 {% block content %}
 <div class="body">
-  <h3>Which Role would you like to {{operation}}?</h3>
+  <h3>Which Document would you like to {{operation}}?</h3>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="role">Role:</label>
+    <label class="control-label col-sm-1" for="document">Document:</label>
     <div class="col-sm-11">
-      <select class="dropdown" name="role" id="role">
-        {% for role in roles %}
-          <option value="{{role.name}}">{{role.role_name}}</option>
+      <select class="dropdown" name="document" id="document">
+        {% for document in documents %}
+          <option value="{{document.id}}">{{document.name}}</option>
         {% endfor %}
       </select>
     </div>
@@ -63,19 +63,19 @@
     const urlParams = new URLSearchParams(window.location.search);
     const operation = urlParams.get('operation');
 
-    const select = document.getElementById("role");
-    const role = select.options[select.selectedIndex].value;
+    const select = document.getElementById("document");
+    const doc = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/roleeditor?operation=${operation}&role=${role}`
+      window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc=${doc}`
     } else {
-      fetch('../../../main/policyengine/role_action_remove', {
+      fetch('../../../main/policyengine/document_action_remove', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          'role': role
+          'doc': doc
         })
       }).then(response => {
         window.location.href = "{{server_url}}/main/"
