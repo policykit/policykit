@@ -218,32 +218,14 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>
     </div>
-    <!-- template tags for html (images can be replaced with better ones corresponding to the propose action task flow-->
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
-      <p>{{activity_stream}}</p>
       <div class="ui feed">
-        {% for event in activity_stream %}
+        {% activity_stream 'mystream' request.user %}
+        {% for action in stream %}
           <p>test</p>
-          <!--  {# Verb #} -->
-          <span class="glyphicon
-              {% if event.verb == 'added' %}
-                glyphicon-plus
-              {% elif event.verb == 'changed' %}
-                glyphicon-asterisk
-              {% elif event.verb == 'removed' %}
-                glyphicon-pencil
-
-              {% endif %}
-              "></span>
-          {% if event.action_object %}
-             {% display_action event.action_object %}
-          {% else %}
-             {% display_action event.action_object %}
-          {% endif %}
+          {% display_action action %}
         {% endfor %}
-        <!--  {#  Time #}
-          {{ event.timestamp|timesince }}  -->
       </div>
     </div>
   </div>
