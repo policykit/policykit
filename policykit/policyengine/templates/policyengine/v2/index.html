@@ -221,9 +221,6 @@
     <!-- template tags for html (images can be replaced with better ones corresponding to the propose action task flow-->
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
-<<<<<<< HEAD
-
-=======
       <div class="ui feed">
           {% for event in activity_stream %}
          <!--  {# Verb #} -->
@@ -234,7 +231,7 @@
                 glyphicon-asterisk
               {% elif event.verb == 'removed' %}
                 glyphicon-pencil
-              
+
               {% endif %}
               "></span>
           {% if event.action_object %}
@@ -246,7 +243,6 @@
         <!--  {#  Time #}
           {{ event.timestamp|timesince }}  -->
       </div>
->>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
     </div>
   </div>
 
