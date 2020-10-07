@@ -465,6 +465,9 @@ class PolicykitAddRole(ConstitutionAction):
         )
 
     def my_handler(self, sender, instance, created, **kwargs):
+        logger.info(self)
+        logger.info(instance)
+        logger.info(sender)
         action.send(self, verb='was added')
 
     post_save.connect(my_handler, sender=CommunityUser)
