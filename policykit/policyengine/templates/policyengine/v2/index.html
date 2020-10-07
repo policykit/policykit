@@ -120,6 +120,19 @@
     padding-left: 2vw;
   }
 
+  .actionPanelContent {
+    width: 92%;
+    margin-left: 4%;
+    height: 22vh;
+    overflow: auto;
+  }
+
+  .actionPanelContent thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
+  }
+
   .modal {
     display: none;
     position: fixed;
@@ -212,15 +225,24 @@
     </div>
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
-      <table class="table table-hover">
-        <tbody>
-          {% for action in action_log %}
+      <div class="actionPanelContent">
+        <table class="table table-hover">
+          <thead>
             <tr>
-              <td>{{action.actor}}</td>
+              <th scope="col">Action</th>
+              <th scope="col">Date</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for action in action_log %}
+              <tr>
+                <td>{{action.actor}}</td>
+                <td>{{action.time_elapsed}} ago</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
