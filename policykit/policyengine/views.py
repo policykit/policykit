@@ -6,8 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpRe
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream import action
-from actstream.models import model_stream
-from actstream.models import target_stream
+from actstream.models import model_stream, target_stream, Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL
 import urllib.request
@@ -26,6 +25,8 @@ def homepage(request):
 @login_required(login_url='/login')
 def v2(request):
     from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
+
+    logger.info(Action.objects.all())
 
     user = get_user(request)
 
