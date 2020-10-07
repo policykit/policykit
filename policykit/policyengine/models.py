@@ -375,7 +375,7 @@ class PolicykitAddCommunityDoc(ConstitutionAction):
     action_codename = 'policykitaddcommunitydoc'
 
     def __str__(self):
-        return "Add Document - name: " + self.name
+        return "Add Document: " + self.name
 
     def execute(self):
         doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
@@ -395,6 +395,9 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 
     action_codename = 'policykitchangecommunitydoc'
 
+    def __str__(self):
+        return "Edit Document: " + self.name
+
     def execute(self):
         self.doc.name = self.name
         self.doc.text = self.text
@@ -410,6 +413,9 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
 
     action_codename = 'policykitdeletecommunitydoc'
+
+    def __str__(self):
+        return "Delete Document: " + self.doc.name
 
     def execute(self):
         self.doc.delete()
@@ -429,7 +435,7 @@ class PolicykitAddRole(ConstitutionAction):
     ready = False
 
     def __str__(self):
-        return "Add Role - name: " + self.name
+        return "Add Role: " + self.name
 
     def shouldCreate(self):
         return self.ready
@@ -456,6 +462,9 @@ class PolicykitDeleteRole(ConstitutionAction):
 
     action_codename = 'policykitdeleterole'
 
+    def __str__(self):
+        return "Delete Role: " + self.role.role_name
+
     def execute(self):
         try:
             self.role.delete()
@@ -476,6 +485,9 @@ class PolicykitEditRole(ConstitutionAction):
 
     action_codename = 'policykiteditrole'
     ready = False
+
+    def __str__(self):
+        return "Edit Role: " + self.name
 
     def shouldCreate(self):
         return self.ready
@@ -501,6 +513,9 @@ class PolicykitAddUserRole(ConstitutionAction):
     action_codename = 'policykitadduserrole'
     ready = False
 
+    def __str__(self):
+        return "Add User: " + self.users.all()[0] + " to Role: " + self.role.role_name
+
     def shouldCreate(self):
         return self.ready
 
@@ -520,6 +535,9 @@ class PolicykitRemoveUserRole(ConstitutionAction):
 
     action_codename = 'policykitremoveuserrole'
     ready = False
+
+    def __str__(self):
+        return "Remove User: " + self.users.all()[0] + " from Role: " + self.role.role_name
 
     def shouldCreate(self):
         return self.ready
@@ -566,6 +584,9 @@ class EditorModel(ConstitutionAction):
 class PolicykitAddPlatformPolicy(EditorModel):
     action_codename = 'policykitaddplatformpolicy'
 
+    def __str__(self):
+        return "Add Platform Policy: " + self.name
+
     def execute(self):
         policy = PlatformPolicy()
         policy.name = self.name
@@ -588,6 +609,9 @@ class PolicykitAddPlatformPolicy(EditorModel):
 
 class PolicykitAddConstitutionPolicy(EditorModel):
     action_codename = 'policykitaddconstitutionpolicy'
+
+    def __str__(self):
+        return "Add Constitution Policy: " + self.name
 
     def execute(self):
         policy = ConstitutionPolicy()
@@ -614,6 +638,9 @@ class PolicykitChangePlatformPolicy(EditorModel):
 
     action_codename = 'policykitchangeplatformpolicy'
 
+    def __str__(self):
+        return "Edit Platform Policy: " + self.name
+
     def execute(self):
         self.platform_policy.name = self.name
         self.platform_policy.description = self.description
@@ -635,6 +662,9 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
 
     action_codename = 'policykitchangeconstitutionpolicy'
+
+    def __str__(self):
+        return "Edit Constitution Policy: " + self.name
 
     def execute(self):
         self.constitution_policy.name = self.name
@@ -660,6 +690,9 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
 
     action_codename = 'policykitremoveplatformpolicy'
 
+    def __str__(self):
+        return "Remove Platform Policy: " + self.platform_policy.name
+
     def execute(self):
         self.platform_policy.delete()
         self.pass_action()
@@ -675,6 +708,9 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
                                          null=True)
 
     action_codename = 'policykitremoveconstitutionpolicy'
+
+    def __str__(self):
+        return "Remove Constitution Policy: " + self.constitution_policy.name
 
     def execute(self):
         self.constitution_policy.delete()
