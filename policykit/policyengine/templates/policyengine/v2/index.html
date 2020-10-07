@@ -212,11 +212,15 @@
     </div>
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
-      <div>
-        {% for action in action_log %}
-          <p>{{action}}</p>
-        {% endfor %}
-      </div>
+      <table class="table table-hover">
+        <tbody>
+          {% for action in action_log_data %}
+            <tr>
+              <td>{{action.actor}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 

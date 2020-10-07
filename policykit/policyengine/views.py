@@ -91,6 +91,15 @@ def v2(request):
             'fail': cp.fail
         }
 
+    action_log_data = []
+    for action in Action.objects.all():
+        action_data = {
+            'actor': action.actor,
+            'verb': action.verb,
+            'time_elapsed': action.timesince
+        }
+        action_log_data.append(action_data)
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
         'user': user,
@@ -99,7 +108,7 @@ def v2(request):
         'docs': doc_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
-        'action_log': Action.objects.all()
+        'action_log': action_log_data
     })
 
 def logout(request):
