@@ -222,8 +222,9 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
       <div class="ui feed">
-          {% for event in activity_stream %}
-         <!--  {# Verb #} -->
+        {% for event in activity_stream %}
+          <p>test</p>
+          <!--  {# Verb #} -->
           <span class="glyphicon
               {% if event.verb == 'added' %}
                 glyphicon-plus
@@ -239,7 +240,7 @@
           {% else %}
              {% display_action event.action_object %}
           {% endif %}
-          {% endfor %}
+        {% endfor %}
         <!--  {#  Time #}
           {{ event.timestamp|timesince }}  -->
       </div>
