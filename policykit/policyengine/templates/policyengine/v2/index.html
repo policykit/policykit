@@ -221,9 +221,7 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
       <div>
-        {% activity_stream 'mystream' request.user %}
-        {% for action in stream %}
-          <p>test</p>
+        {% for action in action_log %}
           {% display_action action %}
         {% endfor %}
       </div>

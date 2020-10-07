@@ -26,9 +26,6 @@ def homepage(request):
 def v2(request):
     from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
-    for i in Action.objects.all():
-        logger.info(i)
-
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
@@ -94,9 +91,6 @@ def v2(request):
             'fail': cp.fail
         }
 
-    activity_stream = model_stream(user)
- #this is to create the stream (in this case a model stream to show all actions from a model
-
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
         'user': user,
@@ -105,11 +99,8 @@ def v2(request):
         'docs': doc_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
-        'activity_stream': activity_stream
-
+        'action_log': Action.objects.all()
     })
-
-
 
 def logout(request):
     from django.contrib.auth import logout
