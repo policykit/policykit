@@ -1,9 +1,17 @@
 {% extends "policyengine/v2/dashboard_base.html" %}
 {% load static %}
+{% load activity_tags %}
+
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/theme/eclipse.min.css" />
+<!-- <link rel="stylesheet" type="text/css" href="semantic/dist/semantic.min.css">
+    <script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+    <script src="semantic/dist/semantic.min.js"></script> -->
 
 <style>
   .body {
@@ -210,10 +218,35 @@
     <div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>
     </div>
-
+    <!-- template tags for html (images can be replaced with better ones corresponding to the propose action task flow-->
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
+<<<<<<< HEAD
 
+=======
+      <div class="ui feed">
+          {% for event in activity_stream %}
+         <!--  {# Verb #} -->
+          <span class="glyphicon
+              {% if event.verb == 'added' %}
+                glyphicon-plus
+              {% elif event.verb == 'changed' %}
+                glyphicon-asterisk
+              {% elif event.verb == 'removed' %}
+                glyphicon-pencil
+              
+              {% endif %}
+              "></span>
+          {% if event.action_object %}
+             {% display_action event.action_object %}
+          {% else %}
+             {% display_action event.action_object %}
+          {% endif %}
+          {% endfor %}
+        <!--  {#  Time #}
+          {{ event.timestamp|timesince }}  -->
+      </div>
+>>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
     </div>
   </div>
 

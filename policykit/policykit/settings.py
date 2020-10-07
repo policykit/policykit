@@ -48,14 +48,27 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'django_celery_beat',
     'django_celery_results',
     'policyengine',
     'slackintegration',
     'redditintegration',
-    'discordintegration'
+    'discordintegration',
+    'actstream'
+    
 ]
+
+SITE_ID = 1
+
+ACTSTREAM_SETTINGS = {
+    'MANAGER': 'policyengine.managers.myActionManager',
+    'FETCH_RELATIONS': True,
+    'USE_PREFETCH': True,
+    'USE_JSONFIELD': False,
+    'GFK_FETCH_DEPTH': 1,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

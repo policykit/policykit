@@ -12,7 +12,14 @@ import urllib.parse
 import logging
 import json
 import parser
+<<<<<<< HEAD
 import html
+=======
+from actstream import action 
+from actstream.models import model_stream
+from actstream.models import target_stream
+
+>>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
 
 
 logger = logging.getLogger(__name__)
@@ -22,8 +29,13 @@ def homepage(request):
 
 @login_required(login_url='/login')
 def v2(request):
+<<<<<<< HEAD
     from policyengine.models import CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
+=======
+    from policyengine.models import Community, CommunityUser, CommunityRole, PlatformPolicy, ConstitutionPolicy
+    
+>>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
@@ -89,6 +101,9 @@ def v2(request):
             'fail': cp.fail
         }
 
+    activity_stream = model_stream(user)
+ #this is to create the stream (in this case a model stream to show all actions from a model
+
     return render(request, 'policyengine/v2/index.html', {
         'server_url': SERVER_URL,
         'user': user,
@@ -96,8 +111,12 @@ def v2(request):
         'roles': role_data,
         'docs': doc_data,
         'platform_policies': platform_policy_data,
-        'constitution_policies': constitution_policy_data
+        'constitution_policies': constitution_policy_data,
+        'activity_stream': activity_stream
+    
     })
+
+
 
 def logout(request):
     from django.contrib.auth import logout
