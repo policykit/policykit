@@ -458,21 +458,12 @@ class PolicykitAddRole(ConstitutionAction):
         role.community = self.community
         role.save()
         self.pass_action()
+        action.send(self, verb='was added')
 
     class Meta:
         permissions = (
             ('can_execute_policykitaddrole', 'Can execute policykit add role'),
         )
-
-    def my_handler(self, sender, instance, created, **kwargs):
-        logger.info(self)
-        logger.info(instance)
-        logger.info(sender)
-        action.send(self, verb='was added')
-
-    post_save.connect(my_handler, sender=CommunityUser)
-
-
 
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
