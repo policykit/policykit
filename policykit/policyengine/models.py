@@ -418,7 +418,7 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
         )
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was changed')
-    
+
     post_save.connect(my_handler, sender=CommunityDoc)
 
 class PolicykitDeleteCommunityDoc(ConstitutionAction):
@@ -468,7 +468,7 @@ class PolicykitAddRole(ConstitutionAction):
 
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was added')
-    
+
     post_save.connect(my_handler, sender=CommunityUser)
 
 
@@ -490,21 +490,15 @@ class PolicykitDeleteRole(ConstitutionAction):
             ('can_execute_policykitdeleterole', 'Can execute policykit delete role'),
         )
 
-<<<<<<< HEAD
+    def my_handler(sender, instance, created, **kwargs):
+        action.send(instance, verb='was deleted')
+
+    post_save.connect(my_handler, sender=CommunityUser)
+
 class PolicykitEditRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     name = models.CharField('name', max_length=300)
     description = models.TextField(null=True, blank=True, default='')
-=======
-    def my_handler(sender, instance, created, **kwargs):
-        action.send(instance, verb='was deleted')
-    
-    post_save.connect(my_handler, sender=CommunityUser)
-
-
-class PolicykitAddPermission(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
->>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
     permissions = models.ManyToManyField(Permission)
 
     action_codename = 'policykiteditrole'
@@ -527,17 +521,8 @@ class PolicykitAddPermission(ConstitutionAction):
             ('can_execute_policykiteditrole', 'Can execute policykit edit role'),
         )
 
-<<<<<<< HEAD
+
 class PolicykitAddUserRole(ConstitutionAction):
-=======
-    def my_handler(sender, instance, created, **kwargs):
-        action.send(instance, verb='was added')
-    
-    post_save.connect(my_handler, sender=CommunityUser)
-
-
-class PolicykitRemovePermission(ConstitutionAction):
->>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
@@ -548,31 +533,6 @@ class PolicykitRemovePermission(ConstitutionAction):
         return self.ready
 
     def execute(self):
-<<<<<<< HEAD
-=======
-        for p in self.permissions.all():
-            self.role.permissions.remove(p)
-        self.pass_action()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitremovepermission', 'Can execute policykit remove permission'),
-        )
-
-    def my_handler(sender, instance, created, **kwargs):
-        action.send(instance, verb='was removed')
-    
-    post_save.connect(my_handler, sender=CommunityUser)
-
-
-class PolicykitAddUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
-    users = models.ManyToManyField(CommunityUser)
-
-    action_codename = 'policykitadduserrole'
-
-    def execute(self):
->>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
         for u in self.users.all():
             self.role.user_set.add(u)
         self.pass_action()
@@ -584,7 +544,7 @@ class PolicykitAddUserRole(ConstitutionAction):
 
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was added')
-    
+
     post_save.connect(my_handler, sender=CommunityUser)
 
 
@@ -610,7 +570,7 @@ class PolicykitRemoveUserRole(ConstitutionAction):
 
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was removed')
-    
+
     post_save.connect(my_handler, sender=CommunityUser)
 
 class EditorModel(ConstitutionAction):
@@ -660,7 +620,7 @@ class PolicykitAddPlatformPolicy(EditorModel):
         policy.community = self.community
         policy.save()
         self.pass_action()
-    
+
 
     class Meta:
         permissions = (
@@ -669,10 +629,10 @@ class PolicykitAddPlatformPolicy(EditorModel):
 
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was added')
-    
+
     post_save.connect(my_handler, sender= 'policyengine.PlatformPolicy')
 
-    
+
 
 
 class PolicykitAddConstitutionPolicy(EditorModel):
@@ -701,7 +661,7 @@ class PolicykitAddConstitutionPolicy(EditorModel):
 
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was added')
-    
+
     post_save.connect(my_handler, sender= 'policyengine.ConstitutionPolicy')
 
 
@@ -730,7 +690,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
         )
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was changed')
-    
+
     post_save.connect(my_handler, sender=  'policyengine.PlatformPolicy')
 
 
@@ -757,7 +717,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         )
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was changed')
-    
+
     post_save.connect(my_handler, sender='policyengine.ConstitutionPolicy')
 
 
@@ -780,7 +740,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
 
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was removed')
-    
+
     post_save.connect(my_handler, sender= 'policyengine.PlatformPolicy')
 
 
@@ -802,7 +762,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         )
     def my_handler(sender, instance, created, **kwargs):
         action.send(instance, verb='was removed')
-    
+
     post_save.connect(my_handler, sender= 'policyengine.ConstitutionPolicy')
 
 
