@@ -218,35 +218,6 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
 
 admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
 
-
-<<<<<<< HEAD
-=======
-class PolicykitAddPermissionAdmin(admin.ModelAdmin):
-    fields= ('role','permissions','is_bundled')
-
-    def save_model(self, request, obj, form, change):
-        obj.initiator = request.user
-        obj.community = request.user.community
-        obj.save()
-
-
-admin_site.register(PolicykitAddPermission, PolicykitAddPermissionAdmin)
-
-
-class PolicykitRemovePermissionAdmin(admin.ModelAdmin):
-    fields= ('role','permissions','is_bundled')
-
-    def save_model(self, request, obj, form, change):
-        obj.initiator = request.user
-        obj.community = request.user.community
-        obj.save()
-
-
-admin_site.register(PolicykitRemovePermission, PolicykitRemovePermissionAdmin)
-
-
-
->>>>>>> d741380cdbaf7e8d12984fed7b926d4b7a70e2e5
 class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
     fields= ('role','users','is_bundled')
 
