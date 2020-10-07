@@ -629,6 +629,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
     class Meta:
         permissions = (
             ('can_execute_policykitchangeplatformpolicy', 'Can execute policykit change platform policy'),
+        )
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
