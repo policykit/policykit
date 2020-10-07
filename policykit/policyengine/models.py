@@ -463,7 +463,10 @@ class PolicykitDeleteRole(ConstitutionAction):
     action_codename = 'policykitdeleterole'
 
     def __str__(self):
-        return "Delete Role: " + self.role.role_name
+        if self.role:
+            return "Delete Role: " + self.role.role_name
+        else:
+            return "Delete Role: [ERROR: role not found]"
 
     def execute(self):
         try:
@@ -514,7 +517,10 @@ class PolicykitAddUserRole(ConstitutionAction):
     ready = False
 
     def __str__(self):
-        return "Add User: " + self.users.all()[0] + " to Role: " + self.role.role_name
+        if self.role:
+            return "Add User: " + self.users.all()[0] + " to Role: " + self.role.role_name
+        else:
+            return "Add User to Role: [ERROR: role not found]"
 
     def shouldCreate(self):
         return self.ready
@@ -537,7 +543,10 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     ready = False
 
     def __str__(self):
-        return "Remove User: " + self.users.all()[0] + " from Role: " + self.role.role_name
+        if self.role:
+            return "Remove User: " + self.users.all()[0] + " from Role: " + self.role.role_name
+        else:
+            return "Remove User from Role: [ERROR: role not found]"
 
     def shouldCreate(self):
         return self.ready
@@ -691,7 +700,10 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     action_codename = 'policykitremoveplatformpolicy'
 
     def __str__(self):
-        return "Remove Platform Policy: " + self.platform_policy.name
+        if self.platform_policy:
+            return "Remove Platform Policy: " + self.platform_policy.name
+        else:
+            return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
         self.platform_policy.delete()
@@ -710,7 +722,10 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     action_codename = 'policykitremoveconstitutionpolicy'
 
     def __str__(self):
-        return "Remove Constitution Policy: " + self.constitution_policy.name
+        if self.constitution_policy:
+            return "Remove Constitution Policy: " + self.constitution_policy.name
+        else:
+            return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
         self.constitution_policy.delete()
