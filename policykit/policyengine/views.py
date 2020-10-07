@@ -26,7 +26,8 @@ def homepage(request):
 def v2(request):
     from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
-    logger.info(Action.objects.all())
+    for i in Action.objects.all():
+        logger.info(i)
 
     user = get_user(request)
 
