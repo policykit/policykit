@@ -464,8 +464,8 @@ class PolicykitAddRole(ConstitutionAction):
             ('can_execute_policykitaddrole', 'Can execute policykit add role'),
         )
 
-    def my_handler(sender, instance, created, **kwargs):
-        action.send(instance, verb='was added')
+    def my_handler(self, sender, instance, created, **kwargs):
+        action.send(self, verb='was added')
 
     post_save.connect(my_handler, sender=CommunityUser)
 
