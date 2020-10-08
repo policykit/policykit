@@ -9,6 +9,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.translation import gettext_lazy
 from policykit.settings import PROJECT_NAME
 from policyengine.models import *
+from actstream import action
 import datetime
 import logging
 
@@ -109,6 +110,7 @@ class PolicykitAddPlatformPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.save()
 
+
 admin_site.register(PolicykitAddPlatformPolicy, PolicykitAddPlatformPolicyAdmin)
 
 
@@ -153,6 +155,7 @@ class PlatformPolicyBundleAdmin(admin.ModelAdmin):
         obj.community = request.user.community
         obj.save()
 
+
 admin_site.register(PlatformPolicyBundle, PlatformPolicyBundleAdmin)
 
 
@@ -166,6 +169,7 @@ class ConstitutionPolicyBundleAdmin(admin.ModelAdmin):
         obj.community = request.user.community
         obj.save()
 
+
 admin_site.register(ConstitutionPolicyBundle, ConstitutionPolicyBundleAdmin)
 
 
@@ -177,6 +181,7 @@ class BooleanVoteAdmin(admin.ModelAdmin):
         if not change:
             obj.user = request.user
         obj.save()
+
 
 admin_site.register(BooleanVote, BooleanVoteAdmin)
 
@@ -210,8 +215,8 @@ class PolicykitDeleteRoleAdmin(admin.ModelAdmin):
         obj.community = request.user.community
         obj.save()
 
-admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
 
+admin_site.register(PolicykitDeleteRole, PolicykitDeleteRoleAdmin)
 
 class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
     fields= ('role','users','is_bundled')
@@ -220,6 +225,7 @@ class PolicykitAddUserRoleAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+
 
 admin_site.register(PolicykitAddUserRole, PolicykitAddUserRoleAdmin)
 
@@ -230,6 +236,7 @@ class PolicykitRemoveUserRoleAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+
 
 admin_site.register(PolicykitRemoveUserRole, PolicykitRemoveUserRoleAdmin)
 
@@ -242,6 +249,7 @@ class PolicykitChangePlatformPolicyAdmin(admin.ModelAdmin):
         obj.community = request.user.community
         obj.save()
 
+
 admin_site.register(PolicykitChangePlatformPolicy, PolicykitChangePlatformPolicyAdmin)
 
 
@@ -252,6 +260,7 @@ class PolicykitChangeConstitutionPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+
 
 admin_site.register(PolicykitChangeConstitutionPolicy, PolicykitChangeConstitutionPolicyAdmin)
 
@@ -274,6 +283,7 @@ class PolicykitRemoveConstitutionPolicyAdmin(admin.ModelAdmin):
         obj.initiator = request.user
         obj.community = request.user.community
         obj.save()
+
 
 admin_site.register(PolicykitRemoveConstitutionPolicy, PolicykitRemoveConstitutionPolicyAdmin)
 

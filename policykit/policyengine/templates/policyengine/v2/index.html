@@ -104,7 +104,7 @@
   .actionPanel {
     width: 90%;
     margin-right: auto;
-    min-height: 35vh;
+    min-height: 45vh;
     margin-top: 3vh;
     background-color: #ffffff;
     border-radius: 30px;
@@ -118,6 +118,19 @@
     font-size: 2.3em;
     padding-top: 1.6vh;
     padding-left: 2vw;
+  }
+
+  .actionPanelContent {
+    width: 92%;
+    margin-left: 4%;
+    height: 35vh;
+    overflow: auto;
+  }
+
+  .actionPanelContent thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ebecf1;
   }
 
   .modal {
@@ -207,13 +220,29 @@
   <div class="leftCol">
     <input type="text" class="searchBar" placeholder="Search">
 
-    <div class="actionPanel">
+    <!--<div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>
-    </div>
-
+    </div>-->
     <div class="actionPanel">
       <h3 class="actionPanelTitle">All actions</h3>
-
+      <div class="actionPanelContent">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Action</th>
+              <th scope="col">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for action in action_log %}
+              <tr>
+                <td>{{action.actor}}</td>
+                <td>{{action.time_elapsed}} ago</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 

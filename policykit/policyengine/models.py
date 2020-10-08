@@ -1,11 +1,10 @@
 from django.db import models, transaction
 from django.db.models.signals import post_save
+from actstream import action
 from django.dispatch import receiver
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-#from django.contrib.postgres.fields import ArrayField
-# from django.contrib.govinterface.models import LogEntry
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
@@ -39,7 +38,6 @@ class StarterKit(PolymorphicModel):
     def __str__(self):
         return self.name
 
-
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
     platform = None
@@ -50,7 +48,6 @@ class Community(PolymorphicModel):
 
     def get_users(self, users):
       return users
-
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
@@ -67,7 +64,6 @@ class CommunityRole(Group):
     def __str__(self):
         return str(self.role_name)
 
-
 class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', max_length=300, null=True)
     community = models.ForeignKey(Community, models.CASCADE)
@@ -82,7 +78,6 @@ class CommunityUser(User, PolymorphicModel):
         group = self.community.base_role
         group.user_set.add(self)
 
-
 class CommunityDoc(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
     text = models.TextField(null=True, blank=True, default = '')
@@ -93,7 +88,6 @@ class CommunityDoc(models.Model):
 
     def save(self, *args, **kwargs):
         super(CommunityDoc, self).save(*args, **kwargs)
-
 
 class DataStore(models.Model):
     data_store = models.TextField()
@@ -243,13 +237,11 @@ class Proposal(models.Model):
                 votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
         return users
 
-
     def save(self, *args, **kwargs):
         if not self.pk:
             ds = DataStore.objects.create()
             self.data = ds
         super(Proposal, self).save(*args, **kwargs)
-
 
 class BaseAction(models.Model):
     community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
@@ -268,7 +260,6 @@ class BaseAction(models.Model):
     class Meta:
         abstract = True
 
-
 class ConstitutionAction(BaseAction, PolymorphicModel):
     community = models.ForeignKey(Community, models.CASCADE)
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, null=True)
@@ -285,6 +276,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         proposal = self.proposal
         proposal.status = Proposal.PASSED
         proposal.save()
+        action.send(self, verb='was passed')
 
     def shouldCreate(self):
         return not self.pk # Runs only when object is new
@@ -383,7 +375,7 @@ class PolicykitAddCommunityDoc(ConstitutionAction):
     action_codename = 'policykitaddcommunitydoc'
 
     def __str__(self):
-        return "Add Document - name: " + self.name
+        return "Add Document: " + self.name
 
     def execute(self):
         doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
@@ -403,6 +395,9 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 
     action_codename = 'policykitchangecommunitydoc'
 
+    def __str__(self):
+        return "Edit Document: " + self.name
+
     def execute(self):
         self.doc.name = self.name
         self.doc.text = self.text
@@ -418,6 +413,9 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
 
     action_codename = 'policykitdeletecommunitydoc'
+
+    def __str__(self):
+        return "Delete Document: " + self.doc.name
 
     def execute(self):
         self.doc.delete()
@@ -437,7 +435,7 @@ class PolicykitAddRole(ConstitutionAction):
     ready = False
 
     def __str__(self):
-        return "Add Role - name: " + self.name
+        return "Add Role: " + self.name
 
     def shouldCreate(self):
         return self.ready
@@ -459,11 +457,16 @@ class PolicykitAddRole(ConstitutionAction):
             ('can_execute_policykitaddrole', 'Can execute policykit add role'),
         )
 
-
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
     action_codename = 'policykitdeleterole'
+
+    def __str__(self):
+        if self.role:
+            return "Delete Role: " + self.role.role_name
+        else:
+            return "Delete Role: [ERROR: role not found]"
 
     def execute(self):
         try:
@@ -485,6 +488,9 @@ class PolicykitEditRole(ConstitutionAction):
 
     action_codename = 'policykiteditrole'
     ready = False
+
+    def __str__(self):
+        return "Edit Role: " + self.name
 
     def shouldCreate(self):
         return self.ready
@@ -510,6 +516,12 @@ class PolicykitAddUserRole(ConstitutionAction):
     action_codename = 'policykitadduserrole'
     ready = False
 
+    def __str__(self):
+        if self.role:
+            return "Add User: " + self.users.all()[0] + " to Role: " + self.role.role_name
+        else:
+            return "Add User to Role: [ERROR: role not found]"
+
     def shouldCreate(self):
         return self.ready
 
@@ -523,13 +535,18 @@ class PolicykitAddUserRole(ConstitutionAction):
             ('can_execute_policykitadduserrole', 'Can execute policykit add user role'),
         )
 
-
 class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
     action_codename = 'policykitremoveuserrole'
     ready = False
+
+    def __str__(self):
+        if self.role:
+            return "Remove User: " + self.users.all()[0] + " from Role: " + self.role.role_name
+        else:
+            return "Remove User from Role: [ERROR: role not found]"
 
     def shouldCreate(self):
         return self.ready
@@ -576,6 +593,8 @@ class EditorModel(ConstitutionAction):
 class PolicykitAddPlatformPolicy(EditorModel):
     action_codename = 'policykitaddplatformpolicy'
 
+    def __str__(self):
+        return "Add Platform Policy: " + self.name
 
     def execute(self):
         policy = PlatformPolicy()
@@ -597,9 +616,11 @@ class PolicykitAddPlatformPolicy(EditorModel):
             ('can_execute_addpolicykitplatformpolicy', 'Can execute policykit add platform policy'),
         )
 
-
 class PolicykitAddConstitutionPolicy(EditorModel):
     action_codename = 'policykitaddconstitutionpolicy'
+
+    def __str__(self):
+        return "Add Constitution Policy: " + self.name
 
     def execute(self):
         policy = ConstitutionPolicy()
@@ -621,12 +642,13 @@ class PolicykitAddConstitutionPolicy(EditorModel):
             ('can_execute_policykitaddconstitutionpolicy', 'Can execute policykit add constitution policy'),
         )
 
-
 class PolicykitChangePlatformPolicy(EditorModel):
     platform_policy = models.ForeignKey('PlatformPolicy', models.CASCADE)
 
     action_codename = 'policykitchangeplatformpolicy'
 
+    def __str__(self):
+        return "Edit Platform Policy: " + self.name
 
     def execute(self):
         self.platform_policy.name = self.name
@@ -645,11 +667,13 @@ class PolicykitChangePlatformPolicy(EditorModel):
             ('can_execute_policykitchangeplatformpolicy', 'Can execute policykit change platform policy'),
         )
 
-
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
 
     action_codename = 'policykitchangeconstitutionpolicy'
+
+    def __str__(self):
+        return "Edit Constitution Policy: " + self.name
 
     def execute(self):
         self.constitution_policy.name = self.name
@@ -668,7 +692,6 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
             ('can_execute_policykitchangeconstitutionpolicy', 'Can execute policykit change constitution policy'),
         )
 
-
 class PolicykitRemovePlatformPolicy(ConstitutionAction):
     platform_policy = models.ForeignKey('PlatformPolicy',
                                          models.SET_NULL,
@@ -676,16 +699,20 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
 
     action_codename = 'policykitremoveplatformpolicy'
 
+    def __str__(self):
+        if self.platform_policy:
+            return "Remove Platform Policy: " + self.platform_policy.name
+        else:
+            return "Remove Platform Policy: [ERROR: platform policy not found]"
+
     def execute(self):
         self.platform_policy.delete()
-
         self.pass_action()
 
     class Meta:
         permissions = (
             ('can_execute_policykitremoveplatformpolicy', 'Can execute policykit remove platform policy'),
         )
-
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     constitution_policy = models.ForeignKey('ConstitutionPolicy',
@@ -694,8 +721,13 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
 
     action_codename = 'policykitremoveconstitutionpolicy'
 
-    def execute(self):
+    def __str__(self):
+        if self.constitution_policy:
+            return "Remove Constitution Policy: " + self.constitution_policy.name
+        else:
+            return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
+    def execute(self):
         self.constitution_policy.delete()
         self.pass_action()
 
@@ -703,7 +735,6 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         permissions = (
             ('can_execute_policykitremoveconstitutionpolicy', 'Can execute policykit remove constitution policy'),
         )
-
 
 class PlatformAction(BaseAction,PolymorphicModel):
     ACTION = None
@@ -737,6 +768,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
         proposal = self.proposal
         proposal.status = Proposal.PASSED
         proposal.save()
+        action.send(self, verb='was passed')
 
     def save(self, *args, **kwargs):
         logger.info('entered save')
@@ -784,7 +816,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
         else:
             super(PlatformAction, self).save(*args, **kwargs)
 
-
 class PlatformActionBundle(BaseAction):
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -811,7 +842,6 @@ class PlatformActionBundle(BaseAction):
     class Meta:
         verbose_name = 'platformactionbundle'
         verbose_name_plural = 'platformactionbundles'
-
 
 @receiver(post_save, sender=PlatformActionBundle)
 @on_transaction_commit
@@ -863,7 +893,6 @@ class BasePolicy(models.Model):
     class Meta:
         abstract = True
 
-
 class ConstitutionPolicy(BasePolicy):
     policy_type = "ConstitutionPolicy"
 
@@ -873,7 +902,6 @@ class ConstitutionPolicy(BasePolicy):
 
     def __str__(self):
         return ' '.join(['ConstitutionPolicy: ', self.description, 'for', self.community.community_name])
-
 
 class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
@@ -893,7 +921,6 @@ class PlatformPolicy(BasePolicy):
     def __str__(self):
         return ' '.join(['PlatformPolicy: ', self.description, 'for', self.community.community_name])
 
-
 class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
     policy_type = "PlatformPolicyBundle"
@@ -910,7 +937,6 @@ class UserVote(models.Model):
     class Meta:
         abstract = True
 
-
 class BooleanVote(UserVote):
     TRUE_FALSE_CHOICES = (
                           (True, 'Yes'),
@@ -918,7 +944,6 @@ class BooleanVote(UserVote):
                           )
     boolean_value = models.BooleanField(null = True, choices = TRUE_FALSE_CHOICES,
                                                                default= True) # yes/no, selected/not selected
-
 
 class NumberVote(UserVote):
     number_value = models.IntegerField(null=True)
