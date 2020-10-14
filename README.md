@@ -45,6 +45,8 @@ Next, you need to set up the governance starter kits that you can choose from to
 1)
 It's possible that you may receive the error `InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]` where `ModelState` may refer to policyengine, policykit, redditintegration or slackintegration. If so, inside each subdirectory: policyengine, policykit, redditintegration and slackintegration, create a directory called `migrations` and add an empty file inside each directory named `__init__.py`.
 
+2)
+It's possible that you may receive the error when trying to make migrations of the form `ImportError: cannot import name 'FieldDoesNotExist'`. If you receive this error, then you need to go to `home/ubuntu/.local/lib/python3.6/site-packages/polymorphic/query.py` (or wherever your site-packages are saved on your local machine if running a local copy of PolicyKit) and change the line `from django.db.models import FieldDoesNotExist` to `from django.core.exceptions import FieldDoesNotExist`.
 
 ## Running PolicyKit in Production
 
