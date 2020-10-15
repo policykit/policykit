@@ -257,24 +257,21 @@ function propose() {
         gutters: ['warnings']
     }));
 
-    {% if i == 0 and filter %}
-      editors[i].setValue(`{{filter}}`)
-    {% elif i == 1 and initialize %}
-      editors[i].setValue(`{{initialize}}`)
-    {% elif i == 2 and check %}
-      editors[i].setValue(`{{check}}`)
-    {% elif i == 3 and notify %}
-      editors[i].setValue(`{{notify}}`)
-    {% elif i == 4 and success %}
-      editors[i].setValue(`{{success}}`)
-    {% elif i == 5 and fail %}
-      editors[i].setValue(`{{fail}}`)
+    {% if filter %}
+      if (i == 0) editors[i].setValue(`{{filter}}`);
+    {% elif initialize %}
+      if (i == 1) editors[i].setValue(`{{initialize}}`);
+    {% elif check %}
+      if (i == 2) editors[i].setValue(`{{check}}`);
+    {% elif notify %}
+      if (i == 3) editors[i].setValue(`{{notify}}`);
+    {% elif success %}
+      if (i == 4) editors[i].setValue(`{{success}}`);
+    {% elif fail %}
+      if (i == 5) editors[i].setValue(`{{fail}}`);
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
-
-
-
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
@@ -283,7 +280,6 @@ function propose() {
         }
         editor.showHint({ hint: CodeMirror.pythonHint });
     });
-
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
@@ -316,7 +312,7 @@ function propose() {
           }
         }
       })
-                  })
+    })
   }
 </script>
 {% endblock %}
