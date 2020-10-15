@@ -71,7 +71,9 @@ class CommunityUser(User, PolymorphicModel):
     is_community_admin = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.username + '@' + self.community.community_name
+        name = self.readable_name if self.readable_name else self.username
+        name += '@' + self.community.community_name
+        return name
 
     def save(self, *args, **kwargs):
         super(CommunityUser, self).save(*args, **kwargs)
