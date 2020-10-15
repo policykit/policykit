@@ -258,17 +258,17 @@ function propose() {
     }));
 
     {% if filter %}
-      if (i == 0) editors[i].setValue(`{{filter}}`);
+      if (i == 0) { editors[i].setValue(`{{filter}}`); }
     {% elif initialize %}
-      if (i == 1) editors[i].setValue(`{{initialize}}`);
+      if (i == 1) { editors[i].setValue(`{{initialize}}`); }
     {% elif check %}
-      if (i == 2) editors[i].setValue(`{{check}}`);
+      if (i == 2) { editors[i].setValue(`{{check}}`); }
     {% elif notify %}
-      if (i == 3) editors[i].setValue(`{{notify}}`);
+      if (i == 3) { editors[i].setValue(`{{notify}}`); }
     {% elif success %}
-      if (i == 4) editors[i].setValue(`{{success}}`);
+      if (i == 4) { editors[i].setValue(`{{success}}`); }
     {% elif fail %}
-      if (i == 5) editors[i].setValue(`{{fail}}`);
+      if (i == 5) { editors[i].setValue(`{{fail}}`); }
     {% else %}
       editors[i].setValue(DEFAULT_VALUES[code_id]);
     {% endif %}
