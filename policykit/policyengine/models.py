@@ -17,12 +17,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Default values for code fields in editor
-DEFAULT_FILTER = "# Replace this code with your custom Filter code\nreturn True\n\n"
-DEFAULT_INITIALIZE = "# Replace this code with your custom Initialize code\npass\n\n"
-DEFAULT_CHECK = "# Replace this code with your custom Check code\nreturn PASSED\n\n"
-DEFAULT_NOTIFY = "# Replace this code with your custom Notify code\npass\n\n"
-DEFAULT_SUCCESS = "# Replace this code with your custom Pass code\naction.execute()\n\n"
-DEFAULT_FAIL = "# Replace this code with your custom Fail code\npass\n\n"
+DEFAULT_FILTER = "return True\n\n"
+DEFAULT_INITIALIZE = "pass\n\n"
+DEFAULT_CHECK = "return PASSED\n\n"
+DEFAULT_NOTIFY = "pass\n\n"
+DEFAULT_SUCCESS = "action.execute()\n\n"
+DEFAULT_FAIL = "pass\n\n"
 
 def on_transaction_commit(func):
     def inner(*args, **kwargs):
