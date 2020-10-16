@@ -174,7 +174,7 @@
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("addtobundle").addEventListener("click", addToBundle);
   document.getElementById("documentation").addEventListener("click", documentation);
-  
+
   function documentation() {
       window.open(`{{server_url}}/main/documentation`, '_blank');
   }
@@ -233,12 +233,12 @@ function propose() {
 
 
   const DEFAULT_VALUES = {
-    "filter": "# Replace this code with your custom Filter code\nreturn True\n\n",
-    "initialize": "# Replace this code with your custom Initialize code\npass\n\n",
-    "check": "# Replace this code with your custom Check code\nreturn PASSED\n\n",
-    "notify": "# Replace this code with your custom Notify code\npass\n\n",
-    "pass": "# Replace this code with your custom Pass code\naction.execute()\n\n",
-    "fail": "# Replace this code with your custom Fail code\npass\n\n"
+    "filter": "return True\n\n",
+    "initialize": "pass\n\n",
+    "check": "return PASSED\n\n",
+    "notify": "pass\n\n",
+    "pass": "action.execute()\n\n",
+    "fail": "pass\n\n"
   };
 
   var editors = [];
@@ -257,25 +257,41 @@ function propose() {
         gutters: ['warnings']
     }));
 
-    {% if i == 0 and filter %}
-      editors[i].setValue(`{{filter}}`)
-    {% elif i == 1 and initialize %}
-      editors[i].setValue(`{{initialize}}`)
-    {% elif i == 2 and check %}
-      editors[i].setValue(`{{check}}`)
-    {% elif i == 3 and notify %}
-      editors[i].setValue(`{{notify}}`)
-    {% elif i == 4 and success %}
-      editors[i].setValue(`{{success}}`)
-    {% elif i == 5 and fail %}
-      editors[i].setValue(`{{fail}}`)
-    {% else %}
-      editors[i].setValue(DEFAULT_VALUES[code_id]);
-    {% endif %}
-   
-  
+    switch (i) {
+      case 0:
+        {% if filter %}
+          editors[i].setValue(`{{filter}}`);
+          break;
+        {% endif %}
+      case 1:
+        {% if initialize %}
+          editors[i].setValue(`{{initialize}}`);
+          break;
+        {% endif %}
+      case 2:
+        {% if check %}
+          editors[i].setValue(`{{check}}`);
+          break;
+        {% endif %}
+      case 3:
+        {% if notify %}
+          editors[i].setValue(`{{notify}}`);
+          break;
+        {% endif %}
+      case 4:
+        {% if success %}
+          editors[i].setValue(`{{success}}`);
+          break;
+        {% endif %}
+      case 5:
+        {% if fail %}
+          editors[i].setValue(`{{fail}}`);
+          break;
+        {% endif %}
+      default:
+        editors[i].setValue(DEFAULT_VALUES[code_id]);
+    }
 
-    
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
@@ -283,7 +299,6 @@ function propose() {
         }
         editor.showHint({ hint: CodeMirror.pythonHint });
     });
-
 
     editors[i].on('change', (cm, change) => {
       code = cm.getValue()
@@ -316,7 +331,7 @@ function propose() {
           }
         }
       })
-                  })
+    })
   }
 </script>
 {% endblock %}
