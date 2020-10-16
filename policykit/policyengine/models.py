@@ -71,7 +71,7 @@ class CommunityUser(User, PolymorphicModel):
     is_community_admin = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.username + '@' + self.community.community_name
+        return self.readable_name if self.readable_name else self.username
 
     def save(self, *args, **kwargs):
         super(CommunityUser, self).save(*args, **kwargs)
@@ -518,7 +518,7 @@ class PolicykitAddUserRole(ConstitutionAction):
 
     def __str__(self):
         if self.role:
-            return "Add User: " + self.users.all()[0] + " to Role: " + self.role.role_name
+            return "Add User: " + str(self.users.all()[0]) + " to Role: " + self.role.role_name
         else:
             return "Add User to Role: [ERROR: role not found]"
 
@@ -544,7 +544,7 @@ class PolicykitRemoveUserRole(ConstitutionAction):
 
     def __str__(self):
         if self.role:
-            return "Remove User: " + self.users.all()[0] + " from Role: " + self.role.role_name
+            return "Remove User: " + str(self.users.all()[0]) + " from Role: " + self.role.role_name
         else:
             return "Remove User from Role: [ERROR: role not found]"
 

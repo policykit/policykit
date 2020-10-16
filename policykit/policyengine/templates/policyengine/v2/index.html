@@ -256,7 +256,6 @@
             <thead>
               <tr>
                 <th scope="col">Name</th>
-                <th scope="col">Username</th>
                 <th scope="col">Roles</th>
               </tr>
             </thead>
@@ -264,7 +263,6 @@
               {% for key, value in users.items %}
                 <tr>
                   <td>{{value.readable_name}}</td>
-                  <td>{{key}}</td>
                   <td>
                     {% for r in value.roles %}
                       {% if forloop.last %}

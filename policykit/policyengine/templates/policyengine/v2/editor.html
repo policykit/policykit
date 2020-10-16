@@ -257,21 +257,40 @@ function propose() {
         gutters: ['warnings']
     }));
 
-    {% if filter %}
-      if (i == 0) editors[i].setValue(`{{filter}}`);
-    {% elif initialize %}
-      if (i == 1) editors[i].setValue(`{{initialize}}`);
-    {% elif check %}
-      if (i == 2) editors[i].setValue(`{{check}}`);
-    {% elif notify %}
-      if (i == 3) editors[i].setValue(`{{notify}}`);
-    {% elif success %}
-      if (i == 4) editors[i].setValue(`{{success}}`);
-    {% elif fail %}
-      if (i == 5) editors[i].setValue(`{{fail}}`);
-    {% else %}
-      editors[i].setValue(DEFAULT_VALUES[code_id]);
-    {% endif %}
+    switch (i) {
+      case 0:
+        {% if filter %}
+          editors[i].setValue(`{{filter}}`);
+          break;
+        {% endif %}
+      case 1:
+        {% if initialize %}
+          editors[i].setValue(`{{initialize}}`);
+          break;
+        {% endif %}
+      case 2:
+        {% if check %}
+          editors[i].setValue(`{{check}}`);
+          break;
+        {% endif %}
+      case 3:
+        {% if notify %}
+          editors[i].setValue(`{{notify}}`);
+          break;
+        {% endif %}
+      case 4:
+        {% if success %}
+          editors[i].setValue(`{{success}}`);
+          break;
+        {% endif %}
+      case 5:
+        {% if fail %}
+          editors[i].setValue(`{{fail}}`);
+          break;
+        {% endif %}
+      default:
+        editors[i].setValue(DEFAULT_VALUES[code_id]);
+    }
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
