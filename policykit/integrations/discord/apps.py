@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class discordIntegrationConfig(AppConfig):
-    name = 'discord'
+    name = 'integrations.discord'
 
     def ready(self):
         from actstream import registry

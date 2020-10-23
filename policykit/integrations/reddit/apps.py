@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class redditIntegrationConfig(AppConfig):
-    name = 'reddit'
+    name = 'integrations.reddit'
 
     def ready(self):
         from actstream import registry

@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class slackIntegrationConfig(AppConfig):
-    name = 'slack'
+    name = 'integrations.slack'
 
     def ready(self):
         from actstream import registry
