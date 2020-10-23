@@ -1,0 +1,248 @@
+{% extends "./dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+  .body {
+    width: 80%;
+    min-height: 90vh;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+
+  .actionMenu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 40%;
+    height: 2.8em;
+    cursor: pointer;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 5vh;
+    background-color: #4451b2;
+    color: #ffffff;
+    padding: 0.5em 1% 0.5em 1%;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .actionMenu:hover {
+    background-color: #3b4699;
+  }
+
+  .actionMenuHeading {
+    margin-top: 0;
+    display: flex;
+  }
+
+  .actionMenuIcon {
+    display: flex;
+    margin-left: auto;
+  }
+
+  .actionCollapsible {
+    width: 40%;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: #ffffff;
+  }
+
+  .actionButton {
+    background-color: #ffffff;
+    font-weight: bold;
+    font-size: 1.2em;
+    font-family: "Karla", sans-serif;
+    padding: 0.5em 5%;
+    cursor: pointer;
+  }
+
+  .actionButton:hover {
+    color: #808b96;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  {% if user.community.platform == "slack" %}
+    <div class="actionMenu" id="slackActionsHeader">
+      <h3 class="actionMenuHeading">SLACK ACTIONS</h3>
+      <span class="material-icons actionMenuIcon">add_circle_outline</span>
+    </div>
+    <div class="actionCollapsible" id="slackActions">
+      <div class="actionButton">
+        <p>Join Conversation</p>
+      </div>
+      <div class="actionButton">
+        <p>Kick from Conversation</p>
+      </div>
+      <div class="actionButton">
+        <p>Pin Message</p>
+      </div>
+      <div class="actionButton">
+        <p>Post Message</p>
+      </div>
+      <div class="actionButton">
+        <p>Rename Conversation</p>
+      </div>
+      <div class="actionButton">
+        <p>Schedule Message</p>
+      </div>
+    </div>
+  {% elif user.community.platform == "reddit" %}
+    <div class="actionMenu" id="redditActionsHeader">
+      <h3 class="actionMenuHeading">REDDIT ACTIONS</h3>
+      <span class="material-icons actionMenuIcon">add_circle_outline</span>
+    </div>
+    <div class="actionCollapsible" id="redditActions">
+    </div>
+  {% elif user.community.platform == "discord" %}
+    <div class="actionMenu" id="discordActionsHeader">
+      <h3 class="actionMenuHeading">DISCORD ACTIONS</h3>
+      <span class="material-icons actionMenuIcon">add_circle_outline</span>
+    </div>
+    <div class="actionCollapsible" id="discordActions">
+      <div class="actionButton">
+        <p>Post Message</p>
+      </div>
+      <div class="actionButton">
+        <p>Rename Channel</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="actionMenu" id="constitutionPoliciesHeader">
+    <h3 class="actionMenuHeading">CONSTITUTION POLICIES</h3>
+    <span class="material-icons actionMenuIcon">add_circle_outline</span>
+  </div>
+  <div class="actionCollapsible" id="constitutionPolicies">
+    <div class="actionButton" id="addConstitutionPolicy">
+      <p>Add Constitution Policy</p>
+    </div>
+    <div class="actionButton" id="editConstitutionPolicy">
+      <p>Edit Constitution Policy</p>
+    </div>
+    <div class="actionButton" id="removeConstitutionPolicy">
+      <p>Remove Constitution Policy</p>
+    </div>
+  </div>
+
+  <div class="actionMenu" id="platformPoliciesHeader">
+    <h3 class="actionMenuHeading">PLATFORM POLICIES</h3>
+    <span class="material-icons actionMenuIcon">add_circle_outline</span>
+  </div>
+  <div class="actionCollapsible" id="platformPolicies">
+    <div class="actionButton" id="addPlatformPolicy">
+      <p>Add Platform Policy</p>
+    </div>
+    <div class="actionButton" id="editPlatformPolicy">
+      <p>Edit Platform Policy</p>
+    </div>
+    <div class="actionButton" id="removePlatformPolicy">
+      <p>Remove Platform Policy</p>
+    </div>
+  </div>
+
+  <div class="actionMenu" id="rolesHeader">
+    <h3 class="actionMenuHeading">ROLES / PERMISSIONS</h3>
+    <span class="material-icons actionMenuIcon">add_circle_outline</span>
+  </div>
+  <div class="actionCollapsible" id="roles">
+    <div class="actionButton" id="addRole">
+      <p>Add Role</p>
+    </div>
+    <div class="actionButton" id="editRole">
+      <p>Edit Role</p>
+    </div>
+    <div class="actionButton" id="removeRole">
+      <p>Remove Role</p>
+    </div>
+    <div class="actionButton" id="addUserToRole">
+      <p>Add User to Role</p>
+    </div>
+    <div class="actionButton" id="removeUserFromRole">
+      <p>Remove User from Role</p>
+    </div>
+  </div>
+
+  <div class="actionMenu" id="documentsHeader">
+    <h3 class="actionMenuHeading">COMMUNITY DOCUMENTS</h3>
+    <span class="material-icons actionMenuIcon">add_circle_outline</span>
+  </div>
+  <div class="actionCollapsible" id="documents">
+    <div class="actionButton" id="addDocument">
+      <p>Add Document</p>
+    </div>
+    <div class="actionButton" id="editDocument">
+      <p>Edit Document</p>
+    </div>
+    <div class="actionButton" id="removeDocument">
+      <p>Remove Document</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("{{user.community.platform}}ActionsHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("constitutionPoliciesHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("platformPoliciesHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("rolesHeader").addEventListener("click", toggleActionMenu);
+  document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu);
+
+  document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('Constitution', 'Add'); });
+  document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', 'Change'); });
+  document.getElementById("removeConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Remove"); });
+  document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('Platform', 'Add'); });
+  document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', 'Change'); });
+  document.getElementById("removePlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Remove"); });
+  document.getElementById("addRole").addEventListener("click", function(){ navRoleAdd(); });
+  document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
+  document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
+  document.getElementById("addUserToRole").addEventListener("click", function(){ navRoleUsers('Add'); });
+  document.getElementById("removeUserFromRole").addEventListener("click", function(){ navRoleUsers('Remove'); });
+  document.getElementById("addDocument").addEventListener("click", function(){ navDocumentAdd(); });
+  document.getElementById("editDocument").addEventListener("click", function(){ navDocumentSelect('Change'); });
+  document.getElementById("removeDocument").addEventListener("click", function(){ navDocumentSelect('Remove'); });
+
+  function toggleActionMenu() {
+    var actions = event.currentTarget.nextElementSibling;
+    if (actions.style.maxHeight) {
+      actions.style.maxHeight = null;
+    } else {
+      actions.style.maxHeight = actions.scrollHeight + "px";
+    }
+  }
+
+  function navEditor(type, operation) {
+    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+  }
+
+  function navPolicySelect(type, operation) {
+    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+  }
+
+  function navRoleAdd() {
+    window.location.href = `{{server_url}}/main/roleeditor?operation=Add`
+  }
+
+  function navRoleSelect(operation) {
+    window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
+  }
+
+  function navRoleUsers(operation) {
+    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
+  }
+
+  function navDocumentAdd() {
+    window.location.href = `{{server_url}}/main/documenteditor?operation=Add`
+  }
+
+  function navDocumentSelect(operation) {
+    window.location.href = `{{server_url}}/main/selectdocument?operation=${operation}`
+  }
+</script>
+{% endblock %}

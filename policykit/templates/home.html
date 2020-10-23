@@ -1,0 +1,98 @@
+{% extends "./base.html" %}
+{% load static %}
+{% block content %}
+     	<div class="pusher">
+			  <div class="masthead">
+
+			    <div class="container">
+			      <div class="ui secondary inverted right menu" id="nav">
+			      	<div class="toc item" style="margin-left: 50px;"></div>
+			      	<div class="right menu">
+			      		<!-- <a class="item active" href="https://github.com/amyxzhang/policykit">Github Repo</a> -->
+				    </div>
+			      </div>
+			    </div>
+
+			    <div class="ui stackable grid container" id="main">
+			    	<div class="row">
+			    		<div class="six wide column main-left">
+			    			<img src={% static "policyengine/img/logo.gif" %} style="width:200px;">
+			    			<BR><BR>
+
+			    			<h2 class="header">
+					        PolicyKit
+					      </h2>
+					      <h3>A tool for building and evolving governance in online communities.</h3>
+
+					      <BR><BR>
+
+					      					      <!-- Begin Mailchimp Signup Form -->
+
+						<div id="mc_embed_signup">
+						<form action="https://policykit.us17.list-manage.com/subscribe/post?u=4a1d75598cb903abe5974f90d&amp;id=07499cff74" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+						    <div id="mc_embed_signup_scroll">
+							<label for="mce-EMAIL">Get updates on our newsletter:</label>
+							<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
+						    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+						    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_4a1d75598cb903abe5974f90d_07499cff74" tabindex="-1" value=""></div>
+						    <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+						    </div>
+						</form>
+						</div>
+
+						<!--End mc_embed_signup-->
+
+
+
+					       </div>
+					    <div class="one wide column"></div>
+					    <div class="nine wide column main-right">
+
+		          <h5>
+					      	Consider the platforms you use for online communities today.
+					      	These platforms only offer governance options that are top-down, autocratic, and punitive,
+					      	involving admins and mods.
+					    But what if platforms could provide other types of governance, such as
+					      		more democratic ones?
+					      		What if communities could <i>build for themselves</i> the governance that suits
+					      		their needs and values?
+					      </h5>
+					      <h5>
+					      	PolicyKit empowers online community members to
+					      	<b>concisely author a wide range of governance procedures</b> and <b>automatically carry out those
+					      	procedures</b> on their home platforms.
+					      	Inspired by Nobel economist Elinor Ostrom, we've developed a framework that
+					      	describes governance as a series of <i>actions</i> and <i>policies</i>, written in short programming scripts.
+					      	We're now building out an editor, software libraries, and connectors
+					      	to platforms like Slack, Reddit, and Discord for
+					      	communities to author actions and policies.
+					      </h5>
+					      <h5>
+					      	See our ACM UIST 2020 <a href={% static "policyengine/pdf/policykit_uist2020.pdf" %}>paper</a> and <a href="https://vimeo.com/446531759">video</a> to learn more.
+
+					      	PolicyKit is still in development and will be released soon. Visit our <a href="https://github.com/amyxzhang/policykit">Github</a> to contribute.
+					      </h5>
+
+			    		 Meet the PolicyKit Team:<BR>
+			    			<a href="https://homes.cs.washington.edu/~axz"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/amy.png" %}"></a>
+			    			<a href="https://github.com/ekim6767"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/evan.png" %}"></a>
+			    		<a href="http://stanford.edu/~rickygv/index.html"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/ricky.png" %}"></a>
+			    		<a href="http://www.sreyaguha.net/"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/sreya.png" %}"></a>
+			    		<a href="https://hci.stanford.edu/msb/"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/michael.png" %}"></a><BR>
+			    			And thank you to our alumni:
+			    				<a href="https://github.com/tnarg999"><img class="rounded-circle" width="40" height="40" src="{% static "policyengine/img/grant.png" %}"></a>
+
+			    	</div>
+			    </div>
+
+			  </div>
+
+
+
+		     </div>
+
+
+
+
+
+{% endblock %}
