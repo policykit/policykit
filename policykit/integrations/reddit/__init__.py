@@ -1,1 +1,1 @@
-default_app_config = 'reddit.apps.redditIntegrationConfig'
+default_app_config = 'integrations.reddit.apps.redditIntegrationConfig'

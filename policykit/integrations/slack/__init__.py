@@ -1,1 +1,1 @@
-default_app_config = 'slack.apps.slackIntegrationConfig'
+default_app_config = 'integrations.slack.apps.slackIntegrationConfig'
