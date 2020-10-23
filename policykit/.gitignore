@@ -5,4 +5,3 @@ db.sqlite3
 static/*
 *migrations*
 .DS_Store
-*logs*
