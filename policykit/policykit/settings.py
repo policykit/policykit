@@ -53,9 +53,9 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_celery_results',
     'policyengine',
-    'slackintegration',
-    'redditintegration',
-    'discordintegration',
+    'integrations.slack',
+    'integrations.reddit',
+    'integrations.discord',
     'actstream'
 
 ]
