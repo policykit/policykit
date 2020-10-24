@@ -20,7 +20,7 @@ import html
 logger = logging.getLogger(__name__)
 
 def homepage(request):
-    return render(request, 'policyengine/home.html', {})
+    return render(request, 'home.html', {})
 
 @login_required(login_url='/login')
 def v2(request):
@@ -101,7 +101,7 @@ def v2(request):
         }
         action_log_data.append(action_data)
 
-    return render(request, 'policyengine/v2/index.html', {
+    return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
         'user': user,
         'users': user_data,
@@ -119,7 +119,7 @@ def logout(request):
 
 @login_required(login_url='/login')
 def documentation(request):
-    return render(request, 'policyengine/v2/documentation.html', {})
+    return render(request, 'policyadmin/dashboard/documentation.html', {})
 
 @login_required(login_url='/login')
 def editor(request):
@@ -137,7 +137,7 @@ def editor(request):
         else:
             return HttpResponseBadRequest()
 
-        return render(request, 'policyengine/v2/editor.html', {
+        return render(request, 'policyadmin/dashboard/editor.html', {
             'server_url': SERVER_URL,
             'user': get_user(request),
             'policy': policy_id,
@@ -151,7 +151,7 @@ def editor(request):
             'fail': policy.fail
         })
 
-    return render(request, 'policyengine/v2/editor.html', {
+    return render(request, 'policyadmin/dashboard/editor.html', {
         'server_url': SERVER_URL,
         'user': get_user(request)
     })
@@ -165,7 +165,7 @@ def selectrole(request):
 
     roles = CommunityRole.objects.filter(community=user.community)
 
-    return render(request, 'policyengine/v2/role_select.html', {
+    return render(request, 'policyadmin/dashboard/role_select.html', {
         'server_url': SERVER_URL,
         'user': user,
         'roles': roles,
@@ -182,7 +182,7 @@ def roleusers(request):
     roles = CommunityRole.objects.filter(community=user.community)
     users = CommunityUser.objects.filter(community=user.community)
 
-    return render(request, 'policyengine/v2/role_users.html', {
+    return render(request, 'policyadmin/dashboard/role_users.html', {
         'server_url': SERVER_URL,
         'roles': roles,
         'users': users,
@@ -220,7 +220,7 @@ def roleeditor(request):
             currentPermissions.append(p.name)
         data['currentPermissions'] = currentPermissions
 
-    return render(request, 'policyengine/v2/role_editor.html', data)
+    return render(request, 'policyadmin/dashboard/role_editor.html', data)
 
 @login_required(login_url='/login')
 def selectpolicy(request):
@@ -238,7 +238,7 @@ def selectpolicy(request):
     else:
         return HttpResponseBadRequest()
 
-    return render(request, 'policyengine/v2/policy_select.html', {
+    return render(request, 'policyadmin/dashboard/policy_select.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
         'policies': policies,
@@ -256,7 +256,7 @@ def selectdocument(request):
 
     documents = CommunityDoc.objects.filter(community=user.community)
 
-    return render(request, 'policyengine/v2/document_select.html', {
+    return render(request, 'policyadmin/dashboard/document_select.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
         'documents': documents,
@@ -282,13 +282,13 @@ def documenteditor(request):
         data['name'] = doc.name
         data['text'] = doc.text
 
-    return render(request, 'policyengine/v2/document_editor.html', data)
+    return render(request, 'policyadmin/dashboard/document_editor.html', data)
 
 @login_required(login_url='/login')
 def actions(request):
     user = get_user(request)
 
-    return render(request, 'policyengine/v2/actions.html', {
+    return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
     })

@@ -38,19 +38,19 @@ Now set up a database. You can use the default sqlite or mysql or another databa
 Finally, `cd` back into the `policykit` directory and run `python manage.py makemigrations` to migrate tables to the database.
 
 7)
-Next, you need to set up the governance starter kits that you can choose from to initialize your community's governance. In order to do so, from the `policykit` directory you need to first enter the shell by executing the command `python manage.py shell`. After running this command, the shell prompt should display. From this prompt, run the following command: `exec(open('policyengine/scripts/starterkits.py').read())`.
+Next, you need to set up the governance starter kits that you can choose from to initialize your community's governance. In order to do so, from the `policykit` directory you need to first enter the shell by executing the command `python manage.py shell`. After running this command, the shell prompt should display. From this prompt, run the following command: `exec(open('scripts/starterkits.py').read())`.
 
 ## Potential Issues
 
 1)
-It's possible that you may receive the error `InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]` where `ModelState` may refer to policyengine, policykit, redditintegration or slackintegration. If so, inside each subdirectory: policyengine, policykit, redditintegration and slackintegration, create a directory called `migrations` and add an empty file inside each directory named `__init__.py`.
+It's possible that you may receive the error `InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]` where `ModelState` may refer to policyengine, policykit, slack, reddit or discord. If so, inside each subdirectory: policyengine, policykit, slack, reddit and discord, make sure that there exists a directory called `migrations` and that inside this directory there exists an empty file named `__init__.py`.
 
 2)
 It's possible that you may receive the error when trying to make migrations of the form `ImportError: cannot import name 'FieldDoesNotExist'`. If you receive this error, then you need to go to `home/ubuntu/.local/lib/python3.6/site-packages/polymorphic/query.py` (or wherever your site-packages are saved on your local machine if running a local copy of PolicyKit) and change the line `from django.db.models import FieldDoesNotExist` to `from django.core.exceptions import FieldDoesNotExist`.
 
 ## Running PolicyKit in Production
 
-Initialize a webserver. Thus far, we have been running in Ubuntu 18.04, and the below instructions work for that OS. 
+Initialize a webserver. Thus far, we have been running in Ubuntu 18.04, and the below instructions work for that OS.
 
 Add PolicyKit to the server by uploading the codebase or using `git clone`. Create a virtualenv and install all requirements into the virtualenv as above.
 
@@ -105,7 +105,7 @@ You may separately wish to configure PolicyKit to work under HTTPS (will be necc
                 SSLEngine on
                 SSLCertificateFile      /etc/letsencrypt/live/policykit.org/fullchain.pem
                 SSLCertificateKeyFile /etc/letsencrypt/live/policykit.org/privkey.pem
-                
+
 ...more below
 ```
 
@@ -207,5 +207,3 @@ Start celery:
 
 Start celerybeat:
 `sudo systemctl start celerybeat.service`
-
-

@@ -53,11 +53,11 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_celery_results',
     'policyengine',
-    'slackintegration',
-    'redditintegration',
-    'discordintegration',
+    'integrations.slack',
+    'integrations.reddit',
+    'integrations.discord',
     'actstream'
-    
+
 ]
 
 SITE_ID = 1
@@ -135,9 +135,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-AUTHENTICATION_BACKENDS = ['discordintegration.auth_backends.DiscordBackend',
-                           'redditintegration.auth_backends.RedditBackend',
-                           'slackintegration.auth_backends.SlackBackend',
+AUTHENTICATION_BACKENDS = ['integrations.discord.auth_backends.DiscordBackend',
+                           'integrations.reddit.auth_backends.RedditBackend',
+                           'integrations.slack.auth_backends.SlackBackend',
                            'django.contrib.auth.backends.ModelBackend']
 
 
@@ -180,17 +180,17 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'slackintegration': {
+        'integrations.slack': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
         },
-        'redditintegration': {
+        'integrations.reddit': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
         },
-        'discordintegration': {
+        'integrations.discord': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
@@ -217,11 +217,11 @@ CELERY_BEAT_SCHEDULE = {
        'schedule': 60.0,
     },
  'reddit-listener-beat': {
-       'task': 'redditintegration.tasks.reddit_listener_actions',
+       'task': 'integrations.reddit.tasks.reddit_listener_actions',
        'schedule': 60.0,
     },
  'discord-listener-beat': {
-       'task': 'discordintegration.tasks.discord_listener_actions',
+       'task': 'integrations.discord.tasks.discord_listener_actions',
        'schedule': 60.0,
     }
 }

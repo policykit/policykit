@@ -11,8 +11,8 @@ app = Celery('policykit',
              broker='amqp://',
              backend='amqp://',
              include=['policyengine.tasks',
-                      'redditintegration.tasks',
-                      'discordintegration.tasks'])
+                      'integrations.reddit.tasks',
+                      'integrations.discord.tasks'])
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
