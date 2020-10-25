@@ -150,7 +150,15 @@
     <div class="profile" id="profile">
       <div class="profileButton">
         <h3 class="profileName">Hi, {{user.readable_name}}</h3>
-        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+        {% if user.avatar %}
+          {% if user.community.platform == "discord" %}
+            <img class="profilePicture" src="https://cdn.discordapp.com/avatars/{{user.username}}/{{user.avatar}}.png">
+          {% else %}
+            <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+          {% endif %}
+        {% else %}
+          <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+        {% endif %}
       </div>
       <div class="profileDropdown">
         <div class="profileDropdownElement">
