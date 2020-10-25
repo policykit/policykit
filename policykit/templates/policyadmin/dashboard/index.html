@@ -255,6 +255,7 @@
           <table class="table table-hover">
             <thead>
               <tr>
+                <th scope="col"></th>
                 <th scope="col">Name</th>
                 <th scope="col">Roles</th>
               </tr>
@@ -262,6 +263,17 @@
             <tbody>
               {% for key, value in users.items %}
                 <tr>
+                  <td>
+                    {% if user.avatar %}
+                      {% if user.community.platform == "discord" %}
+                        <img class="profilePicture" src="https://cdn.discordapp.com/avatars/{{user.username}}/{{user.avatar}}.png">
+                      {% else %}
+                        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                      {% endif %}
+                    {% else %}
+                      <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                    {% endif %}
+                  </td>
                   <td>{{value.readable_name}}</td>
                   <td>
                     {% for r in value.roles %}
