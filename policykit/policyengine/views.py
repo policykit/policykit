@@ -41,7 +41,7 @@ def v2(request):
             'readable_name': u.readable_name,
             'roles': []
         }
-        if u.avatar:
+        if hasattr(u, 'avatar'):
             user_data[u.username]['avatar'] = u.avatar
 
     role_data = {}
