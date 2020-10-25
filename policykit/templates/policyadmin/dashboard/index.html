@@ -101,6 +101,11 @@
     background-color: #ebecf1;
   }
 
+  .sidebarPicture {
+    height: auto;
+    border-radius: 50%;
+  }
+
   .actionPanel {
     width: 90%;
     margin-right: auto;
@@ -212,10 +217,6 @@
   textarea[readonly] {
     background-color: #ffffff !important;
   }
-
-  .profilePicture {
-    width: auto;
-  }
 </style>
 {% endblock %}
 
@@ -270,12 +271,12 @@
                   <td>
                     {% if user.avatar %}
                       {% if user.community.platform == "discord" %}
-                        <img class="profilePicture" src="https://cdn.discordapp.com/avatars/{{user.username}}/{{user.avatar}}.png">
+                        <img class="sidebarPicture" src="https://cdn.discordapp.com/avatars/{{user.username}}/{{user.avatar}}.png">
                       {% else %}
-                        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                        <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                       {% endif %}
                     {% else %}
-                      <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                      <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                     {% endif %}
                   </td>
                   <td>{{value.readable_name}}</td>
