@@ -269,9 +269,9 @@
               {% for key, value in users.items %}
                 <tr>
                   <td>
-                    {% if user.avatar %}
-                      {% if user.community.platform == "discord" %}
-                        <img class="sidebarPicture" src="https://cdn.discordapp.com/avatars/{{user.username}}/{{user.avatar}}.png">
+                    {% if value.avatar %}
+                      {% if value.community.platform == "discord" %}
+                        <img class="sidebarPicture" src="https://cdn.discordapp.com/avatars/{{value.username}}/{{value.avatar}}.png">
                       {% else %}
                         <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                       {% endif %}
