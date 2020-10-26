@@ -39,6 +39,8 @@ class SlackBackend(BaseBackend):
                 user_resp = urllib.request.urlopen(user_req)
                 user_res = json.loads(user_resp.read().decode('utf-8'))
 
+                logger.info(user_res)
+
                 if slack_user.exists():
                     slack_user = slack_user[0]
                     slack_user.access_token = oauth['authed_user']['access_token']
