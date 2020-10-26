@@ -23,8 +23,6 @@ class DiscordBackend(BaseBackend):
         resp = urllib.request.urlopen(req)
         user_guilds = json.loads(resp.read().decode('utf-8'))
 
-        logger.info(user_guilds)
-
         community = None
         for guild in user_guilds:
             s = DiscordCommunity.objects.filter(team_id=guild['id'])
@@ -37,8 +35,6 @@ class DiscordBackend(BaseBackend):
             req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
             resp = urllib.request.urlopen(req)
             user_info = json.loads(resp.read().decode('utf-8'))
-
-            logger.info(user_info)
 
             discord_user = DiscordUser.objects.filter(username=user_info['id'])
 

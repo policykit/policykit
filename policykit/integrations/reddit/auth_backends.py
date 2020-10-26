@@ -37,7 +37,7 @@ class RedditBackend(BaseBackend):
 
         if community:
 
-            req = urllib.request.Request('https://oauth.reddit.com/api/v1/me')
+            req = urllib.request.Request('https://oauth.reddit.com/api/v1/me?raw_json=1')
             req.add_header('Authorization', 'bearer %s' % oauth['access_token'])
             req.add_header("User-Agent", REDDIT_USER_AGENT)
             resp = urllib.request.urlopen(req)

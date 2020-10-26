@@ -101,6 +101,11 @@
     background-color: #ebecf1;
   }
 
+  .sidebarPicture {
+    height: 1.5em;
+    border-radius: 50%;
+  }
+
   .actionPanel {
     width: 90%;
     margin-right: auto;
@@ -255,6 +260,7 @@
           <table class="table table-hover">
             <thead>
               <tr>
+                <th scope="col"></th>
                 <th scope="col">Name</th>
                 <th scope="col">Roles</th>
               </tr>
@@ -262,6 +268,21 @@
             <tbody>
               {% for key, value in users.items %}
                 <tr>
+                  <td>
+                    {% if value.avatar %}
+                      {% if user.community.platform == "discord" %}
+                        <img class="sidebarPicture" src="https://cdn.discordapp.com/avatars/{{key}}/{{value.avatar}}.png">
+                      {% elif user.community.platform == "slack" %}
+                        <img class="sidebarPicture" src="{{value.avatar}}">
+                      {% elif user.community.platform == "reddit" %}
+                        <img class="sidebarPicture" src="{{value.avatar}}">
+                      {% else %}
+                        <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                      {% endif %}
+                    {% else %}
+                      <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                    {% endif %}
+                  </td>
                   <td>{{value.readable_name}}</td>
                   <td>
                     {% for r in value.roles %}

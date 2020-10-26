@@ -21,41 +21,31 @@ class SlackBackend(BaseBackend):
         s = SlackCommunity.objects.filter(team_id=oauth['team']['id'])
 
         if s.exists():
-            user_data = parse.urlencode({
-                    'token': oauth['authed_user']['access_token']
-                    }).encode()
+            data = parse.urlencode({'token': oauth['authed_user']['access_token']}).encode()
+            req = urllib.request.Request('https://slack.com/api/users.identity', data=data)
+            resp = urllib.request.urlopen(req)
+            user_info = json.loads(resp.read().decode('utf-8'))
 
             slack_user = SlackUser.objects.filter(username=oauth['authed_user']['id'])
 
-            if slack_user.exists() and slack_user[0].readable_name != None:
+            if slack_user.exists():
                 # update user info
                 slack_user = slack_user[0]
                 slack_user.access_token = oauth['authed_user']['access_token']
                 slack_user.community = s[0]
                 slack_user.password = oauth['authed_user']['access_token']
+                slack_user.readable_name = user_info['user']['name']
+                slack_user.avatar = user_info['user']['image_24']
                 slack_user.save()
             else:
-                user_req = urllib.request.Request('https://slack.com/api/users.identity?', data=user_data)
-                user_resp = urllib.request.urlopen(user_req)
-                user_res = json.loads(user_resp.read().decode('utf-8'))
-
-                if slack_user.exists():
-                    slack_user = slack_user[0]
-                    slack_user.access_token = oauth['authed_user']['access_token']
-                    slack_user.community = s[0]
-                    slack_user.password = oauth['authed_user']['access_token']
-                    slack_user.readable_name = user_res['user']['name']
-                    slack_user.avatar = user_res['user']['image_24']
-                    slack_user.save()
-                else:
-                    slack_user,_ = SlackUser.objects.get_or_create(
-                        username=oauth['authed_user']['id'],
-                        password=oauth['authed_user']['access_token'],
-                        community = s[0],
-                        readable_name = user_res['user']['name'],
-                        avatar = user_res['user']['image_24'],
-                        access_token = oauth['authed_user']['access_token'],
-                        )
+                slack_user,_ = SlackUser.objects.get_or_create(
+                    username = oauth['authed_user']['id'],
+                    password = oauth['authed_user']['access_token'],
+                    community = s[0],
+                    readable_name = user_info['user']['name'],
+                    avatar = user_info['user']['image_24'],
+                    access_token = oauth['authed_user']['access_token'],
+                )
             return slack_user
         return None
 
