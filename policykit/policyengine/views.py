@@ -39,10 +39,9 @@ def v2(request):
     for u in users:
         user_data[u.username] = {
             'readable_name': u.readable_name,
-            'roles': []
+            'roles': [],
+            'avatar': u.avatar
         }
-        if hasattr(u, 'avatar'):
-            user_data[u.username]['avatar'] = u.avatar
 
     role_data = {}
     for r in roles:

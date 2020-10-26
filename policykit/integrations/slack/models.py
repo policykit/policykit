@@ -145,10 +145,7 @@ class SlackCommunity(Community):
 
 
 class SlackUser(CommunityUser):
-    avatar = models.CharField('avatar',
-                               max_length=500,
-                               null=True)
-
+    pass
 
 class SlackPostMessage(PlatformAction):
     ACTION = 'chat.postMessage'

@@ -69,6 +69,7 @@ class CommunityUser(User, PolymorphicModel):
     community = models.ForeignKey(Community, models.CASCADE)
     access_token = models.CharField('access_token', max_length=300, null=True)
     is_community_admin = models.BooleanField(default=False)
+    avatar = models.CharField('avatar', max_length=500, null=True)
 
     def __str__(self):
         return self.readable_name if self.readable_name else self.username

@@ -156,7 +156,6 @@ class DiscordCommunity(Community):
 
 class DiscordUser(CommunityUser):
     refresh_token = models.CharField('refresh_token', max_length=500, null=True)
-    avatar = models.CharField('avatar', max_length=500, null=True)
 
     def refresh_access_token(self):
         res = refresh_access_token(self.refresh_token)
