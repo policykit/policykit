@@ -80,7 +80,7 @@ def oauth(request):
             user_group.save()
 
             # Get the list of users and create a DiscordUser object for each user
-            req = urllib.request.Request('https://discordapp.com/api/guilds/%s/members' % guild_id)
+            req = urllib.request.Request('https://discordapp.com/api/guilds/%s/members?limit=1000' % guild_id) # NOTE: Can only have up to 1000 members per server!
             req.add_header("Content-Type", "application/json")
             req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
             req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
