@@ -126,7 +126,7 @@ def oauth(request):
                                 u,_ = SlackUser.objects.get_or_create(
                                     username=new_user['id'],
                                     readable_name=new_user['real_name'],
-                                    avatar=new-user['profile']['image_24'],
+                                    avatar=new_user['profile']['image_24'],
                                     community=community
                                 )
                             u.save()
