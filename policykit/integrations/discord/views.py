@@ -88,9 +88,12 @@ def oauth(request):
             guild_members = json.loads(resp.read().decode('utf-8'))
 
             for member in guild_members:
-                user, _ = DiscordUser.objects.get_or_create(username=member['user']['id'],
-                        readable_name=member['user']['username'],
-                        community=community)
+                user, _ = DiscordUser.objects.get_or_create(
+                    username=member['user']['id'],
+                    readable_name=member['user']['username'],
+                    avatar = member['user']['avatar'],
+                    community=community
+                )
                 user.save()
         else:
             community = s[0]
