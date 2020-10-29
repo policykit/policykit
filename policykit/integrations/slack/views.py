@@ -115,12 +115,20 @@ def oauth(request):
                     for new_user in res2['members']:
                         if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
                             if new_user['id'] == res['authed_user']['id']:
-                                u,_ = SlackUser.objects.get_or_create(username=res['authed_user']['id'], readable_name=new_user['real_name'],
-                                                         access_token=res['authed_user']['access_token'],
-                                                         is_community_admin=True,
-                                                         community=community)
+                                u,_ = SlackUser.objects.get_or_create(
+                                    username=res['authed_user']['id'],
+                                    readable_name=new_user['real_name'],
+                                    access_token=res['authed_user']['access_token'],
+                                    is_community_admin=True,
+                                    community=community
+                                )
                             else:
-                                u,_ = SlackUser.objects.get_or_create(username=new_user['id'], readable_name=new_user['real_name'], community=community)
+                                u,_ = SlackUser.objects.get_or_create(
+                                    username=new_user['id'],
+                                    readable_name=new_user['real_name'],
+                                    avatar=new_user['profile']['image_24'],
+                                    community=community
+                                )
                             u.save()
             else:
                 community = s[0]
@@ -148,7 +156,6 @@ def oauth(request):
     response = redirect('/login?success=true')
     return response
 
-
 def is_policykit_action(integration, test_a, test_b, api_name):
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
     logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
@@ -161,8 +168,6 @@ def is_policykit_action(integration, test_a, test_b, api_name):
                 return True
 
     return False
-
-
 
 @csrf_exempt
 def action(request):
@@ -304,8 +309,6 @@ def action(request):
                             uv = NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=1)
 
     return HttpResponse("")
-
-
 
 def post_policy(policy, action, users=None, post_type='channel', template=None, channel=None):
     from policyengine.models import LogAPICall, PlatformActionBundle

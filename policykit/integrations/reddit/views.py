@@ -118,8 +118,6 @@ def init_community_reddit(request):
         response = redirect('/login?success=true')
         return response
 
-    logger.info(community.access_token)
-
     context = {
         "starterkits": [kit.name for kit in RedditStarterKit.objects.all()],
         "community_name": community.community_name,
@@ -133,7 +131,6 @@ def action(request):
     json_data = json.loads(request.body)
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
-
 
 def post_policy(policy, action, users, template=None):
     from policyengine.models import LogAPICall
