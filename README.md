@@ -35,7 +35,7 @@ Check that you can run the server with no problems. To do so, `cd` into the `pol
 6)
 Now set up a database. You can use the default sqlite or mysql or another database of your choice. Make sure settings.py is pointing to the right database.
 
-Finally, `cd` back into the `policykit` directory and run `python manage.py makemigrations` to migrate tables to the database.
+Finally, `cd` back into the `policykit` directory and run `python manage.py makemigrations` to create new migrations. Then run `python manage.py migrate` to apply those migrations.
 
 7)
 Next, you need to set up the governance starter kits that you can choose from to initialize your community's governance. In order to do so, from the `policykit` directory you need to first enter the shell by executing the command `python manage.py shell`. After running this command, the shell prompt should display. From this prompt, run the following command: `exec(open('scripts/starterkits.py').read())`.
@@ -50,14 +50,20 @@ It's possible that you may receive the error when trying to make migrations of t
 
 ## Running PolicyKit in Production
 
-Initialize a webserver. Thus far, we have been running in Ubuntu 18.04, and the below instructions work for that OS.
+Initialize a webserver. Thus far, we have been run in Ubuntu 18.04 and Ubuntu 20.04, and the below instructions should work for both.
 
-Add PolicyKit to the server by uploading the codebase or using `git clone`. Create a virtualenv and install all requirements into the virtualenv as above.
+Add PolicyKit to the server by uploading the codebase or using `git clone`. Create a virtualenv and install all requirements into the virtualenv as above. For instructions, see [how to install python on ubuntu 20.0.4](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server).
+
+
+Code changes in production:
+* Update `ALLOWED_HOSTS` in `settings.py` to point to your hosts.
+* Update `private.py` with SERVER_URL, client id(s), and client secret(s).
+* Make sure the database path in `settings.py` is correct. It is not recommended to keep the database inside the project directory, because you need to grant the apache2 user (`www-data`) access to the database its parent folder. Recommended: put the database somewhere like `/var/databases/policykit/db.sqlite3`.
 
 Remember to run `python manage.py collectstatic` to collect static files into a static/ folder.
 
 
-Install Apache2.
+Install Apache2 and the mod-wsgi package: `sudo apt-get install apache2 libapache2-mod-wsgi-py3`.
 
 Configure Apache2 by editing /etc/apache2/sites-available/000-default.conf. This config file assumes the code is at /policykit and the virtualenv is at /policykit_vm.
 
@@ -83,6 +89,7 @@ File: 000-default.conf
 ```
 
 You may separately wish to configure PolicyKit to work under HTTPS (will be neccesary to interface with the Slack API for instance). If so, you'll need to get an SSL certificate (we use LetsEncrypt) and add the following file under /etc/apache2/sites-available/default-ssl.conf. You may want to redirect HTTP calls to HTTPS - if so, you'll need to update the :80 config above.
+[Instructions to set up LetsEncrypt on ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-20-04).
 
 ```
 #<IfModule mod_ssl.c>
@@ -113,16 +120,16 @@ Start apache2:
 `sudo service apache2 start`
 
 
+Install RabbitMQ: `sudo apt-get install rabbitmq-server`.
 
-
-Install RabbitMQ, Celery, and celery-beat.
+Install celery: `pip install celery`.
 
 Start RabbitMQ:
 `sudo service rabbitmq-server start`
 
-Inside /etc/systemd/system add configuration files for running celery and celery-beat as a process:
+Create these configuration files for running celery and celery-beat as a process:
 
-File: celery.service
+File: `/etc/systemd/system/celery.service`
 ```
 [Unit]
 Description=Celery Service
@@ -147,7 +154,7 @@ ExecReload=/bin/sh -c '${CELERY_BIN} multi restart ${CELERYD_NODES} \
 WantedBy=multi-user.target
 ```
 
-File: celerybeat.service
+File: `/etc/systemd/system/celerybeat.service`
 ```
 [Unit]
 Description=Celery Beat Service
@@ -167,9 +174,9 @@ ExecStart=/bin/sh -c '${CELERY_BIN} beat  \
 WantedBy=multi-user.target
 ```
 
-You can see both point to an environment file. In /etc/conf.d add the following file. You can change the arguments to suit your needs.
+You can see both point to an environment file. Add the following file. You can change the arguments to suit your needs. Make sure to update the path to Celery bin according to your virtual environment.
 
-Filename: celery
+File: `/etc/conf.d/celery`
 ```
 # Name of nodes to start
 # we have one node:
@@ -202,8 +209,24 @@ CELERYBEAT_PID_FILE="/var/run/celery/beat.pid"
 CELERYBEAT_LOG_FILE="/var/log/celery/beat.log"
 ```
 
-Start celery:
-`sudo systemctl start celery.service`
+> See [Celery 4.4.0 docs for daemonization using systemd](https://docs.celeryproject.org/en/4.4.0/userguide/daemonizing.html#usage-systemd) for more information.
+
+After creating the files (and after any time you change them) run `sudo systemctl daemon-reload`
+
+
+### Start Celery
+
+Start celery with `sudo systemctl start celery.service`
+
+Check that there are no errors `sudo systemctl status celery`
+
+> tip: if celery failed to start up as a service, try running celery directly to see if there are errors in your code: `celery worker --uid <User that runs celery> -A policykit`
+
+### Start Celerybeat
 
 Start celerybeat:
 `sudo systemctl start celerybeat.service`
+
+Check that there are no errors `sudo systemctl status celerybeat`
+
+> tip: if there are errors starting up, check the logs at ` /var/log/celery/beat.log`
