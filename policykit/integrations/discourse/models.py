@@ -1,7 +1,6 @@
 from django.db import models
 from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
-from policykit.settings import DISCOURSE_CLIENT_SECRET
 import urllib
 from urllib import parse
 import urllib.request
