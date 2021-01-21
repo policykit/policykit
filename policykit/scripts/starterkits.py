@@ -638,12 +638,13 @@ jury_policy1_slack = GenericPolicy.objects.create(filter = "return True",
                                        initialize = """
 usernames = [u.username for u in users]
 jury = random.sample(usernames, k=3)
-action.data.add('jury', jury)
+action.data.set('jury', jury)
                                            """,
                                        check = """
+import datetime
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
+yes_votes = action.proposal.get_yes_votes(users=jury_users)
 if len(yes_votes) >= 2:
    return PASSED
 elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
@@ -652,7 +653,7 @@ elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
                                        notify = """
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.platform.notify_users(action, policy, users=jury_users, text='Please deliberate amongst yourselves before voting')
+action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",

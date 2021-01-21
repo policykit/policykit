@@ -360,11 +360,14 @@ def check_policy(policy, action):
         return Proposal.PROPOSED
 
 def notify_policy(policy, action):
+    from policyengine.models import CommunityUser
+
+    users = CommunityUser.objects.filter(community=policy.community)
     _locals = locals()
 
-    wrapper_start = "def notify(policy, action):\r\n"
+    wrapper_start = "def notify(policy, action, users):\r\n"
 
-    wrapper_end = "\r\nnotify(policy, action)"
+    wrapper_end = "\r\nnotify(policy, action, users)"
 
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
