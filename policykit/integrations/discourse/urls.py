@@ -4,7 +4,9 @@ from integrations.discourse import views
 
 
 urlpatterns = [
-    path('oauth', views.oauth),
     path('action', views.action),
-    path('init_community_discourse', views.init_community_discourse)
+    path('configure', views.configure),
+    path('auth', views.auth),
+    path('user_login', views.user_login),
+    path('init_community', views.init_community)
 ]

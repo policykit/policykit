@@ -58,6 +58,6 @@ class DiscourseBackend(BaseBackend):
 
     def get_user(self, user_id):
         try:
-            return DiscordUser.objects.get(pk=user_id)
+            return DiscourseUser.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None

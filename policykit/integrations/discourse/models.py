@@ -26,6 +26,7 @@ class DiscourseCommunity(Community):
     platform = "discourse"
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
+    api_key = models.CharField('api_key', max_length=100, unique=True)
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
         from discourseintegration.views import post_policy
