@@ -30,7 +30,7 @@ def auth(request):
     scopes = 'read,write,message_bus,push,notifications,session_info'
 
     req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}'.format(url, SERVER_URL, client_id, scopes, DISCOURSE_PUBLIC_KEY))
-    logger.info(req)
+    logger.info(req.__dict__)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     urllib.request.urlopen(req)
 
