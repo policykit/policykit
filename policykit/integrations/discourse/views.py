@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def configure(request):
-    return render(request, "policyadmin/configure_discourse.html", context)
+    return render(request, "policyadmin/configure_discourse.html")
 
 @csrf_exempt
 def auth(request):
