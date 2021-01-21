@@ -241,10 +241,10 @@ def action(request):
                 new_api_action.channel = event['channel_id']
                 new_api_action.timestamp = event['item']['message']['ts']
 
-        if new_api_action.initiator.has_perm('slackintegration.add_' + new_api_action.action_codename):
+        if new_api_action.initiator.has_perm('slack.add_' + new_api_action.action_codename):
             if new_api_action and not policy_kit_action:
                 #if they have execute permission, skip all policies
-                if new_api_action.initiator.has_perm('slackintegration.can_execute_' + new_api_action.action_codename):
+                if new_api_action.initiator.has_perm('slack.can_execute_' + new_api_action.action_codename):
                     new_api_action.execute()
                 else:
                     for policy in PlatformPolicy.objects.filter(community=new_api_action.community):
