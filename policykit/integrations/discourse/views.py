@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL, DISCOURSE_PUBLIC_KEY
-from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscoursePostMessage, DiscourseStarterKit
+from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseStarterKit
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
