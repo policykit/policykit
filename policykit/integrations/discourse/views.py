@@ -65,7 +65,7 @@ def init_community(request):
     private_key = RSA.importKey(request.session['private_key'])
 
     encrypted_api_key = request.GET['payload']
-    api_key = private_key.decrypt(encrypted_api_key.encode('utf-8'))
+    api_key = private_key.decrypt(base64.b64decode(encrypted_api_key))
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
@@ -74,7 +74,7 @@ def init_community(request):
 
     req = urllib.request.Request(url + '/about.json')
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    req.add_header("User-Api-Key", api_key.decode('utf-8'))
+    req.add_header("User-Api-Key", api_key)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
