@@ -26,17 +26,21 @@ def auth(request):
 
     request.session['discourse_url'] = url
 
-    client_id = secrets.token_hex(16) # 32 random nibbles (not bytes! despite what API doc says)
-    nonce = secrets.token_hex(8) # 16 random nibbles (not bytes! despite what API doc says)
-    scopes = 'read,write'
-
     from Crypto.PublicKey import RSA
     key_pair = RSA.generate(2048)
     public_key = key_pair.publickey().exportKey() # Exports in PEM format by default
-    public_key = public_key.decode().replace(" ", "%20").replace("\n", "%0A") # Make public key URL-friendly
 
-    req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}&nonce={}'.format(url, SERVER_URL, client_id, scopes, public_key, nonce))
-    logger.info(req.__dict__)
+    params = {
+        'auth_redirect': SERVER_URL + "/discourse/init_community",
+        'application_name': 'PolicyKit',
+        'client_id': secrets.token_hex(16), # 32 random nibbles (not bytes! despite what API doc says)
+        'nonce': secrets.token_hex(8), # 16 random nibbles (not bytes! despite what API doc says)
+        'scopes': 'read,write',
+        'public_key': public_key
+    }
+    data = urllib.parse.urlencode(params).encode('utf-8')
+
+    req = urllib.request.Request(url + '/user-api-key/new', data)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     urllib.request.urlopen(req)
 
