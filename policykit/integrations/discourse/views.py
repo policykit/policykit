@@ -65,7 +65,7 @@ def init_community(request):
     private_key = RSA.importKey(request.session['private_key'].encode('utf-8'))
 
     encrypted_api_key = request.GET['payload']
-    api_key = private_key.decrypt(encrypted_api_key)
+    api_key = private_key.decrypt(encrypted_api_key.encode('utf-8'))
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
