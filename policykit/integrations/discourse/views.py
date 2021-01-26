@@ -28,7 +28,7 @@ def auth(request):
     request.session['discourse_url'] = url
 
     key_pair = RSA.generate(2048)
-    public_key = key_pair.publickey().exportKey()
+    public_key = key_pair.publickey().exportKey("PEM")
     private_key = key_pair.exportKey("PEM")
 
     request.session['private_key'] = private_key.decode('utf-8')
@@ -65,7 +65,7 @@ def init_community(request):
     private_key = RSA.importKey(request.session['private_key'])
 
     encrypted_api_key = request.GET['payload']
-    api_key = private_key.decrypt(encrypted_api_key)
+    api_key = private_key.encode('utf-8').decrypt(encrypted_api_key)
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
