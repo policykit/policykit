@@ -26,10 +26,11 @@ def auth(request):
 
     request.session['discourse_url'] = url
 
-    client_id = secrets.token_hex(32)
-    scopes = 'read,write,message_bus,push,notifications,session_info'
+    client_id = secrets.token_hex(16) # 32 random nibbles (not bytes! despite what API doc says)
+    nonce = secrets.token_hex(8) # 16 random nibbles (not bytes! despite what API doc says)
+    scopes = 'read,write'
 
-    req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}'.format(url, SERVER_URL, client_id, scopes, DISCOURSE_PUBLIC_KEY))
+    req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}&nonce={}'.format(url, SERVER_URL, client_id, scopes, DISCOURSE_PUBLIC_KEY, nonce))
     logger.info(req.__dict__)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     urllib.request.urlopen(req)
