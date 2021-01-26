@@ -29,7 +29,7 @@ def auth(request):
 
     key_pair = RSA.generate(2048)
     public_key = key_pair.publickey().exportKey()
-    private_key = key_pair.privatekey()
+    private_key = key_pair.exportKey()
 
     request.session['private_key'] = private_key
 
