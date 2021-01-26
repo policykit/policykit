@@ -31,7 +31,7 @@ def auth(request):
     public_key = key_pair.publickey().exportKey()
     private_key = key_pair.exportKey()
 
-    request.session['private_key'] = json.dumps(private_key)
+    request.session['private_key'] = json.dumps(private_key.decode('utf-8'))
 
     params = {
         'auth_redirect': SERVER_URL + "/discourse/init_community",
