@@ -38,9 +38,9 @@ def auth(request):
         'scopes': 'read,write',
         'public_key': public_key
     }
-    data = urllib.parse.urlencode(params).encode('utf-8')
+    query_string = urllib.parse.urlencode(params)
 
-    req = urllib.request.Request(url + '/user-api-key/new', data)
+    req = urllib.request.Request(url + '/user-api-key/new?' + query_string)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     urllib.request.urlopen(req)
 
