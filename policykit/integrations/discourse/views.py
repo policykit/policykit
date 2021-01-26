@@ -40,14 +40,7 @@ def auth(request):
     }
     query_string = urllib.parse.urlencode(params)
 
-    req = urllib.request.Request(url + '/user-api-key/new?' + query_string)
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    resp = urllib.request.urlopen(req)
-    res = json.loads(resp.read().decode('utf-8'))
-
-    logger.info(res)
-
-    response = redirect('/login?success=true')
+    response = redirect(url + '/user-api-key/new?' + query_string)
     return response
 
 @csrf_exempt
