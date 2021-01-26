@@ -33,8 +33,6 @@ def auth(request):
     from Crypto.PublicKey import RSA
     key_pair = RSA.generate(2048)
     public_key = key_pair.publickey().exportKey() # Exports in PEM format by default
-    public_key = public_key.splitlines()[1:-1] # Remove header and footer from public key
-    public_key = ''.join(map(bytes.decode, public_key))
 
     req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}&nonce={}'.format(url, SERVER_URL, client_id, scopes, public_key, nonce))
     logger.info(req.__dict__)
