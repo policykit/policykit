@@ -59,7 +59,7 @@ def user_login(request):
 @csrf_exempt
 def init_community(request):
     url = request.session['discourse_url']
-    api_key = request.POST['payload']
+    api_key = request.GET['payload']
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
