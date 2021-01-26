@@ -30,7 +30,11 @@ def auth(request):
     nonce = secrets.token_hex(8) # 16 random nibbles (not bytes! despite what API doc says)
     scopes = 'read,write'
 
-    req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}&nonce={}'.format(url, SERVER_URL, client_id, scopes, DISCOURSE_PUBLIC_KEY, nonce))
+    from Crypto.PublicKey import RSA
+    key_pair = RSA.generate(2048)
+    public_key = key.publickey()
+
+    req = urllib.request.Request('{}/user-api-key/new?auth_redirect={}%2Fdiscourse%2Finit_community&application_name=PolicyKit&client_id={}&scopes={}&public_key={}&nonce={}'.format(url, SERVER_URL, client_id, scopes, public_key, nonce))
     logger.info(req.__dict__)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     urllib.request.urlopen(req)
