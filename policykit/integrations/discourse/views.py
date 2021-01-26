@@ -74,7 +74,7 @@ def init_community(request):
 
     req = urllib.request.Request(url + '/about.json')
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    req.add_header("User-Api-Key", api_key)
+    req.add_header("User-Api-Key", api_key.decode('utf-8'))
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
