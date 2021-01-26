@@ -5,6 +5,7 @@ from integrations.discourse.models import DiscourseCommunity, DiscourseUser, Dis
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
+from Crypto.PublicKey import RSA
 from urllib import parse
 import urllib.request
 import json
@@ -26,9 +27,11 @@ def auth(request):
 
     request.session['discourse_url'] = url
 
-    from Crypto.PublicKey import RSA
     key_pair = RSA.generate(2048)
-    public_key = key_pair.publickey().exportKey() # Exports in PEM format by default
+    public_key = key_pair.publickey().exportKey()
+    private_key = key_pair.privatekey()
+
+    request.session['private_key'] = private_key
 
     params = {
         'auth_redirect': SERVER_URL + "/discourse/init_community",
@@ -59,7 +62,10 @@ def user_login(request):
 @csrf_exempt
 def init_community(request):
     url = request.session['discourse_url']
-    api_key = request.GET['payload']
+    private_key = request.session['private_key']
+
+    encrypted_api_key = request.GET['payload']
+    api_key = private_key.decrypt(encrypted_api_key)
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
@@ -68,8 +74,7 @@ def init_community(request):
 
     req = urllib.request.Request(url + '/about.json')
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    req.add_header("Api-Key", api_key)
-    req.add_header("Api-Username", "PolicyKit")
+    req.add_header("User-Api-Key", api_key)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
