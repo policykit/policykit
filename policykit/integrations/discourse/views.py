@@ -62,10 +62,10 @@ def user_login(request):
 @csrf_exempt
 def init_community(request):
     url = request.session['discourse_url']
-    private_key = RSA.importKey(request.session['private_key'].encode('utf-8'))
+    private_key = RSA.importKey(request.session['private_key'])
 
     encrypted_api_key = request.GET['payload']
-    api_key = private_key.decrypt(encrypted_api_key.encode('utf-8').strip())
+    api_key = private_key.decrypt(encrypted_api_key.encode('utf-8'))
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
