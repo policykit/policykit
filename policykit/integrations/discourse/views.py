@@ -29,9 +29,9 @@ def auth(request):
 
     key_pair = RSA.generate(2048)
     public_key = key_pair.publickey().exportKey()
-    private_key = key_pair.exportKey()
+    private_key = key_pair.exportKey("PEM")
 
-    request.session['private_key'] = json.dumps(private_key.decode('utf-8'))
+    request.session['private_key'] = private_key
 
     params = {
         'auth_redirect': SERVER_URL + "/discourse/init_community",
@@ -62,7 +62,7 @@ def user_login(request):
 @csrf_exempt
 def init_community(request):
     url = request.session['discourse_url']
-    private_key = json.loads(request.session['private_key'])
+    private_key = RSA.importKey(request.session['private_key'])
 
     encrypted_api_key = request.GET['payload']
     api_key = private_key.decrypt(encrypted_api_key)
