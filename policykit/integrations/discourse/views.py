@@ -19,7 +19,13 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def configure(request):
-    return render(request, "policyadmin/configure_discourse.html")
+    state = request.GET['state']
+
+    context = {
+        'state': state
+    }
+
+    return render(request, "policyadmin/configure_discourse.html", context)
 
 @csrf_exempt
 def auth(request):
@@ -27,37 +33,38 @@ def auth(request):
 
     request.session['discourse_url'] = url
 
-    key_pair = RSA.generate(2048)
-    public_key = key_pair.publickey().exportKey("PEM")
-    private_key = key_pair.exportKey("PEM")
+    if state == 'policykit_discourse_user_login':
+        user = authenticate(request, platform='discourse')
+        if user:
+            login(request, user)
+            response = redirect('/main')
+            return response
+        else:
+            response = redirect('/login?error=invalid_login')
+            return response
 
-    request.session['private_key'] = private_key.decode('utf-8')
+    elif state == 'policykit_discourse_mod_install':
+        key_pair = RSA.generate(2048)
+        public_key = key_pair.publickey().exportKey("PEM")
+        private_key = key_pair.exportKey("PEM")
 
-    params = {
-        'auth_redirect': SERVER_URL + "/discourse/init_community",
-        'application_name': 'PolicyKit',
-        'client_id': secrets.token_hex(16), # 32 random nibbles (not bytes! despite what API doc says)
-        'nonce': secrets.token_hex(8), # 16 random nibbles (not bytes! despite what API doc says)
-        'scopes': 'read,write',
-        'public_key': public_key
-    }
-    query_string = urllib.parse.urlencode(params)
+        request.session['private_key'] = private_key.decode('utf-8')
 
-    response = redirect(url + '/user-api-key/new?' + query_string)
+        params = {
+            'auth_redirect': SERVER_URL + "/discourse/init_community",
+            'application_name': 'PolicyKit',
+            'client_id': secrets.token_hex(16), # 32 random nibbles (not bytes! despite what API doc says)
+            'nonce': secrets.token_hex(8), # 16 random nibbles (not bytes! despite what API doc says)
+            'scopes': 'read,write',
+            'public_key': public_key
+        }
+        query_string = urllib.parse.urlencode(params)
+
+        response = redirect(url + '/user-api-key/new?' + query_string)
+        return response
+
+    response = redirect('/login?error=no_communities_with_admin_privileges_found')
     return response
-
-@csrf_exempt
-def user_login(request):
-    url = request.session['discourse_url']
-
-    user = authenticate(request, platform='discourse')
-    if user:
-        login(request, user)
-        response = redirect('/main')
-        return response
-    else:
-        response = redirect('/login?error=invalid_login')
-        return response
 
 @csrf_exempt
 def init_community(request):
