@@ -276,6 +276,8 @@
                         <img class="sidebarPicture" src="{{value.avatar}}">
                       {% elif user.community.platform == "reddit" %}
                         <img class="sidebarPicture" src="{{value.avatar}}">
+                      {% elif user.community.platform == "discourse" %}
+                        <img class="sidebarPicture" src="{{value.avatar}}">
                       {% else %}
                         <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                       {% endif %}
