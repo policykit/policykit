@@ -107,10 +107,9 @@ def init_community(request):
         user_group.save()
 
         # Get the list of users and create a DiscourseUser object for each user
-        req = urllib.request.Request(url + 'admin/users/list.json')
-        req.add_header("Content-Type", "application/json")
-        req.add_header("Api-Key", api_key)
-        req.add_header("Api-Username", "PolicyKit")
+        req = urllib.request.Request(url + '/admin/users/list.json')
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        req.add_header("User-Api-Key", api_key)
         resp = urllib.request.urlopen(req)
         users = json.loads(resp.read().decode('utf-8'))
 
