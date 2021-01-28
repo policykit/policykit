@@ -66,7 +66,7 @@ def init_community(request):
 
     encrypted_api_key = request.GET['payload']
     api_key = private_key.decrypt(base64.b64decode(encrypted_api_key))
-    api_key = api_key.encode('utf-8', 'ignore').decode('utf-8')
+    api_key = api_key.decode('utf-8', 'ignore')
 
     logger.info(api_key)
 
