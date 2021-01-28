@@ -1,4 +1,4 @@
-afrom django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser
 from urllib import parse
