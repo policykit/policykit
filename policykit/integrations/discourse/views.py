@@ -28,10 +28,49 @@ def configure(request):
     return render(request, "policyadmin/configure_discourse.html", context)
 
 @csrf_exempt
-def auth(request):
+def request_key(request):
     url = request.POST['url']
+    state = request.POST['state']
 
     request.session['discourse_url'] = url
+    request.session['discourse_state'] = state
+
+    key_pair = RSA.generate(2048)
+    public_key = key_pair.publickey().exportKey("PEM")
+    private_key = key_pair.exportKey("PEM")
+
+    request.session['private_key'] = private_key.decode('utf-8')
+
+    params = {
+        'auth_redirect': SERVER_URL + "/discourse/auth",
+        'application_name': 'PolicyKit',
+        'client_id': secrets.token_hex(16), # 32 random nibbles (not bytes! despite what API doc says)
+        'nonce': secrets.token_hex(8), # 16 random nibbles (not bytes! despite what API doc says)
+        'scopes': 'read,write,message_bus,session_info',
+        'public_key': public_key
+    }
+    query_string = urllib.parse.urlencode(params)
+
+    response = redirect(url + '/user-api-key/new?' + query_string)
+    return response
+
+@csrf_exempt
+def auth(request):
+    logger.info(request)
+
+    state = request.session['discourse_state']
+    url = request.session['discourse_url']
+    private_key = RSA.importKey(request.session['private_key'])
+
+    payload_encrypted = request.GET['payload']
+    payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode('utf-8', 'ignore')
+    payload_body = payload[payload.index('{"key":'):] # Removes gobbledy-gook heading and returns json string
+    payload_body_json = json.loads(payload_body)
+    api_key = payload_body_json['key']
+
+    request.session['discourse_api_key'] = api_key
+
+    logger.info(api_key)
 
     if state == 'policykit_discourse_user_login':
         user = authenticate(request, platform='discourse')
@@ -44,96 +83,57 @@ def auth(request):
             return response
 
     elif state == 'policykit_discourse_mod_install':
-        key_pair = RSA.generate(2048)
-        public_key = key_pair.publickey().exportKey("PEM")
-        private_key = key_pair.exportKey("PEM")
+        community = None
+        s = DiscourseCommunity.objects.filter(team_id=url)
 
-        request.session['private_key'] = private_key.decode('utf-8')
-
-        params = {
-            'auth_redirect': SERVER_URL + "/discourse/init_community",
-            'application_name': 'PolicyKit',
-            'client_id': secrets.token_hex(16), # 32 random nibbles (not bytes! despite what API doc says)
-            'nonce': secrets.token_hex(8), # 16 random nibbles (not bytes! despite what API doc says)
-            'scopes': 'read,write',
-            'public_key': public_key
-        }
-        query_string = urllib.parse.urlencode(params)
-
-        response = redirect(url + '/user-api-key/new?' + query_string)
-        return response
-
-    response = redirect('/login?error=no_communities_with_admin_privileges_found')
-    return response
-
-@csrf_exempt
-def init_community(request):
-    url = request.session['discourse_url']
-    private_key = RSA.importKey(request.session['private_key'])
-
-    payload_encrypted = request.GET['payload']
-    payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode('utf-8', 'ignore')
-    payload_body = payload[payload.index('{"key":'):] # Removes gobbledy-gook heading and returns json string
-    payload_body_json = json.loads(payload_body)
-    api_key = payload_body_json['key']
-
-    logger.info(api_key)
-
-    community = None
-    s = DiscourseCommunity.objects.filter(team_id=url)
-    if s.exists():
-        community = s[0]
-
-    req = urllib.request.Request(url + '/about.json')
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    req.add_header("User-Api-Key", api_key)
-    resp = urllib.request.urlopen(req)
-    res = json.loads(resp.read().decode('utf-8'))
-
-    title = res['about']['title']
-
-    if community:
-        community = s[0]
-        community.community_name = title
-        community.team_id = url
-        community.api_key = api_key
-        community.save()
-
-        response = redirect('/login?success=true')
-        return response
-    else:
-        user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discourse: " + title + ": Base User")
-
-        community = DiscourseCommunity.objects.create(
-            community_name=title,
-            team_id=url,
-            api_key=api_key,
-            base_role=user_group
-        )
-        user_group.community = community
-        user_group.save()
-
-        # Get the list of users and create a DiscourseUser object for each user
-        req = urllib.request.Request(url + '/admin/users/list.json')
-        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        req = urllib.request.Request(url + '/about.json')
         req.add_header("User-Api-Key", api_key)
         resp = urllib.request.urlopen(req)
-        users = json.loads(resp.read().decode('utf-8'))
+        res = json.loads(resp.read().decode('utf-8'))
 
-        for u in users:
-            du, _ = DiscourseUser.objects.get_or_create(
-                username=u['username'],
-                readable_name=u['username'],
-                community=community
+        title = res['about']['title']
+
+        if s.exists():
+            community = s[0]
+            community.community_name = title
+            community.team_id = url
+            community.api_key = api_key
+            community.save()
+
+            response = redirect('/login?success=true')
+            return response
+        else:
+            user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discourse: " + title + ": Base User")
+
+            community = DiscourseCommunity.objects.create(
+                community_name=title,
+                team_id=url,
+                api_key=api_key,
+                base_role=user_group
             )
-            du.save()
+            user_group.community = community
+            user_group.save()
 
-        context = {
-            "starterkits": [kit.name for kit in DiscourseStarterKit.objects.all()],
-            "community_name": community.community_name,
-            "platform": "discourse"
-        }
-        return render(request, "policyadmin/init_starterkit.html", context)
+            # Get the list of users and create a DiscourseUser object for each user
+            req = urllib.request.Request(url + '/admin/users/list.json')
+            req.add_header("User-Api-Key", api_key)
+            resp = urllib.request.urlopen(req)
+            users = json.loads(resp.read().decode('utf-8'))
+
+            for u in users:
+                du, _ = DiscourseUser.objects.get_or_create(
+                    username=u['username'],
+                    readable_name=u['username'],
+                    community=community
+                )
+                du.save()
+
+            context = {
+                "starterkits": [kit.name for kit in DiscourseStarterKit.objects.all()],
+                "community_name": community.community_name,
+                "platform": "discourse"
+            }
+            return render(request, "policyadmin/init_starterkit.html", context)
 
     response = redirect('/login?error=no_community_found')
     return response

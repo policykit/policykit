@@ -52,6 +52,7 @@ class DiscourseCommunity(Community):
         else:
             req = urllib.request.Request(call_info, data)
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        req.add_header('User-Api-Key', api_key)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
 

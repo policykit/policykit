@@ -14,46 +14,36 @@ class DiscourseBackend(BaseBackend):
         if platform != 'discourse':
             return None
 
-        req = urllib.request.Request('https://www.discordapp.com/api/users/@me/guilds')
-        req.add_header('Authorization', 'Bearer %s' % oauth['access_token'])
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
-        user_guilds = json.loads(resp.read().decode('utf-8'))
+        url = request.session['discourse_url']
+        api_key = request.session['discourse_api_key']
 
-        community = None
-        for guild in user_guilds:
-            s = DiscordCommunity.objects.filter(team_id=guild['id'])
-            if s.exists():
-                community = s[0]
+        s = DiscourseCommunity.objects.filter(team_id=url)
 
-        if community:
-            req = urllib.request.Request('https://www.discordapp.com/api/users/@me')
-            req.add_header('Authorization', 'Bearer %s' % oauth['access_token'])
-            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        if s.exists():
+            req = urllib.request.Request(url + '/session/current.json')
+            req.add_header("User-Api-Key", api_key)
             resp = urllib.request.urlopen(req)
-            user_info = json.loads(resp.read().decode('utf-8'))
+            user_info = json.loads(resp.read().decode('utf-8'))['current_user']
 
-            discord_user = DiscordUser.objects.filter(username=user_info['id'])
+            discourse_user = DiscourseUser.objects.filter(username=user_info['id'])
 
-            if discord_user.exists():
+            if discourse_user.exists():
                 # update user info
-                discord_user = discord_user[0]
-                discord_user.access_token = oauth['access_token']
-                discord_user.community = community
-                discord_user.password = oauth['access_token']
-                discord_user.readable_name = user_info['username']
-                discord_user.avatar = user_info['avatar']
-                discord_user.save()
+                discourse_user = discourse_user[0]
+                discourse_user.community = s[0]
+                discourse_user.password = api_key
+                discourse_user.readable_name = user_info['name']
+                discourse_user.avatar = user_info['avatar_template']
+                discourse_user.save()
             else:
-                discord_user,_ = DiscordUser.objects.get_or_create(
+                discourse_user,_ = DiscourseUser.objects.get_or_create(
                     username = user_info['id'],
-                    password = oauth['access_token'],
-                    community = community,
-                    readable_name = user_info['username'],
-                    avatar = user_info['avatar'],
-                    access_token = oauth['access_token'],
+                    password = api_key,
+                    community = s[0],
+                    readable_name = user_info['name'],
+                    avatar = user_info['avatar_template']
                 )
-            return discord_user
+            return discourse_user
         return None
 
     def get_user(self, user_id):
