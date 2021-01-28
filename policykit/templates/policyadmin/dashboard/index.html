@@ -320,7 +320,7 @@
                     {% elif value.users|length == 2 %}
                       {{value.users.0.username}} and {{value.users.1.username}}
                     {% elif value.users|length >= 3 %}
-                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users.count|add:"-2"}} more...
+                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users|length|add:"-2"}} more...
                     {% endif %}
                   </td>
                 </tr>
@@ -559,17 +559,17 @@
       document.getElementById("name").value = decodeHtml(modalData.name);
       document.getElementById("description").value = decodeHtml(modalData.description);
 
-      editors[0].setValue(modalData.filter);
+      editors[0].setValue(decodeHtml(modalData.filter));
       setTimeout(function(){ editors[0].refresh(); }, 1);
-      editors[1].setValue(modalData.initialize);
+      editors[1].setValue(decodeHtml(modalData.initialize));
       setTimeout(function(){ editors[1].refresh(); }, 1);
-      editors[2].setValue(modalData.check);
+      editors[2].setValue(decodeHtml(modalData.check));
       setTimeout(function(){ editors[2].refresh(); }, 1);
-      editors[3].setValue(modalData.notify);
+      editors[3].setValue(decodeHtml(modalData.notify));
       setTimeout(function(){ editors[3].refresh(); }, 1);
-      editors[4].setValue(modalData.pass);
+      editors[4].setValue(decodeHtml(modalData.pass));
       setTimeout(function(){ editors[4].refresh(); }, 1);
-      editors[5].setValue(modalData.fail);
+      editors[5].setValue(decodeHtml(modalData.fail));
       setTimeout(function(){ editors[5].refresh(); }, 1);
     } else if (type == 'doc') {
       document.getElementById("modal_code").style.display = "block";
