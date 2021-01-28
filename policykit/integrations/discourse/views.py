@@ -66,7 +66,7 @@ def init_community(request):
 
     payload_encrypted = request.GET['payload']
     payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode('utf-8', 'ignore')
-    payload_body = payload[payload.index('{'):] # Removes gobbledy-gook heading and returns json string
+    payload_body = payload[payload.index('{"key":'):] # Removes gobbledy-gook heading and returns json string
     payload_body_json = json.loads(payload_body)
     api_key = payload_body_json['key']
 
