@@ -67,7 +67,7 @@ def init_community(request):
     encrypted_api_key = request.GET['payload']
     api_key = private_key.decrypt(base64.b64decode(encrypted_api_key))
 
-    logger.info(json.parse(api_key))
+    logger.info(json.loads(api_key))
 
     community = None
     s = DiscourseCommunity.objects.filter(team_id=url)
