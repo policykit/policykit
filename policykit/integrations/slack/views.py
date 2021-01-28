@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from urllib import parse
 import urllib.request
-from policykit.settings import SLACK_CLIENT_SECRET
+from policykit.settings import SLACK_CLIENT_SECRET, SLACK_CLIENT_ID
 from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
@@ -49,7 +49,7 @@ def oauth(request):
     state = request.GET.get('state')
 
     data = parse.urlencode({
-        'client_id': '455205644210.932801604965',
+        'client_id': SLACK_CLIENT_ID,
         'client_secret': SLACK_CLIENT_SECRET,
         'code': code,
         }).encode()
