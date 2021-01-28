@@ -320,7 +320,7 @@
                     {% elif value.users|length == 2 %}
                       {{value.users.0.username}} and {{value.users.1.username}}
                     {% elif value.users|length >= 3 %}
-                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users.count|add:"-2"}} more...
+                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users|length|add:"-2"}} more...
                     {% endif %}
                   </td>
                 </tr>
