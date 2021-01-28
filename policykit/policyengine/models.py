@@ -285,7 +285,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def save(self, *args, **kwargs):
         if self.shouldCreate():
             #runs only if they have propose permission
-            if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
+            if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
                 if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
                 else:
@@ -776,7 +776,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
         if not self.pk:
             logger.info('is pk')
             #runs only if they have propose permission
-            if self.initiator.has_perm(self.app_name + '.add_' + self.action_codename):
+            if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
                 logger.info('has propose permission')
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
