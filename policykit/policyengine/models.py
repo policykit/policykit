@@ -8,6 +8,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
+from datetime import datetime, timezone
 import urllib
 import json
 
@@ -137,6 +138,7 @@ class LogAPICall(models.Model):
                                       )
         res = community.make_call(call, values=values, action=action, method=method)
         logger.info("COMMUNITY API RESPONSE")
+        logger.info(res)
         return res
 
 class GenericPolicy(models.Model):
@@ -193,11 +195,11 @@ class Proposal(models.Model):
     def get_no_votes(self, users=None):
         return self.get_boolean_votes(False, users)
 
-    def get_boolean_votes(self, value=False, users=None):
+    def get_boolean_votes(self, value, users=None):
         if users:
-            votes = BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users)
+            votes = BooleanVote.objects.filter(boolean_value=value, proposal=self, user__in=users)
         else:
-            votes = BooleanVote.objects.filter(boolean_value=False, proposal=self)
+            votes = BooleanVote.objects.filter(boolean_value=value, proposal=self)
         return votes
 
     def get_number_votes(self, value=0, users=None):
@@ -237,6 +239,9 @@ class Proposal(models.Model):
             for i in users:
                 votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
         return users
+
+    def time_elapsed(self):
+        return datetime.now(timezone.utc) - self.proposal_time
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -775,6 +780,10 @@ class PlatformAction(BaseAction,PolymorphicModel):
         logger.info('entered save')
         if not self.pk:
             logger.info('is pk')
+            if self.data is None:
+                ds = DataStore.objects.create()
+                self.data = ds
+
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
                 logger.info('has propose permission')

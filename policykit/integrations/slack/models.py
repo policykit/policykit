@@ -35,20 +35,16 @@ class SlackCommunity(Community):
     bot_id = models.CharField('bot_id', max_length=150, unique=True, default='')
 
     def notify_action(self, action, policy, users, post_type='channel', template=None, channel=None):
-        from slackintegration.views import post_policy
+        from integrations.slack.views import post_policy
         post_policy(policy, action, users, post_type, template, channel)
 
     def make_call(self, url, values=None, action=None, method=None):
-        logger.info(url)
+        if not url.startswith("http"):
+            url = SlackCommunity.API + url
         if values:
-            data = urllib.parse.urlencode(values)
-            data = data.encode('utf-8')
-            logger.info(data)
-        else:
-            data = None
-
-        call_info = SlackCommunity.API + url + '?'
-        req = urllib.request.Request(call_info, data)
+            url += "?" + urllib.parse.urlencode(values)
+        logger.info(f"Making call: {url}")
+        req = urllib.request.Request(url)
         resp = urllib.request.urlopen(req)
         res = json.loads(resp.read().decode('utf-8'))
         return res
