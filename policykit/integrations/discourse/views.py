@@ -65,7 +65,7 @@ def init_community(request):
     private_key = RSA.importKey(request.session['private_key'])
 
     payload_encrypted = request.GET['payload']
-    payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode()
+    payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode('utf-8', 'ignore')
     payload_body = api_key[api_key.index('{'):] # Removes gobbledy-gook heading and returns json string
     payload_body_json = json.loads(payload_body)
     api_key = payload_body_json['key']
