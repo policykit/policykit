@@ -64,9 +64,11 @@ def init_community(request):
     url = request.session['discourse_url']
     private_key = RSA.importKey(request.session['private_key'])
 
-    encrypted_api_key = request.GET['payload']
-    api_key = private_key.decrypt(base64.b64decode(encrypted_api_key))
-    api_key = json.loads(api_key[api_key.index('{'):])['key'] # Removes gobbledy-gook heading and gets api key from json
+    payload_encrypted = request.GET['payload']
+    payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode()
+    payload_body = api_key[api_key.index('{'):] # Removes gobbledy-gook heading and returns json string
+    payload_body_json = json.loads(payload_body)
+    api_key = payload_body_json['key']
 
     logger.info(api_key)
 
