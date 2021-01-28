@@ -223,12 +223,19 @@ function propose() {
     window.location.href = "{{server_url}}/main/"
   }
 
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
   {% if name %}
-    document.getElementById('name').value = `{{name}}`
+    document.getElementById('name').value = decodeHtml(`{{name}}`)
   {% endif %}
 
   {% if description %}
-    document.getElementById('description').value = `{{description}}`
+    document.getElementById('description').value = decodeHtml(`{{description}}`)
   {% endif %}
 
 
@@ -260,36 +267,36 @@ function propose() {
     switch (i) {
       case 0:
         {% if filter %}
-          editors[i].setValue(`{{filter}}`);
+          editors[i].setValue(decodeHtml(`{{filter}}`));
           break;
         {% endif %}
       case 1:
         {% if initialize %}
-          editors[i].setValue(`{{initialize}}`);
+          editors[i].setValue(decodeHtml(`{{initialize}}`));
           break;
         {% endif %}
       case 2:
         {% if check %}
-          editors[i].setValue(`{{check}}`);
+          editors[i].setValue(decodeHtml(`{{check}}`));
           break;
         {% endif %}
       case 3:
         {% if notify %}
-          editors[i].setValue(`{{notify}}`);
+          editors[i].setValue(decodeHtml(`{{notify}}`));
           break;
         {% endif %}
       case 4:
         {% if success %}
-          editors[i].setValue(`{{success}}`);
+          editors[i].setValue(decodeHtml(`{{success}}`));
           break;
         {% endif %}
       case 5:
         {% if fail %}
-          editors[i].setValue(`{{fail}}`);
+          editors[i].setValue(decodeHtml(`{{fail}}`));
           break;
         {% endif %}
       default:
-        editors[i].setValue(DEFAULT_VALUES[code_id]);
+        editors[i].setValue(decodeHtml(DEFAULT_VALUES[code_id]));
     }
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
