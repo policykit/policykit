@@ -74,8 +74,10 @@ def discord_listener_actions():
 
             for message in messages:
                 if not is_policykit_action(community, message['id'], 'id', call_type):
+                    logger.info("Discord: new message found with ID: " + message['id'])
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post_exists.exists():
+                        logger.info("Discord: creating DiscordPostMessage action object")
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
@@ -99,6 +101,7 @@ def discord_listener_actions():
                 actions.append(new_api_action)
 
         for action in actions:
+            logger.info("Discord: checking action with ID: " + action.id)
             for policy in PlatformPolicy.objects.filter(community=action.community):
                 if filter_policy(policy, action):
                     if not action.pk:
@@ -106,7 +109,9 @@ def discord_listener_actions():
                         action.is_bundled = False
                         action.save()
                     check_result = check_policy(policy, action)
+                    logger.info("Discord: running check on action with ID: " + action.id)
                     if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
+                        logger.info("Discord: reverting action with ID: " + action.id)
                         action.revert()
 
         # Boolean voting
