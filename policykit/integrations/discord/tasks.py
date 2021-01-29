@@ -49,7 +49,9 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 
 @shared_task
 def discord_listener_actions():
+    logger.info("Discord: Checking for actions")
     for community in DiscordCommunity.objects.all():
+        logger.info("Discord: Checking community")
         actions = []
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % community.team_id)
@@ -61,6 +63,7 @@ def discord_listener_actions():
 
         for channel in channels:
             channel_id = channel['id']
+            logger.info("Discord: Checking channel with ID: " + channel_id)
 
             # Post Message
             call_type = ('channels/%s/messages' % channel_id)
@@ -73,6 +76,7 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
+                logger.info("Discord: Checking message with ID: " + message['id'])
                 if not is_policykit_action(community, message['id'], 'id', call_type):
                     logger.info("Discord: new message found with ID: " + message['id'])
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
