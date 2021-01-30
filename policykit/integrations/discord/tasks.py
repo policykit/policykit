@@ -51,7 +51,6 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 def discord_listener_actions():
     logger.info("Discord: Checking for actions")
     for community in DiscordCommunity.objects.all():
-        logger.info("Discord: Checking community")
         actions = []
 
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % community.team_id)
@@ -107,6 +106,7 @@ def discord_listener_actions():
 
                 actions.append(new_api_action)
 
+        logger.info("Discord: about to check actions")
         for action in actions:
             logger.info("Discord: checking action with ID: " + action.id)
             for policy in PlatformPolicy.objects.filter(community=action.community):
