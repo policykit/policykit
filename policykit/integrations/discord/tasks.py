@@ -94,6 +94,7 @@ def discord_listener_actions():
                                                                community=community)
                         new_api_action.initiator = u
                         actions.append(new_api_action)
+            logger.info('finished messages for channel with ID: ' + channel_id)
 
             # Rename Channel
             call_type = ('channels/%s' % channel_id)
@@ -105,6 +106,8 @@ def discord_listener_actions():
                 new_api_action.channel = channel['id']
 
                 actions.append(new_api_action)
+
+            logger.info('finished checking channel with ID: ' + channel_id)
 
         logger.info("Discord: about to check actions")
         for action in actions:
