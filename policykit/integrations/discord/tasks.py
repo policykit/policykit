@@ -97,7 +97,7 @@ def discord_listener_actions():
             logger.info('finished messages for channel with ID: ' + channel_id)
 
             # Rename Channel
-            call_type = ('channels/%s' % channel_id)
+            """call_type = ('channels/%s' % channel_id)
 
             if not is_policykit_action(community, channel['name'], 'name', call_type):
                 new_api_action = DiscordRenameChannel()
@@ -105,7 +105,7 @@ def discord_listener_actions():
                 new_api_action.name = channel['name']
                 new_api_action.channel = channel['id']
 
-                actions.append(new_api_action)
+                actions.append(new_api_action)"""
 
             logger.info('finished checking channel with ID: ' + channel_id)
 
