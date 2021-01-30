@@ -816,6 +816,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                     logger.info('failed (save)')
                                     fail_policy(policy, action)
                                     logger.info('finished failed (save)')
+                                    return
                                 else:
                                     logger.info('notify (save)')
                                     notify_policy(policy, action)
