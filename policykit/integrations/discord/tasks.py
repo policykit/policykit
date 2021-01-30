@@ -62,6 +62,9 @@ def discord_listener_actions():
         channels = json.loads(resp.read().decode('utf-8'))
 
         for channel in channels:
+            if channel['type'] != 0: # We only want to check text channels
+                continue
+
             channel_id = channel['id']
             logger.info("Discord: Checking channel with ID: " + channel_id)
 
