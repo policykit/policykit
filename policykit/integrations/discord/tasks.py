@@ -78,12 +78,11 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
-                logger.info("Discord: Checking message with ID: " + message['id'])
                 if not is_policykit_action(community, message['id'], 'id', call_type):
-                    logger.info("Discord: new message found with ID: " + message['id'])
+                    logger.info("Discord: message found with ID: " + message['id'])
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post_exists.exists():
-                        logger.info("Discord: creating DiscordPostMessage action object")
+                        logger.info("Discord: creating new DiscordPostMessage action object")
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
@@ -94,7 +93,7 @@ def discord_listener_actions():
                                                                community=community)
                         new_api_action.initiator = u
                         actions.append(new_api_action)
-            logger.info('finished messages for channel with ID: ' + channel_id)
+            logger.info('Discord: finished messages for channel with ID: ' + channel_id)
 
             # Rename Channel
             """call_type = ('channels/%s' % channel_id)
@@ -107,19 +106,21 @@ def discord_listener_actions():
 
                 actions.append(new_api_action)"""
 
-            logger.info('finished checking channel with ID: ' + channel_id)
+            logger.info('Discord: finished checking channel with ID: ' + channel_id)
 
-        logger.info("Discord: about to check actions")
+        logger.info("Discord: about to check new actions")
         for action in actions:
-            logger.info("Discord: checking action with ID: " + action.id)
+            logger.info("Discord: checking new action with ID: " + action.id)
             for policy in PlatformPolicy.objects.filter(community=action.community):
                 if filter_policy(policy, action):
                     if not action.pk:
+                        logger.info('Discord: saving new action with ID: ' + action.id)
                         action.community_origin = True
                         action.is_bundled = False
                         action.save()
+                    logger.info('Discord: about to run check on action with ID: ' + action.id)
                     check_result = check_policy(policy, action)
-                    logger.info("Discord: running check on action with ID: " + action.id)
+                    logger.info("Discord: finished running check on action with ID: " + action.id)
                     if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
                         logger.info("Discord: reverting action with ID: " + action.id)
                         action.revert()
