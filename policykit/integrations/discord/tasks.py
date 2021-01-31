@@ -38,18 +38,14 @@ def is_policykit_action(integration, test_a, test_b, api_name):
         logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
                                                 call_type=integration.API + api_name)
         if logs.exists():
-            logger.info("checking API logging (discord)")
             for log in logs:
                 j_info = json.loads(log.extra_info)
-                logger.info("extra info:")
-                logger.info(j_info)
                 if test_a == j_info[test_b]:
                     return True
     return False
 
 @shared_task
 def discord_listener_actions():
-    logger.info("Discord: Checking for actions")
     for community in DiscordCommunity.objects.all():
         actions = []
 
@@ -65,7 +61,6 @@ def discord_listener_actions():
                 continue
 
             channel_id = channel['id']
-            logger.info("Discord: Checking channel with ID: " + channel_id)
 
             # Post Message
             call_type = ('channels/%s/messages' % channel_id)
@@ -79,10 +74,8 @@ def discord_listener_actions():
 
             for message in messages:
                 if not is_policykit_action(community, message['id'], 'id', call_type):
-                    logger.info("Discord: message found with ID: " + message['id'])
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post_exists.exists():
-                        logger.info("Discord: creating new DiscordPostMessage action object")
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
@@ -93,7 +86,6 @@ def discord_listener_actions():
                                                                community=community)
                         new_api_action.initiator = u
                         actions.append(new_api_action)
-            logger.info('Discord: finished messages for channel with ID: ' + channel_id)
 
             # Rename Channel
             """call_type = ('channels/%s' % channel_id)
@@ -106,11 +98,7 @@ def discord_listener_actions():
 
                 actions.append(new_api_action)"""
 
-            logger.info('Discord: finished checking channel with ID: ' + channel_id)
-
-        logger.info("Discord: about to check new actions")
         for action in actions:
-            logger.info("Discord: saving new action with ID: " + action.id)
             action.community_origin = True
             action.is_bundled = False
             action.save()
