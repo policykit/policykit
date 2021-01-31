@@ -85,7 +85,7 @@ font-family: 'Montserrat';
 </div>
 
     <div class="functionName">
-        <label>proposal.get_yes_votes(users=None)</label>
+        <label>action.proposal.get_yes_votes(users=None)</label>
 </div>
         <div class = "functionDesc">
             <p> As default, returns a QuerySet of all users who voted “yes” for a given proposal. If users is passed in, votes are returned only for those users.
@@ -93,7 +93,7 @@ font-family: 'Montserrat';
 
         </div>
 <div class="functionName">
-    <label>proposal.get_no_votes(users=None)</label>
+    <label>action.proposal.get_no_votes(users=None)</label>
 </div>
     <div class = "functionDesc">
 <p> As default, returns a list of all users who voted “no” for a given proposal. If users is passed in, votes are returned only for those users.
@@ -102,7 +102,7 @@ font-family: 'Montserrat';
 </div>
 
 <div class="functionName">
-<label>proposal.get_number_votes(value=0, users=None)</label>
+<label>action.proposal.get_number_votes(value=0, users=None)</label>
 </div>
 <div class = "functionDesc">
 <p> As default, returns a QuerySet of all users who voted “no” for a given proposal. If users is passed in, votes are returned only for those users.
@@ -112,7 +112,7 @@ font-family: 'Montserrat';
 
 
 <div class="functionName">
-<label>proposal.get_raw_boolean_votes(users=None)
+<label>action.proposal.get_raw_boolean_votes(users=None)
     </label>
     </div>
     <div class = "functionDesc">
@@ -123,7 +123,7 @@ font-family: 'Montserrat';
 </div>
 
 <div class="functionName">
-<label>proposal.get_raw_number_votes(users=None)
+<label>action.proposal.get_raw_number_votes(users=None)
 </label>
 </div>
 <div class = "functionDesc">
@@ -136,7 +136,7 @@ font-family: 'Montserrat';
 
 
 <div class="functionName">
-<label>proposal.get_total_vote_count(vote_type, vote_number = 1, users = None)</label>
+<label>action.proposal.get_total_vote_count(vote_type, vote_number = 1, users = None)</label>
 </div>
 <div class = "functionDesc">
 <p> Returns a dictionary where key is vote category (true, false or bundle number) and value is vote count for given vote category. Vote_type should be entered as a string and vote_number refers to the case of number votes (defaults to 1). If users are passed in, votes are returned only for those users.
@@ -147,7 +147,7 @@ font-family: 'Montserrat';
 
 
 <div class="functionName">
-<label>proposal.time_elapsed()</label>
+<label>action.proposal.time_elapsed()</label>
 </div>
 <div class = "functionDesc">
 <p> Returns time elapsed since proposal proposed
@@ -156,20 +156,10 @@ font-family: 'Montserrat';
 </div>
 
 <div class="functionName">
-<label>community.get_users()</label>
+<label>action.platform.get_users()</label>
 </div>
 <div class = "functionDesc">
 <p> Returns all users in a community in an array
-</p>
-
-</div>
-
-<div class="functionName">
-<label>starterkit.genericrole_set.all()</label>
-</div>
-<div class = "functionDesc">
-<p>    Returns all roles for a given community
-
 </p>
 
 </div>
