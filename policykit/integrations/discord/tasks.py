@@ -117,25 +117,21 @@ def discord_listener_actions():
             channel_id = proposed_action.channel
             message_id = proposed_action.id
 
-            for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED, EMOJI_ZERO_ENCODED, EMOJI_ONE_ENCODED, EMOJI_TWO_ENCODED, EMOJI_THREE_ENCODED, EMOJI_FOUR_ENCODED, EMOJI_FIVE_ENCODED, EMOJI_SIX_ENCODED, EMOJI_SEVEN_ENCODED, EMOJI_EIGHT_ENCODED, EMOJI_NINE_ENCODED]:
+            for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
                 users_with_reaction = community.make_call(call)
 
                 for user in users_with_reaction:
                     u = DiscordUser.objects.filter(username=user.id, community=community)
-
                     if u.exists():
                         u = u[0]
 
                         # Check for Boolean votes
                         if reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
+                            val = (reaction == EMOJI_LIKE_ENCODED)
+
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
-
-                            if reaction == EMOJI_LIKE_ENCODED:
-                                val = True
-                            else:
-                                val = False
-
+                            
                             if bool_vote.exists():
                                 vote = bool_vote[0]
                                 if vote.boolean_value != val:
