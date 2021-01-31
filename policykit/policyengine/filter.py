@@ -310,6 +310,7 @@ policyengine_functions = [
     'get_number_votes',
     'get_yes_votes',
     'notify_action',
+    'notify_users',
     'time_elapsed',
     'get_users',
     'get_total_vote_count',
@@ -318,7 +319,7 @@ policyengine_functions = [
     'get_raw_boolean_votes',
     'remove',
     'set'
-    
+
 ]
 
 class Filter(ast.NodeVisitor):
