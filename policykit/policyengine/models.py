@@ -793,7 +793,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
 
                 super(PlatformAction, self).save(*args, **kwargs)
 
-
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
@@ -815,10 +814,13 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                 elif check_result == Proposal.FAILED:
                                     logger.info('failed (save)')
                                     fail_policy(policy, action)
+                                    if self.community_origin:
+                                        self.community_revert = True
                                     logger.info('finished failed (save)')
-                                    return
                                 else:
                                     logger.info('notify (save)')
+                                    if self.community_origin:
+                                        self.community_revert = True
                                     notify_policy(policy, action)
             else:
                 logger.info('does not have propose permission')

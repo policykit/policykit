@@ -110,20 +110,12 @@ def discord_listener_actions():
 
         logger.info("Discord: about to check new actions")
         for action in actions:
-            logger.info("Discord: checking new action with ID: " + action.id)
-            for policy in PlatformPolicy.objects.filter(community=action.community):
-                if filter_policy(policy, action):
-                    if not action.pk:
-                        logger.info('Discord: saving new action with ID: ' + action.id)
-                        action.community_origin = True
-                        action.is_bundled = False
-                        action.save()
-                    logger.info('Discord: about to run check on action with ID: ' + action.id)
-                    check_result = check_policy(policy, action)
-                    logger.info("Discord: finished running check on action with ID: " + action.id)
-                    if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
-                        logger.info("Discord: reverting action with ID: " + action.id)
-                        action.revert()
+            logger.info("Discord: saving new action with ID: " + action.id)
+            action.community_origin = True
+            action.is_bundled = False
+            action.save()
+            if action.community_revert:
+                action.revert()
 
         # Boolean voting
 
