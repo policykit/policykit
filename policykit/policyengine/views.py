@@ -359,6 +359,7 @@ def check_policy(policy, action):
         return Proposal.PROPOSED
 
 def notify_policy(policy, action):
+    logger.info("entered notify_policy")
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
@@ -368,7 +369,9 @@ def notify_policy(policy, action):
 
     wrapper_end = "\r\nnotify(policy, action, users)"
 
+    logger.info("about to execute code for notify_policy")
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
+    logger.info("finished executing code for notify_policy")
 
 def pass_policy(policy, action):
     _locals = locals()

@@ -131,14 +131,11 @@ class LogAPICall(models.Model):
 
     @classmethod
     def make_api_call(cls, community, values, call, action=None, method=None):
-        logger.info("COMMUNITY API CALL")
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
         res = community.make_call(call, values=values, action=action, method=method)
-        logger.info("COMMUNITY API RESPONSE")
-        logger.info(res)
         return res
 
 class GenericPolicy(models.Model):
@@ -768,9 +765,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
         verbose_name_plural = 'platformactions'
 
     def revert(self, values, call, method=None):
-        logger.info('Community Action: started make_api_call')
         _ = LogAPICall.make_api_call(self.community, values, call, method=method)
-        logger.info('Community Action: finished make_api_call')
         self.community_revert = True
         self.save()
 
