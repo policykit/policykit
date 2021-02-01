@@ -119,7 +119,9 @@ def discord_listener_actions():
 
             for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
+                logger.info("Discord: About to check reactions of message with ID: " + message_id)
                 users_with_reaction = community.make_call(call)
+                logger.info("Discord: Just retrieved reactions of message with ID: " + message_id)
 
                 for user in users_with_reaction:
                     u = DiscordUser.objects.filter(username=user.id, community=community)
@@ -138,4 +140,6 @@ def discord_listener_actions():
                                     vote.boolean_value = val
                                     vote.save()
                             else:
+                                logger.info("Discord: About to create vote object for message with ID: " + message_id)
                                 b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
+                                logger.info("Discord: Just created vote object for message with ID: " + message_id)
