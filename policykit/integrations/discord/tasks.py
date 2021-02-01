@@ -115,7 +115,7 @@ def discord_listener_actions():
 
         for proposed_action in proposed_actions:
             channel_id = proposed_action.channel
-            message_id = proposed_action.id
+            message_id = proposed_action.community_post
 
             for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
