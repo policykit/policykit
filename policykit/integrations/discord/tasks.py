@@ -130,6 +130,10 @@ def discord_listener_actions():
 
                         # Check for Boolean votes
                         if reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
+                            if reaction == EMOJI_LIKE_ENCODED:
+                                logger.info("Discord: like emoji found for message with ID: " + message_id)
+                            if reaction == EMOJI_DISLIKE_ENCODED:
+                                logger.info("Discord: dislike emoji found for message with ID: " + message_id)
                             val = (reaction == EMOJI_LIKE_ENCODED)
 
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
