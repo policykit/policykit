@@ -56,11 +56,8 @@ class DiscordCommunity(Community):
         self.save()
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
-        logger.info("Discord: entered notify_action function (2)")
         from integrations.discord.views import post_policy
-        logger.info("Discord: just imported from discord views")
         post_policy(policy, action, users, template, channel)
-        logger.info("Discord: finished notify_action function")
 
     def save(self, *args, **kwargs):
         super(DiscordCommunity, self).save(*args, **kwargs)

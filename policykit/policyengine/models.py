@@ -805,7 +805,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                 initialize_policy(policy, action)
 
                                 check_result = check_policy(policy, action)
-                                logger.info("Discord: just checked policy")
                                 if check_result == Proposal.PASSED:
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
@@ -813,11 +812,9 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                     if self.community_origin:
                                         self.community_revert = True
                                 else:
-                                    logger.info("Discord: about to notify")
                                     if self.community_origin:
                                         self.community_revert = True
                                     notify_policy(policy, action)
-                                    logger.info("Discord: just finished notifying")
             else:
                 p = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
