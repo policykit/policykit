@@ -142,7 +142,7 @@ def post_policy(policy, action, users=None, template=None, channel=None):
     res = policy.community.make_call(call, values=data)
     data['id'] = res['id']
     logger.info("Discord: About to create LogAPICall object")
-    _ = LogAPICall.objects.create(community=community,
+    _ = LogAPICall.objects.create(community=policy.community,
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
