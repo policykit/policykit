@@ -131,7 +131,7 @@ def discord_listener_actions():
                             val = (reaction == EMOJI_LIKE_ENCODED)
 
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
-                            
+
                             if bool_vote.exists():
                                 vote = bool_vote[0]
                                 if vote.boolean_value != val:
