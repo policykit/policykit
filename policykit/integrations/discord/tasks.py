@@ -122,6 +122,13 @@ def discord_listener_actions():
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
 
+            # Check if community post still exists
+            call = ('channels/%s/messages/%s' % (channel_id, message_id))
+            res = community.make_call(call)
+            if res.code == 10008: # Unknown message code
+                proposed_action.delete()
+                continue
+
             for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
                 logger.info("Discord: About to check reactions of message with ID: " + message_id)
