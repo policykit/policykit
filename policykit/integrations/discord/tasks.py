@@ -107,13 +107,17 @@ def discord_listener_actions():
 
         # Boolean voting
 
+        logger.info('Discord: About to filter platform actions')
         proposed_actions = PlatformAction.objects.filter(
             community=community,
             proposal_status=Proposal.PROPOSED,
             community_post__isnull=False
         )
 
+        logger.info("Discord: number of platform actions is: " + proposed_actions.count())
+
         for proposed_action in proposed_actions:
+            logger.info(proposed_action)
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
 
