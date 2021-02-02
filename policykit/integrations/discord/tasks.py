@@ -107,13 +107,13 @@ def discord_listener_actions():
 
         # Boolean voting
 
-        logger.info('Discord: About to filter platform actions')
+        logger.info('Discord: About to filter platform actions (2)')
         proposed_actions = PlatformAction.objects.filter(
-            community=community,
-            proposal__status=Proposal.PROPOSED
+            community=community
         )
 
-        logger.info("Discord: number of platform actions is: " + proposed_actions.count())
+        logger.info("Discord: number of platform actions is:")
+        logger.info(proposed_actions.count())
 
         for proposed_action in proposed_actions:
             logger.info(proposed_action)
