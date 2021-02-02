@@ -109,7 +109,9 @@ def discord_listener_actions():
 
         logger.info('Discord: About to filter platform actions (2)')
         proposed_actions = PlatformAction.objects.filter(
-            community=community
+            community=community,
+            proposal__status=Proposal.PROPOSED,
+            community_post__isnull=False
         )
 
         logger.info("Discord: number of platform actions is:")
