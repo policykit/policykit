@@ -118,13 +118,14 @@ def discord_listener_actions():
         logger.info(proposed_actions.count())
 
         for proposed_action in proposed_actions:
-            logger.info(proposed_action)
+            logger.info('Discord proposed action: ' + json.dumps(proposed_action))
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
 
             # Check if community post still exists
             call = ('channels/%s/messages/%s' % (channel_id, message_id))
             res = community.make_call(call)
+            logger.info('Discord res: ' + json.dumps(res))
             if res.code == 10008: # Unknown message code
                 proposed_action.delete()
                 continue
