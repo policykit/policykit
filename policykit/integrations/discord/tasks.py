@@ -164,5 +164,7 @@ def discord_listener_actions():
                     logger.info(cond_result)
                     if cond_result == Proposal.PASSED:
                         pass_policy(policy, proposed_action)
+                        logger.info(proposed_action)
+                        logger.info('ID right now is: ' + proposed_action.id)
                     elif cond_result == Proposal.FAILED:
                         fail_policy(policy, proposed_action)
