@@ -121,9 +121,14 @@ def discord_listener_actions():
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
                 users_with_reaction = community.make_call(call)
 
+                logger.info('just called')
+
                 for user in users_with_reaction:
+                    logger.info('about to filter')
                     u = DiscordUser.objects.filter(username=user.id, community=community)
+                    logger.info('just filtered')
                     if u.exists():
+                        logger.info('exists')
                         u = u[0]
 
                         logger.info('about to check for votes')
