@@ -96,14 +96,12 @@ def discord_listener_actions():
             if action.community_revert:
                 action.revert()
 
-        # Boolean voting
-
+        # Manage voting on proposed policies
         proposed_actions = PlatformAction.objects.filter(
             community=community,
             proposal__status=Proposal.PROPOSED,
             community_post__isnull=False
         )
-
         for proposed_action in proposed_actions:
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
@@ -119,17 +117,14 @@ def discord_listener_actions():
 
             for reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
-
-                logger.info('about to call')
-                logger.info(call)
-
                 users_with_reaction = community.make_call(call)
-
-                logger.info('just called')
 
                 for user in users_with_reaction:
                     logger.info('about to filter')
-                    u = DiscordUser.objects.filter(username=user.id, community=community)
+                    u = DiscordUser.objects.filter(
+                        username=user['id'],
+                        community=community
+                    )
                     logger.info('just filtered')
                     if u.exists():
                         logger.info('exists')
