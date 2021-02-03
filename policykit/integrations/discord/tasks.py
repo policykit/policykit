@@ -119,7 +119,8 @@ def discord_listener_actions():
 
         for proposed_action in proposed_actions:
             logger.info('Discord proposed action:')
-            logger.info(proposed_action)
+            logger.info('Channel: ' + proposed_action.channel)
+            logger.info('Community post: ' + proposed_action.community_post)
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
 
