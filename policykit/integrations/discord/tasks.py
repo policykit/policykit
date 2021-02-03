@@ -120,22 +120,20 @@ def discord_listener_actions():
                 users_with_reaction = community.make_call(call)
 
                 for user in users_with_reaction:
-                    logger.info('about to filter')
                     u = DiscordUser.objects.filter(
                         username=user['id'],
                         community=community
                     )
-                    logger.info('just filtered')
                     if u.exists():
-                        logger.info('exists')
                         u = u[0]
 
                         logger.info('about to check for votes')
 
                         # Check for Boolean votes
                         if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
+                            logger.info('inside if statement')
                             val = (reaction == EMOJI_LIKE)
-                            logger.info('Discord: ' + val + " emoji found for message with ID: " + message_id)
+                            logger.info("Emoji " + reaction + " found for message with ID: " + message_id)
 
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
 
