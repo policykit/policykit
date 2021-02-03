@@ -119,6 +119,10 @@ def discord_listener_actions():
 
             for reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
+
+                logger.info('about to call')
+                logger.info(call)
+
                 users_with_reaction = community.make_call(call)
 
                 logger.info('just called')
