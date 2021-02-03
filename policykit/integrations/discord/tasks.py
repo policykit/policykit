@@ -129,8 +129,11 @@ def discord_listener_actions():
             try:
                 community.make_call(call)
             except Exception as e:
+                logger.info('entered outside except')
                 if e.code == 10008: # Unknown message code
+                    logger.info('about to delete')
                     proposed_action.delete()
+                    logger.info('deleted')
                 continue
 
             for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
