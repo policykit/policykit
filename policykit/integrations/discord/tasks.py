@@ -96,7 +96,7 @@ def discord_listener_actions():
             if action.community_revert:
                 action.revert()
 
-        # Manage voting on proposed policies
+        # Manage proposals
         proposed_actions = PlatformAction.objects.filter(
             community=community,
             proposal__status=Proposal.PROPOSED,
@@ -115,6 +115,7 @@ def discord_listener_actions():
                     proposed_action.delete()
                 continue
 
+            # Manage voting
             for reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
                 users_with_reaction = community.make_call(call)
@@ -127,13 +128,9 @@ def discord_listener_actions():
                     if u.exists():
                         u = u[0]
 
-                        logger.info('about to check for votes')
-
-                        # Check for Boolean votes
+                        # Manage Boolean voting
                         if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
-                            logger.info('inside if statement')
                             val = (reaction == EMOJI_LIKE)
-                            logger.info("Emoji " + reaction + " found for message with ID: " + message_id)
 
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
 
@@ -143,6 +140,11 @@ def discord_listener_actions():
                                     vote.boolean_value = val
                                     vote.save()
                             else:
-                                logger.info("Discord: About to create vote object for message with ID: " + message_id)
                                 b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
-                                logger.info("Discord: Just created vote object for message with ID: " + message_id)
+
+            # Update proposal
+            for policy in PlatformPolicy.objects.filter(community=community):
+                if filter_policy(policy, proposed_action):
+                    cond_result = check_policy(policy, proposed_action)
+                    if cond_result == Proposal.PASSED
+                        action.execute()
