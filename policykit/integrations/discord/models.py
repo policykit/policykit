@@ -215,11 +215,12 @@ class DiscordPostMessage(PlatformAction):
         res = self.community.make_call(call, values=data)
         self.id = res['id']
         data['id'] = self.id
+        self.community_post = self.id
         _ = LogAPICall.objects.create(community=self.community,
                                       call_type=call,
                                       extra_info=json.dumps(data))
 
-        logger.info('finished executing action')
+        logger.info('finished executing action: ' + self.community_post)
 
         super().pass_action()
 

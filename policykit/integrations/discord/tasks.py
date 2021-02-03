@@ -21,8 +21,9 @@ EMOJI_LIKE = '%F0%9F%91%8D'
 EMOJI_DISLIKE = '%F0%9F%91%8E'
 
 def is_policykit_action(community, call_type, test_a, test_b):
-    logger.info('checking if action is policykit action')
+    logger.info('checking if action is policykit action: ' + test_a)
     community_post = DiscordPostMessage.objects.filter(community_post=test_a)
+    logger.info(community_post)
     if community_post.exists():
         return True
     else:
