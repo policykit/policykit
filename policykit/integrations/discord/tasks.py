@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 EMOJI_LIKE = '%F0%9F%91%8D'
 EMOJI_DISLIKE = '%F0%9F%91%8E'
 
-def is_policykit_action(integration, test_a, test_b, api_name):
+def is_policykit_action(community, call_type, test_a, test_b):
     logger.info('checking if action is policykit action')
     community_post = DiscordPostMessage.objects.filter(community_post=test_a)
     if community_post.exists():
@@ -28,9 +28,10 @@ def is_policykit_action(integration, test_a, test_b, api_name):
     else:
         current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
         logger.info('filtering logs')
+        logger.info(call_type)
         logs = LogAPICall.objects.filter(
             proposal_time__gte=current_time_minus,
-            call_type=integration.API + api_name
+            call_type=call_type
         )
         logger.info(logs)
         if logs.exists():
@@ -72,7 +73,7 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
-                if not is_policykit_action(community, message['id'], 'id', call_type):
+                if not is_policykit_action(community, call_type, message['id'], 'id'):
                     post_exists = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post_exists.exists():
                         new_api_action = DiscordPostMessage()
