@@ -202,6 +202,8 @@ class DiscordPostMessage(PlatformAction):
         super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
 
     def execute(self):
+        from policyengine.models import LogAPICall
+        
         logger.info('executing action')
 
         data = {
