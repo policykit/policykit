@@ -154,5 +154,7 @@ def discord_listener_actions():
                 if filter_policy(policy, proposed_action):
                     cond_result = check_policy(policy, proposed_action)
                     logger.info(cond_result)
-                    if cond_result == Proposal.PASSED
-                        action.execute()
+                    if cond_result == Proposal.PASSED:
+                        pass_policy(policy, proposed_action)
+                    elif cond_result == Proposal.FAILED:
+                        fail_policy(policy, proposed_action)
