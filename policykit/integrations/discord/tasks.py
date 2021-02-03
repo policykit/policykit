@@ -16,19 +16,9 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Used for Boolean and Number voting
-EMOJI_LIKE_ENCODED = '%f0%9f%91%8d'
-EMOJI_DISLIKE_ENCODED = '%f0%9f%91%8e'
-EMOJI_ZERO_ENCODED = '0%ef%b8%8f%e2%83%a3'
-EMOJI_ONE_ENCODED = '1%ef%b8%8f%e2%83%a3'
-EMOJI_TWO_ENCODED = '2%ef%b8%8f%e2%83%a3'
-EMOJI_THREE_ENCODED = '3%ef%b8%8f%e2%83%a3'
-EMOJI_FOUR_ENCODED = '4%ef%b8%8f%e2%83%a3'
-EMOJI_FIVE_ENCODED = '5%ef%b8%8f%e2%83%a3'
-EMOJI_SIX_ENCODED = '6%ef%b8%8f%e2%83%a3'
-EMOJI_SEVEN_ENCODED = '7%ef%b8%8f%e2%83%a3'
-EMOJI_EIGHT_ENCODED = '8%ef%b8%8f%e2%83%a3'
-EMOJI_NINE_ENCODED = '9%ef%b8%8f%e2%83%a3'
+# Used for Boolean voting
+EMOJI_LIKE = '👍'
+EMOJI_DISLIKE = '👎'
 
 def is_policykit_action(integration, test_a, test_b, api_name):
     community_post = DiscordPostMessage.objects.filter(community_post=test_a)
@@ -114,12 +104,7 @@ def discord_listener_actions():
             community_post__isnull=False
         )
 
-        logger.info("Discord: number of platform actions is:")
-        logger.info(proposed_actions.count())
-
         for proposed_action in proposed_actions:
-            logger.info('Discord proposed action:')
-            logger.info('Community post: ' + proposed_action.community_post)
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
 
@@ -128,29 +113,25 @@ def discord_listener_actions():
             try:
                 community.make_call(call)
             except urllib.error.HTTPError as e:
-                logger.info(e.code)
                 if e.code == 404: # Message not found
                     proposed_action.delete()
                 continue
 
-            for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
+            for reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
-                logger.info("Discord: About to check reactions of message with ID: " + message_id)
                 users_with_reaction = community.make_call(call)
-                logger.info("Discord: Just retrieved reactions of message with ID: " + message_id)
 
                 for user in users_with_reaction:
                     u = DiscordUser.objects.filter(username=user.id, community=community)
                     if u.exists():
                         u = u[0]
 
+                        logger.info('about to check for votes')
+
                         # Check for Boolean votes
-                        if reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
-                            if reaction == EMOJI_LIKE_ENCODED:
-                                logger.info("Discord: like emoji found for message with ID: " + message_id)
-                            if reaction == EMOJI_DISLIKE_ENCODED:
-                                logger.info("Discord: dislike emoji found for message with ID: " + message_id)
-                            val = (reaction == EMOJI_LIKE_ENCODED)
+                        if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
+                            val = (reaction == EMOJI_LIKE)
+                            logger.info('Discord: ' + val + " emoji found for message with ID: " + message_id)
 
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
 
