@@ -118,7 +118,8 @@ def discord_listener_actions():
         logger.info(proposed_actions.count())
 
         for proposed_action in proposed_actions:
-            logger.info('Discord proposed action: ' + json.dumps(proposed_action))
+            logger.info('Discord proposed action:')
+            logger.info(json.dumps(proposed_action))
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
 
