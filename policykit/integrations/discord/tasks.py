@@ -102,6 +102,8 @@ def discord_listener_actions():
             proposal__status=Proposal.PROPOSED,
             community_post__isnull=False
         )
+        logger.info('num of proposed_actions:')
+        logger.info(proposed_actions.count())
         for proposed_action in proposed_actions:
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
