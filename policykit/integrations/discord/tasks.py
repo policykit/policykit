@@ -125,6 +125,7 @@ def discord_listener_actions():
             message_id = proposed_action.community_post
 
             # Check if community post still exists
+            logger.info('check')
             call = ('channels/%s/messages/%s' % (channel_id, message_id))
             res = community.make_call(call)
             logger.info('Discord res: ')
