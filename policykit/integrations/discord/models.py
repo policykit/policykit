@@ -202,6 +202,7 @@ class DiscordPostMessage(PlatformAction):
         super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
 
     def execute(self):
+        logger.info('executing action')
         res = self.community.make_call('gateway/bot')
 
         gateway_url = res['url']

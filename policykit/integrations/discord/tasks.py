@@ -137,17 +137,21 @@ def discord_listener_actions():
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
 
                             if bool_vote.exists():
+                                logger.info('vote already exists')
                                 vote = bool_vote[0]
                                 if vote.boolean_value != val:
                                     vote.boolean_value = val
                                     vote.save()
                             else:
+                                logger.info('creating vote')
                                 b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
 
             # Update proposal
+            logger.info("updating proposal")
             for policy in PlatformPolicy.objects.filter(community=community):
                 if filter_policy(policy, proposed_action):
                     cond_result = check_policy(policy, proposed_action)
+                    logger.info(cond_result)
                     if cond_result == Proposal.PASSED:
                         pass_policy(policy, proposed_action)
                     elif cond_result == Proposal.FAILED:
