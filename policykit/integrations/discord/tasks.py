@@ -17,8 +17,8 @@ import json
 logger = logging.getLogger(__name__)
 
 # Used for Boolean voting
-EMOJI_LIKE = '👍'
-EMOJI_DISLIKE = '👎'
+EMOJI_LIKE = '%F0%9F%91%8D'
+EMOJI_DISLIKE = '%F0%9F%91%8E'
 
 def is_policykit_action(integration, test_a, test_b, api_name):
     community_post = DiscordPostMessage.objects.filter(community_post=test_a)
