@@ -21,16 +21,24 @@ EMOJI_LIKE = '%F0%9F%91%8D'
 EMOJI_DISLIKE = '%F0%9F%91%8E'
 
 def is_policykit_action(integration, test_a, test_b, api_name):
+    logger.info('checking if action is policykit action')
     community_post = DiscordPostMessage.objects.filter(community_post=test_a)
     if community_post.exists():
         return True
     else:
         current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
-        logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
-                                                call_type=integration.API + api_name)
+        logger.info('filtering logs')
+        logs = LogAPICall.objects.filter(
+            proposal_time__gte=current_time_minus,
+            call_type=integration.API + api_name
+        )
+        logger.info(logs)
         if logs.exists():
+            logger.info(logs[0])
             for log in logs:
                 j_info = json.loads(log.extra_info)
+                logger.info('A: ' + test_a)
+                logger.info('B: ' + j_info[test_b])
                 if test_a == j_info[test_b]:
                     return True
     return False
