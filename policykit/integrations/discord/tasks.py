@@ -127,7 +127,8 @@ def discord_listener_actions():
             # Check if community post still exists
             call = ('channels/%s/messages/%s' % (channel_id, message_id))
             res = community.make_call(call)
-            logger.info('Discord res: ' + json.dumps(res))
+            logger.info('Discord res: ')
+            logger.info(res)
             if res.code == 10008: # Unknown message code
                 proposed_action.delete()
                 continue
