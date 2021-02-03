@@ -79,15 +79,10 @@ class DiscordCommunity(Community):
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
 
         res = None
-        logger.info('about to enter try')
         try:
-            logger.info('about to call')
             resp = urllib.request.urlopen(req)
-            logger.info('just called')
             res = json.loads(resp.read().decode('utf-8'))
-            logger.info('just loaded')
         except Exception as e:
-            logger.info('entered except')
             raise
 
         return res

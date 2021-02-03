@@ -127,11 +127,8 @@ def discord_listener_actions():
             # Check if community post still exists
             call = ('channels/%s/messages/%s' % (channel_id, message_id))
             try:
-                logger.info('outside about to call')
                 community.make_call(call)
-                logger.info('outside just called')
             except Exception as e:
-                logger.info('outside except')
                 if e.code == 10008: # Unknown message code
                     proposed_action.delete()
                 continue
