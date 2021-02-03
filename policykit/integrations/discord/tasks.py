@@ -116,6 +116,7 @@ def discord_listener_actions():
                 continue
 
             # Manage voting
+            logger.info('about to do voting')
             for reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
                 users_with_reaction = community.make_call(call)
@@ -135,11 +136,13 @@ def discord_listener_actions():
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
 
                             if bool_vote.exists():
+                                logger.info('vote already exists')
                                 vote = bool_vote[0]
                                 if vote.boolean_value != val:
                                     vote.boolean_value = val
                                     vote.save()
                             else:
+                                logger.info('creating vote')
                                 b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
 
             # Update proposal
