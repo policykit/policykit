@@ -202,31 +202,30 @@ class DiscordPostMessage(PlatformAction):
         super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
 
     def execute(self):
-        if not self.community_revert:
-            res = self.community.make_call('gateway/bot')
+        res = self.community.make_call('gateway/bot')
 
-            gateway_url = res['url']
+        gateway_url = res['url']
 
-            from websocket import create_connection
-            ws = create_connection(gateway_url)
-            helloPayload = ws.recv()
-            identifyData = {
-                "op": 2,
-                "d": {
-                    "token": DISCORD_BOT_TOKEN,
-                    "properties": {
-                        "$os": "linux",
-                        "$browser": "disco",
-                        "$device": "disco"
-                    }
+        from websocket import create_connection
+        ws = create_connection(gateway_url)
+        helloPayload = ws.recv()
+        identifyData = {
+            "op": 2,
+            "d": {
+                "token": DISCORD_BOT_TOKEN,
+                "properties": {
+                    "$os": "linux",
+                    "$browser": "disco",
+                    "$device": "disco"
                 }
             }
-            ws.send(json.dumps(identifyData))
-            readyPayload = ws.recv()
+        }
+        ws.send(json.dumps(identifyData))
+        readyPayload = ws.recv()
 
-            message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
+        message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
 
-            self.id = message['id']
+        self.id = message['id']
         super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
@@ -251,15 +250,14 @@ class DiscordRenameChannel(PlatformAction):
         )
 
     def execute(self):
-        if not self.community_revert:
-            data = json.dumps({"name": self.name}).encode('utf-8')
-            call_info = self.community.API + ('channels/%s' % self.channel)
+        data = json.dumps({"name": self.name}).encode('utf-8')
+        call_info = self.community.API + ('channels/%s' % self.channel)
 
-            req = urllib.request.Request(call_info, data, method='PATCH')
-            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-            req.add_header('Content-Type', 'application/json')
-            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-            resp = urllib.request.urlopen(req)
+        req = urllib.request.Request(call_info, data, method='PATCH')
+        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+        req.add_header('Content-Type', 'application/json')
+        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        resp = urllib.request.urlopen(req)
         super().pass_action()
 
 class DiscordStarterKit(StarterKit):
