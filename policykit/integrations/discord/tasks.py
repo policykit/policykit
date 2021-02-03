@@ -130,9 +130,9 @@ def discord_listener_actions():
                 logger.info('outside about to call')
                 community.make_call(call)
                 logger.info('outside just called')
-            except err:
+            except Exception as e:
                 logger.info('outside except')
-                if err.code == 10008: # Unknown message code
+                if e.code == 10008: # Unknown message code
                     proposed_action.delete()
                 continue
 

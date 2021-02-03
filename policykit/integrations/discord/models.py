@@ -86,7 +86,7 @@ class DiscordCommunity(Community):
             logger.info('just called')
             res = json.loads(resp.read().decode('utf-8'))
             logger.info('just loaded')
-        except err:
+        except Exception as e:
             logger.info('entered except')
             raise
 
