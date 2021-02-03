@@ -68,27 +68,21 @@ class DiscordCommunity(Community):
             self.base_role.permissions.add(p)
 
     def make_call(self, url, values=None, action=None, method=None):
-        logger.info('entered')
+        data = None
         if values:
             data = urllib.parse.urlencode(values)
             data = data.encode('utf-8')
-        else:
-            data = None
 
-        call_info = self.API + url
-
-        if method:
-            req = urllib.request.Request(call_info, data, method=method)
-        else:
-            req = urllib.request.Request(call_info, data)
-        logger.info('finished prep')
+        req = urllib.request.Request(self.API + url, data, method=method)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
-        logger.info('sent')
+
+        try:
+            resp = urllib.request.urlopen(req)
+        except err:
+            raise
         res = json.loads(resp.read().decode('utf-8'))
-        logger.info('received')
 
         return res
 

@@ -125,13 +125,12 @@ def discord_listener_actions():
             message_id = proposed_action.community_post
 
             # Check if community post still exists
-            logger.info('check')
             call = ('channels/%s/messages/%s' % (channel_id, message_id))
-            res = community.make_call(call)
-            logger.info('Discord res: ')
-            logger.info(res)
-            if res.code == 10008: # Unknown message code
-                proposed_action.delete()
+            try:
+                community.make_call(call)
+            except err:
+                if err.code == 10008: # Unknown message code
+                    proposed_action.delete()
                 continue
 
             for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
