@@ -213,6 +213,7 @@ class DiscordPostMessage(PlatformAction):
         res = self.community.make_call(call, values=data)
         data['id'] = res['id']
         self.id = data['id']
+        self.community_post = data['id']
         _ = LogAPICall.objects.create(community=self.community,
                                       call_type=call,
                                       extra_info=json.dumps(data))
