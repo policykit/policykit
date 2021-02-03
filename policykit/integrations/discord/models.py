@@ -5,6 +5,7 @@ from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD
 import urllib
 from urllib import parse
 import urllib.request
+import urllib.error
 import base64
 import json
 import logging
@@ -82,7 +83,7 @@ class DiscordCommunity(Community):
         try:
             resp = urllib.request.urlopen(req)
             res = json.loads(resp.read().decode('utf-8'))
-        except Exception as e:
+        except urllib.error.HTTPError:
             raise
 
         return res

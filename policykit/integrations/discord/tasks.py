@@ -8,6 +8,7 @@ from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPo
 from policyengine.views import filter_policy, check_policy, initialize_policy
 from urllib import parse
 import urllib.request
+import urllib.error
 import json
 import datetime
 import logging
@@ -128,10 +129,10 @@ def discord_listener_actions():
             call = ('channels/%s/messages/%s' % (channel_id, message_id))
             try:
                 community.make_call(call)
-            except Exception as e:
+            except urllib.error.HTTPError as e:
                 logger.info('entered outside except')
-                logger.info(e)
-                if e.code == 10008: # Unknown message code
+                logger.info(e.code)
+                if e.code == 404: # Message not found
                     logger.info('about to delete')
                     proposed_action.delete()
                     logger.info('deleted')
