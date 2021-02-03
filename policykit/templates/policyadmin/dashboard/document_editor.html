@@ -72,12 +72,19 @@
 <script>
   document.getElementById("propose").addEventListener("click", propose);
 
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
   {% if name %}
-    document.getElementById('name').value = `{{name}}`;
+    document.getElementById('name').value = decodeHtml(`{{name}}`);
   {% endif %}
 
   {% if text %}
-    document.getElementById('text').value = `{{text}}`;
+    document.getElementById('text').value = decodeHtml(`{{text}}`);
   {% endif %}
 
   function propose() {
@@ -103,13 +110,5 @@
       window.location.href = "{{server_url}}/main/"
     });
   }
-
-  {% if name %}
-    document.getElementById('name').value = `{{name}}`
-  {% endif %}
-
-  {% if text %}
-    document.getElementById('text').value = `{{text}}`
-  {% endif %}
 </script>
 {% endblock %}

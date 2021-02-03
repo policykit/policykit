@@ -38,11 +38,8 @@ def is_policykit_action(integration, test_a, test_b, api_name):
         logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
                                                 call_type=integration.API + api_name)
         if logs.exists():
-            logger.info("checking API logging (discord)")
             for log in logs:
                 j_info = json.loads(log.extra_info)
-                logger.info("extra info:")
-                logger.info(j_info)
                 if test_a == j_info[test_b]:
                     return True
     return False
@@ -60,6 +57,9 @@ def discord_listener_actions():
         channels = json.loads(resp.read().decode('utf-8'))
 
         for channel in channels:
+            if channel['type'] != 0: # We only want to check text channels
+                continue
+
             channel_id = channel['id']
 
             # Post Message
@@ -88,7 +88,7 @@ def discord_listener_actions():
                         actions.append(new_api_action)
 
             # Rename Channel
-            call_type = ('channels/%s' % channel_id)
+            """call_type = ('channels/%s' % channel_id)
 
             if not is_policykit_action(community, channel['name'], 'name', call_type):
                 new_api_action = DiscordRenameChannel()
@@ -96,18 +96,14 @@ def discord_listener_actions():
                 new_api_action.name = channel['name']
                 new_api_action.channel = channel['id']
 
-                actions.append(new_api_action)
+                actions.append(new_api_action)"""
 
         for action in actions:
-            for policy in PlatformPolicy.objects.filter(community=action.community):
-                if filter_policy(policy, action):
-                    if not action.pk:
-                        action.community_origin = True
-                        action.is_bundled = False
-                        action.save()
-                    check_result = check_policy(policy, action)
-                    if check_result == Proposal.PROPOSED or check_result == Proposal.FAILED:
-                        action.revert()
+            action.community_origin = True
+            action.is_bundled = False
+            action.save()
+            if action.community_revert:
+                action.revert()
 
         # Boolean voting
 

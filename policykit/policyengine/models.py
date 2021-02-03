@@ -777,49 +777,42 @@ class PlatformAction(BaseAction,PolymorphicModel):
         action.send(self, verb='was passed')
 
     def save(self, *args, **kwargs):
-        logger.info('entered save')
         if not self.pk:
-            logger.info('is pk')
             if self.data is None:
                 ds = DataStore.objects.create()
                 self.data = ds
 
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                logger.info('has propose permission')
                 p = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
                 self.proposal = p
 
                 super(PlatformAction, self).save(*args, **kwargs)
 
-
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                        logger.info('has execute permission')
                         action.execute()
                     else:
                         for policy in PlatformPolicy.objects.filter(community=self.community):
-
-                            logger.info('save: policy checking')
                             if filter_policy(policy, action):
 
                                 initialize_policy(policy, action)
 
                                 check_result = check_policy(policy, action)
                                 if check_result == Proposal.PASSED:
-                                    logger.info('passed (save)')
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
-                                    logger.info('failed (save)')
                                     fail_policy(policy, action)
+                                    if self.community_origin:
+                                        self.community_revert = True
                                 else:
-                                    logger.info('notify (save)')
+                                    if self.community_origin:
+                                        self.community_revert = True
                                     notify_policy(policy, action)
             else:
-                logger.info('does not have propose permission')
                 p = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
                 self.proposal = p
