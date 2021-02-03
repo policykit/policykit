@@ -203,30 +203,22 @@ class DiscordPostMessage(PlatformAction):
 
     def execute(self):
         logger.info('executing action')
-        res = self.community.make_call('gateway/bot')
 
-        gateway_url = res['url']
-
-        from websocket import create_connection
-        ws = create_connection(gateway_url)
-        helloPayload = ws.recv()
-        identifyData = {
-            "op": 2,
-            "d": {
-                "token": DISCORD_BOT_TOKEN,
-                "properties": {
-                    "$os": "linux",
-                    "$browser": "disco",
-                    "$device": "disco"
-                }
-            }
+        data = {
+            'content': self.text
         }
-        ws.send(json.dumps(identifyData))
-        readyPayload = ws.recv()
 
-        message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
+        call = ('channels/%s/messages' % self.channel)
 
-        self.id = message['id']
+        res = self.community.make_call(call, values=data)
+        data['id'] = res['id']
+        self.id = data['id']
+        _ = LogAPICall.objects.create(community=self.community,
+                                      call_type=call,
+                                      extra_info=json.dumps(data))
+
+        logger.info('finished executing action')
+
         super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
