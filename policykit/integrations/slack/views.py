@@ -161,8 +161,7 @@ def is_policykit_bot_action(community, event):
 
 def is_policykit_action(integration, test_a, test_b, api_name):
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
-    logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
-                                            call_type=integration.API + api_name)
+    logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus, call_type=api_name)
 
     if logs.exists():
         for log in logs:
