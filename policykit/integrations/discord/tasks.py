@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policykit.settings import DISCORD_BOT_TOKEN
+from policykit.settings import DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
 from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPostMessage
 from policyengine.views import filter_policy, check_policy, initialize_policy
@@ -20,28 +20,19 @@ logger = logging.getLogger(__name__)
 EMOJI_LIKE = '%F0%9F%91%8D'
 EMOJI_DISLIKE = '%F0%9F%91%8E'
 
-def is_policykit_action(community, call_type, test_a, test_b):
-    logger.info('checking if action is policykit action: ' + test_a)
-    community_post = DiscordPostMessage.objects.filter(community_post=test_a)
-    logger.info(community_post)
-    if community_post.exists():
+def is_policykit_action(community, call_type, message):
+    if message['author']['id'] == DISCORD_CLIENT_ID:
         return True
     else:
         current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
-        logger.info('filtering logs')
-        logger.info(call_type)
         logs = LogAPICall.objects.filter(
             proposal_time__gte=current_time_minus,
             call_type=call_type
         )
-        logger.info(logs)
         if logs.exists():
-            logger.info(logs[0])
             for log in logs:
                 j_info = json.loads(log.extra_info)
-                logger.info('A: ' + test_a)
-                logger.info('B: ' + j_info[test_b])
-                if test_a == j_info[test_b]:
+                if message['id'] == j_info['id']:
                     return True
     return False
 
@@ -74,9 +65,9 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
-                if not is_policykit_action(community, call_type, message['id'], 'id'):
-                    post_exists = DiscordPostMessage.objects.filter(id=message['id'])
-                    if not post_exists.exists():
+                if not is_policykit_action(community, call_type, message):
+                    post = DiscordPostMessage.objects.filter(id=message['id'])
+                    if not post.exists():
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
