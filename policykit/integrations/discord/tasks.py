@@ -2,12 +2,13 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
-from policykit.settings import DISCORD_BOT_TOKEN
+from policykit.settings import DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
 from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPostMessage
 from policyengine.views import filter_policy, check_policy, initialize_policy
 from urllib import parse
 import urllib.request
+import urllib.error
 import json
 import datetime
 import logging
@@ -15,32 +16,23 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Used for Boolean and Number voting
-EMOJI_LIKE_ENCODED = '%f0%9f%91%8d'
-EMOJI_DISLIKE_ENCODED = '%f0%9f%91%8e'
-EMOJI_ZERO_ENCODED = '0%ef%b8%8f%e2%83%a3'
-EMOJI_ONE_ENCODED = '1%ef%b8%8f%e2%83%a3'
-EMOJI_TWO_ENCODED = '2%ef%b8%8f%e2%83%a3'
-EMOJI_THREE_ENCODED = '3%ef%b8%8f%e2%83%a3'
-EMOJI_FOUR_ENCODED = '4%ef%b8%8f%e2%83%a3'
-EMOJI_FIVE_ENCODED = '5%ef%b8%8f%e2%83%a3'
-EMOJI_SIX_ENCODED = '6%ef%b8%8f%e2%83%a3'
-EMOJI_SEVEN_ENCODED = '7%ef%b8%8f%e2%83%a3'
-EMOJI_EIGHT_ENCODED = '8%ef%b8%8f%e2%83%a3'
-EMOJI_NINE_ENCODED = '9%ef%b8%8f%e2%83%a3'
+# Used for Boolean voting
+EMOJI_LIKE = '%F0%9F%91%8D'
+EMOJI_DISLIKE = '%F0%9F%91%8E'
 
-def is_policykit_action(integration, test_a, test_b, api_name):
-    community_post = DiscordPostMessage.objects.filter(community_post=test_a)
-    if community_post.exists():
+def is_policykit_action(community, call_type, message):
+    if message['author']['id'] == DISCORD_CLIENT_ID:
         return True
     else:
         current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
-        logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus,
-                                                call_type=integration.API + api_name)
+        logs = LogAPICall.objects.filter(
+            proposal_time__gte=current_time_minus,
+            call_type=call_type
+        )
         if logs.exists():
             for log in logs:
                 j_info = json.loads(log.extra_info)
-                if test_a == j_info[test_b]:
+                if message['id'] == j_info['id']:
                     return True
     return False
 
@@ -73,9 +65,9 @@ def discord_listener_actions():
             messages = json.loads(resp.read().decode('utf-8'))
 
             for message in messages:
-                if not is_policykit_action(community, message['id'], 'id', call_type):
-                    post_exists = DiscordPostMessage.objects.filter(id=message['id'])
-                    if not post_exists.exists():
+                if not is_policykit_action(community, call_type, message):
+                    post = DiscordPostMessage.objects.filter(id=message['id'])
+                    if not post.exists():
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
@@ -105,41 +97,65 @@ def discord_listener_actions():
             if action.community_revert:
                 action.revert()
 
-        # Boolean voting
-
+        # Manage proposals
         proposed_actions = PlatformAction.objects.filter(
             community=community,
-            proposal_status=Proposal.PROPOSED,
+            proposal__status=Proposal.PROPOSED,
             community_post__isnull=False
         )
-
+        logger.info('num of proposed_actions:')
+        logger.info(proposed_actions.count())
         for proposed_action in proposed_actions:
             channel_id = proposed_action.channel
-            message_id = proposed_action.id
+            message_id = proposed_action.community_post
 
-            for reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED, EMOJI_ZERO_ENCODED, EMOJI_ONE_ENCODED, EMOJI_TWO_ENCODED, EMOJI_THREE_ENCODED, EMOJI_FOUR_ENCODED, EMOJI_FIVE_ENCODED, EMOJI_SIX_ENCODED, EMOJI_SEVEN_ENCODED, EMOJI_EIGHT_ENCODED, EMOJI_NINE_ENCODED]:
+            # Check if community post still exists
+            call = ('channels/%s/messages/%s' % (channel_id, message_id))
+            try:
+                community.make_call(call)
+            except urllib.error.HTTPError as e:
+                if e.code == 404: # Message not found
+                    proposed_action.delete()
+                continue
+
+            # Manage voting
+            for reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                 call = ('channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, reaction))
                 users_with_reaction = community.make_call(call)
 
                 for user in users_with_reaction:
-                    u = DiscordUser.objects.filter(username=user.id, community=community)
-
+                    u = DiscordUser.objects.filter(
+                        username=user['id'],
+                        community=community
+                    )
                     if u.exists():
                         u = u[0]
 
-                        # Check for Boolean votes
-                        if reaction in [EMOJI_LIKE_ENCODED, EMOJI_DISLIKE_ENCODED]:
+                        # Manage Boolean voting
+                        if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
+                            val = (reaction == EMOJI_LIKE)
+
                             bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
 
-                            if reaction == EMOJI_LIKE_ENCODED:
-                                val = True
-                            else:
-                                val = False
-
                             if bool_vote.exists():
+                                logger.info('vote already exists')
                                 vote = bool_vote[0]
                                 if vote.boolean_value != val:
                                     vote.boolean_value = val
                                     vote.save()
                             else:
+                                logger.info('creating vote')
                                 b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
+
+            # Update proposal
+            logger.info("updating proposal")
+            for policy in PlatformPolicy.objects.filter(community=community):
+                if filter_policy(policy, proposed_action):
+                    cond_result = check_policy(policy, proposed_action)
+                    logger.info(cond_result)
+                    if cond_result == Proposal.PASSED:
+                        pass_policy(policy, proposed_action)
+                        logger.info(proposed_action)
+                        logger.info('ID right now is: ' + proposed_action.id)
+                    elif cond_result == Proposal.FAILED:
+                        fail_policy(policy, proposed_action)

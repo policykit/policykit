@@ -125,11 +125,9 @@ def action(request):
 def post_policy(policy, action, users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
 
-    policy_message_default = "This action is governed by the following policy: " + policy.description
+    policy_message = "This action is governed by the following policy: " + policy.description
 
-    if not template:
-        policy_message = policy_message_default
-    else:
+    if template:
         policy_message = template
 
     data = {
@@ -140,7 +138,7 @@ def post_policy(policy, action, users=None, template=None, channel=None):
 
     res = policy.community.make_call(call, values=data)
     data['id'] = res['id']
-    _ = LogAPICall.objects.create(community=community,
+    _ = LogAPICall.objects.create(community=policy.community,
                                   call_type=call,
                                   extra_info=json.dumps(data))
 

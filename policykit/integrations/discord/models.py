@@ -5,6 +5,7 @@ from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD
 import urllib
 from urllib import parse
 import urllib.request
+import urllib.error
 import base64
 import json
 import logging
@@ -56,7 +57,7 @@ class DiscordCommunity(Community):
         self.save()
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
-        from discordintegration.views import post_policy
+        from integrations.discord.views import post_policy
         post_policy(policy, action, users, template, channel)
 
     def save(self, *args, **kwargs):
@@ -68,28 +69,22 @@ class DiscordCommunity(Community):
             self.base_role.permissions.add(p)
 
     def make_call(self, url, values=None, action=None, method=None):
-        logger.info(self.API + url)
-
+        data = None
         if values:
             data = urllib.parse.urlencode(values)
             data = data.encode('utf-8')
-            logger.info(data)
-        else:
-            data = None
 
-        call_info = self.API + url
-
-        if method:
-            req = urllib.request.Request(call_info, data, method=method)
-        else:
-            req = urllib.request.Request(call_info, data)
+        req = urllib.request.Request(self.API + url, data, method=method)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        logger.info('sent request in make_call')
-        resp = urllib.request.urlopen(req)
-        logger.info('received response in make_call')
-        res = json.loads(resp.read().decode('utf-8'))
+
+        res = None
+        try:
+            resp = urllib.request.urlopen(req)
+            res = json.loads(resp.read().decode('utf-8'))
+        except urllib.error.HTTPError:
+            raise
 
         return res
 
@@ -207,31 +202,26 @@ class DiscordPostMessage(PlatformAction):
         super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
 
     def execute(self):
-        if not self.community_revert:
-            res = self.community.make_call('gateway/bot')
+        from policyengine.models import LogAPICall
 
-            gateway_url = res['url']
+        logger.info('executing action')
 
-            from websocket import create_connection
-            ws = create_connection(gateway_url)
-            helloPayload = ws.recv()
-            identifyData = {
-                "op": 2,
-                "d": {
-                    "token": DISCORD_BOT_TOKEN,
-                    "properties": {
-                        "$os": "linux",
-                        "$browser": "disco",
-                        "$device": "disco"
-                    }
-                }
-            }
-            ws.send(json.dumps(identifyData))
-            readyPayload = ws.recv()
+        data = {
+            'content': self.text
+        }
 
-            message = self.community.make_call('channels/%s/messages' % self.channel, {'content': self.text})
+        call = ('channels/%s/messages' % self.channel)
 
-            self.id = message['id']
+        res = self.community.make_call(call, values=data)
+        self.id = res['id']
+        data['id'] = self.id
+        self.community_post = self.id
+        _ = LogAPICall.objects.create(community=self.community,
+                                      call_type=call,
+                                      extra_info=json.dumps(data))
+
+        logger.info('finished executing action: ' + self.community_post)
+
         super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
@@ -256,15 +246,14 @@ class DiscordRenameChannel(PlatformAction):
         )
 
     def execute(self):
-        if not self.community_revert:
-            data = json.dumps({"name": self.name}).encode('utf-8')
-            call_info = self.community.API + ('channels/%s' % self.channel)
+        data = json.dumps({"name": self.name}).encode('utf-8')
+        call_info = self.community.API + ('channels/%s' % self.channel)
 
-            req = urllib.request.Request(call_info, data, method='PATCH')
-            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-            req.add_header('Content-Type', 'application/json')
-            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-            resp = urllib.request.urlopen(req)
+        req = urllib.request.Request(call_info, data, method='PATCH')
+        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
+        req.add_header('Content-Type', 'application/json')
+        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        resp = urllib.request.urlopen(req)
         super().pass_action()
 
 class DiscordStarterKit(StarterKit):

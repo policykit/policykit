@@ -131,14 +131,11 @@ class LogAPICall(models.Model):
 
     @classmethod
     def make_api_call(cls, community, values, call, action=None, method=None):
-        logger.info("COMMUNITY API CALL")
         _ = LogAPICall.objects.create(community=community,
                                       call_type=call,
                                       extra_info=json.dumps(values)
                                       )
         res = community.make_call(call, values=values, action=action, method=method)
-        logger.info("COMMUNITY API RESPONSE")
-        logger.info(res)
         return res
 
 class GenericPolicy(models.Model):
@@ -189,18 +186,24 @@ class Proposal(models.Model):
     proposal_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(choices=STATUS, max_length=10)
 
-    def get_yes_votes(self, users=None):
-        return self.get_boolean_votes(True, users)
-
-    def get_no_votes(self, users=None):
-        return self.get_boolean_votes(False, users)
-
     def get_boolean_votes(self, value, users=None):
         if users:
             votes = BooleanVote.objects.filter(boolean_value=value, proposal=self, user__in=users)
         else:
             votes = BooleanVote.objects.filter(boolean_value=value, proposal=self)
         return votes
+
+    def get_yes_votes(self, users=None):
+        return self.get_boolean_votes(True, users)
+
+    def get_no_votes(self, users=None):
+        return self.get_boolean_votes(False, users)
+
+    def get_num_yes_votes(self, users=None):
+        return self.get_yes_votes(users).count()
+
+    def get_num_no_votes(self, users=None):
+        return self.get_no_votes(users).count()
 
     def get_number_votes(self, value=0, users=None):
         if users:
@@ -210,11 +213,13 @@ class Proposal(models.Model):
         return votes
 
     def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
+        vote_type = vote_type.lower()
+
         totalDict = {}
-        if (vote_type == "boolean" or vote_type == "Boolean"):
-            totaldict["True"] = len(get_yes_votes)
-            totaldict["False"] = len(get_no_votes)
-        elif vote_type == "Number" or vote_type == "number":
+        if vote_type == "boolean":
+            totaldict["True"] = len(get_yes_votes(users))
+            totaldict["False"] = len(get_no_votes(users))
+        elif vote_type == "number":
             for vote_num in range(1, vote_number):
                 totalDict[vote_num] = get_number_votes(vote_num)
 
@@ -760,9 +765,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
         verbose_name_plural = 'platformactions'
 
     def revert(self, values, call, method=None):
-        logger.info('Community Action: started make_api_call')
         _ = LogAPICall.make_api_call(self.community, values, call, method=method)
-        logger.info('Community Action: finished make_api_call')
         self.community_revert = True
         self.save()
 

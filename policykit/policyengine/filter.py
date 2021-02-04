@@ -306,19 +306,23 @@ policyengine_functions = [
     'exists',
     'filter',
     'get',
-    'get_no_votes',
-    'get_number_votes',
+    'get_boolean_votes',
+    'get_raw_boolean_votes',
     'get_yes_votes',
+    'get_num_yes_votes',
+    'get_no_votes',
+    'get_num_no_votes',
+    'get_number_votes',
+    'get_raw_number_votes',
+    'get_total_vote_count',
     'notify_action',
+    'notify_users',
     'time_elapsed',
     'get_users',
-    'get_total_vote_count',
     'genericrole_set.all',
-    'get_raw_number_votes',
-    'get_raw_boolean_votes',
     'remove',
     'set'
-    
+
 ]
 
 class Filter(ast.NodeVisitor):
