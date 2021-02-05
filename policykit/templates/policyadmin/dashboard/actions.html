@@ -111,6 +111,19 @@
         <p>Rename Channel</p>
       </div>
     </div>
+  {% elif user.community.platform == "discourse" %}
+    <div class="actionMenu" id="discourseActionsHeader">
+      <h3 class="actionMenuHeading">DISCOURSE ACTIONS</h3>
+      <span class="material-icons actionMenuIcon">add_circle_outline</span>
+    </div>
+    <div class="actionCollapsible" id="discourseActions">
+      <div class="actionButton">
+        <p>Create Topic</p>
+      </div>
+      <div class="actionButton">
+        <p>Create Post</p>
+      </div>
+    </div>
   {% endif %}
 
   <div class="actionMenu" id="constitutionPoliciesHeader">

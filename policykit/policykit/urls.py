@@ -36,6 +36,7 @@ urlpatterns = [
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),
     path('discord/', include('integrations.discord.urls')),
+    path('discourse/', include('integrations.discourse.urls')),
     url(r'^$', policyviews.homepage),
     url('^activity/', include('actstream.urls'))
 ]

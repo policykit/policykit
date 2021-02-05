@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'integrations.slack',
     'integrations.reddit',
     'integrations.discord',
+    'integrations.discourse',
     'actstream'
 
 ]
@@ -135,7 +136,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-AUTHENTICATION_BACKENDS = ['integrations.discord.auth_backends.DiscordBackend',
+AUTHENTICATION_BACKENDS = ['integrations.discourse.auth_backends.DiscourseBackend',
+                           'integrations.discord.auth_backends.DiscordBackend',
                            'integrations.reddit.auth_backends.RedditBackend',
                            'integrations.slack.auth_backends.SlackBackend',
                            'django.contrib.auth.backends.ModelBackend']
@@ -191,6 +193,11 @@ LOGGING = {
             'propagate': True,
         },
         'integrations.discord': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'integrations.discourse': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,

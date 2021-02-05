@@ -1,0 +1,33 @@
+{% load i18n static %}
+
+{% block extrahead %}
+<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+{% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block usertools %}
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+{% if state == "policykit_discourse_mod_install" %}
+  <P><b>For which Discourse community would you like to configure PolicyKit?</b><BR></P>
+{% else %}
+  <P><b>Which Discourse community would you like to sign into?</b><BR></P>
+{% endif %}
+
+<form action="/discourse/request_key" method="post">
+  <input type="url" name="url">
+  <input type="hidden" name="state" value="{{ state }}">
+  <input type="submit" value="Continue">
+</form>
+
+{% endblock %}
