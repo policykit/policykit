@@ -322,7 +322,52 @@ policyengine_functions = [
     'genericrole_set.all',
     'remove',
     'set'
+]
 
+# Don't whitelist any string functions that allow for format string vulnerabilities
+string_functions = [
+    'capitalize',
+    'casefold',
+    'center',
+    'count',
+    'encode',
+    'endswith',
+    'expandtabs',
+    'find',
+    'index',
+    'isalnum',
+    'isalpha',
+    'isdecimal',
+    'isdigit',
+    'isidentifier',
+    'islower',
+    'isnumeric',
+    'isprintable',
+    'isspace',
+    'istitle',
+    'isupper',
+    'join',
+    'ljust',
+    'lower',
+    'lstrip',
+    'maketrans',
+    'partition',
+    'replace',
+    'rfind',
+    'rindex',
+    'rjust',
+    'rpartition',
+    'rsplit',
+    'rstrip',
+    'split',
+    'splitlines',
+    'startswith',
+    'strip',
+    'swapcase',
+    'title',
+    'translate',
+    'upper',
+    'zfill'
 ]
 
 class Filter(ast.NodeVisitor):
@@ -353,6 +398,9 @@ class Filter(ast.NodeVisitor):
                 calling_name = calling_node.id
                 if calling_name in whitelisted_modules:
                     if function_name not in whitelisted_modules[calling_name]:
+                        self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
+                elif type(function_name) is str:
+                    if function_name not in string_functions:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
                 elif function_name not in policyengine_functions:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
