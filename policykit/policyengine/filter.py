@@ -385,9 +385,10 @@ class Filter(ast.NodeVisitor):
         self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_alias.names[0].name, 'message': DISALLOW_FROM_IMPORT_ERROR_MESSAGE })
 
     def is_function_allowed(self, function_name):
-        if type(function_name) is str and function_name not in string_functions:
-            return False
-        if function_name not in policyengine_functions:
+        if type(function_name) is str:
+            if function_name not in string_functions:
+                return False
+        elif function_name not in policyengine_functions:
             return False
         return True
 
@@ -406,11 +407,11 @@ class Filter(ast.NodeVisitor):
                 if calling_name in whitelisted_modules:
                     if function_name not in whitelisted_modules[calling_name]:
                         self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
-                elif is_function_allowed(function_name) == False:
+                elif self.is_function_allowed(function_name) == False:
                     self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
             elif isinstance(calling_node, ast.Attribute):
                 calling_name = calling_node.attr
-                if is_function_allowed(function_name) == False:
+                if self.is_function_allowed(function_name) == False:
                     self.errors.append({ 'type': 'filter', 'lineno': lineno, 'code': calling_name + "." + function_name, 'message': FUNCTION_MODULE_ERROR_MESSAGE })
 
         self.generic_visit(node)
