@@ -12,7 +12,6 @@ def consider_proposed_actions():
     def _execute_policy(policy, action):
 
         if filter_policy(policy, action):
-            logger.info('filtered')
             if not policy.has_notified:
                 initialize_policy(policy, action)
 
@@ -29,7 +28,6 @@ def consider_proposed_actions():
                     logger.info('notifying')
             else:
                 check_result = check_policy(policy, action)
-                logger.info('checked_two')
                 if check_result == Proposal.PASSED:
                     pass_policy(policy, action)
                     logger.info('passed_two')
@@ -37,9 +35,9 @@ def consider_proposed_actions():
                     fail_policy(policy, action)
                     logger.info('failed_two')
 
+    logger.info('reached platform_actions')
     platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in platform_actions:
-
          #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
@@ -47,7 +45,7 @@ def consider_proposed_actions():
             for policy in PlatformPolicy.objects.filter(community=action.community):
                 _execute_policy(policy, action)
 
-    bundle_actions = PlatformActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
+    """bundle_actions = PlatformActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in bundle_actions:
         #if they have execute permission, skip all policies
 
@@ -55,8 +53,9 @@ def consider_proposed_actions():
             action.execute()
         else:
             for policy in PlatformPolicy.objects.filter(community=action.community):
-                _execute_policy(policy, action)
+                _execute_policy(policy, action)"""
 
+    logger.info('reached constitution_actions')
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in constitution_actions:
         #if they have execute permission, skip all policies
