@@ -258,6 +258,9 @@ class Proposal(models.Model):
         return users
 
     def time_elapsed(self):
+        logger.info('time elapsed')
+        logger.info(datetime.now(timezone.utc))
+        logger.info(self.proposal_time)
         return datetime.now(timezone.utc) - self.proposal_time
 
     def save(self, *args, **kwargs):
