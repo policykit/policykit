@@ -802,9 +802,15 @@ class PlatformAction(BaseAction,PolymorphicModel):
                         for policy in PlatformPolicy.objects.filter(community=self.community):
                             if filter_policy(policy, action):
 
+                                logger.info('passed filter: ' + policy.name)
+
                                 initialize_policy(policy, action)
 
+                                logger.info('about to check policy: ' + policy.name)
+
                                 check_result = check_policy(policy, action)
+
+                                logger.info('just checked policy: ' + policy.name)
                                 if check_result == Proposal.PASSED:
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
