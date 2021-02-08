@@ -103,8 +103,6 @@ def discord_listener_actions():
             proposal__status=Proposal.PROPOSED,
             community_post__isnull=False
         )
-        logger.info('num of proposed_actions:')
-        logger.info(proposed_actions.count())
         for proposed_action in proposed_actions:
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
@@ -148,14 +146,10 @@ def discord_listener_actions():
                                 b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
 
             # Update proposal
-            logger.info("updating proposal")
             for policy in PlatformPolicy.objects.filter(community=community):
                 if filter_policy(policy, proposed_action):
                     cond_result = check_policy(policy, proposed_action)
-                    logger.info(cond_result)
                     if cond_result == Proposal.PASSED:
                         pass_policy(policy, proposed_action)
-                        logger.info(proposed_action)
-                        logger.info('ID right now is: ' + proposed_action.id)
                     elif cond_result == Proposal.FAILED:
                         fail_policy(policy, proposed_action)
