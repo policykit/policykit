@@ -57,6 +57,7 @@ def consider_proposed_actions():
 
     logger.info('reached constitution_actions')
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
+    logger.info('just filtered')
     for action in constitution_actions:
         logger.info('in action loop')
         #if they have execute permission, skip all policies
@@ -68,3 +69,4 @@ def consider_proposed_actions():
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
                 logger.info('in policy loop')
                 _execute_policy(policy, action)
+    logger.info('finished constitution_actions')
