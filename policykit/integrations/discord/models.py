@@ -77,6 +77,8 @@ class DiscordCommunity(Community):
             data = data.encode('utf-8')
 
         logger.info('about to add headers to request')
+        logger.info(self.API + url)
+        logger.info(data.content)
         req = urllib.request.Request(self.API + url, data, method=method)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -87,8 +89,9 @@ class DiscordCommunity(Community):
             logger.info('about to send request')
             resp = urllib.request.urlopen(req)
             res = json.loads(resp.read().decode('utf-8'))
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as e:
             logger.info('reached HTTPError')
+            logger.info(e.code)
             raise
 
         return res
