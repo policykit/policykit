@@ -316,8 +316,6 @@ def filter_policy(policy, action):
 
     wrapper_end = "\r\nfilter_pass = filter(policy, action, users)"
 
-    logger.info('executing filter: ' + str(policy.name))
-
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
     if _locals.get('filter_pass'):
@@ -356,8 +354,6 @@ def check_policy(policy, action):
 
     wrapper_end = "\r\npolicy_pass = check(policy, action, users, boolean_votes, number_votes)"
 
-    logger.info('executing check: ' + str(policy.name))
-
     exec_code(policy.check, wrapper_start, wrapper_end, None, _locals)
 
     if _locals.get('policy_pass'):
@@ -387,8 +383,6 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action, users)"
 
-    logger.info('executing pass: ' + str(policy.name))
-
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
@@ -400,8 +394,6 @@ def fail_policy(policy, action):
     wrapper_start = "def fail(policy, action, users):\r\n"
 
     wrapper_end = "\r\nfail(policy, action, users)"
-
-    logger.info('executing fail: ' + str(policy.name))
 
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
