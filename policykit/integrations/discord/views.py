@@ -123,7 +123,6 @@ def action(request):
     logger.info(json_data)
 
 def post_policy(policy, action, users=None, template=None, channel=None):
-    logger.info('entered post policy')
     from policyengine.models import LogAPICall
 
     policy_message = "This action is governed by the following policy: " + policy.name
@@ -137,10 +136,8 @@ def post_policy(policy, action, users=None, template=None, channel=None):
 
     call = ('channels/%s/messages' % channel)
 
-    logger.info('about to make call')
     res = policy.community.make_call(call, values=data)
     data['id'] = res['id']
-    logger.info('about to create LogAPICall object')
     _ = LogAPICall.objects.create(community=policy.community,
                                   call_type=call,
                                   extra_info=json.dumps(data))
