@@ -12,22 +12,30 @@ def consider_proposed_actions():
     def _execute_policy(policy, action):
 
         if filter_policy(policy, action):
+            logger.info('filtered')
             if not policy.has_notified:
                 initialize_policy(policy, action)
 
                 check_result = check_policy(policy, action)
+                logger.info('checked')
                 if check_result == Proposal.PASSED:
                     pass_policy(policy, action)
+                    logger.info('passed')
                 elif check_result == Proposal.FAILED:
+                    logger.info('failed')
                     fail_policy(policy, action)
                 else:
                     notify_policy(policy, action)
+                    logger.info('notifying')
             else:
                 check_result = check_policy(policy, action)
+                logger.info('checked_two')
                 if check_result == Proposal.PASSED:
                     pass_policy(policy, action)
+                    logger.info('passed_two')
                 elif check_result == Proposal.FAILED:
                     fail_policy(policy, action)
+                    logger.info('failed_two')
 
     platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     for action in platform_actions:
@@ -56,4 +64,5 @@ def consider_proposed_actions():
             action.execute()
         else:
             for policy in ConstitutionPolicy.objects.filter(community=action.community):
+                logger.info('running _execute_policy: ' + policy.name)
                 _execute_policy(policy, action)
