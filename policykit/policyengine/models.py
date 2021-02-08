@@ -80,7 +80,7 @@ class CommunityUser(User, PolymorphicModel):
         group = self.community.base_role
         group.user_set.add(self)
 
-    def getRoles(self):
+    def get_roles(self):
         user_roles = []
         roles = CommunityRole.objects.filter(community=self.community)
         for r in roles:
@@ -88,7 +88,7 @@ class CommunityUser(User, PolymorphicModel):
                 user_roles.append(r.role_name)
         return user_roles
 
-    def hasRole(self, role_name):
+    def has_role(self, role_name):
         roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
         return roles.count() > 0
 
