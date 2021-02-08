@@ -334,10 +334,13 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                               check_result = check_policy(policy, action)
                               logger.info('Constitution Action: just checked')
                               if check_result == Proposal.PASSED:
+                                  logger.info('Constitution Action: passed')
                                   pass_policy(policy, action)
                               elif check_result == Proposal.FAILED:
+                                  logger.info('Constitution Action: failed')
                                   fail_policy(policy, action)
                               else:
+                                  logger.info('Constitution Action: notifying')
                                   notify_policy(policy, action)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
