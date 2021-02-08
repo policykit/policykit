@@ -305,9 +305,11 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         return not self.pk # Runs only when object is new
 
     def save(self, *args, **kwargs):
+        logger.info('Constitution Action: running save')
         if self.shouldCreate():
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
+                logger.info('Constitution Action: has perm')
                 if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
                 else:
@@ -318,14 +320,19 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                        logger.info('Constitution Action: has execute permissions')
                         action.execute()
                     else:
+                        logger.info('Constitution Action: about to filter')
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
                           if filter_policy(policy, action):
+                              logger.info('Constitution Action: just filtered')
 
                               initialize_policy(policy, action)
 
+                              logger.info('Constitution Action: about to check')
                               check_result = check_policy(policy, action)
+                              logger.info('Constitution Action: just checked')
                               if check_result == Proposal.PASSED:
                                   pass_policy(policy, action)
                               elif check_result == Proposal.FAILED:
