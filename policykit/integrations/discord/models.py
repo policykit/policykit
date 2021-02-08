@@ -78,7 +78,6 @@ class DiscordCommunity(Community):
 
         logger.info('about to add headers to request')
         logger.info(self.API + url)
-        logger.info(values.content)
         req = urllib.request.Request(self.API + url, data, method=method)
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
