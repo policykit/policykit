@@ -385,10 +385,9 @@ class Filter(ast.NodeVisitor):
         self.errors.append({ 'type': 'filter', 'lineno': node.lineno, 'code': module_alias.names[0].name, 'message': DISALLOW_FROM_IMPORT_ERROR_MESSAGE })
 
     def is_function_allowed(self, function_name):
-        if type(function_name) is str:
-            if function_name not in string_functions:
-                return False
-        elif function_name not in policyengine_functions:
+        if function_name not in string_functions:
+            return False
+        if function_name not in policyengine_functions:
             return False
         return True
 
