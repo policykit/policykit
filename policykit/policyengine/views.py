@@ -316,6 +316,8 @@ def filter_policy(policy, action):
 
     wrapper_end = "\r\nfilter_pass = filter(policy, action, users)"
 
+    logger.info('executing filter: ' + str(policy.filter))
+
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
     if _locals.get('filter_pass'):

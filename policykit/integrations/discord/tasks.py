@@ -68,6 +68,7 @@ def discord_listener_actions():
                 if not is_policykit_action(community, call_type, message):
                     post = DiscordPostMessage.objects.filter(id=message['id'])
                     if not post.exists():
+                        logger.info('Discord: creating new DiscordPostMessage for: ' + message['content'])
                         new_api_action = DiscordPostMessage()
                         new_api_action.community = community
                         new_api_action.text = message['content']
@@ -103,6 +104,8 @@ def discord_listener_actions():
             proposal__status=Proposal.PROPOSED,
             community_post__isnull=False
         )
+        logger.info('Discord: num of proposed_actions:')
+        logger.info('Discord: ' + str(proposed_actions.count()))
         for proposed_action in proposed_actions:
             channel_id = proposed_action.channel
             message_id = proposed_action.community_post
