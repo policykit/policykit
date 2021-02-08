@@ -142,6 +142,7 @@ def post_policy(policy, action, users=None, template=None, channel=None):
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
-    action.community_post = res['id']
-    action.save()
+    if action.action_type == "PlatformAction":
+        action.community_post = res['id']
+        action.save()
     logger.info('finished post policy')
