@@ -310,7 +310,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
             if self.data is None:
                 ds = DataStore.objects.create()
                 self.data = ds
-            
+
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
                 logger.info('Constitution Action: has perm')
@@ -351,6 +351,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         else:
             if not self.pk: # Runs only when object is new
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
+            logger.info('else save')
             super(ConstitutionAction, self).save(*args, **kwargs)
 
 
