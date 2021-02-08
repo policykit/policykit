@@ -821,6 +821,8 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                     if self.community_origin:
                                         self.community_revert = True
                                     notify_policy(policy, action)
+                            else:
+                                logger.info('failed filter: ' + policy.name)
             else:
                 p = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
