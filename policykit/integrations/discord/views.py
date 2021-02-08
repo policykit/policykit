@@ -123,6 +123,7 @@ def action(request):
     logger.info(json_data)
 
 def post_policy(policy, action, users=None, template=None, channel=None):
+    logger.info('entered post policy')
     from policyengine.models import LogAPICall
 
     policy_message = "This action is governed by the following policy: " + policy.description

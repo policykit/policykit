@@ -57,6 +57,7 @@ class DiscordCommunity(Community):
         self.save()
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
+        logger.info('entered notify_action')
         from integrations.discord.views import post_policy
         post_policy(policy, action, users, template, channel)
 
