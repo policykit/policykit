@@ -307,6 +307,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def save(self, *args, **kwargs):
         logger.info('Constitution Action: running save')
         if self.shouldCreate():
+            if self.data is None:
+                ds = DataStore.objects.create()
+                self.data = ds
+            
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
                 logger.info('Constitution Action: has perm')
