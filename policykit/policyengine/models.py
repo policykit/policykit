@@ -350,10 +350,13 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                               else:
                                   logger.info('Constitution Action: notifying')
                                   notify_policy(policy, action)
+                                  logger.info(action.proposal.status)
             else:
+                logger.info('failed one')
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
             if not self.pk: # Runs only when object is new
+                logger.info('failed two')
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
             logger.info('else save')
             super(ConstitutionAction, self).save(*args, **kwargs)
