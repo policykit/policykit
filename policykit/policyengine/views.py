@@ -383,6 +383,7 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action, users)"
 
+    logger.info('policy passed: ' + str(policy.name))
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
@@ -395,6 +396,7 @@ def fail_policy(policy, action):
 
     wrapper_end = "\r\nfail(policy, action, users)"
 
+    logger.info('policy failed: ' + str(policy.name))
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
 def clean_up_proposals(action, executed):
