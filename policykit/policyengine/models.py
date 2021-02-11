@@ -336,6 +336,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                               logger.info('Constitution Action: just filtered')
 
                               initialize_policy(policy, action)
+                              logger.info(action.proposal.status)
 
                               logger.info('Constitution Action: about to check')
                               check_result = check_policy(policy, action)

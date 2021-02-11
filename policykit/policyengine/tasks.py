@@ -56,6 +56,8 @@ def consider_proposed_actions():
                 _execute_policy(policy, action)"""
 
     logger.info('reached constitution_actions')
+    test_actions = ConstitutionAction.objects.filter(is_bundled=False)
+    logger.info(test_actions)
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     logger.info('just filtered')
     for action in constitution_actions:
