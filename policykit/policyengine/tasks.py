@@ -57,7 +57,8 @@ def consider_proposed_actions():
 
     logger.info('reached constitution_actions')
     test_actions = ConstitutionAction.objects.filter(is_bundled=False).order_by('-id')[:10:-1]
-    logger.info(test_actions)
+    for action in test_actions:
+        logger.info(action.proposal.status)
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
     logger.info('just filtered')
     for action in constitution_actions:
