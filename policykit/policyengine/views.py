@@ -2,12 +2,13 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream import action
 from actstream.models import model_stream, target_stream, Action
 from policyengine.filter import *
+from policyengine.metagov import MetagovClient
 from policykit.settings import SERVER_URL
 import urllib.request
 import urllib.parse
@@ -298,7 +299,7 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     if len(errors) > 0:
         logger.error('Filter errors:')
         for error in errors:
-            logger.error(error.message)
+            logger.error(f"{error['code']}: {error['message']}")
         return
 
     lines = ['  ' + item for item in code.splitlines()]
@@ -327,13 +328,14 @@ def initialize_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
     users = CommunityUser.objects.filter(community=policy.community)
+    metagov = MetagovClient(policy, action)
 
     _locals = locals()
     _globals = globals()
 
-    wrapper_start = "def initialize(policy, action, users):\r\n"
+    wrapper_start = "def initialize(policy, action, users, metagov):\r\n"
 
-    wrapper_end = "\r\ninitialize(policy, action, users)"
+    wrapper_end = "\r\ninitialize(policy, action, users, metagov)"
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
@@ -346,13 +348,14 @@ def check_policy(policy, action):
     users = CommunityUser.objects.filter(community=policy.community)
     boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
     number_votes = NumberVote.objects.filter(proposal=action.proposal)
+    metagov = MetagovClient(policy, action)
 
     _locals = locals()
 
-    wrapper_start = "def check(policy, action, users, boolean_votes, number_votes):\r\n"
+    wrapper_start = "def check(policy, action, metagov, users, boolean_votes, number_votes):\r\n"
     wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
 
-    wrapper_end = "\r\npolicy_pass = check(policy, action, users, boolean_votes, number_votes)"
+    wrapper_end = "\r\npolicy_pass = check(policy, action, metagov, users, boolean_votes, number_votes)"
 
     exec_code(policy.check, wrapper_start, wrapper_end, None, _locals)
 
@@ -365,11 +368,13 @@ def notify_policy(policy, action):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
+    metagov = MetagovClient(policy, action)
+
     _locals = locals()
 
-    wrapper_start = "def notify(policy, action, users):\r\n"
+    wrapper_start = "def notify(policy, action, users, metagov):\r\n"
 
-    wrapper_end = "\r\nnotify(policy, action, users)"
+    wrapper_end = "\r\nnotify(policy, action, users, metagov)"
 
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
@@ -377,11 +382,12 @@ def pass_policy(policy, action):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
+    metagov = MetagovClient(policy, action)
     _locals = locals()
 
-    wrapper_start = "def success(policy, action, users):\r\n"
+    wrapper_start = "def success(policy, action, users, metagov):\r\n"
 
-    wrapper_end = "\r\nsuccess(policy, action, users)"
+    wrapper_end = "\r\nsuccess(policy, action, users, metagov)"
 
     logger.info('policy passed: ' + str(policy.name))
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
@@ -390,11 +396,12 @@ def fail_policy(policy, action):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
+    metagov = MetagovClient(policy, action)
     _locals = locals()
 
-    wrapper_start = "def fail(policy, action, users):\r\n"
+    wrapper_start = "def fail(policy, action, users, metagov):\r\n"
 
-    wrapper_end = "\r\nfail(policy, action, users)"
+    wrapper_end = "\r\nfail(policy, action, users, metagov)"
 
     logger.info('policy failed: ' + str(policy.name))
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
@@ -639,5 +646,37 @@ def document_action_remove(request):
     action.initiator = user
     action.doc = CommunityDoc.objects.get(id=data['doc'])
     action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def post_outcome(request, id):
+    from policyengine.models import ExternalProcess
+    if request.method != 'POST' or not request.body:
+        return HttpResponseBadRequest()
+    try:
+        process = ExternalProcess.objects.get(pk=id)
+    except ExternalProcess.DoesNotExist:
+        return HttpResponseNotFound()
+
+    try:
+        body = json.loads(request.body)
+    except ValueError:
+        logger.error("unable to decode body")
+        return HttpResponseBadRequest()
+
+    if not body:
+        return HttpResponseBadRequest()
+    logger.info(body)
+    if body.get("status") != "completed":
+        return HttpResponseBadRequest("process not completed")
+
+    outcome = body.get('outcome')
+    if not outcome:
+        return HttpResponseBadRequest("process has no outcome")
+
+    logger.info(f"Received outcome: {outcome}")
+    process.outcome = json.dumps(outcome)
+    process.save()
 
     return HttpResponse()

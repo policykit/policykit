@@ -40,6 +40,11 @@ whitelisted_builtins = [
 ]
 
 whitelisted_modules = {
+    "metagov": [
+        "start_process",
+        "get_process_outcome",
+        "get_resource",
+    ],
     "base64": [
         "a85encode",
         "a85decode",

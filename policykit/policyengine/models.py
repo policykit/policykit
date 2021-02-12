@@ -460,7 +460,9 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
     action_codename = 'policykitdeletecommunitydoc'
 
     def __str__(self):
-        return "Delete Document: " + self.doc.name
+        if self.doc:
+            return "Delete Document: " + self.doc.name
+        return "Delete Document"
 
     def execute(self):
         self.doc.delete()
@@ -976,6 +978,12 @@ class PlatformPolicyBundle(BasePolicy):
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
+
+class ExternalProcess(models.Model):
+    outcome = models.CharField(max_length=200, blank=True, null=True) # JSON string, FIXME update django to use JSONField
+    name = models.CharField(max_length=30)
+    policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
+    action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
 
 class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
