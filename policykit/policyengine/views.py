@@ -311,11 +311,12 @@ def filter_policy(policy, action):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
+    metagov = MetagovClient(policy, action)
     _locals = locals()
 
-    wrapper_start = "def filter(policy, action, users):\r\n"
+    wrapper_start = "def filter(policy, action, users, metagov):\r\n"
 
-    wrapper_end = "\r\nfilter_pass = filter(policy, action, users)"
+    wrapper_end = "\r\nfilter_pass = filter(policy, action, users, metagov)"
 
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
