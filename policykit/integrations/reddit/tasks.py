@@ -33,7 +33,6 @@ def is_policykit_action(community, name, call_type, test_a, test_b):
 
 @shared_task
 def reddit_listener_actions():
-
     for community in RedditCommunity.objects.all():
         actions = []
 
@@ -79,15 +78,13 @@ def reddit_listener_actions():
 
 
 
-        # look for votes
-
-        proposed_actions = PlatformAction.objects.filter(community=community,
-                                                          proposal__status=Proposal.PROPOSED,
-                                                          community_post__isnull=False
-                                                          )
-
+        # Manage proposals
+        proposed_actions = PlatformAction.objects.filter(
+            community=community,
+            proposal__status=Proposal.PROPOSED,
+            community_post__isnull=False
+        )
         for proposed_action in proposed_actions:
-
             id = proposed_action.community_post.split('_')[1]
 
             call = 'r/policykit/comments/' + id + '.json'

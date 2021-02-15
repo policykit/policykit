@@ -27,9 +27,9 @@ class DiscourseCommunity(Community):
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
 
-    def notify_action(self, action, policy, users=None, template=None, channel=None):
-        from discourseintegration.views import post_policy
-        post_policy(policy, action, users, template, channel)
+    def notify_action(self, action, policy, users=None, template=None, topic_id=None):
+        from integration.discourse.views import post_policy
+        post_policy(policy, action, users, template, topic_id)
 
     def save(self, *args, **kwargs):
         super(DiscourseCommunity, self).save(*args, **kwargs)
@@ -41,20 +41,21 @@ class DiscourseCommunity(Community):
 
     def make_call(self, url, values=None, action=None, method=None):
         data = None
-
         if values:
-            data = urllib.parse.urlencode(values).encode('utf-8')
+            data = urllib.parse.urlencode(values)
+            data = data.encode('utf-8')
 
-        call_info = team_id + url
-
-        if method:
-            req = urllib.request.Request(call_info, data, method=method)
-        else:
-            req = urllib.request.Request(call_info, data)
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        req = urllib.request.Request(self.team_id + url, data, method=method)
         req.add_header('User-Api-Key', api_key)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
+
+        res = None
+        try:
+            resp = urllib.request.urlopen(req)
+            res = json.loads(resp.read().decode('utf-8'))
+        except urllib.error.HTTPError as e:
+            logger.info('reached HTTPError')
+            logger.info(e.code)
+            raise
 
         return res
 

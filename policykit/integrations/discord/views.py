@@ -126,7 +126,6 @@ def post_policy(policy, action, users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
 
     policy_message = "This action is governed by the following policy: " + policy.name
-
     if template:
         policy_message = template
 

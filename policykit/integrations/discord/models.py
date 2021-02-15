@@ -95,7 +95,6 @@ class DiscordCommunity(Community):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
 
-        logger.info('here')
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -166,7 +165,6 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-
     guild_id = None
     id = None
     choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
