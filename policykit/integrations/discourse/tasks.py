@@ -40,8 +40,8 @@ def discourse_listener_actions():
         logger.info('discourse: in community loop')
         actions = []
 
-        url = community['team_id']
-        api_key = community['api_key']
+        url = community.team_id
+        api_key = community.api_key
 
         req = urllib.request.Request(url + '/session/current.json')
         req.add_header("User-Api-Key", api_key)
