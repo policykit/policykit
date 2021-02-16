@@ -14,17 +14,14 @@ def start_process(policy, action, process_name, payload):
         action=action
     )
 
-    url = f"{settings.METAGOV_URL}/api/internal/process"
-    payload['process_name'] = process_name
+    url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
     payload['callback_url'] = f"{settings.SERVER_URL}/outcome/{model.pk}"
     logger.info(payload)
     response = requests.post(url, json=payload)
-    location = response.headers.get('location')
-
     if not response.ok:
         logger.error(f"Error starting process: {response.status_code} {response.text}")
         return None  # FIXME handle
-
+    location = response.headers.get('location')
     if not location:
         logger.error(f"Response missing location header")
         return None
