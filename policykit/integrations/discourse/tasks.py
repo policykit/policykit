@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def is_policykit_action(community, call_type, topic, policykit_id):
     user_id = topic['posters'][0]['user_id']
 
-    logger.info('discourse: checking user_id: ' + user_id)
+    logger.info('discourse: checking user_id: ' + str(user_id))
     if user_id == policykit_id:
         return True
     else:
@@ -50,7 +50,7 @@ def discourse_listener_actions():
         res = json.loads(resp.read().decode('utf-8'))
         policykit_id = res['current_user']['id']
 
-        logger.info('discourse: just found policykit id: ' + policykit_id)
+        logger.info('discourse: just found policykit id: ' + str(policykit_id))
 
         req = urllib.request.Request(url + '/latest.json')
         req.add_header("User-Api-Key", api_key)
