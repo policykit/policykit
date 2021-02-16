@@ -18,10 +18,13 @@ logger = logging.getLogger(__name__)
 def is_policykit_action(community, call_type, topic):
     user_id = topic['posters'][0]['user_id']
 
+    logger.info('in policykit_action')
     req = urllib.request.Request(url + '/admin/users/' + user_id + '.json')
     req.add_header("User-Api-Key", api_key)
+    logger.info('req ready for policykit_action')
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
+    logger.info('res received from policykit_action)
     username = res['username']
 
     logger.info('discourse: checking username: ' + str(username))
