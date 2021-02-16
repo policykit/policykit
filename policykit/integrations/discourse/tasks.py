@@ -16,6 +16,7 @@ import json
 logger = logging.getLogger(__name__)
 
 def is_policykit_action(community, call_type, topic):
+    logger.info('just entered')
     user_id = topic['posters'][0]['user_id']
 
     logger.info('in policykit_action')
@@ -67,6 +68,7 @@ def discourse_listener_actions():
             user_id = topic['posters'][0]['user_id']
 
             call_type = '/posts.json'
+            logger.info('about to check policykit_action')
             if not is_policykit_action(community, call_type, topic):
                 logger.info('discourse: not policykit action')
                 t = DiscourseCreateTopic.objects.filter(id=topic['id'])
