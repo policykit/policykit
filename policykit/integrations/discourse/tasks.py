@@ -20,28 +20,29 @@ def is_policykit_action(community, call_type, topic):
     user_id = topic['posters'][0]['user_id']
 
     logger.info('in policykit_action: ' + str(user_id))
-    req = urllib.request.Request(url + '/admin/users/' + str(user_id) + '.json')
-    req.add_header("User-Api-Key", api_key)
-    logger.info('req ready for policykit_action')
-    resp = urllib.request.urlopen(req)
-    res = json.loads(resp.read().decode('utf-8'))
-    logger.info('res received from policykit_action')
-    username = res['username']
+    if user_id > -1:
+        req = urllib.request.Request(url + '/admin/users/' + str(user_id) + '.json')
+        req.add_header("User-Api-Key", api_key)
+        logger.info('req ready for policykit_action')
+        resp = urllib.request.urlopen(req)
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info('res received from policykit_action')
+        username = res['username']
 
-    logger.info('discourse: checking username: ' + str(username))
-    if username == 'PolicyKit': ## TODO: Compare IDs in future, not usernames
-        return True
-    else:
-        current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
-        logs = LogAPICall.objects.filter(
-            proposal_time__gte=current_time_minus,
-            call_type=call_type
-        )
-        if logs.exists():
-            for log in logs:
-                j_info = json.loads(log.extra_info)
-                if topic['id'] == j_info['id']:
-                    return True
+        logger.info('discourse: checking username: ' + str(username))
+        if username == 'PolicyKit': ## TODO: Compare IDs in future, not usernames
+            return True
+        
+    current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
+    logs = LogAPICall.objects.filter(
+        proposal_time__gte=current_time_minus,
+        call_type=call_type
+    )
+    if logs.exists():
+        for log in logs:
+            j_info = json.loads(log.extra_info)
+            if topic['id'] == j_info['id']:
+                return True
     return False
 
 @shared_task
