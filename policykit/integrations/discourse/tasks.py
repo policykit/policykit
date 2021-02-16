@@ -16,19 +16,14 @@ import json
 logger = logging.getLogger(__name__)
 
 def is_policykit_action(community, call_type, topic):
-    logger.info('just entered')
     user_id = topic['posters'][0]['user_id']
 
-    logger.info('in policykit_action: ' + str(user_id))
     req = urllib.request.Request(community.team_id + '/admin/users/' + str(user_id) + '.json')
     req.add_header("User-Api-Key", community.api_key)
-    logger.info('req ready for policykit_action')
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
-    logger.info('res received from policykit_action')
     username = res['username']
 
-    logger.info('discourse: checking username: ' + str(username))
     if username == 'PolicyKit': ## TODO: Compare IDs in future, not usernames
         return True
     else:
@@ -46,7 +41,6 @@ def is_policykit_action(community, call_type, topic):
 
 @shared_task
 def discourse_listener_actions():
-    logger.info('discourse: listening with celery')
     for community in DiscourseCommunity.objects.all():
         logger.info('discourse: in community loop')
         actions = []
@@ -106,6 +100,7 @@ def discourse_listener_actions():
             community_post__isnull=False
         )
         for proposed_action in proposed_actions:
+            logger.info('in proposed action loop')
             id = proposed_action.community_post
 
             req = urllib.request.Request(url + '/posts/' + id + '.json')
@@ -136,10 +131,15 @@ def discourse_listener_actions():
                             b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
 
             # Update proposal
+            logger.info('updating proposal')
             for policy in PlatformPolicy.objects.filter(community=community):
+                logger.info('about to filter policy')
                 if filter_policy(policy, proposed_action):
+                    logger.info('just filtered policy')
                     cond_result = check_policy(policy, proposed_action)
                     if cond_result == Proposal.PASSED:
+                        logger.info('passed proposal discourse')
                         pass_policy(policy, proposed_action)
                     elif cond_result == Proposal.FAILED:
+                        logger.info('failed proposal discourse')
                         fail_policy(policy, proposed_action)
