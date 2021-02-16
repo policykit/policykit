@@ -25,7 +25,7 @@ def is_policykit_action(community, call_type, topic):
     logger.info('req ready for policykit_action')
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
-    logger.info('res received from policykit_action)
+    logger.info('res received from policykit_action')
     username = res['username']
 
     logger.info('discourse: checking username: ' + str(username))
