@@ -36,23 +36,23 @@ def is_policykit_action(community, call_type, topic, policykit_id):
 @shared_task
 def discourse_listener_actions():
     logger.info('discourse: listening with celery')
-    req = urllib.request.Request(url + '/session/current.json')
-    req.add_header("User-Api-Key", api_key)
-    logger.info('discourse: just created request')
-    resp = urllib.request.urlopen(req)
-    logger.info('discourse: just received response')
-    res = json.loads(resp.read().decode('utf-8'))
-    logger.info('discourse: just loaded res')
-    policykit_id = res['current_user']['id']
-
-    logger.info('discourse: just found policykit id')
-
     for community in DiscourseCommunity.objects.all():
         logger.info('discourse: in community loop')
         actions = []
 
         url = community['team_id']
         api_key = community['api_key']
+
+        req = urllib.request.Request(url + '/session/current.json')
+        req.add_header("User-Api-Key", api_key)
+        logger.info('discourse: just created request')
+        resp = urllib.request.urlopen(req)
+        logger.info('discourse: just received response')
+        res = json.loads(resp.read().decode('utf-8'))
+        logger.info('discourse: just loaded res')
+        policykit_id = res['current_user']['id']
+
+        logger.info('discourse: just found policykit id')
 
         req = urllib.request.Request(url + '/latest.json')
         req.add_header("User-Api-Key", api_key)
