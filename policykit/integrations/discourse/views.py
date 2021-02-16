@@ -152,7 +152,8 @@ def post_policy(policy, action, users=None, template=None, topic_id=None):
         policy_message = template
 
     data = {
-        'content': policy_message
+        'raw': policy_message,
+        'topic_id': topic_id
     }
 
     call = '/posts.json'
