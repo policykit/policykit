@@ -46,7 +46,7 @@ class DiscourseCommunity(Community):
             data = data.encode('utf-8')
 
         req = urllib.request.Request(self.team_id + url, data, method=method)
-        req.add_header('User-Api-Key', api_key)
+        req.add_header('User-Api-Key', self.api_key)
 
         res = None
         try:
@@ -143,12 +143,13 @@ class DiscourseCreateTopic(PlatformAction):
         )
 
     def revert(self):
+        logger.info('discourse topic revert')
         values = {}
-        super().revert(values, 't/%s.json' % self.id, method='DELETE')
+        super().revert(values, '/t/%s.json' % self.id, method='DELETE')
 
     def execute(self):
         if not self.community_revert:
-            topic = self.community.make_call('posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
+            topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
 
             self.id = topic['id']
         super().pass_action()
@@ -172,11 +173,11 @@ class DiscourseCreatePost(PlatformAction):
 
     def revert(self):
         values = {}
-        super().revert(values, 'posts/%s.json' % self.id, method='DELETE')
+        super().revert(values, '/posts/%s.json' % self.id, method='DELETE')
 
     def execute(self):
         if not self.community_revert:
-            reply = self.community.make_call('posts.json', {'raw': self.raw})
+            reply = self.community.make_call('/posts.json', {'raw': self.raw})
 
             self.id = reply['id']
         super().pass_action()
