@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from celery.schedules import crontab
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
-from integrations.discord.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
+from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
 from policyengine.views import filter_policy, check_policy, initialize_policy
 from urllib import parse
 import urllib.request
