@@ -19,7 +19,7 @@ def is_policykit_action(community, call_type, topic):
     logger.info('just entered')
     user_id = topic['posters'][0]['user_id']
 
-    logger.info('in policykit_action')
+    logger.info('in policykit_action: ' + str(user_id))
     req = urllib.request.Request(url + '/admin/users/' + user_id + '.json')
     req.add_header("User-Api-Key", api_key)
     logger.info('req ready for policykit_action')
