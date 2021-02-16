@@ -35,13 +35,17 @@ def is_policykit_action(community, call_type, topic, policykit_id):
 
 @shared_task
 def discourse_listener_actions():
+    logger.info('discourse: listening with celery')
     req = urllib.request.Request(url + '/session/current.json')
     req.add_header("User-Api-Key", api_key)
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     policykit_id = res['current_user']['id']
 
+    logger.info('discourse: just found policykit id')
+
     for community in DiscourseCommunity.objects.all():
+        logger.info('discourse: in community loop')
         actions = []
 
         url = community['team_id']
@@ -54,11 +58,15 @@ def discourse_listener_actions():
         topics = res['topic_list']['topics']
         users = res['users']
 
+        logger.info('discourse: just got latest topics')
+
         for topic in topics:
+            logger.info('discourse: in topic loop')
             user_id = topic['posters'][0]['user_id']
 
             call_type = '/posts.json'
             if not is_policykit_action(community, call_type, topic, policykit_id):
+                logger.info('discourse: not policykit action')
                 t = DiscourseCreateTopic.objects.filter(id=topic['id'])
                 if not t.exists():
                     logger.info('Discourse: creating new DiscourseCreateTopic for: ' + topic['title'])
@@ -79,6 +87,7 @@ def discourse_listener_actions():
                             break
 
         for action in actions:
+            logger.info('discourse: in action loop')
             action.community_origin = True
             action.is_bundled = False
             action.save()
@@ -86,6 +95,7 @@ def discourse_listener_actions():
                 action.revert()
 
         # Manage proposals
+        logger.info('discourse: about to manage proposals')
         proposed_actions = PlatformAction.objects.filter(
             community=community,
             proposal__status=Proposal.PROPOSED,
