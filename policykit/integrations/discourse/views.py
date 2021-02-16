@@ -145,6 +145,7 @@ def action(request):
     logger.info(json_data)
 
 def post_policy(policy, action, users=None, template=None, topic_id=None):
+    logger.info('in post_policy')
     from policyengine.models import LogAPICall
 
     policy_message = "This action is governed by the following policy: " + policy.name
@@ -158,13 +159,16 @@ def post_policy(policy, action, users=None, template=None, topic_id=None):
 
     call = '/posts.json'
 
+    logger.info('about to make call in post_policy')
     res = policy.community.make_call(call, values=data)
     data['id'] = res['id']
+    logger.info('about to make LogAPICall object in post_policy')
     _ = LogAPICall.objects.create(community=policy.community,
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
     if action.action_type == "PlatformAction":
         action.community_post = res['id']
+        logger.info('about to save action in post_policy')
         action.save()
     logger.info('finished post policy')

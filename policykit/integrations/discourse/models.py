@@ -28,6 +28,7 @@ class DiscourseCommunity(Community):
     api_key = models.CharField('api_key', max_length=100, unique=True)
 
     def notify_action(self, action, policy, users=None, template=None, topic_id=None):
+        logger.info('in notify_action')
         from integration.discourse.views import post_policy
         post_policy(policy, action, users, template, topic_id)
 
