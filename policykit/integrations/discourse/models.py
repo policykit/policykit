@@ -29,7 +29,7 @@ class DiscourseCommunity(Community):
 
     def notify_action(self, action, policy, users=None, template=None, topic_id=None):
         logger.info('in notify_action')
-        from integration.discourse.views import post_policy
+        from integrations.discourse.views import post_policy
         post_policy(policy, action, users, template, topic_id)
 
     def save(self, *args, **kwargs):
