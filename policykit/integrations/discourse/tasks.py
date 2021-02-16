@@ -55,16 +55,11 @@ def discourse_listener_actions():
         topics = res['topic_list']['topics']
         users = res['users']
 
-        logger.info('discourse: just got latest topics')
-
         for topic in topics:
-            logger.info('discourse: in topic loop: ' + topic['title'])
             user_id = topic['posters'][0]['user_id']
 
             call_type = '/posts.json'
-            logger.info('about to check policykit_action')
             if not is_policykit_action(community, call_type, topic):
-                logger.info('discourse: not policykit action')
                 t = DiscourseCreateTopic.objects.filter(id=topic['id'])
                 if not t.exists():
                     logger.info('Discourse: creating new DiscourseCreateTopic for: ' + topic['title'])
