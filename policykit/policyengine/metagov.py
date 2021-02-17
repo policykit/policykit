@@ -3,8 +3,7 @@ import requests
 import json
 from django.conf import settings
 
-logger = logging.getLogger('django')
-
+logger = logging.getLogger(__name__)
 
 def start_process(policy, action, process_name, payload):
     from policyengine.models import ExternalProcess
@@ -51,7 +50,7 @@ def get_resource(resource_name, payload):
     response = requests.get(url, params=payload)
     if not response.ok:
         logger.error(f"Error getting resource: {response.status_code} {response.text}")
-        return  # FIXME handle
+        return None # FIXME handle
     data = response.json()
     return data
 
