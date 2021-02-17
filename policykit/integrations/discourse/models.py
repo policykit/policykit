@@ -27,9 +27,10 @@ class DiscourseCommunity(Community):
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
 
-    def notify_action(self, action, policy, users=None, template=None, channel=None):
-        from discourseintegration.views import post_policy
-        post_policy(policy, action, users, template, channel)
+    def notify_action(self, action, policy, users=None, template=None, topic_id=None):
+        logger.info('in notify_action')
+        from integrations.discourse.views import post_policy
+        post_policy(policy, action, users, template, topic_id)
 
     def save(self, *args, **kwargs):
         super(DiscourseCommunity, self).save(*args, **kwargs)
@@ -41,20 +42,21 @@ class DiscourseCommunity(Community):
 
     def make_call(self, url, values=None, action=None, method=None):
         data = None
-
         if values:
-            data = urllib.parse.urlencode(values).encode('utf-8')
+            data = urllib.parse.urlencode(values)
+            data = data.encode('utf-8')
 
-        call_info = team_id + url
+        req = urllib.request.Request(self.team_id + url, data, method=method)
+        req.add_header('User-Api-Key', self.api_key)
 
-        if method:
-            req = urllib.request.Request(call_info, data, method=method)
-        else:
-            req = urllib.request.Request(call_info, data)
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        req.add_header('User-Api-Key', api_key)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
+        res = None
+        try:
+            resp = urllib.request.urlopen(req)
+            res = json.loads(resp.read().decode('utf-8'))
+        except urllib.error.HTTPError as e:
+            logger.info('reached HTTPError')
+            logger.info(e.code)
+            raise
 
         return res
 
@@ -142,12 +144,13 @@ class DiscourseCreateTopic(PlatformAction):
         )
 
     def revert(self):
+        logger.info('discourse topic revert')
         values = {}
-        super().revert(values, 't/%s.json' % self.id, method='DELETE')
+        super().revert(values, '/t/%s.json' % self.id, method='DELETE')
 
     def execute(self):
         if not self.community_revert:
-            topic = self.community.make_call('posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
+            topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
 
             self.id = topic['id']
         super().pass_action()
@@ -171,11 +174,11 @@ class DiscourseCreatePost(PlatformAction):
 
     def revert(self):
         values = {}
-        super().revert(values, 'posts/%s.json' % self.id, method='DELETE')
+        super().revert(values, '/posts/%s.json' % self.id, method='DELETE')
 
     def execute(self):
         if not self.community_revert:
-            reply = self.community.make_call('posts.json', {'raw': self.raw})
+            reply = self.community.make_call('/posts.json', {'raw': self.raw})
 
             self.id = reply['id']
         super().pass_action()

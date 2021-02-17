@@ -125,8 +125,7 @@ def action(request):
 def post_policy(policy, action, users=None, template=None, channel=None):
     from policyengine.models import LogAPICall
 
-    policy_message = "This action is governed by the following policy: " + policy.description
-
+    policy_message = "This action is governed by the following policy: " + policy.name
     if template:
         policy_message = template
 
@@ -142,5 +141,7 @@ def post_policy(policy, action, users=None, template=None, channel=None):
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
-    action.community_post = res['id']
-    action.save()
+    if action.action_type == "PlatformAction":
+        action.community_post = res['id']
+        action.save()
+    logger.info('finished post policy')

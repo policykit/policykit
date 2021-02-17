@@ -12,7 +12,6 @@ def filter_test(code, shouldPass=True):
 
 dangerous_modules = [
     "os",
-    "string", # NOTE: dangerous for now until can figure out how to avoid format string vulnerabilities
     "sys",
 ]
 

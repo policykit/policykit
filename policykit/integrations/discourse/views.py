@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from policykit.settings import SERVER_URL, DISCOURSE_PUBLIC_KEY
+from policykit.settings import SERVER_URL
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseStarterKit
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
@@ -144,27 +144,31 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
-def post_policy(policy, action, users=None, template=None, channel=None):
+def post_policy(policy, action, users=None, template=None, topic_id=None):
+    logger.info('in post_policy')
     from policyengine.models import LogAPICall
 
-    policy_message_default = "This action is governed by the following policy: " + policy.description
-
-    if not template:
-        policy_message = policy_message_default
-    else:
+    policy_message = "This action is governed by the following policy: " + policy.name
+    if template:
         policy_message = template
 
     data = {
-        'content': policy_message
+        'raw': policy_message,
+        'topic_id': topic_id
     }
 
-    call = 'posts.json'
+    call = '/posts.json'
 
+    logger.info('about to make call in post_policy')
     res = policy.community.make_call(call, values=data)
     data['id'] = res['id']
-    _ = LogAPICall.objects.create(community=community,
+    logger.info('about to make LogAPICall object in post_policy')
+    _ = LogAPICall.objects.create(community=policy.community,
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
-    action.community_post = res['id']
-    action.save()
+    if action.action_type == "PlatformAction":
+        action.community_post = res['id']
+        logger.info('about to save action in post_policy')
+        action.save()
+    logger.info('finished post policy')

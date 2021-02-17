@@ -307,11 +307,14 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     exec(code, globals, locals)
 
 def filter_policy(policy, action):
+    from policyengine.models import CommunityUser
+
+    users = CommunityUser.objects.filter(community=policy.community)
     _locals = locals()
 
-    wrapper_start = "def filter(policy, action):\r\n"
+    wrapper_start = "def filter(policy, action, users):\r\n"
 
-    wrapper_end = "\r\nfilter_pass = filter(policy, action)"
+    wrapper_end = "\r\nfilter_pass = filter(policy, action, users)"
 
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
@@ -328,9 +331,9 @@ def initialize_policy(policy, action):
     _locals = locals()
     _globals = globals()
 
-    wrapper_start = "def initialize(policy, action):\r\n"
+    wrapper_start = "def initialize(policy, action, users):\r\n"
 
-    wrapper_end = "\r\ninitialize(policy, action)"
+    wrapper_end = "\r\ninitialize(policy, action, users)"
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
@@ -371,21 +374,29 @@ def notify_policy(policy, action):
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
 def pass_policy(policy, action):
+    from policyengine.models import CommunityUser
+
+    users = CommunityUser.objects.filter(community=policy.community)
     _locals = locals()
 
-    wrapper_start = "def success(policy, action):\r\n"
+    wrapper_start = "def success(policy, action, users):\r\n"
 
-    wrapper_end = "\r\nsuccess(policy, action)"
+    wrapper_end = "\r\nsuccess(policy, action, users)"
 
+    logger.info('policy passed: ' + str(policy.name))
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
+    from policyengine.models import CommunityUser
+
+    users = CommunityUser.objects.filter(community=policy.community)
     _locals = locals()
 
-    wrapper_start = "def fail(policy, action):\r\n"
+    wrapper_start = "def fail(policy, action, users):\r\n"
 
-    wrapper_end = "\r\nfail(policy, action)"
+    wrapper_end = "\r\nfail(policy, action, users)"
 
+    logger.info('policy failed: ' + str(policy.name))
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
 def clean_up_proposals(action, executed):
@@ -568,9 +579,11 @@ def role_action_users(request):
     action.community = user.community
     action.initiator = user
     action.role = CommunityRole.objects.filter(name=data['role'])[0]
+    logger.info('first save')
     action.save()
     action.users.set(CommunityUser.objects.filter(username=data['user']))
     action.ready = True
+    logger.info('second save')
     action.save()
 
     return HttpResponse()

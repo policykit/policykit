@@ -57,6 +57,7 @@ class DiscordCommunity(Community):
         self.save()
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
+        logger.info('entered notify_action')
         from integrations.discord.views import post_policy
         post_policy(policy, action, users, template, channel)
 
@@ -83,7 +84,9 @@ class DiscordCommunity(Community):
         try:
             resp = urllib.request.urlopen(req)
             res = json.loads(resp.read().decode('utf-8'))
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as e:
+            logger.info('reached HTTPError')
+            logger.info(e.code)
             raise
 
         return res
@@ -92,7 +95,6 @@ class DiscordCommunity(Community):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
 
-        logger.info('here')
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -163,7 +165,6 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-
     guild_id = None
     id = None
     choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
