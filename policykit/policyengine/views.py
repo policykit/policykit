@@ -668,16 +668,13 @@ def post_outcome(request, id):
 
     if not body:
         return HttpResponseBadRequest()
-    logger.info(body)
+
+    logger.info(f"Received external process from metagov: {body}")
     if body.get("status") != "completed":
         return HttpResponseBadRequest("process not completed")
+    if not body.get('outcome') and not body.get('errors'):
+        return HttpResponseBadRequest("completed process must have either outcome or errors")
 
-    outcome = body.get('outcome')
-    if not outcome:
-        return HttpResponseBadRequest("process has no outcome")
-
-    logger.info(f"Received outcome: {outcome}")
-    process.outcome = json.dumps(outcome)
+    process.json_data = json.dumps(body)
     process.save()
-
     return HttpResponse()

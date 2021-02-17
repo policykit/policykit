@@ -980,10 +980,12 @@ class PlatformPolicyBundle(BasePolicy):
         verbose_name_plural = 'platformpolicybundles'
 
 class ExternalProcess(models.Model):
-    outcome = models.CharField(max_length=200, blank=True, null=True) # JSON string, FIXME update django to use JSONField
-    name = models.CharField(max_length=30)
+    json_data = models.CharField(max_length=500, blank=True, null=True)
     policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
     action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ['policy', 'action']
 
 class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)

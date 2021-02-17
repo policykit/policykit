@@ -1,3 +1,4 @@
+import json
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 from integrations.slack.models import (SlackCommunity, SlackPinMessage,
@@ -33,9 +34,21 @@ class EvaluationTests(TestCase):
         policy.community = self.community
         policy.filter = "return True"
         policy.initialize = "pass"
-        policy.check = """if metagov.get_process_outcome().get('value') == 27:\n    return PASSED"""
-        policy.notify = """result = metagov.start_process("loomio", {"closing_at": "2021-05-11"})\n
-action.data.set('poll_url', result.get('poll_url'))"""
+        policy.notify = """
+result = metagov.start_process("loomio", {"closing_at": "2021-05-11"})
+poll_url = result.get('poll_url')
+action.data.set('poll_url', poll_url)
+"""
+        policy.check = """
+result = metagov.get_process_outcome()
+if result is None:
+    return #still processing
+if result.errors:
+    return FAILED
+if result.outcome:
+    return PASSED if result.outcome.get('value') == 27 else FAILED
+return FAILED
+"""
         policy.success = "pass"
         policy.fail = "pass"
         policy.description = "test"
@@ -52,7 +65,7 @@ action.data.set('poll_url', result.get('poll_url'))"""
         process = ExternalProcess.objects.filter(
             action=action, policy=policy).first()
         self.assertIsNotNone(process)
-        self.assertEqual(process.outcome, None)
+        self.assertEqual(process.json_data, None)
         self.assertEqual(action.proposal.status, "proposed")
         self.assertTrue(
             'https://www.loomio.org/p/' in action.data.get('poll_url'))
@@ -64,6 +77,7 @@ action.data.set('poll_url', result.get('poll_url'))"""
         client = Client()
         data = {
             'status': 'completed',
+            # 'errors': {'text': 'something went wrong'}
             'outcome': {'value': 27}
         }
         response = client.post(
@@ -74,7 +88,8 @@ action.data.set('poll_url', result.get('poll_url'))"""
         action.refresh_from_db()
         policy.refresh_from_db()
 
-        self.assertEqual(process.outcome, '{"value": 27}')
+        result_obj = json.loads(process.json_data)
+        self.assertEqual(result_obj, data)
 
         result = check_policy(policy, action)
         self.assertEqual(result, 'passed')
