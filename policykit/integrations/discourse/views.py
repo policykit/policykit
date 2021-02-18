@@ -6,6 +6,8 @@ from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto import Random
 from urllib import parse
 import urllib.request
 import json
@@ -35,9 +37,9 @@ def request_key(request):
     request.session['discourse_url'] = url
     request.session['discourse_state'] = state
 
-    key_pair = RSA.generate(2048)
-    public_key = key_pair.publickey().exportKey("PEM")
-    private_key = key_pair.exportKey("PEM")
+    key = RSA.generate(2048)
+    private_key = key.export_key('PEM')
+    public_key = key.publickey().export_key('PEM').decode('utf-8')
 
     request.session['private_key'] = private_key.decode('utf-8')
 
@@ -60,10 +62,12 @@ def auth(request):
 
     state = request.session['discourse_state']
     url = request.session['discourse_url']
-    private_key = RSA.importKey(request.session['private_key'])
+    private_key = RSA.import_key(request.session['private_key'])
 
     payload_encrypted = request.GET['payload']
-    payload = private_key.decrypt(base64.b64decode(payload_encrypted)).decode('utf-8', 'ignore')
+    cipher_rsa = PKCS1_v1_5.new(private_key)
+    sentinel = Random.new().read(100)
+    payload = cipher_rsa.decrypt(base64.b64decode(payload_encrypted), sentinel).decode('utf-8', 'ignore')
     payload_body = payload[payload.index('{"key":'):] # Removes gobbledy-gook heading and returns json string
     payload_body_json = json.loads(payload_body)
     api_key = payload_body_json['key']
