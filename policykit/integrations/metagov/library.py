@@ -3,6 +3,7 @@ import logging
 
 import requests
 from django.conf import settings
+from integrations.metagov.models import ExternalProcess
 
 logger = logging.getLogger(__name__)
 
@@ -12,20 +13,26 @@ class DecisionResult(object):
         self.errors = obj.get('errors')
         self.outcome = obj.get('outcome')
 
-class MetagovClient:
+class Metagov:
+    """
+    Metagov client library to be exposed to policy author
+    """
     def __init__(self, policy, action):
         self.policy = policy
         self.action = action
 
     def start_process(self, process_name, payload):
-        from policyengine.models import ExternalProcess
+        """
+        Kick off a governance process in metagov, and pass along a callback_url to
+        be invoked whent the process completes.
+        """
         model = ExternalProcess.objects.create(
             policy=self.policy,
             action=self.action
         )
 
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
-        payload['callback_url'] = f"{settings.SERVER_URL}/outcome/{model.pk}"
+        payload['callback_url'] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
         logger.info(f"Making request to start '{process_name}' with payload: {payload}")
         response = requests.post(url, json=payload)
         if not response.ok:
@@ -46,7 +53,6 @@ class MetagovClient:
         return data.get('data', None)
 
     def get_process_outcome(self) -> DecisionResult:
-        from policyengine.models import ExternalProcess
         model = ExternalProcess.objects.filter(policy=self.policy, action=self.action).first()
         if model and model.json_data:
             data = json.loads(model.json_data)

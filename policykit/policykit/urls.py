@@ -37,7 +37,7 @@ urlpatterns = [
     path('reddit/', include('integrations.reddit.urls')),
     path('discord/', include('integrations.discord.urls')),
     path('discourse/', include('integrations.discourse.urls')),
-    path('outcome/<int:id>', policyviews.post_outcome),
+    path('metagov/', include('integrations.metagov.urls')),
     url(r'^$', policyviews.homepage),
     url('^activity/', include('actstream.urls'))
 ]

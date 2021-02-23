@@ -979,14 +979,6 @@ class PlatformPolicyBundle(BasePolicy):
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
 
-class ExternalProcess(models.Model):
-    json_data = models.CharField(max_length=500, blank=True, null=True)
-    policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
-    action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ['policy', 'action']
-
 class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
     proposal = models.ForeignKey(Proposal, models.CASCADE)

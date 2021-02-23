@@ -8,7 +8,6 @@ from django.shortcuts import render, redirect
 from actstream import action
 from actstream.models import model_stream, target_stream, Action
 from policyengine.filter import *
-from policyengine.metagov import MetagovClient
 from policykit.settings import SERVER_URL
 import urllib.request
 import urllib.parse
@@ -309,9 +308,10 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
 
 def filter_policy(policy, action):
     from policyengine.models import CommunityUser
+    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = MetagovClient(policy, action)
+    metagov = Metagov(policy, action)
     _locals = locals()
 
     wrapper_start = "def filter(policy, action, users, metagov):\r\n"
@@ -327,9 +327,10 @@ def filter_policy(policy, action):
 
 def initialize_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
+    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = MetagovClient(policy, action)
+    metagov = Metagov(policy, action)
 
     _locals = locals()
     _globals = globals()
@@ -345,11 +346,12 @@ def initialize_policy(policy, action):
 
 def check_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
+    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
     boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
     number_votes = NumberVote.objects.filter(proposal=action.proposal)
-    metagov = MetagovClient(policy, action)
+    metagov = Metagov(policy, action)
 
     _locals = locals()
 
@@ -367,9 +369,10 @@ def check_policy(policy, action):
 
 def notify_policy(policy, action):
     from policyengine.models import CommunityUser
+    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = MetagovClient(policy, action)
+    metagov = Metagov(policy, action)
 
     _locals = locals()
 
@@ -381,9 +384,10 @@ def notify_policy(policy, action):
 
 def pass_policy(policy, action):
     from policyengine.models import CommunityUser
+    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = MetagovClient(policy, action)
+    metagov = Metagov(policy, action)
     _locals = locals()
 
     wrapper_start = "def success(policy, action, users, metagov):\r\n"
@@ -395,9 +399,10 @@ def pass_policy(policy, action):
 
 def fail_policy(policy, action):
     from policyengine.models import CommunityUser
+    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = MetagovClient(policy, action)
+    metagov = Metagov(policy, action)
     _locals = locals()
 
     wrapper_start = "def fail(policy, action, users, metagov):\r\n"
@@ -648,33 +653,4 @@ def document_action_remove(request):
     action.doc = CommunityDoc.objects.get(id=data['doc'])
     action.save()
 
-    return HttpResponse()
-
-@csrf_exempt
-def post_outcome(request, id):
-    from policyengine.models import ExternalProcess
-    if request.method != 'POST' or not request.body:
-        return HttpResponseBadRequest()
-    try:
-        process = ExternalProcess.objects.get(pk=id)
-    except ExternalProcess.DoesNotExist:
-        return HttpResponseNotFound()
-
-    try:
-        body = json.loads(request.body)
-    except ValueError:
-        logger.error("unable to decode body")
-        return HttpResponseBadRequest()
-
-    if not body:
-        return HttpResponseBadRequest()
-
-    logger.info(f"Received external process from metagov: {body}")
-    if body.get("status") != "completed":
-        return HttpResponseBadRequest("process not completed")
-    if not body.get('outcome') and not body.get('errors'):
-        return HttpResponseBadRequest("completed process must have either outcome or errors")
-
-    process.json_data = json.dumps(body)
-    process.save()
     return HttpResponse()

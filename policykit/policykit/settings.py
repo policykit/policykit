@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'integrations.reddit',
     'integrations.discord',
     'integrations.discourse',
+    'integrations.metagov',
     'actstream'
 
 ]
@@ -198,6 +199,11 @@ LOGGING = {
             'propagate': True,
         },
         'integrations.discourse': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'integrations.metagov': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,

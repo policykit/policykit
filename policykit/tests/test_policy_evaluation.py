@@ -1,10 +1,12 @@
 import json
+
 from django.contrib.auth.models import Permission
 from django.test import TestCase
+from integrations.metagov.models import ExternalProcess
 from integrations.slack.models import (SlackCommunity, SlackPinMessage,
                                        SlackStarterKit, SlackUser)
-from policyengine.models import (CommunityRole, ExternalProcess, GenericPolicy,
-                                 PlatformAction, PlatformPolicy, Proposal)
+from policyengine.models import (CommunityRole, PlatformAction, PlatformPolicy,
+                                 Proposal)
 from policyengine.views import check_policy
 
 """
@@ -80,8 +82,8 @@ return FAILED
             # 'errors': {'text': 'something went wrong'}
             'outcome': {'value': 27}
         }
-        response = client.post(
-            f"/outcome/{process.pk}", data=data, content_type='application/json')
+
+        response = client.post(f"/metagov/outcome/{process.pk}", data=data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
 
         process.refresh_from_db()
