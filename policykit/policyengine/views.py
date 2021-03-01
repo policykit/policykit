@@ -304,7 +304,11 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
 
-    exec(code, globals, locals)
+    try:
+        exec(code, globals, locals)
+    except Exception as e:
+        logger.exception('Got exception in exec_code:')
+        raise
 
 def filter_policy(policy, action):
     from policyengine.models import CommunityUser
