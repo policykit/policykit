@@ -8,13 +8,13 @@ Welcome to PolicyKit's documentation!
 
 .. toctree::
    :maxdepth: 3
-   :caption: GETTING STARTED:
+   :caption: GETTING STARTED
 
    gettingstarted
 
 .. toctree::
    :maxdepth: 3
-   :caption: API REFERENCE:
+   :caption: API REFERENCE
 
    api_actions
 
