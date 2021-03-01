@@ -1,5 +1,7 @@
 # PolicyKit
 
+For more information about PolicyKit and an API reference, [check out our docs](https://policykit.readthedocs.io/en/latest/index.html).
+
 ## Getting Started
 
 1)
