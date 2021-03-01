@@ -3,7 +3,7 @@
 Installation and Getting Started
 ====================================
 
-On this page, we will take you through the process of setting up PolicyKit, both for development and for production.
+| On this page, we will take you through the process of setting up PolicyKit, both for development and for production.
 
 Getting Started
 ~~~~~~~~~~~~~~~~~
