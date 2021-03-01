@@ -3,7 +3,7 @@
 The Policy Model
 ====================================
 
-| Once any new action is proposed by a user, either by invoking it on the PolicyKit website or on a particular community platform, it passes through the PolicyEngine workflow, first calling the filter()function for each policy. All functions are passed the action object that is being evaluated and the policy object of the function.
+| Once any new action is proposed by a user, either by invoking it on the PolicyKit website or on a particular community platform, it passes through the PolicyEngine workflow, first calling the filter() function for each policy. All functions are passed the action object that is being evaluated and the policy object of the function.
 
 Filter
 ~~~~~~~~~~~~~~~~~~~~~~~~
