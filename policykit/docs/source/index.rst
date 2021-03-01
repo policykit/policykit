@@ -12,6 +12,7 @@ Welcome to PolicyKit's documentation!
 
    gettingstarted
    policy_model
+   integrations
 
 .. toctree::
    :maxdepth: 3
