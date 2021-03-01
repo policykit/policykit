@@ -34,7 +34,6 @@ def is_policykit_action(community, call_type, topic, username):
 @shared_task
 def discourse_listener_actions():
     for community in DiscourseCommunity.objects.all():
-        logger.info('discourse: in community loop')
         actions = []
 
         url = community.team_id
@@ -73,7 +72,6 @@ def discourse_listener_actions():
                     new_api_action.initiator = u
                     actions.append(new_api_action)
         for action in actions:
-            logger.info('discourse: in action loop')
             action.community_origin = True
             action.is_bundled = False
             action.save()
@@ -81,7 +79,6 @@ def discourse_listener_actions():
                 action.revert()
 
         # Manage proposals
-        logger.info('discourse: about to manage proposals')
         proposed_actions = PlatformAction.objects.filter(
             community=community,
             proposal__status=Proposal.PROPOSED,
