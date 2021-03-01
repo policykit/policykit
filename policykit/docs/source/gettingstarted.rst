@@ -57,7 +57,7 @@ From the shell prompt, run the following command to create the starterkits:
 
  exec(open('scripts/starterkits.py').read())
 
-Resolving Potential Issues
+Troubleshooting
 ---------------------------
 
 | It's possible that you may receive the error ``InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]`` where ``ModelState`` may refer to ``policyengine``, ``policykit``, ``slack``, ``reddit``, ``discord`` or ``discourse``. If so, inside each referenced directory, make sure that there exists a subdirectory named ``migrations`` containing an empty file named ``__init__.py``.
