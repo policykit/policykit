@@ -198,70 +198,33 @@ class Proposal(models.Model):
     proposal_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(choices=STATUS, max_length=10)
 
-    def get_boolean_votes(self, value, users=None):
+    def get_time_elapsed(self):
+        return datetime.now(timezone.utc) - self.proposal_time
+
+    def get_all_boolean_votes(self, users=None):
         if users:
-            votes = BooleanVote.objects.filter(boolean_value=value, proposal=self, user__in=users)
-        else:
-            votes = BooleanVote.objects.filter(boolean_value=value, proposal=self)
-        return votes
+            return BooleanVote.objects.filter(proposal=self, user__in=users)
+        return BooleanVote.objects.filter(proposal=self)
 
     def get_yes_votes(self, users=None):
-        return self.get_boolean_votes(True, users)
+        if users:
+            return BooleanVote.objects.filter(boolean_value=True, proposal=self, user__in=users)
+        return BooleanVote.objects.filter(boolean_value=True, proposal=self)
 
     def get_no_votes(self, users=None):
-        return self.get_boolean_votes(False, users)
-
-    def get_num_yes_votes(self, users=None):
-        return self.get_yes_votes(users).count()
-
-    def get_num_no_votes(self, users=None):
-        return self.get_no_votes(users).count()
-
-    def get_number_votes(self, value=0, users=None):
         if users:
-            votes = NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)
-        else:
-            votes = NumberVote.objects.filter(number_value=value, proposal=self)
-        return votes
+            return BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users)
+        return BooleanVote.objects.filter(boolean_value=False, proposal=self)
 
-    def get_total_vote_count(self, vote_type, vote_number = 1, users = None):
-        vote_type = vote_type.lower()
-
-        totalDict = {}
-        if vote_type == "boolean":
-            totaldict["True"] = len(get_yes_votes(users))
-            totaldict["False"] = len(get_no_votes(users))
-        elif vote_type == "number":
-            for vote_num in range(1, vote_number):
-                totalDict[vote_num] = get_number_votes(vote_num)
-
-        return totalDict
-
-    def get_raw_number_votes(self, value = 0, users = None):
-        votingDict = {}
+    def get_all_number_votes(self, users=None):
         if users:
-            for i in users:
-                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)]
-        else:
-            for i in users:
-                votingDict[i] = [NumberVote.objects.filter(number_value=value, proposal=self)]
-        return users
+            return NumberVote.objects.filter(proposal=self, user__in=users)
+        return NumberVote.objects.filter(proposal=self)
 
-    def get_raw_boolean_votes(self, value, users = None):
-        votingDict = {}
+    def get_one_number_votes(self, value, users=None):
         if users:
-            for i in users:
-                votingDict[i] = [BooleanVote.objects.filter(boolean_value= value, proposal=self, user__in=users)]
-        else:
-            for i in users:
-                votingDict[i] = [BooleanVote.objects.filter(boolean_value_value=value, proposal=self)]
-        return users
-
-    def time_elapsed(self):
-        logger.info('time elapsed')
-        logger.info(datetime.now(timezone.utc))
-        logger.info(self.proposal_time)
-        return datetime.now(timezone.utc) - self.proposal_time
+            return NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)
+        return NumberVote.objects.filter(number_value=value, proposal=self)
 
     def save(self, *args, **kwargs):
         if not self.pk:
