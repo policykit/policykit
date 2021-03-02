@@ -30,8 +30,6 @@ urlpatterns = [
     path('main/actions/', policyviews.actions),
     path('main/policyengine/', include('policyengine.urls')),
     path('main/documentation', policyviews.documentation),
-    path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
-    path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     path('admin/', admin.site.urls),
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),
