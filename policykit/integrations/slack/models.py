@@ -54,7 +54,6 @@ class SlackCommunity(Community):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
 
-        logger.info('here')
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -76,7 +75,8 @@ class SlackCommunity(Community):
                                   'proposal',
                                   'platformaction_ptr',
                                   'data',
-                                  'community_post'
+                                  'community_post',
+                                  'externalprocess'
                                   ]:
                     obj_fields.append(f.name)
 

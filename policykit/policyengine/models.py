@@ -460,7 +460,9 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
     action_codename = 'policykitdeletecommunitydoc'
 
     def __str__(self):
-        return "Delete Document: " + self.doc.name
+        if self.doc:
+            return "Delete Document: " + self.doc.name
+        return "Delete Document"
 
     def execute(self):
         self.doc.delete()

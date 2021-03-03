@@ -5,3 +5,5 @@ db.sqlite3
 static/*
 *migrations*
 .DS_Store
+env
+.vscode
