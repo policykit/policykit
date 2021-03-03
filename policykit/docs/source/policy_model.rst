@@ -13,7 +13,7 @@ Filter
 Initialize
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-| If ``filter()`` returns true, the action in question is considered in scope for this policy, and we move on to ``initialize()``. Within this function, the author can specify any code that must be completed once at the start of the policy to set it up. For instance, in the jury example, ``initialize()`` selects the random jury who will decide on the action.
+| If ``filter()`` returns true, the action in question is considered in scope for this policy, and we move on to ``initialize()``. Within this function, the author can specify any code that must be completed once at the start of the policy to set it up.
 
 Check
 ~~~~~~~~~~~~~~~~~~~~~~~~
