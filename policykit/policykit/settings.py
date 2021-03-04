@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'integrations.discourse',
     'integrations.metagov',
     'actstream'
-
 ]
 
 SITE_ID = 1
@@ -240,10 +239,3 @@ CELERY_BEAT_SCHEDULE = {
        'schedule': 60.0,
     }
 }
-
-
-JET_DEFAULT_THEME = 'default'
-
-
-JET_INDEX_DASHBOARD = 'policykit.dashboard.CustomIndexDashboard'
-JET_APP_INDEX_DASHBOARD = 'policykit.dashboard.CustomAppIndexDashboard'
