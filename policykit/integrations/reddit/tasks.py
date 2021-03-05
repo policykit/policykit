@@ -5,7 +5,6 @@ from celery import shared_task
 from celery.schedules import crontab
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
 from integrations.reddit.models import RedditCommunity, RedditUser, RedditMakePost
-from policyengine.views import filter_policy, check_policy, initialize_policy
 import datetime
 import logging
 import json
@@ -63,20 +62,9 @@ def reddit_listener_actions():
 
 
         for action in actions:
-            for policy in PlatformPolicy.objects.filter(community=action.community):
-                if filter_policy(policy, action):
-                    if not action.pk:
-                        action.community_origin = True
-                        action.is_bundled = False
-                        action.save()
-                        logger.info('action saved')
-                    cond_result = check_policy(policy, action)
-                    logger.info(cond_result)
-                    if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                        logger.info('revert')
-                        action.revert()
-
-
+            action.community_origin = True
+            action.is_bundled = False
+            action.save() # save triggers policy evaluation
 
         # Manage proposals
         proposed_actions = PlatformAction.objects.filter(

@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
 from policyengine.models import *
-from policyengine.views import filter_policy, check_policy, initialize_policy
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from urllib import parse
@@ -107,26 +106,9 @@ def handle_event(name, data):
             action = handle_message_create_event(data)
 
         if action is not None:
-            if action.initiator.has_perm('discord.add_' + action.action_codename):
-                #if they have execute permission, skip all policies
-                if action.initiator.has_perm('discord.can_execute_' + action.action_codename):
-                    action.execute()
-                else:
-                    for policy in PlatformPolicy.objects.filter(community=action.community):
-                        if filter_policy(policy, action):
-                            if not action.pk:
-                                action.community_origin = True
-                                action.is_bundled = False
-                                action.save()
-                            initialize_policy(policy, action)
-                            cond_result = check_policy(policy, action)
-                            if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                                action.revert()
-            else:
-                action.proposal = Proposal.objects.create(
-                    status=Proposal.FAILED,
-                    author=action.initiator
-                )
+            action.community_origin = True
+            action.is_bundled = False
+            action.save() # save triggers policy evaluation
 
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])

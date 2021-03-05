@@ -367,7 +367,7 @@ def initialize_policy(policy, action):
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
-    policy.has_notified = True
+    policy.has_notified = True # this should be renamed 'is_initialized'
     policy.save()
 
 def check_policy(policy, action):
@@ -456,6 +456,7 @@ def clean_up_proposals(action, executed):
             p.save()
 
     p = action.proposal
+    # what is going on here
     if executed:
         p.status = Proposal.PASSED
     else:
@@ -674,3 +675,52 @@ def document_action_remove(request):
     action.save()
 
     return HttpResponse()
+
+def execute_policy(policy, action):
+    """
+    Execute policy for given action. This can be run repeatedly to check proposed actions.
+    """
+    if filter_policy(policy, action):
+        from policyengine.models import Proposal
+
+        log_prefix = f"[engine][{policy.name}][action {action.pk}]"
+        logger.info(f"{log_prefix} Passed filter")
+        is_first_evaluation = not policy.has_notified
+        # If policy is being evaluated for the first time, initialize it
+        if is_first_evaluation:
+            logger.info(f"{log_prefix} Initializing")
+            # run "initialize" block of policy
+            initialize_policy(policy, action)
+
+        # Run "check" block of policy
+        check_result = check_policy(policy, action)
+        logger.info(f"{log_prefix} Check returned {check_result}")
+
+        if check_result == Proposal.PASSED:
+            # run "pass" block of policy
+            pass_policy(policy, action)
+            # FIXME: Add back this assertion when issue #305 is fixed https://github.com/amyxzhang/policykit/issues/305
+            # assert(action.proposal.status == Proposal.PASSED)
+
+        elif check_result == Proposal.FAILED:
+            # run "fail" block of policy
+            fail_policy(policy, action)
+            # mark action proposal as 'failed'
+            action.fail_action()
+            assert(action.proposal.status == Proposal.FAILED)
+
+            # If this is the first time evaluating, and it originated in a community, revert it
+            if is_first_evaluation and action.community_origin:
+                action.revert()
+
+        elif is_first_evaluation:
+            # check neither passed not failed, so it's pending
+            if action.community_origin:
+                action.revert()
+
+            # run "notify" block of policy
+            logger.info(f"{log_prefix} Notifying")
+            notify_policy(policy, action)
+        else:
+            # check neither passed not failed, so it's still pending
+            pass

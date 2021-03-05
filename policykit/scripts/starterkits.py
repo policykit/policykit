@@ -6,7 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from polymorphic.models import PolymorphicModel
 from django.core.exceptions import ValidationError
-from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
 import urllib
 import json
 from policyengine.models import *
