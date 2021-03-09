@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import Permission
 from policyengine.models import *
 from integrations.slack.models import *
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class ProposalTestCase(TestCase):
 
@@ -63,7 +63,7 @@ class ProposalTestCase(TestCase):
     def test_get_time_elapsed(self):
         time_elapsed = datetime.now(timezone.utc) - self.proposal.proposal_time
         difference = abs(self.proposal.get_time_elapsed() - time_elapsed)
-        self.assertTrue(difference < datetime.timedelta(seconds=1))
+        self.assertTrue(difference < timedelta(seconds=1))
 
     def test_get_all_boolean_votes(self):
         boolean_votes = self.proposal.get_all_boolean_votes()
