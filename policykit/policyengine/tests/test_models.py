@@ -61,7 +61,7 @@ class ProposalTestCase(TestCase):
         )
 
     def test_get_time_elapsed(self):
-        time_elapsed = datetime.now(timezone.utc) - self.proposal.proposed_time
+        time_elapsed = datetime.now(timezone.utc) - self.proposal.proposal_time
         difference = abs(self.proposal.get_time_elapsed() - time_elapsed)
         self.assertTrue(difference < datetime.timedelta(seconds=1))
 
