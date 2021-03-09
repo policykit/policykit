@@ -32,7 +32,7 @@ class ProposalTestCase(TestCase):
         )
         self.proposal = Proposal.objects.create(
             status=Proposal.PROPOSED,
-            author=self.user
+            author=self.user1
         )
         self.booleanvote1 = BooleanVote.objects.create(
             proposal=self.proposal,
