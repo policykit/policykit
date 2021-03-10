@@ -309,11 +309,11 @@ class UserVoteTestCase(ModelTestCase):
 class BooleanVoteTestCase(ModelTestCase):
 
     def test__str__(self):
-        self.assertEqual(str(self.booleanvote1), 'Test User 1:True')
-        self.assertEqual(str(self.booleanvote3), 'test3:False')
+        self.assertEqual(str(self.booleanvote1), 'Test User 1 : True')
+        self.assertEqual(str(self.booleanvote3), 'test3 : False')
 
 class NumberVoteTestCase(ModelTestCase):
 
     def test__str__(self):
-        self.assertEqual(str(self.numbervote1), 'Test User 1:2')
-        self.assertEqual(str(self.numbervote2), 'test2:3')
+        self.assertEqual(str(self.numbervote1), 'Test User 1 : 2')
+        self.assertEqual(str(self.numbervote2), 'test2 : 3')
