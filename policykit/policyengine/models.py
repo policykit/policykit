@@ -929,13 +929,25 @@ class UserVote(models.Model):
     class Meta:
         abstract = True
 
+    def get_time_elapsed(self):
+        return datetime.now(timezone.utc) - self.vote_time
+
 class BooleanVote(UserVote):
     TRUE_FALSE_CHOICES = (
-                          (True, 'Yes'),
-                          (False, 'No')
-                          )
-    boolean_value = models.BooleanField(null = True, choices = TRUE_FALSE_CHOICES,
-                                                               default= True) # yes/no, selected/not selected
+        (True, 'Yes'),
+        (False, 'No')
+    )
+    boolean_value = models.BooleanField(
+        null=True,
+        choices=TRUE_FALSE_CHOICES,
+        default=True
+    )
+
+    def __str__(self):
+        return str(self.user) + ' : ' + str(self.boolean_value)
 
 class NumberVote(UserVote):
     number_value = models.IntegerField(null=True)
+
+    def __str__(self):
+        return str(self.user) + ' : ' + str(self.number_value)
