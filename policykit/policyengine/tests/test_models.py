@@ -17,7 +17,7 @@ class ModelTestCase(TestCase):
             role_name="base",
             name="base user"
         )
-        for perm in execute_perms:
+        for perm in self.execute_perms:
             self.role_default.permissions.add(Permission.objects.get(name=perm))
         self.community = SlackCommunity.objects.create(
             community_name='test',
