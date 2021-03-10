@@ -79,6 +79,7 @@ class CommunityUser(User, PolymorphicModel):
         user_roles = []
         roles = CommunityRole.objects.filter(community=self.community)
         for r in roles:
+            logger.info(r.name)
             if self in r.user_set.all():
                 user_roles.append(r)
         return user_roles
