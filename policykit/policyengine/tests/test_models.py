@@ -15,6 +15,8 @@ class ModelTestCase(TestCase):
             role_name="base",
             name="base user"
         )
+        self.permission1 = Permission.objects.get(name="Can add slack pin message")
+        self.role_default.permissions.add(self.permission1)
         self.community = SlackCommunity.objects.create(
             community_name='test',
             team_id='test',
@@ -29,6 +31,7 @@ class ModelTestCase(TestCase):
             name="moderator",
             description="help the community follow its norms"
         )
+        self.role_mod.permissions.add(self.permission1)
         self.role_mod.community = self.community
         self.role_mod.save()
         self.user1 = SlackUser.objects.create(

@@ -73,8 +73,7 @@ class CommunityUser(User, PolymorphicModel):
 
     def save(self, *args, **kwargs):
         super(CommunityUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
+        self.community.base_role.user_set.add(self)
 
     def get_roles(self):
         user_roles = []
@@ -190,7 +189,7 @@ class Proposal(models.Model):
         verbose_name='author',
         blank=True,
         null=True
-        )
+    )
     proposal_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(choices=STATUS, max_length=10)
 
@@ -224,8 +223,7 @@ class Proposal(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            ds = DataStore.objects.create()
-            self.data = ds
+            self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
 
 class BaseAction(models.Model):
