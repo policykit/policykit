@@ -79,14 +79,17 @@ class CommunityUser(User, PolymorphicModel):
         user_roles = []
         roles = CommunityRole.objects.filter(community=self.community)
         for r in roles:
-            logger.info(r.name)
-            if self in r.user_set.all():
-                user_roles.append(r)
+            for u in r.user_set.all():
+                if u.communityuser.username == self.username:
+                    user_roles.append(r)
         return user_roles
 
     def has_role(self, role_name):
-        roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
-        return roles.count() > 0
+        r = CommunityRole.objects.filter(community=self.community, role_name=role_name)[0]
+        for u in r.user_set.all():
+            if u.communityuser.username == self.username:
+                return True
+        return False
 
 class CommunityDoc(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
