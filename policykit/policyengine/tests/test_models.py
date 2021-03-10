@@ -33,7 +33,8 @@ class ModelTestCase(TestCase):
             name="moderator",
             description="help the community follow its norms"
         )
-        self.role_mod.permissions.add(self.permission1)
+        for perm in self.execute_perms:
+            self.role_mod.permissions.add(Permission.objects.get(name=perm))
         self.role_mod.community = self.community
         self.role_mod.save()
         self.user1 = SlackUser.objects.create(
