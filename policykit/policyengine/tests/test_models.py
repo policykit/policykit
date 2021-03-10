@@ -25,6 +25,7 @@ class ModelTestCase(TestCase):
         self.role_mod = CommunityRole.objects.create(
             role_name="mod",
             name="moderator",
+            description="help the community follow its norms",
             community=self.community
         )
         self.user1 = SlackUser.objects.create(
@@ -33,6 +34,7 @@ class ModelTestCase(TestCase):
             community=self.community
         )
         self.role_mod.user_set.add(self.user1)
+        self.role_mod.save()
         self.user2 = SlackUser.objects.create(
             username="test2",
             community=self.community
@@ -121,7 +123,7 @@ class DataStoreTestCase(ModelTestCase):
 
     def test_all_functions(self):
         self.assertTrue(self.data_store.set('a', 'xyz'))
-        self.assertEqual(self.data_store.get('a'), 'xyx')
+        self.assertEqual(self.data_store.get('a'), 'xyz')
         self.assertTrue(self.data_store.remove('a'))
         self.assertFalse(self.data_store.remove('a'))
         self.assertIsNone(self.data_store.get('a'))
@@ -184,7 +186,7 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.assertEqual(str(self.action_change_doc), 'Edit Document: EditedDoc')
 
     def test_all_doc_actions(self):
-        self.action_add_doc.save()
+        self.action_add_doc.execute()
         docs = CommunityDoc.objects.filter(name='NewDoc')
         self.assertEqual(docs.count(), 1)
         doc = docs[0]
@@ -192,7 +194,7 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.assertEqual(doc.text, 'Text in NewDoc')
 
         self.action_change_doc.doc=CommunityDoc.objects.filter(name='NewDoc')[0]
-        self.action_change_doc.save()
+        self.action_change_doc.execute()
         docs = CommunityDoc.objects.filter(name='NewDoc')
         self.assertEqual(docs.count(), 0)
         docs = CommunityDoc.objects.filter(name='EditedDoc')
@@ -202,7 +204,7 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.assertEqual(doc.text, 'Edits in NewDoc')
 
         self.action_delete_doc.doc=CommunityDoc.objects.filter(name='EditedDoc')[0]
-        self.action_delete_doc.save()
+        self.action_delete_doc.execute()
         docs = CommunityDoc.objects.filter(name='EditedDoc')
         self.assertEqual(docs.count(), 0)
 
@@ -242,5 +244,5 @@ class RoleActionsTestCase(ModelTestCase):
         self.assertEqual(str(self.action_edit_role), 'Edit Role: president')
 
     def test_all_role_actions(self):
-        self.action_add_role.save()
+        self.action_add_role.execute()
         ## WIP
