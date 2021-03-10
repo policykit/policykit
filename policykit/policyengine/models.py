@@ -41,7 +41,7 @@ class Community(PolymorphicModel):
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
     def __str__(self):
-        return community_name
+        return self.community_name
 
     def notify_action(self, action, policy, users):
         pass
