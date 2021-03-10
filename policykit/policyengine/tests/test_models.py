@@ -6,6 +6,8 @@ from datetime import datetime, timezone, timedelta
 
 class ModelTestCase(TestCase):
 
+    execute_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc', 'Can execute policykit add role', 'Can execute policykit delete role', 'Can execute policykit edit role', 'Can execute policykit add user role', 'Can execute policykit remove user role', 'Can execute policykit change platform policy', 'Can execute policykit change constitution policy', 'Can execute policykit remove platform policy', 'Can execute policykit remove constitution policy', 'Can execute policykit add platform policy', 'Can execute policykit add constitution policy', 'Can execute policykit add community doc', 'Can execute policykit change community doc', 'Can execute policykit delete community doc']
+
     def setUp(self):
         self.starter_kit = StarterKit.objects.create(
             name='Test Kit',
@@ -15,8 +17,8 @@ class ModelTestCase(TestCase):
             role_name="base",
             name="base user"
         )
-        self.permission1 = Permission.objects.get(name="Can add slack pin message")
-        self.role_default.permissions.add(self.permission1)
+        for perm in execute_perms:
+            self.role_default.permissions.add(Permission.objects.get(name=perm))
         self.community = SlackCommunity.objects.create(
             community_name='test',
             team_id='test',
