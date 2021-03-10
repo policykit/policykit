@@ -22,12 +22,15 @@ class ModelTestCase(TestCase):
             access_token='test',
             base_role=self.role_default
         )
+        self.role_default.community = self.community
+        self.role_default.save()
         self.role_mod = CommunityRole.objects.create(
             role_name="mod",
             name="moderator",
-            description="help the community follow its norms",
-            community=self.community
+            description="help the community follow its norms"
         )
+        self.role_mod.community = self.community
+        self.role_mod.save()
         self.user1 = SlackUser.objects.create(
             readable_name='Test User 1',
             username="test1",
@@ -186,7 +189,7 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.assertEqual(str(self.action_change_doc), 'Edit Document: EditedDoc')
 
     def test_all_doc_actions(self):
-        self.action_add_doc.execute()
+        self.action_add_doc.save()
         docs = CommunityDoc.objects.filter(name='NewDoc')
         self.assertEqual(docs.count(), 1)
         doc = docs[0]
@@ -194,7 +197,7 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.assertEqual(doc.text, 'Text in NewDoc')
 
         self.action_change_doc.doc=CommunityDoc.objects.filter(name='NewDoc')[0]
-        self.action_change_doc.execute()
+        self.action_change_doc.save()
         docs = CommunityDoc.objects.filter(name='NewDoc')
         self.assertEqual(docs.count(), 0)
         docs = CommunityDoc.objects.filter(name='EditedDoc')
@@ -204,7 +207,7 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.assertEqual(doc.text, 'Edits in NewDoc')
 
         self.action_delete_doc.doc=CommunityDoc.objects.filter(name='EditedDoc')[0]
-        self.action_delete_doc.execute()
+        self.action_delete_doc.save()
         docs = CommunityDoc.objects.filter(name='EditedDoc')
         self.assertEqual(docs.count(), 0)
 
@@ -244,5 +247,5 @@ class RoleActionsTestCase(ModelTestCase):
         self.assertEqual(str(self.action_edit_role), 'Edit Role: president')
 
     def test_all_role_actions(self):
-        self.action_add_role.execute()
+        self.action_add_role.save()
         ## WIP
