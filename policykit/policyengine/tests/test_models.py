@@ -32,7 +32,7 @@ class ModelTestCase(TestCase):
             username="test1",
             community=self.community
         )
-        self.role_mod.add(self.user1)
+        self.role_mod.user_set.add(self.user1)
         self.user2 = SlackUser.objects.create(
             username="test2",
             community=self.community
