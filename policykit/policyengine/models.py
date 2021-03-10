@@ -11,9 +11,7 @@ from policyengine.views import check_policy, filter_policy, initialize_policy, p
 from datetime import datetime, timezone
 import urllib
 import json
-
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +26,7 @@ DEFAULT_FAIL = "pass\n\n"
 def on_transaction_commit(func):
     def inner(*args, **kwargs):
         transaction.on_commit(lambda: func(*args, **kwargs))
-
     return inner
-
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
@@ -44,11 +40,11 @@ class Community(PolymorphicModel):
     platform = None
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
+    def __str__(self):
+        return community_name
+
     def notify_action(self, action, policy, users):
         pass
-
-    def get_users(self, users):
-      return users
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
@@ -85,7 +81,7 @@ class CommunityUser(User, PolymorphicModel):
         roles = CommunityRole.objects.filter(community=self.community)
         for r in roles:
             if self in r.user_set.all():
-                user_roles.append(r.role_name)
+                user_roles.append(r)
         return user_roles
 
     def has_role(self, role_name):
@@ -262,24 +258,20 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         verbose_name_plural = 'constitutionactions'
 
     def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
+        self.proposal.status = Proposal.PASSED
+        self.proposal.save()
         action.send(self, verb='was passed')
 
     def shouldCreate(self):
         return not self.pk # Runs only when object is new
 
     def save(self, *args, **kwargs):
-        logger.info('Constitution Action: running save')
         if self.shouldCreate():
             if self.data is None:
-                ds = DataStore.objects.create()
-                self.data = ds
+                self.data = DataStore.objects.create()
 
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                logger.info('Constitution Action: has perm')
                 if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
                 else:
@@ -290,38 +282,25 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                        logger.info('Constitution Action: has execute permissions')
                         action.execute()
                     else:
-                        logger.info('Constitution Action: about to filter')
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
                           if filter_policy(policy, action):
-                              logger.info('Constitution Action: just filtered')
 
                               initialize_policy(policy, action)
-                              logger.info(action.proposal.status)
 
-                              logger.info('Constitution Action: about to check')
                               check_result = check_policy(policy, action)
-                              logger.info('Constitution Action: just checked')
                               if check_result == Proposal.PASSED:
-                                  logger.info('Constitution Action: passed')
                                   pass_policy(policy, action)
                               elif check_result == Proposal.FAILED:
-                                  logger.info('Constitution Action: failed')
                                   fail_policy(policy, action)
                               else:
-                                  logger.info('Constitution Action: notifying')
                                   notify_policy(policy, action)
-                                  logger.info(action.proposal.status)
             else:
-                logger.info('failed one')
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
             if not self.pk: # Runs only when object is new
-                logger.info('failed two')
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
-            logger.info('else save')
             super(ConstitutionAction, self).save(*args, **kwargs)
 
 
