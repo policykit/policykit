@@ -254,4 +254,66 @@ class RoleActionsTestCase(ModelTestCase):
 
     def test_all_role_actions(self):
         self.action_add_role.save()
-        ## WIP
+        for perm in self.execute_perms:
+            self.action_add_role.permissions.add(Permission.objects.get(name=perm))
+        self.action_add_role.ready = True
+        self.action_add_role.save()
+        roles = CommunityRole.objects.filter(name='senator')
+        self.assertEqual(roles.count(), 1)
+        role = roles[0]
+        self.assertEqual(role.name, 'senator')
+        self.assertEqual(role.description, 'for the government')
+
+        self.action_add_user_role.role = role
+        self.action_add_user_role.save()
+        self.action_add_user_role.users.set(self.user3)
+        self.action_add_user_role.ready = True
+        self.action_add_user_role.save()
+        self.assertTrue(self.user_3.has_role('senator'))
+
+        self.action_edit_role.role = role
+        self.action_edit_role.save()
+        for perm in self.execute_perms:
+            self.action_edit_role.permissions.add(Permission.objects.get(name=perm))
+        self.action_edit_role.ready = True
+        self.action_edit_role.save()
+        roles = CommunityRole.objects.filter(name='senator')
+        self.assertEqual(roles.count(), 0)
+        roles = CommunityRole.objects.filter(name='president')
+        self.assertEqual(roles.count(), 1)
+        role = roles[0]
+        self.assertEqual(role.name, 'president')
+        self.assertEqual(role.description, 'elected woohoo')
+        self.assertTrue(self.user_3.has_role('president'))
+        self.assertFalse(self.user_3.has_role('senator'))
+
+        self.action_remove_user_role.role = role
+        self.action_remove_user_role.save()
+        self.action_remove_user_role.users.set(self.user3)
+        self.action_remove_user_role.ready = True
+        self.action_remove_user_role.save()
+        self.assertFalse(self.user_3.has_role('president'))
+
+        self.action_delete_role.role = role
+        self.action_delete_role.save()
+        roles = CommunityRole.objects.filter(name='president')
+        self.assertEqual(roles.count(), 0)
+
+class UserVoteTestCase(ModelTestCase):
+
+    def test_get_time_elapsed(self):
+        time_elapsed = datetime.now(timezone.utc) - self.booleanvote1.vote_time
+        difference = abs(self.booleanvote1.get_time_elapsed() - time_elapsed)
+        self.assertTrue(difference < timedelta(seconds=1))
+
+class BooleanVoteTestCase(ModelTestCase):
+
+    def test__str__(self):
+        self.assertEqual(str(self.booleanvote1), 'Test User 1:True')
+        self.assertEqual(str(self.booleanvote3), 'test3:False')
+
+class NumberVoteTestCase(ModelTestCase):
+
+    def test__str__(self):
+        self.assertEqual(str(self.numbervote1), 'Test User 1:2')
+        self.assertEqual(str(self.numbervote2), 'test2:3')
