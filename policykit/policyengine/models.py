@@ -46,6 +46,18 @@ class Community(PolymorphicModel):
     def notify_action(self, action, policy, users):
         pass
 
+    def get_roles(self):
+        return CommunityRole.objects.filter(community=self)
+
+    def get_platform_policies(self):
+        return PlatformPolicy.objects.filter(community=self)
+
+    def get_constitution_policies(self):
+        return ConstitutionPolicy.objects.filter(community=self)
+
+    def get_documents(self):
+        return CommunityDoc.objects.filter(community=self)
+
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
@@ -85,10 +97,12 @@ class CommunityUser(User, PolymorphicModel):
         return user_roles
 
     def has_role(self, role_name):
-        r = CommunityRole.objects.filter(community=self.community, role_name=role_name)[0]
-        for u in r.user_set.all():
-            if u.communityuser.username == self.username:
-                return True
+        roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
+        if roles.exists():
+            r = roles[0]
+            for u in r.user_set.all():
+                if u.communityuser.username == self.username:
+                    return True
         return False
 
 class CommunityDoc(models.Model):

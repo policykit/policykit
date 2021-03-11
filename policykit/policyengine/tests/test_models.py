@@ -100,6 +100,18 @@ class CommunityTestCase(ModelTestCase):
     def test__str__(self):
         self.assertEqual(str(self.community), 'test')
 
+    def test_get_roles(self):
+        roles = self.community.get_roles()
+        self.assertEqual(len(roles), 2)
+        self.assertEqual(roles[0].role_name, 'base')
+        self.assertEqual(roles[1].role_name, 'mod')
+
+    def test_get_documents(self):
+        docs = self.community.get_documents()
+        self.assertEqual(len(docs), 1)
+        self.assertEqual(docs[0].name, 'Test Doc')
+        self.assertEqual(docs[0].text, 'Insert text here')
+
 class CommunityRoleTestCase(ModelTestCase):
 
     def test__str__(self):

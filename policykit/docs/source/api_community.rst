@@ -15,6 +15,14 @@ Community
 
 | **Functions**
 
-+--------------------------------------+----------------------------------------------------+
-| notify_action(action, policy, users) | Sends a notification to users of a pending action. |
-+--------------------------------------+----------------------------------------------------+
++--------------------------------------+---------------------------------------------------------------+
+| notify_action(action, policy, users) | Sends a notification to users of a pending action.            |
++--------------------------------------+---------------------------------------------------------------+
+| get_roles()                          | Returns a list of all roles in the community.                 |
++--------------------------------------+---------------------------------------------------------------+
+| get_platform_policies()              | Returns a list of all platform policies in the community.     |
++--------------------------------------+---------------------------------------------------------------+
+| get_constitution_policies()          | Returns a list of all constitution policies in the community. |
++--------------------------------------+---------------------------------------------------------------+
+| get_documents()                      | Returns a list of all documents in the community.             |
++--------------------------------------+---------------------------------------------------------------+
