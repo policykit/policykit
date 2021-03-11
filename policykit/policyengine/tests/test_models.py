@@ -269,7 +269,7 @@ class RoleActionsTestCase(ModelTestCase):
         self.action_add_user_role.users.add(self.user3)
         self.action_add_user_role.ready = True
         self.action_add_user_role.save()
-        self.assertTrue(self.user_3.has_role('senator'))
+        self.assertTrue(self.user3.has_role('senator'))
 
         self.action_edit_role.role = role
         self.action_edit_role.save()
@@ -284,15 +284,15 @@ class RoleActionsTestCase(ModelTestCase):
         role = roles[0]
         self.assertEqual(role.role_name, 'president')
         self.assertEqual(role.description, 'elected woohoo')
-        self.assertTrue(self.user_3.has_role('president'))
-        self.assertFalse(self.user_3.has_role('senator'))
+        self.assertTrue(self.user3.has_role('president'))
+        self.assertFalse(self.user3.has_role('senator'))
 
         self.action_remove_user_role.role = role
         self.action_remove_user_role.save()
         self.action_remove_user_role.users.add(self.user3)
         self.action_remove_user_role.ready = True
         self.action_remove_user_role.save()
-        self.assertFalse(self.user_3.has_role('president'))
+        self.assertFalse(self.user3.has_role('president'))
 
         self.action_delete_role.role = role
         self.action_delete_role.save()
