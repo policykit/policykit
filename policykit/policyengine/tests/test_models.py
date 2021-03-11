@@ -266,7 +266,7 @@ class RoleActionsTestCase(ModelTestCase):
 
         self.action_add_user_role.role = role
         self.action_add_user_role.save()
-        self.action_add_user_role.users.set(self.user3)
+        self.action_add_user_role.users.add(self.user3)
         self.action_add_user_role.ready = True
         self.action_add_user_role.save()
         self.assertTrue(self.user_3.has_role('senator'))
@@ -289,7 +289,7 @@ class RoleActionsTestCase(ModelTestCase):
 
         self.action_remove_user_role.role = role
         self.action_remove_user_role.save()
-        self.action_remove_user_role.users.set(self.user3)
+        self.action_remove_user_role.users.add(self.user3)
         self.action_remove_user_role.ready = True
         self.action_remove_user_role.save()
         self.assertFalse(self.user_3.has_role('president'))
