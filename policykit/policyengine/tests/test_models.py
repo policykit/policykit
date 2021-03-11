@@ -258,10 +258,10 @@ class RoleActionsTestCase(ModelTestCase):
             self.action_add_role.permissions.add(Permission.objects.get(name=perm))
         self.action_add_role.ready = True
         self.action_add_role.save()
-        roles = CommunityRole.objects.filter(name='senator')
+        roles = CommunityRole.objects.filter(role_name='senator')
         self.assertEqual(roles.count(), 1)
         role = roles[0]
-        self.assertEqual(role.name, 'senator')
+        self.assertEqual(role.role_name, 'senator')
         self.assertEqual(role.description, 'for the government')
 
         self.action_add_user_role.role = role
@@ -277,12 +277,12 @@ class RoleActionsTestCase(ModelTestCase):
             self.action_edit_role.permissions.add(Permission.objects.get(name=perm))
         self.action_edit_role.ready = True
         self.action_edit_role.save()
-        roles = CommunityRole.objects.filter(name='senator')
+        roles = CommunityRole.objects.filter(role_name='senator')
         self.assertEqual(roles.count(), 0)
-        roles = CommunityRole.objects.filter(name='president')
+        roles = CommunityRole.objects.filter(role_name='president')
         self.assertEqual(roles.count(), 1)
         role = roles[0]
-        self.assertEqual(role.name, 'president')
+        self.assertEqual(role.role_name, 'president')
         self.assertEqual(role.description, 'elected woohoo')
         self.assertTrue(self.user_3.has_role('president'))
         self.assertFalse(self.user_3.has_role('senator'))
@@ -296,7 +296,7 @@ class RoleActionsTestCase(ModelTestCase):
 
         self.action_delete_role.role = role
         self.action_delete_role.save()
-        roles = CommunityRole.objects.filter(name='president')
+        roles = CommunityRole.objects.filter(role_name='president')
         self.assertEqual(roles.count(), 0)
 
 class UserVoteTestCase(ModelTestCase):
