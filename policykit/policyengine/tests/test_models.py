@@ -89,6 +89,28 @@ class ModelTestCase(TestCase):
         self.data_store = DataStore.objects.create(
             data_store=''
         )
+        self.constitutionpolicy1 = ConstitutionPolicy.objects.create(
+            filter='return True',
+            initialize='pass',
+            check='return PASSED',
+            notify='pass',
+            success='action.execute()',
+            fail='pass',
+            name='TestConstitutionPolicy',
+            community=self.community,
+            description='Insert constitution policy text here'
+        )
+        self.platformpolicy1 = PlatformPolicy.objects.create(
+            filter='return True',
+            initialize='pass',
+            check='return PASSED',
+            notify='pass',
+            success='action.execute()',
+            fail='pass',
+            name='TestPlatformPolicy',
+            community=self.community,
+            description='Insert platform policy text here'
+        )
 
 class StarterKitTestCase(ModelTestCase):
 
@@ -310,6 +332,16 @@ class RoleActionsTestCase(ModelTestCase):
         self.action_delete_role.save()
         roles = CommunityRole.objects.filter(role_name='president')
         self.assertEqual(roles.count(), 0)
+
+class ConstitutionPolicyTestCase(ModelTestCase):
+
+    def test__str__(self):
+        self.assertEqual(str(self.constitutionpolicy1), 'ConstitutionPolicy: TestConstitutionPolicy')
+
+class PlatformPolicyTestCase(ModelTestCase):
+
+    def test__str__(self):
+        self.assertEqual(str(self.platformpolicy1), 'PlatformPolicy: TestPlatformPolicy')
 
 class UserVoteTestCase(ModelTestCase):
 

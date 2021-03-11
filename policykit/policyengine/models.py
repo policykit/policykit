@@ -896,7 +896,7 @@ class ConstitutionPolicy(BasePolicy):
         verbose_name_plural = 'constitutionpolicies'
 
     def __str__(self):
-        return ' '.join(['ConstitutionPolicy: ', self.description, 'for', self.community.community_name])
+        return 'ConstitutionPolicy: ' + self.community.community_name
 
 class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
@@ -914,7 +914,7 @@ class PlatformPolicy(BasePolicy):
         verbose_name_plural = 'platformpolicies'
 
     def __str__(self):
-        return ' '.join(['PlatformPolicy: ', self.description, 'for', self.community.community_name])
+        return 'PlatformPolicy: ' + self.community.community_name
 
 class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
