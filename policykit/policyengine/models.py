@@ -766,22 +766,19 @@ class PlatformAction(BaseAction,PolymorphicModel):
         self.pass_action()
 
     def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
+        self.proposal.status = Proposal.PASSED
+        self.proposal.save()
         action.send(self, verb='was passed')
 
     def save(self, *args, **kwargs):
         if not self.pk:
             if self.data is None:
-                ds = DataStore.objects.create()
-                self.data = ds
+                self.data = DataStore.objects.create()
 
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                self.proposal = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
-                self.proposal = p
 
                 super(PlatformAction, self).save(*args, **kwargs)
 
@@ -794,15 +791,10 @@ class PlatformAction(BaseAction,PolymorphicModel):
                         for policy in PlatformPolicy.objects.filter(community=self.community):
                             if filter_policy(policy, action):
 
-                                logger.info('passed filter: ' + policy.name)
-
                                 initialize_policy(policy, action)
-
-                                logger.info('about to check policy: ' + policy.name)
 
                                 check_result = check_policy(policy, action)
 
-                                logger.info('just checked policy: ' + policy.name)
                                 if check_result == Proposal.PASSED:
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
@@ -813,12 +805,9 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                     if self.community_origin:
                                         self.community_revert = True
                                     notify_policy(policy, action)
-                            else:
-                                logger.info('failed filter: ' + policy.name)
             else:
-                p = Proposal.objects.create(status=Proposal.FAILED,
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
-                self.proposal = p
         else:
             super(PlatformAction, self).save(*args, **kwargs)
 
