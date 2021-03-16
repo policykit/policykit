@@ -30,18 +30,18 @@ class Metagov:
             policy=self.policy,
             action=self.action
         )
-
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
         payload['callback_url'] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
         logger.info(f"Making request to start '{process_name}' with payload: {payload}")
         response = requests.post(url, json=payload)
         if not response.ok:
-            logger.error(f"Error starting process: {response.status_code} {response.text}")
-            return None  # FIXME handle
+            raise Exception(f"Error starting process: {response.status_code} {response.reason} {response.text}")
+
         location = response.headers.get('location')
         if not location:
-            logger.error(f"Response missing location header")
-            return None
+            raise Exception("Response missing location header")
+        model.location = location
+        model.save()
 
         resource_url = f"{settings.METAGOV_URL}{location}"
         response = requests.get(resource_url)
@@ -51,6 +51,20 @@ class Metagov:
         data = response.json()
         logger.info(f"External process created: {data}")
         return data.get('data', None)
+
+    def close_process(self) -> DecisionResult:
+        model = ExternalProcess.objects.filter(policy=self.policy, action=self.action).first()
+        if not model or not model.location:
+            raise Exception("Unable to close process, location or model missing")
+        logger.info(f"Making request to close process at '{model.location}'")
+        resource_url = f"{settings.METAGOV_URL}{model.location}"
+        response = requests.delete(resource_url)
+        if not response.ok:
+            raise Exception(f"Error getting process data: {response.status_code} {response.reason} {response.text}")
+        data = response.json()
+        logger.info(f"External process closed: {data}")
+        assert(data.get('status') == 'completed')
+        return DecisionResult(data)
 
     def get_process_outcome(self) -> DecisionResult:
         model = ExternalProcess.objects.filter(policy=self.policy, action=self.action).first()
