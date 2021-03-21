@@ -3,6 +3,7 @@ from policyengine.models import PlatformAction, PlatformPolicy
 
 
 class ExternalProcess(models.Model):
+    location = models.CharField(max_length=100, blank=True)
     json_data = models.CharField(max_length=500, blank=True, null=True)
     policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
     action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
