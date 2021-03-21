@@ -128,6 +128,18 @@ class CommunityTestCase(ModelTestCase):
         self.assertEqual(roles[0].role_name, 'base')
         self.assertEqual(roles[1].role_name, 'mod')
 
+    def test_get_platform_policies(self):
+        policies = self.community.get_platform_policies()
+        self.assertEqual(len(policies), 1)
+        self.assertEqual(policies[0].name, 'TestPlatformPolicy')
+        self.assertEqual(policies[0].description, 'Insert platform policy text here')
+
+    def test_get_constitution_policies(self):
+        policies = self.community.get_constitution_policies()
+        self.assertEqual(len(policies), 1)
+        self.assertEqual(policies[0].name, 'TestConstitutionPolicy')
+        self.assertEqual(policies[0].description, 'Insert constitution policy text here')
+
     def test_get_documents(self):
         docs = self.community.get_documents()
         self.assertEqual(len(docs), 1)
@@ -332,6 +344,152 @@ class RoleActionsTestCase(ModelTestCase):
         self.action_delete_role.save()
         roles = CommunityRole.objects.filter(role_name='president')
         self.assertEqual(roles.count(), 0)
+
+class ConstitutionPolicyActionsTestCase(ModelTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.action_add_policy = PolicykitAddConstitutionPolicy()
+        self.action_add_policy.name = 'Test Name'
+        self.action_add_policy.description = 'Test Description'
+        self.action_add_policy.filter = 'return True'
+        self.action_add_policy.initialize = 'pass'
+        self.action_add_policy.check = 'return PASSED'
+        self.action_add_policy.notify = 'pass'
+        self.action_add_policy.success = 'action.execute()'
+        self.action_add_policy.fail = 'pass'
+        self.action_add_policy.community = self.community
+
+        self.action_change_policy = PolicykitChangeConstitutionPolicy()
+        self.action_change_policy.name = 'Another Name'
+        self.action_change_policy.description = 'Another Description'
+        self.action_change_policy.filter = 'return False'
+        self.action_change_policy.initialize = '# init code here'
+        self.action_change_policy.check = 'return FAILED'
+        self.action_change_policy.notify = '# notify code here'
+        self.action_change_policy.success = 'pass'
+        self.action_change_policy.fail = 'action.execute()'
+        self.action_change_policy.community = self.community
+
+        self.action_remove_policy = PolicykitRemoveConstitutionPolicy()
+        self.action_remove_policy.community = self.community
+
+    def test_add_constitution_policy__str__(self):
+        self.assertEqual(str(self.action_add_policy), 'Add Constitution Policy: Test Name')
+
+    def test_change_constitution_policy__str__(self):
+        self.assertEqual(str(self.action_change_policy), 'Change Constitution Policy: Another Name')
+
+    def test_all_constitution_policy_actions(self):
+        self.action_add_policy.save()
+        policies = ConstitutionPolicy.objects.filter(name='Test Name')
+        self.assertEqual(policies.count(), 1)
+        p = policies[0]
+        self.assertEqual(p.name, 'Test Name')
+        self.assertEqual(p.description, 'Test Description')
+        self.assertEqual(p.filter, 'return True')
+        self.assertEqual(p.initialize, 'pass')
+        self.assertEqual(p.check, 'return PASSED')
+        self.assertEqual(p.notify, 'pass')
+        self.assertEqual(p.success, 'action.execute()')
+        self.assertEqual(p.fail, 'pass')
+        self.assertFalse(p.is_bundled)
+
+        self.action_change_policy.constitution_policy = p
+        self.action_change_policy.save()
+        policies = ConstitutionPolicy.objects.filter(name='Test Name')
+        self.assertEqual(policies.count(), 0)
+        policies = ConstitutionPolicy.objects.filter(name='Another Name')
+        self.assertEqual(policies.count(), 1)
+        p = policies[0]
+        self.assertEqual(p.name, 'Another Name')
+        self.assertEqual(p.description, 'Another Description')
+        self.assertEqual(p.filter, 'return False')
+        self.assertEqual(p.initialize, '# init code here')
+        self.assertEqual(p.check, 'return FAILED')
+        self.assertEqual(p.notify, '# notify code here')
+        self.assertEqual(p.success, 'pass')
+        self.assertEqual(p.fail, 'action.execute()')
+        self.assertFalse(p.is_bundled)
+
+        self.action_remove_policy.constitution_policy = p
+        self.action_remove_policy.save()
+        policies = ConstitutionPolicy.objects.filter(name='Another Name')
+        self.assertEqual(policies.count(), 0)
+
+class PlatformPolicyActionsTestCase(ModelTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.action_add_policy = PolicykitAddPlatformPolicy()
+        self.action_add_policy.name = 'Test Name'
+        self.action_add_policy.description = 'Test Description'
+        self.action_add_policy.filter = 'return True'
+        self.action_add_policy.initialize = 'pass'
+        self.action_add_policy.check = 'return PASSED'
+        self.action_add_policy.notify = 'pass'
+        self.action_add_policy.success = 'action.execute()'
+        self.action_add_policy.fail = 'pass'
+        self.action_add_policy.community = self.community
+
+        self.action_change_policy = PolicykitChangePlatformPolicy()
+        self.action_change_policy.name = 'Another Name'
+        self.action_change_policy.description = 'Another Description'
+        self.action_change_policy.filter = 'return False'
+        self.action_change_policy.initialize = '# init code here'
+        self.action_change_policy.check = 'return FAILED'
+        self.action_change_policy.notify = '# notify code here'
+        self.action_change_policy.success = 'pass'
+        self.action_change_policy.fail = 'action.execute()'
+        self.action_change_policy.community = self.community
+
+        self.action_remove_policy = PolicykitRemovePlatformPolicy()
+        self.action_remove_policy.community = self.community
+
+    def test_add_platform_policy__str__(self):
+        self.assertEqual(str(self.action_add_policy), 'Add Platform Policy: Test Name')
+
+    def test_change_platform_policy__str__(self):
+        self.assertEqual(str(self.action_change_policy), 'Change Platform Policy: Another Name')
+
+    def test_all_platform_policy_actions(self):
+        self.action_add_policy.save()
+        policies = PlatformPolicy.objects.filter(name='Test Name')
+        self.assertEqual(policies.count(), 1)
+        p = policies[0]
+        self.assertEqual(p.name, 'Test Name')
+        self.assertEqual(p.description, 'Test Description')
+        self.assertEqual(p.filter, 'return True')
+        self.assertEqual(p.initialize, 'pass')
+        self.assertEqual(p.check, 'return PASSED')
+        self.assertEqual(p.notify, 'pass')
+        self.assertEqual(p.success, 'action.execute()')
+        self.assertEqual(p.fail, 'pass')
+        self.assertFalse(p.is_bundled)
+
+        self.action_change_policy.platform_policy = p
+        self.action_change_policy.save()
+        policies = PlatformPolicy.objects.filter(name='Test Name')
+        self.assertEqual(policies.count(), 0)
+        policies = PlatformPolicy.objects.filter(name='Another Name')
+        self.assertEqual(policies.count(), 1)
+        p = policies[0]
+        self.assertEqual(p.name, 'Another Name')
+        self.assertEqual(p.description, 'Another Description')
+        self.assertEqual(p.filter, 'return False')
+        self.assertEqual(p.initialize, '# init code here')
+        self.assertEqual(p.check, 'return FAILED')
+        self.assertEqual(p.notify, '# notify code here')
+        self.assertEqual(p.success, 'pass')
+        self.assertEqual(p.fail, 'action.execute()')
+        self.assertFalse(p.is_bundled)
+
+        self.action_remove_policy.platform_policy = p
+        self.action_remove_policy.save()
+        policies = PlatformPolicy.objects.filter(name='Another Name')
+        self.assertEqual(policies.count(), 0)
 
 class ConstitutionPolicyTestCase(ModelTestCase):
 

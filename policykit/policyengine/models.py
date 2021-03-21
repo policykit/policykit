@@ -676,7 +676,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
     action_codename = 'policykitchangeconstitutionpolicy'
 
     def __str__(self):
-        return "Edit Constitution Policy: " + self.name
+        return "Change Constitution Policy: " + self.name
 
     def execute(self):
         self.constitution_policy.name = self.name
@@ -705,8 +705,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     def __str__(self):
         if self.platform_policy:
             return "Remove Platform Policy: " + self.platform_policy.name
-        else:
-            return "Remove Platform Policy: [ERROR: platform policy not found]"
+        return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
         self.platform_policy.delete()
@@ -719,16 +718,15 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     constitution_policy = models.ForeignKey('ConstitutionPolicy',
-                                         models.SET_NULL,
-                                         null=True)
+                                            models.SET_NULL,
+                                            null=True)
 
     action_codename = 'policykitremoveconstitutionpolicy'
 
     def __str__(self):
         if self.constitution_policy:
             return "Remove Constitution Policy: " + self.constitution_policy.name
-        else:
-            return "Remove Constitution Policy: [ERROR: constitution policy not found]"
+        return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
         self.constitution_policy.delete()
