@@ -35,13 +35,3 @@ Welcome to the Docs for PolicyKit!
 .. toctree::
    :maxdepth: 3
    :caption: EXAMPLE POLICIES
-
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
