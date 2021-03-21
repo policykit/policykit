@@ -29,6 +29,7 @@ Welcome to the Docs for PolicyKit!
    api_proposal
    api_user
    api_community
+   api_votes
 
 .. toctree::
    :maxdepth: 3
