@@ -651,7 +651,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
     action_codename = 'policykitchangeplatformpolicy'
 
     def __str__(self):
-        return "Edit Platform Policy: " + self.name
+        return "Change Platform Policy: " + self.name
 
     def execute(self):
         self.platform_policy.name = self.name
@@ -894,7 +894,7 @@ class ConstitutionPolicy(BasePolicy):
         verbose_name_plural = 'constitutionpolicies'
 
     def __str__(self):
-        return 'ConstitutionPolicy: ' + self.community.community_name
+        return 'ConstitutionPolicy: ' + self.name
 
 class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
@@ -912,7 +912,7 @@ class PlatformPolicy(BasePolicy):
         verbose_name_plural = 'platformpolicies'
 
     def __str__(self):
-        return 'PlatformPolicy: ' + self.community.community_name
+        return 'PlatformPolicy: ' + self.name
 
 class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)

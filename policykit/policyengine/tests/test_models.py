@@ -360,6 +360,7 @@ class ConstitutionPolicyActionsTestCase(ModelTestCase):
         self.action_add_policy.success = 'action.execute()'
         self.action_add_policy.fail = 'pass'
         self.action_add_policy.community = self.community
+        self.action_add_policy.initiator = self.user1
 
         self.action_change_policy = PolicykitChangeConstitutionPolicy()
         self.action_change_policy.name = 'Another Name'
@@ -371,9 +372,11 @@ class ConstitutionPolicyActionsTestCase(ModelTestCase):
         self.action_change_policy.success = 'pass'
         self.action_change_policy.fail = 'action.execute()'
         self.action_change_policy.community = self.community
+        self.action_change_policy.initiator = self.user1
 
         self.action_remove_policy = PolicykitRemoveConstitutionPolicy()
         self.action_remove_policy.community = self.community
+        self.action_remove_policy.initiator = self.user1
 
     def test_add_constitution_policy__str__(self):
         self.assertEqual(str(self.action_add_policy), 'Add Constitution Policy: Test Name')
@@ -433,6 +436,7 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
         self.action_add_policy.success = 'action.execute()'
         self.action_add_policy.fail = 'pass'
         self.action_add_policy.community = self.community
+        self.action_add_policy.initiator = self.user1
 
         self.action_change_policy = PolicykitChangePlatformPolicy()
         self.action_change_policy.name = 'Another Name'
@@ -444,9 +448,11 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
         self.action_change_policy.success = 'pass'
         self.action_change_policy.fail = 'action.execute()'
         self.action_change_policy.community = self.community
+        self.action_change_policy.initiator = self.user1
 
         self.action_remove_policy = PolicykitRemovePlatformPolicy()
         self.action_remove_policy.community = self.community
+        self.action_remove_policy.initiator = self.user1
 
     def test_add_platform_policy__str__(self):
         self.assertEqual(str(self.action_add_policy), 'Add Platform Policy: Test Name')
