@@ -41,8 +41,6 @@ ALLOWED_HOSTS = ['policykit.org',
 # Application definition
 
 INSTALLED_APPS = [
-    'jet.dashboard',
-    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,8 +55,8 @@ INSTALLED_APPS = [
     'integrations.reddit',
     'integrations.discord',
     'integrations.discourse',
+    'integrations.metagov',
     'actstream'
-
 ]
 
 SITE_ID = 1
@@ -202,6 +200,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'integrations.metagov': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'policyengine': {
             'handlers': ['file'],
             'level': 'DEBUG',
@@ -236,10 +239,3 @@ CELERY_BEAT_SCHEDULE = {
        'schedule': 60.0,
     }
 }
-
-
-JET_DEFAULT_THEME = 'default'
-
-
-JET_INDEX_DASHBOARD = 'policykit.dashboard.CustomIndexDashboard'
-JET_APP_INDEX_DASHBOARD = 'policykit.dashboard.CustomAppIndexDashboard'

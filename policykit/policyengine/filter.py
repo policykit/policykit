@@ -40,6 +40,12 @@ whitelisted_builtins = [
 ]
 
 whitelisted_modules = {
+    "metagov": [
+        "start_process",
+        "close_process",
+        "get_process_outcome",
+        "get_resource",
+    ],
     "base64": [
         "a85encode",
         "a85decode",
@@ -306,18 +312,13 @@ policyengine_functions = [
     'exists',
     'filter',
     'get',
-    'get_boolean_votes',
-    'get_raw_boolean_votes',
     'get_yes_votes',
-    'get_num_yes_votes',
     'get_no_votes',
-    'get_num_no_votes',
-    'get_number_votes',
-    'get_raw_number_votes',
-    'get_total_vote_count',
+    'get_all_boolean_votes',
+    'get_all_number_votes',
+    'get_one_number_votes',
     'notify_action',
-    'notify_users',
-    'time_elapsed',
+    'get_time_elapsed',
     'get_users',
     'genericrole_set.all',
     'remove',

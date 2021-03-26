@@ -417,12 +417,12 @@ voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
     return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
     return FAILED
                                            """,
                                        notify = """
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.platform.notify_users(action, policy, users=voter_users, text='Please vote')
+action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
@@ -463,12 +463,12 @@ voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
    return FAILED
                                                            """,
                                                        notify = """
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.platform.notify_users(action, policy, users=voter_users, text='Please vote')
+action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                                            """,
                                                        success = "action.execute()",
                                                        fail = "pass",
@@ -509,12 +509,12 @@ voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
    return FAILED
                                                            """,
                                                        notify = """
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.platform.notify_users(action, policy, users=voter_users, text='Please vote')
+action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                                            """,
                                                        success = "action.execute()",
                                                        fail = "pass",
@@ -555,12 +555,12 @@ voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=1):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
    return FAILED
                                                            """,
                                                        notify = """
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.platform.notify_users(action, policy, users=voter_users, text='Please vote')
+action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                                            """,
                                                        success = "action.execute()",
                                                        fail = "pass",
@@ -839,7 +839,7 @@ jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users)
 if len(yes_votes) >= 2:
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
                                        notify = """
@@ -883,13 +883,13 @@ jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
 if len(yes_votes) >= 2:
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
                                        notify = """
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.platform.notify_users(action, policy, users=jury_users, text='Please deliberate amongst yourselves before voting')
+action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
@@ -927,13 +927,13 @@ jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
 if len(yes_votes) >= 2:
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
                                        notify = """
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.platform.notify_users(action, policy, users=jury_users, text='Please deliberate amongst yourselves before voting')
+action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
@@ -971,13 +971,13 @@ jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
 if len(yes_votes) >= 2:
    return PASSED
-elif action.proposal.time_elapsed() > datetime.timedelta(days=2):
+elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
                                        notify = """
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.platform.notify_users(action, policy, users=jury_users, text='Please deliberate amongst yourselves before voting')
+action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
                                        success = "action.execute()",
                                        fail = "pass",
