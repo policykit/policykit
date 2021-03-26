@@ -3,9 +3,34 @@ import logging
 
 import requests
 from django.conf import settings
+from django.utils.text import slugify
 from integrations.metagov.models import ExternalProcess
+from policyengine.models import Community
 
 logger = logging.getLogger(__name__)
+
+
+def metagov_slug(community: Community):
+    """
+    Get the unique slug used to identify this community in Metagov.
+    """
+    return slugify(f"{community.platform} {community.team_id}")
+
+
+def update_metagov_community(community: Community, plugins=[]):
+    metagov_name = metagov_slug(community)
+    payload = {
+        'name': metagov_name,
+        'readable_name': community.community_name,
+        'plugins': plugins
+    }
+    url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_name}"
+    response = requests.put(url, json=payload)
+    if not response.ok:
+        raise Exception(response.text or "Unknown error")
+    data = response.json()
+    return data
+
 
 class DecisionResult(object):
     def __init__(self, obj):
@@ -13,13 +38,16 @@ class DecisionResult(object):
         self.errors = obj.get('errors')
         self.outcome = obj.get('outcome')
 
+
 class Metagov:
     """
     Metagov client library to be exposed to policy author
     """
+
     def __init__(self, policy, action):
         self.policy = policy
         self.action = action
+        self.headers = {'X-Metagov-Community': metagov_slug(policy.community)}
 
     def start_process(self, process_name, payload):
         """
@@ -32,10 +60,13 @@ class Metagov:
         )
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
         payload['callback_url'] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
-        logger.info(f"Making request to start '{process_name}' with payload: {payload}")
-        response = requests.post(url, json=payload)
+        logger.info(
+            f"Making request to start '{process_name}' with payload: {payload}")
+
+        response = requests.post(url, json=payload, headers=self.headers)
         if not response.ok:
-            raise Exception(f"Error starting process: {response.status_code} {response.reason} {response.text}")
+            raise Exception(
+                f"Error starting process: {response.status_code} {response.reason} {response.text}")
 
         location = response.headers.get('location')
         if not location:
@@ -46,28 +77,33 @@ class Metagov:
         resource_url = f"{settings.METAGOV_URL}{location}"
         response = requests.get(resource_url)
         if not response.ok:
-            logger.error(f"Error getting process data: {response.status_code} {response.text}")
+            logger.error(
+                f"Error getting process data: {response.status_code} {response.text}")
             return None  # FIXME handle
         data = response.json()
         logger.info(f"External process created: {data}")
         return data.get('data', None)
 
     def close_process(self) -> DecisionResult:
-        model = ExternalProcess.objects.filter(policy=self.policy, action=self.action).first()
+        model = ExternalProcess.objects.filter(
+            policy=self.policy, action=self.action).first()
         if not model or not model.location:
-            raise Exception("Unable to close process, location or model missing")
+            raise Exception(
+                "Unable to close process, location or model missing")
         logger.info(f"Making request to close process at '{model.location}'")
         resource_url = f"{settings.METAGOV_URL}{model.location}"
         response = requests.delete(resource_url)
         if not response.ok:
-            raise Exception(f"Error getting process data: {response.status_code} {response.reason} {response.text}")
+            raise Exception(
+                f"Error getting process data: {response.status_code} {response.reason} {response.text}")
         data = response.json()
         logger.info(f"External process closed: {data}")
         assert(data.get('status') == 'completed')
         return DecisionResult(data)
 
     def get_process_outcome(self) -> DecisionResult:
-        model = ExternalProcess.objects.filter(policy=self.policy, action=self.action).first()
+        model = ExternalProcess.objects.filter(
+            policy=self.policy, action=self.action).first()
         if model and model.json_data:
             data = json.loads(model.json_data)
             # json_data is only present when external process is completed
@@ -77,9 +113,9 @@ class Metagov:
 
     def get_resource(self, resource_name, payload):
         url = f"{settings.METAGOV_URL}/api/internal/resource/{resource_name}"
-        response = requests.get(url, params=payload)
+        response = requests.get(url, params=payload, headers=self.headers)
         if not response.ok:
-            logger.error(f"Error getting resource: {response.status_code} {response.text}")
-            return None # FIXME handle
+            raise Exception(
+                f"Error getting resource: {response.status_code} {response.text}")
         data = response.json()
         return data

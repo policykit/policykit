@@ -21,8 +21,8 @@ class EvaluationTests(TestCase):
         p1 = Permission.objects.get(name="Can add slack pin message")
         user_group.permissions.add(p1)
         self.community = SlackCommunity.objects.create(
-            community_name='test',
-            team_id='test',
+            community_name='my test community',
+            team_id='TMQ3PKX',
             bot_id='test',
             access_token='test',
             base_role=user_group)
@@ -37,7 +37,7 @@ class EvaluationTests(TestCase):
         policy.filter = "return True"
         policy.initialize = "pass"
         policy.notify = """
-result = metagov.start_process("loomio", {"closing_at": "2021-05-11"})
+result = metagov.start_process("loomio.poll", {"closing_at": "2021-05-11", "title":"test","options":["a","b"]})
 poll_url = result.get('poll_url')
 action.data.set('poll_url', poll_url)
 """
@@ -103,7 +103,7 @@ return FAILED
         policy.community = self.community
         policy.filter = "return True"
         policy.initialize = "pass"
-        policy.check = """response = metagov.get_resource('cred', { 'username': 'miriam' })\n
+        policy.check = """response = metagov.get_resource('sourcecred.cred', { 'username': 'miriam' })\n
 cred = response.get('value')\n
 return PASSED if cred > 0.5 else FAILED"""
         policy.notify = """pass"""
