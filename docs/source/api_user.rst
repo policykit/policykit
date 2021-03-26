@@ -64,7 +64,7 @@ CommunityUser
 +--------------------------+-------------------------------------------------------------------+
 | has_role(role_name)      | Returns True if the user has a role with the specified role_name. |
 +--------------------------+-------------------------------------------------------------------+
-| get_roles()              | Returns a list of the names of all the user's roles.              |
+| get_roles()              | Returns a list containing all of the user's roles.                |
 +--------------------------+-------------------------------------------------------------------+
 | save(\*args, \*\*kwargs) | Saves the user. Note: Only meant for internal use.                |
 +--------------------------+-------------------------------------------------------------------+

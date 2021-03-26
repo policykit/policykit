@@ -97,7 +97,7 @@ def oauth(request):
                     bot_id = res['bot_user_id'],
                     access_token=res['access_token'],
                     base_role=user_group
-                    )
+                )
                 user_group.community = community
                 user_group.save()
 
