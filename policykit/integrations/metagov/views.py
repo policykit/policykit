@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -18,6 +19,9 @@ logger = logging.getLogger(__name__)
 @login_required(login_url='/login')
 def config_editor(request):
     user = get_user(request)
+    if not user.is_community_admin:
+        raise PermissionDenied
+
     community = user.community
     url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}"
     response = requests.get(url)
