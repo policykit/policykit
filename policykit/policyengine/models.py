@@ -58,6 +58,14 @@ class Community(PolymorphicModel):
     def get_documents(self):
         return CommunityDoc.objects.filter(community=self)
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Create a corresponding community in Metagov
+            from integrations.metagov.library import update_metagov_community
+            update_metagov_community(self)
+
+        super(Community, self).save(*args, **kwargs)
+
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
     role_name = models.TextField('readable_name', max_length=300, null=True)
