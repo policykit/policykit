@@ -11,9 +11,7 @@ from policyengine.views import check_policy, filter_policy, initialize_policy, p
 from datetime import datetime, timezone
 import urllib
 import json
-
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +26,7 @@ DEFAULT_FAIL = "pass\n\n"
 def on_transaction_commit(func):
     def inner(*args, **kwargs):
         transaction.on_commit(lambda: func(*args, **kwargs))
-
     return inner
-
 
 class StarterKit(PolymorphicModel):
     name = models.TextField(null=True, blank=True, default = '')
@@ -44,11 +40,23 @@ class Community(PolymorphicModel):
     platform = None
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
 
+    def __str__(self):
+        return self.community_name
+
     def notify_action(self, action, policy, users):
         pass
 
-    def get_users(self, users):
-      return users
+    def get_roles(self):
+        return CommunityRole.objects.filter(community=self)
+
+    def get_platform_policies(self):
+        return PlatformPolicy.objects.filter(community=self)
+
+    def get_constitution_policies(self):
+        return ConstitutionPolicy.objects.filter(community=self)
+
+    def get_documents(self):
+        return CommunityDoc.objects.filter(community=self)
 
 class CommunityRole(Group):
     community = models.ForeignKey(Community, models.CASCADE, null=True)
@@ -77,20 +85,25 @@ class CommunityUser(User, PolymorphicModel):
 
     def save(self, *args, **kwargs):
         super(CommunityUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
+        self.community.base_role.user_set.add(self)
 
     def get_roles(self):
         user_roles = []
         roles = CommunityRole.objects.filter(community=self.community)
         for r in roles:
-            if self in r.user_set.all():
-                user_roles.append(r.role_name)
+            for u in r.user_set.all():
+                if u.communityuser.username == self.username:
+                    user_roles.append(r)
         return user_roles
 
     def has_role(self, role_name):
         roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
-        return roles.count() > 0
+        if roles.exists():
+            r = roles[0]
+            for u in r.user_set.all():
+                if u.communityuser.username == self.username:
+                    return True
+        return False
 
 class CommunityDoc(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
@@ -194,7 +207,7 @@ class Proposal(models.Model):
         verbose_name='author',
         blank=True,
         null=True
-        )
+    )
     proposal_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(choices=STATUS, max_length=10)
 
@@ -228,8 +241,7 @@ class Proposal(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            ds = DataStore.objects.create()
-            self.data = ds
+            self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
 
 class BaseAction(models.Model):
@@ -262,24 +274,20 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         verbose_name_plural = 'constitutionactions'
 
     def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
+        self.proposal.status = Proposal.PASSED
+        self.proposal.save()
         action.send(self, verb='was passed')
 
     def shouldCreate(self):
         return not self.pk # Runs only when object is new
 
     def save(self, *args, **kwargs):
-        logger.info('Constitution Action: running save')
         if self.shouldCreate():
             if self.data is None:
-                ds = DataStore.objects.create()
-                self.data = ds
+                self.data = DataStore.objects.create()
 
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                logger.info('Constitution Action: has perm')
                 if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
                 else:
@@ -290,38 +298,25 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                        logger.info('Constitution Action: has execute permissions')
                         action.execute()
                     else:
-                        logger.info('Constitution Action: about to filter')
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
                           if filter_policy(policy, action):
-                              logger.info('Constitution Action: just filtered')
 
                               initialize_policy(policy, action)
-                              logger.info(action.proposal.status)
 
-                              logger.info('Constitution Action: about to check')
                               check_result = check_policy(policy, action)
-                              logger.info('Constitution Action: just checked')
                               if check_result == Proposal.PASSED:
-                                  logger.info('Constitution Action: passed')
                                   pass_policy(policy, action)
                               elif check_result == Proposal.FAILED:
-                                  logger.info('Constitution Action: failed')
                                   fail_policy(policy, action)
                               else:
-                                  logger.info('Constitution Action: notifying')
                                   notify_policy(policy, action)
-                                  logger.info(action.proposal.status)
             else:
-                logger.info('failed one')
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
             if not self.pk: # Runs only when object is new
-                logger.info('failed two')
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
-            logger.info('else save')
             super(ConstitutionAction, self).save(*args, **kwargs)
 
 
@@ -658,7 +653,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
     action_codename = 'policykitchangeplatformpolicy'
 
     def __str__(self):
-        return "Edit Platform Policy: " + self.name
+        return "Change Platform Policy: " + self.name
 
     def execute(self):
         self.platform_policy.name = self.name
@@ -683,7 +678,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
     action_codename = 'policykitchangeconstitutionpolicy'
 
     def __str__(self):
-        return "Edit Constitution Policy: " + self.name
+        return "Change Constitution Policy: " + self.name
 
     def execute(self):
         self.constitution_policy.name = self.name
@@ -712,8 +707,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     def __str__(self):
         if self.platform_policy:
             return "Remove Platform Policy: " + self.platform_policy.name
-        else:
-            return "Remove Platform Policy: [ERROR: platform policy not found]"
+        return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
         self.platform_policy.delete()
@@ -726,16 +720,15 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     constitution_policy = models.ForeignKey('ConstitutionPolicy',
-                                         models.SET_NULL,
-                                         null=True)
+                                            models.SET_NULL,
+                                            null=True)
 
     action_codename = 'policykitremoveconstitutionpolicy'
 
     def __str__(self):
         if self.constitution_policy:
             return "Remove Constitution Policy: " + self.constitution_policy.name
-        else:
-            return "Remove Constitution Policy: [ERROR: constitution policy not found]"
+        return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
         self.constitution_policy.delete()
@@ -773,22 +766,19 @@ class PlatformAction(BaseAction,PolymorphicModel):
         self.pass_action()
 
     def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
+        self.proposal.status = Proposal.PASSED
+        self.proposal.save()
         action.send(self, verb='was passed')
 
     def save(self, *args, **kwargs):
         if not self.pk:
             if self.data is None:
-                ds = DataStore.objects.create()
-                self.data = ds
+                self.data = DataStore.objects.create()
 
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                p = Proposal.objects.create(status=Proposal.PROPOSED,
+                self.proposal = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
-                self.proposal = p
 
                 super(PlatformAction, self).save(*args, **kwargs)
 
@@ -801,15 +791,10 @@ class PlatformAction(BaseAction,PolymorphicModel):
                         for policy in PlatformPolicy.objects.filter(community=self.community):
                             if filter_policy(policy, action):
 
-                                logger.info('passed filter: ' + policy.name)
-
                                 initialize_policy(policy, action)
-
-                                logger.info('about to check policy: ' + policy.name)
 
                                 check_result = check_policy(policy, action)
 
-                                logger.info('just checked policy: ' + policy.name)
                                 if check_result == Proposal.PASSED:
                                     pass_policy(policy, action)
                                 elif check_result == Proposal.FAILED:
@@ -820,12 +805,9 @@ class PlatformAction(BaseAction,PolymorphicModel):
                                     if self.community_origin:
                                         self.community_revert = True
                                     notify_policy(policy, action)
-                            else:
-                                logger.info('failed filter: ' + policy.name)
             else:
-                p = Proposal.objects.create(status=Proposal.FAILED,
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
-                self.proposal = p
         else:
             super(PlatformAction, self).save(*args, **kwargs)
 
@@ -914,7 +896,7 @@ class ConstitutionPolicy(BasePolicy):
         verbose_name_plural = 'constitutionpolicies'
 
     def __str__(self):
-        return ' '.join(['ConstitutionPolicy: ', self.description, 'for', self.community.community_name])
+        return 'ConstitutionPolicy: ' + self.name
 
 class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
@@ -932,7 +914,7 @@ class PlatformPolicy(BasePolicy):
         verbose_name_plural = 'platformpolicies'
 
     def __str__(self):
-        return ' '.join(['PlatformPolicy: ', self.description, 'for', self.community.community_name])
+        return 'PlatformPolicy: ' + self.name
 
 class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
@@ -950,13 +932,25 @@ class UserVote(models.Model):
     class Meta:
         abstract = True
 
+    def get_time_elapsed(self):
+        return datetime.now(timezone.utc) - self.vote_time
+
 class BooleanVote(UserVote):
     TRUE_FALSE_CHOICES = (
-                          (True, 'Yes'),
-                          (False, 'No')
-                          )
-    boolean_value = models.BooleanField(null = True, choices = TRUE_FALSE_CHOICES,
-                                                               default= True) # yes/no, selected/not selected
+        (True, 'Yes'),
+        (False, 'No')
+    )
+    boolean_value = models.BooleanField(
+        null=True,
+        choices=TRUE_FALSE_CHOICES,
+        default=True
+    )
+
+    def __str__(self):
+        return str(self.user) + ' : ' + str(self.boolean_value)
 
 class NumberVote(UserVote):
     number_value = models.IntegerField(null=True)
+
+    def __str__(self):
+        return str(self.user) + ' : ' + str(self.number_value)

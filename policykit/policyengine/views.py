@@ -596,11 +596,9 @@ def role_action_users(request):
     action.community = user.community
     action.initiator = user
     action.role = CommunityRole.objects.filter(name=data['role'])[0]
-    logger.info('first save')
     action.save()
     action.users.set(CommunityUser.objects.filter(username=data['user']))
     action.ready = True
-    logger.info('second save')
     action.save()
 
     return HttpResponse()

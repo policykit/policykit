@@ -1,14 +1,9 @@
 from django.test import TestCase
 from policyengine.filter import *
 
-def filter_test(code, shouldPass=True):
+def is_valid(code):
     errors = filter_code(code)
-    if len(errors) > 0:
-        if shouldPass:
-            raise Exception("FAILED test case: should have passed: " + code + "\n")
-    else:
-        if shouldPass == False:
-            raise Exception("FAILED test case: should NOT have passed: " + code + "\n")
+    return len(errors) == 0
 
 dangerous_modules = [
     "os",
@@ -78,24 +73,31 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
 # Create your tests here.
 class FilterTests(TestCase):
     def test_import_whitelisted_modules(self):
-        print("Testing importing of whitelisted modules\n")
         for module in whitelisted_modules:
             code = "import " + module
-            filter_test(code)
+            self.assertTrue(is_valid(code))
 
     def test_dangerous_modules(self):
-        print("Testing importing of dangerous modules\n")
         for module in dangerous_modules:
             code = "import " + module
-            filter_test(code, shouldPass=False)
+            self.assertFalse(is_valid(code))
 
     def test_dangerous_functions(self):
-        print("Testing calling of dangerous functions\n")
         for function in dangerous_functions:
             code = function + "()"
-            filter_test(code, shouldPass=False)
+            self.assertFalse(is_valid(code))
 
-    def test_policy_code(self):
-        for i in range(len(code)):
-            print("Testing policy code " + str(i + 1) + "\n")
-            filter_test(code[i])
+    def test_policy_code_1(self):
+        self.assertTrue(is_valid(code[0]))
+
+    def test_policy_code_2(self):
+        self.assertTrue(is_valid(code[1]))
+
+    def test_policy_code_3(self):
+        self.assertTrue(is_valid(code[2]))
+
+    def test_policy_code_4(self):
+        self.assertTrue(is_valid(code[3]))
+
+    def test_policy_code_5(self):
+        self.assertTrue(is_valid(code[4]))
