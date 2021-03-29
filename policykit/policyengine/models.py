@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from polymorphic.models import PolymorphicModel
+from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
 from datetime import datetime, timezone
@@ -35,10 +35,27 @@ class StarterKit(PolymorphicModel):
     def __str__(self):
         return self.name
 
+
+class CommunityManager(PolymorphicManager):
+    def get_by_metagov_name(self, name):
+        """
+        Iterate through all communities to find the one we're looking for. This is
+        not performant, if there are a lot of communities we should add the metagov name
+        as a CharField on Community.
+        """
+        from integrations.metagov.library import metagov_slug
+        for community in self.get_queryset().all():
+            if metagov_slug(community) == name:
+                return community
+        raise Community.DoesNotExist
+
+
 class Community(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
     platform = None
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
+
+    objects = CommunityManager()
 
     def __str__(self):
         return self.community_name
@@ -816,6 +833,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED,
                                             author=self.initiator)
+                super(PlatformAction, self).save(*args, **kwargs)
         else:
             super(PlatformAction, self).save(*args, **kwargs)
 
