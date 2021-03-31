@@ -12,7 +12,6 @@ app = Celery('policykit',
              backend='amqp://',
              include=['policyengine.tasks',
                       'integrations.reddit.tasks',
-                      'integrations.discord.tasks',
                       'integrations.discourse.tasks'])
 
 # Using a string here means the worker doesn't have to serialize
