@@ -29,6 +29,7 @@ GATEWAY_VERSION = 8
 
 session_id = None
 heartbeat_interval = None
+ack_received = True
 
 def get_gateway_uri():
     # Get gateway URI
@@ -45,6 +46,10 @@ def on_open(wsapp):
         while True:
             if heartbeat_interval:
                 time.sleep(heartbeat_interval / 1000)
+
+                # Verify that client received heartbeat ack between attempts at sending heartbeats
+                if ack_received == False:
+                    wsapp.close(status=1002)
 
                 payload = json.dumps({
                     'op': 1,
@@ -142,30 +147,41 @@ def handle_event(name, data):
 def on_message(wsapp, message):
     payload = json.loads(message)
     op = payload['op']
-    if op == 0:
+    if op == 0: # Opcode 0 Dispatch
         handle_event(payload['t'], payload['d'])
-    if op == 10:
+    elif op == 10: # Opcode 10 Hello
+        # Receive heartbeat interval
         heartbeat_interval = payload['d']['heartbeat_interval']
+        logger.info(f'Received heartbeat of {heartbeat_interval} ms from the Discord gateway')
+
+        # Send an Opcode 2 Identify
+        payload = json.dumps({
+            'op': 2,
+            'd': {
+                'token': DISCORD_BOT_TOKEN,
+                'intents': 1543,
+                'properties': {
+                    '$os': 'linux',
+                    '$browser': 'disco',
+                    '$device': 'disco'
+                },
+                'compress': False
+            }
+        })
+        wsapp.send(payload)
+        logger.info('Sent an Opcode 2 Identify to the Discord gateway')
+    elif op == 11: # Opcode 11 Heartbeat ACK
+        ack_received = True
+
+def on_error(wsapp, error):
+    logger.error(error)
+
+websocket.enableTrace(True)
 
 # Open websocket connection
-wsapp = websocket.WebSocketApp(f'{get_gateway_uri()}?v={GATEWAY_VERSION}&encoding=json', on_message=on_message)
+wsapp = websocket.WebSocketApp(f'{get_gateway_uri()}?v={GATEWAY_VERSION}&encoding=json', on_message=on_message, on_error=on_error)
 wsapp.on_open = on_open
 wsapp.run_forever()
-
-# Send an Opcode 2 Identify
-payload = json.dumps({
-    'op': 2,
-    'd': {
-        'token': DISCORD_BOT_TOKEN,
-        'intents': 1543,
-        'properties': {
-            '$os': 'linux',
-            '$browser': 'disco',
-            '$device': 'disco'
-        }
-    }
-})
-wsapp.send(payload)
 
 def oauth(request):
     logger.info(request)
