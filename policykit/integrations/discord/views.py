@@ -99,12 +99,12 @@ def handle_message_create_event(data):
         return action
 
 def handle_event(name, data):
-    if name == 'Ready':
+    if name == 'READY':
         handle_ready_event(data)
     else:
         action = None
 
-        if name == 'Message Create':
+        if name == 'MESSAGE CREATE':
             action = handle_message_create_event(data)
 
         if action is not None:
@@ -129,7 +129,7 @@ def handle_event(name, data):
                     author=action.initiator
                 )
 
-        if name == 'Message Reaction Add':
+        if name == 'MESSAGE REACTION ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
             if action_res.exists():
                 if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
@@ -152,6 +152,7 @@ def on_message(wsapp, message):
     payload = json.loads(message)
     op = payload['op']
     if op == 0: # Opcode 0 Dispatch
+        logger.info(f'Received event named {payload["t"]}')
         sequence_number = payload['s']
         handle_event(payload['t'], payload['d'])
     elif op == 10: # Opcode 10 Hello
@@ -166,7 +167,7 @@ def on_message(wsapp, message):
                 'token': DISCORD_BOT_TOKEN,
                 'intents': 1543,
                 'properties': {
-                    '$os': 'linux',
+                    '$os': 'linux', # TODO: Replace with system operating system
                     '$browser': 'disco',
                     '$device': 'disco'
                 },
@@ -181,9 +182,15 @@ def on_message(wsapp, message):
 def on_error(wsapp, error):
     logger.error(error)
 
+def on_close(wsapp, code, reason):
+    logger.error(f'Connection to Discord gateway closed with error code {code}. Reason: {reason}')
+
 # Open gateway connection
 def connect_gateway():
-    wsapp = websocket.WebSocketApp(f'{get_gateway_uri()}?v={GATEWAY_VERSION}&encoding=json', on_message=on_message, on_error=on_error)
+    wsapp = websocket.WebSocketApp(f'{get_gateway_uri()}?v={GATEWAY_VERSION}&encoding=json',
+        on_message=on_message,
+        on_error=on_error,
+        on_close=on_close)
     wsapp.on_open = on_open
     wsapp.run_forever()
 
