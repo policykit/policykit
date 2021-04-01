@@ -35,7 +35,6 @@ ack_received = True
 sequence_number = None
 
 def get_gateway_uri():
-    # Get gateway URI
     req = urllib.request.Request('https://discordapp.com/api/gateway')
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
@@ -58,6 +57,7 @@ def on_open(wsapp):
                     'd': sequence_number
                 })
                 wsapp.send(payload)
+                logger.info('Sent heartbeat')
 
     thread.start_new_thread(run, ())
 
@@ -78,7 +78,6 @@ def is_policykit_action(community, call_type, message):
     return False
 
 def handle_ready_event(data):
-    logger.info('Discord gateway responded to Opcode 2 Identify with Ready event')
     session_id = data['session_id']
 
 def handle_message_create_event(data):
@@ -177,13 +176,14 @@ def on_message(wsapp, message):
         wsapp.send(payload)
         logger.info('Sent an Opcode 2 Identify to the Discord gateway')
     elif op == 11: # Opcode 11 Heartbeat ACK
+        logger.info('Received heartbeat ack')
         ack_received = True
 
 def on_error(wsapp, error):
     logger.error(error)
 
-def on_close(wsapp, code, reason):
-    logger.error(f'Connection to Discord gateway closed with error code {code}. Reason: {reason}')
+def on_close(wsapp, code):
+    logger.error(f'Connection to Discord gateway closed with error code {code}')
 
 # Open gateway connection
 def connect_gateway():
