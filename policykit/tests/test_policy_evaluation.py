@@ -91,7 +91,7 @@ return FAILED
         policy.filter = "return True"
         policy.initialize = "pass"
         policy.notify = """
-result = metagov.start_process("loomio.poll", {"closing_at": "2021-05-11", "title":"test","options":["a","b"]})
+result = metagov.start_process("loomio.poll", {"title": "[test] policykit poll", "options": ["one", "two", "three"], "closing_at": "2021-05-11"})
 poll_url = result.get('poll_url')
 action.data.set('poll_url', poll_url)
 """
@@ -118,26 +118,24 @@ return FAILED
         # 2) Save action to trigger execution of check() and notify()
         action.save()
 
-        process = ExternalProcess.objects.filter(
-            action=action, policy=policy).first()
+        process = ExternalProcess.objects.filter(action=action, policy=policy).first()
         self.assertIsNotNone(process)
         self.assertEqual(process.json_data, None)
         self.assertEqual(action.proposal.status, "proposed")
-        self.assertTrue(
-            'https://www.loomio.org/p/' in action.data.get('poll_url'))
+        self.assertTrue("https://www.loomio.org/p/" in action.data.get("poll_url"))
 
         # 3) Invoke callback URL to notify PolicyKit that process is complete
         # FIXME make this endpoint idempotent
         # FIXME used stored callback url instead of assuming
-        from django.test import Client
+
         client = Client()
         data = {
-            'status': 'completed',
+            "status": "completed",
             # 'errors': {'text': 'something went wrong'}
-            'outcome': {'value': 27}
+            "outcome": {"value": 27},
         }
 
-        response = client.post(f"/metagov/outcome/{process.pk}", data=data, content_type='application/json')
+        response = client.post(f"/metagov/outcome/{process.pk}", data=data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
         process.refresh_from_db()
@@ -148,17 +146,17 @@ return FAILED
         self.assertEqual(result_obj, data)
 
         result = check_policy(policy, action)
-        self.assertEqual(result, 'passed')
+        self.assertEqual(result, "passed")
 
-    def test_get_resource(self):
-        print("\nTesting get_resource from metagov\n")
-        # 1) Create Policy and PlatformAction
+    def test_perform_action(self):
+        print("\nTesting perform_action from metagov\n")
+        # 1) Create Policy that performs a metagov action
         policy = PlatformPolicy()
         policy.community = self.community
         policy.filter = "return True"
         policy.initialize = "pass"
         policy.check = """parameters = {"low": 4, "high": 5}
-response = metagov.get_resource('randomness.random-int', parameters)
+response = metagov.perform_action('randomness.random-int', parameters)
 if response and response.get('value') == 4:
     return PASSED
 return FAILED"""
@@ -169,11 +167,10 @@ return FAILED"""
         policy.name = "test policy"
         policy.save()
 
+        # 2) Save an action to trigger the policy execution
         action = SlackPinMessage()
         action.initiator = self.user
         action.community = self.community
-
-        # 2) Save action to trigger policy execution
         action.save()
 
         self.assertEqual(action.proposal.status, "passed")

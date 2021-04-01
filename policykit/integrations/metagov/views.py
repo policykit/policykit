@@ -4,20 +4,23 @@ import logging
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user
-from django.contrib.auth.models import ContentType, Permission
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import ContentType, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseServerError)
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.library import metagov_slug, update_metagov_community
-from integrations.metagov.models import ExternalProcess, MetagovUser, MetagovPlatformAction
+from integrations.metagov.models import (ExternalProcess,
+                                         MetagovPlatformAction, MetagovUser)
 from policyengine.models import Community, CommunityRole
 
 logger = logging.getLogger(__name__)
 
 
-@login_required(login_url='/login')
+@login_required(login_url="/login")
 def config_editor(request):
     user = get_user(request)
     if not user.is_community_admin:
@@ -28,16 +31,15 @@ def config_editor(request):
     response = requests.get(url)
     if not response.ok:
         if response.status_code == 404:
-            logger.info(
-                f"No metagov community for {community.community_name}, creating for the first time")
+            logger.info(f"No metagov community for {community.community_name}, creating for the first time")
             config = update_metagov_community(community)
         else:
             raise Exception(response.text)
     else:
         config = response.json()
 
-    pretty_config = json.dumps(config, indent=4, separators=(',', ': '))
-    return render(request, 'config.html', {'config': pretty_config})
+    pretty_config = json.dumps(config, indent=4, separators=(",", ": "))
+    return render(request, "config.html", {"config": pretty_config})
 
 
 @csrf_exempt
@@ -62,7 +64,7 @@ def save_config(request):
 
 @csrf_exempt
 def post_outcome(request, id):
-    if request.method != 'POST' or not request.body:
+    if request.method != "POST" or not request.body:
         return HttpResponseBadRequest()
     try:
         process = ExternalProcess.objects.get(pk=id)
@@ -77,7 +79,7 @@ def post_outcome(request, id):
     logger.info(f"Received external process outcome: {body}")
     if body.get("status") != "completed":
         return HttpResponseBadRequest("process not completed")
-    if not body.get('outcome') and not body.get('errors'):
+    if not body.get("outcome") and not body.get("errors"):
         return HttpResponseBadRequest("completed process must have either outcome or errors")
 
     process.json_data = json.dumps(body)
