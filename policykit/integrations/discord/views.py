@@ -21,6 +21,8 @@ import time
 
 logger = logging.getLogger(__name__)
 
+websocket.enableTrace(True)
+
 # Used for Boolean voting
 EMOJI_LIKE = '%F0%9F%91%8D'
 EMOJI_DISLIKE = '%F0%9F%91%8E'
@@ -30,6 +32,7 @@ GATEWAY_VERSION = 8
 session_id = None
 heartbeat_interval = None
 ack_received = True
+sequence_number = None
 
 def get_gateway_uri():
     # Get gateway URI
@@ -42,7 +45,6 @@ def get_gateway_uri():
 
 def on_open(wsapp):
     def run(*args):
-        s = None
         while True:
             if heartbeat_interval:
                 time.sleep(heartbeat_interval / 1000)
@@ -53,7 +55,7 @@ def on_open(wsapp):
 
                 payload = json.dumps({
                     'op': 1,
-                    'd': s
+                    'd': sequence_number
                 })
                 wsapp.send(payload)
 
@@ -76,9 +78,11 @@ def is_policykit_action(community, call_type, message):
     return False
 
 def handle_ready_event(data):
+    logger.info('Discord gateway responded to Opcode 2 Identify with Ready event')
     session_id = data['session_id']
 
 def handle_message_create_event(data):
+    logger.info(f'Received new message in channel {data['channel_id']}')
     community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
     call_type = ('channels/%s/messages' % data['channel_id'])
 
@@ -148,6 +152,7 @@ def on_message(wsapp, message):
     payload = json.loads(message)
     op = payload['op']
     if op == 0: # Opcode 0 Dispatch
+        sequence_number = payload['s']
         handle_event(payload['t'], payload['d'])
     elif op == 10: # Opcode 10 Hello
         # Receive heartbeat interval
@@ -176,12 +181,13 @@ def on_message(wsapp, message):
 def on_error(wsapp, error):
     logger.error(error)
 
-websocket.enableTrace(True)
+# Open gateway connection
+def connect_gateway():
+    wsapp = websocket.WebSocketApp(f'{get_gateway_uri()}?v={GATEWAY_VERSION}&encoding=json', on_message=on_message, on_error=on_error)
+    wsapp.on_open = on_open
+    wsapp.run_forever()
 
-# Open websocket connection
-wsapp = websocket.WebSocketApp(f'{get_gateway_uri()}?v={GATEWAY_VERSION}&encoding=json', on_message=on_message, on_error=on_error)
-wsapp.on_open = on_open
-wsapp.run_forever()
+connect_gateway()
 
 def oauth(request):
     logger.info(request)
