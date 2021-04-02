@@ -182,7 +182,7 @@ def on_message(wsapp, message):
 def on_error(wsapp, error):
     logger.error(error)
 
-def on_close(wsapp, code):
+def on_close(wsapp, code, reason):
     logger.error(f'Connection to Discord gateway closed with error code {code}')
 
 # Open gateway connection
