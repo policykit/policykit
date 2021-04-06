@@ -47,8 +47,8 @@ def on_open(wsapp):
                 time.sleep(heartbeat_interval / 1000)
 
                 # Verify that client received heartbeat ack between attempts at sending heartbeats
-                if ack_received == False:
-                    wsapp.close(status=1002)
+                #if ack_received == False:
+                #    wsapp.close(status=1002)
 
                 payload = json.dumps({
                     'op': 1,
