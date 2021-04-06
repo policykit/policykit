@@ -12,10 +12,7 @@ import json
 import base64
 import logging
 import websocket
-try:
-    import thread
-except ImportError:
-    import _thread as thread
+import threading
 import datetime
 import time
 
@@ -45,16 +42,13 @@ def get_gateway_uri():
 def on_open(wsapp):
     def run(*args):
         global heartbeat_interval, ack_received, sequence_number
-        logger.info('In run function')
         while True:
             if heartbeat_interval:
-                logger.info('About to sleep in heartbeat loop')
                 time.sleep(heartbeat_interval / 1000)
-                logger.info('Just finished sleeping in heartbeat loop')
 
                 # Verify that client received heartbeat ack between attempts at sending heartbeats
-                #if ack_received == False:
-                #    wsapp.close(status=1002)
+                if ack_received == False:
+                    wsapp.close(status=1002)
 
                 payload = json.dumps({
                     'op': 1,
@@ -63,7 +57,9 @@ def on_open(wsapp):
                 wsapp.send(payload)
                 logger.info('Sent heartbeat')
 
-    thread.start_new_thread(run, ())
+    rt = threading.Thread(target=run)
+    rt.daemon = True
+    rt.start()
 
 def is_policykit_action(community, call_type, message):
     if message['author']['id'] == DISCORD_CLIENT_ID:
@@ -198,7 +194,9 @@ def connect_gateway():
         on_error=on_error,
         on_close=on_close)
     wsapp.on_open = on_open
-    wsapp.run_forever()
+    wst = threading.Thread(target=ws.run_forever)
+    wst.daemon = True
+    wst.start()
 
 connect_gateway()
 
