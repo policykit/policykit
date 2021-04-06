@@ -44,6 +44,7 @@ def get_gateway_uri():
 
 def on_open(wsapp):
     def run(*args):
+        global heartbeat_interval, ack_received, sequence_number
         logger.info('In run function')
         while True:
             if heartbeat_interval:
@@ -81,6 +82,7 @@ def is_policykit_action(community, call_type, message):
     return False
 
 def handle_ready_event(data):
+    global session_id
     session_id = data['session_id']
 
 def handle_message_create_event(data):
@@ -151,6 +153,7 @@ def handle_event(name, data):
                                                           boolean_value=val)
 
 def on_message(wsapp, message):
+    global heartbeat_interval, sequence_number, ack_received
     payload = json.loads(message)
     op = payload['op']
     if op == 0: # Opcode 0 Dispatch
