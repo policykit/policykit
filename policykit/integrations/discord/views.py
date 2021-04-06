@@ -194,7 +194,7 @@ def connect_gateway():
         on_error=on_error,
         on_close=on_close)
     wsapp.on_open = on_open
-    wst = threading.Thread(target=ws.run_forever)
+    wst = threading.Thread(target=wsapp.run_forever)
     wst.daemon = True
     wst.start()
 
