@@ -44,9 +44,12 @@ def get_gateway_uri():
 
 def on_open(wsapp):
     def run(*args):
+        logger.info('In run function')
         while True:
             if heartbeat_interval:
+                logger.info('About to sleep in heartbeat loop')
                 time.sleep(heartbeat_interval / 1000)
+                logger.info('Just finished sleeping in heartbeat loop')
 
                 # Verify that client received heartbeat ack between attempts at sending heartbeats
                 #if ack_received == False:
