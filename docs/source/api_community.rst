@@ -15,7 +15,5 @@ Community
 
 | **Functions**
 
-.. automodule:: policyengine.models
+.. autoclass:: policyengine.models.Community
   :members:
-  :undoc-members:
-  :show-inheritance:
