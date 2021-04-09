@@ -1,5 +1,3 @@
-.. _start:
-
 Community
 ====================================
 
@@ -15,5 +13,8 @@ Community
 
 | **Functions**
 
-.. autoclass:: policyengine.models.Community
+.. automodule:: policyengine.models
+  :members:
+
+.. autoclass:: Community
   :members:
