@@ -141,7 +141,7 @@ def action(request):
     new_api_action = MetagovPlatformAction()
     new_api_action.community = community
     new_api_action.initiator = metagov_user
-    new_api_action.event_type = body["event_type"]
+    new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])
 
     # Save to create Proposal and trigger PlatformPolicy evaluations

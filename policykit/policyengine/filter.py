@@ -325,10 +325,7 @@ policyengine_functions = [
     'remove',
     'set',
     'get_roles',
-    'has_role',
-    # metagov model functions
-    'get_metagov_action_data',
-    'get_real_username'
+    'has_role'
 ]
 
 # Don't whitelist any string functions that allow for format string vulnerabilities

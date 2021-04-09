@@ -191,10 +191,10 @@ class MetagovPlatformActionTest(TestCase):
         policy = PlatformPolicy()
         policy.community = self.community
         policy.filter = """return action.action_codename == 'metagovaction' \
-and action.event_type == 'discourse_post_created'"""
-        policy.initialize = "action.data.set('test_verify_username', action.initiator.metagovuser.get_real_username())"
+and action.event_type == 'discourse.post_created'"""
+        policy.initialize = "action.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
         policy.notify = "pass"
-        policy.check = "return PASSED if action.get_metagov_action_data()['category'] == 0 else FAILED"
+        policy.check = "return PASSED if action.event_data['category'] == 0 else FAILED"
         policy.success = "action.execute()"  # Needed to mark as "passed" because of bug https://github.com/amyxzhang/policykit/issues/305
         policy.fail = "pass"
         policy.description = "test"
@@ -205,7 +205,8 @@ and action.event_type == 'discourse_post_created'"""
         event_payload = {
             "community": metagov_slug(self.community),
             "initiator": {"user_id": "miriam", "provider": "discourse"},
-            "event_type": "discourse_post_created",
+            "source": "discourse",
+            "event_type": "post_created",
             "data": {"title": "test", "raw": "post text", "category": 0},
         }
 
@@ -217,12 +218,12 @@ and action.event_type == 'discourse_post_created'"""
 
         self.assertEqual(MetagovPlatformAction.objects.all().count(), 1)
 
-        action = MetagovPlatformAction.objects.filter(event_type="discourse_post_created").first()
+        action = MetagovPlatformAction.objects.filter(event_type="discourse.post_created").first()
 
         self.assertEqual(action.community.platform, "slack") ## the action.community is the community that is connected to metagov
         self.assertEqual(action.initiator.username, "discourse.miriam")
-        self.assertEqual(action.initiator.metagovuser.get_real_username(), "miriam")
+        self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
         self.assertEqual(action.data.get("test_verify_username"), "miriam")
-        self.assertEqual(action.get_metagov_action_data()["raw"], "post text")
+        self.assertEqual(action.event_data["raw"], "post text")
 
         self.assertEqual(action.proposal.status, "passed")

@@ -28,7 +28,8 @@ class MetagovUser(CommunityUser):
 
     # Hack so it doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.
-    def get_real_username(self):
+    @property
+    def external_username(self):
         prefix = f"{self.provider}."
         if self.username.startswith(prefix):
             return self.username[len(prefix) :]
@@ -50,7 +51,8 @@ class MetagovPlatformAction(PlatformAction):
     def __str__(self):
         return str(self.event_type)
 
-    def get_metagov_action_data(self):
+    @property
+    def event_data(self):
         if self.json_data:
             return json.loads(self.json_data)
         return None
