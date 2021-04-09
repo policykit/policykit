@@ -1,0 +1,142 @@
+{% extends "./policyadmin/dashboard/dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
+
+<style>
+  .body {
+    min-height: 90vh;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+
+  .editor {
+    padding-top: 3vh;
+    width: 100%;
+  }
+
+  .code {
+    resize: none;
+  }
+
+  .error {
+      color: red
+  }
+  .CodeMirror {
+    height: auto;
+    width: 100%;
+    border: 1px solid #000000;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 1.2em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  <h3>Metagov Configuration</h3>
+
+  <form class="form-horizontal editor">
+    <div class="form-row">
+        <div class="col-sm-12">
+          <textarea class="form-control code" id="config" required rows="5"></textarea>
+        </div>
+      </div>
+    <div class="form-row">
+      <div class="col-sm-12">
+        <button type="button" class="btn btn-success" id="save">Save</button>
+      </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm-12">
+          <div id="alerts"></div>
+        </div>
+      </div>
+  </form>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src={% static "codemirror/lib/codemirror.js" %}></script>
+<script src={% static "codemirror/lib/codemirror.css" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
+
+
+<script>
+  document.getElementById("save").addEventListener("click", save);
+
+function save() {
+    const errorContainer = document.getElementById('alerts')
+    errorContainer.innerHTML = ''
+    function showError(message) {
+        const errorMsg = document.createElement('div')
+        errorMsg.classList.add('error')
+        errorMsg.innerHTML = message
+        errorContainer.appendChild(errorMsg)
+    }
+
+    const configString = document.getElementById("config").nextSibling.CodeMirror.getValue()
+    let jsonObject = {};
+    try {
+        jsonObject = JSON.parse(configString);
+    } catch (err) {
+        console.error(err)
+        showError("Invalid JSON");
+        return;
+    }
+
+    fetch('../../../metagov/save_config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(jsonObject)
+    }).then(response => {
+      if (!response.ok) {
+        response.text().then(text => {
+            const errorMsg = document.createElement('div')
+            errorMsg.classList.add('error')
+            errorMsg.innerHTML = text
+            errorContainer.appendChild(errorMsg)
+        })
+      } else {
+        window.location.href = "{{server_url}}/main/"
+      }
+    })
+  }
+
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+  var textArea = document.getElementById("config");
+  const editor = CodeMirror.fromTextArea(textArea, {
+        mode: 'json',
+        autoRefresh: true,
+        lineNumbers: true,
+        theme: 'eclipse',
+        gutters: ['warnings'],
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        matchBrackets: true,
+        gutters: ['warnings']
+    });
+
+  editor.setValue(decodeHtml(`{{config}}`))
+</script>
+{% endblock %}
