@@ -82,6 +82,7 @@ def handle_ready_event(data):
     session_id = data['session_id']
 
 def handle_message_create_event(data):
+    logger.info('test')
     logger.info(f'Received new message in channel {data["channel_id"]}')
     community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
     call_type = ('channels/%s/messages' % data['channel_id'])
@@ -105,6 +106,7 @@ def handle_event(name, data):
         action = None
 
         if name == 'MESSAGE_CREATE':
+            logger.info('abc')
             action = handle_message_create_event(data)
 
         if action is not None:
