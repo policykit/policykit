@@ -1,0 +1,63 @@
+{% extends "./dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
+<style>
+  .body {
+    min-height: 90vh;
+    margin: 0 10vw;
+    padding-top: 3vh;
+  }
+  h3 {
+    padding-bottom: 1em;
+  }
+
+  .editor {
+    padding-top: 1vh;
+    width: 100%;
+  }
+
+  .code {
+    resize: none;
+  }
+
+  .error {
+      color: red
+  }
+  .CodeMirror {
+    height: auto;
+    width: 100%;
+    border: 1px solid #000000;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 1.2em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="body">
+    <h3>Settings</h3>
+
+    <h5>Metagov Configuration</h5>
+    {% include "metagov_config.html" %}
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src={% static "codemirror/lib/codemirror.js" %}></script>
+  <script src={% static "codemirror/lib/codemirror.css" %}></script>
+  <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
+  <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+  <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
+  <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+  <script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
+  {% include "metagov_config_script.html" %}
+{% endblock %}

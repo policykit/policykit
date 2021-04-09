@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from actstream import action
 from actstream.models import model_stream, target_stream, Action
 from policyengine.filter import *
-from policykit.settings import SERVER_URL
+from policykit.settings import SERVER_URL, METAGOV_URL
 import urllib.request
 import urllib.parse
 import logging
@@ -120,6 +120,27 @@ def logout(request):
 @login_required(login_url='/login')
 def documentation(request):
     return render(request, 'policyadmin/dashboard/documentation.html', {})
+
+@login_required(login_url='/login')
+def settings_page(request):
+    from integrations.metagov.library import get_metagov_community
+
+    user = get_user(request)
+    community = user.community
+
+    if METAGOV_URL and user.is_community_admin:
+        metagov_config = get_metagov_community(community)
+        if metagov_config:
+            metagov_config = json.dumps(metagov_config, indent=4, separators=(",", ": "))
+    else:
+        metagov_config = None
+
+    return render(request, 'policyadmin/dashboard/settings.html', {
+        'metagov_url': METAGOV_URL,
+        'metagov_config': metagov_config,
+        'server_url': SERVER_URL,
+        'user': get_user(request)
+    })
 
 @login_required(login_url='/login')
 def editor(request):

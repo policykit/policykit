@@ -27,6 +27,13 @@ def update_metagov_community(community: Community, plugins=[]):
     data = response.json()
     return data
 
+def get_metagov_community(community: Community):
+    url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}"
+    response = requests.get(url)
+    if not response.ok:
+        logger.error(response.text)
+        return None
+    return response.json()
 
 class DecisionResult(object):
     def __init__(self, obj):
