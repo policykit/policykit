@@ -1,0 +1,66 @@
+{% load static %}
+
+<script>
+  document.getElementById("save").addEventListener("click", save);
+  
+  function save() {
+      const errorContainer = document.getElementById('alerts')
+      errorContainer.innerHTML = ''
+      function showError(message) {
+          const errorMsg = document.createElement('div')
+          errorMsg.classList.add('error')
+          errorMsg.innerHTML = message
+          errorContainer.appendChild(errorMsg)
+      }
+  
+      const configString = document.getElementById("config").nextSibling.CodeMirror.getValue()
+      let jsonObject = {};
+      try {
+          jsonObject = JSON.parse(configString);
+      } catch (err) {
+          console.error(err)
+          showError("Invalid JSON");
+          return;
+      }
+  
+      fetch('../../../metagov/save_config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonObject)
+      }).then(response => {
+        if (!response.ok) {
+          response.text().then(text => {
+              const errorMsg = document.createElement('div')
+              errorMsg.classList.add('error')
+              errorMsg.innerHTML = text
+              errorContainer.appendChild(errorMsg)
+          })
+        } else {
+          window.location.reload()
+        }
+      })
+    }
+  
+    // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+    function decodeHtml(html) {
+      var txt = document.createElement("textarea");
+      txt.innerHTML = html;
+      return txt.value;
+    }
+  
+    var textArea = document.getElementById("config");
+    const editor = CodeMirror.fromTextArea(textArea, {
+          mode: 'json',
+          autoRefresh: true,
+          lineNumbers: true,
+          theme: 'eclipse',
+          gutters: ['warnings'],
+          extraKeys: {"Ctrl-Space": "autocomplete"},
+          matchBrackets: true,
+          gutters: ['warnings']
+      });
+    editor.setValue(decodeHtml(`{{metagov_config}}`))
+  </script>
+  

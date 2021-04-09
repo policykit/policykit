@@ -8,38 +8,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import ContentType, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseServerError)
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.library import metagov_slug, update_metagov_community
-from integrations.metagov.models import (ExternalProcess,
-                                         MetagovPlatformAction, MetagovUser)
+from integrations.metagov.models import ExternalProcess, MetagovPlatformAction, MetagovUser
 from policyengine.models import Community, CommunityRole
 
 logger = logging.getLogger(__name__)
-
-
-@login_required(login_url="/login")
-def config_editor(request):
-    user = get_user(request)
-    if not user.is_community_admin:
-        raise PermissionDenied
-
-    community = user.community
-    url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}"
-    response = requests.get(url)
-    if not response.ok:
-        if response.status_code == 404:
-            logger.info(f"No metagov community for {community.community_name}, creating for the first time")
-            config = update_metagov_community(community)
-        else:
-            raise Exception(response.text)
-    else:
-        config = response.json()
-
-    pretty_config = json.dumps(config, indent=4, separators=(",", ": "))
-    return render(request, "config.html", {"config": pretty_config})
 
 
 @csrf_exempt
@@ -141,7 +117,7 @@ def action(request):
     new_api_action = MetagovPlatformAction()
     new_api_action.community = community
     new_api_action.initiator = metagov_user
-    new_api_action.event_type = body["event_type"]
+    new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])
 
     # Save to create Proposal and trigger PlatformPolicy evaluations

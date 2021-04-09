@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ['policykit.org',
                  'ec2-54-190-197-117.us-west-2.compute.amazonaws.com',
                  '54.190.197.117']
 
+METAGOV_ENABLED = True if METAGOV_URL else False
 
 # Application definition
 
@@ -228,10 +229,6 @@ CELERY_BEAT_SCHEDULE = {
     },
  'reddit-listener-beat': {
        'task': 'integrations.reddit.tasks.reddit_listener_actions',
-       'schedule': 60.0,
-    },
- 'discord-listener-beat': {
-       'task': 'integrations.discord.tasks.discord_listener_actions',
        'schedule': 60.0,
     },
  'discourse-listener-beat': {
