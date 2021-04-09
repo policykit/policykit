@@ -205,7 +205,8 @@ and action.event_type == 'discourse.post_created'"""
         event_payload = {
             "community": metagov_slug(self.community),
             "initiator": {"user_id": "miriam", "provider": "discourse"},
-            "event_type": "discourse.post_created",
+            "source": "discourse",
+            "event_type": "post_created",
             "data": {"title": "test", "raw": "post text", "category": 0},
         }
 
