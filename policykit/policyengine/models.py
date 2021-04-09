@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.conf import settings
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
@@ -76,7 +77,7 @@ class Community(PolymorphicModel):
         return CommunityDoc.objects.filter(community=self)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
+        if not self.pk and hasattr(settings, "METAGOV_URL"):
             # Create a corresponding community in Metagov
             from integrations.metagov.library import update_metagov_community
             update_metagov_community(self)

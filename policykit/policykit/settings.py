@@ -230,10 +230,6 @@ CELERY_BEAT_SCHEDULE = {
        'task': 'integrations.reddit.tasks.reddit_listener_actions',
        'schedule': 60.0,
     },
- 'discord-listener-beat': {
-       'task': 'integrations.discord.tasks.discord_listener_actions',
-       'schedule': 60.0,
-    },
  'discourse-listener-beat': {
        'task': 'integrations.discourse.tasks.discourse_listener_actions',
        'schedule': 60.0,
