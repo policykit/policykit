@@ -76,7 +76,7 @@ class Community(PolymorphicModel):
         return CommunityDoc.objects.filter(community=self)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
+        if not self.pk and settings.METAGOV_URL:
             # Create a corresponding community in Metagov
             from integrations.metagov.library import update_metagov_community
             update_metagov_community(self)
