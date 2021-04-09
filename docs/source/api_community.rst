@@ -15,14 +15,7 @@ Community
 
 | **Functions**
 
-+--------------------------------------+-------------------------------------------------------------------+
-| notify_action(action, policy, users) | Sends a notification to users of a pending action.                |
-+--------------------------------------+-------------------------------------------------------------------+
-| get_roles()                          | Returns a QuerySet of all roles in the community.                 |
-+--------------------------------------+-------------------------------------------------------------------+
-| get_platform_policies()              | Returns a QuerySet of all platform policies in the community.     |
-+--------------------------------------+-------------------------------------------------------------------+
-| get_constitution_policies()          | Returns a QuerySet of all constitution policies in the community. |
-+--------------------------------------+-------------------------------------------------------------------+
-| get_documents()                      | Returns a QuerySet of all documents in the community.             |
-+--------------------------------------+-------------------------------------------------------------------+
+.. automodule:: policyengine.models
+  :members:
+  :undoc-members:
+  :show-inheritance:
