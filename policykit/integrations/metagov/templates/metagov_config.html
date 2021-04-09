@@ -1,5 +1,5 @@
 {% load static %}
-{% if metagov_url and metagov_config %}
+{% if metagov_enabled and metagov_config %}
   <form class="form-horizontal editor">
     <div class="form-row">
         <div class="col-sm-12">
@@ -17,7 +17,7 @@
         </div>
       </div>
   </form>
-{% elif metagov_url %}
+{% elif metagov_enabled %}
   <div>Metagov is enabled for this community, but you do not have access to view the configuration.</div>
 {% else %}
   <div>Metagov not enabled for this community.</div>

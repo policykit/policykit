@@ -29,7 +29,6 @@ urlpatterns = [
     path('main/selectdocument/', policyviews.selectdocument),
     path('main/actions/', policyviews.actions),
     path('main/policyengine/', include('policyengine.urls')),
-    path('main/documentation', policyviews.documentation),
     path('main/settings/', policyviews.settings_page),
     path('admin/', admin.site.urls),
     path('slack/', include('integrations.slack.urls')),

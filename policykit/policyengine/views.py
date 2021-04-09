@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from actstream import action
 from actstream.models import model_stream, target_stream, Action
 from policyengine.filter import *
-from policykit.settings import SERVER_URL, METAGOV_URL
+from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import urllib.request
 import urllib.parse
 import logging
@@ -21,6 +21,12 @@ logger = logging.getLogger(__name__)
 
 def homepage(request):
     return render(request, 'home.html', {})
+
+def create_metagov(policy, action):
+    if METAGOV_ENABLED:
+        from integrations.metagov.library import Metagov
+        return Metagov(policy, action)
+    return None
 
 @login_required(login_url='/login')
 def v2(request):
@@ -118,17 +124,13 @@ def logout(request):
     return redirect('/login')
 
 @login_required(login_url='/login')
-def documentation(request):
-    return render(request, 'policyadmin/dashboard/documentation.html', {})
-
-@login_required(login_url='/login')
 def settings_page(request):
     from integrations.metagov.library import get_metagov_community
 
     user = get_user(request)
     community = user.community
 
-    if METAGOV_URL and user.is_community_admin:
+    if METAGOV_ENABLED and user.is_community_admin:
         metagov_config = get_metagov_community(community)
         if metagov_config:
             metagov_config = json.dumps(metagov_config, indent=4, separators=(",", ": "))
@@ -136,7 +138,7 @@ def settings_page(request):
         metagov_config = None
 
     return render(request, 'policyadmin/dashboard/settings.html', {
-        'metagov_url': METAGOV_URL,
+        'metagov_enabled': METAGOV_ENABLED,
         'metagov_config': metagov_config,
         'server_url': SERVER_URL,
         'user': get_user(request)
@@ -333,10 +335,9 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
 
 def filter_policy(policy, action):
     from policyengine.models import CommunityUser
-    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = Metagov(policy, action)
+    metagov = create_metagov(policy, action)
     _locals = locals()
 
     wrapper_start = "def filter(policy, action, users, metagov):\r\n"
@@ -352,10 +353,9 @@ def filter_policy(policy, action):
 
 def initialize_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
-    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = Metagov(policy, action)
+    metagov = create_metagov(policy, action)
 
     _locals = locals()
     _globals = globals()
@@ -371,12 +371,11 @@ def initialize_policy(policy, action):
 
 def check_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
-    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
     boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
     number_votes = NumberVote.objects.filter(proposal=action.proposal)
-    metagov = Metagov(policy, action)
+    metagov = create_metagov(policy, action)
 
     _locals = locals()
 
@@ -394,10 +393,9 @@ def check_policy(policy, action):
 
 def notify_policy(policy, action):
     from policyengine.models import CommunityUser
-    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = Metagov(policy, action)
+    metagov = create_metagov(policy, action)
 
     _locals = locals()
 
@@ -409,10 +407,9 @@ def notify_policy(policy, action):
 
 def pass_policy(policy, action):
     from policyengine.models import CommunityUser
-    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = Metagov(policy, action)
+    metagov = create_metagov(policy, action)
     _locals = locals()
 
     wrapper_start = "def success(policy, action, users, metagov):\r\n"
@@ -424,10 +421,9 @@ def pass_policy(policy, action):
 
 def fail_policy(policy, action):
     from policyengine.models import CommunityUser
-    from integrations.metagov.library import Metagov
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = Metagov(policy, action)
+    metagov = create_metagov(policy, action)
     _locals = locals()
 
     wrapper_start = "def fail(policy, action, users, metagov):\r\n"

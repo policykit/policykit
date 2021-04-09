@@ -25,13 +25,16 @@ Metagov Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is a special connector for `Metagov <http://docs.metagov.org/>`_ that lets you write policies that make use of the `Metagov API <https://prototype.metagov.org/redoc/>`_, which provides access to several external platforms and governance tools.
+
 In order to use this integration, you need to deploy an instance of Metagov on the same machine as PolicyKit.
+The ``METAGOV_URL`` setting must be set in your ``private.py`` file.
 
 Configuring Metagov
 """""""""""""""""""
 
-Configure Metagov by navigating to ``/metagov/config`` in the browser for your policykit instance. Only administrators are able to see this screen.
-Use the screen to input the plugin configurations for any Metagov plugins you wish to enable. For example:
+Configure Metagov by navigating to "Settings" in the PolicyKit web interface.
+At this time, only community admins are permitted to view and edit the Metagov configuration.
+Use the editor to enable/disable plugins and to configure them. For example:
 
 .. code-block:: json
 
