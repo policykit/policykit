@@ -165,7 +165,7 @@
         {% endif %}
       </div>
       <div class="profileDropdown">
-        <div class="profileDropdownElement">
+        <div class="profileDropdownElement" id="settings">
           <h4>Settings</h4>
         </div>
         <div class="profileDropdownElement">
@@ -186,6 +186,7 @@
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
     document.getElementById("profile").addEventListener("mouseout", hideDropdown);
     document.getElementById("logout").addEventListener("click", logout);
+    document.getElementById("settings").addEventListener("click", settings);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"
@@ -207,6 +208,10 @@
 
     function logout() {
       window.location.href = "{{server_url}}/logout/"
+    }
+
+    function settings() {
+      window.location.href = "{{server_url}}/main/settings/"
     }
   </script>
 

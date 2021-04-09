@@ -10,8 +10,6 @@ from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackStar
 from policyengine.models import CommunityRole, PlatformAction, PlatformPolicy, Proposal
 from policyengine.views import check_policy, filter_policy
 
-METAGOV_URL = "http://127.0.0.1:8000"
-
 
 class EvaluationTests(TestCase):
     def setUp(self):
