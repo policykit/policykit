@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.conf import settings
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.core.exceptions import ValidationError
 from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
