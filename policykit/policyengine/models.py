@@ -36,6 +36,8 @@ class StarterKit(PolymorphicModel):
         return self.name
 
 class Community(PolymorphicModel):
+    """Community"""
+
     community_name = models.CharField('team_name', max_length=1000)
     platform = None
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
@@ -44,18 +46,42 @@ class Community(PolymorphicModel):
         return self.community_name
 
     def notify_action(self, action, policy, users):
+        """
+        Sends a notification to users of a pending action.
+
+        Parameters
+        -------
+        action
+            The pending action.
+        policy
+            The policy being proposed.
+        users
+            The users who should be notified.
+        """
         pass
 
     def get_roles(self):
+        """
+        Returns a QuerySet of all roles in the community.
+        """
         return CommunityRole.objects.filter(community=self)
 
     def get_platform_policies(self):
+        """
+        Returns a QuerySet of all platform policies in the community.
+        """
         return PlatformPolicy.objects.filter(community=self)
 
     def get_constitution_policies(self):
+        """
+        Returns a QuerySet of all constitution policies in the community.
+        """
         return ConstitutionPolicy.objects.filter(community=self)
 
     def get_documents(self):
+        """
+        Returns a QuerySet of all documents in the community.
+        """
         return CommunityDoc.objects.filter(community=self)
 
 class CommunityRole(Group):
