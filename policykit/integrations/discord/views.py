@@ -104,7 +104,7 @@ def handle_event(name, data):
     else:
         action = None
 
-        if name == 'MESSAGE CREATE':
+        if name == 'MESSAGE_CREATE':
             action = handle_message_create_event(data)
 
         if action is not None:
@@ -129,7 +129,7 @@ def handle_event(name, data):
                     author=action.initiator
                 )
 
-        if name == 'MESSAGE REACTION ADD':
+        if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
             if action_res.exists():
                 if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
