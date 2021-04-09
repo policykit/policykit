@@ -45,6 +45,7 @@ whitelisted_modules = {
         "close_process",
         "get_process_outcome",
         "get_resource",
+        "perform_action",
     ],
     "base64": [
         "a85encode",
@@ -324,7 +325,10 @@ policyengine_functions = [
     'remove',
     'set',
     'get_roles',
-    'has_role'
+    'has_role',
+    # metagov model functions
+    'get_metagov_action_data',
+    'get_real_username'
 ]
 
 # Don't whitelist any string functions that allow for format string vulnerabilities
