@@ -169,7 +169,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 PROJECT_NAME = "PolicyKit"
 
 try:
-    NO_LOGGING
+    os.environ.get('NO_LOGGING')
 except NameError:
     LOGGING = {
         'version': 1,
