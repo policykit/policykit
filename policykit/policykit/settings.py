@@ -37,10 +37,10 @@ ALLOWED_HOSTS = ['policykit.org',
                  'ec2-54-190-197-117.us-west-2.compute.amazonaws.com',
                  '54.190.197.117']
 
-METAGOV_ENABLED = True
 try:
-    METAGOV_URL
+    METAGOV_ENABLED = True if METAGOV_URL else False
 except NameError:
+    # "METAGOV_URL" is missing from private.py
     METAGOV_ENABLED = False
 
 # Application definition
