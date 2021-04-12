@@ -130,7 +130,7 @@ def settings_page(request):
     user = get_user(request)
     community = user.community
 
-    if METAGOV_ENABLED and user.is_community_admin:
+    if user.has_perm("metagov.can_edit_metagov_config"):
         metagov_config = get_or_create_metagov_community(community)
         if metagov_config:
             metagov_config = json.dumps(metagov_config, indent=4, separators=(",", ": "))

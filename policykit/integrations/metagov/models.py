@@ -36,6 +36,22 @@ class MetagovUser(CommunityUser):
         return self.username
 
 
+class MetagovConfig(models.Model):
+    """
+    Dummy model for permissions to edit Metagov Config.
+    """
+    class Meta:
+        # No database table creation or deletion  \
+        # operations will be performed for this model.
+        managed = False
+
+        # disable "add", "change", "delete"
+        # and "view" default permissions
+        default_permissions = ()
+
+        permissions = [("can_edit_metagov_config", "Can edit Metagov config")]
+
+
 class MetagovPlatformAction(PlatformAction):
     """
     This is a PlatformAction model to use as a policy trigger for events received from Metagov.
