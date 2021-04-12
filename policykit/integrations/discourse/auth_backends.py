@@ -1,6 +1,7 @@
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser
+from integrations.discourse.utils import get_discourse_user_fields
 from urllib import parse
 import urllib.request
 import json
@@ -17,34 +18,27 @@ class DiscourseBackend(BaseBackend):
         url = request.session['discourse_url']
         api_key = request.session['discourse_api_key']
 
-        s = DiscourseCommunity.objects.filter(team_id=url)
+        try:
+            community = DiscourseCommunity.objects.get(team_id=url)
+        except DiscourseCommunity.DoesNotExist:
+            logger.info(f"PolicyKit not installed to community {url}")
+            return None
 
-        if s.exists():
-            req = urllib.request.Request(url + '/session/current.json')
-            req.add_header("User-Api-Key", api_key)
-            resp = urllib.request.urlopen(req)
-            user_info = json.loads(resp.read().decode('utf-8'))['current_user']
+        req = urllib.request.Request(url + '/session/current.json')
+        req.add_header("User-Api-Key", api_key)
+        resp = urllib.request.urlopen(req)
+        user_info = json.loads(resp.read().decode('utf-8'))['current_user']
 
-            discourse_user = DiscourseUser.objects.filter(username=user_info['id'])
 
-            if discourse_user.exists():
-                # update user info
-                discourse_user = discourse_user[0]
-                discourse_user.community = s[0]
-                discourse_user.password = api_key
-                discourse_user.readable_name = user_info['name']
-                discourse_user.avatar = user_info['avatar_template']
-                discourse_user.save()
-            else:
-                discourse_user,_ = DiscourseUser.objects.get_or_create(
-                    username = user_info['id'],
-                    password = api_key,
-                    community = s[0],
-                    readable_name = user_info['name'],
-                    avatar = user_info['avatar_template']
-                )
-            return discourse_user
-        return None
+        user_fields = get_discourse_user_fields(user_info, community)
+        user_fields['password'] = api_key
+
+        discourse_user,_ = DiscourseUser.objects.update_or_create(
+            community=community, username=user_info['username'],
+            defaults=user_fields,
+        )
+
+        return discourse_user
 
     def get_user(self, user_id):
         try:

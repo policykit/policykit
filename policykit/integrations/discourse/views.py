@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseStarterKit
+from integrations.discourse.utils import get_discourse_user_fields
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -125,12 +126,11 @@ def auth(request):
             users = json.loads(resp.read().decode('utf-8'))
 
             for u in users:
-                du, _ = DiscourseUser.objects.get_or_create(
-                    username=u['username'],
-                    readable_name=u['username'],
-                    community=community
+                user_fields = get_discourse_user_fields(u, community)
+                DiscourseUser.objects.update_or_create(
+                    community=community, username=u['username'],
+                    defaults=user_fields,
                 )
-                du.save()
 
             context = {
                 "starterkits": [kit.name for kit in DiscourseStarterKit.objects.all()],
