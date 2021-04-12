@@ -23,7 +23,7 @@ class ExternalProcess(models.Model):
 class MetagovUser(CommunityUser):
     provider = models.CharField(max_length=30, help_text="Identity provider that the username comes from")
     """
-    Represents a user in the MetagovCommunity, which could be on any platform.
+    Represents a user in the Metagov community, which could be on any platform.
     """
 
     # Hack so it doesn't clash with usernames from other communities (django User requires unique username).
