@@ -160,6 +160,7 @@ def post_policy(policy, action, users=None, template=None, topic_id=None):
         'raw': policy_message,
         'topic_id': topic_id
     }
+    # TODO: append a Discourse poll to `raw` to facilitate voting.
 
     call = '/posts.json'
 
