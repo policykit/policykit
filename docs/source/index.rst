@@ -17,6 +17,12 @@ Welcome to the Docs for PolicyKit!
 
 .. toctree::
    :maxdepth: 3
+   :caption: TUTORIALS
+
+   tutorial_hello_world
+
+.. toctree::
+   :maxdepth: 3
    :caption: API REFERENCE
 
    api_community
