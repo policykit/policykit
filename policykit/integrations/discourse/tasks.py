@@ -42,11 +42,11 @@ def discourse_listener_actions():
         req = urllib.request.Request(url + '/latest.json')
         req.add_header("User-Api-Key", api_key)
         resp = urllib.request.urlopen(req)
-        logger.info(f"{resp.status} {resp.reason}")
+        logger.info(f"[celery-discourse] {resp.status} {resp.reason}")
         res = json.loads(resp.read().decode('utf-8'))
         topics = res['topic_list']['topics']
         users = res['users']
-
+        logger.info(f"[celery-discourse] {len(topics)} topics")
         for topic in topics:
             user_id = topic['posters'][0]['user_id']
             usernames = [u['username'] for u in users if u['id'] == user_id]
@@ -71,6 +71,9 @@ def discourse_listener_actions():
                     )
                     new_api_action.initiator = u
                     actions.append(new_api_action)
+            else:
+                logger.info("[celery-discourse] skipping PK action")
+        logger.info(f"[celery-discourse] {len(actions)} actions created")
         for action in actions:
             action.community_origin = True
             action.is_bundled = False
