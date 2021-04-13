@@ -55,7 +55,7 @@ def discourse_listener_actions():
             username = usernames[0]
             call_type = '/posts.json'
             if not is_policykit_action(community, call_type, topic, username):
-                t = DiscourseCreateTopic.objects.filter(id=topic['id'])
+                t = DiscourseCreateTopic.objects.filter(community=community, topic_id=topic['id'])
                 if not t.exists():
                     logger.info(f"[celery-discourse] creating new DiscourseCreateTopic object for topic {topic['title']}")
 
@@ -72,7 +72,7 @@ def discourse_listener_actions():
                     new_api_action.title = topic['title']
                     new_api_action.category = topic['category_id']
                     new_api_action.raw = raw
-                    new_api_action.id = topic['id']
+                    new_api_action.topic_id = topic['id']
 
                     u,_ = DiscourseUser.objects.get_or_create(
                         username=username,
