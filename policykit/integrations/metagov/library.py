@@ -27,12 +27,13 @@ def update_metagov_community(community: Community, plugins=[]):
     data = response.json()
     return data
 
-def get_metagov_community(community: Community):
+def get_or_create_metagov_community(community: Community):
     url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}"
     response = requests.get(url)
-    if not response.ok:
-        logger.error(response.text)
-        return None
+    if response.status_code == 404:
+        return update_metagov_community(community)
+    elif not response.ok:
+        raise Exception(response.text or "Unknown error")
     return response.json()
 
 class DecisionResult(object):
