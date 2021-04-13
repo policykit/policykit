@@ -375,7 +375,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                         action.execute()
                     else:
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                            execute_policy(policy, action)
+                            execute_policy(policy, action, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
@@ -417,18 +417,18 @@ class ConstitutionActionBundle(BaseAction):
         verbose_name = 'constitutionactionbundle'
         verbose_name_plural = 'constitutionactionbundles'
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            action = self
+            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+                #if they have execute permission, skip all policies
+                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                    action.execute()
+                else:
+                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                        execute_policy(policy, action, is_first_evaluation=True)
 
-@receiver(post_save, sender=ConstitutionActionBundle)
-@on_transaction_commit
-def after_constitutionaction_bundle_save(sender, instance, **kwargs):
-    action = instance
-    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-        #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-            action.execute()
-        else:
-            for policy in ConstitutionPolicy.objects.filter(community=action.community):
-                execute_policy(policy, action)
+        super(ConstitutionActionBundle, self).save(*args, **kwargs)
 
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
@@ -852,7 +852,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
                         action.execute()
                     else:
                         for policy in PlatformPolicy.objects.filter(community=self.community):
-                            execute_policy(policy, action)
+                            execute_policy(policy, action, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED,
                                                         author=self.initiator)
@@ -892,19 +892,19 @@ class PlatformActionBundle(BaseAction):
         verbose_name = 'platformactionbundle'
         verbose_name_plural = 'platformactionbundles'
 
-@receiver(post_save, sender=PlatformActionBundle)
-@on_transaction_commit
-def after_bundle_save(sender, instance, **kwargs):
-    action = instance
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            action = self
+            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+                #if they have execute permission, skip all policies
+                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                    action.execute()
+                elif not action.community_post:
+                    for policy in PlatformPolicy.objects.filter(community=action.community):
+                        execute_policy(policy, action, is_first_evaluation=True)
 
-    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-        #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-            action.execute()
-        else:
-            if not action.community_post:
-                for policy in PlatformPolicy.objects.filter(community=action.community):
-                    execute_policy(policy, action)
+        super(PlatformActionBundle, self).save(*args, **kwargs)
+
 
 class BasePolicy(models.Model):
     filter = models.TextField(blank=True, default='')

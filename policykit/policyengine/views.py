@@ -676,7 +676,7 @@ def document_action_remove(request):
 
     return HttpResponse()
 
-def execute_policy(policy, action):
+def execute_policy(policy, action, is_first_evaluation: bool):
     """
     Execute policy for given action. This can be run repeatedly to check proposed actions.
     """
@@ -685,7 +685,7 @@ def execute_policy(policy, action):
 
         log_prefix = f"[engine][{policy.name}][action {action.pk}]"
         logger.info(f"{log_prefix} Passed filter")
-        is_first_evaluation = not policy.has_notified
+
         # If policy is being evaluated for the first time, initialize it
         if is_first_evaluation:
             logger.info(f"{log_prefix} Initializing")
@@ -713,14 +713,15 @@ def execute_policy(policy, action):
             if is_first_evaluation and action.community_origin:
                 action.revert()
 
-        elif is_first_evaluation:
-            # check neither passed not failed, so it's pending
-            if action.community_origin:
-                action.revert()
+        elif check_result == Proposal.PROPOSED and is_first_evaluation:
+                # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
+                if action.community_origin:
+                    logger.info(f"{log_prefix} Reverting")
+                    action.revert()
 
-            # run "notify" block of policy
-            logger.info(f"{log_prefix} Notifying")
-            notify_policy(policy, action)
+                # Run "notify" block of policy
+                logger.info(f"{log_prefix} Notifying")
+                notify_policy(policy, action)
         else:
-            # check neither passed not failed, so it's still pending
+            # do nothing, it's still pending
             pass
