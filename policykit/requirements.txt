@@ -13,7 +13,8 @@ django-activity-stream==0.9.0
 django-celery-beat==1.5.0
 django-celery-results==1.1.2
 django-grappelli==2.14.1
-django-jsonfield-backport==1.0.3
+django-jsonfield==1.4.1
+django-jsonfield-compat==0.4.4
 django-polymorphic==2.1.2
 django-timezone-field==4.0
 gevent==20.6.2
