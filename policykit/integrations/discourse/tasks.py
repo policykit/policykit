@@ -33,6 +33,7 @@ def is_policykit_action(community, call_type, topic, username):
 
 @shared_task
 def discourse_listener_actions():
+    logger.info('testing123')
     for community in DiscourseCommunity.objects.all():
         actions = []
 
@@ -62,6 +63,7 @@ def discourse_listener_actions():
                     req = urllib.request.Request(f"{url}/t/{str(topic['id'])}/posts.json?include_raw=True")
                     req.add_header("User-Api-Key", api_key)
                     resp = urllib.request.urlopen(req)
+                    logger.info(f"[celery-discourse] {resp.status} {resp.reason}")
                     res = json.loads(resp.read().decode('utf-8'))
                     raw = res['post_stream']['posts'][0]['raw']
 
