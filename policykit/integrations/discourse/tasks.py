@@ -42,7 +42,6 @@ def discourse_listener_actions():
         req = urllib.request.Request(url + '/latest.json')
         req.add_header("User-Api-Key", api_key)
         resp = urllib.request.urlopen(req)
-        logger.info(f"{resp.status} {resp.reason}")
         res = json.loads(resp.read().decode('utf-8'))
         topics = res['topic_list']['topics']
         users = res['users']
@@ -58,11 +57,19 @@ def discourse_listener_actions():
             if not is_policykit_action(community, call_type, topic, username):
                 t = DiscourseCreateTopic.objects.filter(id=topic['id'])
                 if not t.exists():
+                    # Retrieve raw from first post under topic (created when topic created)
+                    req = urllib.request.Request(f"{url}/t/{str(topic['id'])}/posts.json?include_raw=True")
+                    req.add_header("User-Api-Key", api_key)
+                    resp = urllib.request.urlopen(req)
+                    res = json.loads(resp.read().decode('utf-8'))
+                    raw = res['post_stream']['posts'][0]['raw']
+
                     logger.info('Discourse: creating new DiscourseCreateTopic for: ' + topic['title'])
                     new_api_action = DiscourseCreateTopic()
                     new_api_action.community = community
                     new_api_action.title = topic['title']
                     new_api_action.category = topic['category_id']
+                    new_api_action.raw = raw
                     new_api_action.id = topic['id']
 
                     u,_ = DiscourseUser.objects.get_or_create(
