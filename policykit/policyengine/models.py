@@ -129,6 +129,9 @@ class PolymorphicUserManager(UserManager, PolymorphicManager):
     # no-op class to get rid of warnings (issue #270)
     pass
 
+# https://github.com/django-polymorphic/django-polymorphic/issues/9
+setattr(User, '_base_objects', User.objects)
+
 class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', max_length=300, null=True)
     community = models.ForeignKey(Community, models.CASCADE)

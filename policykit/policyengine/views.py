@@ -417,7 +417,6 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action, users, metagov)"
 
-    logger.info('policy passed: ' + str(policy.name))
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
@@ -683,7 +682,7 @@ def execute_policy(policy, action, is_first_evaluation: bool):
     if filter_policy(policy, action):
         from policyengine.models import Proposal
 
-        log_prefix = f"[engine][{policy.name}][action {action.pk}]"
+        log_prefix = f"[{policy}][{action}]"
         logger.info(f"{log_prefix} Passed filter")
 
         # If policy is being evaluated for the first time, initialize it
