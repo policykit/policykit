@@ -49,16 +49,17 @@ class DiscourseCommunity(Community):
         req = urllib.request.Request(self.team_id + url, data, method=method)
         req.add_header('User-Api-Key', self.api_key)
 
-        res = None
         try:
             resp = urllib.request.urlopen(req)
-            res = json.loads(resp.read().decode('utf-8'))
         except urllib.error.HTTPError as e:
             logger.info('reached HTTPError')
             logger.info(e.code)
             raise
 
-        return res
+        resp_body = resp.read().decode('utf-8')
+        if resp_body:
+            return json.loads(resp_body)
+        return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
@@ -146,13 +147,14 @@ class DiscourseCreateTopic(PlatformAction):
     def revert(self):
         logger.info('discourse topic revert')
         values = {}
-        super().revert(values, '/t/%s.json' % self.id, method='DELETE')
+        call = f"/t/{self.id}.json"
+        super().revert(values, call, method='DELETE')
 
     def execute(self):
-        if not self.community_revert:
-            topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
-
-            self.id = topic['id']
+        # FIXME(#335)
+        # if not self.community_revert:
+        #     topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
+        #     self.id = topic['id']
         super().pass_action()
 
 class DiscourseCreatePost(PlatformAction):
@@ -174,13 +176,14 @@ class DiscourseCreatePost(PlatformAction):
 
     def revert(self):
         values = {}
-        super().revert(values, '/posts/%s.json' % self.id, method='DELETE')
+        call = f"/posts/{self.id}.json"
+        super().revert(values, call, method='DELETE')
 
     def execute(self):
-        if not self.community_revert:
-            reply = self.community.make_call('/posts.json', {'raw': self.raw})
-
-            self.id = reply['id']
+        # FIXME(#335)
+        # if not self.community_revert:
+        #     reply = self.community.make_call('/posts.json', {'raw': self.raw})
+        #     self.id = reply['id']
         super().pass_action()
 
 class DiscourseStarterKit(StarterKit):

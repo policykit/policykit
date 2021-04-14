@@ -23,7 +23,7 @@ class ExternalProcess(models.Model):
 class MetagovUser(CommunityUser):
     provider = models.CharField(max_length=30, help_text="Identity provider that the username comes from")
     """
-    Represents a user in the MetagovCommunity, which could be on any platform.
+    Represents a user in the Metagov community, which could be on any platform.
     """
 
     # Hack so it doesn't clash with usernames from other communities (django User requires unique username).
@@ -34,6 +34,22 @@ class MetagovUser(CommunityUser):
         if self.username.startswith(prefix):
             return self.username[len(prefix) :]
         return self.username
+
+
+class MetagovConfig(models.Model):
+    """
+    Dummy model for permissions to edit Metagov Config.
+    """
+    class Meta:
+        # No database table creation or deletion  \
+        # operations will be performed for this model.
+        managed = False
+
+        # disable "add", "change", "delete"
+        # and "view" default permissions
+        default_permissions = ()
+
+        permissions = [("can_edit_metagov_config", "Can edit Metagov config")]
 
 
 class MetagovPlatformAction(PlatformAction):

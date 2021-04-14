@@ -125,13 +125,13 @@ def logout(request):
 
 @login_required(login_url='/login')
 def settings_page(request):
-    from integrations.metagov.library import get_metagov_community
+    from integrations.metagov.library import get_or_create_metagov_community
 
     user = get_user(request)
     community = user.community
 
-    if METAGOV_ENABLED and user.is_community_admin:
-        metagov_config = get_metagov_community(community)
+    if user.has_perm("metagov.can_edit_metagov_config"):
+        metagov_config = get_or_create_metagov_community(community)
         if metagov_config:
             metagov_config = json.dumps(metagov_config, indent=4, separators=(",", ": "))
     else:
