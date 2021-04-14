@@ -21,6 +21,37 @@ Discord Integration
 Discourse Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This is a connector for `Discourse <https://www.discourse.org/>`_ that lets you write policies that govern Discourse communities.
+
+Setting up your Discourse community
+"""""""""""""""""""""""""""""""""""
+
+You can set up a Discourse community either by running a server that hosts a community locally or by creating a community hosted remotely by `Discourse.org <https://www.discourse.org/>`_. To host a community remotely, you can press "Start Trial" `on this page <https://www.discourse.org/pricing>`_ and follow the instructions to set up a community. Discourse.org offers free 14 day trials, which can be extended by contacting support.
+
+|
+
+Once the site is up and running, you need to configure a few settings to enable PolicyKit to interact with your site. On the site homepage, log in as your admin account and enter the Settings menu (located on the top right of the homepage). On the left sidebar, select the User API page. On this page, you should set / verify the following settings:
+ * **allow user api keys**: `checked`
+ * **allow user api key scopes**: Select the scopes you want to enable here. Possible scopes: `read`, `write`, `message_bus`, `push`, `notifications`, `session_info`, `one_time_password`. Recommend allowing all the scopes for full usability of PolicyKit.
+ * **min user level for user api key**: `0`
+ * **allowed user api auth redirects**: Add an entry: `[YOUR SERVER URL]/discourse/auth`. (example: `https://policykit.org/discourse/auth`)
+
+Installing PolicyKit to your Discourse community
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+On the login page, select "Install PolicyKit to Discourse". On the Configure screen that appears, enter the full URL of your Discourse community (example: `https://policykit.trydiscourse.com`). On the next screen that appears, you must approve PolicyKit's authorization to access your Discourse community. On the third and final screen, you must select a Starter Kit system of governance, which will initialize your community with the selected system of governance.
+
+|
+
+For testing purposes, we recommend trying out the Testing Starter Kit, which will give all members in the community complete access to PolicyKit action. For more experienced PolicyKit users who are hoping to use PolicyKit with an existing community, we recommend trying out one of the other more restrictive Starter Kits.
+
+Once you have selected a Starter Kit, you will be redirected back to the login page. If PolicyKit was installed correctly, you should see a text message near the top saying "Successfully added PolicyKit!". If you see this success message, you are all set to sign in to your Discourse community's dashboard.
+
+Signing in to your PolicyKit dashboard
+""""""""""""""""""""""""""""""""""""""""""
+
+On the login page, select "Sign in with Discourse". This will display a screen asking "Which Discourse community would you like to sign into?" In the text box, enter the full URL of your Discourse community (example: `https://policykit.trydiscourse.com`) and press Continue. Once again, you must approve PolicyKit's authorization to access your Discourse community. After approving the request, you should be in! You should now be able to see your PolicyKit dashboard and use all the features of PolicyKit with your Discourse community.
+
 Metagov Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -117,7 +148,7 @@ Use the ``metagov`` client to perform asynchronous governance processes. Here's 
 .. code-block:: python
 
     # "notify" block kicks off the process
-    
+
     import datetime
 
     closing_at = action.proposal.proposal_time + datetime.timedelta(days=3)
@@ -133,7 +164,7 @@ Use the ``metagov`` client to perform asynchronous governance processes. Here's 
 .. code-block:: python
 
     # "check" block polls for the process outcome
-    
+
     result = metagov.get_process_outcome()
     if result is None:
         return # still processing
