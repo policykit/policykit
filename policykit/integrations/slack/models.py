@@ -34,7 +34,7 @@ class SlackCommunity(Community):
 
     bot_id = models.CharField('bot_id', max_length=150, unique=True, default='')
 
-    def notify_action(self, action, policy, users, post_type='channel', template=None, channel=None):
+    def notify_action(self, action, policy, users=None, post_type='channel', template=None, channel=None):
         from integrations.slack.views import post_policy
         post_policy(policy, action, users, post_type, template, channel)
 
@@ -46,8 +46,10 @@ class SlackCommunity(Community):
         logger.info(f"Making call: {url}")
         req = urllib.request.Request(url)
         resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        return res
+        resp_body = resp.read().decode('utf-8')
+        if resp_body:
+            return json.loads(resp_body)
+        return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
 
