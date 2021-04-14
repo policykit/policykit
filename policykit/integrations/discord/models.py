@@ -80,16 +80,17 @@ class DiscordCommunity(Community):
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
 
-        res = None
         try:
             resp = urllib.request.urlopen(req)
-            res = json.loads(resp.read().decode('utf-8'))
         except urllib.error.HTTPError as e:
             logger.info('reached HTTPError')
             logger.info(e.code)
             raise
 
-        return res
+        res = resp.read().decode('utf-8')
+        if res:
+            return json.loads(res)
+        return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser

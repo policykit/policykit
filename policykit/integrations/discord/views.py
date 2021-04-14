@@ -243,13 +243,14 @@ def oauth(request):
             req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
             resp = urllib.request.urlopen(req)
             guild_members = json.loads(resp.read().decode('utf-8'))
-
+            owner_id = res['guild']['owner_id']
             for member in guild_members:
                 user, _ = DiscordUser.objects.get_or_create(
                     username=member['user']['id'],
                     readable_name=member['user']['username'],
                     avatar = member['user']['avatar'],
-                    community=community
+                    community=community,
+                    is_community_admin=(member['user']['id'] == owner_id)
                 )
                 user.save()
         else:
