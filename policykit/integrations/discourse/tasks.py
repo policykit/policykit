@@ -33,6 +33,7 @@ def is_policykit_action(community, call_type, topic, username):
 
 @shared_task
 def discourse_listener_actions():
+    logger.info('testing123')
     for community in DiscourseCommunity.objects.all():
         actions = []
 
@@ -42,7 +43,7 @@ def discourse_listener_actions():
         req = urllib.request.Request(url + '/latest.json')
         req.add_header("User-Api-Key", api_key)
         resp = urllib.request.urlopen(req)
-        logger.info(f"[celery-discourse] {resp.status} {resp.reason}")
+        logger.info(f"[celery-discourse] topics response: {resp.status} {resp.reason}")
         res = json.loads(resp.read().decode('utf-8'))
         topics = res['topic_list']['topics']
         users = res['users']
@@ -51,21 +52,23 @@ def discourse_listener_actions():
             user_id = topic['posters'][0]['user_id']
             usernames = [u['username'] for u in users if u['id'] == user_id]
             if not usernames:
-                logger.error(f"no username found for user id {user_id}, skipping topic")
+                logger.error(f"[celery-discourse] no username found for user id {user_id}, skipping topic")
                 continue
             username = usernames[0]
             call_type = '/posts.json'
             if not is_policykit_action(community, call_type, topic, username):
                 t = DiscourseCreateTopic.objects.filter(id=topic['id'])
                 if not t.exists():
+                    logger.info(f"[celery-discourse] creating new DiscourseCreateTopic object for topic {topic['title']}")
+
                     # Retrieve raw from first post under topic (created when topic created)
                     req = urllib.request.Request(f"{url}/t/{str(topic['id'])}/posts.json?include_raw=True")
                     req.add_header("User-Api-Key", api_key)
                     resp = urllib.request.urlopen(req)
+                    logger.info(f"[celery-discourse] raw post response: {resp.status} {resp.reason}")
                     res = json.loads(resp.read().decode('utf-8'))
                     raw = res['post_stream']['posts'][0]['raw']
 
-                    logger.info('Discourse: creating new DiscourseCreateTopic for: ' + topic['title'])
                     new_api_action = DiscourseCreateTopic()
                     new_api_action.community = community
                     new_api_action.title = topic['title']
@@ -96,7 +99,6 @@ def discourse_listener_actions():
             community_post__isnull=False
         )
         for proposed_action in proposed_actions:
-            logger.info('in proposed action loop')
             id = proposed_action.community_post
 
             req = urllib.request.Request(url + '/posts/' + id + '.json')
@@ -127,15 +129,10 @@ def discourse_listener_actions():
                             b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
 
             # Update proposal
-            logger.info('updating proposal')
             for policy in PlatformPolicy.objects.filter(community=community):
-                logger.info('about to filter policy')
                 if filter_policy(policy, proposed_action):
-                    logger.info('just filtered policy')
                     cond_result = check_policy(policy, proposed_action)
                     if cond_result == Proposal.PASSED:
-                        logger.info('passed proposal discourse')
                         pass_policy(policy, proposed_action)
                     elif cond_result == Proposal.FAILED:
-                        logger.info('failed proposal discourse')
                         fail_policy(policy, proposed_action)
