@@ -695,8 +695,9 @@ def execute_policy(policy, action, is_first_evaluation: bool):
         if check_result == Proposal.PASSED:
             # run "pass" block of policy
             pass_policy(policy, action)
-            # FIXME: Add back this assertion when issue #305 is fixed https://github.com/amyxzhang/policykit/issues/305
-            # assert(action.proposal.status == Proposal.PASSED)
+            # mark action proposal as 'passed'
+            action.pass_action()
+            assert(action.proposal.status == Proposal.PASSED)
 
         elif check_result == Proposal.FAILED:
             # run "fail" block of policy
