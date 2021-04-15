@@ -430,6 +430,7 @@ def fail_policy(policy, action):
     logger.info('policy failed: ' + str(policy.name))
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
+# TODO(https://github.com/amyxzhang/policykit/issues/342) remove this
 def clean_up_proposals(action, executed):
     from policyengine.models import Proposal, PlatformActionBundle
 
@@ -452,7 +453,6 @@ def clean_up_proposals(action, executed):
             p.save()
 
     p = action.proposal
-    # what is going on here
     if executed:
         p.status = Proposal.PASSED
     else:
