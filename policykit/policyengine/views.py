@@ -99,7 +99,7 @@ def v2(request):
         }
 
     action_log_data = []
-    for action in Action.objects.filter(data__community_id=user.community.id):
+    for action in Action.objects.filter(data__contains={'community_id': user.community.id}):
         action_data = {
             'actor': action.actor,
             'verb': action.verb,
