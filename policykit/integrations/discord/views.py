@@ -55,7 +55,6 @@ def on_open(wsapp):
                     'd': sequence_number
                 })
                 wsapp.send(payload)
-                logger.info('Sent heartbeat')
 
     rt = threading.Thread(target=run)
     rt.daemon = True
@@ -82,8 +81,7 @@ def handle_ready_event(data):
     session_id = data['session_id']
 
 def handle_message_create_event(data):
-    logger.info('test')
-    logger.info(f'Received new message in channel {data["channel_id"]}')
+    logger.info(f'[discord] Received new message in channel {data["channel_id"]}')
     community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
     call_type = ('channels/%s/messages' % data['channel_id'])
 
@@ -106,7 +104,6 @@ def handle_event(name, data):
         action = None
 
         if name == 'MESSAGE_CREATE':
-            logger.info('abc')
             action = handle_message_create_event(data)
 
         if action is not None:
@@ -155,13 +152,13 @@ def on_message(wsapp, message):
     payload = json.loads(message)
     op = payload['op']
     if op == 0: # Opcode 0 Dispatch
-        logger.info(f'Received event named {payload["t"]}')
+        logger.info(f'[discord] Received event named {payload["t"]}')
         sequence_number = payload['s']
         handle_event(payload['t'], payload['d'])
     elif op == 10: # Opcode 10 Hello
         # Receive heartbeat interval
         heartbeat_interval = payload['d']['heartbeat_interval']
-        logger.info(f'Received heartbeat of {heartbeat_interval} ms from the Discord gateway')
+        logger.info(f'[discord] Received heartbeat of {heartbeat_interval} ms from the Discord gateway')
 
         # Send an Opcode 2 Identify
         payload = json.dumps({
@@ -178,16 +175,15 @@ def on_message(wsapp, message):
             }
         })
         wsapp.send(payload)
-        logger.info('Sent an Opcode 2 Identify to the Discord gateway')
+        logger.info('[discord] Sent an Opcode 2 Identify to the Discord gateway')
     elif op == 11: # Opcode 11 Heartbeat ACK
-        logger.info('Received heartbeat ack')
         ack_received = True
 
 def on_error(wsapp, error):
     logger.error(error)
 
 def on_close(wsapp, code, reason):
-    logger.error(f'Connection to Discord gateway closed with error code {code}')
+    logger.error(f'[discord] Connection to Discord gateway closed with error code {code}')
 
 # Open gateway connection
 def connect_gateway():
