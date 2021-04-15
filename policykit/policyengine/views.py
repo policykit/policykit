@@ -367,9 +367,6 @@ def initialize_policy(policy, action):
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
-    policy.has_notified = True # this should be renamed 'is_initialized'
-    policy.save()
-
 def check_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 

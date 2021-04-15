@@ -247,7 +247,6 @@ class GenericPolicy(models.Model):
     success = models.TextField(null=True, blank=True, default='')
     fail = models.TextField(null=True, blank=True, default='')
     is_bundled = models.BooleanField(default=False)
-    has_notified = models.BooleanField(default=False)
     is_constitution = models.BooleanField(default=True)
 
     def __str__(self):
@@ -924,7 +923,6 @@ class BasePolicy(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     is_bundled = models.BooleanField(default=False)
-    has_notified = models.BooleanField(default=False)
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,

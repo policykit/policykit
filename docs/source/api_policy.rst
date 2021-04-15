@@ -17,8 +17,6 @@ BasePolicy
 +--------------+------------------------------------------------------------------------------------+
 | is_bundled   | True if the policy is part of a bundle.                                            |
 +--------------+------------------------------------------------------------------------------------+
-| has_notified | True if the policy has sent a notification to the community.                       |
-+--------------+------------------------------------------------------------------------------------+
 | data         | The datastore containing any additional data for the policy. May or may not exist. |
 +--------------+------------------------------------------------------------------------------------+
 | filter       | The filter code of the policy.                                                     |

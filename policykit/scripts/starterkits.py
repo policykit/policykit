@@ -40,7 +40,6 @@ testing_policy1_slack = GenericPolicy.objects.create(filter = "return True",
                                                    starterkit = testing_starterkit_slack,
                                                    is_constitution = True,
                                                    is_bundled = False,
-                                                   has_notified = False,
                                                    )
 
 testing_policy2_slack = GenericPolicy.objects.create(filter = "return True",
@@ -54,7 +53,6 @@ testing_policy2_slack = GenericPolicy.objects.create(filter = "return True",
                                                    starterkit = testing_starterkit_slack,
                                                    is_constitution = False,
                                                    is_bundled = False,
-                                                   has_notified = False,
                                                    )
 
 testing_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -68,7 +66,6 @@ testing_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
                                                      starterkit = testing_starterkit_reddit,
                                                      is_constitution = True,
                                                      is_bundled = False,
-                                                     has_notified = False,
                                                      )
 
 testing_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -82,7 +79,6 @@ testing_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                                      starterkit = testing_starterkit_reddit,
                                                      is_constitution = False,
                                                      is_bundled = False,
-                                                     has_notified = False,
                                                      )
 
 testing_policy1_discord = GenericPolicy.objects.create(filter = "return True",
@@ -96,7 +92,6 @@ testing_policy1_discord = GenericPolicy.objects.create(filter = "return True",
                                                       starterkit = testing_starterkit_discord,
                                                       is_constitution = True,
                                                       is_bundled = False,
-                                                      has_notified = False,
                                                       )
 
 testing_policy2_discord = GenericPolicy.objects.create(filter = "return True",
@@ -110,7 +105,6 @@ testing_policy2_discord = GenericPolicy.objects.create(filter = "return True",
                                                       starterkit = testing_starterkit_discord,
                                                       is_constitution = False,
                                                       is_bundled = False,
-                                                      has_notified = False,
                                                       )
 
 testing_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -124,7 +118,6 @@ testing_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
                                                       starterkit = testing_starterkit_discourse,
                                                       is_constitution = True,
                                                       is_bundled = False,
-                                                      has_notified = False,
                                                       )
 
 testing_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -138,7 +131,6 @@ testing_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
                                                       starterkit = testing_starterkit_discourse,
                                                       is_constitution = False,
                                                       is_bundled = False,
-                                                      has_notified = False,
                                                       )
 
 testing_base_role_slack = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Slack)", starterkit = testing_starterkit_slack, is_base_role = True, user_group = "all")
@@ -199,7 +191,6 @@ else:
                                                starterkit = admin_user_starterkit_slack,
                                                is_constitution = True,
                                                is_bundled = False,
-                                               has_notified = False,
                                                )
 
 admin_user_policy2_slack = GenericPolicy.objects.create(filter = "return True",
@@ -213,7 +204,6 @@ admin_user_policy2_slack = GenericPolicy.objects.create(filter = "return True",
                                                starterkit = admin_user_starterkit_slack,
                                                is_constitution = False,
                                                is_bundled = False,
-                                               has_notified = False,
                                                )
 
 admin_user_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -232,7 +222,6 @@ else:
                                                   starterkit = admin_user_starterkit_reddit,
                                                   is_constitution = True,
                                                   is_bundled = False,
-                                                  has_notified = False,
                                                   )
 
 admin_user_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -246,7 +235,6 @@ admin_user_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                                   starterkit = admin_user_starterkit_reddit,
                                                   is_constitution = False,
                                                   is_bundled = False,
-                                                  has_notified = False,
                                                   )
 
 admin_user_policy1_discord = GenericPolicy.objects.create(filter = "return True",
@@ -265,7 +253,6 @@ else:
                                                   starterkit = admin_user_starterkit_discord,
                                                   is_constitution = True,
                                                   is_bundled = False,
-                                                  has_notified = False,
                                                   )
 
 admin_user_policy2_discord = GenericPolicy.objects.create(filter = "return True",
@@ -279,7 +266,6 @@ admin_user_policy2_discord = GenericPolicy.objects.create(filter = "return True"
                                                      starterkit = admin_user_starterkit_discord,
                                                      is_constitution = False,
                                                      is_bundled = False,
-                                                     has_notified = False,
                                                      )
 
 admin_user_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -298,7 +284,6 @@ else:
                                                   starterkit = admin_user_starterkit_discourse,
                                                   is_constitution = True,
                                                   is_bundled = False,
-                                                  has_notified = False,
                                                   )
 
 admin_user_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -312,7 +297,6 @@ admin_user_policy2_discourse = GenericPolicy.objects.create(filter = "return Tru
                                                      starterkit = admin_user_starterkit_discourse,
                                                      is_constitution = False,
                                                      is_bundled = False,
-                                                     has_notified = False,
                                                      )
 
 admin_user_base_role_slack = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Slack)", starterkit = admin_user_starterkit_slack, is_base_role = True, user_group = "nonadmins")
@@ -398,7 +382,6 @@ democracy_policy1_slack = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = democracy_starterkit_slack,
                                        is_constitution = False,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 democracy_policy2_slack = GenericPolicy.objects.create(
@@ -430,7 +413,6 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
                                        starterkit = democracy_starterkit_slack,
                                        is_constitution = True,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 democracy_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -444,7 +426,6 @@ democracy_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
                                                        starterkit = democracy_starterkit_reddit,
                                                        is_constitution = False,
                                                        is_bundled = False,
-                                                       has_notified = False,
                                                        )
 
 democracy_policy2_reddit = GenericPolicy.objects.create(
@@ -476,7 +457,6 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
                                                        starterkit = democracy_starterkit_reddit,
                                                        is_constitution = True,
                                                        is_bundled = False,
-                                                       has_notified = False,
                                                        )
 
 democracy_policy1_discord = GenericPolicy.objects.create(filter = "return True",
@@ -490,7 +470,6 @@ democracy_policy1_discord = GenericPolicy.objects.create(filter = "return True",
                                                        starterkit = democracy_starterkit_discord,
                                                        is_constitution = False,
                                                        is_bundled = False,
-                                                       has_notified = False,
                                                        )
 
 democracy_policy2_discord = GenericPolicy.objects.create(
@@ -522,7 +501,6 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
                                                        starterkit = democracy_starterkit_discord,
                                                        is_constitution = True,
                                                        is_bundled = False,
-                                                       has_notified = False,
                                                        )
 
 democracy_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -536,7 +514,6 @@ democracy_policy1_discourse = GenericPolicy.objects.create(filter = "return True
                                                        starterkit = democracy_starterkit_discourse,
                                                        is_constitution = False,
                                                        is_bundled = False,
-                                                       has_notified = False,
                                                        )
 
 democracy_policy2_discourse = GenericPolicy.objects.create(
@@ -568,7 +545,6 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
                                                        starterkit = democracy_starterkit_discourse,
                                                        is_constitution = True,
                                                        is_bundled = False,
-                                                       has_notified = False,
                                                        )
 
 democracy_base_role_slack = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Slack)", starterkit = democracy_starterkit_slack, is_base_role = True, user_group = "nonadmins")
@@ -653,7 +629,6 @@ dictator_policy1_slack = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = dictator_starterkit_slack,
                                        is_constitution = True,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 dictator_policy2_slack = GenericPolicy.objects.create(filter = "return True",
@@ -667,7 +642,6 @@ dictator_policy2_slack = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = dictator_starterkit_slack,
                                        is_constitution = False,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 dictator_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -681,7 +655,6 @@ dictator_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
                                                 starterkit = dictator_starterkit_reddit,
                                                 is_constitution = True,
                                                 is_bundled = False,
-                                                has_notified = False,
                                                 )
 
 dictator_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -695,7 +668,6 @@ dictator_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                                 starterkit = dictator_starterkit_reddit,
                                                 is_constitution = False,
                                                 is_bundled = False,
-                                                has_notified = False,
                                                 )
 
 dictator_policy1_discord = GenericPolicy.objects.create(filter = "return True",
@@ -709,7 +681,6 @@ dictator_policy1_discord = GenericPolicy.objects.create(filter = "return True",
                                                 starterkit = dictator_starterkit_discord,
                                                 is_constitution = True,
                                                 is_bundled = False,
-                                                has_notified = False,
                                                 )
 
 dictator_policy2_discord = GenericPolicy.objects.create(filter = "return True",
@@ -723,7 +694,6 @@ dictator_policy2_discord = GenericPolicy.objects.create(filter = "return True",
                                                 starterkit = dictator_starterkit_discord,
                                                 is_constitution = False,
                                                 is_bundled = False,
-                                                has_notified = False,
                                                 )
 
 dictator_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -737,7 +707,6 @@ dictator_policy1_discourse = GenericPolicy.objects.create(filter = "return True"
                                                 starterkit = dictator_starterkit_discourse,
                                                 is_constitution = True,
                                                 is_bundled = False,
-                                                has_notified = False,
                                                 )
 
 dictator_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -751,7 +720,6 @@ dictator_policy2_discourse = GenericPolicy.objects.create(filter = "return True"
                                                 starterkit = dictator_starterkit_discourse,
                                                 is_constitution = False,
                                                 is_bundled = False,
-                                                has_notified = False,
                                                 )
 
 dictator_base_role_slack = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Slack)", starterkit = dictator_starterkit_slack, is_base_role = True, user_group = "all")
@@ -853,7 +821,6 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
                                        starterkit = jury_starterkit_slack,
                                        is_constitution = True,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy2_slack = GenericPolicy.objects.create(filter = "return True",
@@ -867,7 +834,6 @@ jury_policy2_slack = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = jury_starterkit_slack,
                                        is_constitution = False,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -897,7 +863,6 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
                                        starterkit = jury_starterkit_reddit,
                                        is_constitution = True,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
@@ -911,7 +876,6 @@ jury_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = jury_starterkit_reddit,
                                        is_constitution = False,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy1_discord = GenericPolicy.objects.create(filter = "return True",
@@ -941,7 +905,6 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
                                        starterkit = jury_starterkit_discord,
                                        is_constitution = True,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy2_discord = GenericPolicy.objects.create(filter = "return True",
@@ -955,7 +918,6 @@ jury_policy2_discord = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = jury_starterkit_discord,
                                        is_constitution = False,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -985,7 +947,6 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
                                        starterkit = jury_starterkit_discourse,
                                        is_constitution = True,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
@@ -999,7 +960,6 @@ jury_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
                                        starterkit = jury_starterkit_discourse,
                                        is_constitution = False,
                                        is_bundled = False,
-                                       has_notified = False,
                                        )
 
 jury_base_role_slack = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Slack)", starterkit = jury_starterkit_slack, is_base_role = True, user_group = "all")
