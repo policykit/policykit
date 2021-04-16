@@ -8,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.conf import settings
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.core.exceptions import ValidationError
-from policyengine.views import check_policy, filter_policy, initialize_policy, pass_policy, fail_policy, notify_policy
+from policyengine.views import execute_policy
 from datetime import datetime, timezone
 import urllib
 import json
@@ -129,6 +129,9 @@ class PolymorphicUserManager(UserManager, PolymorphicManager):
     # no-op class to get rid of warnings (issue #270)
     pass
 
+# https://github.com/django-polymorphic/django-polymorphic/issues/9
+setattr(User, '_base_objects', User.objects)
+
 class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', max_length=300, null=True)
     community = models.ForeignKey(Community, models.CASCADE)
@@ -244,7 +247,6 @@ class GenericPolicy(models.Model):
     success = models.TextField(null=True, blank=True, default='')
     fail = models.TextField(null=True, blank=True, default='')
     is_bundled = models.BooleanField(default=False)
-    has_notified = models.BooleanField(default=False)
     is_constitution = models.BooleanField(default=True)
 
     def __str__(self):
@@ -348,6 +350,10 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         self.proposal.save()
         action.send(self, verb='was passed', community_id=self.community.id)
 
+    def fail_action(self):
+        self.proposal.status = Proposal.FAILED
+        self.proposal.save()
+
     def shouldCreate(self):
         return not self.pk # Runs only when object is new
 
@@ -371,17 +377,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                         action.execute()
                     else:
                         for policy in ConstitutionPolicy.objects.filter(community=self.community):
-                          if filter_policy(policy, action):
-
-                              initialize_policy(policy, action)
-
-                              check_result = check_policy(policy, action)
-                              if check_result == Proposal.PASSED:
-                                  pass_policy(policy, action)
-                              elif check_result == Proposal.FAILED:
-                                  fail_policy(policy, action)
-                              else:
-                                  notify_policy(policy, action)
+                            execute_policy(policy, action, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
@@ -414,32 +410,27 @@ class ConstitutionActionBundle(BaseAction):
         proposal.status = Proposal.PASSED
         proposal.save()
 
+    def fail_action(self):
+        proposal = self.proposal
+        proposal.status = Proposal.FAILED
+        proposal.save()
+
     class Meta:
         verbose_name = 'constitutionactionbundle'
         verbose_name_plural = 'constitutionactionbundles'
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            action = self
+            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+                #if they have execute permission, skip all policies
+                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                    action.execute()
+                else:
+                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                        execute_policy(policy, action, is_first_evaluation=True)
 
-@receiver(post_save, sender=ConstitutionActionBundle)
-@on_transaction_commit
-def after_constitutionaction_bundle_save(sender, instance, **kwargs):
-    action = instance
-    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-        #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-            action.execute()
-        else:
-            for policy in ConstitutionPolicy.objects.filter(community=action.community):
-                if filter_policy(policy, action):
-
-                    initialize_policy(policy, action)
-
-                    check_result = check_policy(policy, action)
-                    if check_result == Proposal.PASSED:
-                      pass_policy(policy, action)
-                    elif check_result == Proposal.FAILED:
-                      fail_policy(policy, action)
-                    else:
-                      notify_policy(policy, action)
+        super(ConstitutionActionBundle, self).save(*args, **kwargs)
 
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
@@ -840,6 +831,10 @@ class PlatformAction(BaseAction,PolymorphicModel):
         self.proposal.save()
         action.send(self, verb='was passed', community_id=self.community.id)
 
+    def fail_action(self):
+        self.proposal.status = Proposal.FAILED
+        self.proposal.save()
+
     def save(self, *args, **kwargs):
         if not self.pk:
             if self.data is None:
@@ -859,25 +854,10 @@ class PlatformAction(BaseAction,PolymorphicModel):
                         action.execute()
                     else:
                         for policy in PlatformPolicy.objects.filter(community=self.community):
-                            if filter_policy(policy, action):
-
-                                initialize_policy(policy, action)
-
-                                check_result = check_policy(policy, action)
-
-                                if check_result == Proposal.PASSED:
-                                    pass_policy(policy, action)
-                                elif check_result == Proposal.FAILED:
-                                    fail_policy(policy, action)
-                                    if self.community_origin:
-                                        self.community_revert = True
-                                else:
-                                    if self.community_origin:
-                                        self.community_revert = True
-                                    notify_policy(policy, action)
+                            execute_policy(policy, action, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED,
-                                            author=self.initiator)
+                                                        author=self.initiator)
                 super(PlatformAction, self).save(*args, **kwargs)
         else:
             super(PlatformAction, self).save(*args, **kwargs)
@@ -905,33 +885,28 @@ class PlatformActionBundle(BaseAction):
         proposal.status = Proposal.PASSED
         proposal.save()
 
+    def fail_action(self):
+        proposal = self.proposal
+        proposal.status = Proposal.FAILED
+        proposal.save()
+
     class Meta:
         verbose_name = 'platformactionbundle'
         verbose_name_plural = 'platformactionbundles'
 
-@receiver(post_save, sender=PlatformActionBundle)
-@on_transaction_commit
-def after_bundle_save(sender, instance, **kwargs):
-    action = instance
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            action = self
+            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+                #if they have execute permission, skip all policies
+                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                    action.execute()
+                elif not action.community_post:
+                    for policy in PlatformPolicy.objects.filter(community=action.community):
+                        execute_policy(policy, action, is_first_evaluation=True)
 
-    if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-        #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-            action.execute()
-        else:
-            if not action.community_post:
-                for policy in PlatformPolicy.objects.filter(community=action.community):
-                  if filter_policy(policy, action):
+        super(PlatformActionBundle, self).save(*args, **kwargs)
 
-                      initialize_policy(policy, action)
-
-                      check_result = check_policy(policy, action)
-                      if check_result == Proposal.PASSED:
-                          pass_policy(policy, action)
-                      elif check_result == Proposal.FAILED:
-                          fail_policy(policy, action)
-                      else:
-                          notify_policy(policy, action)
 
 class BasePolicy(models.Model):
     filter = models.TextField(blank=True, default='')
@@ -948,7 +923,6 @@ class BasePolicy(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     is_bundled = models.BooleanField(default=False)
-    has_notified = models.BooleanField(default=False)
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,

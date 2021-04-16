@@ -4,7 +4,6 @@ from celery import shared_task
 from celery.schedules import crontab
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
-from policyengine.views import filter_policy, check_policy, initialize_policy
 from urllib import parse
 import urllib.request
 import urllib.error
@@ -56,7 +55,7 @@ def discourse_listener_actions():
             username = usernames[0]
             call_type = '/posts.json'
             if not is_policykit_action(community, call_type, topic, username):
-                t = DiscourseCreateTopic.objects.filter(id=topic['id'])
+                t = DiscourseCreateTopic.objects.filter(community=community, topic_id=topic['id'])
                 if not t.exists():
                     logger.info(f"[celery-discourse] creating new DiscourseCreateTopic object for topic {topic['title']}")
 
@@ -73,7 +72,7 @@ def discourse_listener_actions():
                     new_api_action.title = topic['title']
                     new_api_action.category = topic['category_id']
                     new_api_action.raw = raw
-                    new_api_action.id = topic['id']
+                    new_api_action.topic_id = topic['id']
 
                     u,_ = DiscourseUser.objects.get_or_create(
                         username=username,
@@ -126,12 +125,3 @@ def discourse_listener_actions():
                                 vote.save()
                         else:
                             b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
-
-            # Update proposal
-            for policy in PlatformPolicy.objects.filter(community=community):
-                if filter_policy(policy, proposed_action):
-                    cond_result = check_policy(policy, proposed_action)
-                    if cond_result == Proposal.PASSED:
-                        pass_policy(policy, proposed_action)
-                    elif cond_result == Proposal.FAILED:
-                        fail_policy(policy, proposed_action)

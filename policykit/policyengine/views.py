@@ -367,9 +367,6 @@ def initialize_policy(policy, action):
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
-    policy.has_notified = True
-    policy.save()
-
 def check_policy(policy, action):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
@@ -417,7 +414,6 @@ def pass_policy(policy, action):
 
     wrapper_end = "\r\nsuccess(policy, action, users, metagov)"
 
-    logger.info('policy passed: ' + str(policy.name))
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
 def fail_policy(policy, action):
@@ -434,6 +430,7 @@ def fail_policy(policy, action):
     logger.info('policy failed: ' + str(policy.name))
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
+# TODO(https://github.com/amyxzhang/policykit/issues/342) remove this
 def clean_up_proposals(action, executed):
     from policyengine.models import Proposal, PlatformActionBundle
 
@@ -674,3 +671,54 @@ def document_action_remove(request):
     action.save()
 
     return HttpResponse()
+
+def execute_policy(policy, action, is_first_evaluation: bool):
+    """
+    Execute policy for given action. This can be run repeatedly to check proposed actions.
+    """
+    if filter_policy(policy, action):
+        from policyengine.models import Proposal
+
+        log_prefix = f"[{policy}][{action}]"
+        logger.info(f"{log_prefix} Passed filter")
+
+        # If policy is being evaluated for the first time, initialize it
+        if is_first_evaluation:
+            logger.info(f"{log_prefix} Initializing")
+            # run "initialize" block of policy
+            initialize_policy(policy, action)
+
+        # Run "check" block of policy
+        check_result = check_policy(policy, action)
+        logger.info(f"{log_prefix} Check returned {check_result}")
+
+        if check_result == Proposal.PASSED:
+            # run "pass" block of policy
+            pass_policy(policy, action)
+            # mark action proposal as 'passed'
+            action.pass_action()
+            assert(action.proposal.status == Proposal.PASSED)
+
+        elif check_result == Proposal.FAILED:
+            # run "fail" block of policy
+            fail_policy(policy, action)
+            # mark action proposal as 'failed'
+            action.fail_action()
+            assert(action.proposal.status == Proposal.FAILED)
+
+            # If this is the first time evaluating, and it originated in a community, revert it
+            if is_first_evaluation and action.community_origin:
+                action.revert()
+
+        elif check_result == Proposal.PROPOSED and is_first_evaluation:
+                # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
+                if action.community_origin:
+                    logger.info(f"{log_prefix} Reverting")
+                    action.revert()
+
+                # Run "notify" block of policy
+                logger.info(f"{log_prefix} Notifying")
+                notify_policy(policy, action)
+        else:
+            # do nothing, it's still pending
+            pass
