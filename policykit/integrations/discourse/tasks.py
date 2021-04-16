@@ -33,7 +33,6 @@ def is_policykit_action(community, call_type, topic, username):
 
 @shared_task
 def discourse_listener_actions():
-    logger.info('testing123')
     for community in DiscourseCommunity.objects.all():
         actions = []
 

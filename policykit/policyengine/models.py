@@ -346,7 +346,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     def pass_action(self):
         self.proposal.status = Proposal.PASSED
         self.proposal.save()
-        action.send(self, verb='was passed')
+        action.send(self, verb='was passed', community_id=self.community.id)
 
     def shouldCreate(self):
         return not self.pk # Runs only when object is new
@@ -838,7 +838,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
     def pass_action(self):
         self.proposal.status = Proposal.PASSED
         self.proposal.save()
-        action.send(self, verb='was passed')
+        action.send(self, verb='was passed', community_id=self.community.id)
 
     def save(self, *args, **kwargs):
         if not self.pk:
