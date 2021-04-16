@@ -74,9 +74,7 @@ return FAILED
         process = ExternalProcess.objects.filter(action=action, policy=policy).first()
         self.assertIsNotNone(process)
 
-        # Fails because of bug https://github.com/amyxzhang/policykit/issues/305
-        # self.assertEqual(action.proposal.status, "passed")
-
+        self.assertEqual(action.proposal.status, "passed")
         self.assertEqual(action.data.get("status"), "completed")
         self.assertIsNotNone(action.data.get("outcome").get("winner"))
 
@@ -159,7 +157,7 @@ if response and response.get('value') == 4:
     return PASSED
 return FAILED"""
         policy.notify = "pass"
-        policy.success = "action.execute()"  # Needed to mark as "passed" because of bug https://github.com/amyxzhang/policykit/issues/305
+        policy.success = "pass"
         policy.fail = "pass"
         policy.description = "test"
         policy.name = "test policy"
@@ -193,7 +191,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.initialize = "action.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
         policy.notify = "pass"
         policy.check = "return PASSED if action.event_data['category'] == 0 else FAILED"
-        policy.success = "action.execute()"  # Needed to mark as "passed" because of bug https://github.com/amyxzhang/policykit/issues/305
+        policy.success = "pass"
         policy.fail = "pass"
         policy.description = "test"
         policy.name = "test policy"

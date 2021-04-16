@@ -74,8 +74,7 @@ class MetagovPlatformAction(PlatformAction):
         return None
 
     def execute(self):
-        # because of https://github.com/amyxzhang/policykit/issues/305
-        self.pass_action()
+        pass
 
     def revert(self):
         pass
