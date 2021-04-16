@@ -24,10 +24,13 @@ def should_create_action(community, call_type, topic, username):
     created_at = created_at.replace("Z", "+00:00")
     created_at = datetime.datetime.fromisoformat(created_at)
 
+    now = datetime.datetime.now()
+    now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware
+
     # If topic is more than two minutes old, don't create an object for it.
     # This way, we only create objects for topics created after PolicyKit
     # has been installed to the community.
-    if datetime.datetime.now() - created_at > datetime.timedelta(minutes=2):
+    if now - created_at > datetime.timedelta(minutes=2):
         return False
 
     return True
