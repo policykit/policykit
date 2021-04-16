@@ -4,7 +4,6 @@ from celery import shared_task
 from celery.schedules import crontab
 from django.conf import settings
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
-from policyengine.views import filter_policy, check_policy, initialize_policy
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
 from urllib import parse
 import urllib.request
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def should_create_action(community, call_type, topic, username):
     # If topic already has an object, don't create a new object for it.
-    if DiscourseCreateTopic.objects.filter(id=topic['id']).exists():
+    if DiscourseCreateTopic.objects.filter(topic_id=topic['id']).exists():
         return False
 
     created_at = topic['created_at']
@@ -77,7 +76,7 @@ def discourse_listener_actions():
                 new_api_action.title = topic['title']
                 new_api_action.category = topic['category_id']
                 new_api_action.raw = raw
-                new_api_action.id = topic['id']
+                new_api_action.topic_id = topic['id']
 
                 u,_ = DiscourseUser.objects.get_or_create(
                     username=username,
@@ -128,12 +127,3 @@ def discourse_listener_actions():
                                 vote.save()
                         else:
                             b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
-
-            # Update proposal
-            for policy in PlatformPolicy.objects.filter(community=community):
-                if filter_policy(policy, proposed_action):
-                    cond_result = check_policy(policy, proposed_action)
-                    if cond_result == Proposal.PASSED:
-                        pass_policy(policy, proposed_action)
-                    elif cond_result == Proposal.FAILED:
-                        fail_policy(policy, proposed_action)

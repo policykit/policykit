@@ -125,11 +125,10 @@ class DiscourseUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscourseCreateTopic(PlatformAction):
-    id = None
-
     title = models.TextField()
     raw = models.TextField()
-    category = models.TextField(blank=True)
+    topic_id = models.IntegerField()
+    category = models.IntegerField()
 
     ACTION = 'posts.json'
     AUTH = 'user'
@@ -146,20 +145,20 @@ class DiscourseCreateTopic(PlatformAction):
     def revert(self):
         logger.info('discourse topic revert')
         values = {}
-        call = f"/t/{self.id}.json"
+        call = f"/t/{self.topic_id}.json"
         super().revert(values, call, method='DELETE')
 
     def execute(self):
-        # FIXME(#335)
-        # if not self.community_revert:
-        #     topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
-        #     self.id = topic['id']
+        if not self.community_revert:
+            topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
+
+            self.topic_id = topic['id']
+            self.save()
         super().pass_action()
 
 class DiscourseCreatePost(PlatformAction):
-    id = None
-
     raw = models.TextField()
+    post_id = models.IntegerField()
 
     ACTION = 'posts.json'
     AUTH = 'user'
@@ -175,14 +174,14 @@ class DiscourseCreatePost(PlatformAction):
 
     def revert(self):
         values = {}
-        call = f"/posts/{self.id}.json"
+        call = f"/posts/{self.post_id}.json"
         super().revert(values, call, method='DELETE')
 
     def execute(self):
-        # FIXME(#335)
-        # if not self.community_revert:
-        #     reply = self.community.make_call('/posts.json', {'raw': self.raw})
-        #     self.id = reply['id']
+        if not self.community_revert:
+            reply = self.community.make_call('/posts.json', {'raw': self.raw})
+            self.post_id = reply['id']
+            self.save()
         super().pass_action()
 
 class DiscourseStarterKit(StarterKit):

@@ -9,7 +9,6 @@ from django.shortcuts import redirect
 import json
 from integrations.slack.models import SlackStarterKit, SlackCommunity, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
 from policyengine.models import *
-from policyengine.views import filter_policy, check_policy, initialize_policy
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 import datetime
@@ -248,26 +247,9 @@ def action(request):
             new_api_action = maybe_create_new_api_action(community, event)
 
         if new_api_action is not None:
-            if new_api_action.initiator.has_perm('slack.add_' + new_api_action.action_codename):
-                if new_api_action:
-                    #if they have execute permission, skip all policies
-                    if new_api_action.initiator.has_perm('slack.can_execute_' + new_api_action.action_codename):
-                        new_api_action.execute()
-                    else:
-                        for policy in PlatformPolicy.objects.filter(community=new_api_action.community):
-                            if filter_policy(policy, new_api_action):
-                                if not new_api_action.pk:
-                                    new_api_action.community_origin = True
-                                    new_api_action.is_bundled = False
-                                    new_api_action.save()
-                                initialize_policy(policy, new_api_action)
-                                cond_result = check_policy(policy, new_api_action)
-                                if cond_result == Proposal.PROPOSED or cond_result == Proposal.FAILED:
-                                    new_api_action.revert()
-            else:
-                p = Proposal.objects.create(status=Proposal.FAILED,
-                                            author=new_api_action.initiator)
-                new_api_action.proposal = p
+            new_api_action.community_origin = True
+            new_api_action.is_bundled = False
+            new_api_action.save() # save triggers policy evaluation
         else:
             logger.info(f"No PlatformAction created for event '{event.get('type')}'")
 

@@ -21,6 +21,9 @@ SLACK_PROPOSE_PERMS = ['Can add slack post message', 'Can add slack schedule mes
 
 SLACK_EXECUTE_PERMS = ['Can execute slack post message', 'Can execute slack schedule message', 'Can execute slack rename conversation', 'Can execute slack kick conversation', 'Can execute slack join conversation', 'Can execute slack pin message']
 
+class SlackUser(CommunityUser):
+    pass
+
 class SlackCommunity(Community):
     API = 'https://slack.com/api/'
 
@@ -34,7 +37,7 @@ class SlackCommunity(Community):
 
     bot_id = models.CharField('bot_id', max_length=150, unique=True, default='')
 
-    def notify_action(self, action, policy, users, post_type='channel', template=None, channel=None):
+    def notify_action(self, action, policy, users=None, post_type='channel', template=None, channel=None):
         from integrations.slack.views import post_policy
         post_policy(policy, action, users, post_type, template, channel)
 
@@ -46,12 +49,14 @@ class SlackCommunity(Community):
         logger.info(f"Making call: {url}")
         req = urllib.request.Request(url)
         resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        return res
+        resp_body = resp.read().decode('utf-8')
+        if resp_body:
+            return json.loads(resp_body)
+        return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
 
-        from policyengine.models import LogAPICall, CommunityUser
+        from policyengine.models import LogAPICall
         from policyengine.views import clean_up_proposals
 
         obj = action
@@ -85,7 +90,7 @@ class SlackCommunity(Community):
             if obj.AUTH == "user":
                 data['token'] = action.proposal.author.access_token
                 if not data['token']:
-                    admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
                     data['token'] = admin_user.access_token
             elif obj.AUTH == "admin_bot":
                 if action.proposal.author.is_community_admin:
@@ -93,7 +98,7 @@ class SlackCommunity(Community):
                 else:
                     data['token'] = self.access_token
             elif obj.AUTH == "admin_user":
-                admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+                admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
                 data['token'] = admin_user.access_token
             else:
                 data['token'] = self.access_token
@@ -121,7 +126,7 @@ class SlackCommunity(Community):
                     posted_action = action
 
                 if posted_action.community_post:
-                    admin_user = CommunityUser.objects.filter(is_community_admin=True)[0]
+                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
                     values = {'token': admin_user.access_token,
                               'ts': posted_action.community_post,
                               'channel': obj.channel
@@ -140,9 +145,6 @@ class SlackCommunity(Community):
             clean_up_proposals(action, True)
 
 
-class SlackUser(CommunityUser):
-    pass
-
 class SlackPostMessage(PlatformAction):
     ACTION = 'chat.postMessage'
     AUTH = 'admin_bot'
@@ -158,7 +160,7 @@ class SlackPostMessage(PlatformAction):
         )
 
     def revert(self):
-        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True)[0]
         values = {'token': admin_user.access_token,
                   'ts': self.time_stamp,
                   'channel': self.channel
@@ -216,7 +218,7 @@ class SlackJoinConversation(PlatformAction):
         )
 
     def revert(self):
-        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
+        admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True)[0]
         values = {'user': self.users,
                   'token': admin_user.access_token,
                   'channel': self.channel
