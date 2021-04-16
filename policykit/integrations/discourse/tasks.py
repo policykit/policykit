@@ -2,9 +2,10 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
+from django.conf import settings
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
-from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
 from policyengine.views import filter_policy, check_policy, initialize_policy
+from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
 from urllib import parse
 import urllib.request
 import urllib.error
@@ -27,10 +28,11 @@ def should_create_action(community, call_type, topic, username):
     now = datetime.datetime.now()
     now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware
 
-    # If topic is more than two minutes old, don't create an object for it.
-    # This way, we only create objects for topics created after PolicyKit
-    # has been installed to the community.
-    if now - created_at > datetime.timedelta(minutes=2):
+    # If topic is more than twice the Celery beat frequency seconds old,
+    # don't create an object for it. This way, we only create objects for
+    # topics created after PolicyKit has been installed to the community.
+    recent_time = 2 * settings.CELERY_BEAT_FREQUENCY
+    if now - created_at > datetime.timedelta(seconds=recent_time):
         return False
 
     return True
