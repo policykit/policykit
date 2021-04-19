@@ -88,13 +88,13 @@ class Community(PolymorphicModel):
         """
         Returns a QuerySet of all platform policies in the community.
         """
-        return PlatformPolicy.objects.filter(community=self)
+        return PlatformPolicy.objects.filter(community=self).order_by('-modified_at')
 
     def get_constitution_policies(self):
         """
         Returns a QuerySet of all constitution policies in the community.
         """
-        return ConstitutionPolicy.objects.filter(community=self)
+        return ConstitutionPolicy.objects.filter(community=self).order_by('-modified_at')
 
     def get_documents(self):
         """
@@ -376,7 +376,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
-                        for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                        for policy in self.community.get_constitution_policies():
                             execute_policy(policy, action, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
@@ -427,7 +427,7 @@ class ConstitutionActionBundle(BaseAction):
                 if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                     action.execute()
                 else:
-                    for policy in ConstitutionPolicy.objects.filter(community=self.community):
+                    for policy in self.community.get_constitution_policies():
                         execute_policy(policy, action, is_first_evaluation=True)
 
         super(ConstitutionActionBundle, self).save(*args, **kwargs)
@@ -853,7 +853,7 @@ class PlatformAction(BaseAction,PolymorphicModel):
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
-                        for policy in PlatformPolicy.objects.filter(community=self.community):
+                        for policy in self.community.get_platform_policies():
                             execute_policy(policy, action, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED,
@@ -902,7 +902,7 @@ class PlatformActionBundle(BaseAction):
                 if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                     action.execute()
                 elif not action.community_post:
-                    for policy in PlatformPolicy.objects.filter(community=action.community):
+                    for policy in action.community.get_platform_policies():
                         execute_policy(policy, action, is_first_evaluation=True)
 
         super(PlatformActionBundle, self).save(*args, **kwargs)
@@ -923,6 +923,7 @@ class BasePolicy(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     is_bundled = models.BooleanField(default=False)
+    modified_at = models.DateTimeField(auto_now=True)
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,

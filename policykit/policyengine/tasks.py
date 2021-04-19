@@ -16,7 +16,7 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in PlatformPolicy.objects.filter(community=action.community):
+            for policy in action.community.get_platform_policies():
                 execute_policy(policy, action, is_first_evaluation=False)
 
     """bundle_actions = PlatformActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
@@ -26,7 +26,7 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in PlatformPolicy.objects.filter(community=action.community):
+            for policy in action.community.get_platform_policies():
                 execute_policy(policy, action)"""
 
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
@@ -36,7 +36,7 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in ConstitutionPolicy.objects.filter(community=action.community):
+            for policy in action.community.get_constitution_policies()::
                 execute_policy(policy, action, is_first_evaluation=False)
 
     logger.info('[celery] finished task')
