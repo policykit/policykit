@@ -21,13 +21,17 @@ testing_starterkit_discord.save()
 testing_starterkit_discourse = DiscourseStarterKit(name="Testing Starter Kit", platform="discourse")
 testing_starterkit_discourse.save()
 
+all_actions_pass = {
+    "filter": "return True",
+    "initialize": "pass",
+    "check": "return PASSED",
+    "notify": "pass",
+    "success": "pass",
+    "fail": "pass",
+}
+
 testing_policy1_slack = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Constitution Policy: all constitution actions pass automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_slack,
@@ -36,12 +40,7 @@ testing_policy1_slack = GenericPolicy.objects.create(
 )
 
 testing_policy2_slack = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="All Platform Actions Pass",
     starterkit=testing_starterkit_slack,
@@ -50,12 +49,7 @@ testing_policy2_slack = GenericPolicy.objects.create(
 )
 
 testing_policy1_reddit = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Constitution Policy: all constitution actions pass automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_reddit,
@@ -64,12 +58,7 @@ testing_policy1_reddit = GenericPolicy.objects.create(
 )
 
 testing_policy2_reddit = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="All Platform Actions Pass",
     starterkit=testing_starterkit_reddit,
@@ -78,12 +67,7 @@ testing_policy2_reddit = GenericPolicy.objects.create(
 )
 
 testing_policy1_discord = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Constitution Policy: all constitution actions pass automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_discord,
@@ -106,12 +90,7 @@ testing_policy2_discord = GenericPolicy.objects.create(
 )
 
 testing_policy1_discourse = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Constitution Policy: all constitution actions pass automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_discourse,
@@ -120,12 +99,7 @@ testing_policy1_discourse = GenericPolicy.objects.create(
 )
 
 testing_policy2_discourse = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="All Platform Actions Pass",
     starterkit=testing_starterkit_discourse,
@@ -246,12 +220,7 @@ else:
 )
 
 admin_user_policy2_slack = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Admin and User: All Platform Actions Pass",
     starterkit=admin_user_starterkit_slack,
@@ -279,12 +248,7 @@ else:
 )
 
 admin_user_policy2_reddit = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Admin and User: All Platform Actions Pass",
     starterkit=admin_user_starterkit_reddit,
@@ -312,12 +276,7 @@ else:
 )
 
 admin_user_policy2_discord = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Admin and User: All Platform Actions Pass",
     starterkit=admin_user_starterkit_discord,
@@ -345,12 +304,7 @@ else:
 )
 
 admin_user_policy2_discourse = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Admin and User: All Platform Actions Pass",
     starterkit=admin_user_starterkit_discourse,
@@ -527,12 +481,7 @@ democracy_starterkit_discourse = DiscourseStarterKit(name="Democracy Starter Kit
 democracy_starterkit_discourse.save()
 
 democracy_policy1_slack = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="Democracy: All Platform Actions Pass",
     starterkit=democracy_starterkit_slack,
@@ -572,12 +521,7 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
 )
 
 democracy_policy1_reddit = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="Democracy: All Platform Actions Pass",
     starterkit=democracy_starterkit_reddit,
@@ -617,12 +561,7 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
 )
 
 democracy_policy1_discord = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="Democracy: All Platform Actions Pass",
     starterkit=democracy_starterkit_discord,
@@ -662,12 +601,7 @@ action.community.notify_action(action, policy, users=voter_users, template='Plea
 )
 
 democracy_policy1_discourse = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="Democracy: All Platform Actions Pass",
     starterkit=democracy_starterkit_discourse,
@@ -894,12 +828,7 @@ dictator_policy1_slack = GenericPolicy.objects.create(
 )
 
 dictator_policy2_slack = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Benevolent Dictator: All Platform Actions Pass",
     starterkit=dictator_starterkit_slack,
@@ -922,12 +851,7 @@ dictator_policy1_reddit = GenericPolicy.objects.create(
 )
 
 dictator_policy2_reddit = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Benevolent Dictator: All Platform Actions Pass",
     starterkit=dictator_starterkit_reddit,
@@ -950,12 +874,7 @@ dictator_policy1_discord = GenericPolicy.objects.create(
 )
 
 dictator_policy2_discord = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Benevolent Dictator: All Platform Actions Pass",
     starterkit=dictator_starterkit_discord,
@@ -978,12 +897,7 @@ dictator_policy1_discourse = GenericPolicy.objects.create(
 )
 
 dictator_policy2_discourse = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass",
     name="Benevolent Dictator: All Platform Actions Pass",
     starterkit=dictator_starterkit_discourse,
@@ -1204,12 +1118,7 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
 )
 
 jury_policy2_slack = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Jury: Starter Platform Policy: all platform actions pass",
     name="All Platform Actions Pass",
     starterkit=jury_starterkit_slack,
@@ -1248,12 +1157,7 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
 )
 
 jury_policy2_reddit = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Jury: Starter Platform Policy: all platform actions pass",
     name="All Platform Actions Pass",
     starterkit=jury_starterkit_reddit,
@@ -1292,12 +1196,7 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
 )
 
 jury_policy2_discord = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Jury: Starter Platform Policy: all platform actions pass",
     name="All Platform Actions Pass",
     starterkit=jury_starterkit_discord,
@@ -1336,12 +1235,7 @@ action.community.notify_action(action, policy, users=jury_users, template='Pleas
 )
 
 jury_policy2_discourse = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Jury: Starter Platform Policy: all platform actions pass",
     name="All Platform Actions Pass",
     starterkit=jury_starterkit_discourse,
