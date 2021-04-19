@@ -675,6 +675,7 @@ def document_action_remove(request):
 def execute_policy(policy, action, is_first_evaluation: bool):
     """
     Execute policy for given action. This can be run repeatedly to check proposed actions.
+    Return 'True' if action passed the filter, 'False' otherwise.
     """
     if filter_policy(policy, action):
         from policyengine.models import Proposal
@@ -722,3 +723,7 @@ def execute_policy(policy, action, is_first_evaluation: bool):
         else:
             # do nothing, it's still pending
             pass
+
+        return True
+    else:
+        return False

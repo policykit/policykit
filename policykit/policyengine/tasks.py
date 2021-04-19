@@ -17,7 +17,10 @@ def consider_proposed_actions():
             action.execute()
         else:
             for policy in action.community.get_platform_policies():
-                execute_policy(policy, action, is_first_evaluation=False)
+                # Execute the most recently updated policy that passes filter()
+                was_executed = execute_policy(policy, action, is_first_evaluation=False)
+                if was_executed:
+                    break
 
     """bundle_actions = PlatformActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
     for action in bundle_actions:
@@ -36,7 +39,10 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in action.community.get_constitution_policies()::
-                execute_policy(policy, action, is_first_evaluation=False)
+            for policy in action.community.get_constitution_policies():
+                # Execute the most recently updated policy that passes filter()
+                was_executed = execute_policy(policy, action, is_first_evaluation=False)
+                if was_executed:
+                    break
 
     logger.info('[celery] finished task')
