@@ -59,8 +59,6 @@ def request_key(request):
 
 @csrf_exempt
 def auth(request):
-    logger.info(request)
-
     state = request.session['discourse_state']
     url = request.session['discourse_url']
     private_key = RSA.import_key(request.session['private_key'])
@@ -75,17 +73,13 @@ def auth(request):
 
     request.session['discourse_api_key'] = api_key
 
-    logger.info(api_key)
-
     if state == 'policykit_discourse_user_login':
         user = authenticate(request, platform='discourse')
         if user:
             login(request, user)
-            response = redirect('/main')
-            return response
+            return redirect('/main')
         else:
-            response = redirect('/login?error=invalid_login')
-            return response
+            return redirect('/login?error=invalid_login')
 
     elif state == 'policykit_discourse_mod_install':
         community = None
@@ -139,8 +133,7 @@ def auth(request):
             }
             return render(request, "policyadmin/init_starterkit.html", context)
 
-    response = redirect('/login?error=no_community_found')
-    return response
+    return redirect('/login?error=no_community_found')
 
 @csrf_exempt
 def action(request):
@@ -149,7 +142,6 @@ def action(request):
     logger.info(json_data)
 
 def post_policy(policy, action, users=None, template=None, topic_id=None):
-    logger.info('in post_policy')
     from policyengine.models import LogAPICall
 
     policy_message = "This action is governed by the following policy: " + policy.name
@@ -164,16 +156,12 @@ def post_policy(policy, action, users=None, template=None, topic_id=None):
 
     call = '/posts.json'
 
-    logger.info('about to make call in post_policy')
     res = policy.community.make_call(call, values=data)
     data['id'] = res['id']
-    logger.info('about to make LogAPICall object in post_policy')
     _ = LogAPICall.objects.create(community=policy.community,
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
     if action.action_type == "PlatformAction":
         action.community_post = res['id']
-        logger.info('about to save action in post_policy')
         action.save()
-    logger.info('finished post policy')

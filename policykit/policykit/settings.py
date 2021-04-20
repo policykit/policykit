@@ -224,18 +224,19 @@ CELERY_BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 
+CELERY_BEAT_FREQUENCY = 60.0
 
 CELERY_BEAT_SCHEDULE = {
  'count-votes-beat': {
        'task': 'policyengine.tasks.consider_proposed_actions',
-       'schedule': 60.0,
+       'schedule': CELERY_BEAT_FREQUENCY,
     },
  'reddit-listener-beat': {
        'task': 'integrations.reddit.tasks.reddit_listener_actions',
-       'schedule': 60.0,
+       'schedule': CELERY_BEAT_FREQUENCY,
     },
  'discourse-listener-beat': {
        'task': 'integrations.discourse.tasks.discourse_listener_actions',
-       'schedule': 60.0,
+       'schedule': CELERY_BEAT_FREQUENCY,
     }
 }

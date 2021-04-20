@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from celery.schedules import crontab
+from django.conf import settings
 from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
 from urllib import parse
@@ -14,21 +15,26 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def is_policykit_action(community, call_type, topic, username):
-    if username == 'PolicyKit': ## TODO: Compare IDs in future, not usernames
-        return True
+def should_create_action(community, call_type, topic, username):
+    # If topic already has an object, don't create a new object for it.
+    if DiscourseCreateTopic.objects.filter(topic_id=topic['id']).exists():
+        return False
 
-    current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
-    logs = LogAPICall.objects.filter(
-        proposal_time__gte=current_time_minus,
-        call_type=call_type
-    )
-    if logs.exists():
-        for log in logs:
-            j_info = json.loads(log.extra_info)
-            if topic['id'] == j_info['id']:
-                return True
-    return False
+    created_at = topic['created_at']
+    created_at = created_at.replace("Z", "+00:00")
+    created_at = datetime.datetime.fromisoformat(created_at)
+
+    now = datetime.datetime.now()
+    now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware
+
+    # If topic is more than twice the Celery beat frequency seconds old,
+    # don't create an object for it. This way, we only create objects for
+    # topics created after PolicyKit has been installed to the community.
+    recent_time = 2 * settings.CELERY_BEAT_FREQUENCY
+    if now - created_at > datetime.timedelta(seconds=recent_time):
+        return False
+
+    return True
 
 @shared_task
 def discourse_listener_actions():
@@ -54,34 +60,30 @@ def discourse_listener_actions():
                 continue
             username = usernames[0]
             call_type = '/posts.json'
-            if not is_policykit_action(community, call_type, topic, username):
-                t = DiscourseCreateTopic.objects.filter(community=community, topic_id=topic['id'])
-                if not t.exists():
-                    logger.info(f"[celery-discourse] creating new DiscourseCreateTopic object for topic {topic['title']}")
+            if should_create_action(community, call_type, topic, username):
+                logger.info(f"[celery-discourse] creating new DiscourseCreateTopic object for topic {topic['title']}")
 
-                    # Retrieve raw from first post under topic (created when topic created)
-                    req = urllib.request.Request(f"{url}/t/{str(topic['id'])}/posts.json?include_raw=True")
-                    req.add_header("User-Api-Key", api_key)
-                    resp = urllib.request.urlopen(req)
-                    logger.info(f"[celery-discourse] raw post response: {resp.status} {resp.reason}")
-                    res = json.loads(resp.read().decode('utf-8'))
-                    raw = res['post_stream']['posts'][0]['raw']
+                # Retrieve raw from first post under topic (created when topic created)
+                req = urllib.request.Request(f"{url}/t/{str(topic['id'])}/posts.json?include_raw=True")
+                req.add_header("User-Api-Key", api_key)
+                resp = urllib.request.urlopen(req)
+                logger.info(f"[celery-discourse] raw post response: {resp.status} {resp.reason}")
+                res = json.loads(resp.read().decode('utf-8'))
+                raw = res['post_stream']['posts'][0]['raw']
 
-                    new_api_action = DiscourseCreateTopic()
-                    new_api_action.community = community
-                    new_api_action.title = topic['title']
-                    new_api_action.category = topic['category_id']
-                    new_api_action.raw = raw
-                    new_api_action.topic_id = topic['id']
+                new_api_action = DiscourseCreateTopic()
+                new_api_action.community = community
+                new_api_action.title = topic['title']
+                new_api_action.category = topic['category_id']
+                new_api_action.raw = raw
+                new_api_action.topic_id = topic['id']
 
-                    u,_ = DiscourseUser.objects.get_or_create(
-                        username=username,
-                        community=community
-                    )
-                    new_api_action.initiator = u
-                    actions.append(new_api_action)
-            else:
-                logger.info("[celery-discourse] skipping PK action")
+                u,_ = DiscourseUser.objects.get_or_create(
+                    username=username,
+                    community=community
+                )
+                new_api_action.initiator = u
+                actions.append(new_api_action)
         logger.info(f"[celery-discourse] {len(actions)} actions created")
         for action in actions:
             action.community_origin = True
