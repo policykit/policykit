@@ -1,158 +1,183 @@
-from django.db import models, transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.contrib.auth.models import User, Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
-from polymorphic.models import PolymorphicModel
-from django.core.exceptions import ValidationError
-import urllib
 import json
-from policyengine.models import *
-from integrations.reddit.models import RedditStarterKit
-from integrations.slack.models import SlackStarterKit
+
+from django.contrib.auth.models import Permission
 from integrations.discord.models import DiscordStarterKit
 from integrations.discourse.models import DiscourseStarterKit
+from integrations.reddit.models import RedditStarterKit
+from integrations.slack.models import SlackStarterKit
+from policyengine.models import *
+from polymorphic.models import PolymorphicModel
 
-import logging
-
-#default starterkit -- all users have ability to view/propose actions + all actions pass automatically
-testing_starterkit_slack = SlackStarterKit(name = "Testing Starter Kit", platform = "slack")
+# default starterkit -- all users have ability to view/propose actions + all actions pass automatically
+testing_starterkit_slack = SlackStarterKit(name="Testing Starter Kit", platform="slack")
 testing_starterkit_slack.save()
 
-testing_starterkit_reddit = RedditStarterKit(name = "Testing Starter Kit", platform = "reddit")
+testing_starterkit_reddit = RedditStarterKit(name="Testing Starter Kit", platform="reddit")
 testing_starterkit_reddit.save()
 
-testing_starterkit_discord = DiscordStarterKit(name = "Testing Starter Kit", platform = "discord")
+testing_starterkit_discord = DiscordStarterKit(name="Testing Starter Kit", platform="discord")
 testing_starterkit_discord.save()
 
-testing_starterkit_discourse = DiscourseStarterKit(name = "Testing Starter Kit", platform = "discourse")
+testing_starterkit_discourse = DiscourseStarterKit(name="Testing Starter Kit", platform="discourse")
 testing_starterkit_discourse.save()
 
-testing_policy1_slack = GenericPolicy.objects.create(filter = "return True",
-                                                   initialize = "pass",
-                                                   check = "return PASSED",
-                                                   notify = "pass",
-                                                   success = "action.execute()",
-                                                   fail = "pass",
-                                                   description = "Starter Constitution Policy: all constitution actions pass automatically",
-                                                   name = "All Constitution Actions Pass",
-                                                   starterkit = testing_starterkit_slack,
-                                                   is_constitution = True,
-                                                   is_bundled = False,
-                                                   )
+all_actions_pass = {
+    "filter": "return True",
+    "initialize": "pass",
+    "check": "return PASSED",
+    "notify": "pass",
+    "success": "pass",
+    "fail": "pass",
+}
 
-testing_policy2_slack = GenericPolicy.objects.create(filter = "return True",
-                                                   initialize = "pass",
-                                                   check = "return PASSED",
-                                                   notify = "pass",
-                                                   success = "action.execute()",
-                                                   fail = "pass",
-                                                   description = "Starter Platform Policy: all platform actions pass automatically",
-                                                   name = "All Platform Actions Pass",
-                                                   starterkit = testing_starterkit_slack,
-                                                   is_constitution = False,
-                                                   is_bundled = False,
-                                                   )
+testing_policy1_slack = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Constitution Policy: all constitution actions pass automatically",
+    name="All Constitution Actions Pass",
+    starterkit=testing_starterkit_slack,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-testing_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                     initialize = "pass",
-                                                     check = "return PASSED",
-                                                     notify = "pass",
-                                                     success = "action.execute()",
-                                                     fail = "pass",
-                                                     description = "Starter Constitution Policy: all constitution actions pass automatically",
-                                                     name = "All Constitution Actions Pass",
-                                                     starterkit = testing_starterkit_reddit,
-                                                     is_constitution = True,
-                                                     is_bundled = False,
-                                                     )
+testing_policy2_slack = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="All Platform Actions Pass",
+    starterkit=testing_starterkit_slack,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-testing_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                     initialize = "pass",
-                                                     check = "return PASSED",
-                                                     notify = "pass",
-                                                     success = "action.execute()",
-                                                     fail = "pass",
-                                                     description = "Starter Platform Policy: all platform actions pass automatically",
-                                                     name = "All Platform Actions Pass",
-                                                     starterkit = testing_starterkit_reddit,
-                                                     is_constitution = False,
-                                                     is_bundled = False,
-                                                     )
+testing_policy1_reddit = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Constitution Policy: all constitution actions pass automatically",
+    name="All Constitution Actions Pass",
+    starterkit=testing_starterkit_reddit,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-testing_policy1_discord = GenericPolicy.objects.create(filter = "return True",
-                                                      initialize = "pass",
-                                                      check = "return PASSED",
-                                                      notify = "pass",
-                                                      success = "action.execute()",
-                                                      fail = "pass",
-                                                      description = "Starter Constitution Policy: all constitution actions pass automatically",
-                                                      name = "All Constitution Actions Pass",
-                                                      starterkit = testing_starterkit_discord,
-                                                      is_constitution = True,
-                                                      is_bundled = False,
-                                                      )
+testing_policy2_reddit = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="All Platform Actions Pass",
+    starterkit=testing_starterkit_reddit,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-testing_policy2_discord = GenericPolicy.objects.create(filter = "return True",
-                                                      initialize = "pass",
-                                                      check = "return PASSED",
-                                                      notify = "pass",
-                                                      success = "action.execute()",
-                                                      fail = "pass",
-                                                      description = "Starter Platform Policy: all platform actions pass automatically",
-                                                      name = "All Platform Actions Pass",
-                                                      starterkit = testing_starterkit_discord,
-                                                      is_constitution = False,
-                                                      is_bundled = False,
-                                                      )
+testing_policy1_discord = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Constitution Policy: all constitution actions pass automatically",
+    name="All Constitution Actions Pass",
+    starterkit=testing_starterkit_discord,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-testing_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                      initialize = "pass",
-                                                      check = "return PASSED",
-                                                      notify = "pass",
-                                                      success = "action.execute()",
-                                                      fail = "pass",
-                                                      description = "Starter Constitution Policy: all constitution actions pass automatically",
-                                                      name = "All Constitution Actions Pass",
-                                                      starterkit = testing_starterkit_discourse,
-                                                      is_constitution = True,
-                                                      is_bundled = False,
-                                                      )
+testing_policy2_discord = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="return PASSED",
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="All Platform Actions Pass",
+    starterkit=testing_starterkit_discord,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-testing_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                      initialize = "pass",
-                                                      check = "return PASSED",
-                                                      notify = "pass",
-                                                      success = "action.execute()",
-                                                      fail = "pass",
-                                                      description = "Starter Platform Policy: all platform actions pass automatically",
-                                                      name = "All Platform Actions Pass",
-                                                      starterkit = testing_starterkit_discourse,
-                                                      is_constitution = False,
-                                                      is_bundled = False,
-                                                      )
+testing_policy1_discourse = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Constitution Policy: all constitution actions pass automatically",
+    name="All Constitution Actions Pass",
+    starterkit=testing_starterkit_discourse,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-testing_base_role_slack = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Slack)", starterkit = testing_starterkit_slack, is_base_role = True, user_group = "all")
+testing_policy2_discourse = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="All Platform Actions Pass",
+    starterkit=testing_starterkit_discourse,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-testing_base_role_reddit = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Reddit)", starterkit = testing_starterkit_reddit, is_base_role = True, user_group = "all")
+testing_base_role_slack = GenericRole.objects.create(
+    role_name="Testing: Base User",
+    name="Testing: Base User (Slack)",
+    starterkit=testing_starterkit_slack,
+    is_base_role=True,
+    user_group="all",
+)
 
-testing_base_role_discord = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Discord)", starterkit = testing_starterkit_discord, is_base_role = True, user_group = "all")
+testing_base_role_reddit = GenericRole.objects.create(
+    role_name="Testing: Base User",
+    name="Testing: Base User (Reddit)",
+    starterkit=testing_starterkit_reddit,
+    is_base_role=True,
+    user_group="all",
+)
 
-testing_base_role_discourse = GenericRole.objects.create(role_name = "Testing: Base User", name = "Testing: Base User (Discourse)", starterkit = testing_starterkit_discourse, is_base_role = True, user_group = "all")
+testing_base_role_discord = GenericRole.objects.create(
+    role_name="Testing: Base User",
+    name="Testing: Base User (Discord)",
+    starterkit=testing_starterkit_discord,
+    is_base_role=True,
+    user_group="all",
+)
 
-testing_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc']
+testing_base_role_discourse = GenericRole.objects.create(
+    role_name="Testing: Base User",
+    name="Testing: Base User (Discourse)",
+    starterkit=testing_starterkit_discourse,
+    is_base_role=True,
+    user_group="all",
+)
 
-testing_base_role_slack.plat_perm_set = json.dumps(['view', 'propose'])
+testing_const_perms = [
+    "Can add boolean vote",
+    "Can change boolean vote",
+    "Can delete boolean vote",
+    "Can view boolean vote",
+    "Can add number vote",
+    "Can change number vote",
+    "Can delete number vote",
+    "Can view number vote",
+    "Can add platformactionbundle",
+    "Can add platformpolicybundle",
+    "Can add constitutionactionbundle",
+    "Can add constitutionpolicybundle",
+    "Can add policykit add role",
+    "Can add policykit delete role",
+    "Can add policykit edit role",
+    "Can add policykit add user role",
+    "Can add policykit remove user role",
+    "Can add policykit change platform policy",
+    "Can add policykit change constitution policy",
+    "Can add policykit remove platform policy",
+    "Can add policykit remove constitution policy",
+    "Can add policykit add platform policy",
+    "Can add policykit add constitution policy",
+    "Can add policykit add community doc",
+    "Can add policykit change community doc",
+    "Can add policykit delete community doc",
+]
+
+testing_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
 testing_base_role_slack.save()
 
-testing_base_role_reddit.plat_perm_set = json.dumps(['view', 'propose'])
+testing_base_role_reddit.plat_perm_set = json.dumps(["view", "propose"])
 testing_base_role_reddit.save()
 
-testing_base_role_discord.plat_perm_set = json.dumps(['view', 'propose'])
+testing_base_role_discord.plat_perm_set = json.dumps(["view", "propose"])
 testing_base_role_discord.save()
 
-testing_base_role_discourse.plat_perm_set = json.dumps(['view', 'propose'])
+testing_base_role_discourse.plat_perm_set = json.dumps(["view", "propose"])
 testing_base_role_discourse.save()
 
 for perm in testing_const_perms:
@@ -162,185 +187,269 @@ for perm in testing_const_perms:
     testing_base_role_discord.permissions.add(p1)
     testing_base_role_discourse.permissions.add(p1)
 
-#starter kit for standard moderator/user structure
-admin_user_starterkit_slack = SlackStarterKit(name = "Admin and User Starter Kit", platform = "slack")
+# starter kit for standard moderator/user structure
+admin_user_starterkit_slack = SlackStarterKit(name="Admin and User Starter Kit", platform="slack")
 admin_user_starterkit_slack.save()
 
-admin_user_starterkit_reddit = RedditStarterKit(name = "Admin and User Starter Kit", platform = "reddit")
+admin_user_starterkit_reddit = RedditStarterKit(name="Admin and User Starter Kit", platform="reddit")
 admin_user_starterkit_reddit.save()
 
-admin_user_starterkit_discord = DiscordStarterKit(name = "Admin and User Starter Kit", platform = "discord")
+admin_user_starterkit_discord = DiscordStarterKit(name="Admin and User Starter Kit", platform="discord")
 admin_user_starterkit_discord.save()
 
-admin_user_starterkit_discourse = DiscourseStarterKit(name = "Admin and User Starter Kit", platform = "discourse")
+admin_user_starterkit_discourse = DiscourseStarterKit(name="Admin and User Starter Kit", platform="discourse")
 admin_user_starterkit_discourse.save()
 
-admin_user_policy1_slack = GenericPolicy.objects.create(filter = "return True",
-                                               initialize = "pass",
-                                               check = """
+admin_user_policy1_slack = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="""
 if action.initiator.groups.filter(name = "Administrator").exists():
     return PASSED
 else:
     return FAILED
                                                """,
-                                               notify = "pass",
-                                               success = "action.execute()",
-                                               fail = "pass",
-                                               description = "Starter Constitution Policy: constitution actions pass if proposed by moderator",
-                                               name = "Admin and User: All Constitution Actions from Moderators Pass",
-                                               starterkit = admin_user_starterkit_slack,
-                                               is_constitution = True,
-                                               is_bundled = False,
-                                               )
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
+    name="Admin and User: All Constitution Actions from Moderators Pass",
+    starterkit=admin_user_starterkit_slack,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-admin_user_policy2_slack = GenericPolicy.objects.create(filter = "return True",
-                                               initialize = "pass",
-                                               check = "return PASSED",
-                                               notify = "pass",
-                                               success = "action.execute()",
-                                               fail = "pass",
-                                               description = "Starter Platform Policy: all platform actions pass",
-                                               name = "Admin and User: All Platform Actions Pass",
-                                               starterkit = admin_user_starterkit_slack,
-                                               is_constitution = False,
-                                               is_bundled = False,
-                                               )
+admin_user_policy2_slack = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Admin and User: All Platform Actions Pass",
+    starterkit=admin_user_starterkit_slack,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-admin_user_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                  initialize = "pass",
-                                                  check = """
+admin_user_policy1_reddit = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="""
 if action.initiator.groups.filter(name = "Administrator").exists():
     return PASSED
 else:
     return FAILED
                                                       """,
-                                                  notify = "pass",
-                                                  success = "action.execute()",
-                                                  fail = "pass",
-                                                  description = "Starter Constitution Policy: constitution actions pass if proposed by moderator",
-                                                  name = "Admin and User: All Constitution Actions from Moderators Pass",
-                                                  starterkit = admin_user_starterkit_reddit,
-                                                  is_constitution = True,
-                                                  is_bundled = False,
-                                                  )
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
+    name="Admin and User: All Constitution Actions from Moderators Pass",
+    starterkit=admin_user_starterkit_reddit,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-admin_user_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                  initialize = "pass",
-                                                  check = "return PASSED",
-                                                  notify = "pass",
-                                                  success = "action.execute()",
-                                                  fail = "pass",
-                                                  description = "Starter Platform Policy: all platform actions pass",
-                                                  name = "Admin and User: All Platform Actions Pass",
-                                                  starterkit = admin_user_starterkit_reddit,
-                                                  is_constitution = False,
-                                                  is_bundled = False,
-                                                  )
+admin_user_policy2_reddit = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Admin and User: All Platform Actions Pass",
+    starterkit=admin_user_starterkit_reddit,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-admin_user_policy1_discord = GenericPolicy.objects.create(filter = "return True",
-                                                  initialize = "pass",
-                                                  check = """
+admin_user_policy1_discord = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="""
 if action.initiator.groups.filter(name = "Administrator").exists():
     return PASSED
 else:
     return FAILED
                                                      """,
-                                                  notify = "pass",
-                                                  success = "action.execute()",
-                                                  fail = "pass",
-                                                  description = "Starter Constitution Policy: constitution actions pass if proposed by moderator",
-                                                  name = "Admin and User: All Constitution Actions from Moderators Pass",
-                                                  starterkit = admin_user_starterkit_discord,
-                                                  is_constitution = True,
-                                                  is_bundled = False,
-                                                  )
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
+    name="Admin and User: All Constitution Actions from Moderators Pass",
+    starterkit=admin_user_starterkit_discord,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-admin_user_policy2_discord = GenericPolicy.objects.create(filter = "return True",
-                                                     initialize = "pass",
-                                                     check = "return PASSED",
-                                                     notify = "pass",
-                                                     success = "action.execute()",
-                                                     fail = "pass",
-                                                     description = "Starter Platform Policy: all platform actions pass",
-                                                     name = "Admin and User: All Platform Actions Pass",
-                                                     starterkit = admin_user_starterkit_discord,
-                                                     is_constitution = False,
-                                                     is_bundled = False,
-                                                     )
+admin_user_policy2_discord = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Admin and User: All Platform Actions Pass",
+    starterkit=admin_user_starterkit_discord,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-admin_user_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                  initialize = "pass",
-                                                  check = """
+admin_user_policy1_discourse = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="""
 if action.initiator.groups.filter(name = "Administrator").exists():
     return PASSED
 else:
     return FAILED
                                                      """,
-                                                  notify = "pass",
-                                                  success = "action.execute()",
-                                                  fail = "pass",
-                                                  description = "Starter Constitution Policy: constitution actions pass if proposed by moderator",
-                                                  name = "Admin and User: All Constitution Actions from Moderators Pass",
-                                                  starterkit = admin_user_starterkit_discourse,
-                                                  is_constitution = True,
-                                                  is_bundled = False,
-                                                  )
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
+    name="Admin and User: All Constitution Actions from Moderators Pass",
+    starterkit=admin_user_starterkit_discourse,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-admin_user_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                     initialize = "pass",
-                                                     check = "return PASSED",
-                                                     notify = "pass",
-                                                     success = "action.execute()",
-                                                     fail = "pass",
-                                                     description = "Starter Platform Policy: all platform actions pass",
-                                                     name = "Admin and User: All Platform Actions Pass",
-                                                     starterkit = admin_user_starterkit_discourse,
-                                                     is_constitution = False,
-                                                     is_bundled = False,
-                                                     )
+admin_user_policy2_discourse = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Admin and User: All Platform Actions Pass",
+    starterkit=admin_user_starterkit_discourse,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-admin_user_base_role_slack = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Slack)", starterkit = admin_user_starterkit_slack, is_base_role = True, user_group = "nonadmins")
+admin_user_base_role_slack = GenericRole.objects.create(
+    role_name="Admin and User: Base User",
+    name="Admin and User: Base User (Slack)",
+    starterkit=admin_user_starterkit_slack,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-admin_user_base_role_reddit = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Reddit)", starterkit = admin_user_starterkit_reddit, is_base_role = True, user_group = "nonadmins")
+admin_user_base_role_reddit = GenericRole.objects.create(
+    role_name="Admin and User: Base User",
+    name="Admin and User: Base User (Reddit)",
+    starterkit=admin_user_starterkit_reddit,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-admin_user_base_role_discord = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Discord)", starterkit = admin_user_starterkit_discord, is_base_role = True, user_group = "nonadmins")
+admin_user_base_role_discord = GenericRole.objects.create(
+    role_name="Admin and User: Base User",
+    name="Admin and User: Base User (Discord)",
+    starterkit=admin_user_starterkit_discord,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-admin_user_base_role_discourse = GenericRole.objects.create(role_name = "Admin and User: Base User", name = "Admin and User: Base User (Discourse)", starterkit = admin_user_starterkit_discourse, is_base_role = True, user_group = "nonadmins")
+admin_user_base_role_discourse = GenericRole.objects.create(
+    role_name="Admin and User: Base User",
+    name="Admin and User: Base User (Discourse)",
+    starterkit=admin_user_starterkit_discourse,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-admin_user_mod_role_slack = GenericRole.objects.create(role_name = "Administrator", name = "Administrator (Slack)", starterkit = admin_user_starterkit_slack, is_base_role = False, user_group = "admins")
+admin_user_mod_role_slack = GenericRole.objects.create(
+    role_name="Administrator",
+    name="Administrator (Slack)",
+    starterkit=admin_user_starterkit_slack,
+    is_base_role=False,
+    user_group="admins",
+)
 
-admin_user_mod_role_reddit = GenericRole.objects.create(role_name = "Administrator", name = "Administrator (Reddit)", starterkit = admin_user_starterkit_reddit, is_base_role = False, user_group = "admins")
+admin_user_mod_role_reddit = GenericRole.objects.create(
+    role_name="Administrator",
+    name="Administrator (Reddit)",
+    starterkit=admin_user_starterkit_reddit,
+    is_base_role=False,
+    user_group="admins",
+)
 
-admin_user_mod_role_discord = GenericRole.objects.create(role_name = "Administrator", name = "Administrator (Discord)", starterkit = admin_user_starterkit_discord, is_base_role = False, user_group = "admins")
+admin_user_mod_role_discord = GenericRole.objects.create(
+    role_name="Administrator",
+    name="Administrator (Discord)",
+    starterkit=admin_user_starterkit_discord,
+    is_base_role=False,
+    user_group="admins",
+)
 
-admin_user_mod_role_discourse = GenericRole.objects.create(role_name = "Administrator", name = "Administrator (Discourse)", starterkit = admin_user_starterkit_discourse, is_base_role = False, user_group = "admins")
+admin_user_mod_role_discourse = GenericRole.objects.create(
+    role_name="Administrator",
+    name="Administrator (Discourse)",
+    starterkit=admin_user_starterkit_discourse,
+    is_base_role=False,
+    user_group="admins",
+)
 
-admin_user_base_const_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit edit role', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit add community doc', 'Can view policykit change community doc', 'Can view policykit delete community doc']
+admin_user_base_const_perms = [
+    "Can view boolean vote",
+    "Can view number vote",
+    "Can view platformactionbundle",
+    "Can view platformpolicybundle",
+    "Can view constitutionactionbundle",
+    "Can view constitutionpolicybundle",
+    "Can view policykit add role",
+    "Can view policykit delete role",
+    "Can view policykit edit role",
+    "Can view policykit add user role",
+    "Can view policykit remove user role",
+    "Can view policykit change platform policy",
+    "Can view policykit change constitution policy",
+    "Can view policykit remove platform policy",
+    "Can view policykit remove constitution policy",
+    "Can view policykit add platform policy",
+    "Can view policykit add constitution policy",
+    "Can view policykit add community doc",
+    "Can view policykit change community doc",
+    "Can view policykit delete community doc",
+]
 
-admin_user_base_role_slack.plat_perm_set = json.dumps(['view'])
+admin_user_base_role_slack.plat_perm_set = json.dumps(["view"])
 admin_user_base_role_slack.save()
 
-admin_user_base_role_reddit.plat_perm_set = json.dumps(['view'])
+admin_user_base_role_reddit.plat_perm_set = json.dumps(["view"])
 admin_user_base_role_reddit.save()
 
-admin_user_base_role_discord.plat_perm_set = json.dumps(['view'])
+admin_user_base_role_discord.plat_perm_set = json.dumps(["view"])
 admin_user_base_role_discord.save()
 
-admin_user_base_role_discourse.plat_perm_set = json.dumps(['view'])
+admin_user_base_role_discourse.plat_perm_set = json.dumps(["view"])
 admin_user_base_role_discourse.save()
 
-admin_user_mod_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc']
+admin_user_mod_const_perms = [
+    "Can add boolean vote",
+    "Can change boolean vote",
+    "Can delete boolean vote",
+    "Can view boolean vote",
+    "Can add number vote",
+    "Can change number vote",
+    "Can delete number vote",
+    "Can view number vote",
+    "Can add platformactionbundle",
+    "Can add platformpolicybundle",
+    "Can add constitutionactionbundle",
+    "Can add constitutionpolicybundle",
+    "Can add policykit add role",
+    "Can add policykit delete role",
+    "Can add policykit edit role",
+    "Can add policykit add user role",
+    "Can add policykit remove user role",
+    "Can add policykit change platform policy",
+    "Can add policykit change constitution policy",
+    "Can add policykit remove platform policy",
+    "Can add policykit remove constitution policy",
+    "Can add policykit add platform policy",
+    "Can add policykit add constitution policy",
+    "Can add policykit add community doc",
+    "Can add policykit change community doc",
+    "Can add policykit delete community doc",
+]
 
-admin_user_mod_role_slack.plat_perm_set = json.dumps(['view', 'propose'])
+admin_user_mod_role_slack.plat_perm_set = json.dumps(["view", "propose"])
 admin_user_mod_role_slack.save()
 
-admin_user_mod_role_reddit.plat_perm_set = json.dumps(['view', 'propose'])
+admin_user_mod_role_reddit.plat_perm_set = json.dumps(["view", "propose"])
 admin_user_mod_role_reddit.save()
 
-admin_user_mod_role_discord.plat_perm_set = json.dumps(['view', 'propose'])
+admin_user_mod_role_discord.plat_perm_set = json.dumps(["view", "propose"])
 admin_user_mod_role_discord.save()
 
-admin_user_mod_role_discourse.plat_perm_set = json.dumps(['view', 'propose'])
+admin_user_mod_role_discourse.plat_perm_set = json.dumps(["view", "propose"])
 admin_user_mod_role_discourse.save()
 
 for perm in admin_user_base_const_perms:
@@ -357,42 +466,38 @@ for perm in admin_user_mod_const_perms:
     admin_user_mod_role_discord.permissions.add(p1)
     admin_user_mod_role_discourse.permissions.add(p1)
 
-#starter kit for basic democracy structure
+# starter kit for basic democracy structure
 
-democracy_starterkit_slack = SlackStarterKit(name = "Democracy Starter Kit", platform = "slack")
+democracy_starterkit_slack = SlackStarterKit(name="Democracy Starter Kit", platform="slack")
 democracy_starterkit_slack.save()
 
-democracy_starterkit_reddit = RedditStarterKit(name = "Democracy Starter Kit", platform = "reddit")
+democracy_starterkit_reddit = RedditStarterKit(name="Democracy Starter Kit", platform="reddit")
 democracy_starterkit_reddit.save()
 
-democracy_starterkit_discord = DiscordStarterKit(name = "Democracy Starter Kit", platform = "discord")
+democracy_starterkit_discord = DiscordStarterKit(name="Democracy Starter Kit", platform="discord")
 democracy_starterkit_discord.save()
 
-democracy_starterkit_discourse = DiscourseStarterKit(name = "Democracy Starter Kit", platform = "discourse")
+democracy_starterkit_discourse = DiscourseStarterKit(name="Democracy Starter Kit", platform="discourse")
 democracy_starterkit_discourse.save()
 
-democracy_policy1_slack = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return PASSED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Platform Policy: all platform actions pass automatically",
-                                       name = "Democracy: All Platform Actions Pass",
-                                       starterkit = democracy_starterkit_slack,
-                                       is_constitution = False,
-                                       is_bundled = False,
-                                       )
+democracy_policy1_slack = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="Democracy: All Platform Actions Pass",
+    starterkit=democracy_starterkit_slack,
+    is_constitution=False,
+    is_bundled=False,
+)
 
 democracy_policy2_slack = GenericPolicy.objects.create(
-                                       filter = """
+    filter="""
                                            if not action.initiator.groups.filter(name = "Moderator").exists():
                                                return True
                                            else:
                                                return False
                                            """,
-                                       initialize = "pass",
-                                       check = """
+    initialize="pass",
+    check="""
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
@@ -402,41 +507,37 @@ if len(yes_votes) >= math.ceil(voter_users.count()/2):
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
     return FAILED
                                            """,
-                                       notify = """
+    notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                            """,
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
-                                       name = "Democracy: Constitution Actions Voted In",
-                                       starterkit = democracy_starterkit_slack,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
+    name="Democracy: Constitution Actions Voted In",
+    starterkit=democracy_starterkit_slack,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-democracy_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                       initialize = "pass",
-                                                       check = "return PASSED",
-                                                       notify = "pass",
-                                                       success = "action.execute()",
-                                                       fail = "pass",
-                                                       description = "Starter Platform Policy: all platform actions pass automatically",
-                                                       name = "Democracy: All Platform Actions Pass",
-                                                       starterkit = democracy_starterkit_reddit,
-                                                       is_constitution = False,
-                                                       is_bundled = False,
-                                                       )
+democracy_policy1_reddit = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="Democracy: All Platform Actions Pass",
+    starterkit=democracy_starterkit_reddit,
+    is_constitution=False,
+    is_bundled=False,
+)
 
 democracy_policy2_reddit = GenericPolicy.objects.create(
-                                                       filter = """
+    filter="""
 if not action.initiator.groups.filter(name = "Moderator").exists():
     return True
 else:
     return False
                                                            """,
-                                                       initialize = "pass",
-                                                       check = """
+    initialize="pass",
+    check="""
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
@@ -446,41 +547,37 @@ if len(yes_votes) >= math.ceil(voter_users.count()/2):
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
    return FAILED
                                                            """,
-                                                       notify = """
+    notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                                            """,
-                                                       success = "action.execute()",
-                                                       fail = "pass",
-                                                       description = "Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
-                                                       name = "Democracy: Constitution Actions Voted In",
-                                                       starterkit = democracy_starterkit_reddit,
-                                                       is_constitution = True,
-                                                       is_bundled = False,
-                                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
+    name="Democracy: Constitution Actions Voted In",
+    starterkit=democracy_starterkit_reddit,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-democracy_policy1_discord = GenericPolicy.objects.create(filter = "return True",
-                                                       initialize = "pass",
-                                                       check = "return PASSED",
-                                                       notify = "pass",
-                                                       success = "action.execute()",
-                                                       fail = "pass",
-                                                       description = "Starter Platform Policy: all platform actions pass automatically",
-                                                       name = "Democracy: All Platform Actions Pass",
-                                                       starterkit = democracy_starterkit_discord,
-                                                       is_constitution = False,
-                                                       is_bundled = False,
-                                                       )
+democracy_policy1_discord = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="Democracy: All Platform Actions Pass",
+    starterkit=democracy_starterkit_discord,
+    is_constitution=False,
+    is_bundled=False,
+)
 
 democracy_policy2_discord = GenericPolicy.objects.create(
-                                                       filter = """
+    filter="""
 if not action.initiator.groups.filter(name = "Moderator").exists():
     return True
 else:
     return False
                                                            """,
-                                                       initialize = "pass",
-                                                       check = """
+    initialize="pass",
+    check="""
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
@@ -490,41 +587,37 @@ if len(yes_votes) >= math.ceil(voter_users.count()/2):
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
    return FAILED
                                                            """,
-                                                       notify = """
+    notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                                            """,
-                                                       success = "action.execute()",
-                                                       fail = "pass",
-                                                       description = "Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
-                                                       name = "Democracy: Constitution Actions Voted In",
-                                                       starterkit = democracy_starterkit_discord,
-                                                       is_constitution = True,
-                                                       is_bundled = False,
-                                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
+    name="Democracy: Constitution Actions Voted In",
+    starterkit=democracy_starterkit_discord,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-democracy_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                       initialize = "pass",
-                                                       check = "return PASSED",
-                                                       notify = "pass",
-                                                       success = "action.execute()",
-                                                       fail = "pass",
-                                                       description = "Starter Platform Policy: all platform actions pass automatically",
-                                                       name = "Democracy: All Platform Actions Pass",
-                                                       starterkit = democracy_starterkit_discourse,
-                                                       is_constitution = False,
-                                                       is_bundled = False,
-                                                       )
+democracy_policy1_discourse = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass automatically",
+    name="Democracy: All Platform Actions Pass",
+    starterkit=democracy_starterkit_discourse,
+    is_constitution=False,
+    is_bundled=False,
+)
 
 democracy_policy2_discourse = GenericPolicy.objects.create(
-                                                       filter = """
+    filter="""
 if not action.initiator.groups.filter(name = "Moderator").exists():
     return True
 else:
     return False
                                                            """,
-                                                       initialize = "pass",
-                                                       check = """
+    initialize="pass",
+    check="""
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
@@ -534,61 +627,163 @@ if len(yes_votes) >= math.ceil(voter_users.count()/2):
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
    return FAILED
                                                            """,
-                                                       notify = """
+    notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.notify_action(action, policy, users=voter_users, template='Please vote')
                                                            """,
-                                                       success = "action.execute()",
-                                                       fail = "pass",
-                                                       description = "Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
-                                                       name = "Democracy: Constitution Actions Voted In",
-                                                       starterkit = democracy_starterkit_discourse,
-                                                       is_constitution = True,
-                                                       is_bundled = False,
-                                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
+    name="Democracy: Constitution Actions Voted In",
+    starterkit=democracy_starterkit_discourse,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-democracy_base_role_slack = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Slack)", starterkit = democracy_starterkit_slack, is_base_role = True, user_group = "nonadmins")
+democracy_base_role_slack = GenericRole.objects.create(
+    role_name="Democracy: Base User",
+    name="Democracy: Base User (Slack)",
+    starterkit=democracy_starterkit_slack,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-democracy_base_role_reddit = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Reddit)", starterkit = democracy_starterkit_reddit, is_base_role = True, user_group = "nonadmins")
+democracy_base_role_reddit = GenericRole.objects.create(
+    role_name="Democracy: Base User",
+    name="Democracy: Base User (Reddit)",
+    starterkit=democracy_starterkit_reddit,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-democracy_base_role_discord = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Discord)", starterkit = democracy_starterkit_discord, is_base_role = True, user_group = "nonadmins")
+democracy_base_role_discord = GenericRole.objects.create(
+    role_name="Democracy: Base User",
+    name="Democracy: Base User (Discord)",
+    starterkit=democracy_starterkit_discord,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-democracy_base_role_discourse = GenericRole.objects.create(role_name = "Democracy: Base User", name = "Democracy: Base User (Discourse)", starterkit = democracy_starterkit_discourse, is_base_role = True, user_group = "nonadmins")
+democracy_base_role_discourse = GenericRole.objects.create(
+    role_name="Democracy: Base User",
+    name="Democracy: Base User (Discourse)",
+    starterkit=democracy_starterkit_discourse,
+    is_base_role=True,
+    user_group="nonadmins",
+)
 
-democracy_voter_role_slack = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter (Slack)", starterkit = democracy_starterkit_slack, is_base_role = False, user_group = "admins")
+democracy_voter_role_slack = GenericRole.objects.create(
+    role_name="Democracy: Voter",
+    name="Democracy: Voter (Slack)",
+    starterkit=democracy_starterkit_slack,
+    is_base_role=False,
+    user_group="admins",
+)
 
-democracy_voter_role_reddit = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter (Reddit)", starterkit = democracy_starterkit_reddit, is_base_role = False, user_group = "admins")
+democracy_voter_role_reddit = GenericRole.objects.create(
+    role_name="Democracy: Voter",
+    name="Democracy: Voter (Reddit)",
+    starterkit=democracy_starterkit_reddit,
+    is_base_role=False,
+    user_group="admins",
+)
 
-democracy_voter_role_discord = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter (Discord)", starterkit = democracy_starterkit_discord, is_base_role = False, user_group = "admins")
+democracy_voter_role_discord = GenericRole.objects.create(
+    role_name="Democracy: Voter",
+    name="Democracy: Voter (Discord)",
+    starterkit=democracy_starterkit_discord,
+    is_base_role=False,
+    user_group="admins",
+)
 
-democracy_voter_role_discourse = GenericRole.objects.create(role_name = "Democracy: Voter", name = "Democracy: Voter (Discourse)", starterkit = democracy_starterkit_discourse, is_base_role = False, user_group = "admins")
+democracy_voter_role_discourse = GenericRole.objects.create(
+    role_name="Democracy: Voter",
+    name="Democracy: Voter (Discourse)",
+    starterkit=democracy_starterkit_discourse,
+    is_base_role=False,
+    user_group="admins",
+)
 
-democracy_base_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc']
+democracy_base_const_perms = [
+    "Can add boolean vote",
+    "Can change boolean vote",
+    "Can delete boolean vote",
+    "Can view boolean vote",
+    "Can add number vote",
+    "Can change number vote",
+    "Can delete number vote",
+    "Can view number vote",
+    "Can add platformactionbundle",
+    "Can add platformpolicybundle",
+    "Can add constitutionactionbundle",
+    "Can add constitutionpolicybundle",
+    "Can add policykit add role",
+    "Can add policykit delete role",
+    "Can add policykit edit role",
+    "Can add policykit add user role",
+    "Can add policykit remove user role",
+    "Can add policykit change platform policy",
+    "Can add policykit change constitution policy",
+    "Can add policykit remove platform policy",
+    "Can add policykit remove constitution policy",
+    "Can add policykit add platform policy",
+    "Can add policykit add constitution policy",
+    "Can add policykit add community doc",
+    "Can add policykit change community doc",
+    "Can add policykit delete community doc",
+]
 
-democracy_base_role_slack.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
 democracy_base_role_slack.save()
 
-democracy_base_role_reddit.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_base_role_reddit.plat_perm_set = json.dumps(["view", "propose"])
 democracy_base_role_reddit.save()
 
-democracy_base_role_discord.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_base_role_discord.plat_perm_set = json.dumps(["view", "propose"])
 democracy_base_role_discord.save()
 
-democracy_base_role_discourse.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_base_role_discourse.plat_perm_set = json.dumps(["view", "propose"])
 democracy_base_role_discourse.save()
 
-democracy_voter_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc']
+democracy_voter_const_perms = [
+    "Can add boolean vote",
+    "Can change boolean vote",
+    "Can delete boolean vote",
+    "Can view boolean vote",
+    "Can add number vote",
+    "Can change number vote",
+    "Can delete number vote",
+    "Can view number vote",
+    "Can add platformactionbundle",
+    "Can add platformpolicybundle",
+    "Can add constitutionactionbundle",
+    "Can add constitutionpolicybundle",
+    "Can add policykit add role",
+    "Can add policykit delete role",
+    "Can add policykit edit role",
+    "Can add policykit add user role",
+    "Can add policykit remove user role",
+    "Can add policykit change platform policy",
+    "Can add policykit change constitution policy",
+    "Can add policykit remove platform policy",
+    "Can add policykit remove constitution policy",
+    "Can add policykit add platform policy",
+    "Can add policykit add constitution policy",
+    "Can add policykit add community doc",
+    "Can add policykit change community doc",
+    "Can add policykit delete community doc",
+]
 
-democracy_voter_role_slack.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_voter_role_slack.plat_perm_set = json.dumps(["view", "propose"])
 democracy_voter_role_slack.save()
 
-democracy_voter_role_reddit.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_voter_role_reddit.plat_perm_set = json.dumps(["view", "propose"])
 democracy_voter_role_reddit.save()
 
-democracy_voter_role_discord.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_voter_role_discord.plat_perm_set = json.dumps(["view", "propose"])
 democracy_voter_role_discord.save()
 
-democracy_voter_role_discourse.plat_perm_set = json.dumps(['view', 'propose'])
+democracy_voter_role_discourse.plat_perm_set = json.dumps(["view", "propose"])
 democracy_voter_role_discourse.save()
 
 for perm in democracy_base_const_perms:
@@ -605,165 +800,263 @@ for perm in democracy_voter_const_perms:
     democracy_voter_role_discord.permissions.add(p1)
     democracy_voter_role_discourse.permissions.add(p1)
 
-#starter kit for dictator
-dictator_starterkit_slack = SlackStarterKit(name = "Dictator Starter Kit", platform = "slack")
+# starter kit for dictator
+dictator_starterkit_slack = SlackStarterKit(name="Dictator Starter Kit", platform="slack")
 dictator_starterkit_slack.save()
 
-dictator_starterkit_reddit = RedditStarterKit(name = "Dictator Starter Kit", platform = "reddit")
+dictator_starterkit_reddit = RedditStarterKit(name="Dictator Starter Kit", platform="reddit")
 dictator_starterkit_reddit.save()
 
-dictator_starterkit_discord = DiscordStarterKit(name = "Dictator Starter Kit", platform = "discord")
+dictator_starterkit_discord = DiscordStarterKit(name="Dictator Starter Kit", platform="discord")
 dictator_starterkit_discord.save()
 
-dictator_starterkit_discourse = DiscourseStarterKit(name = "Dictator Starter Kit", platform = "discourse")
+dictator_starterkit_discourse = DiscourseStarterKit(name="Dictator Starter Kit", platform="discourse")
 dictator_starterkit_discourse.save()
 
-dictator_policy1_slack = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return FAILED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: only actions proposed by dictator pass",
-                                       name = "Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
-                                       starterkit = dictator_starterkit_slack,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       )
+dictator_policy1_slack = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="return FAILED",
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: only actions proposed by dictator pass",
+    name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
+    starterkit=dictator_starterkit_slack,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-dictator_policy2_slack = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return PASSED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Platform Policy: all platform actions pass",
-                                       name = "Benevolent Dictator: All Platform Actions Pass",
-                                       starterkit = dictator_starterkit_slack,
-                                       is_constitution = False,
-                                       is_bundled = False,
-                                       )
+dictator_policy2_slack = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Benevolent Dictator: All Platform Actions Pass",
+    starterkit=dictator_starterkit_slack,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-dictator_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                initialize = "pass",
-                                                check = "return FAILED",
-                                                notify = "pass",
-                                                success = "action.execute()",
-                                                fail = "pass",
-                                                description = "Starter Constitution Policy: only actions proposed by dictator pass",
-                                                name = "Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
-                                                starterkit = dictator_starterkit_reddit,
-                                                is_constitution = True,
-                                                is_bundled = False,
-                                                )
+dictator_policy1_reddit = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="return FAILED",
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: only actions proposed by dictator pass",
+    name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
+    starterkit=dictator_starterkit_reddit,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-dictator_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
-                                                initialize = "pass",
-                                                check = "return PASSED",
-                                                notify = "pass",
-                                                success = "action.execute()",
-                                                fail = "pass",
-                                                description = "Starter Platform Policy: all platform actions pass",
-                                                name = "Benevolent Dictator: All Platform Actions Pass",
-                                                starterkit = dictator_starterkit_reddit,
-                                                is_constitution = False,
-                                                is_bundled = False,
-                                                )
+dictator_policy2_reddit = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Benevolent Dictator: All Platform Actions Pass",
+    starterkit=dictator_starterkit_reddit,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-dictator_policy1_discord = GenericPolicy.objects.create(filter = "return True",
-                                                initialize = "pass",
-                                                check = "return FAILED",
-                                                notify = "pass",
-                                                success = "action.execute()",
-                                                fail = "pass",
-                                                description = "Starter Constitution Policy: only actions proposed by dictator pass",
-                                                name = "Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
-                                                starterkit = dictator_starterkit_discord,
-                                                is_constitution = True,
-                                                is_bundled = False,
-                                                )
+dictator_policy1_discord = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="return FAILED",
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: only actions proposed by dictator pass",
+    name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
+    starterkit=dictator_starterkit_discord,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-dictator_policy2_discord = GenericPolicy.objects.create(filter = "return True",
-                                                initialize = "pass",
-                                                check = "return PASSED",
-                                                notify = "pass",
-                                                success = "action.execute()",
-                                                fail = "pass",
-                                                description = "Starter Platform Policy: all platform actions pass",
-                                                name = "Benevolent Dictator: All Platform Actions Pass",
-                                                starterkit = dictator_starterkit_discord,
-                                                is_constitution = False,
-                                                is_bundled = False,
-                                                )
+dictator_policy2_discord = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Benevolent Dictator: All Platform Actions Pass",
+    starterkit=dictator_starterkit_discord,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-dictator_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                initialize = "pass",
-                                                check = "return FAILED",
-                                                notify = "pass",
-                                                success = "action.execute()",
-                                                fail = "pass",
-                                                description = "Starter Constitution Policy: only actions proposed by dictator pass",
-                                                name = "Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
-                                                starterkit = dictator_starterkit_discourse,
-                                                is_constitution = True,
-                                                is_bundled = False,
-                                                )
+dictator_policy1_discourse = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="pass",
+    check="return FAILED",
+    notify="pass",
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: only actions proposed by dictator pass",
+    name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
+    starterkit=dictator_starterkit_discourse,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-dictator_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
-                                                initialize = "pass",
-                                                check = "return PASSED",
-                                                notify = "pass",
-                                                success = "action.execute()",
-                                                fail = "pass",
-                                                description = "Starter Platform Policy: all platform actions pass",
-                                                name = "Benevolent Dictator: All Platform Actions Pass",
-                                                starterkit = dictator_starterkit_discourse,
-                                                is_constitution = False,
-                                                is_bundled = False,
-                                                )
+dictator_policy2_discourse = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Starter Platform Policy: all platform actions pass",
+    name="Benevolent Dictator: All Platform Actions Pass",
+    starterkit=dictator_starterkit_discourse,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-dictator_base_role_slack = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Slack)", starterkit = dictator_starterkit_slack, is_base_role = True, user_group = "all")
+dictator_base_role_slack = GenericRole.objects.create(
+    role_name="Dictator: Base User",
+    name="Dictator: Base User (Slack)",
+    starterkit=dictator_starterkit_slack,
+    is_base_role=True,
+    user_group="all",
+)
 
-dictator_base_role_reddit = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Reddit)", starterkit = dictator_starterkit_reddit, is_base_role = True, user_group = "all")
+dictator_base_role_reddit = GenericRole.objects.create(
+    role_name="Dictator: Base User",
+    name="Dictator: Base User (Reddit)",
+    starterkit=dictator_starterkit_reddit,
+    is_base_role=True,
+    user_group="all",
+)
 
-dictator_base_role_discord = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Discord)", starterkit = dictator_starterkit_discord, is_base_role = True, user_group = "all")
+dictator_base_role_discord = GenericRole.objects.create(
+    role_name="Dictator: Base User",
+    name="Dictator: Base User (Discord)",
+    starterkit=dictator_starterkit_discord,
+    is_base_role=True,
+    user_group="all",
+)
 
-dictator_base_role_discourse = GenericRole.objects.create(role_name = "Dictator: Base User", name = "Dictator: Base User (Discourse)", starterkit = dictator_starterkit_discourse, is_base_role = True, user_group = "all")
+dictator_base_role_discourse = GenericRole.objects.create(
+    role_name="Dictator: Base User",
+    name="Dictator: Base User (Discourse)",
+    starterkit=dictator_starterkit_discourse,
+    is_base_role=True,
+    user_group="all",
+)
 
-dictator_dictator_role_slack = GenericRole.objects.create(role_name = "Dictator", name = "Dictator (Slack)", starterkit = dictator_starterkit_slack, is_base_role = False, user_group = "creator")
+dictator_dictator_role_slack = GenericRole.objects.create(
+    role_name="Dictator",
+    name="Dictator (Slack)",
+    starterkit=dictator_starterkit_slack,
+    is_base_role=False,
+    user_group="creator",
+)
 
-dictator_dictator_role_reddit = GenericRole.objects.create(role_name = "Dictator", name = "Dictator (Reddit)", starterkit = dictator_starterkit_reddit, is_base_role = False, user_group = "creator")
+dictator_dictator_role_reddit = GenericRole.objects.create(
+    role_name="Dictator",
+    name="Dictator (Reddit)",
+    starterkit=dictator_starterkit_reddit,
+    is_base_role=False,
+    user_group="creator",
+)
 
-dictator_dictator_role_discord = GenericRole.objects.create(role_name = "Dictator", name = "Dictator (Discord)", starterkit = dictator_starterkit_discord, is_base_role = False, user_group = "creator")
+dictator_dictator_role_discord = GenericRole.objects.create(
+    role_name="Dictator",
+    name="Dictator (Discord)",
+    starterkit=dictator_starterkit_discord,
+    is_base_role=False,
+    user_group="creator",
+)
 
-dictator_dictator_role_discourse = GenericRole.objects.create(role_name = "Dictator", name = "Dictator (Discourse)", starterkit = dictator_starterkit_discourse, is_base_role = False, user_group = "creator")
+dictator_dictator_role_discourse = GenericRole.objects.create(
+    role_name="Dictator",
+    name="Dictator (Discourse)",
+    starterkit=dictator_starterkit_discourse,
+    is_base_role=False,
+    user_group="creator",
+)
 
-dictator_base_const_perms = ['Can view boolean vote', 'Can view number vote', 'Can view platformactionbundle', 'Can view platformpolicybundle', 'Can view constitutionactionbundle', 'Can view constitutionpolicybundle', 'Can view policykit add role', 'Can view policykit delete role', 'Can view policykit edit role', 'Can view policykit add user role', 'Can view policykit remove user role', 'Can view policykit change platform policy', 'Can view policykit change constitution policy', 'Can view policykit remove platform policy', 'Can view policykit remove constitution policy', 'Can view policykit add platform policy', 'Can view policykit add constitution policy', 'Can view policykit add community doc', 'Can view policykit change community doc', 'Can view policykit delete community doc']
+dictator_base_const_perms = [
+    "Can view boolean vote",
+    "Can view number vote",
+    "Can view platformactionbundle",
+    "Can view platformpolicybundle",
+    "Can view constitutionactionbundle",
+    "Can view constitutionpolicybundle",
+    "Can view policykit add role",
+    "Can view policykit delete role",
+    "Can view policykit edit role",
+    "Can view policykit add user role",
+    "Can view policykit remove user role",
+    "Can view policykit change platform policy",
+    "Can view policykit change constitution policy",
+    "Can view policykit remove platform policy",
+    "Can view policykit remove constitution policy",
+    "Can view policykit add platform policy",
+    "Can view policykit add constitution policy",
+    "Can view policykit add community doc",
+    "Can view policykit change community doc",
+    "Can view policykit delete community doc",
+]
 
-dictator_base_role_slack.plat_perm_set = json.dumps(['view', 'propose'])
+dictator_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
 dictator_base_role_slack.save()
 
-dictator_base_role_reddit.plat_perm_set = json.dumps(['view', 'propose'])
+dictator_base_role_reddit.plat_perm_set = json.dumps(["view", "propose"])
 dictator_base_role_reddit.save()
 
-dictator_base_role_discord.plat_perm_set = json.dumps(['view', 'propose'])
+dictator_base_role_discord.plat_perm_set = json.dumps(["view", "propose"])
 dictator_base_role_discord.save()
 
-dictator_base_role_discourse.plat_perm_set = json.dumps(['view', 'propose'])
+dictator_base_role_discourse.plat_perm_set = json.dumps(["view", "propose"])
 dictator_base_role_discourse.save()
 
-dictator_dictator_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc', 'Can execute policykit add role', 'Can execute policykit delete role', 'Can execute policykit edit role', 'Can execute policykit add user role', 'Can execute policykit remove user role', 'Can execute policykit change platform policy', 'Can execute policykit change constitution policy', 'Can execute policykit remove platform policy', 'Can execute policykit remove constitution policy', 'Can execute policykit add platform policy', 'Can execute policykit add constitution policy', 'Can execute policykit add community doc', 'Can execute policykit change community doc', 'Can execute policykit delete community doc']
+dictator_dictator_const_perms = [
+    "Can add boolean vote",
+    "Can change boolean vote",
+    "Can delete boolean vote",
+    "Can view boolean vote",
+    "Can add number vote",
+    "Can change number vote",
+    "Can delete number vote",
+    "Can view number vote",
+    "Can add platformactionbundle",
+    "Can add platformpolicybundle",
+    "Can add constitutionactionbundle",
+    "Can add constitutionpolicybundle",
+    "Can add policykit add role",
+    "Can add policykit delete role",
+    "Can add policykit edit role",
+    "Can add policykit add user role",
+    "Can add policykit remove user role",
+    "Can add policykit change platform policy",
+    "Can add policykit change constitution policy",
+    "Can add policykit remove platform policy",
+    "Can add policykit remove constitution policy",
+    "Can add policykit add platform policy",
+    "Can add policykit add constitution policy",
+    "Can add policykit add community doc",
+    "Can add policykit change community doc",
+    "Can add policykit delete community doc",
+    "Can execute policykit add role",
+    "Can execute policykit delete role",
+    "Can execute policykit edit role",
+    "Can execute policykit add user role",
+    "Can execute policykit remove user role",
+    "Can execute policykit change platform policy",
+    "Can execute policykit change constitution policy",
+    "Can execute policykit remove platform policy",
+    "Can execute policykit remove constitution policy",
+    "Can execute policykit add platform policy",
+    "Can execute policykit add constitution policy",
+    "Can execute policykit add community doc",
+    "Can execute policykit change community doc",
+    "Can execute policykit delete community doc",
+]
 
-dictator_dictator_role_slack.plat_perm_set = json.dumps(['view', 'propose', 'execute'])
+dictator_dictator_role_slack.plat_perm_set = json.dumps(["view", "propose", "execute"])
 dictator_dictator_role_slack.save()
 
-dictator_dictator_role_reddit.plat_perm_set = json.dumps(['view', 'propose', 'execute'])
+dictator_dictator_role_reddit.plat_perm_set = json.dumps(["view", "propose", "execute"])
 dictator_dictator_role_reddit.save()
 
-dictator_dictator_role_discord.plat_perm_set = json.dumps(['view', 'propose', 'execute'])
+dictator_dictator_role_discord.plat_perm_set = json.dumps(["view", "propose", "execute"])
 dictator_dictator_role_discord.save()
 
-dictator_dictator_role_discourse.plat_perm_set = json.dumps(['view', 'propose', 'execute'])
+dictator_dictator_role_discourse.plat_perm_set = json.dumps(["view", "propose", "execute"])
 dictator_dictator_role_discourse.save()
 
 for perm in dictator_base_const_perms:
@@ -780,26 +1073,27 @@ for perm in dictator_dictator_const_perms:
     dictator_dictator_role_discord.permissions.add(p1)
     dictator_dictator_role_discourse.permissions.add(p1)
 
-#starter kit for jury
-jury_starterkit_slack = SlackStarterKit(name = "Jury Starter Kit", platform = "slack")
+# starter kit for jury
+jury_starterkit_slack = SlackStarterKit(name="Jury Starter Kit", platform="slack")
 jury_starterkit_slack.save()
 
-jury_starterkit_reddit = RedditStarterKit(name = "Jury Starter Kit", platform = "reddit")
+jury_starterkit_reddit = RedditStarterKit(name="Jury Starter Kit", platform="reddit")
 jury_starterkit_reddit.save()
 
-jury_starterkit_discord = DiscordStarterKit(name = "Jury Starter Kit", platform = "discord")
+jury_starterkit_discord = DiscordStarterKit(name="Jury Starter Kit", platform="discord")
 jury_starterkit_discord.save()
 
-jury_starterkit_discourse = DiscourseStarterKit(name = "Jury Starter Kit", platform = "discourse")
+jury_starterkit_discourse = DiscourseStarterKit(name="Jury Starter Kit", platform="discourse")
 jury_starterkit_discourse.save()
 
-jury_policy1_slack = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = """
+jury_policy1_slack = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="""
 usernames = [u.username for u in users]
 jury = random.sample(usernames, k=3)
 action.data.set('jury', jury)
                                            """,
-                                       check = """
+    check="""
 import datetime
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
@@ -809,40 +1103,37 @@ if len(yes_votes) >= 2:
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
-                                       notify = """
+    notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
-                                       name = "Jury: Constitution Actions Passed by Jury",
-                                       starterkit = jury_starterkit_slack,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
+    name="Jury: Constitution Actions Passed by Jury",
+    starterkit=jury_starterkit_slack,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-jury_policy2_slack = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return PASSED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Jury: Starter Platform Policy: all platform actions pass",
-                                       name = "All Platform Actions Pass",
-                                       starterkit = jury_starterkit_slack,
-                                       is_constitution = False,
-                                       is_bundled = False,
-                                       )
+jury_policy2_slack = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Jury: Starter Platform Policy: all platform actions pass",
+    name="All Platform Actions Pass",
+    starterkit=jury_starterkit_slack,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-jury_policy1_reddit = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = """
+jury_policy1_reddit = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="""
 usernames = [u.username for u in users]
 jury = random.sample(usernames, k=3)
 action.data.add('jury', jury)
                                            """,
-                                       check = """
+    check="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
@@ -851,40 +1142,37 @@ if len(yes_votes) >= 2:
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
-                                       notify = """
+    notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
-                                       name = "Jury: Constitution Actions Passed by Jury",
-                                       starterkit = jury_starterkit_reddit,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
+    name="Jury: Constitution Actions Passed by Jury",
+    starterkit=jury_starterkit_reddit,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-jury_policy2_reddit = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return PASSED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Jury: Starter Platform Policy: all platform actions pass",
-                                       name = "All Platform Actions Pass",
-                                       starterkit = jury_starterkit_reddit,
-                                       is_constitution = False,
-                                       is_bundled = False,
-                                       )
+jury_policy2_reddit = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Jury: Starter Platform Policy: all platform actions pass",
+    name="All Platform Actions Pass",
+    starterkit=jury_starterkit_reddit,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-jury_policy1_discord = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = """
+jury_policy1_discord = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="""
 usernames = [u.username for u in users]
 jury = random.sample(usernames, k=3)
 action.data.add('jury', jury)
                                            """,
-                                       check = """
+    check="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
@@ -893,40 +1181,37 @@ if len(yes_votes) >= 2:
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
-                                       notify = """
+    notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
-                                       name = "Jury: Constitution Actions Passed by Jury",
-                                       starterkit = jury_starterkit_discord,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
+    name="Jury: Constitution Actions Passed by Jury",
+    starterkit=jury_starterkit_discord,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-jury_policy2_discord = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return PASSED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Jury: Starter Platform Policy: all platform actions pass",
-                                       name = "All Platform Actions Pass",
-                                       starterkit = jury_starterkit_discord,
-                                       is_constitution = False,
-                                       is_bundled = False,
-                                       )
+jury_policy2_discord = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Jury: Starter Platform Policy: all platform actions pass",
+    name="All Platform Actions Pass",
+    starterkit=jury_starterkit_discord,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-jury_policy1_discourse = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = """
+jury_policy1_discourse = GenericPolicy.objects.create(
+    filter="return True",
+    initialize="""
 usernames = [u.username for u in users]
 jury = random.sample(usernames, k=3)
 action.data.add('jury', jury)
                                            """,
-                                       check = """
+    check="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 yes_votes = action.proposal.get_yes_votes(users=jury_users, value=True)
@@ -935,53 +1220,100 @@ if len(yes_votes) >= 2:
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
    return FAILED
                                            """,
-                                       notify = """
+    notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
-                                       name = "Jury: Constitution Actions Passed by Jury",
-                                       starterkit = jury_starterkit_discourse,
-                                       is_constitution = True,
-                                       is_bundled = False,
-                                       )
+    success="action.execute()",
+    fail="pass",
+    description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
+    name="Jury: Constitution Actions Passed by Jury",
+    starterkit=jury_starterkit_discourse,
+    is_constitution=True,
+    is_bundled=False,
+)
 
-jury_policy2_discourse = GenericPolicy.objects.create(filter = "return True",
-                                       initialize = "pass",
-                                       check = "return PASSED",
-                                       notify = "pass",
-                                       success = "action.execute()",
-                                       fail = "pass",
-                                       description = "Jury: Starter Platform Policy: all platform actions pass",
-                                       name = "All Platform Actions Pass",
-                                       starterkit = jury_starterkit_discourse,
-                                       is_constitution = False,
-                                       is_bundled = False,
-                                       )
+jury_policy2_discourse = GenericPolicy.objects.create(
+    **all_actions_pass,
+    description="Jury: Starter Platform Policy: all platform actions pass",
+    name="All Platform Actions Pass",
+    starterkit=jury_starterkit_discourse,
+    is_constitution=False,
+    is_bundled=False,
+)
 
-jury_base_role_slack = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Slack)", starterkit = jury_starterkit_slack, is_base_role = True, user_group = "all")
+jury_base_role_slack = GenericRole.objects.create(
+    role_name="Jury: Base User",
+    name="Jury: Base User (Slack)",
+    starterkit=jury_starterkit_slack,
+    is_base_role=True,
+    user_group="all",
+)
 
-jury_base_role_reddit = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Reddit)", starterkit = jury_starterkit_reddit, is_base_role = True, user_group = "all")
+jury_base_role_reddit = GenericRole.objects.create(
+    role_name="Jury: Base User",
+    name="Jury: Base User (Reddit)",
+    starterkit=jury_starterkit_reddit,
+    is_base_role=True,
+    user_group="all",
+)
 
-jury_base_role_discord = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Discord)", starterkit = jury_starterkit_discord, is_base_role = True, user_group = "all")
+jury_base_role_discord = GenericRole.objects.create(
+    role_name="Jury: Base User",
+    name="Jury: Base User (Discord)",
+    starterkit=jury_starterkit_discord,
+    is_base_role=True,
+    user_group="all",
+)
 
-jury_base_role_discourse = GenericRole.objects.create(role_name = "Jury: Base User", name = "Jury: Base User (Discourse)", starterkit = jury_starterkit_discourse, is_base_role = True, user_group = "all")
+jury_base_role_discourse = GenericRole.objects.create(
+    role_name="Jury: Base User",
+    name="Jury: Base User (Discourse)",
+    starterkit=jury_starterkit_discourse,
+    is_base_role=True,
+    user_group="all",
+)
 
-jury_base_const_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc']
+jury_base_const_perms = [
+    "Can add boolean vote",
+    "Can change boolean vote",
+    "Can delete boolean vote",
+    "Can view boolean vote",
+    "Can add number vote",
+    "Can change number vote",
+    "Can delete number vote",
+    "Can view number vote",
+    "Can add platformactionbundle",
+    "Can add platformpolicybundle",
+    "Can add constitutionactionbundle",
+    "Can add constitutionpolicybundle",
+    "Can add policykit add role",
+    "Can add policykit delete role",
+    "Can add policykit edit role",
+    "Can add policykit add user role",
+    "Can add policykit remove user role",
+    "Can add policykit change platform policy",
+    "Can add policykit change constitution policy",
+    "Can add policykit remove platform policy",
+    "Can add policykit remove constitution policy",
+    "Can add policykit add platform policy",
+    "Can add policykit add constitution policy",
+    "Can add policykit add community doc",
+    "Can add policykit change community doc",
+    "Can add policykit delete community doc",
+]
 
-jury_base_role_slack.plat_perm_set = json.dumps(['view', 'propose'])
+jury_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
 jury_base_role_slack.save()
 
-jury_base_role_reddit.plat_perm_set = json.dumps(['view', 'propose'])
+jury_base_role_reddit.plat_perm_set = json.dumps(["view", "propose"])
 jury_base_role_reddit.save()
 
-jury_base_role_discord.plat_perm_set = json.dumps(['view', 'propose'])
+jury_base_role_discord.plat_perm_set = json.dumps(["view", "propose"])
 jury_base_role_discord.save()
 
-jury_base_role_discourse.plat_perm_set = json.dumps(['view', 'propose'])
+jury_base_role_discourse.plat_perm_set = json.dumps(["view", "propose"])
 jury_base_role_discourse.save()
 
 for perm in jury_base_const_perms:
