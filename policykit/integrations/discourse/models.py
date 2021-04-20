@@ -52,8 +52,10 @@ class DiscourseCommunity(Community):
         try:
             resp = urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
-            logger.info('reached HTTPError')
-            logger.info(e.code)
+            logger.error('reached HTTPError')
+            logger.error(e.code)
+            error_message = e.read()
+            logger.error(error_message)
             raise
 
         resp_body = resp.read().decode('utf-8')
