@@ -182,7 +182,7 @@ class DiscourseCreatePost(PlatformAction):
     def execute(self):
         # only execute the action if it didnt originate in the community, OR if it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
-            reply = self.community.make_call('/posts.json', {'raw': self.raw})
+            reply = self.community.make_call('/posts.json', {'raw': self.raw}) #FIXME this needs to have topic_id
             self.post_id = reply['id']
             self.save()
         super().pass_action()
