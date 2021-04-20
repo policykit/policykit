@@ -10,6 +10,15 @@ from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackStar
 from policyengine.models import CommunityRole, PlatformAction, PlatformPolicy, Proposal
 from policyengine.views import check_policy, filter_policy
 
+all_actions_pass_policy = {
+    "filter": "return True",
+    "initialize": "pass",
+    "notify": "pass",
+    "check": "return PASSED",
+    "success": "pass",
+    "fail": "pass",
+}
+
 
 class EvaluationTests(TestCase):
     def setUp(self):
@@ -38,14 +47,12 @@ class EvaluationTests(TestCase):
 
     def test_close_process(self):
         # 1) Create Policy and PlatformAction
-        policy = PlatformPolicy()
-        policy.community = self.community
-        policy.filter = "return True"
-        policy.initialize = """
+        policy_code = {
+            **all_actions_pass_policy,
+            "initialize": """
 metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
-"""
-        policy.notify = ""
-        policy.check = """
+""",
+            "check": """
 result = metagov.close_process()
 action.data.set('status', result.status)
 action.data.set('outcome', result.outcome)
@@ -57,11 +64,14 @@ if result.errors:
 if result.outcome:
     return PASSED if result.outcome.get('winner') else FAILED
 return FAILED
-"""
-        policy.success = "pass"
-        policy.fail = "pass"
-        policy.description = "test"
-        policy.name = "test policy"
+""",
+        }
+        policy = PlatformPolicy(
+            **policy_code,
+            community=self.community,
+            description="test",
+            name="test policy",
+        )
         policy.save()
 
         action = SlackPinMessage()
@@ -171,6 +181,33 @@ return FAILED"""
 
         self.assertEqual(action.proposal.status, "passed")
 
+    def test_policy_order(self):
+        first_policy = PlatformPolicy.objects.create(
+            **all_actions_pass_policy,
+            community=self.community,
+            name="policy that passes",
+        )
+
+        # new action should pass
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.community)
+        self.assertEqual(action.proposal.status, "passed")
+
+        second_policy = PlatformPolicy.objects.create(
+            **{**all_actions_pass_policy, "check": "return FAILED"},
+            community=self.community,
+            name="policy that fails",
+        )
+
+        # new action should fail, because of most recent policy
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.community)
+        self.assertEqual(action.proposal.status, "failed")
+
+        first_policy.description = "updated description"
+        first_policy.save()
+        # new action should pass, "first_policy" is now most recent
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.community)
+        self.assertEqual(action.proposal.status, "passed")
+
 
 class MetagovPlatformActionTest(TestCase):
     def setUp(self):
@@ -178,7 +215,11 @@ class MetagovPlatformActionTest(TestCase):
         p1 = Permission.objects.get(name="Can add slack pin message")
         user_group.permissions.add(p1)
         self.community = SlackCommunity.objects.create(
-            community_name="test community", team_id="test123", bot_id="test", access_token="test", base_role=user_group
+            community_name="test community",
+            team_id="test123",
+            bot_id="test",
+            access_token="test",
+            base_role=user_group,
         )
 
     def test_metagov_trigger(self):
@@ -196,7 +237,6 @@ and action.event_type == 'discourse.post_created'"""
         policy.description = "test"
         policy.name = "test policy"
         policy.save()
-
 
         event_payload = {
             "community": metagov_slug(self.community),
@@ -216,7 +256,8 @@ and action.event_type == 'discourse.post_created'"""
 
         action = MetagovPlatformAction.objects.filter(event_type="discourse.post_created").first()
 
-        self.assertEqual(action.community.platform, "slack") ## the action.community is the community that is connected to metagov
+        # the action.community is the community that is connected to metagov
+        self.assertEqual(action.community.platform, "slack")
         self.assertEqual(action.initiator.username, "discourse.miriam")
         self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
         self.assertEqual(action.data.get("test_verify_username"), "miriam")

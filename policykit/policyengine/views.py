@@ -35,10 +35,10 @@ def v2(request):
     user = get_user(request)
 
     users = CommunityUser.objects.filter(community=user.community)
-    roles = CommunityRole.objects.filter(community=user.community)
-    docs = CommunityDoc.objects.filter(community=user.community)
-    platform_policies = PlatformPolicy.objects.filter(community=user.community)
-    constitution_policies = ConstitutionPolicy.objects.filter(community=user.community)
+    roles = user.community.get_roles()
+    docs = user.community.get_documents()
+    platform_policies = user.community.get_platform_policies()
+    constitution_policies = user.community.get_constitution_policies()
 
     # Indexing entries by username/name allows retrieval in O(1) rather than O(n)
     user_data = {}
@@ -256,9 +256,9 @@ def selectpolicy(request):
     operation = request.GET.get('operation')
 
     if type == 'Platform':
-        policies = PlatformPolicy.objects.filter(community=user.community)
+        policies = user.community.get_platform_policies()
     elif type == 'Constitution':
-        policies = ConstitutionPolicy.objects.filter(community=user.community)
+        policies = user.community.get_constitution_policies()
     else:
         return HttpResponseBadRequest()
 
@@ -675,6 +675,7 @@ def document_action_remove(request):
 def execute_policy(policy, action, is_first_evaluation: bool):
     """
     Execute policy for given action. This can be run repeatedly to check proposed actions.
+    Return 'True' if action passed the filter, 'False' otherwise.
     """
     if filter_policy(policy, action):
         from policyengine.models import Proposal
@@ -722,3 +723,7 @@ def execute_policy(policy, action, is_first_evaluation: bool):
         else:
             # do nothing, it's still pending
             pass
+
+        return True
+    else:
+        return False

@@ -52,8 +52,10 @@ class DiscourseCommunity(Community):
         try:
             resp = urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
-            logger.info('reached HTTPError')
-            logger.info(e.code)
+            logger.error('reached HTTPError')
+            logger.error(e.code)
+            error_message = e.read()
+            logger.error(error_message)
             raise
 
         resp_body = resp.read().decode('utf-8')
@@ -150,7 +152,8 @@ class DiscourseCreateTopic(PlatformAction):
         super().revert(values, call, method='DELETE')
 
     def execute(self):
-        if not self.community_revert:
+        # only execute the action if it didnt originate in the community, OR if it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
             topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
 
             self.topic_id = topic['id']
@@ -179,8 +182,9 @@ class DiscourseCreatePost(PlatformAction):
         super().revert(values, call, method='DELETE')
 
     def execute(self):
-        if not self.community_revert:
-            reply = self.community.make_call('/posts.json', {'raw': self.raw})
+        # only execute the action if it didnt originate in the community, OR if it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            reply = self.community.make_call('/posts.json', {'raw': self.raw}) #FIXME this needs to have topic_id
             self.post_id = reply['id']
             self.save()
         super().pass_action()
