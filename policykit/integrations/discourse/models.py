@@ -163,6 +163,7 @@ class DiscourseCreateTopic(PlatformAction):
             # will flag re-created topic as repetitive post and fail it with
             # a 422 error: "Title has already been used".
             self.community.make_call(f"/t/{self.topic_id}/recover", method='PUT')
+            self.community_revert = False
 
         super().pass_action()
 
