@@ -19,7 +19,7 @@ Welcome to the Docs for PolicyKit!
    :maxdepth: 3
    :caption: TUTORIALS
 
-   tutorial_hello_world
+   tutorial_message_filter
 
 .. toctree::
    :maxdepth: 3
