@@ -57,7 +57,6 @@ class DiscordCommunity(Community):
         self.save()
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
-        logger.info('entered notify_action')
         from integrations.discord.views import post_policy
         post_policy(policy, action, users, template, channel)
 
@@ -83,8 +82,10 @@ class DiscordCommunity(Community):
         try:
             resp = urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
-            logger.info('reached HTTPError')
-            logger.info(e.code)
+            logger.error('reached HTTPError')
+            logger.error(e.code)
+            error_message = e.read()
+            logger.error(error_message)
             raise
 
         res = resp.read().decode('utf-8')
@@ -99,9 +100,7 @@ class DiscordCommunity(Community):
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
-            logger.info('EXECUTING ACTION BELOW:')
             call = self.API + obj.ACTION
-            logger.info(call)
 
             obj_fields = []
             for f in obj._meta.get_fields():
@@ -166,28 +165,12 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-    guild_id = None
-    id = None
-    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
-
-    """def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.guild_id = self.community.team_id
-
-        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % self.guild_id)
-        req.add_header("Content-Type", "application/x-www-form-urlencoded")
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
-        channels = json.loads(resp.read().decode('utf-8'))
-
-        for c in channels:
-            self.choices.append((c['id'], c['name']))"""
-
+    guild_id = models.IntegerField()
+    channel_id = models.IntegerField()
+    message_id = models.IntegerField()
     text = models.TextField()
-    channel = models.CharField(max_length=18, choices=choices)
 
-    ACTION = 'channels/{0}/messages'.format(channel)
+    ACTION = f"channels/{channel_id}/messages"
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
@@ -200,42 +183,28 @@ class DiscordPostMessage(PlatformAction):
         )
 
     def revert(self):
-        values = {}
-        super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
+        super().revert({}, "channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
     def execute(self):
-        from policyengine.models import LogAPICall
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            message = self.community.make_call(f"channels/{self.channel_id}/messages", {'content': self.text})
 
-        logger.info('executing action')
-
-        data = {
-            'content': self.text
-        }
-
-        call = ('channels/%s/messages' % self.channel)
-
-        res = self.community.make_call(call, values=data)
-        self.id = res['id']
-        data['id'] = self.id
-        self.community_post = self.id
-        _ = LogAPICall.objects.create(community=self.community,
-                                      call_type=call,
-                                      extra_info=json.dumps(data))
-
-        logger.info('finished executing action: ' + self.community_post)
+            self.message_id = message['id']
+            self.community_post = self.message_id
+            self.save()
 
         super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
-
-    guild_id = None
-    id = None
-    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
-
-    channel = models.CharField(max_length=18, choices=choices)
+    guild_id = models.IntegerField()
+    channel_id = models.IntegerField()
     name = models.TextField()
 
-    ACTION = 'channels/{0}'.format(channel)
+    # Store old name so we can revert the action if necessary
+    name_old = models.TextField()
+
+    ACTION = f"channels/{channel_id}"
     AUTH = 'user'
 
     action_codename = 'discordrenamechannel'
@@ -248,14 +217,11 @@ class DiscordRenameChannel(PlatformAction):
         )
 
     def execute(self):
-        data = json.dumps({"name": self.name}).encode('utf-8')
-        call_info = self.community.API + ('channels/%s' % self.channel)
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            self.community.make_call(f"channels/{self.channel_id}")
+            self.community.make_call(f"channels/{self.channel_id}", {'name': self.name}, method='PATCH')
 
-        req = urllib.request.Request(call_info, data, method='PATCH')
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header('Content-Type', 'application/json')
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
         super().pass_action()
 
 class DiscordStarterKit(StarterKit):
