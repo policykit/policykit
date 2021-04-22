@@ -8,7 +8,7 @@ from integrations.slack.models import SlackStarterKit
 from policyengine.models import *
 from polymorphic.models import PolymorphicModel
 
-# default starterkit -- all users have ability to view/propose actions + all actions pass automatically
+# default starterkit -- all users have ability to view/propose actions + all constitution actions execute automatically
 testing_starterkit_slack = SlackStarterKit(name="Testing Starter Kit", platform="slack")
 testing_starterkit_slack.save()
 
@@ -30,9 +30,18 @@ all_actions_pass = {
     "fail": "pass",
 }
 
+all_actions_execute = {
+    "filter": "return True",
+    "initialize": "pass",
+    "check": "return PASSED",
+    "notify": "pass",
+    "success": "action.execute()",
+    "fail": "pass",
+}
+
 testing_policy1_slack = GenericPolicy.objects.create(
-    **all_actions_pass,
-    description="Starter Constitution Policy: all constitution actions pass automatically",
+    **all_actions_execute,
+    description="Starter Constitution Policy: all constitution actions execute automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_slack,
     is_constitution=True,
@@ -49,8 +58,8 @@ testing_policy2_slack = GenericPolicy.objects.create(
 )
 
 testing_policy1_reddit = GenericPolicy.objects.create(
-    **all_actions_pass,
-    description="Starter Constitution Policy: all constitution actions pass automatically",
+    **all_actions_execute,
+    description="Starter Constitution Policy: all constitution actions execute automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_reddit,
     is_constitution=True,
@@ -67,8 +76,8 @@ testing_policy2_reddit = GenericPolicy.objects.create(
 )
 
 testing_policy1_discord = GenericPolicy.objects.create(
-    **all_actions_pass,
-    description="Starter Constitution Policy: all constitution actions pass automatically",
+    **all_actions_execute,
+    description="Starter Constitution Policy: all constitution actions execute automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_discord,
     is_constitution=True,
@@ -76,12 +85,7 @@ testing_policy1_discord = GenericPolicy.objects.create(
 )
 
 testing_policy2_discord = GenericPolicy.objects.create(
-    filter="return True",
-    initialize="pass",
-    check="return PASSED",
-    notify="pass",
-    success="action.execute()",
-    fail="pass",
+    **all_actions_pass,
     description="Starter Platform Policy: all platform actions pass automatically",
     name="All Platform Actions Pass",
     starterkit=testing_starterkit_discord,
@@ -90,8 +94,8 @@ testing_policy2_discord = GenericPolicy.objects.create(
 )
 
 testing_policy1_discourse = GenericPolicy.objects.create(
-    **all_actions_pass,
-    description="Starter Constitution Policy: all constitution actions pass automatically",
+    **all_actions_execute,
+    description="Starter Constitution Policy: all constitution actions execute automatically",
     name="All Constitution Actions Pass",
     starterkit=testing_starterkit_discourse,
     is_constitution=True,
