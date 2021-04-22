@@ -200,8 +200,6 @@ class DiscordRenameChannel(PlatformAction):
     guild_id = models.IntegerField()
     channel_id = models.IntegerField()
     name = models.TextField()
-
-    # Store old name so we can revert the action if necessary
     name_old = models.TextField()
 
     ACTION = f"channels/{channel_id}"
@@ -216,10 +214,17 @@ class DiscordRenameChannel(PlatformAction):
             ('can_execute_discordrenamechannel', 'Can execute discord rename channel'),
         )
 
+    def revert(self):
+        super().revert({'name': self.name_old}, f"channels/{self.channel_id}", method='PATCH')
+
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
-            self.community.make_call(f"channels/{self.channel_id}")
+            # Retrieve and store old channel name so we can revert the action if necessary
+            channel = self.community.make_call(f"channels/{self.channel_id}")
+            self.name_old = channel['name']
+
+            # Update the channel name to the new name
             self.community.make_call(f"channels/{self.channel_id}", {'name': self.name}, method='PATCH')
 
         super().pass_action()
