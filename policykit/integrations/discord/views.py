@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
-from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
-from policyengine.models import *
+from django.conf import settings
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
+from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
+from policyengine.models import *
+from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
 from urllib import parse
 import urllib.request
 import json
@@ -59,21 +60,25 @@ def on_open(wsapp):
     rt.daemon = True
     rt.start()
 
-def is_policykit_action(community, call_type, message):
-    if message['author']['id'] == DISCORD_CLIENT_ID:
-        return True
-    else:
-        current_time_minus = datetime.datetime.now() - datetime.timedelta(minutes=2)
-        logs = LogAPICall.objects.filter(
-            proposal_time__gte=current_time_minus,
-            call_type=call_type
-        )
-        if logs.exists():
-            for log in logs:
-                j_info = json.loads(log.extra_info)
-                if message['id'] == j_info['id']:
-                    return True
-    return False
+def should_create_action(community, call_type, message):
+    # If message already has an object, don't create a new object for it.
+    if DiscordPostMessage.objects.filter(guild_id=message['guild_id'], channel_id=message['channel_id'], message_id=message['id']):
+        return False
+
+    created_at = message['timestamp'] # ISO8601 timestamp
+    created_at = datetime.datetime.fromisoformat(created_at)
+
+    now = datetime.datetime.now()
+    now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware
+
+    # If message is more than twice the Celery beat frequency seconds old,
+    # don't create an object for it. This way, we only create objects for
+    # messages created after PolicyKit has been installed to the community.
+    recent_time = 2 * settings.CELERY_BEAT_FREQUENCY
+    if now - created_at > datetime.timedelta(seconds=recent_time):
+        return False
+
+    return True
 
 def handle_ready_event(data):
     global session_id
@@ -84,12 +89,13 @@ def handle_message_create_event(data):
     community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
     call_type = ('channels/%s/messages' % data['channel_id'])
 
-    if not is_policykit_action(community, call_type, data):
+    if should_create_action(community, call_type, data):
         action = DiscordPostMessage()
         action.community = community
         action.text = data['content']
-        action.channel = data['channel_id']
-        action.id = data['id']
+        action.guild_id = data['guild_id']
+        action.channel_id = data['channel_id']
+        action.message_id = data['message_id']
         u,_ = DiscordUser.objects.get_or_create(username=data['author']['id'],
                                                 community=community)
         action.initiator = u
