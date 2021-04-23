@@ -168,7 +168,7 @@ def on_message(wsapp, message):
         ack_received = True
 
 def on_error(wsapp, error):
-    logger.error(error)
+    logger.error(f'[discord] Websocket error: {error}')
 
 def on_close(wsapp, code, reason):
     logger.error(f'[discord] Connection to Discord gateway closed with error code {code}')
@@ -187,8 +187,6 @@ def connect_gateway():
 connect_gateway()
 
 def oauth(request):
-    logger.info(request)
-
     state = request.GET.get('state')
     code = request.GET.get('code')
     guild_id = request.GET.get('guild_id')
@@ -235,21 +233,15 @@ def oauth(request):
             community = DiscordCommunity.objects.create(
                 community_name=guild_info['name'],
                 team_id=guild_id,
-                access_token=res['access_token'],
-                refresh_token=res['refresh_token'],
                 base_role=user_group
             )
             user_group.community = community
             user_group.save()
 
             # Get the list of users and create a DiscordUser object for each user
-            req = urllib.request.Request('https://discordapp.com/api/guilds/%s/members?limit=1000' % guild_id) # NOTE: Can only have up to 1000 members per server!
-            req.add_header("Content-Type", "application/json")
-            req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-            req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-            resp = urllib.request.urlopen(req)
-            guild_members = json.loads(resp.read().decode('utf-8'))
-            owner_id = res['guild']['owner_id']
+            guild_members = community.make_call(f'https://discordapp.com/api/guilds/{guild_id}/members?limit=1000')
+
+            owner_id = guild_members['guild']['owner_id']
             for member in guild_members:
                 user, _ = DiscordUser.objects.get_or_create(
                     username=member['user']['id'],
@@ -263,8 +255,6 @@ def oauth(request):
             community = s[0]
             community.community_name = guild_info['name']
             community.team_id = guild_id
-            community.access_token = res['access_token']
-            community.refresh_token = res['refresh_token']
             community.save()
 
             return redirect('/login?success=true')
@@ -278,30 +268,12 @@ def oauth(request):
 
     return redirect('/login?error=no_owned_guilds_found')
 
-@csrf_exempt
-def action(request):
-    json_data = json.loads(request.body)
-    logger.info('RECEIVED ACTION')
-    logger.info(json_data)
-
 def post_policy(policy, action, users=None, template=None, channel=None):
-    from policyengine.models import LogAPICall
-
     policy_message = "This action is governed by the following policy: " + policy.name
     if template:
         policy_message = template
 
-    data = {
-        'content': policy_message
-    }
-
-    call = ('channels/%s/messages' % channel)
-
-    res = policy.community.make_call(call, values=data)
-    data['id'] = res['id']
-    _ = LogAPICall.objects.create(community=policy.community,
-                                  call_type=call,
-                                  extra_info=json.dumps(data))
+    res = policy.community.make_call(f'channels/{channel}/messages', values={'content': policy_message})
 
     if action.action_type == "PlatformAction":
         action.community_post = res['id']
