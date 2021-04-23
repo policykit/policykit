@@ -145,18 +145,26 @@ class DiscourseCreateTopic(PlatformAction):
         )
 
     def revert(self):
-        logger.info('discourse topic revert')
         values = {}
         call = f"/t/{self.topic_id}.json"
         super().revert(values, call, method='DELETE')
 
     def execute(self):
-        # only execute the action if it didnt originate in the community, OR if it was previously reverted
-        if not self.community_origin or (self.community_origin and self.community_revert):
+        # Execute action if it didnt originate in the community
+        if not self.community_origin:
             topic = self.community.make_call('/posts.json', {'title': self.title, 'raw': self.raw, 'category': self.category})
 
             self.topic_id = topic['id']
             self.save()
+
+        # Execute action if it was previously reverted
+        if self.community_origin and self.community_revert:
+            # Recover topic rather than re-creating because otherwise Discourse
+            # will flag re-created topic as repetitive post and fail it with
+            # a 422 error: "Title has already been used".
+            self.community.make_call(f"/t/{self.topic_id}/recover", method='PUT')
+            self.community_revert = False
+
         super().pass_action()
 
 class DiscourseCreatePost(PlatformAction):

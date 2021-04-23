@@ -696,6 +696,7 @@ def execute_policy(policy, action, is_first_evaluation: bool):
         if check_result == Proposal.PASSED:
             # run "pass" block of policy
             pass_policy(policy, action)
+            logger.info(f"{log_prefix} Executed pass block of policy")
             # mark action proposal as 'passed'
             action.pass_action()
             assert(action.proposal.status == Proposal.PASSED)
@@ -703,6 +704,7 @@ def execute_policy(policy, action, is_first_evaluation: bool):
         elif check_result == Proposal.FAILED:
             # run "fail" block of policy
             fail_policy(policy, action)
+            logger.info(f"{log_prefix} Executed fail block of policy")
             # mark action proposal as 'failed'
             action.fail_action()
             assert(action.proposal.status == Proposal.FAILED)
