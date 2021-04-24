@@ -260,7 +260,7 @@ def oauth(request):
             user_group.save()
 
             # Get the list of users and create a DiscordUser object for each user
-            guild_members = community.make_call(f'https://discordapp.com/api/guilds/{guild_id}/members?limit=1000')
+            guild_members = community.make_call(f'guilds/{guild_id}/members?limit=1000')
 
             owner_id = guild_members['guild']['owner_id']
             for member in guild_members:
