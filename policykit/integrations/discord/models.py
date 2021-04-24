@@ -71,7 +71,6 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-    guild_id = models.IntegerField()
     channel_id = models.IntegerField()
     message_id = models.IntegerField()
     text = models.TextField()
@@ -103,7 +102,6 @@ class DiscordPostMessage(PlatformAction):
         super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
-    guild_id = models.IntegerField()
     channel_id = models.IntegerField()
     name = models.TextField()
     name_old = models.TextField()

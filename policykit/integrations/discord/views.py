@@ -60,9 +60,11 @@ def on_open(wsapp):
     rt.daemon = True
     rt.start()
 
-def should_create_action(community, call_type, message):
+def should_create_action(message):
     # If message already has an object, don't create a new object for it.
-    if DiscordPostMessage.objects.filter(guild_id=message['guild_id'], channel_id=message['channel_id'], message_id=message['id']):
+    # We only filter on message IDs because they are generated using Twitter
+    # snowflakes, which are universally unique across all Discord servers.
+    if DiscordPostMessage.objects.filter(message_id=message['id']):
         return False
 
     created_at = message['timestamp'] # ISO8601 timestamp
@@ -85,17 +87,17 @@ def handle_ready_event(data):
     session_id = data['session_id']
 
 def handle_message_create_event(data):
-    logger.info(f'[discord] Received new message in channel {data["channel_id"]}')
-    community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
-    call_type = ('channels/%s/messages' % data['channel_id'])
+    if should_create_action(data):
+        logger.info(f'[discord] Creating message object in channel {data["channel_id"]}: {data["content"]}')
 
-    if should_create_action(community, call_type, data):
+        community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
+
         action = DiscordPostMessage()
         action.community = community
         action.text = data['content']
-        action.guild_id = data['guild_id']
         action.channel_id = data['channel_id']
         action.message_id = data['message_id']
+
         u,_ = DiscordUser.objects.get_or_create(username=data['author']['id'],
                                                 community=community)
         action.initiator = u
@@ -105,6 +107,8 @@ def handle_message_create_event(data):
 def handle_event(name, data):
     if name == 'READY':
         handle_ready_event(data)
+    elif name == 'GUILD_CREATE':
+
     else:
         action = None
 
@@ -114,7 +118,7 @@ def handle_event(name, data):
         if action is not None:
             action.community_origin = True
             action.is_bundled = False
-            action.save() # save triggers policy evaluation
+            action.save()
 
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
