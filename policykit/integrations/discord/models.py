@@ -21,6 +21,13 @@ DISCORD_VIEW_PERMS = ['Can view discord post message', 'Can view discord rename 
 DISCORD_PROPOSE_PERMS = ['Can add discord post message', 'Can add discord rename channel']
 DISCORD_EXECUTE_PERMS = ['Can execute discord post message', 'Can execute discord rename channel']
 
+# Storing basic info of Discord channels to prevent repeated calls to Discord
+# gateway for channel information.
+class DiscordChannel(models.Model):
+    guild_id = models.IntegerField()
+    channel_id = models.IntegerField()
+    channel_name = models.TextField()
+
 class DiscordCommunity(Community):
     API = 'https://discordapp.com/api/'
     platform = "discord"
@@ -121,6 +128,11 @@ class DiscordRenameChannel(PlatformAction):
     def revert(self):
         super().revert({'name': self.name_old}, f"channels/{self.channel_id}", method='PATCH')
 
+        # Update DiscordChannel object
+        c = DiscordChannel.objects.filter(channel_id=self.channel_id)
+        c['channel_name'] = self.name_old
+        c.save()
+
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
@@ -130,6 +142,11 @@ class DiscordRenameChannel(PlatformAction):
 
             # Update the channel name to the new name
             self.community.make_call(f"channels/{self.channel_id}", {'name': self.name}, method='PATCH')
+
+            # Update DiscordChannel object
+            c = DiscordChannel.objects.filter(channel_id=self.channel_id)
+            c['channel_name'] = self.name
+            c.save()
 
         super().pass_action()
 

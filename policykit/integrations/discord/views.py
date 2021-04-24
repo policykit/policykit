@@ -5,7 +5,7 @@ from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 from policyengine.models import *
-from integrations.discord.models import DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
+from integrations.discord.models import DiscordChannel, DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
 from urllib import parse
 import urllib.request
 import json
@@ -86,11 +86,28 @@ def handle_ready_event(data):
     global session_id
     session_id = data['session_id']
 
+def handle_guild_create_event(data):
+    # Populate the DiscordChannel objects
+    for channel in data['channels']:
+        c = DiscordChannel.objects.filter(channel_id=channel['id'])
+        if c.exists():
+            c = c[0]
+            c['channel_name'] = channel['name']
+            c.save()
+        else:
+            c = DiscordChannel.objects.create(
+                guild_id=data['id'],
+                channel_id=channel['id'],
+                channel_name=channel['name']
+            )
+
 def handle_message_create_event(data):
     if should_create_action(data):
-        logger.info(f'[discord] Creating message object in channel {data["channel_id"]}: {data["content"]}')
+        channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
+        guild_id = channel['guild_id']
+        community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
-        community = DiscordCommunity.objects.filter(team_id=data['guild_id'])[0]
+        logger.info(f'[discord] Creating message object in channel {channel["channel_name"]}: {data["content"]}')
 
         action = DiscordPostMessage()
         action.community = community
@@ -108,7 +125,7 @@ def handle_event(name, data):
     if name == 'READY':
         handle_ready_event(data)
     elif name == 'GUILD_CREATE':
-
+        handle_guild_create_event(data)
     else:
         action = None
 
@@ -250,7 +267,7 @@ def oauth(request):
                 user, _ = DiscordUser.objects.get_or_create(
                     username=member['user']['id'],
                     readable_name=member['user']['username'],
-                    avatar = member['user']['avatar'],
+                    avatar=member['user']['avatar'],
                     community=community,
                     is_community_admin=(member['user']['id'] == owner_id)
                 )
@@ -273,11 +290,25 @@ def oauth(request):
     return redirect('/login?error=no_owned_guilds_found')
 
 def post_policy(policy, action, users=None, template=None, channel=None):
-    policy_message = "This action is governed by the following policy: " + policy.name
+    message = "This action is governed by the following policy: " + policy.name
     if template:
-        policy_message = template
+        message = template
 
-    res = policy.community.make_call(f'channels/{channel}/messages', values={'content': policy_message})
+    # User can input either channel_id or channel_name as channel parameter.
+    # Here, we must check whether the user entered a valid channel_id. If not,
+    # we check if the user entered a valid channel_name.
+    channel_id = None
+    c = DiscordChannel.objects.filter(channel_id=channel)
+    if c.exists():
+        channel_id = c[0]
+    else:
+        c = DiscordChannel.objects.filter(guild_id=policy.community.team_id, channel_name=channel)
+        if c.exists():
+            channel_id = c[0]
+    if channel_id == None:
+        return
+
+    res = policy.community.make_call(f'channels/{channel_id}/messages', values={'content': message})
 
     if action.action_type == "PlatformAction":
         action.community_post = res['id']
