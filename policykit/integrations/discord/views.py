@@ -303,6 +303,7 @@ def oauth(request):
 
     return redirect('/login?error=no_owned_guilds_found')
 
+@csrf_exempt
 def auth(request, guild_id=None, access_token=None):
     if not guild_id: # Redirected from Configure page
         guild_id = request.POST['guild_id']
