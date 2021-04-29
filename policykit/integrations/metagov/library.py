@@ -4,7 +4,7 @@ import logging
 import requests
 from django.conf import settings
 from django.utils.text import slugify
-from integrations.metagov.models import ExternalProcess
+from integrations.metagov.models import MetagovProcess
 from policyengine.models import Community
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class Metagov:
         Kick off a governance process in metagov, and pass along a callback_url to
         be invoked whent the process completes.
         """
-        model = ExternalProcess.objects.create(policy=self.policy, action=self.action)
+        model = MetagovProcess.objects.create(policy=self.policy, action=self.action)
 
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
         payload["callback_url"] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
@@ -82,11 +82,11 @@ class Metagov:
 
     def close_process(self) -> DecisionResult:
         try:
-            model = ExternalProcess.objects.get(policy=self.policy, action=self.action)
-        except ExternalProcess.DoesNotExist:
-            raise Exception("ExternalProcess not found")
+            model = MetagovProcess.objects.get(policy=self.policy, action=self.action)
+        except MetagovProcess.DoesNotExist:
+            raise Exception("MetagovProcess not found")
         if not model.location:
-            raise Exception("ExternalProcess missing location")
+            raise Exception("MetagovProcess missing location")
         logger.info(f"Making request to close process at '{model.location}'")
         resource_url = f"{settings.METAGOV_URL}{model.location}"
         response = requests.delete(resource_url)
@@ -98,7 +98,7 @@ class Metagov:
         return DecisionResult(data)
 
     def get_process_outcome(self) -> DecisionResult:
-        model = ExternalProcess.objects.filter(policy=self.policy, action=self.action).first()
+        model = MetagovProcess.objects.filter(policy=self.policy, action=self.action).first()
         if model and model.json_data:
             data = json.loads(model.json_data)
             # json_data is only present when external process is completed

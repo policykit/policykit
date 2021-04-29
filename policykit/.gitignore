@@ -3,7 +3,6 @@ private.py
 db.sqlite3
 .project
 static/*
-*migrations*
 .DS_Store
 env
 .vscode

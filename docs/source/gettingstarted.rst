@@ -57,6 +57,8 @@ From the shell prompt, run the following command to create the starterkits:
 
  exec(open('scripts/starterkits.py').read())
 
+Open PolicyKit in the browser at http://localhost:8000/main
+
 Troubleshooting
 ---------------------------
 
@@ -257,6 +259,8 @@ Running PolicyKit in Production
 
  sudo systemctl status celery
  sudo systemctl status celerybeat
+
+| Once things are up and running, you should be able to access the PolicyKit editor in the browser at ``https://<your domain>/main``.
 
 Troubleshooting
 ----------------

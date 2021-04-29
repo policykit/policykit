@@ -10,7 +10,7 @@ from policyengine.models import (Community, CommunityRole, CommunityUser,
 logger = logging.getLogger(__name__)
 
 
-class ExternalProcess(models.Model):
+class MetagovProcess(models.Model):
     location = models.CharField(max_length=100, blank=True)
     json_data = models.CharField(max_length=500, blank=True, null=True)
     policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
