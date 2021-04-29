@@ -22,11 +22,6 @@ logger = logging.getLogger(__name__)
 def homepage(request):
     return render(request, 'home.html', {})
 
-def create_metagov(policy, action):
-    if METAGOV_ENABLED:
-        from integrations.metagov.library import Metagov
-        return Metagov(policy, action)
-    return None
 
 @login_required(login_url='/login')
 def v2(request):
@@ -334,11 +329,11 @@ def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
         logger.exception('Got exception in exec_code:')
         raise
 
-def filter_policy(policy, action):
+def filter_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = create_metagov(policy, action)
+
     _locals = locals()
 
     wrapper_start = "def filter(policy, action, users, metagov):\r\n"
@@ -352,11 +347,10 @@ def filter_policy(policy, action):
     else:
         return False
 
-def initialize_policy(policy, action):
+def initialize_policy(policy, action, metagov=None):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = create_metagov(policy, action)
 
     _locals = locals()
     _globals = globals()
@@ -367,13 +361,13 @@ def initialize_policy(policy, action):
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, _globals, _locals)
 
-def check_policy(policy, action):
+def check_policy(policy, action, metagov=None):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
     users = CommunityUser.objects.filter(community=policy.community)
     boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
     number_votes = NumberVote.objects.filter(proposal=action.proposal)
-    metagov = create_metagov(policy, action)
+
 
     _locals = locals()
 
@@ -389,11 +383,10 @@ def check_policy(policy, action):
     else:
         return Proposal.PROPOSED
 
-def notify_policy(policy, action):
+def notify_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = create_metagov(policy, action)
 
     _locals = locals()
 
@@ -403,11 +396,11 @@ def notify_policy(policy, action):
 
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
-def pass_policy(policy, action):
+def pass_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = create_metagov(policy, action)
+
     _locals = locals()
 
     wrapper_start = "def success(policy, action, users, metagov):\r\n"
@@ -416,11 +409,11 @@ def pass_policy(policy, action):
 
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
-def fail_policy(policy, action):
+def fail_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-    metagov = create_metagov(policy, action)
+
     _locals = locals()
 
     wrapper_start = "def fail(policy, action, users, metagov):\r\n"
@@ -677,55 +670,71 @@ def execute_policy(policy, action, is_first_evaluation: bool):
     Execute policy for given action. This can be run repeatedly to check proposed actions.
     Return 'True' if action passed the filter, 'False' otherwise.
     """
-    if filter_policy(policy, action):
+    log_prefix = f"[{policy}][{action}]"
+    if filter_policy(policy, action, metagov=None):
         from policyengine.models import Proposal
 
         log_prefix = f"[{policy}][{action}]"
         logger.info(f"{log_prefix} Passed filter")
 
+        optional_args = {}
+        if METAGOV_ENABLED:
+            from integrations.metagov.library import Metagov
+
+            optional_args["metagov"] = Metagov(policy, action)
+
         # If policy is being evaluated for the first time, initialize it
         if is_first_evaluation:
             logger.info(f"{log_prefix} Initializing")
             # run "initialize" block of policy
-            initialize_policy(policy, action)
+            initialize_policy(policy, action, **optional_args)
 
         # Run "check" block of policy
-        check_result = check_policy(policy, action)
+        check_result = check_policy(policy, action, **optional_args)
         logger.info(f"{log_prefix} Check returned {check_result}")
 
         if check_result == Proposal.PASSED:
             # run "pass" block of policy
-            pass_policy(policy, action)
+            pass_policy(policy, action, **optional_args)
             logger.info(f"{log_prefix} Executed pass block of policy")
             # mark action proposal as 'passed'
             action.pass_action()
-            assert(action.proposal.status == Proposal.PASSED)
+            assert action.proposal.status == Proposal.PASSED
+
+            if METAGOV_ENABLED:
+                # Close pending process if exists (does nothing if process was already closed)
+                optional_args["metagov"].close_process()
 
         elif check_result == Proposal.FAILED:
             # run "fail" block of policy
-            fail_policy(policy, action)
+            fail_policy(policy, action, **optional_args)
             logger.info(f"{log_prefix} Executed fail block of policy")
             # mark action proposal as 'failed'
             action.fail_action()
-            assert(action.proposal.status == Proposal.FAILED)
+            assert action.proposal.status == Proposal.FAILED
+
+            if METAGOV_ENABLED:
+                # Close pending process if exists (does nothing if process was already closed)
+                optional_args["metagov"].close_process()
 
             # If this is the first time evaluating, and it originated in a community, revert it
             if is_first_evaluation and action.community_origin:
                 action.revert()
 
         elif check_result == Proposal.PROPOSED and is_first_evaluation:
-                # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
-                if action.community_origin:
-                    logger.info(f"{log_prefix} Reverting")
-                    action.revert()
+            # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
+            if action.community_origin:
+                logger.info(f"{log_prefix} Reverting")
+                action.revert()
 
-                # Run "notify" block of policy
-                logger.info(f"{log_prefix} Notifying")
-                notify_policy(policy, action)
+            # Run "notify" block of policy
+            logger.info(f"{log_prefix} Notifying")
+            notify_policy(policy, action, **optional_args)
         else:
             # do nothing, it's still pending
             pass
 
         return True
     else:
+        logger.info(f"{log_prefix} Did not pass filter")
         return False

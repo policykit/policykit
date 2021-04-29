@@ -165,8 +165,8 @@ Use the ``metagov`` client to perform asynchronous governance processes. Here's 
 
     # "check" block polls for the process outcome
 
-    result = metagov.get_process_outcome()
-    if result is None:
+    result = metagov.get_process()
+    if result.status != "completed":
         return # still processing
     if result.errors:
         return FAILED

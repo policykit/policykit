@@ -43,7 +43,7 @@ whitelisted_modules = {
     "metagov": [
         "start_process",
         "close_process",
-        "get_process_outcome",
+        "get_process",
         "perform_action",
     ],
     "base64": [
