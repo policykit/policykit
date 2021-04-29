@@ -87,6 +87,7 @@ def handle_ready_event(data):
 def handle_guild_create_event(data):
     # Populate the DiscordChannel objects
     logger.info('in handle_guild_create_event')
+    logger.info(len(data['channels']))
     for channel in data['channels']:
         logger.info('found channel')
         logger.info(channel['id'])
