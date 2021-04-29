@@ -86,19 +86,13 @@ def handle_ready_event(data):
 
 def handle_guild_create_event(data):
     # Populate the DiscordChannel objects
-    logger.info('in handle_guild_create_event')
-    logger.info(len(data['channels']))
     for channel in data['channels']:
-        logger.info('found channel')
-        logger.info(channel['id'])
         c = DiscordChannel.objects.filter(channel_id=channel['id'])
         if c.exists():
-            logger.info('channel already exists')
             c = c[0]
             c.channel_name = channel['name']
             c.save()
         else:
-            logger.info('creating channel')
             c = DiscordChannel.objects.create(
                 guild_id=data['id'],
                 channel_id=channel['id'],
@@ -108,7 +102,6 @@ def handle_guild_create_event(data):
 
 def handle_message_create_event(data):
     if should_create_action(data):
-        logger.info('made it!')
         channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
         guild_id = channel['guild_id']
         community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
@@ -142,6 +135,14 @@ def handle_event(name, data):
             action.community_origin = True
             action.is_bundled = False
             action.save()
+
+            # While consider_proposed_actions will execute every Celery beat,
+            # we don't want to wait for the beat since using websockets we can
+            # know right away when an event is triggered in Discord. Thus, we
+            # manually call consider_proposed_actions whenever we have a new
+            # proposed action in Discord.
+            from policyengine.tasks import consider_proposed_actions
+            consider_proposed_actions()
 
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
