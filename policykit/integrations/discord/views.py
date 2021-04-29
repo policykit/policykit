@@ -64,7 +64,7 @@ def should_create_action(message):
     # If message already has an object, don't create a new object for it.
     # We only filter on message IDs because they are generated using Twitter
     # snowflakes, which are universally unique across all Discord servers.
-    if DiscordPostMessage.objects.filter(message_id=message['id']):
+    if DiscordPostMessage.objects.filter(message_id=message['id']).exists():
         return False
 
     created_at = message['timestamp'] # ISO8601 timestamp
@@ -115,7 +115,7 @@ def handle_message_create_event(data):
         action.channel_id = data['channel_id']
         action.message_id = data['message_id']
 
-        u,_ = DiscordUser.objects.get_or_create(username=data['author']['id'],
+        u,_ = DiscordUser.objects.get_or_create(username=f"{data['author']['id']}:{guild_id}",
                                                 community=community)
         action.initiator = u
 
