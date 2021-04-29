@@ -103,7 +103,7 @@ def handle_guild_create_event(data):
 def handle_message_create_event(data):
     if should_create_action(data):
         channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
-        guild_id = channel['guild_id']
+        guild_id = channel.guild_id
         community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
         logger.info(f'[discord] Creating message object in channel {channel["channel_name"]}: {data["content"]}')
