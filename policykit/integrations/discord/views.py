@@ -95,7 +95,7 @@ def handle_guild_create_event(data):
         if c.exists():
             logger.info('channel already exists')
             c = c[0]
-            c['channel_name'] = channel['name']
+            c.channel_name = channel['name']
             c.save()
         else:
             logger.info('creating channel')
