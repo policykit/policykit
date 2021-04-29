@@ -130,8 +130,9 @@ def handle_event(name, data):
 
         if name == 'MESSAGE_CREATE':
             action = handle_message_create_event(data)
+            logger.info('returned')
 
-        if action is not None:
+        if action:
             logger.info('action is not None')
             action.community_origin = True
             action.is_bundled = False
