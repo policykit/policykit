@@ -117,8 +117,6 @@ def handle_message_create_event(data):
         guild_id = channel.guild_id
         community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
-        logger.info(f'[discord] Creating message object in channel {channel.channel_name}: {data["content"]}')
-
         action = DiscordPostMessage()
         action.community = community
         action.text = data['content']
@@ -130,6 +128,8 @@ def handle_message_create_event(data):
             community=community
         )
         action.initiator = u
+
+        logger.info(f'[discord] New message in channel {channel.channel_name}: {data["content"]}')
 
         return action
 
@@ -152,6 +152,9 @@ def handle_channel_update_event(data):
         community=community
     )
     action.initiator = u
+
+    channel = DiscordChannel.objects.filter(channel_id=data['id'])[0]
+    logger.info(f'[discord] Channel {channel.channel_name} renamed to {data["content"]}')
 
     return action
 
