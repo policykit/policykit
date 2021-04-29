@@ -61,6 +61,7 @@ def on_open(wsapp):
     rt.start()
 
 def should_create_action(message):
+    logger.info('in function')
     # If message already has an object, don't create a new object for it.
     # We only filter on message IDs because they are generated using Twitter
     # snowflakes, which are universally unique across all Discord servers.
@@ -68,20 +69,27 @@ def should_create_action(message):
         logger.info('xyz')
         return False
 
+    logger.info('1')
+
     created_at = message['timestamp'] # ISO8601 timestamp
     created_at = datetime.datetime.fromisoformat(created_at)
 
+    logger.info('2')
+
     now = datetime.datetime.now()
     now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware
+
+    logger.info('3')
 
     # If message is more than twice the Celery beat frequency seconds old,
     # don't create an object for it. This way, we only create objects for
     # messages created after PolicyKit has been installed to the community.
     recent_time = 2 * settings.CELERY_BEAT_FREQUENCY
+    logger.info('4')
     if now - created_at > datetime.timedelta(seconds=recent_time):
         logger.info('abc')
         return False
-
+    logger.info('5')
     return True
 
 def handle_ready_event(data):
