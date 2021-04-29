@@ -65,6 +65,7 @@ def should_create_action(message):
     # We only filter on message IDs because they are generated using Twitter
     # snowflakes, which are universally unique across all Discord servers.
     if DiscordPostMessage.objects.filter(message_id=message['id']).exists():
+        logger.info('xyz')
         return False
 
     created_at = message['timestamp'] # ISO8601 timestamp
@@ -78,6 +79,7 @@ def should_create_action(message):
     # messages created after PolicyKit has been installed to the community.
     recent_time = 2 * settings.CELERY_BEAT_FREQUENCY
     if now - created_at > datetime.timedelta(seconds=recent_time):
+        logger.info('abc')
         return False
 
     return True
@@ -100,9 +102,12 @@ def handle_guild_create_event(data):
                 channel_id=channel['id'],
                 channel_name=channel['name']
             )
+    logger.info(f'[discord] Populated DiscordChannel objects from GUILD_CREATE event')
 
 def handle_message_create_event(data):
+    logger.info('about to check')
     if should_create_action(data):
+        logger.info('made it!')
         channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
         guild_id = channel['guild_id']
         community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
