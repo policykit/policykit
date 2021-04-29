@@ -5,7 +5,7 @@ from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 from policyengine.models import *
-from integrations.discord.models import DiscordChannel, DiscordCommunity, DiscordUser, DiscordPostMessage, DiscordStarterKit
+from integrations.discord.models import *
 from urllib import parse
 import urllib.request
 import json
@@ -60,21 +60,32 @@ def on_open(wsapp):
     rt.daemon = True
     rt.start()
 
-def should_create_action(message):
-    # If message already has an object, don't create a new object for it.
-    # We only filter on message IDs because they are generated using Twitter
-    # snowflakes, which are universally unique across all Discord servers.
-    if DiscordPostMessage.objects.filter(message_id=message['id']).exists():
+def should_create_action(message, type=None):
+    if type == None:
+        logger.error('[discord] type parameter not specified in should_create_action')
         return False
 
-    created_at = message['timestamp'] # ISO8601 timestamp
-    created_at = datetime.datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f+00:00")
+    created_at = None
+
+    if type == "MESSAGE_CREATE":
+        # If message already has an object, don't create a new object for it.
+        # We only filter on message IDs because they are generated using Twitter
+        # snowflakes which are universally unique across all Discord servers.
+        if DiscordPostMessage.objects.filter(message_id=message['id']).exists():
+            return False
+
+        created_at = message['timestamp'] # ISO8601 timestamp
+        created_at = datetime.datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f+00:00")
+
+    if created_at == None:
+        logger.error("[discord] created_at is None when it shouldn't be in should_create_action")
+        return False
 
     now = datetime.datetime.now()
 
-    # If message is more than twice the Celery beat frequency seconds old,
+    # If action is more than twice the Celery beat frequency seconds old,
     # don't create an object for it. This way, we only create objects for
-    # messages created after PolicyKit has been installed to the community.
+    # actions taken after PolicyKit has been installed to the community.
     recent_time = 2 * settings.CELERY_BEAT_FREQUENCY
     if now - created_at > datetime.timedelta(seconds=recent_time):
         return False
@@ -101,7 +112,7 @@ def handle_guild_create_event(data):
     logger.info(f'[discord] Populated DiscordChannel objects from GUILD_CREATE event')
 
 def handle_message_create_event(data):
-    if should_create_action(data):
+    if should_create_action(data, type="MESSAGE_CREATE"):
         channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
         guild_id = channel.guild_id
         community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
@@ -122,6 +133,28 @@ def handle_message_create_event(data):
 
         return action
 
+def handle_channel_update_event(data):
+    guild_id = data['guild_id']
+    community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
+
+    action = DiscordRenameChannel()
+    action.community = community
+    action.channel_id = data['id']
+    action.name = data['name']
+
+    # FIXME: User who changed channel name not passed along with CHANNEL_UPDATE
+    # event. All PlatformActions require an initiator in PolicyKit, so as a
+    # placeholder, the user who made the channel is set as the initiator.
+    # However, this is not accurate and should be changed in the future
+    # if and when possible.
+    u,_ = DiscordUser.objects.get_or_create(
+        username=f"{data['owner_id']}:{guild_id}",
+        community=community
+    )
+    action.initiator = u
+
+    return action
+
 def handle_event(name, data):
     if name == 'READY':
         handle_ready_event(data)
@@ -132,6 +165,8 @@ def handle_event(name, data):
 
         if name == 'MESSAGE_CREATE':
             action = handle_message_create_event(data)
+        elif name == 'CHANNEL_UPDATE':
+            action = handle_channel_update_event(data)
 
         if action:
             action.community_origin = True
