@@ -22,7 +22,7 @@ def should_create_action(community, call_type, topic, username):
 
     created_at = topic['created_at']
     created_at = created_at.replace("Z", "+00:00")
-    created_at = datetime.datetime.fromisoformat(created_at)
+    created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f")
 
     now = datetime.datetime.now()
     now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware

@@ -72,7 +72,7 @@ def should_create_action(message):
     logger.info('1')
 
     created_at = message['timestamp'] # ISO8601 timestamp
-    created_at = datetime.datetime.fromisoformat(created_at)
+    created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f")
 
     logger.info('2')
 
