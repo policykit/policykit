@@ -10,20 +10,14 @@ logger = logging.getLogger(__name__)
 
 class DiscordBackend(BaseBackend):
 
-    def authenticate(self, request, oauth=None):
-        if not oauth:
-            return None
-
-        guild_id = request.GET.get('guild_id')
-        logger.info(guild_id)
-
+    def authenticate(self, guild_id, access_token):
         community = DiscordCommunity.objects.filter(team_id=guild_id)
         if not community.exists():
             return None
         community = community[0]
 
         req = urllib.request.Request('https://www.discordapp.com/api/users/@me')
-        req.add_header('Authorization', 'Bearer %s' % oauth['access_token'])
+        req.add_header('Authorization', 'Bearer %s' % access_token)
         req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
         resp = urllib.request.urlopen(req)
         user_info = json.loads(resp.read().decode('utf-8'))
@@ -33,7 +27,7 @@ class DiscordBackend(BaseBackend):
         if discord_user.exists():
             # update user info
             discord_user = discord_user[0]
-            discord_user.password = oauth['access_token']
+            discord_user.password = access_token
             discord_user.community = community
             discord_user.readable_name = user_info['username']
             discord_user.avatar = user_info['avatar']
@@ -41,7 +35,7 @@ class DiscordBackend(BaseBackend):
         else:
             discord_user,_ = DiscordUser.objects.get_or_create(
                 username = user_info['id'],
-                password = oauth['access_token'],
+                password = access_token,
                 community = community,
                 readable_name = user_info['username'],
                 avatar = user_info['avatar'],
