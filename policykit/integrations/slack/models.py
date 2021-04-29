@@ -81,7 +81,7 @@ class SlackCommunity(Community):
                                   'platformaction_ptr',
                                   'data',
                                   'community_post',
-                                  'externalprocess'
+                                  'metagovprocess'
                                   ]:
                     obj_fields.append(f.name)
 
