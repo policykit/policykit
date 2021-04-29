@@ -61,7 +61,6 @@ def on_open(wsapp):
     rt.start()
 
 def should_create_action(message):
-    logger.info('in function')
     # If message already has an object, don't create a new object for it.
     # We only filter on message IDs because they are generated using Twitter
     # snowflakes, which are universally unique across all Discord servers.
@@ -72,7 +71,7 @@ def should_create_action(message):
     logger.info('1')
 
     created_at = message['timestamp'] # ISO8601 timestamp
-    created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f")
+    created_at = datetime.datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f")
 
     logger.info('2')
 
