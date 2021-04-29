@@ -231,7 +231,7 @@ def oauth(request):
     res = json.loads(resp.read().decode('utf-8'))
 
     if state == 'policykit_discord_user_login':
-        user = authenticate(request, oauth=res, platform='discord')
+        user = authenticate(request, oauth=res)
         if user:
             login(request, user)
             return redirect('/main')

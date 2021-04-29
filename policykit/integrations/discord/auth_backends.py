@@ -10,11 +10,12 @@ logger = logging.getLogger(__name__)
 
 class DiscordBackend(BaseBackend):
 
-    def authenticate(self, request, oauth=None, platform=None):
-        if not oauth or platform != "discord":
+    def authenticate(self, request, oauth=None):
+        if not oauth:
             return None
 
         guild_id = request.GET.get('guild_id')
+        logger.info(guild_id)
 
         community = DiscordCommunity.objects.filter(team_id=guild_id)
         if not community.exists():
