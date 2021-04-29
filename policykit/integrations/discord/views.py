@@ -231,7 +231,7 @@ def oauth(request):
     res = json.loads(resp.read().decode('utf-8'))
 
     if state == 'policykit_discord_user_login':
-        user = authenticate(request, guild_id, res['access_token'])
+        user = authenticate(request, guild_id=guild_id, access_token=res['access_token'])
         if user:
             login(request, user)
             return redirect('/main')
