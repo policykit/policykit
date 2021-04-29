@@ -226,23 +226,37 @@ def oauth(request):
 
     req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+    req.add_header("User-Agent", "Mozilla/5.0")
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
 
     if state == 'policykit_discord_user_login':
-        user = authenticate(request, guild_id=guild_id, access_token=res['access_token'])
-        if user:
-            login(request, user)
-            return redirect('/main')
-        else:
-            return redirect('/login?error=invalid_login')
+        access_token = res['access_token']
+
+        req = urllib.request.Request('https://www.discordapp.com/api/users/@me/guilds')
+        req.add_header('Authorization', 'Bearer %s' % access_token)
+        req.add_header("User-Agent", "Mozilla/5.0")
+        resp = urllib.request.urlopen(req)
+        guilds = json.loads(resp.read().decode('utf-8'))
+
+        integrated_guilds = []
+        for g in guilds:
+            s = DiscordCommunity.objects.filter(team_id=g['id'])
+            if s.exists():
+                integrated_guilds.append((g['id'], g['name']))
+
+        if len(integrated_guilds) == 0:
+            return redirect('/login?error=no_policykit_integrated_guilds_found')
+        elif len(integrated_guilds) == 1:
+            return auth(request, guild_id=integrated_guilds[0][0], access_token=access_token)
+        else: # If user has more than one PK-integrated Discord guild, bring user to screen to select which guild's dashboard to login to
+            return render(request, "policyadmin/configure_discord.html", { "integrated_guilds": integrated_guilds, "access_token": access_token })
 
     elif state == 'policykit_discord_mod_install':
         req = urllib.request.Request('https://discordapp.com/api/guilds/%s' % guild_id)
         req.add_header("Content-Type", "application/json")
         req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
+        req.add_header("User-Agent", "Mozilla/5.0")
         resp = urllib.request.urlopen(req)
         guild_info = json.loads(resp.read().decode('utf-8'))
 
@@ -288,6 +302,24 @@ def oauth(request):
         return render(request, "policyadmin/init_starterkit.html", context)
 
     return redirect('/login?error=no_owned_guilds_found')
+
+def auth(request, guild_id=None, access_token=None):
+    if not guild_id: # Redirected from Configure page
+        guild_id = request.POST['guild_id']
+        if not guild_id:
+            return redirect('/login?error=guild_id_missing')
+
+    if not access_token: # Redirected from Configure page
+        access_token = request.POST['access_token']
+        if not access_token:
+            return redirect('/login?error=access_token_missing')
+
+    user = authenticate(request, guild_id=guild_id, access_token=access_token)
+    if user:
+        login(request, user)
+        return redirect('/main')
+    else:
+        return redirect('/login?error=invalid_login')
 
 def post_policy(policy, action, users=None, template=None, channel=None):
     message = "This action is governed by the following policy: " + policy.name
