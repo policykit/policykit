@@ -41,6 +41,7 @@ class EvaluationTests(TestCase):
             plugins=list(
                 [
                     {"name": "randomness", "config": {"default_low": 2, "default_high": 200}},
+                    # {"name": "loomio", "config": {"api_key": ""}},
                 ]
             ),
         )
@@ -95,16 +96,16 @@ return FAILED
         policy = PlatformPolicy()
         policy.community = self.community
         policy.filter = "return True"
-        policy.initialize = "pass"
-        policy.notify = """
+        policy.initialize = """
 result = metagov.start_process("loomio.poll", {"title": "[test] policykit poll", "options": ["one", "two", "three"], "closing_at": "2021-05-11"})
-poll_url = result.get('poll_url')
+poll_url = result.outcome.get('poll_url')
 action.data.set('poll_url', poll_url)
 """
+        policy.notify = "pass"
         policy.check = """
-result = metagov.get_process_outcome()
-if result is None:
-    return #still processing
+result = metagov.get_process()
+if result.status != "completed":
+    return None #still processing
 if result.errors:
     return FAILED
 if result.outcome:
@@ -126,33 +127,10 @@ return FAILED
 
         process = MetagovProcess.objects.filter(action=action, policy=policy).first()
         self.assertIsNotNone(process)
-        self.assertEqual(process.json_data, None)
+        self.assertEqual(process.data.status, "pending")
+        self.assertTrue("https://www.loomio.org/p/" in process.data.outcome.get("poll_url"))
         self.assertEqual(action.proposal.status, "proposed")
         self.assertTrue("https://www.loomio.org/p/" in action.data.get("poll_url"))
-
-        # 3) Invoke callback URL to notify PolicyKit that process is complete
-        # FIXME make this endpoint idempotent
-        # FIXME used stored callback url instead of assuming
-
-        client = Client()
-        data = {
-            "status": "completed",
-            # 'errors': {'text': 'something went wrong'}
-            "outcome": {"value": 27},
-        }
-
-        response = client.post(f"/metagov/outcome/{process.pk}", data=data, content_type="application/json")
-        self.assertEqual(response.status_code, 200)
-
-        process.refresh_from_db()
-        action.refresh_from_db()
-        policy.refresh_from_db()
-
-        result_obj = json.loads(process.json_data)
-        self.assertEqual(result_obj, data)
-
-        result = check_policy(policy, action)
-        self.assertEqual(result, "passed")
 
     def test_perform_action(self):
         print("\nTesting perform_action from metagov\n")

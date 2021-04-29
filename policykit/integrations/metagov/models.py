@@ -1,6 +1,8 @@
 import json
 import logging
 
+import requests
+from django.conf import settings
 from django.contrib.auth.models import ContentType, Permission, User
 from django.db import models
 from policyengine.models import (Community, CommunityRole, CommunityUser,
@@ -10,7 +12,19 @@ from policyengine.models import (Community, CommunityRole, CommunityUser,
 logger = logging.getLogger(__name__)
 
 
+class MetagovProcessData(object):
+    def __init__(self, obj):
+        self.status = obj.get("status")
+        self.errors = obj.get("errors")
+        self.outcome = obj.get("outcome")
+
+
 class MetagovProcess(models.Model):
+    """
+    Represents a governance process in Metagov. The governance process is tied to the unique
+    "evaluation," or policy:action combination, that kicked it off using `start`.
+    """
+
     location = models.CharField(max_length=100, blank=True)
     json_data = models.CharField(max_length=500, blank=True, null=True)
     policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
@@ -19,12 +33,51 @@ class MetagovProcess(models.Model):
     class Meta:
         unique_together = ["policy", "action"]
 
+    @property
+    def data(self) -> MetagovProcessData:
+        """
+        A ``MetagovProcessData`` object with ``status`, ``errors``, and ``outcome``.
+        This is the most recently fetched data, but it is not necessarily up-to-date with Metagov.
+        Use ``refresh_from_metagov`` to get latest data.
+        """
+        if self.json_data:
+            data = json.loads(self.json_data)
+            return MetagovProcessData(data)
+        return None
+
+    def refresh_from_metagov(self):
+        """
+        Fetch latest process data from Metagov and store it.
+        Policies can access latest data object at ``data``.
+        """
+        logger.info(f"Making request to get process at '{self.location}'")
+        response = requests.get(self.location)
+        if not response.ok:
+            raise Exception(f"Error getting process: {response.status_code} {response.reason} {response.text}")
+        logger.info(response.text)
+        self.json_data = response.text
+        self.save()
+
+    def close(self):
+        if self.data.status == "completed":
+            # it's already closed, do nothing
+            return
+
+        logger.info(f"Making request to close process at '{self.location}'")
+        response = requests.delete(self.location)
+        if not response.ok:
+            raise Exception(f"Error closing process: {response.status_code} {response.reason} {response.text}")
+        logger.info(response.text)
+        self.json_data = response.text
+        self.save()
+
 
 class MetagovUser(CommunityUser):
-    provider = models.CharField(max_length=30, help_text="Identity provider that the username comes from")
     """
     Represents a user in the Metagov community, which could be on any platform.
     """
+
+    provider = models.CharField(max_length=30, help_text="Identity provider that the username comes from")
 
     # Hack so it doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.
@@ -40,6 +93,7 @@ class MetagovConfig(models.Model):
     """
     Dummy model for permissions to edit Metagov Config.
     """
+
     class Meta:
         # No database table creation or deletion  \
         # operations will be performed for this model.
@@ -65,7 +119,7 @@ class MetagovPlatformAction(PlatformAction):
     event_type = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return str(self.event_type)
+        return f"{self.event_type} ({self.pk})"
 
     @property
     def event_data(self):
