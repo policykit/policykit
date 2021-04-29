@@ -12,7 +12,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServer
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.library import metagov_slug, update_metagov_community
-from integrations.metagov.models import ExternalProcess, MetagovPlatformAction, MetagovUser
+from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
 from policyengine.models import Community, CommunityRole
 
 logger = logging.getLogger(__name__)
@@ -43,8 +43,8 @@ def post_outcome(request, id):
     if request.method != "POST" or not request.body:
         return HttpResponseBadRequest()
     try:
-        process = ExternalProcess.objects.get(pk=id)
-    except ExternalProcess.DoesNotExist:
+        process = MetagovProcess.objects.get(pk=id)
+    except MetagovProcess.DoesNotExist:
         return HttpResponseNotFound()
 
     try:

@@ -5,7 +5,7 @@ import requests
 from django.contrib.auth.models import Permission
 from django.test import Client, TestCase
 from integrations.metagov.library import update_metagov_community, metagov_slug
-from integrations.metagov.models import ExternalProcess, MetagovPlatformAction, MetagovUser
+from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackStarterKit, SlackUser
 from policyengine.models import CommunityRole, PlatformAction, PlatformPolicy, Proposal
 from policyengine.views import check_policy, filter_policy
@@ -81,7 +81,7 @@ return FAILED
         # 2) Save action to trigger policy execution
         action.save()
 
-        process = ExternalProcess.objects.filter(action=action, policy=policy).first()
+        process = MetagovProcess.objects.filter(action=action, policy=policy).first()
         self.assertIsNotNone(process)
 
         self.assertEqual(action.proposal.status, "passed")
@@ -124,7 +124,7 @@ return FAILED
         # 2) Save action to trigger execution of check() and notify()
         action.save()
 
-        process = ExternalProcess.objects.filter(action=action, policy=policy).first()
+        process = MetagovProcess.objects.filter(action=action, policy=policy).first()
         self.assertIsNotNone(process)
         self.assertEqual(process.json_data, None)
         self.assertEqual(action.proposal.status, "proposed")
