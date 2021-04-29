@@ -110,14 +110,20 @@ def handle_message_create_event(data):
 
         action = DiscordPostMessage()
         action.community = community
+        logger.info('x')
         action.text = data['content']
         action.channel_id = data['channel_id']
         action.message_id = data['message_id']
+        logger.info('a')
 
-        u,_ = DiscordUser.objects.get_or_create(username=f"{data['author']['id']}:{guild_id}",
-                                                community=community)
+        u,_ = DiscordUser.objects.get_or_create(
+            username=f"{data['author']['id']}:{guild_id}",
+            community=community
+        )
+        logger.info('b')
         action.initiator = u
 
+        logger.info('c')
         return action
 
 def handle_event(name, data):
