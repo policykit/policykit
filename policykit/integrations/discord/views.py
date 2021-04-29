@@ -102,15 +102,11 @@ def handle_guild_create_event(data):
 
 def handle_message_create_event(data):
     if should_create_action(data):
-        logger.info('a')
         channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
-        logger.info('b')
         guild_id = channel.guild_id
-        logger.info('c')
         community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
-        logger.info('d')
 
-        logger.info(f'[discord] Creating message object in channel {channel["channel_name"]}: {data["content"]}')
+        logger.info(f'[discord] Creating message object in channel {channel.channel_name}: {data["content"]}')
 
         action = DiscordPostMessage()
         action.community = community
