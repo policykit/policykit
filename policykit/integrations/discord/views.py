@@ -279,7 +279,7 @@ def oauth(request):
             owner_id = guild_info['owner_id']
             for member in guild_members:
                 user, _ = DiscordUser.objects.get_or_create(
-                    username=member['user']['id'],
+                    username=f"{member['user']['id']}:{guild_id}",
                     readable_name=member['user']['username'],
                     avatar=member['user']['avatar'],
                     community=community,

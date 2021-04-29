@@ -25,7 +25,7 @@ class DiscordBackend(BaseBackend):
         resp = urllib.request.urlopen(req)
         user_info = json.loads(resp.read().decode('utf-8'))
 
-        discord_user = DiscordUser.objects.filter(username=user_info['id'])
+        discord_user = DiscordUser.objects.filter(username=f"{user_info['id']}:{guild_id}")
 
         if discord_user.exists():
             # update user info
@@ -37,7 +37,7 @@ class DiscordBackend(BaseBackend):
             discord_user.save()
         else:
             discord_user,_ = DiscordUser.objects.get_or_create(
-                username = user_info['id'],
+                username = f"{user_info['id']}:{guild_id}",
                 password = access_token,
                 community = community,
                 readable_name = user_info['username'],
