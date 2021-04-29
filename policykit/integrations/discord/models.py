@@ -95,7 +95,7 @@ class DiscordPostMessage(PlatformAction):
         )
 
     def revert(self):
-        super().revert({}, "channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
+        super().revert({}, f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
