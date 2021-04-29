@@ -113,7 +113,7 @@ def handle_message_create_event(data):
         logger.info('x')
         action.text = data['content']
         action.channel_id = data['channel_id']
-        action.message_id = data['message_id']
+        action.message_id = data['id']
         logger.info('a')
 
         u,_ = DiscordUser.objects.get_or_create(
