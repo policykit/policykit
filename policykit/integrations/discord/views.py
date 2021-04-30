@@ -172,9 +172,12 @@ def handle_event(name, data):
             action = handle_channel_update_event(data)
 
         if action:
+            logger.info('a')
             action.community_origin = True
             action.is_bundled = False
+            logger.info('b')
             action.save()
+            logger.info('c')
 
             # While consider_proposed_actions will execute every Celery beat,
             # we don't want to wait for the beat since using websockets we can
@@ -182,7 +185,9 @@ def handle_event(name, data):
             # manually call consider_proposed_actions whenever we have a new
             # proposed action in Discord.
             from policyengine.tasks import consider_proposed_actions
+            logger.info('d')
             consider_proposed_actions()
+            logger.info('e')
 
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
