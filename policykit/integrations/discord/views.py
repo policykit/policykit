@@ -134,13 +134,18 @@ def handle_message_create_event(data):
         return action
 
 def handle_channel_update_event(data):
+    logger.info('1')
     guild_id = data['guild_id']
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
+
+    logger.info('2')
 
     action = DiscordRenameChannel()
     action.community = community
     action.channel_id = data['id']
     action.name = data['name']
+
+    logger.info('3')
 
     # FIXME: User who changed channel name not passed along with CHANNEL_UPDATE
     # event. All PlatformActions require an initiator in PolicyKit, so as a
@@ -151,9 +156,12 @@ def handle_channel_update_event(data):
         username=f"{data['owner_id']}:{guild_id}",
         community=community
     )
+    logger.info('4')
     action.initiator = u
 
     channel = DiscordChannel.objects.filter(channel_id=data['id'])[0]
+
+    logger.info('5')
     logger.info(f'[discord] Channel {channel.channel_name} renamed to {data["content"]}')
 
     return action
