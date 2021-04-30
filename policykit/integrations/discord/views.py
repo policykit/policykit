@@ -149,11 +149,11 @@ def handle_channel_update_event(data):
 
     # FIXME: User who changed channel name not passed along with CHANNEL_UPDATE
     # event. All PlatformActions require an initiator in PolicyKit, so as a
-    # placeholder, the user who made the channel is set as the initiator.
+    # placeholder, the Discord client ID is set as the initiator.
     # However, this is not accurate and should be changed in the future
     # if and when possible.
     u,_ = DiscordUser.objects.get_or_create(
-        username=f"{data['owner_id']}:{guild_id}",
+        username=f"{DISCORD_CLIENT_ID}:{guild_id}",
         community=community
     )
     logger.info('4')
