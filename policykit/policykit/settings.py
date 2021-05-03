@@ -168,6 +168,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 PROJECT_NAME = "PolicyKit"
 
+# Override this value in production (For example: "/var/log/django")
+LOGGING_ROOT_DIR = BASE_DIR
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -175,7 +178,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/var/log/django/debug.log',
+            'filename': os.path.join(LOGGING_ROOT_DIR, 'django.log'),
         },
     },
     'loggers': {
