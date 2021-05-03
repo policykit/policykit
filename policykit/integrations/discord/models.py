@@ -111,7 +111,7 @@ class DiscordPostMessage(PlatformAction):
 class DiscordRenameChannel(PlatformAction):
     channel_id = models.IntegerField()
     name = models.TextField()
-    name_old = models.TextField(null=True)
+    name_old = models.TextField(blank=True, default='')
 
     ACTION = f"channels/{channel_id}"
     AUTH = 'user'
