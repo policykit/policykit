@@ -158,6 +158,26 @@ def handle_channel_update_event(data):
 
     return action
 
+def handle_channel_create_event(data):
+    guild_id = data['guild_id']
+    community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
+
+    action = DiscordCreateChannel()
+    action.community = community
+    action.guild_id = guild_id
+    action.name = data['name']
+
+    # FIXME: Same issue as in handle_channel_update_event()
+    u,_ = DiscordUser.objects.get_or_create(
+        username=f"{DISCORD_CLIENT_ID}:{guild_id}",
+        community=community
+    )
+    action.initiator = u
+
+    logger.info(f'[discord] Created channel named {action.name}')
+
+    return action
+
 def handle_event(name, data):
     if name == 'READY':
         handle_ready_event(data)
@@ -170,14 +190,13 @@ def handle_event(name, data):
             action = handle_message_create_event(data)
         elif name == 'CHANNEL_UPDATE':
             action = handle_channel_update_event(data)
+        elif name == 'CHANNEL_CREATE':
+            action = handle_channel_create_event(data)
 
         if action:
-            logger.info('a')
             action.community_origin = True
             action.is_bundled = False
-            logger.info('b')
             action.save()
-            logger.info('c')
 
             # While consider_proposed_actions will execute every Celery beat,
             # we don't want to wait for the beat since using websockets we can
@@ -185,9 +204,7 @@ def handle_event(name, data):
             # manually call consider_proposed_actions whenever we have a new
             # proposed action in Discord.
             from policyengine.tasks import consider_proposed_actions
-            logger.info('d')
             consider_proposed_actions()
-            logger.info('e')
 
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
@@ -301,7 +318,8 @@ def oauth(request):
             return redirect('/login?error=no_policykit_integrated_guilds_found')
         elif len(integrated_guilds) == 1:
             return auth(request, guild_id=integrated_guilds[0][0], access_token=access_token)
-        else: # If user has more than one PK-integrated Discord guild, bring user to screen to select which guild's dashboard to login to
+        else:
+            # If user has more than one PK-integrated Discord guild, bring user to screen to select which guild's dashboard to login to
             return render(request, "policyadmin/configure_discord.html", { "integrated_guilds": integrated_guilds, "access_token": access_token })
 
     elif state == 'policykit_discord_mod_install':

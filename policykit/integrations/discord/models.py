@@ -14,12 +14,25 @@ logger = logging.getLogger(__name__)
 
 DISCORD_ACTIONS = [
     'discordpostmessage',
-    'discordrenamechannel'
+    'discordrenamechannel',
+    'discordcreatechannel'
 ]
 
-DISCORD_VIEW_PERMS = ['Can view discord post message', 'Can view discord rename channel']
-DISCORD_PROPOSE_PERMS = ['Can add discord post message', 'Can add discord rename channel']
-DISCORD_EXECUTE_PERMS = ['Can execute discord post message', 'Can execute discord rename channel']
+DISCORD_VIEW_PERMS = [
+    'Can view discord post message',
+    'Can view discord rename channel',
+    'Can view discord create channel'
+]
+DISCORD_PROPOSE_PERMS = [
+    'Can add discord post message',
+    'Can add discord rename channel',
+    'Can add discord create channel'
+]
+DISCORD_EXECUTE_PERMS = [
+    'Can execute discord post message',
+    'Can execute discord rename channel',
+    'Can execute discord create channel'
+]
 
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.
@@ -147,6 +160,41 @@ class DiscordRenameChannel(PlatformAction):
             c = DiscordChannel.objects.filter(channel_id=self.channel_id)
             c['channel_name'] = self.name
             c.save()
+
+        super().pass_action()
+
+class DiscordCreateChannel(PlatformAction):
+    guild_id = models.IntegerField()
+    channel_id = models.IntegerField(blank=True)
+    name = models.TextField()
+
+    ACTION = f"guilds/{guild_id}/channels"
+    AUTH = 'user'
+
+    action_codename = 'discordcreatechannel'
+    app_name = 'discordintegration'
+    action_type = "DiscordCreateChannel"
+
+    class Meta:
+        permissions = (
+            ('can_execute_discordcreatechannel', 'Can execute discord create channel'),
+        )
+
+    def revert(self):
+        super().revert({}, f"channels/{self.channel_id}", method='DELETE')
+
+    def execute(self):
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            channel = self.community.make_call(f"guilds/{self.guild_id}/channels", {'name': self.name})
+            self.channel_id = channel['id']
+
+            # Create a new DiscordChannel object
+            DiscordChannel.objects.get_or_create(
+                guild_id=self.guild_id,
+                channel_id=self.channel_id,
+                channel_name=channel['name']
+            )
 
         super().pass_action()
 

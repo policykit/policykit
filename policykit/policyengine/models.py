@@ -842,7 +842,6 @@ class PlatformAction(BaseAction,PolymorphicModel):
         self.proposal.save()
 
     def save(self, *args, **kwargs):
-        logger.info('in function')
         if not self.pk:
             if self.data is None:
                 self.data = DataStore.objects.create()
@@ -852,17 +851,14 @@ class PlatformAction(BaseAction,PolymorphicModel):
                 self.proposal = Proposal.objects.create(status=Proposal.PROPOSED,
                                                 author=self.initiator)
 
-                logger.info('1')
                 super(PlatformAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
-                    logger.info('2')
                     action = self
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
-                        logger.info('3')
                         for policy in self.community.get_platform_policies():
                             # Execute the most recently updated policy that passes filter()
                             was_executed = execute_policy(policy, action, is_first_evaluation=True)
