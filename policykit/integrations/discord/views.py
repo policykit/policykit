@@ -133,6 +133,29 @@ def handle_message_create_event(data):
 
         return action
 
+def handle_message_delete_event(data):
+    channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
+    guild_id = channel.guild_id
+    community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
+
+    # Gets the channel message
+    message = self.community.make_call(f"channels/{data['channel_id']}/messages/{data['id']}")
+
+    action = DiscordDeleteMessage()
+    action.community = community
+    action.channel_id = data['channel_id']
+    action.message_id = data['id']
+
+    u,_ = DiscordUser.objects.get_or_create(
+        username=f"{message['author']['id']}:{guild_id}",
+        community=community
+    )
+    action.initiator = u
+
+    logger.info(f'[discord] Message deleted in channel {channel.channel_name}: {message["content"]}')
+
+    return action
+
 def handle_channel_update_event(data):
     guild_id = data['guild_id']
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
@@ -174,7 +197,7 @@ def handle_channel_create_event(data):
     )
     action.initiator = u
 
-    logger.info(f'[discord] Created channel named {action.name}')
+    logger.info(f'[discord] Channel created: {action.name}')
 
     return action
 
@@ -193,7 +216,7 @@ def handle_channel_delete_event(data):
     )
     action.initiator = u
 
-    logger.info(f'[discord] Deleted channel named {data["name"]}')
+    logger.info(f'[discord] Channel deleted: {data["name"]}')
 
     return action
 
@@ -207,6 +230,8 @@ def handle_event(name, data):
 
         if name == 'MESSAGE_CREATE':
             action = handle_message_create_event(data)
+        elif name == 'MESSAGE_DELETE':
+            action = handle_message_delete_event(data)
         elif name == 'CHANNEL_UPDATE':
             action = handle_channel_update_event(data)
         elif name == 'CHANNEL_CREATE':

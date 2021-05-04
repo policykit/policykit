@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 DISCORD_ACTIONS = [
     'discordpostmessage',
+    'discorddeletemessage',
     'discordrenamechannel',
     'discordcreatechannel',
     'discorddeletechannel'
@@ -21,18 +22,21 @@ DISCORD_ACTIONS = [
 
 DISCORD_VIEW_PERMS = [
     'Can view discord post message',
+    'Can view discord delete message',
     'Can view discord rename channel',
     'Can view discord create channel',
     'Can view discord delete channel'
 ]
 DISCORD_PROPOSE_PERMS = [
     'Can add discord post message',
+    'Can add discord delete message',
     'Can add discord rename channel',
     'Can add discord create channel',
     'Can add discord delete channel'
 ]
 DISCORD_EXECUTE_PERMS = [
     'Can execute discord post message',
+    'Can execute discord delete message',
     'Can execute discord rename channel',
     'Can execute discord create channel',
     'Can execute discord delete channel'
@@ -122,6 +126,39 @@ class DiscordPostMessage(PlatformAction):
             self.message_id = message['id']
             self.community_post = self.message_id
             self.save()
+
+        super().pass_action()
+
+class DiscordDeleteMessage(PlatformAction):
+    channel_id = models.IntegerField()
+    message_id = models.IntegerField()
+    text = models.TextField(blank=True, default='')
+
+    ACTION = f"channels/{channel_id}/messages/{message_id}"
+    AUTH = 'user'
+
+    action_codename = 'discorddeletemessage'
+    app_name = 'discordintegration'
+    action_type = "DiscordDeleteMessage"
+
+    class Meta:
+        permissions = (
+            ('can_execute_discorddeletemessage', 'Can execute discord delete message'),
+        )
+
+    def revert(self):
+        super().revert({'content': self.text}, f"channels/{self.channel_id}/messages")
+
+    def execute(self):
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            # Gets the channel message and stores the text (in case of revert)
+            message = self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}")
+            self.text = message['content']
+            self.save()
+
+            # Deletes the message
+            self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
         super().pass_action()
 
