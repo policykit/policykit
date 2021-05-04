@@ -179,11 +179,22 @@ def handle_channel_update_event(data):
     channel = DiscordChannel.objects.filter(channel_id=data['id'])[0]
     logger.info(f'[discord] Channel {channel.channel_name} renamed to {action.name}')
 
+    # Update DiscordChannel object
+    channel.channel_name = action.name
+    channel.save()
+
     return action
 
 def handle_channel_create_event(data):
     guild_id = data['guild_id']
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
+
+    # Create new DiscordChannel object
+    DiscordChannel.objects.get_or_create(
+        guild_id=guild_id,
+        channel_id=data['id'],
+        channel_name=data['name']
+    )
 
     action = DiscordCreateChannel()
     action.community = community
