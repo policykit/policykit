@@ -178,6 +178,25 @@ def handle_channel_create_event(data):
 
     return action
 
+def handle_channel_delete_event(data):
+    guild_id = data['guild_id']
+    community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
+
+    action = DiscordDeleteChannel()
+    action.community = community
+    action.channel_id = data['id']
+
+    # FIXME: Same issue as in handle_channel_update_event()
+    u,_ = DiscordUser.objects.get_or_create(
+        username=f"{DISCORD_CLIENT_ID}:{guild_id}",
+        community=community
+    )
+    action.initiator = u
+
+    logger.info(f'[discord] Deleted channel named {data["name"]}')
+
+    return action
+
 def handle_event(name, data):
     if name == 'READY':
         handle_ready_event(data)
@@ -192,6 +211,8 @@ def handle_event(name, data):
             action = handle_channel_update_event(data)
         elif name == 'CHANNEL_CREATE':
             action = handle_channel_create_event(data)
+        elif name == 'CHANNEL_DELETE':
+            action = handle_channel_delete_event(data)
 
         if action:
             action.community_origin = True
