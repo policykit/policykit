@@ -22,10 +22,9 @@ def should_create_action(community, call_type, topic, username):
 
     created_at = topic['created_at']
     created_at = created_at.replace("Z", "+00:00")
-    created_at = datetime.datetime.fromisoformat(created_at)
+    created_at = datetime.datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f+00:00")
 
     now = datetime.datetime.now()
-    now = now.replace(tzinfo=datetime.timezone.utc) # Makes the datetime object timezone-aware
 
     # If topic is more than twice the Celery beat frequency seconds old,
     # don't create an object for it. This way, we only create objects for

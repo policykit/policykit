@@ -13,51 +13,49 @@ import logging
 logger = logging.getLogger(__name__)
 
 DISCORD_ACTIONS = [
-                    'discordpostmessage',
-                    'discordrenamechannel'
-                  ]
+    'discordpostmessage',
+    'discorddeletemessage',
+    'discordrenamechannel',
+    'discordcreatechannel',
+    'discorddeletechannel'
+]
 
-DISCORD_VIEW_PERMS = ['Can view discord post message', 'Can view discord rename channel']
+DISCORD_VIEW_PERMS = [
+    'Can view discord post message',
+    'Can view discord delete message',
+    'Can view discord rename channel',
+    'Can view discord create channel',
+    'Can view discord delete channel'
+]
+DISCORD_PROPOSE_PERMS = [
+    'Can add discord post message',
+    'Can add discord delete message',
+    'Can add discord rename channel',
+    'Can add discord create channel',
+    'Can add discord delete channel'
+]
+DISCORD_EXECUTE_PERMS = [
+    'Can execute discord post message',
+    'Can execute discord delete message',
+    'Can execute discord rename channel',
+    'Can execute discord create channel',
+    'Can execute discord delete channel'
+]
 
-DISCORD_PROPOSE_PERMS = ['Can add discord post message', 'Can add discord rename channel']
-
-DISCORD_EXECUTE_PERMS = ['Can execute discord post message', 'Can execute discord rename channel']
-
-def refresh_access_token(refresh_token):
-    data = parse.urlencode({
-        'grant_type': 'refresh_token',
-        'refresh_token': refresh_token
-        }).encode()
-
-    req = urllib.request.Request('https://discordapp.com/api/oauth2/token', data=data)
-
-    credentials = ('%s:%s' % (DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET))
-    encoded_credentials = base64.b64encode(credentials.encode('ascii'))
-
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    req.add_header("Authorization", "Basic %s" % encoded_credentials.decode("ascii"))
-    req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-    resp = urllib.request.urlopen(req)
-    res = json.loads(resp.read().decode('utf-8'))
-
-    return res
+# Storing basic info of Discord channels to prevent repeated calls to Discord
+# gateway for channel information.
+class DiscordChannel(models.Model):
+    guild_id = models.IntegerField()
+    channel_id = models.IntegerField()
+    channel_name = models.TextField()
 
 class DiscordCommunity(Community):
     API = 'https://discordapp.com/api/'
-
     platform = "discord"
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
-    access_token = models.CharField('access_token', max_length=300, unique=True)
-    refresh_token = models.CharField('refresh_token', max_length=500, null=True)
-
-    def refresh_access_token(self):
-        res = refresh_access_token(self.refresh_token)
-        self.access_token = res['access_token']
-        self.save()
 
     def notify_action(self, action, policy, users=None, template=None, channel=None):
-        logger.info('entered notify_action')
         from integrations.discord.views import post_policy
         post_policy(policy, action, users, template, channel)
 
@@ -83,8 +81,10 @@ class DiscordCommunity(Community):
         try:
             resp = urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
-            logger.info('reached HTTPError')
-            logger.info(e.code)
+            logger.error('reached HTTPError')
+            logger.error(e.code)
+            error_message = e.read()
+            logger.error(error_message)
             raise
 
         res = resp.read().decode('utf-8')
@@ -92,102 +92,18 @@ class DiscordCommunity(Community):
             return json.loads(res)
         return None
 
-    def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.models import LogAPICall, CommunityUser
-        from policyengine.views import clean_up_proposals
-
-        obj = action
-
-        if not obj.community_origin or (obj.community_origin and obj.community_revert):
-            logger.info('EXECUTING ACTION BELOW:')
-            call = self.API + obj.ACTION
-            logger.info(call)
-
-            obj_fields = []
-            for f in obj._meta.get_fields():
-                if f.name not in ['polymorphic_ctype',
-                                  'community',
-                                  'initiator',
-                                  'communityapi_ptr',
-                                  'platformaction',
-                                  'platformactionbundle',
-                                  'community_revert',
-                                  'community_origin',
-                                  'is_bundled'
-                                  ]:
-                    obj_fields.append(f.name)
-
-            data = {}
-
-            for item in obj_fields:
-                try:
-                    if item != 'id':
-                        value = getattr(obj, item)
-                        data[item] = value
-                except obj.DoesNotExist:
-                    continue
-
-            res = LogAPICall.make_api_call(self, data, call)
-
-            if delete_policykit_post:
-                posted_action = None
-                if action.is_bundled:
-                    bundle = action.platformactionbundle_set.all()
-                    if bundle.exists():
-                        posted_action = bundle[0]
-                else:
-                    posted_action = action
-
-                if posted_action.community_post:
-                    data = {}
-                    call = 'channels/{0}/messages/{1}'.format(obj.channel, posted_action.community_post)
-                    _ = LogAPICall.make_api_call(self, data, call)
-
-            if res['ok']:
-                clean_up_proposals(action, True)
-            else:
-                error_message = res['error']
-                logger.info(error_message)
-                clean_up_proposals(action, False)
-        else:
-            clean_up_proposals(action, True)
-
 class DiscordUser(CommunityUser):
-    refresh_token = models.CharField('refresh_token', max_length=500, null=True)
-
-    def refresh_access_token(self):
-        res = refresh_access_token(self.refresh_token)
-        self.access_token = res['access_token']
-        self.save()
-
     def save(self, *args, **kwargs):
         super(DiscordUser, self).save(*args, **kwargs)
         group = self.community.base_role
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-    guild_id = None
-    id = None
-    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
-
-    """def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.guild_id = self.community.team_id
-
-        req = urllib.request.Request('https://discordapp.com/api/guilds/%s/channels' % self.guild_id)
-        req.add_header("Content-Type", "application/x-www-form-urlencoded")
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
-        channels = json.loads(resp.read().decode('utf-8'))
-
-        for c in channels:
-            self.choices.append((c['id'], c['name']))"""
-
+    channel_id = models.IntegerField()
+    message_id = models.IntegerField()
     text = models.TextField()
-    channel = models.CharField(max_length=18, choices=choices)
 
-    ACTION = 'channels/{0}/messages'.format(channel)
+    ACTION = f"channels/{channel_id}/messages"
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
@@ -200,42 +116,58 @@ class DiscordPostMessage(PlatformAction):
         )
 
     def revert(self):
-        values = {}
-        super().revert(values, 'channels/%s/messages/%s' % (self.channel, self.id), method='DELETE')
+        super().revert({}, f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
     def execute(self):
-        from policyengine.models import LogAPICall
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            message = self.community.make_call(f"channels/{self.channel_id}/messages", {'content': self.text})
 
-        logger.info('executing action')
+            self.message_id = message['id']
+            self.community_post = self.message_id
+            self.save()
 
-        data = {
-            'content': self.text
-        }
+        super().pass_action()
 
-        call = ('channels/%s/messages' % self.channel)
+class DiscordDeleteMessage(PlatformAction):
+    channel_id = models.IntegerField()
+    message_id = models.IntegerField()
+    text = models.TextField(blank=True, default='')
 
-        res = self.community.make_call(call, values=data)
-        self.id = res['id']
-        data['id'] = self.id
-        self.community_post = self.id
-        _ = LogAPICall.objects.create(community=self.community,
-                                      call_type=call,
-                                      extra_info=json.dumps(data))
+    ACTION = f"channels/{channel_id}/messages/{message_id}"
+    AUTH = 'user'
 
-        logger.info('finished executing action: ' + self.community_post)
+    action_codename = 'discorddeletemessage'
+    app_name = 'discordintegration'
+    action_type = "DiscordDeleteMessage"
+
+    class Meta:
+        permissions = (
+            ('can_execute_discorddeletemessage', 'Can execute discord delete message'),
+        )
+
+    def revert(self):
+        super().revert({'content': self.text}, f"channels/{self.channel_id}/messages")
+
+    def execute(self):
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            # Gets the channel message and stores the text (in case of revert)
+            message = self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}")
+            self.text = message['content']
+            self.save()
+
+            # Deletes the message
+            self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
         super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
-
-    guild_id = None
-    id = None
-    choices = [("733209360549019691", "general"), ("733982247014891530", "test")] # just for testing purposes
-
-    channel = models.CharField(max_length=18, choices=choices)
+    channel_id = models.IntegerField()
     name = models.TextField()
+    name_old = models.TextField(blank=True, default='')
 
-    ACTION = 'channels/{0}'.format(channel)
+    ACTION = f"channels/{channel_id}"
     AUTH = 'user'
 
     action_codename = 'discordrenamechannel'
@@ -247,15 +179,86 @@ class DiscordRenameChannel(PlatformAction):
             ('can_execute_discordrenamechannel', 'Can execute discord rename channel'),
         )
 
-    def execute(self):
-        data = json.dumps({"name": self.name}).encode('utf-8')
-        call_info = self.community.API + ('channels/%s' % self.channel)
+    def revert(self):
+        super().revert({'name': self.name_old}, f"channels/{self.channel_id}", method='PATCH')
 
-        req = urllib.request.Request(call_info, data, method='PATCH')
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header('Content-Type', 'application/json')
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-        resp = urllib.request.urlopen(req)
+        # Update DiscordChannel object
+        c = DiscordChannel.objects.filter(channel_id=self.channel_id)
+        c['channel_name'] = self.name_old
+        c.save()
+
+    def execute(self):
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            # Retrieve and store old channel name so we can revert the action if necessary
+            channel = self.community.make_call(f"channels/{self.channel_id}")
+            self.name_old = channel['name']
+
+            # Update the channel name to the new name
+            self.community.make_call(f"channels/{self.channel_id}", {'name': self.name}, method='PATCH')
+
+            # Update DiscordChannel object
+            c = DiscordChannel.objects.filter(channel_id=self.channel_id)
+            c['channel_name'] = self.name
+            c.save()
+
+        super().pass_action()
+
+class DiscordCreateChannel(PlatformAction):
+    guild_id = models.IntegerField()
+    channel_id = models.IntegerField(blank=True)
+    name = models.TextField()
+
+    ACTION = f"guilds/{guild_id}/channels"
+    AUTH = 'user'
+
+    action_codename = 'discordcreatechannel'
+    app_name = 'discordintegration'
+    action_type = "DiscordCreateChannel"
+
+    class Meta:
+        permissions = (
+            ('can_execute_discordcreatechannel', 'Can execute discord create channel'),
+        )
+
+    def revert(self):
+        super().revert({}, f"channels/{self.channel_id}", method='DELETE')
+
+    def execute(self):
+        # Execute action if it didn't originate in the community OR it was previously reverted
+        if not self.community_origin or (self.community_origin and self.community_revert):
+            channel = self.community.make_call(f"guilds/{self.guild_id}/channels", {'name': self.name})
+            self.channel_id = channel['id']
+
+            # Create a new DiscordChannel object
+            DiscordChannel.objects.get_or_create(
+                guild_id=self.guild_id,
+                channel_id=self.channel_id,
+                channel_name=channel['name']
+            )
+
+        super().pass_action()
+
+class DiscordDeleteChannel(PlatformAction):
+    channel_id = models.IntegerField()
+
+    ACTION = f"channels/{channel_id}"
+    AUTH = 'user'
+
+    action_codename = 'discorddeletechannel'
+    app_name = 'discordintegration'
+    action_type = "DiscordDeleteChannel"
+
+    class Meta:
+        permissions = (
+            ('can_execute_discorddeletechannel', 'Can execute discord delete channel'),
+        )
+
+    def execute(self):
+        # Execute action if it didn't originate in the community
+        if not self.community_origin:
+            self.community.make_call(f"channels/{self.channel_id}", method='DELETE')
+
         super().pass_action()
 
 class DiscordStarterKit(StarterKit):

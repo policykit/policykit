@@ -1,6 +1,5 @@
 from django.apps import AppConfig
 
-
 class discordIntegrationConfig(AppConfig):
     name = 'integrations.discord'
 
