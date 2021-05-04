@@ -15,10 +15,11 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+PRIVATE_FILE_PATH = os.environ.get("PRIVATE_FILE_PATH", BASE_DIR + "/private.py")
 try:
-    exec(open(BASE_DIR + '/private.py').read())
+    exec(open(PRIVATE_FILE_PATH).read())
 except IOError:
-    print("Unable to open configuration file!")
+    raise Exception(f"Unable to open configuration file at: '{PRIVATE_FILE_PATH}'")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/

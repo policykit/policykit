@@ -15,13 +15,13 @@ import sys
 import django
 import sphinx_rtd_theme
 
-sys.path.insert(0, os.path.abspath('../../policykit'))
+policykit_path = os.path.abspath('../../policykit')
+sys.path.insert(0, policykit_path)
 
+os.environ.setdefault('PRIVATE_FILE_PATH', policykit_path + '/private_template.py')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
-os.environ.setdefault('DJANGO_SECRET_KEY', 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-') # test key
 
 django.setup()
-
 
 # -- Project information -----------------------------------------------------
 
