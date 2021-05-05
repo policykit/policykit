@@ -18,6 +18,7 @@ import html
 
 
 logger = logging.getLogger(__name__)
+db_logger = logging.getLogger("db")
 
 def homepage(request):
     return render(request, 'home.html', {})
@@ -312,13 +313,22 @@ def actions(request):
         'user': get_user(request),
     })
 
+def evaluation_logger(policy, action, level="DEBUG"):
+    """
+    Get a logging function that logs to the database. Logs are visible to the community members at /logs.
+    """
+    level_num = getattr(logging, level)
+    def log(msg):
+        message = f"[{action}][{policy}] {msg}"
+        db_logger.log(level_num, message, {"community": policy.community})
+        logger.log(level_num, message)
+    return log
+
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
     errors = filter_code(code)
     if len(errors) > 0:
-        logger.error('Filter errors:')
-        for error in errors:
-            logger.error(f"{error['code']}: {error['message']}")
-        return
+        logger.exception('Got exception in exec_code:')
+        raise Exception(f"Filter errors: {errors}")
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
@@ -333,12 +343,12 @@ def filter_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-
+    debug = evaluation_logger(policy, action)
     _locals = locals()
 
-    wrapper_start = "def filter(policy, action, users, metagov):\r\n"
+    wrapper_start = "def filter(policy, action, users, debug, metagov):\r\n"
 
-    wrapper_end = "\r\nfilter_pass = filter(policy, action, users, metagov)"
+    wrapper_end = "\r\nfilter_pass = filter(policy, action, users, debug, metagov)"
 
     exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
 
@@ -351,13 +361,14 @@ def initialize_policy(policy, action, metagov=None):
     from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
 
     users = CommunityUser.objects.filter(community=policy.community)
+    debug = evaluation_logger(policy, action)
 
     _locals = locals()
     _globals = globals()
 
-    wrapper_start = "def initialize(policy, action, users, metagov):\r\n"
+    wrapper_start = "def initialize(policy, action, users, debug, metagov):\r\n"
 
-    wrapper_end = "\r\ninitialize(policy, action, users, metagov)"
+    wrapper_end = "\r\ninitialize(policy, action, users, debug, metagov)"
 
     exec_code(policy.initialize, wrapper_start, wrapper_end, None, _locals)
 
@@ -367,14 +378,14 @@ def check_policy(policy, action, metagov=None):
     users = CommunityUser.objects.filter(community=policy.community)
     boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
     number_votes = NumberVote.objects.filter(proposal=action.proposal)
-
+    debug = evaluation_logger(policy, action)
 
     _locals = locals()
 
-    wrapper_start = "def check(policy, action, metagov, users, boolean_votes, number_votes):\r\n"
+    wrapper_start = "def check(policy, action, metagov, users, boolean_votes, number_votes, debug):\r\n"
     wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
 
-    wrapper_end = "\r\npolicy_pass = check(policy, action, metagov, users, boolean_votes, number_votes)"
+    wrapper_end = "\r\npolicy_pass = check(policy, action, metagov, users, boolean_votes, number_votes, debug)"
 
     exec_code(policy.check, wrapper_start, wrapper_end, None, _locals)
 
@@ -387,12 +398,12 @@ def notify_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-
+    debug = evaluation_logger(policy, action)
     _locals = locals()
 
-    wrapper_start = "def notify(policy, action, users, metagov):\r\n"
+    wrapper_start = "def notify(policy, action, users, debug, metagov):\r\n"
 
-    wrapper_end = "\r\nnotify(policy, action, users, metagov)"
+    wrapper_end = "\r\nnotify(policy, action, users, debug, metagov)"
 
     exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
 
@@ -400,12 +411,12 @@ def pass_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-
+    debug = evaluation_logger(policy, action)
     _locals = locals()
 
-    wrapper_start = "def success(policy, action, users, metagov):\r\n"
+    wrapper_start = "def success(policy, action, users, debug, metagov):\r\n"
 
-    wrapper_end = "\r\nsuccess(policy, action, users, metagov)"
+    wrapper_end = "\r\nsuccess(policy, action, users, debug, metagov)"
 
     exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
 
@@ -413,12 +424,12 @@ def fail_policy(policy, action, metagov=None):
     from policyengine.models import CommunityUser
 
     users = CommunityUser.objects.filter(community=policy.community)
-
+    debug = evaluation_logger(policy, action)
     _locals = locals()
 
-    wrapper_start = "def fail(policy, action, users, metagov):\r\n"
+    wrapper_start = "def fail(policy, action, users, debug, metagov):\r\n"
 
-    wrapper_end = "\r\nfail(policy, action, users, metagov)"
+    wrapper_end = "\r\nfail(policy, action, users, debug, metagov)"
 
     exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
 
@@ -669,12 +680,17 @@ def execute_policy(policy, action, is_first_evaluation: bool):
     Execute policy for given action. This can be run repeatedly to check proposed actions.
     Return 'True' if action passed the filter, 'False' otherwise.
     """
-    db_logger = logging.getLogger("db")
 
-    def debug(msg):
-        log_prefix = f"{action}\t{policy}\t"
-        db_logger.debug(f"{log_prefix}{msg}", {"community": policy.community})
-        logger.debug(f"{log_prefix}{msg}")
+    try:
+        return _execute_policy(policy, action, is_first_evaluation)
+    except Exception as e:
+        # Log unhandled exception to the db, so policy author can view it in the UI.
+        error = evaluation_logger(policy=policy, action=action, level="ERROR")
+        error("Exception: " + str(e))
+        raise
+
+def _execute_policy(policy, action, is_first_evaluation: bool):
+    debug = evaluation_logger(policy, action)
 
     filter_result = filter_policy(policy, action, metagov=None)
     debug(f"Filter returned {filter_result}")
@@ -683,10 +699,7 @@ def execute_policy(policy, action, is_first_evaluation: bool):
 
     from policyengine.models import Proposal
 
-    optional_args = {
-        # TODO pass logging function here....!
-        # TODO if any eval block throws an exception, log it to db_logger.
-    }
+    optional_args = {}
     if METAGOV_ENABLED:
         from integrations.metagov.library import Metagov
 
