@@ -1,7 +1,5 @@
 import logging
 
-logger = logging.getLogger(__name__)  # logging from the logger
-
 db_default_formatter = logging.Formatter()
 
 
@@ -14,10 +12,7 @@ class DatabaseLogHandler(logging.Handler):
         if record.exc_info:
             trace = db_default_formatter.formatException(record.exc_info)
 
-        # if DJANGO_DB_LOGGER_ENABLE_FORMATTER:
         msg = self.format(record)
-        # else:
-        #     msg = record.getMessage()
 
         community = record.args.get("community")
         kwargs = {
