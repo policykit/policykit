@@ -182,6 +182,7 @@ class CommunityDoc(models.Model):
     name = models.TextField(null=True, blank=True, default = '')
     text = models.TextField(null=True, blank=True, default = '')
     community = models.ForeignKey(Community, models.CASCADE, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.name)
@@ -248,6 +249,7 @@ class GenericPolicy(models.Model):
     fail = models.TextField(null=True, blank=True, default='')
     is_bundled = models.BooleanField(default=False)
     is_constitution = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -487,15 +489,35 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
     def __str__(self):
         if self.doc:
             return "Delete Document: " + self.doc.name
-        return "Delete Document"
+        return "Delete Document: [ERROR: doc not found]"
 
     def execute(self):
-        self.doc.delete()
+        self.doc.is_active = False
+        self.doc.save()
         self.pass_action()
 
     class Meta:
         permissions = (
             ('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),
+        )
+
+class PolicykitRecoverCommunityDoc(ConstitutionAction):
+    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+
+    action_codename = 'policykitrecovercommunitydoc'
+
+    def __str__(self):
+        if self.doc:
+            return "Recover Document: " + self.doc.name
+        return "Recover Document: [ERROR: doc not found]"
+
+    def execute(self):
+        self.doc.is_active = True
+        self.doc.save()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitrecovercommunitydoc', 'Can execute policykit recover community doc'),
         )
 
 class PolicykitAddRole(ConstitutionAction):
@@ -777,12 +799,34 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
         return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
-        self.platform_policy.delete()
+        self.platform_policy.is_active = False
+        self.platform_policy.save()
         self.pass_action()
 
     class Meta:
         permissions = (
             ('can_execute_policykitremoveplatformpolicy', 'Can execute policykit remove platform policy'),
+        )
+
+class PolicykitRecoverPlatformPolicy(ConstitutionAction):
+    platform_policy = models.ForeignKey('PlatformPolicy',
+                                         models.SET_NULL,
+                                         null=True)
+
+    action_codename = 'policykitrecoverplatformpolicy'
+
+    def __str__(self):
+        if self.platform_policy:
+            return "Recover Platform Policy: " + self.platform_policy.name
+        return "Recover Platform Policy: [ERROR: platform policy not found]"
+
+    def execute(self):
+        self.platform_policy.is_active = True
+        self.platform_policy.save()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitrecoverplatformpolicy', 'Can execute policykit recover platform policy'),
         )
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
@@ -798,12 +842,34 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
-        self.constitution_policy.delete()
+        self.constitution_policy.is_active = False
+        self.constitution_policy.save()
         self.pass_action()
 
     class Meta:
         permissions = (
             ('can_execute_policykitremoveconstitutionpolicy', 'Can execute policykit remove constitution policy'),
+        )
+
+class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
+    constitution_policy = models.ForeignKey('ConstitutionPolicy',
+                                            models.SET_NULL,
+                                            null=True)
+
+    action_codename = 'policykitrecoverconstitutionpolicy'
+
+    def __str__(self):
+        if self.constitution_policy:
+            return "Recover Constitution Policy: " + self.constitution_policy.name
+        return "Recover Constitution Policy: [ERROR: constitution policy not found]"
+
+    def execute(self):
+        self.constitution_policy.is_active = True
+        self.constitution_policy.save()
+
+    class Meta:
+        permissions = (
+            ('can_execute_policykitrecoverconstitutionpolicy', 'Can execute policykit recover constitution policy'),
         )
 
 class PlatformAction(BaseAction,PolymorphicModel):
@@ -928,13 +994,14 @@ class BasePolicy(models.Model):
     success = models.TextField(blank=True, default='')
     fail = models.TextField(blank=True, default='')
 
-    name = models.TextField(null=True, blank=True)
     community = models.ForeignKey(Community,
         models.CASCADE,
         verbose_name='community',
     )
+    name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_bundled = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     modified_at = models.DateTimeField(auto_now=True)
 
     data = models.OneToOneField(DataStore,
