@@ -60,38 +60,41 @@ def v2(request):
 
     doc_data = {}
     for d in docs:
-        doc_data[d.id] = {
-            'name': d.name,
-            'text': d.text
-        }
+        if d.is_active:
+            doc_data[d.id] = {
+                'name': d.name,
+                'text': d.text
+            }
 
     platform_policy_data = {}
     for pp in platform_policies:
-        platform_policy_data[pp.id] = {
-            'name': pp.name,
-            'description': pp.description,
-            'is_bundled': pp.is_bundled,
-            'filter': pp.filter,
-            'initialize': pp.initialize,
-            'check': pp.check,
-            'notify': pp.notify,
-            'success': pp.success,
-            'fail': pp.fail
-        }
+        if pp.is_active:
+            platform_policy_data[pp.id] = {
+                'name': pp.name,
+                'description': pp.description,
+                'is_bundled': pp.is_bundled,
+                'filter': pp.filter,
+                'initialize': pp.initialize,
+                'check': pp.check,
+                'notify': pp.notify,
+                'success': pp.success,
+                'fail': pp.fail
+            }
 
     constitution_policy_data = {}
     for cp in constitution_policies:
-        constitution_policy_data[cp.id] = {
-            'name': cp.name,
-            'description': cp.description,
-            'is_bundled': cp.is_bundled,
-            'filter': cp.filter,
-            'initialize': cp.initialize,
-            'check': cp.check,
-            'notify': cp.notify,
-            'success': cp.success,
-            'fail': cp.fail
-        }
+        if cp.is_active:
+            constitution_policy_data[cp.id] = {
+                'name': cp.name,
+                'description': cp.description,
+                'is_bundled': cp.is_bundled,
+                'filter': cp.filter,
+                'initialize': cp.initialize,
+                'check': cp.check,
+                'notify': cp.notify,
+                'success': cp.success,
+                'fail': cp.fail
+            }
 
     action_log_data = []
     logger.info(f'[policyengine] Number of action objects: {Action.objects.all().count()}')
@@ -251,9 +254,9 @@ def selectpolicy(request):
     operation = request.GET.get('operation')
 
     if type == 'Platform':
-        policies = user.community.get_platform_policies()
+        policies = user.community.get_platform_policies().filter(is_active=True)
     elif type == 'Constitution':
-        policies = user.community.get_constitution_policies()
+        policies = user.community.get_constitution_policies().filter(is_active=True)
     else:
         return HttpResponseBadRequest()
 
@@ -270,10 +273,9 @@ def selectdocument(request):
     from policyengine.models import CommunityDoc
 
     user = get_user(request)
-    documents = None
     operation = request.GET.get('operation')
 
-    documents = CommunityDoc.objects.filter(community=user.community)
+    documents = user.community.get_documents().filter(is_active=True)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
         'server_url': SERVER_URL,
