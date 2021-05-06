@@ -53,11 +53,6 @@ def post_outcome(request, id):
         return HttpResponseBadRequest("unable to decode body")
 
     logger.info(f"Received external process outcome: {body}")
-    if body.get("status") != "completed":
-        return HttpResponseBadRequest("process not completed")
-    if not body.get("outcome") and not body.get("errors"):
-        return HttpResponseBadRequest("completed process must have either outcome or errors")
-
     process.json_data = json.dumps(body)
     process.save()
     return HttpResponse()
