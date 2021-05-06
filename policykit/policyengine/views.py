@@ -253,10 +253,14 @@ def selectpolicy(request):
     type = request.GET.get('type')
     operation = request.GET.get('operation')
 
+    show_active_policies = True
+    if operation == 'Recover':
+        show_active_policies = False
+
     if type == 'Platform':
-        policies = user.community.get_platform_policies().filter(is_active=True)
+        policies = user.community.get_platform_policies().filter(is_active=show_active_policies)
     elif type == 'Constitution':
-        policies = user.community.get_constitution_policies().filter(is_active=True)
+        policies = user.community.get_constitution_policies().filter(is_active=show_active_policies)
     else:
         return HttpResponseBadRequest()
 
@@ -562,6 +566,30 @@ def policy_action_remove(request):
     return HttpResponse()
 
 @csrf_exempt
+def policy_action_recover(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['type'] == 'Constitution':
+        action = PolicykitRecoverConstitutionPolicy()
+        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+    elif data['type'] == 'Platform':
+        action = PolicykitRecoverPlatformPolicy()
+        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.save()
+
+    return HttpResponse()
+
+
+@csrf_exempt
 def role_action_save(request):
     from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitEditRole
 
@@ -660,6 +688,21 @@ def document_action_remove(request):
     user = get_user(request)
 
     action = PolicykitDeleteCommunityDoc()
+    action.community = user.community
+    action.initiator = user
+    action.doc = CommunityDoc.objects.get(id=data['doc'])
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def document_action_recover(request):
+    from policyengine.models import CommunityDoc, PolicykitRecoverCommunityDoc
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitRecoverCommunityDoc()
     action.community = user.community
     action.initiator = user
     action.doc = CommunityDoc.objects.get(id=data['doc'])

@@ -140,6 +140,9 @@
     <div class="actionButton" id="removeConstitutionPolicy">
       <p>Remove Constitution Policy</p>
     </div>
+    <div class="actionButton" id="recoverConstitutionPolicy">
+      <p>Recover Constitution Policy</p>
+    </div>
   </div>
 
   <div class="actionMenu" id="platformPoliciesHeader">
@@ -155,6 +158,9 @@
     </div>
     <div class="actionButton" id="removePlatformPolicy">
       <p>Remove Platform Policy</p>
+    </div>
+    <div class="actionButton" id="recoverPlatformPolicy">
+      <p>Recover Platform Policy</p>
     </div>
   </div>
 
@@ -194,6 +200,9 @@
     <div class="actionButton" id="removeDocument">
       <p>Remove Document</p>
     </div>
+    <div class="actionButton" id="recoverDocument">
+      <p>Recover Document</p>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -209,9 +218,11 @@
   document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('Constitution', 'Add'); });
   document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', 'Change'); });
   document.getElementById("removeConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Remove"); });
+  document.getElementById("recoverConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Recover"); });
   document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('Platform', 'Add'); });
   document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', 'Change'); });
   document.getElementById("removePlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Remove"); });
+  document.getElementById("recoverPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Recover"); });
   document.getElementById("addRole").addEventListener("click", function(){ navRoleAdd(); });
   document.getElementById("editRole").addEventListener("click", function(){ navRoleSelect('Change'); });
   document.getElementById("removeRole").addEventListener("click", function(){ navRoleSelect('Remove'); });
@@ -220,6 +231,7 @@
   document.getElementById("addDocument").addEventListener("click", function(){ navDocumentAdd(); });
   document.getElementById("editDocument").addEventListener("click", function(){ navDocumentSelect('Change'); });
   document.getElementById("removeDocument").addEventListener("click", function(){ navDocumentSelect('Remove'); });
+  document.getElementById("recoverDocument").addEventListener("click", function(){ navDocumentSelect('Recover'); });
 
   function toggleActionMenu() {
     var actions = event.currentTarget.nextElementSibling;
