@@ -234,6 +234,10 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.action_delete_doc.community=self.community
         self.action_delete_doc.initiator=self.user1
 
+        self.action_recover_doc = PolicykitRecoverCommunityDoc()
+        self.action_recover_doc.community=self.community
+        self.action_recover_doc.initiator=self.user1
+
     def test_add_doc__str__(self):
         self.assertEqual(str(self.action_add_doc), 'Add Document: NewDoc')
 
@@ -260,7 +264,16 @@ class CommunityDocActionsTestCase(ModelTestCase):
 
         self.action_delete_doc.doc=CommunityDoc.objects.filter(name='EditedDoc')[0]
         self.action_delete_doc.save()
-        docs = CommunityDoc.objects.filter(name='EditedDoc')
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=True)
+        self.assertEqual(docs.count(), 0)
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=False)
+        self.assertEqual(docs.count(), 1)
+
+        self.action_recover_doc.doc=CommunityDoc.objects.filter(name='EditedDoc')[0]
+        self.action_recover_doc.save()
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=True)
+        self.assertEqual(docs.count(), 1)
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=False)
         self.assertEqual(docs.count(), 0)
 
 class RoleActionsTestCase(ModelTestCase):
@@ -378,6 +391,10 @@ class ConstitutionPolicyActionsTestCase(ModelTestCase):
         self.action_remove_policy.community = self.community
         self.action_remove_policy.initiator = self.user1
 
+        self.action_recover_policy = PolicykitRecoverConstitutionPolicy()
+        self.action_recover_policy.community = self.community
+        self.action_recover_policy.initiator = self.user1
+
     def test_add_constitution_policy__str__(self):
         self.assertEqual(str(self.action_add_policy), 'Add Constitution Policy: Test Name')
 
@@ -418,7 +435,16 @@ class ConstitutionPolicyActionsTestCase(ModelTestCase):
 
         self.action_remove_policy.constitution_policy = p
         self.action_remove_policy.save()
-        policies = ConstitutionPolicy.objects.filter(name='Another Name')
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 0)
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=False)
+        self.assertEqual(policies.count(), 1)
+
+        self.action_recover_policy.constitution_policy = p
+        self.action_recover_policy.save()
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 1)
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=False)
         self.assertEqual(policies.count(), 0)
 
 class PlatformPolicyActionsTestCase(ModelTestCase):
@@ -453,6 +479,10 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
         self.action_remove_policy = PolicykitRemovePlatformPolicy()
         self.action_remove_policy.community = self.community
         self.action_remove_policy.initiator = self.user1
+
+        self.action_recover_policy = PolicykitRecoverPlatformPolicy()
+        self.action_recover_policy.community = self.community
+        self.action_recover_policy.initiator = self.user1
 
     def test_add_platform_policy__str__(self):
         self.assertEqual(str(self.action_add_policy), 'Add Platform Policy: Test Name')
@@ -494,7 +524,16 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
 
         self.action_remove_policy.platform_policy = p
         self.action_remove_policy.save()
-        policies = PlatformPolicy.objects.filter(name='Another Name')
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 0)
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=False)
+        self.assertEqual(policies.count(), 1)
+
+        self.action_recover_policy.platform_policy = p
+        self.action_recover_policy.save()
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 1)
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=False)
         self.assertEqual(policies.count(), 0)
 
 class ConstitutionPolicyTestCase(ModelTestCase):
