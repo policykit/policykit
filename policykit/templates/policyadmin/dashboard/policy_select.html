@@ -68,9 +68,15 @@
     const policy = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`
+      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`;
     } else {
-      fetch('../../../main/policyengine/policy_action_remove', {
+      let url = "'../../../main/policyengine/";
+      if (operation == "Remove") {
+        url += "policy_action_remove";
+      } else {
+        url += "policy_action_recover";
+      }
+      fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
