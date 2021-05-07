@@ -117,6 +117,7 @@ whitelisted_modules = {
         "month",
         "replace",
         "resolution",
+        "strftime",
         "timetuple",
         "today",
         "toordinal",
