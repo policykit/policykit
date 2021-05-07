@@ -37,6 +37,8 @@ whitelisted_builtins = [
     "sum",
     "tuple",
     "zip",
+    # Evaluation debug logging
+    "debug"
 ]
 
 whitelisted_modules = {
@@ -115,6 +117,7 @@ whitelisted_modules = {
         "month",
         "replace",
         "resolution",
+        "strftime",
         "timetuple",
         "today",
         "toordinal",
