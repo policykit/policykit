@@ -69,7 +69,7 @@
     if (operation == "Change") {
       window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc=${doc}`;
     } else {
-      let url = "'../../../main/policyengine/";
+      let url = "../../../main/policyengine/";
       if (operation == "Remove") {
         url += "document_action_remove";
       } else {

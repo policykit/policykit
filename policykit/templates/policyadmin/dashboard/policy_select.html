@@ -70,7 +70,7 @@
     if (operation == "Change") {
       window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`;
     } else {
-      let url = "'../../../main/policyengine/";
+      let url = "../../../main/policyengine/";
       if (operation == "Remove") {
         url += "policy_action_remove";
       } else {
