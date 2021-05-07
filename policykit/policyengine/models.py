@@ -514,6 +514,7 @@ class PolicykitRecoverCommunityDoc(ConstitutionAction):
     def execute(self):
         self.doc.is_active = True
         self.doc.save()
+        self.pass_action()
 
     class Meta:
         permissions = (
@@ -823,6 +824,7 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
     def execute(self):
         self.platform_policy.is_active = True
         self.platform_policy.save()
+        self.pass_action()
 
     class Meta:
         permissions = (
@@ -866,6 +868,7 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
     def execute(self):
         self.constitution_policy.is_active = True
         self.constitution_policy.save()
+        self.pass_action()
 
     class Meta:
         permissions = (
