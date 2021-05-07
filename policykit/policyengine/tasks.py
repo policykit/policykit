@@ -16,7 +16,7 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in action.community.get_platform_policies():
+            for policy in action.community.get_platform_policies().filter(is_active=True):
                 # Execute the most recently updated policy that passes filter()
                 was_executed = execute_policy(policy, action, is_first_evaluation=False)
                 if was_executed:
@@ -29,7 +29,7 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in action.community.get_platform_policies():
+            for policy in action.community.get_platform_policies().filter(is_active=True):
                 execute_policy(policy, action)"""
 
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
@@ -39,7 +39,7 @@ def consider_proposed_actions():
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
             action.execute()
         else:
-            for policy in action.community.get_constitution_policies():
+            for policy in action.community.get_constitution_policies().filter(is_active=True):
                 # Execute the most recently updated policy that passes filter()
                 was_executed = execute_policy(policy, action, is_first_evaluation=False)
                 if was_executed:
