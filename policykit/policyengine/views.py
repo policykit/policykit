@@ -279,7 +279,11 @@ def selectdocument(request):
     user = get_user(request)
     operation = request.GET.get('operation')
 
-    documents = user.community.get_documents().filter(is_active=True)
+    show_active_documents = True
+    if operation == 'Recover':
+        show_active_documents = False
+
+    documents = user.community.get_documents().filter(is_active=show_active_documents)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
         'server_url': SERVER_URL,
