@@ -176,12 +176,15 @@ to decide whether to accept or reject the proposal. If rejected, delete the topi
     discourse_username = action.initiator.metagovuser.external_username
     topic_url = action.event_data["url"]
 
+    import datetime
+    closing_at = (action.proposal.proposal_time + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+
     # Kick off a vote in Loomio
     parameters = {
         "title": f"Vote on adding proposal '{title}'",
         "details": f"proposed by {discourse_username} on Discourse: {topic_url}",
         "options": ["agree", "disagree"],
-        "closing_at": "2022-01-01"
+        "closing_at": closing_at
     }
     result = metagov.start_process("loomio.poll", parameters)
     poll_url = result.outcome.get("poll_url")
