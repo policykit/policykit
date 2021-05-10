@@ -10,16 +10,18 @@ Getting Started
 
 | PolicyKit requires Python 3. Before you install, we recommend that you activate a Python 3+ virtual environment.
 
-| To begin, you need to download PolicyKit from our `GitHub repository <https://github.com/amyxzhang/policykit>`_. Once you have finished downloading PolicyKit, change to that directory by doing:
+| To begin, clone the `PolicyKit GitHub repository <https://github.com/amyxzhang/policykit>`_ (or your fork) and navigate to the python project root:
 
 ::
 
- cd policykit
+ git clone https://github.com/amyxzhang/policykit.git
+ cd policykit/policykit
 
-| From here, run the following command to install PolicyKit's dependencies:
+| From here, run the following commands to install PolicyKit's dependencies:
 
 ::
 
+ pip install --upgrade pip
  pip install -r requirements.txt
 
 | Next, run the following command to create a file to store your API keys:
@@ -28,7 +30,7 @@ Getting Started
 
  cp private_template.py private.py
 
-| PolicyKit requires a directory to send logs to. By default, it logs to the path ``/var/log/django``. You either need to create a folder at this path or edit the ``LOGGING`` field in ``settings.py`` to point to the right location.
+| PolicyKit requires a directory to send logs to. By default, it logs to the path ``debug.log``. Edit the ``LOGGING_ROOT_DIR`` variable in ``settings.py`` to point to the right logging directory (for example ``/var/log/django``).
 
 | To verify that you have set the PolicyKit server up correctly, run the following command:
 
@@ -36,13 +38,12 @@ Getting Started
 
  python manage.py runserver
 
-| To use PolicyKit, you must set up your own database. You can use the default ``sqlite`` or ``mysql`` or another database of your choice. Edit the ``DATABASES`` field in ``settings.py`` to point to the right database.
+| To use PolicyKit, you must set up your own database. You can use the default ``sqlite`` or ``mysql`` or another database of your choice. Edit the ``DATABASES`` field in ``settings.py`` to point to the right database. Django will create the database as long as the parent directory exists.
 
-| Once you have finished setting up your database, run the following commands to create and apply new migrations:
+| Run the following command to create and set up the database:
 
 ::
 
- python manage.py makemigrations
  python manage.py migrate
 
 | Finally, you need to set up PolicyKit's governance starter kits. Run the following command to enter the shell:
@@ -59,38 +60,39 @@ From the shell prompt, run the following command to create the starterkits:
 
 Open PolicyKit in the browser at http://localhost:8000/main
 
-Troubleshooting
-^^^^^^^^^^^^^^^
-
-| It's possible that you may receive the error ``InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]`` where ``ModelState`` may refer to ``policyengine``, ``policykit``, ``slack``, ``reddit``, ``discord`` or ``discourse``. If so, inside each referenced directory, make sure that there exists a subdirectory named ``migrations`` containing an empty file named ``__init__.py``.
-
-| It's possible that when you try to make migrations, you may receive an error of the form ``ImportError: cannot import name 'FieldDoesNotExist'``. If you receive this error, then you need to go to ``/site-packages/polymorphic/query.py`` and change the line ``django.db.models import FieldDoesNotExist`` to ``from django.core.exceptions import FieldDoesNotExist``.
 
 Running PolicyKit in Production
 -------------------------------
 
 | Thus far, we have been run in Ubuntu 18.04 and Ubuntu 20.04, and the below instructions should work for both.
 
-| Add PolicyKit to the server by uploading the codebase or using ``git clone``. Create a virtualenv and install all requirements into the virtualenv as above. For instructions, see `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_.
+1. Add PolicyKit to the server by uploading the codebase or using ``git clone``.
+2. Follow `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_ to install Python3 and to create a virtual environment for PolicyKit.
+3. Install the requirements to the virtual environment with ``pip install -r requirements.txt``.
+4. Finish the earlier guide to setting up PolicyKit.
+5. Make the following additional changes to ``private.py``:
 
-| Once you have finished following the earlier guide to setting up PolicyKit, you need to make the following additional changes:
+   - Set the ``SERVER_URL`` field
+   - [Optional] Fill in any necessary API keys/secrets for platform integrations
+   - [Optional] If you're using Metagov, set the ``METAGOV_URL``
 
-- Update the ``SERVER_URL`` field in ``private.py``, and fill in any necessary API keys/secrets.
+6. Make the following additional changes to ``policykit/settings.py``:
 
-- Update the ``ALLOWED_HOSTS`` field in ``settings.py`` to point to your host.
+   - Update the ``ALLOWED_HOSTS`` field to point to your host.
 
-- Update that the database path in ``settings.py`` under ``DATABASES``. It is not recommended to keep the database inside the project directory, because the apache2 user (www-data) needs write access to the database *and* it's parent folder. Recommended: put the database in ``/var/databases/policykit/db.sqlite3``.
+   - Update that the database path under ``DATABASES``. Recommended: set the database path to ``/var/databases/policykit/db.sqlite3``. Make sure the directory exists.
 
-- Update the ``LOGGING_ROOT_DIR``in ``settings.py`` to point to your log directory (for example ``/var/log/django``).
+   - Update the ``LOGGING_ROOT_DIR`` to point to your log directory (recommended: ``/var/log/django``).
 
-- Generate a new Django secret key and put it in ``settings.py``. Generate a key with this command:
+   - Set ``DEBUG`` to False
 
-        .. code-block::
+   - Set ``SECRET_KEY`` to a new Django secret key. Generate a key with this command:
 
-                python manage.py shell -c 'from django.core.management import utils; print(utils.get_random_secret_key())'
+           .. code-block::
 
+                   python manage.py shell -c 'from django.core.management import utils; print(utils.get_random_secret_key())'
 
-| Next, run the following command to collect static files into a ``static/`` folder:
+7. Next, run the following command to collect static files into a ``static/`` folder:
 
 ::
 
@@ -156,9 +158,9 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                 </VirtualHost>
         </IfModule>
 
-4. Test your config with ``apache2ctl configtest``
+4. Test your config with ``apache2ctl configtest``. You should get a "Syntax OK" as a response. 
 
-5. Get an SSL certificate and set it up to auto-renew using LetsEncrypt. Follow step 4 here: `How To Secure Apache with Let's Encrypt on Ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-20-04>`_. Once that's done, add the newly created SSL files to your apache2 conf:
+5. Get an SSL certificate and set it up to auto-renew using LetsEncrypt. Follow steps 1 and 4 here: `How To Secure Apache with Let's Encrypt on Ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-20-04>`_. Once that's done, add the newly created SSL files to your apache2 conf:
 
     .. code-block:: aconf
 
@@ -169,15 +171,31 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
         .. code-block:: shell
 
+             # activate your config
              a2ensite /etc/apache2/sites-available/$SERVER_NAME.conf
+
+             # disable the default config
+             sudo a2dissite 000-default-le-ssl.conf
+
              # you should see a symlink to your site config here:
              ls /etc/apache2/sites-enabled
 
-7. Load your site in the browser.
+             # activate the new configuration
+             systemctl reload apache2
 
-  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you have defined in ``settings.py``). The ``www-data`` user should own the Django log directory and have write-access to the log file.
+7. Give the Apache2 user access to the database directory and the logging directory (update paths as needed):
 
-8. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
+        .. code-block:: shell
+
+                sudo chown -R www-data:www-data /var/log/django
+                sudo chown -R www-data:www-data /var/databases/policykit
+
+8. Load your site in the browser and navigate to ``/main``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
+
+  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you have defined in ``settings.py``).
+
+9. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
+
 
 Set up Celery
 ^^^^^^^^^^^^^
@@ -344,11 +362,10 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
 
  sudo systemctl daemon-reload
 
-| Finally, run the following commands to start the server:
+| Finally, run the following commands to start the celery daemon:
 
 ::
 
- sudo service apache2 start
  sudo service rabbitmq-server start
  sudo systemctl start celery-policykit celerybeat-policykit
 
@@ -358,8 +375,6 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
 
  sudo systemctl status celery-policykit
  sudo systemctl status celerybeat-policykit
-
-| Once things are up and running, you should be able to access the PolicyKit editor in the browser at ``https://<your domain>/main``.
 
 Troubleshooting
 """""""""""""""
@@ -372,4 +387,4 @@ Troubleshooting
  celery -A policykit beat -l info --uid celery --schedule=/var/run/celery/celerybeat-policykit-schedule
 
 
-If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/beat.log``.
+If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/policykit_beat.log``.
