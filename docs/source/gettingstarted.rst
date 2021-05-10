@@ -160,37 +160,45 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
 4. Test your config with ``apache2ctl configtest``. You should get a "Syntax OK" as a response. 
 
-5. Get an SSL certificate and set it up to auto-renew using LetsEncrypt. Follow steps 1 and 4 here: `How To Secure Apache with Let's Encrypt on Ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-20-04>`_. Once that's done, add the newly created SSL files to your apache2 conf:
+5. Enable your site:
+
+        .. code-block:: shell
+
+                # activate your config
+                a2ensite /etc/apache2/sites-available/$SERVER_NAME.conf
+
+                # disable the default config
+                sudo a2dissite 000-default-le-ssl.conf
+
+6. Get an SSL certificate and set it up to auto-renew using LetsEncrypt:
+
+    .. code-block:: shell
+
+        sudo apt install certbot python3-certbot-apache
+        sudo certbot --apache
+
+7. Add the certificates to your ``$SERVER_NAME.conf`` file:
 
     .. code-block:: aconf
 
         SSLCertificateFile /etc/letsencrypt/live/$SERVER_NAME/fullchain.pem
         SSLCertificateKeyFile /etc/letsencrypt/live/$SERVER_NAME/privkey.pem
 
-6. Activate the site:
+8. Reload the config:
 
-        .. code-block:: shell
+     .. code-block:: shell
 
-             # activate your config
-             a2ensite /etc/apache2/sites-available/$SERVER_NAME.conf
+          systemctl reload apache2
 
-             # disable the default config
-             sudo a2dissite 000-default-le-ssl.conf
 
-             # you should see a symlink to your site config here:
-             ls /etc/apache2/sites-enabled
-
-             # activate the new configuration
-             systemctl reload apache2
-
-7. Give the Apache2 user access to the database directory and the logging directory (update paths as needed):
+9.  Give the Apache2 user access to the database directory and the logging directory (update paths as needed):
 
         .. code-block:: shell
 
                 sudo chown -R www-data:www-data /var/log/django
                 sudo chown -R www-data:www-data /var/databases/policykit
 
-8. Load your site in the browser and navigate to ``/main``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
+10. Load your site in the browser and navigate to ``/main``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
 
   Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you have defined in ``settings.py``).
 
