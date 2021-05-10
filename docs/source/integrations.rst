@@ -14,9 +14,14 @@ Slack Integration
 
 Initial Setup
 """""""""""""
+The PolicyKit server admin has to do this once:
 
-Add instructions for creating Client ID and Client Secret.
-
+1. Go to https://api.slack.com/apps, click "Create New App"
+2. Click "Event Subscriptions"->"Enable Events" and enter the request URL "https://<YOUR URL>/slack/action". Subscribe to bot events and subscribe to events on behalf of users.
+3. Click "OAuth & Permissions" and add redirect URL "https://<YOUR URL>/slack/oauth"
+4. Click "Manage Distribution"->"Activate Public Distribution"
+5. Click "Basic Information." Copy the Client ID and Client Secret into the ``private.py`` file on your PolicyKit server.
+6. To test it out, go to "https://<YOUR URL>/main" and click "Add to Slack" and then "Sign in with Slack."
 
 Reddit Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
