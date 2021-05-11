@@ -75,7 +75,6 @@ class Migration(migrations.Migration):
                 ('name', models.TextField(blank=True, null=True)),
                 ('description', models.TextField(blank=True, null=True)),
                 ('is_bundled', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
                 ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.Community', verbose_name='community')),
             ],
@@ -122,7 +121,6 @@ class Migration(migrations.Migration):
                 ('name', models.TextField(blank=True, null=True)),
                 ('description', models.TextField(blank=True, null=True)),
                 ('is_bundled', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
                 ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.Community', verbose_name='community')),
                 ('data', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='policyengine.DataStore', verbose_name='data')),
@@ -282,7 +280,6 @@ class Migration(migrations.Migration):
                 ('fail', models.TextField(blank=True, default='', null=True)),
                 ('is_bundled', models.BooleanField(default=False)),
                 ('is_constitution', models.BooleanField(default=True)),
-                ('is_active', models.BooleanField(default=True)),
                 ('starterkit', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.StarterKit')),
             ],
         ),
@@ -375,7 +372,6 @@ class Migration(migrations.Migration):
                 ('name', models.TextField(blank=True, default='', null=True)),
                 ('text', models.TextField(blank=True, default='', null=True)),
                 ('community', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='policyengine.Community')),
-                ('is_active', models.BooleanField(default=True)),
             ],
         ),
         migrations.AddField(
@@ -445,17 +441,6 @@ class Migration(migrations.Migration):
             bases=('policyengine.constitutionaction',),
         ),
         migrations.CreateModel(
-            name='PolicykitRecoverPlatformPolicy',
-            fields=[
-                ('constitutionaction_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='policyengine.ConstitutionAction')),
-                ('platform_policy', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.PlatformPolicy')),
-            ],
-            options={
-                'permissions': (('can_execute_policykitrecoverplatformpolicy', 'Can execute policykit recover platform policy'),),
-            },
-            bases=('policyengine.constitutionaction',),
-        ),
-        migrations.CreateModel(
             name='PolicykitRemoveConstitutionPolicy',
             fields=[
                 ('constitutionaction_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='policyengine.ConstitutionAction')),
@@ -463,17 +448,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'permissions': (('can_execute_policykitremoveconstitutionpolicy', 'Can execute policykit remove constitution policy'),),
-            },
-            bases=('policyengine.constitutionaction',),
-        ),
-        migrations.CreateModel(
-            name='PolicykitRecoverConstitutionPolicy',
-            fields=[
-                ('constitutionaction_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='policyengine.ConstitutionAction')),
-                ('constitution_policy', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.ConstitutionPolicy')),
-            ],
-            options={
-                'permissions': (('can_execute_policykitrecoverconstitutionpolicy', 'Can execute policykit recover constitution policy'),),
             },
             bases=('policyengine.constitutionaction',),
         ),
@@ -510,17 +484,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'permissions': (('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),),
-            },
-            bases=('policyengine.constitutionaction',),
-        ),
-        migrations.CreateModel(
-            name='PolicykitRecoverCommunityDoc',
-            fields=[
-                ('constitutionaction_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='policyengine.ConstitutionAction')),
-                ('doc', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.CommunityDoc')),
-            ],
-            options={
-                'permissions': (('can_execute_policykitrecovercommunitydoc', 'Can execute policykit recover community doc'),),
             },
             bases=('policyengine.constitutionaction',),
         ),
