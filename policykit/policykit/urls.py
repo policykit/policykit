@@ -30,6 +30,7 @@ urlpatterns = [
     path('main/actions/', policyviews.actions),
     path('main/policyengine/', include('policyengine.urls')),
     path('main/settings/', policyviews.settings_page),
+    path('logs/', include('django_db_logger.urls')),
     path('admin/', admin.site.urls),
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),
