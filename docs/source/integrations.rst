@@ -27,14 +27,6 @@ The PolicyKit server admin needs to do this once. After this is complete, your P
 9. Now, you should be able to use "Sign in with Slack" to access the PolicyKit dashboard for the community you just installed PolicyKit to.
 
 
-Reddit Integration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Initial Reddit Setup
-""""""""""""""""""""
-
-Add instructions for creating Client ID and Client Secret.
-
 Discord Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -101,6 +93,11 @@ Signing in to your PolicyKit dashboard
 """"""""""""""""""""""""""""""""""""""""""
 
 On the login page, select "Sign in with Discourse". This will display a screen asking "Which Discourse community would you like to sign into?" In the text box, enter the full URL of your Discourse community (example: ``https://policykit.trydiscourse.com``) and press Continue. Once again, you must approve PolicyKit's authorization to access your Discourse community. After approving the request, you should be in! You should now be able to see your PolicyKit dashboard and use all the features of PolicyKit with your Discourse community.
+
+Reddit Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Reddit integration is not yet documented.
 
 Metagov Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
