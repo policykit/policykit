@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 @shared_task
 def consider_proposed_actions():
     platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    logger.info(f"[celery] {platform_actions.count()} proposed PlatformActions")
+    logger.info(f"{platform_actions.count()} proposed PlatformActions")
     for action in platform_actions:
          #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
@@ -37,7 +37,7 @@ def consider_proposed_actions():
                 execute_policy(policy, action)"""
 
     constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    logger.info(f"[celery] {constitution_actions.count()} proposed ConstitutionActions")
+    logger.info(f"{constitution_actions.count()} proposed ConstitutionActions")
     for action in constitution_actions:
         #if they have execute permission, skip all policies
         if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
@@ -50,11 +50,11 @@ def consider_proposed_actions():
                     break
 
     clean_up_logs()
-    logger.info('[celery] finished task')
+    logger.info('finished task')
 
 
 def clean_up_logs():
     hours_ago = timezone.now()-timezone.timedelta(hours=DB_LOG_EXPIRATION_HOURS)
     count,_ = EvaluationLog.objects.filter(create_datetime__lt=hours_ago).delete()
     if count:
-        logger.info(f"[celery] Deleted {count} EvaluationLogs")
+        logger.info(f"Deleted {count} EvaluationLogs")

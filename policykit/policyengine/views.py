@@ -95,7 +95,7 @@ def v2(request):
         }
 
     action_log_data = []
-    logger.info(f'[policyengine] Number of action objects: {Action.objects.all().count()}')
+    logger.info(f'Number of action objects: {Action.objects.all().count()}')
     for action in Action.objects.filter(data__community_id=user.community.id):
         action_data = {
             'actor': action.actor,
