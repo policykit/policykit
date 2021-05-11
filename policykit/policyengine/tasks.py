@@ -7,10 +7,6 @@ from policyengine.models import UserVote, NumberVote, BooleanVote, PlatformActio
 from policykit.celery import app
 from policyengine.views import *
 
-from django_db_logger.models import EvaluationLog
-from policykit.settings import DB_LOG_EXPIRATION_HOURS
-from datetime import datetime, timedelta
-
 @shared_task
 def consider_proposed_actions():
     platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
@@ -49,12 +45,4 @@ def consider_proposed_actions():
                 if was_executed:
                     break
 
-    clean_up_logs()
     logger.info('[celery] finished task')
-
-
-def clean_up_logs():
-    hours_ago = timezone.now()-timezone.timedelta(hours=DB_LOG_EXPIRATION_HOURS)
-    count,_ = EvaluationLog.objects.filter(create_datetime__lt=hours_ago).delete()
-    if count:
-        logger.info(f"[celery] Deleted {count} EvaluationLogs")

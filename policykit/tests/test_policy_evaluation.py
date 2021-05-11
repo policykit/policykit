@@ -138,7 +138,7 @@ return FAILED
         policy = PlatformPolicy()
         policy.community = self.community
         policy.filter = "return True"
-        policy.initialize = "debug('help!')"
+        policy.initialize = "pass"
         policy.check = """parameters = {"low": 4, "high": 5}
 response = metagov.perform_action('randomness.random-int', parameters)
 if response and response.get('value') == 4:
@@ -158,10 +158,6 @@ return FAILED"""
         action.save()
 
         self.assertEqual(action.proposal.status, "passed")
-
-        # Check that evaluation debug log was generated
-        from django_db_logger.models import EvaluationLog
-        self.assertEqual(EvaluationLog.objects.filter(community=policy.community, msg__contains="help!").count(), 1)
 
     def test_policy_order(self):
         first_policy = PlatformPolicy.objects.create(

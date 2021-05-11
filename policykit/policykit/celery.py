@@ -23,8 +23,6 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
-# Don't store task results in the database
-app.conf.task_ignore_result = True
 
 @app.task(bind=True)
 def debug_task(self):

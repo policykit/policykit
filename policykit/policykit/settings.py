@@ -56,9 +56,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_celery_beat',
     'django_celery_results',
-    'django_filters',
-    'django_tables2',
-    'django_db_logger',
     'policyengine',
     'integrations.slack',
     'integrations.reddit',
@@ -175,10 +172,6 @@ PROJECT_NAME = "PolicyKit"
 # Override this value in production (For example: "/var/log/django")
 LOGGING_ROOT_DIR = BASE_DIR
 
-# Delete log records from django_db_logger after a certain number of hours.
-# Deletion is performed by policyengine celery task.
-DB_LOG_EXPIRATION_HOURS = 1
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -186,18 +179,10 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOGGING_ROOT_DIR, 'debug.log'),
+            'filename': os.path.join(LOGGING_ROOT_DIR, 'django.log'),
         },
-        'db_log': {
-            'level': 'DEBUG',
-            'class': 'django_db_logger.db_log_handler.DatabaseLogHandler'
-        }
     },
     'loggers': {
-        'db': {
-            'handlers': ['db_log'],
-            'level': 'DEBUG'
-        },
         'django': {
             'handlers': ['file'],
             'level': 'INFO',

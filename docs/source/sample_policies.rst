@@ -35,15 +35,13 @@ send them a message explaining why.
 
 .. code-block:: python
 
-    username = action.initiator.metagovuser.external_username
-    params = {"username": username}
+    params = {"username": action.initiator.metagovuser.external_username}
     user_cred = 0
     try:
         result = metagov.perform_action("sourcecred.user-cred", params)
         user_cred = result["value"]
     except Exception as e:
         # exception probably means they aren't found in sourcecred.. make this better
-        debug(f"User {username} not found in SourceCred")
         user_cred = -1
 
     action.data.set("cred", user_cred)
@@ -204,9 +202,6 @@ to decide whether to accept or reject the proposal. If rejected, delete the topi
 .. code-block:: python
 
     result = metagov.get_process()
-
-    # send debug log of intermediate results. visible in PolicyKit app at /logs.,
-    debug("Loomio result: " + str(result))
 
     if result.status == "completed":
         agrees = result.outcome["votes"]["agree"]
