@@ -12,42 +12,63 @@ Integrations
 Slack Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Initial Setup
-"""""""""""""
-The PolicyKit server admin has to do this once:
+Initial Slack Setup
+"""""""""""""""""""
+The PolicyKit server admin needs to do this once. After this is complete, your PolicyKit instance can be installed to any number of Slack servers.
 
-1. Go to https://api.slack.com/apps, click "Create New App"
-2. Click "Event Subscriptions"->"Enable Events" and enter the request URL "https://<YOUR URL>/slack/action". Subscribe to bot events and subscribe to events on behalf of users.
-3. Click "OAuth & Permissions" and add redirect URL "https://<YOUR URL>/slack/oauth"
-4. Click "Manage Distribution"->"Activate Public Distribution"
-5. Click "Basic Information." Copy the Client ID and Client Secret into the ``private.py`` file on your PolicyKit server.
-6. To test it out, go to "https://<YOUR URL>/main" and click "Add to Slack" and then "Sign in with Slack."
+1. Go to https://api.slack.com/apps
+2. Click "Create New App" to create your PolicyKit application
+3. Click "Event Subscriptions"->"Enable Events" and enter the request URL ``[POLICYKIT_URL]/slack/action``. Subscribe to bot events and subscribe to events on behalf of users.
+4. Click "OAuth & Permissions" and add redirect URL ``[POLICYKIT_URL]/slack/oauth``
+5. Click "Manage Distribution"->"Activate Public Distribution"
+6. Click "Basic Information." Copy the Client ID and Client Secret into the ``private.py`` file on your PolicyKit server.
+7. Reload apache2: ``systemctl reload apache2``
+8. To test it out, open ``[POLICYKIT_URL]/main`` and click "Add to Slack."
+9. Now, you should be able to use "Sign in with Slack" to access the PolicyKit dashboard for the community you just installed PolicyKit to.
+
 
 Reddit Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Initial Setup
-"""""""""""""
+Initial Reddit Setup
+""""""""""""""""""""
 
 Add instructions for creating Client ID and Client Secret.
 
 Discord Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Initial Setup
-"""""""""""""
+Initial Discord Setup
+"""""""""""""""""""""
 
-Add instructions for creating Client ID, Client Secret, and bot token.
+The PolicyKit server admin needs to do this once. After this is complete, your PolicyKit instance can be installed to any number of Discord servers.
+
+1. Go to https://discord.com/developers/applications
+2. Click "New Application" to create your PolicyKit application
+3. Under OAuth2, add the redirect URL ``[POLICYKIT_URL]/discord/oauth``
+4. Add a new Bot and enable these options:
+
+    - Public Bot
+    - Requires OAuth2 Code Grant
+    - Presence Intent
+    - Server Members Intent
+
+5. Copy the bot token into ``DISCORD_BOT_TOKEN`` in ``private.py`` file on your PolicyKit server.
+6. On the OAuth2 page, get the Client ID and Client Secret and copy them into ``private.py``.
+7. Reload apache2: ``systemctl reload apache2``
+8. To test it out, open ``[POLICYKIT_URL]/main`` and click "Install PolicyKit to Discord."
+9. Now, you should be able to use "Sign in with Discord" to access the PolicyKit dashboard for the community you just installed PolicyKit to.
+
 
 Discourse Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is a connector for `Discourse <https://www.discourse.org/>`_ that lets you write policies that govern Discourse communities.
 
-Initial Setup
-"""""""""""""
+Initial Discourse Setup
+"""""""""""""""""""""""
 
-There is no initial setup required for Discourse. Each Discourse community that wants to install PolicyKit will need to register the auth redirect separately (see below).
+There is no initial setup required for Discourse. However, each Discourse community that installs PolicyKit will need to register the auth redirect separately (see below).
 
 
 Setting up your Discourse community
@@ -59,15 +80,16 @@ You can set up a Discourse community either by running a server that hosts a com
 |
 
 Once the site is up and running, you need to configure a few settings to enable PolicyKit to interact with your site. On the site homepage, log in as your admin account and enter the Settings menu (located on the top right of the homepage). On the left sidebar, select the User API page. On this page, you should set / verify the following settings:
- * **allow user api keys**: `checked`
- * **allow user api key scopes**: Select the scopes you want to enable here. Possible scopes: `read`, `write`, `message_bus`, `push`, `notifications`, `session_info`, `one_time_password`. Recommend allowing all the scopes for full usability of PolicyKit.
- * **min user level for user api key**: `0`
- * **allowed user api auth redirects**: Add an entry: `[YOUR SERVER URL]/discourse/auth`. (example: `https://policykit.org/discourse/auth`)
+
+ * **allow user api keys**: ``checked``
+ * **allow user api key scopes**: Select the scopes you want to enable here. Possible scopes: ``read``, ``write``, ``message_bus``, ``push``, ``notifications``, ``session_info``, ``one_time_password``. Recommend allowing all the scopes for full usability of PolicyKit.
+ * **min user level for user api key**: ``0``
+ * **allowed user api auth redirects**: Add an entry: ``[POLICYKIT_URL]/discourse/auth``. (example: ``https://policykit.org/discourse/auth``)
 
  Installing PolicyKit to your Discourse community
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
-On the login page, select "Install PolicyKit to Discourse". On the Configure screen that appears, enter the full URL of your Discourse community (example: `https://policykit.trydiscourse.com`). On the next screen that appears, you must approve PolicyKit's authorization to access your Discourse community. On the third and final screen, you must select a Starter Kit system of governance, which will initialize your community with the selected system of governance.
+On the login page, select "Install PolicyKit to Discourse". On the Configure screen that appears, enter the full URL of your Discourse community (example: ``https://policykit.trydiscourse.com``). On the next screen that appears, you must approve PolicyKit's authorization to access your Discourse community. On the third and final screen, you must select a Starter Kit system of governance, which will initialize your community with the selected system of governance.
 
 |
 
@@ -78,7 +100,7 @@ Once you have selected a Starter Kit, you will be redirected back to the login p
 Signing in to your PolicyKit dashboard
 """"""""""""""""""""""""""""""""""""""""""
 
-On the login page, select "Sign in with Discourse". This will display a screen asking "Which Discourse community would you like to sign into?" In the text box, enter the full URL of your Discourse community (example: `https://policykit.trydiscourse.com`) and press Continue. Once again, you must approve PolicyKit's authorization to access your Discourse community. After approving the request, you should be in! You should now be able to see your PolicyKit dashboard and use all the features of PolicyKit with your Discourse community.
+On the login page, select "Sign in with Discourse". This will display a screen asking "Which Discourse community would you like to sign into?" In the text box, enter the full URL of your Discourse community (example: ``https://policykit.trydiscourse.com``) and press Continue. Once again, you must approve PolicyKit's authorization to access your Discourse community. After approving the request, you should be in! You should now be able to see your PolicyKit dashboard and use all the features of PolicyKit with your Discourse community.
 
 Metagov Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
