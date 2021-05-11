@@ -67,7 +67,7 @@ class Metagov:
         logger.info(payload)
 
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
-        # payload["callback_url"] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
+        payload["callback_url"] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
 
         # Kick off process in Metagov
         response = requests.post(url, json=payload, headers=self.headers)
@@ -80,7 +80,13 @@ class Metagov:
             raise Exception("Response missing location header")
 
         model.location = f"{settings.METAGOV_URL}{location}"
-        model.refresh_from_metagov()
+
+        response = requests.get(model.location)
+        if not response.ok:
+            raise Exception(f"Error getting process: {response.status_code} {response.reason} {response.text}")
+        logger.info(response.text)
+        model.json_data = response.text
+        model.save()
         self.process = model
         return model.data
 
@@ -92,7 +98,6 @@ class Metagov:
 
     def get_process(self) -> MetagovProcessData:
         if self.process:
-            self.process.refresh_from_metagov() # poll for latest outcome
             return self.process.data
         return None
 

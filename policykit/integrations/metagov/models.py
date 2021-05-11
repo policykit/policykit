@@ -37,26 +37,12 @@ class MetagovProcess(models.Model):
     def data(self) -> MetagovProcessData:
         """
         A ``MetagovProcessData`` object with ``status`, ``errors``, and ``outcome``.
-        This is the most recently fetched data, but it is not necessarily up-to-date with Metagov.
-        Use ``refresh_from_metagov`` to get latest data.
+        This is the most recent data that we've received from Metagov at the Callback URL (post_outcome view).
         """
         if self.json_data:
             data = json.loads(self.json_data)
             return MetagovProcessData(data)
         return None
-
-    def refresh_from_metagov(self):
-        """
-        Fetch latest process data from Metagov and store it.
-        Policies can access latest data object at ``data``.
-        """
-        logger.info(f"Making request to get process at '{self.location}'")
-        response = requests.get(self.location)
-        if not response.ok:
-            raise Exception(f"Error getting process: {response.status_code} {response.reason} {response.text}")
-        logger.info(response.text)
-        self.json_data = response.text
-        self.save()
 
     def close(self):
         if self.data.status == "completed":
