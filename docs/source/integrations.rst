@@ -12,19 +12,47 @@ Integrations
 Slack Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Initial Setup
+"""""""""""""
+The PolicyKit server admin has to do this once:
+
+1. Go to https://api.slack.com/apps, click "Create New App"
+2. Click "Event Subscriptions"->"Enable Events" and enter the request URL "https://<YOUR URL>/slack/action". Subscribe to bot events and subscribe to events on behalf of users.
+3. Click "OAuth & Permissions" and add redirect URL "https://<YOUR URL>/slack/oauth"
+4. Click "Manage Distribution"->"Activate Public Distribution"
+5. Click "Basic Information." Copy the Client ID and Client Secret into the ``private.py`` file on your PolicyKit server.
+6. To test it out, go to "https://<YOUR URL>/main" and click "Add to Slack" and then "Sign in with Slack."
+
 Reddit Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Initial Setup
+"""""""""""""
+
+Add instructions for creating Client ID and Client Secret.
+
 Discord Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Initial Setup
+"""""""""""""
+
+Add instructions for creating Client ID, Client Secret, and bot token.
 
 Discourse Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is a connector for `Discourse <https://www.discourse.org/>`_ that lets you write policies that govern Discourse communities.
 
+Initial Setup
+"""""""""""""
+
+There is no initial setup required for Discourse. Each Discourse community that wants to install PolicyKit will need to register the auth redirect separately (see below).
+
+
 Setting up your Discourse community
 """""""""""""""""""""""""""""""""""
+
 
 You can set up a Discourse community either by running a server that hosts a community locally or by creating a community hosted remotely by `Discourse.org <https://www.discourse.org/>`_. To host a community remotely, you can press "Start Trial" `on this page <https://www.discourse.org/pricing>`_ and follow the instructions to set up a community. Discourse.org offers free 14 day trials, which can be extended by contacting support.
 
@@ -36,7 +64,7 @@ Once the site is up and running, you need to configure a few settings to enable 
  * **min user level for user api key**: `0`
  * **allowed user api auth redirects**: Add an entry: `[YOUR SERVER URL]/discourse/auth`. (example: `https://policykit.org/discourse/auth`)
 
-Installing PolicyKit to your Discourse community
+ Installing PolicyKit to your Discourse community
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 On the login page, select "Install PolicyKit to Discourse". On the Configure screen that appears, enter the full URL of your Discourse community (example: `https://policykit.trydiscourse.com`). On the next screen that appears, you must approve PolicyKit's authorization to access your Discourse community. On the third and final screen, you must select a Starter Kit system of governance, which will initialize your community with the selected system of governance.
@@ -57,11 +85,14 @@ Metagov Integration
 
 This is a special connector for `Metagov <http://docs.metagov.org/>`_ that lets you write policies that make use of the `Metagov API <https://prototype.metagov.org/redoc/>`_, which provides access to several external platforms and governance tools.
 
-In order to use this integration, you need to deploy an instance of Metagov on the same machine as PolicyKit.
-The ``METAGOV_URL`` setting must be set in your ``private.py`` file.
+Initial Setup
+"""""""""""""
 
-Configuring Metagov
-"""""""""""""""""""
+In order to use this integration, you need to deploy an instance of Metagov on the same machine as PolicyKit. See `Installing Metagov <https://docs.metagov.org/en/latest/installation.html>`_ for instructions.
+To enable Metagov in PolicyKit, set ``METAGOV_URL`` in your ``private.py`` file to point to your Metagov server.
+
+Configuring Metagov for a Community
+"""""""""""""""""""""""""""""""""""
 
 Configure Metagov by navigating to "Settings" in the PolicyKit web interface.
 At this time, only community admins are permitted to view and edit the Metagov configuration.
@@ -151,11 +182,11 @@ Use the ``metagov`` client to perform asynchronous governance processes. Here's 
 
     import datetime
 
-    closing_at = action.proposal.proposal_time + datetime.timedelta(days=3)
+    closing_at = (action.proposal.proposal_time + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
     result = metagov.start_process("loomio.poll", {
         "title": "Agree or disagree?",
         "options": ["agree", "disagree"],
-        "closing_at": closing_at.strftime("%Y-%m-%d")
+        "closing_at": closing_at
     })
     poll_url = result.get('poll_url')
     # elided: send the poll URL to users and let them know to vote

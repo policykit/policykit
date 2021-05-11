@@ -6,20 +6,22 @@ Installation and Getting Started
 | On this page, we will take you through the process of setting up PolicyKit, both for development and for production.
 
 Getting Started
-~~~~~~~~~~~~~~~~~
+---------------
 
 | PolicyKit requires Python 3. Before you install, we recommend that you activate a Python 3+ virtual environment.
 
-| To begin, you need to download PolicyKit from our `GitHub repository <https://github.com/amyxzhang/policykit>`_. Once you have finished downloading PolicyKit, change to that directory by doing:
+| To begin, clone the `PolicyKit GitHub repository <https://github.com/amyxzhang/policykit>`_ (or your fork) and navigate to the python project root:
 
 ::
 
- cd policykit
+ git clone https://github.com/amyxzhang/policykit.git
+ cd policykit/policykit
 
-| From here, run the following command to install PolicyKit's dependencies:
+| From here, run the following commands to install PolicyKit's dependencies:
 
 ::
 
+ pip install --upgrade pip
  pip install -r requirements.txt
 
 | Next, run the following command to create a file to store your API keys:
@@ -28,7 +30,7 @@ Getting Started
 
  cp private_template.py private.py
 
-| PolicyKit requires a directory to send logs to. By default, it logs to the path ``/var/log/django``. You either need to create a folder at this path or edit the ``LOGGING`` field in ``settings.py`` to point to the right location.
+| PolicyKit requires a directory to send logs to. By default, it logs to the path ``debug.log``. Edit the ``LOGGING_ROOT_DIR`` variable in ``settings.py`` to point to the right logging directory (for example ``/var/log/django``).
 
 | To verify that you have set the PolicyKit server up correctly, run the following command:
 
@@ -36,13 +38,12 @@ Getting Started
 
  python manage.py runserver
 
-| To use PolicyKit, you must set up your own database. You can use the default ``sqlite`` or ``mysql`` or another database of your choice. Edit the ``DATABASES`` field in ``settings.py`` to point to the right database.
+| To use PolicyKit, you must set up your own database. You can use the default ``sqlite`` or ``mysql`` or another database of your choice. Edit the ``DATABASES`` field in ``settings.py`` to point to the right database. Django will create the database as long as the parent directory exists.
 
-| Once you have finished setting up your database, run the following commands to create and apply new migrations:
+| Run the following command to create and set up the database:
 
 ::
 
- python manage.py makemigrations
  python manage.py migrate
 
 | Finally, you need to set up PolicyKit's governance starter kits. Run the following command to enter the shell:
@@ -59,184 +60,309 @@ From the shell prompt, run the following command to create the starterkits:
 
 Open PolicyKit in the browser at http://localhost:8000/main
 
-Troubleshooting
----------------------------
-
-| It's possible that you may receive the error ``InvalidBasesError: Cannot resolve bases for [<ModelState: 'users.GroupProxy'>]`` where ``ModelState`` may refer to ``policyengine``, ``policykit``, ``slack``, ``reddit``, ``discord`` or ``discourse``. If so, inside each referenced directory, make sure that there exists a subdirectory named ``migrations`` containing an empty file named ``__init__.py``.
-
-| It's possible that when you try to make migrations, you may receive an error of the form ``ImportError: cannot import name 'FieldDoesNotExist'``. If you receive this error, then you need to go to ``/site-packages/polymorphic/query.py`` and change the line ``django.db.models import FieldDoesNotExist`` to ``from django.core.exceptions import FieldDoesNotExist``.
 
 Running PolicyKit in Production
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
-| Initialize a webserver. Thus far, we have been run in Ubuntu 18.04 and Ubuntu 20.04, and the below instructions should work for both.
+| Thus far, we have been run in Ubuntu 18.04 and Ubuntu 20.04, and the below instructions should work for both.
 
-| Add PolicyKit to the server by uploading the codebase or using ``git clone``. Create a virtualenv and install all requirements into the virtualenv as above. For instructions, see `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_.
+1. Add PolicyKit to the server by uploading the codebase or using ``git clone``.
+2. Follow `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_ to install Python3 and to create a virtual environment for PolicyKit.
+3. Install the requirements to the virtual environment with ``pip install -r requirements.txt``.
+4. Finish the earlier guide to setting up PolicyKit.
+5. Make the following additional changes to ``private.py``:
 
-| Once you have finished following the earlier guide to setting up PolicyKit you need to make the following additional changes:
+   - Set the ``SERVER_URL`` field
+   - [Optional] Fill in any necessary API keys/secrets for platform integrations
+   - [Optional] If you're using Metagov, set the ``METAGOV_URL``
 
-- Update the ``ALLOWED_HOSTS`` field in ``settings.py`` to point to your hosts.
+6. Make the following additional changes to ``policykit/settings.py``:
 
-- Update the ``SERVER_URL`` field in ``private.py``, and fill in any necessary API keys/secrets.
+   - Update the ``ALLOWED_HOSTS`` field to point to your host.
 
-- Verify that the database path in ``settings.py`` is correct. It is not recommended to keep the database inside the project directory, because you need to grant the apache2 user (``www-data``) access to the database its parent folder. Recommended: put the database somewhere like ``/var/databases/policykit/db.sqlite3``.
+   - Update that the database path under ``DATABASES``. Recommended: set the database path to ``/var/databases/policykit/db.sqlite3``. Make sure the directory exists.
 
-| Next, run the following command to collect static files into a ``static/`` folder:
+   - Update the ``LOGGING_ROOT_DIR`` to point to your log directory (recommended: ``/var/log/django``).
+
+   - Set ``DEBUG`` to False
+
+   - Set ``SECRET_KEY`` to a new Django secret key. Generate a key with this command:
+
+           .. code-block::
+
+                   python manage.py shell -c 'from django.core.management import utils; print(utils.get_random_secret_key())'
+
+7. Next, run the following command to collect static files into a ``static/`` folder:
 
 ::
 
  python manage.py collectstatic
 
-| Run the following command to install Apache2 and the ``mod-wsgi`` package:
 
-::
+Deploy with Apache web server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- sudo apt-get install apache2 libapache2-mod-wsgi-py3
+Now that you have PolicyKit installed on your server, you can deploy it on Apache web server.
+Make sure you have a domain dedicated to Policykit that is pointing to your server's IP address.
 
-| Configure Apache2 by editing ``/etc/apache2/sites-available/000-default.conf``. Note: By default, this config file assumes the code is at ``/policykit`` and the virtualenv is at ``/policykit_vm``.
+.. note::
 
-| File: ``000-default.conf``
+        In the remaining examples, make sure to substitute the following values:
 
-::
+        ``$POLICYKIT_REPO`` is the path to your policykit repository root. (``/policykit``)
 
- <VirtualHost *:80>
-        Alias /static /policykit/policykit/static
-        <Directory /policykit/policykit/static>
-                Require all granted
-        </Directory>
+        ``$POLICYKIT_ENV`` is the path to your policykit virtual environment. (``/environments/policykit_env``)
 
-        <Directory /policykit/policykit/policykit>
-                <Files wsgi.py>
-                        Require all granted
-                </Files>
-        </Directory>
+        ``$SERVER_NAME`` is  your server name. (``policykit.mysite.com``)
 
-        WSGIDaemonProcess policykit python-home=/policykit_vm python-path=/policykit/policykit
-        WSGIProcessGroup policykit
-        WSGIScriptAlias / /policykit/policykit/policykit/wsgi.py
+1. Install apache2
 
- ...more below
+   .. code-block:: shell
 
-| You may separately wish to configure PolicyKit to work under HTTPS (will be neccesary to interface with the Slack API for instance). If so, you'll need to get an SSL certificate (we use LetsEncrypt) and add the following file under ``/etc/apache2/sites-available/default-ssl.conf``. You may want to redirect HTTP calls to HTTPS - if so, you'll need to update the :80 config above. `Instructions to set up LetsEncrypt on ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-20-04>`_.
+        sudo apt-get install apache2 libapache2-mod-wsgi-py3
 
-::
+2. Create a new apache2 config file:
 
- #<IfModule mod_ssl.c>
-        <VirtualHost *:443>
-                Alias /static /policykit/policykit/static
-                <Directory /policykit/policykit/static>
-                        Require all granted
-                </Directory>
+   .. code-block:: shell
 
-                <Directory /policykit/policykit/policykit>
-                        <Files wsgi.py>
+        cd /etc/apache2/sites-available
+        # replace SERVER_NAME (ie policykit.mysite.com.conf)
+        cp default-ssl.conf SERVER_NAME.conf
+
+3. Edit the config file to look like this:
+
+
+   .. code-block:: aconf
+
+        <IfModule mod_ssl.c>
+                <VirtualHost _default_:443>
+                        ServerName $SERVER_NAME
+                        ServerAdmin webmaster@localhost
+                        Alias /static $POLICYKIT_REPO/policykit/static
+
+                        <Directory $POLICYKIT_REPO/policykit/static>
                                 Require all granted
-                        </Files>
-                </Directory>
+                        </Directory>
 
-                WSGIDaemonProcess policykitssl python-home=/policykit_vm python-path=/policykit/policykit
-                WSGIProcessGroup policykitssl
-                WSGIScriptAlias / /policykit/policykit/policykit/wsgi.py
+                        # Grant access to wsgi.py file. This is the Django server.
+                        <Directory $POLICYKIT_REPO/policykit/policykit>
+                                <Files wsgi.py>
+                                        Require all granted
+                                </Files>
+                        </Directory>
 
-                SSLEngine on
-                SSLCertificateFile      /etc/letsencrypt/live/policykit.org/fullchain.pem
-                SSLCertificateKeyFile /etc/letsencrypt/live/policykit.org/privkey.pem
+                        WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
+                        WSGIProcessGroup policykit
+                        WSGIScriptAlias / $POLICYKIT_REPO/policykit/policykit/wsgi.py
+                        # .. REST ELIDED
+                </VirtualHost>
+        </IfModule>
 
- ...more below
+4. Test your config with ``apache2ctl configtest``. You should get a "Syntax OK" as a response. 
 
-| Run the following commands to install ``RabbitMQ`` and ``celery``:
+5. Enable your site:
 
-::
+        .. code-block:: shell
 
- sudo apt-get install rabbitmq-server
- pip install celery
+                # activate your config
+                a2ensite /etc/apache2/sites-available/$SERVER_NAME.conf
 
-| Next, we need to create these configuration files for running ``celery`` and ``celery-beat`` as a process:
+                # disable the default config
+                sudo a2dissite 000-default-le-ssl.conf
 
-| File: ``/etc/systemd/system/celery.service``
+6. Get an SSL certificate and set it up to auto-renew using LetsEncrypt:
 
-::
+    .. code-block:: shell
 
- [Unit]
- Description=Celery Service
- After=network.target
+        sudo apt install certbot python3-certbot-apache
+        sudo certbot --apache
 
- [Service]
- Type=forking
- User=ubuntu
- Group=ubuntu
- EnvironmentFile=/etc/conf.d/celery
- WorkingDirectory=/policykit/policykit
- ExecStart=/bin/sh -c '${CELERY_BIN} multi start ${CELERYD_NODES} \
-   -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
-   --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
- ExecStop=/bin/sh -c '${CELERY_BIN} multi stopwait ${CELERYD_NODES} \
-   --pidfile=${CELERYD_PID_FILE}'
- ExecReload=/bin/sh -c '${CELERY_BIN} multi restart ${CELERYD_NODES} \
-   -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
-   --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
+7. Add the certificates to your ``$SERVER_NAME.conf`` file:
 
- [Install]
- WantedBy=multi-user.target
+    .. code-block:: aconf
 
-| File: ``/etc/systemd/system/celerybeat.service``
+        SSLCertificateFile /etc/letsencrypt/live/$SERVER_NAME/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/$SERVER_NAME/privkey.pem
 
-::
+8. Reload the config:
 
- [Unit]
- Description=Celery Beat Service
- After=network.target
+     .. code-block:: shell
 
- [Service]
- Type=simple
- User=ubuntu
- Group=ubuntu
- EnvironmentFile=/etc/conf.d/celery
- WorkingDirectory=/policykit/policykit
- ExecStart=/bin/sh -c '${CELERY_BIN} beat  \
-   -A ${CELERY_APP} --pidfile=${CELERYBEAT_PID_FILE} \
-   --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
+          systemctl reload apache2
 
- [Install]
- WantedBy=multi-user.target
 
-| You can see both point to an environment file. Add the following file. You can change the arguments to suit your needs. Make sure to update the path to Celery bin according to your virtual environment.
+9.  Give the Apache2 user access to the database directory and the logging directory (update paths as needed):
 
-| File: ``/etc/conf.d/celery``
+        .. code-block:: shell
 
-::
+                sudo chown -R www-data:www-data /var/log/django
+                sudo chown -R www-data:www-data /var/databases/policykit
 
- # Name of nodes to start
- # we have one node:
- CELERYD_NODES="w1"
+10. Load your site in the browser and navigate to ``/main``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
 
- # Absolute or relative path to the 'celery' command:
- CELERY_BIN="/policykit_vm/bin/celery"
+  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you have defined in ``settings.py``).
 
- # App instance to use
- # comment out this line if you don't use an app
- CELERY_APP="policykit"
- # or fully qualified:
- #CELERY_APP="proj.tasks:app"
+9. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
 
- # How to call manage.py
- CELERYD_MULTI="multi"
 
- # Extra command-line arguments to the worker
- CELERYD_OPTS="--time-limit=300 --concurrency=8"
+Set up Celery
+^^^^^^^^^^^^^
 
- # - %n will be replaced with the first part of the nodename.
- # - %I will be replaced with the current child process index
- #   and is important when using the prefork pool to avoid race conditions.
- CELERYD_PID_FILE="/var/run/celery/%n.pid"
- CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
- CELERYD_LOG_LEVEL="INFO"
+PolicyKit uses `Celery <https://docs.celeryproject.org/en/stable/index.html>`_ to run scheduled tasks.
+Follow these instructions to run a celery daemon on your Ubuntu machine using ``systemd``.
+For more information about configuration options, see the `Celery Daemonization <https://docs.celeryproject.org/en/stable/userguide/daemonizing.html>`_.
 
- # you may wish to add these options for Celery Beat
- CELERYBEAT_PID_FILE="/var/run/celery/beat.pid"
- CELERYBEAT_LOG_FILE="/var/log/celery/beat.log"
+.. note::
 
-| See `Celery 4.4.0 docs for daemonization using systemd <https://docs.celeryproject.org/en/4.4.0/userguide/daemonizing.html#usage-systemd>`_ for more information.
+        Using PolicyKit with Metagov? These configuration files are designed specifically to work with the setup where PolicyKit and Metagov are deployed together.
+        PolicyKit and Metagov will use separate celery daemons that use separate RabbitMQ virtual hosts, configured using ``CELERY_BROKER_URL``.
+
+
+Create RabbitMQ virtual host
+""""""""""""""""""""""""""""
+
+Install RabbitMQ:
+
+.. code-block:: shell
+
+    sudo apt-get install rabbitmq-server
+
+Follow these instruction to `create a RabbitMQ username, password, and virtual host <https://docs.celeryproject.org/en/stable/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq>`_.
+
+In ``policykit/settings.py``, set the ``CELERY_BROKER_URL`` as follows, substituting values for your RabbitMQ username, password, and virtual host:
+
+.. code-block:: python
+
+    CELERY_BROKER_URL = "amqp://USERNAME:PASSWORD@localhost:5672/VIRTUALHOST"
+
+Create celery user
+""""""""""""""""""
+
+If you don't already have a ``celery`` user, create one:
+
+.. code-block:: bash
+
+        sudo useradd celery -d /home/celery -b /bin/bash
+
+Give the ``celery`` user access to necessary pid and log folders:
+
+.. code-block:: bash
+
+        sudo useradd celery -d /home/celery -b /bin/bash
+        sudo mkdir /var/log/celery
+        sudo chown -R celery:celery /var/log/celery
+        sudo chmod -R 755 /var/log/celery
+
+        sudo mkdir /var/run/celery
+        sudo chown -R celery:celery /var/run/celery
+        sudo chmod -R 755 /var/run/celery
+
+The ``celery`` user will also need write access to the Django log file and the database.
+To give ``celery`` access, create a group that contains both ``www-data`` (the apache2 user) and ``celery``.
+For example, if your Django logs are in ``/var/log/django`` and your database is in ``/var/databases``:
+
+.. code-block:: bash
+
+        sudo groupadd www-and-celery
+        sudo usermod -a -G www-and-celery celery
+        sudo usermod -a -G www-and-celery www-data
+
+        # give the group read-write access to logs
+        sudo chgrp -R www-and-celery /var/log/django
+        sudo chmod -R 775 /var/log/django
+
+        # give the group read-write access to database
+        sudo chgrp -R www-and-celery /var/databases
+        sudo chmod -R 775 /var/databases
+
+
+Create Celery configuration files
+"""""""""""""""""""""""""""""""""
+
+Next, you'll need to create three Celery configuration files for PolicyKit:
+
+``/etc/conf.d/celery-policykit``
+""""""""""""""""""""""""""""""""
+
+.. code-block:: bash
+
+        CELERYD_NODES="w1"
+
+        # Absolute or relative path to the 'celery' command:
+        CELERY_BIN="$POLICYKIT_ENV/bin/celery"
+
+        # App instance to use
+        CELERY_APP="policykit"
+
+        # How to call manage.py
+        CELERYD_MULTI="multi"
+
+        # Extra command-line arguments to the worker
+        CELERYD_OPTS="--time-limit=300 --concurrency=8"
+
+        # - %n will be replaced with the first part of the nodename.
+        # - %I will be replaced with the current child process index
+        #   and is important when using the prefork pool to avoid race conditions.
+        CELERYD_PID_FILE="/var/run/celery/%n.pid"
+        CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
+        CELERYD_LOG_LEVEL="INFO"
+
+        # you may wish to add these options for Celery Beat
+        CELERYBEAT_PID_FILE="/var/run/celery/policykit_beat.pid"
+        CELERYBEAT_LOG_FILE="/var/log/celery/policykit_beat.log"
+
+
+``/etc/systemd/system/celery-policykit.service``
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: bash
+
+        [Unit]
+        Description=Celery Service
+        After=network.target
+
+        [Service]
+        Type=forking
+        User=celery
+        Group=celery
+        EnvironmentFile=/etc/conf.d/celery-policykit
+        WorkingDirectory=$POLICYKIT_REPO/policykit
+        ExecStart=/bin/sh -c '${CELERY_BIN} multi start ${CELERYD_NODES} \
+        -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
+        --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
+        ExecStop=/bin/sh -c '${CELERY_BIN} multi stopwait ${CELERYD_NODES} \
+        --pidfile=${CELERYD_PID_FILE}'
+        ExecReload=/bin/sh -c '${CELERY_BIN} multi restart ${CELERYD_NODES} \
+        -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
+        --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
+
+        [Install]
+        WantedBy=multi-user.target
+
+
+``/etc/systemd/system/celerybeat-policykit.service``
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: bash
+
+        [Unit]
+        Description=Celery Beat Service
+        After=network.target
+
+        [Service]
+        Type=simple
+        User=celery
+        Group=celery
+        EnvironmentFile=/etc/conf.d/celery-policykit
+        WorkingDirectory=$POLICYKIT_REPO/policykit
+        ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP}  \
+        beat --pidfile=${CELERYBEAT_PID_FILE} \
+        --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} \
+        --schedule=/var/run/celery/celerybeat-policykit-schedule'
+
+        [Install]
+        WantedBy=multi-user.target
+
 
 | After creating the files (and after any time you change them) run the following command:
 
@@ -244,31 +370,29 @@ Running PolicyKit in Production
 
  sudo systemctl daemon-reload
 
-| Finally, run the following commands to start the server:
+| Finally, run the following commands to start the celery daemon:
 
 ::
 
- sudo service apache2 start
  sudo service rabbitmq-server start
- sudo systemctl start celery.service
- sudo systemctl start celerybeat.service
+ sudo systemctl start celery-policykit celerybeat-policykit
 
 | Verify that there are no errors with celery and celerybeat by running these commands:
 
 ::
 
- sudo systemctl status celery
- sudo systemctl status celerybeat
-
-| Once things are up and running, you should be able to access the PolicyKit editor in the browser at ``https://<your domain>/main``.
+ sudo systemctl status celery-policykit
+ sudo systemctl status celerybeat-policykit
 
 Troubleshooting
-----------------
+"""""""""""""""
 
-| If celery failed to start up as a service, try running celery directly to see if there are errors in your code:
+| If celery or celerybeat fail to start up as a service, try running celery directly to see if there are errors in your code:
 
 ::
 
- celery worker --uid <User that runs celery> -A policykit
+ celery -A policykit worker -l info --uid celery
+ celery -A policykit beat -l info --uid celery --schedule=/var/run/celery/celerybeat-policykit-schedule
 
-If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/beat.log``.
+
+If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/policykit_beat.log``.
