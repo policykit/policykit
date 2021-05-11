@@ -27,6 +27,13 @@ def update_metagov_community(community: Community, plugins=[]):
     data = response.json()
     return data
 
+def get_webhooks(community: Community):
+    url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}/hooks"
+    response = requests.get(url)
+    if not response.ok:
+        raise Exception(response.text or "Unknown error")
+    data = response.json()
+    return [f"{settings.METAGOV_URL}{hook}" for hook in data["hooks"]]
 
 def get_or_create_metagov_community(community: Community):
     url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}"
@@ -37,6 +44,12 @@ def get_or_create_metagov_community(community: Community):
         raise Exception(response.text or "Unknown error")
     return response.json()
 
+def get_plugin_config_schemas():
+    url = f"{settings.METAGOV_URL}/api/internal/plugin-schemas"
+    response = requests.get(url)
+    if not response.ok:
+        raise Exception(response.text or "Unknown error")
+    return response.json()
 
 class Metagov:
     """

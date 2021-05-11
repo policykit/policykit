@@ -2,62 +2,66 @@
 {% load static %}
 
 {% block styles %}
-<link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
 <style>
   .body {
     min-height: 90vh;
     margin: 0 10vw;
     padding-top: 3vh;
   }
-  h3 {
+  h2, h3 {
     padding-bottom: 1em;
   }
-
-  .editor {
-    padding-top: 1vh;
-    width: 100%;
-  }
-
-  .code {
-    resize: none;
-  }
-
-  .error {
-      color: red
-  }
-  .CodeMirror {
-    height: auto;
-    width: 100%;
-    border: 1px solid #000000;
+  .config-container {
+    padding-bottom: 3em;
   }
 
   .form-row {
     margin-bottom: 20px;
   }
-
   .btn {
     font-size: 1.2em;
+  }
+  form .help-block {
+    font-style: italic;
+  }
+  /*https://github.com/jsonform/jsonform/blob/f30484e3300cfb4bb4f7efefdde736798103e46d/lib/jsonform.js#L862*/
+  .glyphicon-minus-sign:before {
+    content: "\2212";
+}
+  .glyphicon-plus-sign:before {
+    content: "\002B";
+  }
+  .glyphicon-list:before {
+    content: "\2261";
+  }
+  .glyphicon {
+      position: relative;
+      top: 1px;
+      display: inline-block;
+      font-style: normal;
+      font-weight: normal;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
   }
 </style>
 {% endblock %}
 
 {% block content %}
   <div class="body">
-    <h3>Settings</h3>
+    <h2>Settings</h2>
 
-    <h5>Metagov Configuration</h5>
-    {% include "metagov_config.html" %}
+    <h3>Metagov Configuration</h3>
+    <div class="config-container">
+      {% include "metagov_config.html" %}
+    </div>
 
   </div>
 {% endblock %}
 
 {% block scripts %}
-  <script src={% static "codemirror/lib/codemirror.js" %}></script>
-  <script src={% static "codemirror/lib/codemirror.css" %}></script>
-  <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
-  <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
-  <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
-  <script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
-  <script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
+  <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+  <script src={% static "policyengine/js/underscore-min.js" %}></script>
+  <script src={% static "policyengine/js/jsonform.js" %}></script>
   {% include "metagov_config_script.html" %}
 {% endblock %}
