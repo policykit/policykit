@@ -30,7 +30,7 @@ Getting Started
 
  cp private_template.py private.py
 
-| PolicyKit requires a directory to send logs to. By default, it logs to the path ``debug.log``. Edit the ``LOGGING_ROOT_DIR`` variable in ``settings.py`` to point to the right logging directory (for example ``/var/log/django``).
+| PolicyKit requires a file to log to. By default, it logs to the file ``/var/log/django/debug.log``. To change this, set the ``POLICYKIT_LOG_FILE`` environment variable or edit the ``LOGGING`` object in ``settings.py`` directly.
 
 | To verify that you have set the PolicyKit server up correctly, run the following command:
 
@@ -81,8 +81,6 @@ Running PolicyKit in Production
    - Update the ``ALLOWED_HOSTS`` field to point to your host.
 
    - Update that the database path under ``DATABASES``. Recommended: set the database path to ``/var/databases/policykit/db.sqlite3``. Make sure the directory exists.
-
-   - Update the ``LOGGING_ROOT_DIR`` to point to your log directory (recommended: ``/var/log/django``).
 
    - Set ``DEBUG`` to False
 
