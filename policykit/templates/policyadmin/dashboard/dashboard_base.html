@@ -151,15 +151,7 @@
       <div class="profileButton">
         <h3 class="profileName">Hi, {{user.readable_name}}</h3>
         {% if user.avatar %}
-          {% if user.community.platform == "discord" %}
-            <img class="profilePicture" src="https://cdn.discordapp.com/avatars/{{user.username}}/{{user.avatar}}.png">
-          {% elif user.community.platform == "slack" %}
-            <img class="profilePicture" src="{{user.avatar}}">
-          {% elif user.community.platform == "reddit" %}
-            <img class="profilePicture" src="{{user.avatar}}">
-          {% else %}
-            <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
-          {% endif %}
+          <img class="profilePicture" src="{{user.avatar}}">
         {% else %}
           <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
         {% endif %}

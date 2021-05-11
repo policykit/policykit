@@ -408,7 +408,7 @@ def oauth(request):
                 user, _ = DiscordUser.objects.get_or_create(
                     username=f"{member['user']['id']}:{guild_id}",
                     readable_name=member['user']['username'],
-                    avatar=member['user']['avatar'],
+                    avatar=f"https://cdn.discordapp.com/avatars/{member['user']['id']}/{member['user']['avatar']}.png",
                     community=community,
                     is_community_admin=(member['user']['id'] == owner_id)
                 )
