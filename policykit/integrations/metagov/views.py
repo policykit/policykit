@@ -8,10 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import ContentType, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotFound
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotFound
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.library import metagov_slug, update_metagov_community
+from integrations.metagov.library import metagov_slug, update_metagov_community, get_webhooks
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
 from policyengine.models import Community, CommunityRole
 
@@ -29,13 +29,13 @@ def save_config(request):
     if data.get("readable_name") != community.community_name:
         return HttpResponseBadRequest("Changing the readable_name is not permitted")
 
-    logger.info(data.get("plugins"))
     try:
         update_metagov_community(community, data.get("plugins", []))
     except Exception as e:
         return HttpResponseBadRequest(e)
 
-    return HttpResponse()
+    hooks = get_webhooks(community)
+    return JsonResponse({"hooks": hooks})
 
 
 @csrf_exempt

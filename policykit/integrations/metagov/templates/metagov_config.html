@@ -1,25 +1,19 @@
 {% load static %}
 {% if metagov_enabled and metagov_config %}
-  <form class="form-horizontal editor">
-    <div class="form-row">
-        <div class="col-sm-12">
-          <textarea class="form-control code" id="config" required rows="5"></textarea>
-        </div>
-      </div>
-    <div class="form-row">
-      <div class="col-sm-12">
-        <button type="button" class="btn btn-success" id="save">Save</button>
-      </div>
+<div>
+  <div class="form-row">
+    <div class="col-sm-8">
+      <form id="json-editor-form"></form>
     </div>
-    <div class="form-row">
-        <div class="col-sm-12">
-          <div id="alerts"></div>
-        </div>
-      </div>
-  </form>
+  </div>
+  <div class="form-row">
+    <div class="col-sm-8">
+      <div id="alerts"></div>
+    </div>
+  </div>
+</div>
 {% elif metagov_enabled %}
   <div>Metagov is enabled for this community, but you do not have access to view the configuration.</div>
 {% else %}
   <div>Metagov is not enabled for this community.</div>
 {% endif %}
-

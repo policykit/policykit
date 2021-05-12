@@ -122,21 +122,23 @@ def logout(request):
 
 @login_required(login_url='/login')
 def settings_page(request):
-    from integrations.metagov.library import get_or_create_metagov_community
+    from integrations.metagov.library import get_or_create_metagov_community, get_plugin_config_schemas
 
     user = get_user(request)
     community = user.community
 
-    if user.has_perm("metagov.can_edit_metagov_config"):
-        metagov_config = get_or_create_metagov_community(community)
-        if metagov_config:
-            metagov_config = json.dumps(metagov_config, indent=4, separators=(",", ": "))
-    else:
-        metagov_config = None
+    plugin_schemas = None
+    metagov_config = None
+    if user.has_perm("metagov.can_edit_metagov_config") or True:
+        result = get_or_create_metagov_community(community)
+        if result:
+            metagov_config = json.dumps(result)
+            plugin_schemas = json.dumps(get_plugin_config_schemas())
 
     return render(request, 'policyadmin/dashboard/settings.html', {
         'metagov_enabled': METAGOV_ENABLED,
         'metagov_config': metagov_config,
+        'plugin_schemas': plugin_schemas,
         'server_url': SERVER_URL,
         'user': get_user(request)
     })
