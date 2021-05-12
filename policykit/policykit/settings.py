@@ -45,6 +45,13 @@ except NameError:
     METAGOV_ENABLED = False
 
 # Application definition
+INTEGRATIONS = [
+    'integrations.slack',
+    'integrations.reddit',
+    'integrations.discord',
+    'integrations.discourse',
+    'integrations.metagov'
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -59,14 +66,9 @@ INSTALLED_APPS = [
     'django_filters',
     'django_tables2',
     'django_db_logger',
+    'actstream',
     'policyengine',
-    'integrations.slack',
-    'integrations.reddit',
-    'integrations.discord',
-    'integrations.discourse',
-    'integrations.metagov',
-    'actstream'
-]
+] + INTEGRATIONS
 
 SITE_ID = 1
 
@@ -172,70 +174,53 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 PROJECT_NAME = "PolicyKit"
 
-# Override this value in production (For example: "/var/log/django")
-LOGGING_ROOT_DIR = BASE_DIR
 
-# Delete log records from django_db_logger after a certain number of hours.
-# Deletion is performed by policyengine celery task.
+### Logging
+import sys
+import os
+
+# Set default log level
+DEFAULT_LOG_LEVEL_FOR_TESTS = "DEBUG"
+DEFAULT_LOG_LEVEL = "DEBUG"
+
+TESTING = sys.argv[1:2] == ["test"]
+LOG_LEVEL = DEFAULT_LOG_LEVEL_FOR_TESTS if TESTING else DEFAULT_LOG_LEVEL
+
+# Generate loggers for engine and integrations
+loggers = {}
+for app in ['policyengine'] + INTEGRATIONS:
+    loggers.update({app: {"handlers": ["console", "file"], "level": LOG_LEVEL, "propagate": False}})
+# Database logger for policy evaluation logs
+loggers["db"] = {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate": True}
+# Set log level to WARN for everything else (imported dependencies)
+loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
+
+# Override for specific apps
+# loggers['integrations.reddit'] = {'handlers': ['console', 'file'], 'level': "DEBUG"}
+
+# Delete db log records from database after a certain number of hours:
 DB_LOG_EXPIRATION_HOURS = 1
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOGGING_ROOT_DIR, 'debug.log'),
-        },
-        'db_log': {
-            'level': 'DEBUG',
-            'class': 'django_db_logger.db_log_handler.DatabaseLogHandler'
-        }
+    'formatters': {
+        "console": {"format": "%(name)-12s %(levelname)-8s %(message)s"},
+        "file": {"format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"},
     },
-    'loggers': {
-        'db': {
-            'handlers': ['db_log'],
-            'level': 'DEBUG'
+    'handlers': {
+        "db_log": {
+            'class': 'django_db_logger.db_log_handler.DatabaseLogHandler'
         },
-        'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": os.environ.get('POLICYKIT_LOG_FILE', "/var/log/django/debug.log"),
+            "formatter": "file",
         },
-        'integrations.slack': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'integrations.reddit': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'integrations.discord': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'integrations.discourse': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'integrations.metagov': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'policyengine': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
-    }
+        "console": {"class": "logging.StreamHandler", "formatter": "console"},
+    },
+    'loggers': loggers
 }
-
 
 from celery.schedules import crontab
 

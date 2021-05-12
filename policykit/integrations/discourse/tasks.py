@@ -46,27 +46,27 @@ def discourse_listener_actions():
         req = urllib.request.Request(url + '/latest.json')
         req.add_header("User-Api-Key", api_key)
         resp = urllib.request.urlopen(req)
-        logger.info(f"[celery-discourse] topics response: {resp.status} {resp.reason}")
+        logger.info(f"topics response: {resp.status} {resp.reason}")
         res = json.loads(resp.read().decode('utf-8'))
         topics = res['topic_list']['topics']
         users = res['users']
-        logger.info(f"[celery-discourse] {len(topics)} topics")
+        logger.info(f"{len(topics)} topics")
         for topic in topics:
             user_id = topic['posters'][0]['user_id']
             usernames = [u['username'] for u in users if u['id'] == user_id]
             if not usernames:
-                logger.error(f"[celery-discourse] no username found for user id {user_id}, skipping topic")
+                logger.error(f"no username found for user id {user_id}, skipping topic")
                 continue
             username = usernames[0]
             call_type = '/posts.json'
             if should_create_action(community, call_type, topic, username):
-                logger.info(f"[celery-discourse] creating new DiscourseCreateTopic object for topic {topic['title']}")
+                logger.info(f"creating new DiscourseCreateTopic object for topic {topic['title']}")
 
                 # Retrieve raw from first post under topic (created when topic created)
                 req = urllib.request.Request(f"{url}/t/{str(topic['id'])}/posts.json?include_raw=True")
                 req.add_header("User-Api-Key", api_key)
                 resp = urllib.request.urlopen(req)
-                logger.info(f"[celery-discourse] raw post response: {resp.status} {resp.reason}")
+                logger.info(f"raw post response: {resp.status} {resp.reason}")
                 res = json.loads(resp.read().decode('utf-8'))
                 raw = res['post_stream']['posts'][0]['raw']
 
@@ -83,7 +83,7 @@ def discourse_listener_actions():
                 )
                 new_api_action.initiator = u
                 actions.append(new_api_action)
-        logger.info(f"[celery-discourse] {len(actions)} actions created")
+        logger.info(f"{len(actions)} actions created")
         for action in actions:
             action.community_origin = True
             action.is_bundled = False

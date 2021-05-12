@@ -18,7 +18,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-websocket.enableTrace(True)
+websocket.enableTrace(False)
 
 # Used for Boolean voting
 EMOJI_LIKE = '%F0%9F%91%8D'
@@ -62,7 +62,7 @@ def on_open(wsapp):
 
 def should_create_action(message, type=None):
     if type == None:
-        logger.error('[discord] type parameter not specified in should_create_action')
+        logger.error('type parameter not specified in should_create_action')
         return False
 
     created_at = None
@@ -78,7 +78,7 @@ def should_create_action(message, type=None):
         created_at = datetime.datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f+00:00")
 
     if created_at == None:
-        logger.error("[discord] created_at is None when it shouldn't be in should_create_action")
+        logger.error("created_at is None when it shouldn't be in should_create_action")
         return False
 
     now = datetime.datetime.now()
@@ -109,7 +109,7 @@ def handle_guild_create_event(data):
                 channel_id=channel['id'],
                 channel_name=channel['name']
             )
-    logger.info(f'[discord] Populated DiscordChannel objects from GUILD_CREATE event')
+    logger.info(f'Populated DiscordChannel objects from GUILD_CREATE event')
 
 def handle_message_create_event(data):
     if should_create_action(data, type="MESSAGE_CREATE"):
@@ -129,7 +129,7 @@ def handle_message_create_event(data):
         )
         action.initiator = u
 
-        logger.info(f'[discord] New message in channel {channel.channel_name}: {data["content"]}')
+        logger.info(f'New message in channel {channel.channel_name}: {data["content"]}')
 
         return action
 
@@ -152,7 +152,7 @@ def handle_message_delete_event(data):
     )
     action.initiator = u
 
-    logger.info(f'[discord] Message deleted in channel {channel.channel_name}: {message["content"]}')
+    logger.info(f'Message deleted in channel {channel.channel_name}: {message["content"]}')
 
     return action
 
@@ -177,7 +177,7 @@ def handle_channel_update_event(data):
     action.initiator = u
 
     channel = DiscordChannel.objects.filter(channel_id=data['id'])[0]
-    logger.info(f'[discord] Channel {channel.channel_name} renamed to {action.name}')
+    logger.info(f'Channel {channel.channel_name} renamed to {action.name}')
 
     # Update DiscordChannel object
     channel.channel_name = action.name
@@ -208,7 +208,7 @@ def handle_channel_create_event(data):
     )
     action.initiator = u
 
-    logger.info(f'[discord] Channel created: {action.name}')
+    logger.info(f'Channel created: {action.name}')
 
     return action
 
@@ -227,7 +227,7 @@ def handle_channel_delete_event(data):
     )
     action.initiator = u
 
-    logger.info(f'[discord] Channel deleted: {data["name"]}')
+    logger.info(f'Channel deleted: {data["name"]}')
 
     return action
 
@@ -287,13 +287,13 @@ def on_message(wsapp, message):
     payload = json.loads(message)
     op = payload['op']
     if op == 0: # Opcode 0 Dispatch
-        logger.info(f'[discord] Received event named {payload["t"]}')
+        logger.info(f'Received event named {payload["t"]}')
         sequence_number = payload['s']
         handle_event(payload['t'], payload['d'])
     elif op == 10: # Opcode 10 Hello
         # Receive heartbeat interval
         heartbeat_interval = payload['d']['heartbeat_interval']
-        logger.info(f'[discord] Received heartbeat of {heartbeat_interval} ms from the Discord gateway')
+        logger.info(f'Received heartbeat of {heartbeat_interval} ms from the Discord gateway')
 
         # Send an Opcode 2 Identify
         payload = json.dumps({
@@ -310,15 +310,15 @@ def on_message(wsapp, message):
             }
         })
         wsapp.send(payload)
-        logger.info('[discord] Sent an Opcode 2 Identify to the Discord gateway')
+        logger.info('Sent an Opcode 2 Identify to the Discord gateway')
     elif op == 11: # Opcode 11 Heartbeat ACK
         ack_received = True
 
 def on_error(wsapp, error):
-    logger.error(f'[discord] Websocket error: {error}')
+    logger.error(f'Websocket error: {error}')
 
 def on_close(wsapp, code, reason):
-    logger.error(f'[discord] Connection to Discord gateway closed with error code {code}')
+    logger.error(f'Connection to Discord gateway closed with error code {code}')
 
 # Open gateway connection
 def connect_gateway():
