@@ -6,7 +6,54 @@ from datetime import datetime, timezone, timedelta
 
 class ModelTestCase(TestCase):
 
-    execute_perms = ['Can add boolean vote', 'Can change boolean vote', 'Can delete boolean vote', 'Can view boolean vote', 'Can add number vote', 'Can change number vote', 'Can delete number vote', 'Can view number vote', 'Can add platformactionbundle', 'Can add platformpolicybundle', 'Can add constitutionactionbundle', 'Can add constitutionpolicybundle', 'Can add policykit add role', 'Can add policykit delete role', 'Can add policykit edit role', 'Can add policykit add user role', 'Can add policykit remove user role', 'Can add policykit change platform policy', 'Can add policykit change constitution policy', 'Can add policykit remove platform policy', 'Can add policykit remove constitution policy', 'Can add policykit add platform policy', 'Can add policykit add constitution policy', 'Can add policykit add community doc', 'Can add policykit change community doc', 'Can add policykit delete community doc', 'Can execute policykit add role', 'Can execute policykit delete role', 'Can execute policykit edit role', 'Can execute policykit add user role', 'Can execute policykit remove user role', 'Can execute policykit change platform policy', 'Can execute policykit change constitution policy', 'Can execute policykit remove platform policy', 'Can execute policykit remove constitution policy', 'Can execute policykit add platform policy', 'Can execute policykit add constitution policy', 'Can execute policykit add community doc', 'Can execute policykit change community doc', 'Can execute policykit delete community doc']
+    execute_perms = [
+        'Can add boolean vote',
+        'Can change boolean vote',
+        'Can delete boolean vote',
+        'Can view boolean vote',
+        'Can add number vote',
+        'Can change number vote',
+        'Can delete number vote',
+        'Can view number vote',
+        'Can add platformactionbundle',
+        'Can add platformpolicybundle',
+        'Can add constitutionactionbundle',
+        'Can add constitutionpolicybundle',
+        'Can add policykit add role',
+        'Can add policykit delete role',
+        'Can add policykit edit role',
+        'Can add policykit add user role',
+        'Can add policykit remove user role',
+        'Can add policykit change platform policy',
+        'Can add policykit change constitution policy',
+        'Can add policykit remove platform policy',
+        'Can add policykit remove constitution policy',
+        'Can add policykit recover platform policy',
+        'Can add policykit recover constitution policy',
+        'Can add policykit add platform policy',
+        'Can add policykit add constitution policy',
+        'Can add policykit add community doc',
+        'Can add policykit change community doc',
+        'Can add policykit delete community doc',
+        'Can add policykit recover community doc',
+        'Can execute policykit add role',
+        'Can execute policykit delete role',
+        'Can execute policykit edit role',
+        'Can execute policykit add user role',
+        'Can execute policykit remove user role',
+        'Can execute policykit change platform policy',
+        'Can execute policykit change constitution policy',
+        'Can execute policykit remove platform policy',
+        'Can execute policykit remove constitution policy',
+        'Can execute policykit recover platform policy',
+        'Can execute policykit recover constitution policy',
+        'Can execute policykit add platform policy',
+        'Can execute policykit add constitution policy',
+        'Can execute policykit add community doc',
+        'Can execute policykit change community doc',
+        'Can execute policykit delete community doc',
+        'Can execute policykit recover community doc',
+    ]
 
     def setUp(self):
         self.starter_kit = StarterKit.objects.create(
@@ -234,6 +281,10 @@ class CommunityDocActionsTestCase(ModelTestCase):
         self.action_delete_doc.community=self.community
         self.action_delete_doc.initiator=self.user1
 
+        self.action_recover_doc = PolicykitRecoverCommunityDoc()
+        self.action_recover_doc.community=self.community
+        self.action_recover_doc.initiator=self.user1
+
     def test_add_doc__str__(self):
         self.assertEqual(str(self.action_add_doc), 'Add Document: NewDoc')
 
@@ -260,7 +311,16 @@ class CommunityDocActionsTestCase(ModelTestCase):
 
         self.action_delete_doc.doc=CommunityDoc.objects.filter(name='EditedDoc')[0]
         self.action_delete_doc.save()
-        docs = CommunityDoc.objects.filter(name='EditedDoc')
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=True)
+        self.assertEqual(docs.count(), 0)
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=False)
+        self.assertEqual(docs.count(), 1)
+
+        self.action_recover_doc.doc=CommunityDoc.objects.filter(name='EditedDoc')[0]
+        self.action_recover_doc.save()
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=True)
+        self.assertEqual(docs.count(), 1)
+        docs = CommunityDoc.objects.filter(name='EditedDoc', is_active=False)
         self.assertEqual(docs.count(), 0)
 
 class RoleActionsTestCase(ModelTestCase):
@@ -378,6 +438,10 @@ class ConstitutionPolicyActionsTestCase(ModelTestCase):
         self.action_remove_policy.community = self.community
         self.action_remove_policy.initiator = self.user1
 
+        self.action_recover_policy = PolicykitRecoverConstitutionPolicy()
+        self.action_recover_policy.community = self.community
+        self.action_recover_policy.initiator = self.user1
+
     def test_add_constitution_policy__str__(self):
         self.assertEqual(str(self.action_add_policy), 'Add Constitution Policy: Test Name')
 
@@ -418,7 +482,16 @@ class ConstitutionPolicyActionsTestCase(ModelTestCase):
 
         self.action_remove_policy.constitution_policy = p
         self.action_remove_policy.save()
-        policies = ConstitutionPolicy.objects.filter(name='Another Name')
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 0)
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=False)
+        self.assertEqual(policies.count(), 1)
+
+        self.action_recover_policy.constitution_policy = p
+        self.action_recover_policy.save()
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 1)
+        policies = ConstitutionPolicy.objects.filter(name='Another Name', is_active=False)
         self.assertEqual(policies.count(), 0)
 
 class PlatformPolicyActionsTestCase(ModelTestCase):
@@ -453,6 +526,10 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
         self.action_remove_policy = PolicykitRemovePlatformPolicy()
         self.action_remove_policy.community = self.community
         self.action_remove_policy.initiator = self.user1
+
+        self.action_recover_policy = PolicykitRecoverPlatformPolicy()
+        self.action_recover_policy.community = self.community
+        self.action_recover_policy.initiator = self.user1
 
     def test_add_platform_policy__str__(self):
         self.assertEqual(str(self.action_add_policy), 'Add Platform Policy: Test Name')
@@ -494,7 +571,16 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
 
         self.action_remove_policy.platform_policy = p
         self.action_remove_policy.save()
-        policies = PlatformPolicy.objects.filter(name='Another Name')
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 0)
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=False)
+        self.assertEqual(policies.count(), 1)
+
+        self.action_recover_policy.platform_policy = p
+        self.action_recover_policy.save()
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=True)
+        self.assertEqual(policies.count(), 1)
+        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=False)
         self.assertEqual(policies.count(), 0)
 
 class ConstitutionPolicyTestCase(ModelTestCase):

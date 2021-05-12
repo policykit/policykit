@@ -165,11 +165,14 @@ testing_const_perms = [
     "Can add policykit change constitution policy",
     "Can add policykit remove platform policy",
     "Can add policykit remove constitution policy",
+    "Can add policykit recover platform policy",
+    "Can add policykit recover constitution policy",
     "Can add policykit add platform policy",
     "Can add policykit add constitution policy",
     "Can add policykit add community doc",
     "Can add policykit change community doc",
     "Can add policykit delete community doc",
+    "Can add policykit recover community doc",
 ]
 
 testing_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
@@ -396,11 +399,14 @@ admin_user_base_const_perms = [
     "Can view policykit change constitution policy",
     "Can view policykit remove platform policy",
     "Can view policykit remove constitution policy",
+    "Can view policykit recover platform policy",
+    "Can view policykit recover constitution policy",
     "Can view policykit add platform policy",
     "Can view policykit add constitution policy",
     "Can view policykit add community doc",
     "Can view policykit change community doc",
     "Can view policykit delete community doc",
+    "Can view policykit recover community doc",
 ]
 
 admin_user_base_role_slack.plat_perm_set = json.dumps(["view"])
@@ -437,11 +443,14 @@ admin_user_mod_const_perms = [
     "Can add policykit change constitution policy",
     "Can add policykit remove platform policy",
     "Can add policykit remove constitution policy",
+    "Can add policykit recover platform policy",
+    "Can add policykit recover constitution policy",
     "Can add policykit add platform policy",
     "Can add policykit add constitution policy",
     "Can add policykit add community doc",
     "Can add policykit change community doc",
     "Can add policykit delete community doc",
+    "Can add policykit recover community doc",
 ]
 
 admin_user_mod_role_slack.plat_perm_set = json.dumps(["view", "propose"])
@@ -730,11 +739,14 @@ democracy_base_const_perms = [
     "Can add policykit change constitution policy",
     "Can add policykit remove platform policy",
     "Can add policykit remove constitution policy",
+    "Can add policykit recover platform policy",
+    "Can add policykit recover constitution policy",
     "Can add policykit add platform policy",
     "Can add policykit add constitution policy",
     "Can add policykit add community doc",
     "Can add policykit change community doc",
     "Can add policykit delete community doc",
+    "Can add policykit recover community doc",
 ]
 
 democracy_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
@@ -771,11 +783,14 @@ democracy_voter_const_perms = [
     "Can add policykit change constitution policy",
     "Can add policykit remove platform policy",
     "Can add policykit remove constitution policy",
+    "Can add policykit recover platform policy",
+    "Can add policykit recover constitution policy",
     "Can add policykit add platform policy",
     "Can add policykit add constitution policy",
     "Can add policykit add community doc",
     "Can add policykit change community doc",
     "Can add policykit delete community doc",
+    "Can add policykit recover community doc",
 ]
 
 democracy_voter_role_slack.plat_perm_set = json.dumps(["view", "propose"])
@@ -989,11 +1004,14 @@ dictator_base_const_perms = [
     "Can view policykit change constitution policy",
     "Can view policykit remove platform policy",
     "Can view policykit remove constitution policy",
+    "Can view policykit recover platform policy",
+    "Can view policykit recover constitution policy",
     "Can view policykit add platform policy",
     "Can view policykit add constitution policy",
     "Can view policykit add community doc",
     "Can view policykit change community doc",
     "Can view policykit delete community doc",
+    "Can view policykit recover community doc",
 ]
 
 dictator_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])
@@ -1030,11 +1048,14 @@ dictator_dictator_const_perms = [
     "Can add policykit change constitution policy",
     "Can add policykit remove platform policy",
     "Can add policykit remove constitution policy",
+    "Can add policykit recover platform policy",
+    "Can add policykit recover constitution policy",
     "Can add policykit add platform policy",
     "Can add policykit add constitution policy",
     "Can add policykit add community doc",
     "Can add policykit change community doc",
     "Can add policykit delete community doc",
+    "Can add policykit recover community doc",
     "Can execute policykit add role",
     "Can execute policykit delete role",
     "Can execute policykit edit role",
@@ -1044,11 +1065,14 @@ dictator_dictator_const_perms = [
     "Can execute policykit change constitution policy",
     "Can execute policykit remove platform policy",
     "Can execute policykit remove constitution policy",
+    "Can execute policykit recover platform policy",
+    "Can execute policykit recover constitution policy",
     "Can execute policykit add platform policy",
     "Can execute policykit add constitution policy",
     "Can execute policykit add community doc",
     "Can execute policykit change community doc",
     "Can execute policykit delete community doc",
+    "Can execute policykit recover community doc",
 ]
 
 dictator_dictator_role_slack.plat_perm_set = json.dumps(["view", "propose", "execute"])
@@ -1301,11 +1325,14 @@ jury_base_const_perms = [
     "Can add policykit change constitution policy",
     "Can add policykit remove platform policy",
     "Can add policykit remove constitution policy",
+    "Can add policykit recover platform policy",
+    "Can add policykit recover constitution policy",
     "Can add policykit add platform policy",
     "Can add policykit add constitution policy",
     "Can add policykit add community doc",
     "Can add policykit change community doc",
     "Can add policykit delete community doc",
+    "Can add policykit recover community doc",
 ]
 
 jury_base_role_slack.plat_perm_set = json.dumps(["view", "propose"])

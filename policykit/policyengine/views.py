@@ -61,38 +61,41 @@ def v2(request):
 
     doc_data = {}
     for d in docs:
-        doc_data[d.id] = {
-            'name': d.name,
-            'text': d.text
-        }
+        if d.is_active:
+            doc_data[d.id] = {
+                'name': d.name,
+                'text': d.text
+            }
 
     platform_policy_data = {}
     for pp in platform_policies:
-        platform_policy_data[pp.id] = {
-            'name': pp.name,
-            'description': pp.description,
-            'is_bundled': pp.is_bundled,
-            'filter': pp.filter,
-            'initialize': pp.initialize,
-            'check': pp.check,
-            'notify': pp.notify,
-            'success': pp.success,
-            'fail': pp.fail
-        }
+        if pp.is_active:
+            platform_policy_data[pp.id] = {
+                'name': pp.name,
+                'description': pp.description,
+                'is_bundled': pp.is_bundled,
+                'filter': pp.filter,
+                'initialize': pp.initialize,
+                'check': pp.check,
+                'notify': pp.notify,
+                'success': pp.success,
+                'fail': pp.fail
+            }
 
     constitution_policy_data = {}
     for cp in constitution_policies:
-        constitution_policy_data[cp.id] = {
-            'name': cp.name,
-            'description': cp.description,
-            'is_bundled': cp.is_bundled,
-            'filter': cp.filter,
-            'initialize': cp.initialize,
-            'check': cp.check,
-            'notify': cp.notify,
-            'success': cp.success,
-            'fail': cp.fail
-        }
+        if cp.is_active:
+            constitution_policy_data[cp.id] = {
+                'name': cp.name,
+                'description': cp.description,
+                'is_bundled': cp.is_bundled,
+                'filter': cp.filter,
+                'initialize': cp.initialize,
+                'check': cp.check,
+                'notify': cp.notify,
+                'success': cp.success,
+                'fail': cp.fail
+            }
 
     action_log_data = []
     logger.info(f'Number of action objects: {Action.objects.all().count()}')
@@ -253,10 +256,14 @@ def selectpolicy(request):
     type = request.GET.get('type')
     operation = request.GET.get('operation')
 
+    show_active_policies = True
+    if operation == 'Recover':
+        show_active_policies = False
+
     if type == 'Platform':
-        policies = user.community.get_platform_policies()
+        policies = user.community.get_platform_policies().filter(is_active=show_active_policies)
     elif type == 'Constitution':
-        policies = user.community.get_constitution_policies()
+        policies = user.community.get_constitution_policies().filter(is_active=show_active_policies)
     else:
         return HttpResponseBadRequest()
 
@@ -273,10 +280,13 @@ def selectdocument(request):
     from policyengine.models import CommunityDoc
 
     user = get_user(request)
-    documents = None
     operation = request.GET.get('operation')
 
-    documents = CommunityDoc.objects.filter(community=user.community)
+    show_active_documents = True
+    if operation == 'Recover':
+        show_active_documents = False
+
+    documents = user.community.get_documents().filter(is_active=show_active_documents)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
         'server_url': SERVER_URL,
@@ -572,6 +582,30 @@ def policy_action_remove(request):
     return HttpResponse()
 
 @csrf_exempt
+def policy_action_recover(request):
+    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+    if data['type'] == 'Constitution':
+        action = PolicykitRecoverConstitutionPolicy()
+        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+    elif data['type'] == 'Platform':
+        action = PolicykitRecoverPlatformPolicy()
+        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+    else:
+        return HttpResponseBadRequest()
+
+    action.community = user.community
+    action.initiator = user
+    action.save()
+
+    return HttpResponse()
+
+
+@csrf_exempt
 def role_action_save(request):
     from policyengine.models import CommunityRole, PolicykitAddRole, PolicykitEditRole
 
@@ -670,6 +704,21 @@ def document_action_remove(request):
     user = get_user(request)
 
     action = PolicykitDeleteCommunityDoc()
+    action.community = user.community
+    action.initiator = user
+    action.doc = CommunityDoc.objects.get(id=data['doc'])
+    action.save()
+
+    return HttpResponse()
+
+@csrf_exempt
+def document_action_recover(request):
+    from policyengine.models import CommunityDoc, PolicykitRecoverCommunityDoc
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = PolicykitRecoverCommunityDoc()
     action.community = user.community
     action.initiator = user
     action.doc = CommunityDoc.objects.get(id=data['doc'])

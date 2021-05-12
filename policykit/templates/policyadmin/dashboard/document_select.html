@@ -67,9 +67,15 @@
     const doc = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc=${doc}`
+      window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc=${doc}`;
     } else {
-      fetch('../../../main/policyengine/document_action_remove', {
+      let url = "../../../main/policyengine/";
+      if (operation == "Remove") {
+        url += "document_action_remove";
+      } else {
+        url += "document_action_recover";
+      }
+      fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
