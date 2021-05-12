@@ -79,7 +79,7 @@ Once the site is up and running, you need to configure a few settings to enable 
  * **allowed user api auth redirects**: Add an entry: ``[POLICYKIT_URL]/discourse/auth``. (example: ``https://policykit.org/discourse/auth``)
 
  Installing PolicyKit to your Discourse community
-"""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 On the login page, select "Install PolicyKit to Discourse". On the Configure screen that appears, enter the full URL of your Discourse community (example: ``https://policykit.trydiscourse.com``). On the next screen that appears, you must approve PolicyKit's authorization to access your Discourse community. On the third and final screen, you must select a Starter Kit system of governance, which will initialize your community with the selected system of governance.
 
@@ -111,7 +111,7 @@ In order to use this integration, you need to deploy an instance of Metagov on t
 To enable Metagov in PolicyKit, set ``METAGOV_URL`` in your ``private.py`` file to point to your Metagov server.
 
 Configuring Metagov
-"""""""""""""""""""""""""""""""""""
+"""""""""""""""""""
 
 Configure Metagov by navigating to "Settings" in the PolicyKit web interface.
 Only the users with role ``Metagov Admin`` are permitted to view and edit the Metagov configuration.

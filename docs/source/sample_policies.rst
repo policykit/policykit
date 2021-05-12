@@ -210,11 +210,8 @@ Uses the `near.call <https://prototype.metagov.org/redoc/#operation/near.call>`_
         "gas": 100000000000000,
         "amount": 100000000000000
     }
-    try:
-        result = metagov.perform_action("near.call", params)
-    except Exception as e:
-        debug(str(e))
 
+    result = metagov.perform_action("near.call", params)
     debug(f"NEAR call: {result.get("status")}")
 
 **Fail:** ``pass``
