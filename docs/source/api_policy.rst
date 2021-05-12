@@ -6,46 +6,21 @@ Policy
 BasePolicy
 ~~~~~~~~~~~~~~~~~
 
-| **Attributes**
-
-+--------------+------------------------------------------------------------------------------------+
-| name         | The name of the policy.                                                            |
-+--------------+------------------------------------------------------------------------------------+
-| description  | The description of the policy.                                                     |
-+--------------+------------------------------------------------------------------------------------+
-| community    | The community which the policy belongs to.                                         |
-+--------------+------------------------------------------------------------------------------------+
-| is_bundled   | True if the policy is part of a bundle.                                            |
-+--------------+------------------------------------------------------------------------------------+
-| data         | The datastore containing any additional data for the policy. May or may not exist. |
-+--------------+------------------------------------------------------------------------------------+
-| filter       | The filter code of the policy.                                                     |
-+--------------+------------------------------------------------------------------------------------+
-| initialize   | The initialize code of the policy.                                                 |
-+--------------+------------------------------------------------------------------------------------+
-| check        | The check code of the policy.                                                      |
-+--------------+------------------------------------------------------------------------------------+
-| notify       | The notify code of the policy.                                                     |
-+--------------+------------------------------------------------------------------------------------+
-| success      | The pass code of the policy.                                                       |
-+--------------+------------------------------------------------------------------------------------+
-| fail         | The fail code of the policy.                                                       |
-+--------------+------------------------------------------------------------------------------------+
+.. automodule:: policyengine.models
+  :members: BasePolicy
 
 ConstitutionPolicy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-| **Attributes**
+| Extends ``BasePolicy``.
 
-+-------------+-----------------------+
-| policy_type | "ConstitutionPolicy". |
-+-------------+-----------------------+
+.. automodule:: policyengine.models
+  :members: ConstitutionPolicy
 
 PlatformPolicy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-| **Attributes**
+| Extends ``BasePolicy``.
 
-+-------------+-------------------+
-| policy_type | "PlatformPolicy". |
-+-------------+-------------------+
+.. automodule:: policyengine.models
+  :members: PlatformPolicy
