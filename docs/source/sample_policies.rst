@@ -1,8 +1,32 @@
 .. _start:
 
-Sample Policies
-====================================
 
+Sample Policies
+###############
+
+This is a library of example Platform Policies to get started.
+
+Slack Policies
+==============
+
+Add examples here
+
+Discourse Policies
+==================
+
+Add examples here
+
+Discord Policies
+================
+
+Add examples here
+
+Metagov Policies
+================
+
+Metagov policies can be defined for any community.
+It doesn't matter whether the PolicyKit instance is installed to Slack, Discourse, Discord, or Reddit, as long as
+Metagov is enabled and the required Plugins are enabled and configured in the PolicyKit settings page.
 
 Use SourceCred to gate posts on a Discourse topic
 -------------------------------------------------
@@ -10,6 +34,8 @@ Use SourceCred to gate posts on a Discourse topic
 When a user makes a post on Discourse topic 116, look up their Cred value.
 If they don't have at least 1 Cred, delete the post, and
 send them a message explaining why.
+
+**Required Metagov Plugins**: ``sourcecred`` ``discourse``
 
 **Filter:**
 
@@ -23,13 +49,10 @@ send them a message explaining why.
 
 .. code-block:: python
 
+    # store the required cred threshold so we can access it later
     action.data.set("required_cred", 1)
 
-**Notify:**
-
-.. code-block:: python
-
-    pass
+**Notify:** ``pass``
 
 **Check:**
 
@@ -37,25 +60,16 @@ send them a message explaining why.
 
     username = action.initiator.metagovuser.external_username
     params = {"username": username}
-    user_cred = 0
-    try:
-        result = metagov.perform_action("sourcecred.user-cred", params)
-        user_cred = result["value"]
-    except Exception as e:
-        # exception probably means they aren't found in sourcecred.. make this better
-        debug(f"User {username} not found in SourceCred")
-        user_cred = -1
+    result = metagov.perform_action("sourcecred.user-cred", params)
+    user_cred = result["value"]
 
+    # store the user cred value so we can access it later
     action.data.set("cred", user_cred)
 
     return PASSED if user_cred >= action.data.get("required_cred") else FAILED
 
 
-**Pass:**
-
-.. code-block:: python
-
-    pass
+**Pass:** ``pass``
 
 **Fail:**
 
@@ -79,7 +93,9 @@ send them a message explaining why.
 
     
 Vote on Open Collective expense in Open Collective
-------------------------------------------------------
+--------------------------------------------------
+
+**Required Metagov Plugins**: ``opencollective``
 
 **Filter:**
 
@@ -104,12 +120,7 @@ Vote on Open Collective expense in Open Collective
     vote_url = result.outcome.get("vote_url")
     # [elided] optionally, message users on whatever platform to tell them to vote at vote_url
 
-**Notify:**
-
-.. code-block:: python
-
-    # Don't need to do anything here
-    pass
+**Notify:** ``pass``
 
 
 **Check:**
@@ -154,11 +165,70 @@ Vote on Open Collective expense in Open Collective
     metagov.perform_action("opencollective.process-expense", parameters)
 
 
-Vote on Proposal in Loomio
-------------------------------------------------------
+Add a NEAR DAO proposal
+-----------------------
+
+When a new Discourse topic is created with tag ``dao-proposal``, add a new proposal to the community's NEAR DAO.
+Uses the `near.call <https://prototype.metagov.org/redoc/#operation/near.call>`_ action.
+
+**Required Metagov Plugins**: ``discourse`` ``near``
+
+**Filter:**
+
+.. code-block:: python
+
+    return action.action_codename == "metagovaction" and \
+        action.event_type == "discourse.topic_created" and \
+        "dao-proposal" in action.event_data["tags"]
+
+**Initialize:** ``pass``
+
+**Notify:** ``pass``
+
+**Check:** ``return PASSED``
+
+**Pass:**
+
+.. code-block:: python
+
+    title = action.event_data["title"]
+    topic_url = action.event_data["url"]
+
+    # How we find the wallet ID for the Discourse user? Hard-coding the target for this example.
+    discourse_username = action.initiator.metagovuser.external_username
+    
+
+    params = {
+        "method_name": "add_proposal",
+        "args": {
+            "proposal": {
+                "description": f"Pay {discourse_username} for {title}. Link: {topic_url}",
+                "kind": {"type": "Payout",  "amount": "100" },
+                "target": "dev.mashton.testnet"
+            }
+        },
+        "gas": 100000000000000,
+        "amount": 100000000000000
+    }
+    try:
+        result = metagov.perform_action("near.call", params)
+    except Exception as e:
+        debug(str(e))
+
+    debug(f"NEAR call: {result.get("status")}")
+
+**Fail:** ``pass``
+
+
+Vote on Discourse Proposal in Loomio
+------------------------------------
 
 When a new Discourse topic is created with tag ``special-proposal``, start a new vote in Loomio
-to decide whether to accept or reject the proposal. If rejected, delete the topic.
+to decide whether to accept or reject the proposal. If rejected, delete the topic. This example
+uses the Metagov ``discourse`` plugin, which is distinct from the PolicyKit Discourse integration.
+This policy can be defined for any PolicyKit community (a Slack community, for example).
+
+**Required Metagov Plugins**: ``discourse`` ``loomio``
 
 **Filter:**
 
@@ -196,11 +266,7 @@ to decide whether to accept or reject the proposal. If rejected, delete the topi
     }
     metagov.perform_action("discourse.create-post", params)
 
-**Notify:**
-
-.. code-block:: python
-
-    pass
+**Notify:** ``pass``
 
 **Check:**
 
@@ -249,18 +315,3 @@ to decide whether to accept or reject the proposal. If rejected, delete the topi
     # Delete the topic
     metagov.perform_action("discourse.delete-topic", {"id": action.event_data["id"]})
     
-
-Create DAO proposal from Discourse topic
-------------------------------------------------------
-
-TODO: Similar to previous, but add the proposal to the NEAR DAO.
-
-**Pass:**
-
-.. code-block:: python
-
-    params = {
-        "method_name": "create_proposal"
-        "args": {} # TODO
-    }
-    metagov.perform_action("near.call", params)
