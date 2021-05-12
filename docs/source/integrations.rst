@@ -79,7 +79,7 @@ Once the site is up and running, you need to configure a few settings to enable 
  * **allowed user api auth redirects**: Add an entry: ``[POLICYKIT_URL]/discourse/auth``. (example: ``https://policykit.org/discourse/auth``)
 
  Installing PolicyKit to your Discourse community
-"""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 On the login page, select "Install PolicyKit to Discourse". On the Configure screen that appears, enter the full URL of your Discourse community (example: ``https://policykit.trydiscourse.com``). On the next screen that appears, you must approve PolicyKit's authorization to access your Discourse community. On the third and final screen, you must select a Starter Kit system of governance, which will initialize your community with the selected system of governance.
 
@@ -110,55 +110,18 @@ Initial Setup
 In order to use this integration, you need to deploy an instance of Metagov on the same machine as PolicyKit. See `Installing Metagov <https://docs.metagov.org/en/latest/installation.html>`_ for instructions.
 To enable Metagov in PolicyKit, set ``METAGOV_URL`` in your ``private.py`` file to point to your Metagov server.
 
-Configuring Metagov for a Community
-"""""""""""""""""""""""""""""""""""
+Configuring Metagov
+"""""""""""""""""""
 
 Configure Metagov by navigating to "Settings" in the PolicyKit web interface.
-At this time, only community admins are permitted to view and edit the Metagov configuration.
-Use the editor to enable/disable plugins and to configure them. For example:
-
-.. code-block:: json
-
-    {
-        "name": "<set by PolicyKit>",
-        "readable_name": "<set by PolicyKit>",
-        "plugins": [
-            {
-                "name": "sourcecred",
-                "config": {
-                    "server_url": "<sourcecred server URL>"
-                }
-            },
-            {
-                "name": "discourse",
-                "config": {
-                    "server_url": "<discourse server URL>",
-                    "api_key": "<discourse api key>",
-                    "webhook_secret": "<discourse webhook secret>"
-                }
-            },
-            {
-                "name": "opencollective",
-                "config": {
-                    "api_key": "<opencollective api key>",
-                    "collective_slug": "<opencollective slug>",
-                    "webhook_slug": "<opencollective webhook slug>"
-                }
-            },
-            {
-                "name": "loomio",
-                "config": {
-                    "api_key": "<loomio api key>"
-                }
-            }
-        ]
-    }
+Only the users with role ``Metagov Admin`` are permitted to view and edit the Metagov configuration.
+Use the editor to enable/disable plugins and to configure them.
 
 Metagov events as policy triggers
 """""""""""""""""""""""""""""""""
 
-If you want to write a policy that is "triggered" by an event emitted by a `Metagov listener <https://docs.metagov.org/en/latest/plugin_tutorial.html#listener>`_,
-you can use the ``fitler`` block. The ``action`` will be an instance of ``MetagovPlatformAction``.
+Platform policies can be "triggered" by events that are emmitted by `Metagov listener <https://docs.metagov.org/en/latest/plugin_tutorial.html#listener>`_.
+Use the ``filter`` block to determine whether the event is coming from Metagov. The ``action`` will be an instance of ``MetagovPlatformAction``:
 
 .. code-block:: python
 
@@ -174,9 +137,10 @@ you can use the ``fitler`` block. The ``action`` will be an instance of ``Metago
 Metagov actions
 """"""""""""""""""""""""""
 
-Policy authors have access to a ``metagov`` client that can be used to invoke Metagov ``/action`` and ``/process`` endpoints.
+Platform policies have access to a ``metagov`` client that can be used to invoke Metagov ``/action`` and ``/process`` endpoints.
 Refer to the `Metagov API docs <https://prototype.metagov.org/redoc/>`_ to see which actions and processes are available to you.
-Policy authors can only use actions that are defined in **plugins that are currently enabled in their community**.
+Policy authors can only use actions that are defined in plugins that are *currently enabled* in their community.
+See the :doc:`Sample Policies <../sample_policies>` for more examples.
 
 .. code-block:: python
 
@@ -193,7 +157,9 @@ Policy authors can only use actions that are defined in **plugins that are curre
 Metagov governance processes
 """"""""""""""""""""""""""""
 
-Use the ``metagov`` client to perform asynchronous governance processes. Here's a partial example of a policy that uses the ``loomio.poll`` process to perform a vote.
+Platform policies can use the ``metagov`` client to perform asynchronous governance processes.
+Here's a partial example of a policy that uses the ``loomio.poll`` process to perform a vote.
+See the :doc:`Sample Policies <../sample_policies>` for more examples.
 
 .. code-block:: python
 
@@ -208,7 +174,6 @@ Use the ``metagov`` client to perform asynchronous governance processes. Here's 
         "closing_at": closing_at
     })
     poll_url = result.get('poll_url')
-    # elided: send the poll URL to users and let them know to vote
 
 
 .. code-block:: python
