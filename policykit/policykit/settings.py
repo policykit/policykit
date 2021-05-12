@@ -36,7 +36,8 @@ ALLOWED_HOSTS = ['policykit.org',
                  '52.41.245.161',
                  '127.0.0.1',
                  'ec2-54-190-197-117.us-west-2.compute.amazonaws.com',
-                 '54.190.197.117']
+                 '54.190.197.117',
+                 'localhost']
 
 try:
     METAGOV_ENABLED = True if METAGOV_URL else False
