@@ -18,7 +18,7 @@ urlpatterns = [
             'discord_client_id': DISCORD_CLIENT_ID
         }
     )),
-    path('logout/', policyviews.logout),
+    path('logout/', policyviews.logout, name="logout"),
     path('main/', policyviews.v2),
     path('main/editor/', policyviews.editor),
     path('main/selectrole/', policyviews.selectrole),
@@ -29,8 +29,8 @@ urlpatterns = [
     path('main/selectdocument/', policyviews.selectdocument),
     path('main/actions/', policyviews.actions),
     path('main/policyengine/', include('policyengine.urls')),
-    path('main/settings/', policyviews.settings_page),
-    path('logs/', include('django_db_logger.urls')),
+    path('main/settings/', policyviews.settings_page, name="settings"),
+    path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
     path('admin/', admin.site.urls),
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),

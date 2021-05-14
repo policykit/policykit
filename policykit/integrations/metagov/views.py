@@ -7,7 +7,6 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import ContentType, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotFound
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -18,7 +17,7 @@ from policyengine.models import Community, CommunityRole
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
+@login_required(login_url='/login')
 def save_config(request):
     user = get_user(request)
     community = user.community
@@ -30,12 +29,12 @@ def save_config(request):
         return HttpResponseBadRequest("Changing the readable_name is not permitted")
 
     try:
-        update_metagov_community(community, data.get("plugins", []))
+        community_config = update_metagov_community(community, data.get("plugins", []))
     except Exception as e:
         return HttpResponseBadRequest(e)
 
     hooks = get_webhooks(community)
-    return JsonResponse({"hooks": hooks})
+    return JsonResponse({"hooks": hooks, "config": community_config})
 
 
 @csrf_exempt

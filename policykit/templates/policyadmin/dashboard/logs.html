@@ -1,5 +1,7 @@
+{% extends "./dashboard_base.html" %}
 {% load render_table from django_tables2 %}
 
+{% block content %}
 <!doctype html>
 <html>
     <head>
@@ -11,3 +13,4 @@
         {% render_table table %}
     </body>
 </html>
+{% endblock %}
