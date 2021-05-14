@@ -124,69 +124,6 @@ where num refers to a positive non-zero integer value. This command simulates ro
   text = 'Error: Make sure you format your dice roll command correctly!'
   action.community.notify_action(action, policy, users, template=text, channel = "733209360549019688")
 
-Lottery / Raffle
-------------------------
-
-Allow users to vote on a "lottery" message, pick a random user as the lottery winner, and automatically notify the channel.
-
-**Filter:**
-
-.. code-block:: python
-
-  if action.action_type != "DiscordPostMessage":
-    return False
-  tokens = action.text.split(" ", 1)
-  if tokens[0] != "!lottery":
-    return False
-  if len(tokens) != 2:
-    action.community.notify_action(action, policy, users, template='need a lottery message', channel = "733209360549019688")
-    return False
-  action.data.set('message', tokens[1])
-  return True
-
-**Initialize:**
-
-..code-block:: python
-
-  import datetime
-
-  start_time = datetime.datetime.now().isoformat()
-  action.data.set('start_time', start_time)
-
-**Notify:**
-
-..code-block:: python
-
-  message = action.data.get('message')
-  action.community.notify_action(action, policy, users, template=message, channel = "733209360549019688")
-
-**Check:**
-
-..code-block:: python
-
-  import datetime
-
-  current_time = datetime.datetime.now()
-  start_time = action.data.get('start_time')
-  start_time = datetime.datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S.%f")
-  if current_time - start_time > datetime.timedelta(minutes=1):
-    return PASSED
-
-**Pass:**
-
-..code-block:: python
-
-  import random
-
-  all_votes = action.proposal.get_yes_votes()
-  num_votes = len(all_votes)
-  if num_votes > 0:
-    winner = random.randint(0, num_votes)
-    winner_name = all_votes[winner].user.readable_name
-    message = "Congratulations! " + winner_name + " has won the lottery!"
-    action.community.notify_action(action, policy, users, template=message, channel = "733209360549019688")
-
-**Fail:** ``pass``
 
 Metagov Policies
 ================
