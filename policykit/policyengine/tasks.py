@@ -9,7 +9,7 @@ from policyengine.views import *
 
 from django_db_logger.models import EvaluationLog
 from policykit.settings import DB_LOG_EXPIRATION_HOURS
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 @shared_task
 def consider_proposed_actions():
