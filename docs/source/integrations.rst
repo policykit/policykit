@@ -112,7 +112,7 @@ To use Metagov with PolicyKit, the server admin needs to do this once:
 1. Deploy an instance of Metagov on the same machine as PolicyKit. See `Installing Metagov <https://docs.metagov.org/en/latest/installation.html>`_ for instructions.
 2. In the ``.env`` file in PolicyKit, set the URL for receiving events: ``DRIVER_EVENT_RECEIVER_URL=[POLICYKIT_URL]/metagov/internal/action``
 3. To enable Metagov in PolicyKit, set the ``METAGOV_URL`` in your ``private.py`` file to point to your Metagov instance.
-4. Ensure that the ``/metagov/action`` route is restricted to local traffic. Follow the Apache2 example in :doc:`Getting Started <../gettingstarted>`.
+4. Ensure that ``/metagov/internal`` is restricted to local traffic. Follow the Apache2 example in :doc:`Getting Started <../gettingstarted>`.
 
 
 Configuring Metagov
