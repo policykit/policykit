@@ -30,14 +30,21 @@ def on_transaction_commit(func):
     return inner
 
 class StarterKit(PolymorphicModel):
+    """Starter Kit"""
+
     name = models.TextField(null=True, blank=True, default = '')
+    """The name of the starter kit."""
+
     platform = models.TextField(null=True, blank=True, default = '')
+    """The name of the platform ('Slack', 'Reddit', etc.)."""
 
     def __str__(self):
         return self.name
 
 
 class CommunityManager(PolymorphicManager):
+    """Community Manager"""
+
     def get_by_metagov_name(self, name):
         """
         Iterate through all communities to find the one we're looking for. This is
@@ -55,8 +62,13 @@ class Community(PolymorphicModel):
     """Community"""
 
     community_name = models.CharField('team_name', max_length=1000)
+    """The name of the community."""
+
     platform = None
+    """The name of the platform ('Slack', 'Reddit', etc.)."""
+
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
+    """The default role which users have."""
 
     objects = CommunityManager()
 
@@ -103,6 +115,9 @@ class Community(PolymorphicModel):
         return CommunityDoc.objects.filter(community=self)
 
     def save(self, *args, **kwargs):
+        """
+        Saves the community. Note: Only meant for internal use.
+        """
         if not self.pk and settings.METAGOV_ENABLED:
             # Create a corresponding community in Metagov
             from integrations.metagov.library import update_metagov_community
@@ -111,15 +126,25 @@ class Community(PolymorphicModel):
         super(Community, self).save(*args, **kwargs)
 
 class CommunityRole(Group):
+    """CommunityRole"""
+
     community = models.ForeignKey(Community, models.CASCADE, null=True)
+    """The community which the role belongs to."""
+
     role_name = models.TextField('readable_name', max_length=300, null=True)
+    """The readable name of the role."""
+
     description = models.TextField(null=True, blank=True, default='')
+    """The readable description of the role. May be empty."""
 
     class Meta:
         verbose_name = 'communityrole'
         verbose_name_plural = 'communityroles'
 
     def save(self, *args, **kwargs):
+        """
+        Saves the role. Note: Only meant for internal use.
+        """
         super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -133,18 +158,61 @@ class PolymorphicUserManager(UserManager, PolymorphicManager):
 setattr(User, '_base_objects', User.objects)
 
 class CommunityUser(User, PolymorphicModel):
+    """CommunityUser"""
+
     readable_name = models.CharField('readable_name', max_length=300, null=True)
+    """The readable name of the user. May or may not exist."""
+
     community = models.ForeignKey(Community, models.CASCADE)
+    """The community which the user belongs to."""
+
     access_token = models.CharField('access_token', max_length=300, null=True)
+    """The access token which the user uses on login. May or may not exist."""
+
     is_community_admin = models.BooleanField(default=False)
+    """True if the user is an admin. Default is False."""
+
     avatar = models.CharField('avatar', max_length=500, null=True)
+    """The URL of the avatar image of the user. May or may not exist."""
 
     objects = PolymorphicUserManager()
 
     def __str__(self):
         return self.readable_name if self.readable_name else self.username
 
+    def get_roles(self):
+        """
+        Returns a list containing all of the user's roles.
+        """
+        user_roles = []
+        roles = CommunityRole.objects.filter(community=self.community)
+        for r in roles:
+            for u in r.user_set.all():
+                if u.communityuser.username == self.username:
+                    user_roles.append(r)
+        return user_roles
+
+    def has_role(self, role_name):
+        """
+        Returns True if the user has a role with the specified role_name.
+
+        Parameters
+        -------
+        role_name
+            The name of the role to check for.
+        """
+        roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
+        if roles.exists():
+            r = roles[0]
+            for u in r.user_set.all():
+                if u.communityuser.username == self.username:
+                    return True
+        return False
+
     def save(self, *args, **kwargs):
+        """
+        Saves the user. Note: Only meant for internal use.
+        """
         super(CommunityUser, self).save(*args, **kwargs)
         self.community.base_role.user_set.add(self)
 
@@ -160,37 +228,33 @@ class CommunityUser(User, PolymorphicModel):
 
             role.user_set.add(self)
 
-    def get_roles(self):
-        user_roles = []
-        roles = CommunityRole.objects.filter(community=self.community)
-        for r in roles:
-            for u in r.user_set.all():
-                if u.communityuser.username == self.username:
-                    user_roles.append(r)
-        return user_roles
-
-    def has_role(self, role_name):
-        roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
-        if roles.exists():
-            r = roles[0]
-            for u in r.user_set.all():
-                if u.communityuser.username == self.username:
-                    return True
-        return False
-
 class CommunityDoc(models.Model):
+    """CommunityDoc"""
+
     name = models.TextField(null=True, blank=True, default = '')
+    """The name of the document."""
+
     text = models.TextField(null=True, blank=True, default = '')
+    """The text within the document."""
+
     community = models.ForeignKey(Community, models.CASCADE, null=True)
+    """The community which the document belongs to."""
+
     is_active = models.BooleanField(default=True)
+    """True if the document is active. Default is True."""
 
     def __str__(self):
         return str(self.name)
 
     def save(self, *args, **kwargs):
+        """
+        Saves the document. Note: Only meant for internal use.
+        """
         super(CommunityDoc, self).save(*args, **kwargs)
 
 class DataStore(models.Model):
+    """DataStore"""
+
     data_store = models.TextField()
 
     def _get_data_store(self):
@@ -204,16 +268,42 @@ class DataStore(models.Model):
         self.save()
 
     def get(self, key):
+        """
+        Returns the value associated with the given key.
+
+        Parameters
+        -------
+        key
+            The key associated with the value.
+        """
         obj = self._get_data_store()
         return obj.get(key, None)
 
     def set(self, key, value):
+        """
+        Stores the given value, referenced by the given key.
+
+        Parameters
+        -------
+        key
+            The key to associate with the given value.
+        value
+            The value to store.
+        """
         obj = self._get_data_store()
         obj[key] = value
         self._set_data_store(obj)
-        return True
+        return True # NOTE: Why does this line exist?
 
     def remove(self, key):
+        """
+        Removes the value associated with the given key. Returns True if a value was found and removed. Returns False otherwise.
+
+        Parameters
+        -------
+        key
+            The key associated with the value to be removed.
+        """
         obj = self._get_data_store()
         res = obj.pop(key, None)
         self._set_data_store(obj)
@@ -266,6 +356,8 @@ class GenericRole(Group):
         return self.role_name
 
 class Proposal(models.Model):
+    """Proposal"""
+
     PROPOSED = 'proposed'
     FAILED = 'failed'
     PASSED = 'passed'
@@ -282,84 +374,147 @@ class Proposal(models.Model):
         blank=True,
         null=True
     )
+    """The user who created the proposal."""
+
     proposal_time = models.DateTimeField(auto_now_add=True)
+    """Datetime object representing when the proposal was created."""
+
     status = models.CharField(choices=STATUS, max_length=10)
+    """Status of the proposal. One of PROPOSED, PASSED or FAILED."""
 
     def get_time_elapsed(self):
+        """
+        Returns a datetime object representing the time elapsed since the proposal's creation.
+        """
         return datetime.now(timezone.utc) - self.proposal_time
 
     def get_all_boolean_votes(self, users=None):
+        """
+        For Boolean voting. Returns all boolean votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
+        """
         if users:
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
 
     def get_yes_votes(self, users=None):
+        """
+        For Boolean voting. Returns the yes votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
+        """
         if users:
             return BooleanVote.objects.filter(boolean_value=True, proposal=self, user__in=users)
         return BooleanVote.objects.filter(boolean_value=True, proposal=self)
 
     def get_no_votes(self, users=None):
+        """
+        For Boolean voting. Returns the no votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
+        """
         if users:
             return BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users)
         return BooleanVote.objects.filter(boolean_value=False, proposal=self)
 
     def get_all_number_votes(self, users=None):
+        """
+        For Number voting. Returns all number votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
+        """
         if users:
             return NumberVote.objects.filter(proposal=self, user__in=users)
         return NumberVote.objects.filter(proposal=self)
 
     def get_one_number_votes(self, value, users=None):
+        """
+        For Number voting. Returns number votes for the specified value as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
+        """
         if users:
             return NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)
         return NumberVote.objects.filter(number_value=value, proposal=self)
 
     def save(self, *args, **kwargs):
+        """
+        Saves the proposal. Note: Only meant for internal use.
+        """
         if not self.pk:
             self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
 
 class BaseAction(models.Model):
+    """Base Action"""
+
     community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
+    """The community in which the action is taking place."""
+
     community_post = models.CharField('community_post', max_length=300, null=True)
+    """The notification which is sent to the community to alert them of the action. May or may not exist."""
+
     proposal = models.OneToOneField(Proposal, models.CASCADE)
+    """The proposal in which the action was proposed."""
+
     is_bundled = models.BooleanField(default=False)
+    """True if the action is part of a bundle."""
 
     app_name = 'policyengine'
+    """The name of the application sending the action."""
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
         null=True
     )
+    """The datastore containing any additional data for the action. May or may not exist."""
 
     class Meta:
         abstract = True
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
+    """Constitution Action"""
+
+    # NOTE: Why is this duplicated here?
     community = models.ForeignKey(Community, models.CASCADE)
+
+    # NOTE: Should be moved to BaseAction
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, null=True)
+    """The User who initiated the action. May not exist if initiated by PolicyKit."""
+
+    # NOTE: Why is this duplicated here?
     is_bundled = models.BooleanField(default=False)
 
+    # NOTE: Should be moved to BaseAction
     action_type = "ConstitutionAction"
+    """Type of action (Constitution or Platform)."""
+
+    # FIXME: Move this to BaseAction
     action_codename = ''
+    """The codename of the action."""
 
     class Meta:
         verbose_name = 'constitutionaction'
         verbose_name_plural = 'constitutionactions'
 
     def pass_action(self):
+        """
+        Sets the action's proposal to PASSED.
+        """
         self.proposal.status = Proposal.PASSED
         self.proposal.save()
         action.send(self, verb='was passed', community_id=self.community.id)
 
     def fail_action(self):
+        """
+        Sets the action's proposal to FAILED.
+        """
         self.proposal.status = Proposal.FAILED
         self.proposal.save()
+        # NOTE: Do we want to send an action to the log here? Seems important.
 
     def shouldCreate(self):
+        """
+        True if the action needs to be created. Note: Only meant for internal use.
+        """
         return not self.pk # Runs only when object is new
 
     def save(self, *args, **kwargs):
+        """
+        Saves the action. If new, checks it against current passed policies. Note: Only meant for internal use.
+        """
         if self.shouldCreate():
             if self.data is None:
                 self.data = DataStore.objects.create()
@@ -875,42 +1030,73 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
             ('can_execute_policykitrecoverconstitutionpolicy', 'Can execute policykit recover constitution policy'),
         )
 
-class PlatformAction(BaseAction,PolymorphicModel):
+class PlatformAction(BaseAction, PolymorphicModel):
     ACTION = None
     AUTH = 'app'
 
+    # NOTE: Why is this duplicated here?
     community = models.ForeignKey(Community, models.CASCADE)
+
+    # FIXME: Should be moved to BaseAction
     initiator = models.ForeignKey(CommunityUser, models.CASCADE)
+    """The User who initiated the action. May not exist if initiated by PolicyKit."""
+
     community_revert = models.BooleanField(default=False)
+    """True if the action has been reverted on the platform."""
+
     community_origin = models.BooleanField(default=False)
+    """True if the action originated on the platform."""
+
+    # NOTE: Why is this duplicated here?
     is_bundled = models.BooleanField(default=False)
 
+    # FIXME: Should be moved to BaseAction
     action_type = "PlatformAction"
+    """Type of action (Constitution or Platform)."""
+
+    # FIXME: Should be moved to BaseAction
     action_codename = ''
+    """The codename of the action."""
 
     class Meta:
         verbose_name = 'platformaction'
         verbose_name_plural = 'platformactions'
 
     def revert(self, values, call, method=None):
+        """
+        Reverts the action.
+        """
         _ = LogAPICall.make_api_call(self.community, values, call, method=method)
         self.community_revert = True
         self.save()
 
     def execute(self):
+        """
+        Executes the action.
+        """
         self.community.execute_platform_action(self)
+        # FIXME: Need to decouple this from execute
         self.pass_action()
 
     def pass_action(self):
+        """
+        Sets the action's proposal to PASSED.
+        """
         self.proposal.status = Proposal.PASSED
         self.proposal.save()
         action.send(self, verb='was passed', community_id=self.community.id)
 
     def fail_action(self):
+        """
+        Sets the action's proposal to FAILED.
+        """
         self.proposal.status = Proposal.FAILED
         self.proposal.save()
 
     def save(self, *args, **kwargs):
+        """
+        Saves the action. If new, checks it against current passed policies. Note: Only meant for internal use.
+        """
         if not self.pk:
             if self.data is None:
                 self.data = DataStore.objects.create()
@@ -990,34 +1176,64 @@ class PlatformActionBundle(BaseAction):
 
 
 class BasePolicy(models.Model):
+    """BasePolicy"""
+
     filter = models.TextField(blank=True, default='')
+    """The filter code of the policy."""
+
     initialize = models.TextField(blank=True, default='')
+    """The initialize code of the policy."""
+
     check = models.TextField(blank=True, default='')
+    """The check code of the policy."""
+
     notify = models.TextField(blank=True, default='')
+    """The notify code of the policy."""
+
     success = models.TextField(blank=True, default='')
+    """The pass code of the policy."""
+
     fail = models.TextField(blank=True, default='')
+    """The fail code of the policy."""
 
     community = models.ForeignKey(Community,
         models.CASCADE,
         verbose_name='community',
     )
+    """The community which the policy belongs to."""
+
+    # FIXME: Should not allow this to be null.
     name = models.TextField(null=True, blank=True)
+    """The name of the policy."""
+
     description = models.TextField(null=True, blank=True)
+    """The description of the policy. May be empty."""
+
     is_bundled = models.BooleanField(default=False)
+    """True if the policy is part of a bundle. Default is False."""
+
     is_active = models.BooleanField(default=True)
+    """True if the policy is active. Default is True."""
+
     modified_at = models.DateTimeField(auto_now=True)
+    """Datetime object representing the last time the policy was modified."""
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
         null=True
     )
+    """The datastore containing any additional data for the policy. May or may not exist."""
 
     class Meta:
         abstract = True
 
 class ConstitutionPolicy(BasePolicy):
+    """ConstitutionPolicy"""
+
+    # NOTE: Should be defined in BasePolicy
     policy_type = "ConstitutionPolicy"
+    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
     class Meta:
         verbose_name = 'constitutionpolicy'
@@ -1028,14 +1244,21 @@ class ConstitutionPolicy(BasePolicy):
 
 class ConstitutionPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(ConstitutionPolicy)
+
+    # NOTE: Should be defined in BasePolicy
     policy_type = "ConstitutionPolicyBundle"
+    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
     class Meta:
         verbose_name = 'constitutionpolicybundle'
         verbose_name_plural = 'constitutionpolicybundles'
 
 class PlatformPolicy(BasePolicy):
+    """PlatformPolicy"""
+
+    # NOTE: Should be defined in BasePolicy
     policy_type = "PlatformPolicy"
+    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
     class Meta:
         verbose_name = 'platformpolicy'
@@ -1046,24 +1269,39 @@ class PlatformPolicy(BasePolicy):
 
 class PlatformPolicyBundle(BasePolicy):
     bundled_policies = models.ManyToManyField(PlatformPolicy)
+
+    # NOTE: Should be defined in BasePolicy
     policy_type = "PlatformPolicyBundle"
+    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
 
 class UserVote(models.Model):
+    """UserVote"""
+
     user = models.ForeignKey(CommunityUser, models.CASCADE)
+    """The user who cast the vote."""
+
     proposal = models.ForeignKey(Proposal, models.CASCADE)
+    """The proposal which is being voted on."""
+
     vote_time = models.DateTimeField(auto_now_add=True)
+    """Datetime object representing when the vote was cast."""
 
     class Meta:
         abstract = True
 
     def get_time_elapsed(self):
+        """
+        Returns a datetime object representing the time elapsed since the vote was cast.
+        """
         return datetime.now(timezone.utc) - self.vote_time
 
 class BooleanVote(UserVote):
+    """BooleanVote"""
+
     TRUE_FALSE_CHOICES = (
         (True, 'Yes'),
         (False, 'No')
@@ -1073,12 +1311,16 @@ class BooleanVote(UserVote):
         choices=TRUE_FALSE_CHOICES,
         default=True
     )
+    """The value of the vote. Either True ('Yes') or False ('No')."""
 
     def __str__(self):
         return str(self.user) + ' : ' + str(self.boolean_value)
 
 class NumberVote(UserVote):
+    """NumberVote"""
+
     number_value = models.IntegerField(null=True)
+    """The value of the vote. Must be an integer."""
 
     def __str__(self):
         return str(self.user) + ' : ' + str(self.number_value)

@@ -1,10 +1,10 @@
 .. _start:
 
-Proposal
+Document
 ===============
 
-Proposal
+CommunityDoc
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: policyengine.models
-  :members: Proposal
+  :members: CommunityDoc

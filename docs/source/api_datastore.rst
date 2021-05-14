@@ -1,10 +1,10 @@
 .. _start:
 
-Proposal
+Datastore
 ===============
 
-Proposal
+DataStore
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: policyengine.models
-  :members: Proposal
+  :members: DataStore
