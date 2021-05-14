@@ -1,14 +1,11 @@
 import json
 import logging
 
-import requests
-from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import ContentType, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotFound
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.library import metagov_slug, update_metagov_community, get_webhooks
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
@@ -18,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @login_required(login_url='/login')
+@csrf_exempt
 def save_config(request):
     user = get_user(request)
     community = user.community
@@ -37,8 +35,9 @@ def save_config(request):
     return JsonResponse({"hooks": hooks, "config": community_config})
 
 
+# INTERNAL ENDPOINT, no auth
 @csrf_exempt
-def post_outcome(request, id):
+def internal_receive_outcome(request, id):
     if request.method != "POST" or not request.body:
         return HttpResponseBadRequest()
     try:
@@ -56,9 +55,9 @@ def post_outcome(request, id):
     process.save()
     return HttpResponse()
 
-
+# INTERNAL ENDPOINT, no auth
 @csrf_exempt
-def action(request):
+def internal_receive_action(request):
     """
     Receive event from Metagov, and create a new MetagovPlatformAction.
 
