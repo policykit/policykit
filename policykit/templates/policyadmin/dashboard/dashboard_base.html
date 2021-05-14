@@ -132,6 +132,12 @@
     .profileDropdownElement:hover {
       color: #808b96;
     }
+    .profileDropdownElement h4 a {
+      color: inherit;
+    }
+    .profileDropdownElement:hover a {
+      text-decoration: none;
+    }
 
   </style>
 
@@ -157,14 +163,17 @@
         {% endif %}
       </div>
       <div class="profileDropdown">
-        <div class="profileDropdownElement" id="settings">
-          <h4>Settings</h4>
+        <div class="profileDropdownElement">
+          <h4><a href="{% url 'settings' %}">Settings</a></h4>
         </div>
         <div class="profileDropdownElement">
-          <h4>Help</h4>
+          <h4><a href="https://policykit.readthedocs.io/" target="_blank">Help</a></h4>
         </div>
-        <div class="profileDropdownElement" id="logout">
-          <h4>Log Out</h4>
+        <div class="profileDropdownElement">
+          <h4><a href="{% url 'django_db_logger:logs' %}">Logs</a></h4>
+        </div>
+        <div class="profileDropdownElement">
+          <h4><a href="{% url 'logout' %}">Log Out</a></h4>
         </div>
       </div>
     </div>
@@ -177,8 +186,6 @@
     document.getElementById("brand").addEventListener("click", navHome);
     document.getElementById("profile").addEventListener("mouseover", showDropdown);
     document.getElementById("profile").addEventListener("mouseout", hideDropdown);
-    document.getElementById("logout").addEventListener("click", logout);
-    document.getElementById("settings").addEventListener("click", settings);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"
@@ -196,14 +203,6 @@
       for (let i = 0; i < dropdownElements.length; i++) {
         dropdownElements[i].style.display = "none"
       }
-    }
-
-    function logout() {
-      window.location.href = "{{server_url}}/logout/"
-    }
-
-    function settings() {
-      window.location.href = "{{server_url}}/main/settings/"
     }
   </script>
 

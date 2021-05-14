@@ -149,6 +149,11 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                                 </Files>
                         </Directory>
 
+                        # 🚨 IMPORTANT if using Metagov: Restrict internal endpoints to local traffic 🚨
+                        <Location /metagov/internal>
+                                Require local
+                        </Location>
+
                         WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
                         WSGIProcessGroup policykit
                         WSGIScriptAlias / $POLICYKIT_REPO/policykit/policykit/wsgi.py

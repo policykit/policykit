@@ -69,7 +69,9 @@
                   })
                 } else {
                   response.json().then(data => {
-                    $('#alerts').html("<b>Configuration saved!</b>");
+                    $('#alerts').css("color", "").html("<b>Configuration saved!</b>");
+                    var config_str = JSON.stringify(data.config, null, 2);
+                    $('#alerts').append(`<pre>${config_str}</pre>`);
                     if (data.hooks.length > 0) {
                       data.hooks.sort()
                       const $ul = $('<ul>').append(
@@ -77,7 +79,7 @@
                           $("<li>").append($("<code>").text(url))
                         )
                       );
-                      $('#alerts').append("<div>These are your community webhook receivers that can be registered with external platforms:</div>");
+                      $('#alerts').append("<b>Community webhook receivers to register with external platforms:</b>");
                       $('#alerts').append($ul);
                     }
                   })

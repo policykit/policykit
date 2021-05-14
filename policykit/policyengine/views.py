@@ -1,15 +1,12 @@
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from actstream import action
-from actstream.models import model_stream, target_stream, Action
+from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
-import urllib.request
 import urllib.parse
 import logging
 import json
@@ -29,7 +26,7 @@ def v2(request):
     from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
     user = get_user(request)
-
+    user.community = user.community
     users = CommunityUser.objects.filter(community=user.community)
     roles = user.community.get_roles()
     docs = user.community.get_documents()
