@@ -139,7 +139,7 @@ def handle_message_delete_event(data):
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
     # Gets the channel message
-    message = self.community.make_call(f"channels/{data['channel_id']}/messages/{data['id']}")
+    message = community.make_call(f"channels/{data['channel_id']}/messages/{data['id']}")
 
     action = DiscordDeleteMessage()
     action.community = community
@@ -460,11 +460,11 @@ def post_policy(policy, action, users=None, template=None, channel=None):
     channel_id = None
     c = DiscordChannel.objects.filter(channel_id=channel)
     if c.exists():
-        channel_id = c[0]
+        channel_id = c[0].channel_id
     else:
         c = DiscordChannel.objects.filter(guild_id=policy.community.team_id, channel_name=channel)
         if c.exists():
-            channel_id = c[0]
+            channel_id = c[0].channel_id
     if channel_id == None:
         return
 
