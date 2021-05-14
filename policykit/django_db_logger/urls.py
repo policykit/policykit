@@ -4,4 +4,4 @@ from django_db_logger.views import LogListView
 
 app_name = 'django_db_logger'
 
-urlpatterns = [path("", login_required(login_url="/login")(LogListView.as_view()))]
+urlpatterns = [path("", login_required(login_url="/login")(LogListView.as_view()), name="logs")]
