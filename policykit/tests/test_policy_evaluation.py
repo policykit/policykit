@@ -230,7 +230,7 @@ and action.event_type == 'discourse.post_created'"""
 
         # 2) Mimick an incoming notification from Metagov that the action has occurred
         client = Client()
-        response = client.post(f"/metagov/action", data=event_payload, content_type="application/json")
+        response = client.post(f"/metagov/internal/action", data=event_payload, content_type="application/json")
 
         self.assertEqual(response.status_code, 200)
 

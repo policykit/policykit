@@ -1,12 +1,14 @@
+import urllib.parse
+
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
-from django.conf.urls import include, url
-from django.views.generic import TemplateView
-from django.shortcuts import redirect
-import urllib.parse
-from policykit.settings import SERVER_URL, SLACK_CLIENT_ID, REDDIT_CLIENT_ID, DISCORD_CLIENT_ID
 from policyengine import views as policyviews
+
+from policykit.settings import (DISCORD_CLIENT_ID, METAGOV_ENABLED,
+                                REDDIT_CLIENT_ID, SERVER_URL, SLACK_CLIENT_ID)
+
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(
@@ -36,7 +38,9 @@ urlpatterns = [
     path('reddit/', include('integrations.reddit.urls')),
     path('discord/', include('integrations.discord.urls')),
     path('discourse/', include('integrations.discourse.urls')),
-    path('metagov/', include('integrations.metagov.urls')),
     url(r'^$', policyviews.homepage),
     url('^activity/', include('actstream.urls'))
 ]
+
+if METAGOV_ENABLED:
+    urlpatterns += [path('metagov/', include('integrations.metagov.urls'))]

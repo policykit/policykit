@@ -80,7 +80,7 @@ class Metagov:
         logger.info(payload)
 
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
-        payload["callback_url"] = f"{settings.SERVER_URL}/metagov/outcome/{model.pk}"
+        payload["callback_url"] = f"{settings.SERVER_URL}/metagov/internal/outcome/{model.pk}"
 
         # Kick off process in Metagov
         response = requests.post(url, json=payload, headers=self.headers)
