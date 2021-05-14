@@ -337,10 +337,12 @@ def evaluation_logger(policy, action, level="DEBUG"):
     return log
 
 def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
+    """
     errors = filter_code(code)
     if len(errors) > 0:
         logger.exception('Got exception in exec_code:')
         raise Exception(f"Filter errors: {errors}")
+    """
 
     lines = ['  ' + item for item in code.splitlines()]
     code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
