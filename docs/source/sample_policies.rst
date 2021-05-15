@@ -368,7 +368,7 @@ Uses the `near.call <https://prototype.metagov.org/redoc/#operation/near.call>`_
     }
 
     result = metagov.perform_action("near.call", params)
-    debug(f"NEAR call: {result.get("status")}")
+    debug(f"NEAR call: {result.get('status')}")
 
 **Fail:** ``pass``
 
