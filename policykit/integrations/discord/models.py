@@ -127,8 +127,6 @@ class DiscordPostMessage(PlatformAction):
             self.community_post = self.message_id
             self.save()
 
-        super().pass_action()
-
 class DiscordDeleteMessage(PlatformAction):
     channel_id = models.IntegerField()
     message_id = models.IntegerField()
@@ -159,8 +157,6 @@ class DiscordDeleteMessage(PlatformAction):
 
             # Deletes the message
             self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
-
-        super().pass_action()
 
 class DiscordRenameChannel(PlatformAction):
     channel_id = models.IntegerField()
@@ -202,8 +198,6 @@ class DiscordRenameChannel(PlatformAction):
             c['channel_name'] = self.name
             c.save()
 
-        super().pass_action()
-
 class DiscordCreateChannel(PlatformAction):
     guild_id = models.IntegerField()
     channel_id = models.IntegerField(blank=True)
@@ -237,8 +231,6 @@ class DiscordCreateChannel(PlatformAction):
                 channel_name=channel['name']
             )
 
-        super().pass_action()
-
 class DiscordDeleteChannel(PlatformAction):
     channel_id = models.IntegerField()
 
@@ -258,8 +250,6 @@ class DiscordDeleteChannel(PlatformAction):
         # Execute action if it didn't originate in the community
         if not self.community_origin:
             self.community.make_call(f"channels/{self.channel_id}", method='DELETE')
-
-        super().pass_action()
 
 class DiscordStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):

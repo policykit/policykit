@@ -563,7 +563,6 @@ class ConstitutionActionBundle(BaseAction):
         if self.bundle_type == ConstitutionActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 action.execute()
-                action.pass_action()
 
     def pass_action(self):
         proposal = self.proposal
@@ -608,7 +607,6 @@ class PolicykitAddCommunityDoc(ConstitutionAction):
         doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
         doc.community = self.community
         doc.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -629,7 +627,6 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
         self.doc.name = self.name
         self.doc.text = self.text
         self.doc.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -649,7 +646,6 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
     def execute(self):
         self.doc.is_active = False
         self.doc.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -669,7 +665,6 @@ class PolicykitRecoverCommunityDoc(ConstitutionAction):
     def execute(self):
         self.doc.is_active = True
         self.doc.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -700,7 +695,6 @@ class PolicykitAddRole(ConstitutionAction):
             role.permissions.add(p)
         role.community = self.community
         role.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -723,7 +717,6 @@ class PolicykitDeleteRole(ConstitutionAction):
             self.role.delete()
         except AssertionError: # Triggers if object has already been deleted
             pass
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -752,7 +745,6 @@ class PolicykitEditRole(ConstitutionAction):
         for p in self.permissions.all():
             self.role.permissions.add(p)
         self.role.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -778,7 +770,6 @@ class PolicykitAddUserRole(ConstitutionAction):
     def execute(self):
         for u in self.users.all():
             self.role.user_set.add(u)
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -804,7 +795,6 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     def execute(self):
         for u in self.users.all():
             self.role.user_set.remove(u)
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -859,7 +849,6 @@ class PolicykitAddPlatformPolicy(EditorModel):
         policy.fail = self.fail
         policy.community = self.community
         policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -885,7 +874,6 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         policy.success = self.success
         policy.fail = self.fail
         policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -910,7 +898,6 @@ class PolicykitChangePlatformPolicy(EditorModel):
         self.platform_policy.success = self.success
         self.platform_policy.fail = self.fail
         self.platform_policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -935,7 +922,6 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         self.constitution_policy.success = self.success
         self.constitution_policy.fail = self.fail
         self.constitution_policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -957,7 +943,6 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     def execute(self):
         self.platform_policy.is_active = False
         self.platform_policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -979,7 +964,6 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
     def execute(self):
         self.platform_policy.is_active = True
         self.platform_policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -1001,7 +985,6 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     def execute(self):
         self.constitution_policy.is_active = False
         self.constitution_policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -1023,7 +1006,6 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
     def execute(self):
         self.constitution_policy.is_active = True
         self.constitution_policy.save()
-        self.pass_action()
 
     class Meta:
         permissions = (
@@ -1075,8 +1057,6 @@ class PlatformAction(BaseAction, PolymorphicModel):
         Executes the action.
         """
         self.community.execute_platform_action(self)
-        # FIXME: Need to decouple this from execute
-        self.pass_action()
 
     def pass_action(self):
         """
@@ -1142,7 +1122,6 @@ class PlatformActionBundle(BaseAction):
         if self.bundle_type == PlatformActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
-                action.pass_action()
 
     def pass_action(self):
         proposal = self.proposal

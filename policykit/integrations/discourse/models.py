@@ -165,8 +165,6 @@ class DiscourseCreateTopic(PlatformAction):
             self.community.make_call(f"/t/{self.topic_id}/recover", method='PUT')
             self.community_revert = False
 
-        super().pass_action()
-
 class DiscourseCreatePost(PlatformAction):
     raw = models.TextField()
     post_id = models.IntegerField()
@@ -194,7 +192,6 @@ class DiscourseCreatePost(PlatformAction):
             reply = self.community.make_call('/posts.json', {'raw': self.raw}) #FIXME this needs to have topic_id
             self.post_id = reply['id']
             self.save()
-        super().pass_action()
 
 class DiscourseStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
