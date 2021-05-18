@@ -1,15 +1,16 @@
-# Create your tasks here
 from __future__ import absolute_import, unicode_literals
 
-from celery import shared_task
-from celery.schedules import crontab
-from policyengine.models import UserVote, NumberVote, BooleanVote, PlatformAction, PlatformActionBundle, Proposal, PlatformPolicy, CommunityUser, ConstitutionAction, ConstitutionPolicy, execute_policy
-from policykit.celery import app
-from policyengine.views import *
+import logging
 
+from celery import shared_task
+from django.utils import timezone
 from django_db_logger.models import EvaluationLog
 from policykit.settings import DB_LOG_EXPIRATION_HOURS
-from datetime import datetime, timedelta, timezone
+
+from policyengine.models import ConstitutionAction, PlatformAction, Proposal
+from policyengine.views import execute_policy
+
+logger = logging.getLogger(__name__)
 
 @shared_task
 def consider_proposed_actions():
