@@ -530,7 +530,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
-                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                    if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
                         for policy in self.community.get_constitution_policies():
@@ -581,9 +581,9 @@ class ConstitutionActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             action = self
-            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+            if action.initiator.has_perm(action._meta.app_label + '.add_' + action.action_codename):
                 #if they have execute permission, skip all policies
-                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
                     action.execute()
                 else:
                     for policy in self.community.get_constitution_policies():
@@ -1091,7 +1091,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
                 if not self.is_bundled:
                     action = self
                     #if they have execute permission, skip all policies
-                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                    if action.initiator.has_perm(self._meta.app_label + '.can_execute_' + action.action_codename):
                         action.execute()
                     else:
                         for policy in self.community.get_platform_policies():
@@ -1140,9 +1140,9 @@ class PlatformActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             action = self
-            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
+            if action.initiator.has_perm(action._meta.app_label + '.add_' + action.action_codename):
                 #if they have execute permission, skip all policies
-                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+                if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
                     action.execute()
                 elif not action.community_post:
                     for policy in action.community.get_platform_policies():

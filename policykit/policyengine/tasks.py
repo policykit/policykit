@@ -18,7 +18,7 @@ def consider_proposed_actions():
     logger.info(f"{platform_actions.count()} proposed PlatformActions")
     for action in platform_actions:
          #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in action.community.get_platform_policies().filter(is_active=True):
@@ -31,7 +31,7 @@ def consider_proposed_actions():
     for action in bundle_actions:
         #if they have execute permission, skip all policies
 
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in action.community.get_platform_policies().filter(is_active=True):
@@ -41,7 +41,7 @@ def consider_proposed_actions():
     logger.info(f"{constitution_actions.count()} proposed ConstitutionActions")
     for action in constitution_actions:
         #if they have execute permission, skip all policies
-        if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
+        if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
             action.execute()
         else:
             for policy in action.community.get_constitution_policies().filter(is_active=True):
