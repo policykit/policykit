@@ -20,6 +20,7 @@ def consider_proposed_actions():
          #if they have execute permission, skip all policies
         if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
             action.execute()
+            action.pass_action()
         else:
             for policy in action.community.get_platform_policies().filter(is_active=True):
                 # Execute the most recently updated policy that passes filter()
@@ -33,6 +34,7 @@ def consider_proposed_actions():
 
         if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
             action.execute()
+            action.pass_action()
         else:
             for policy in action.community.get_platform_policies().filter(is_active=True):
                 execute_policy(policy, action)"""
@@ -43,6 +45,7 @@ def consider_proposed_actions():
         #if they have execute permission, skip all policies
         if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
             action.execute()
+            action.pass_action()
         else:
             for policy in action.community.get_constitution_policies().filter(is_active=True):
                 # Execute the most recently updated policy that passes filter()

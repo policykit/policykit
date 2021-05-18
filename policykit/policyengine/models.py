@@ -532,6 +532,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
                         action.execute()
+                        action.pass_action()
                     else:
                         for policy in self.community.get_constitution_policies():
                             # Execute the most recently updated policy that passes filter()
@@ -563,6 +564,7 @@ class ConstitutionActionBundle(BaseAction):
         if self.bundle_type == ConstitutionActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 action.execute()
+                action.pass_action()
 
     def pass_action(self):
         proposal = self.proposal
@@ -585,6 +587,7 @@ class ConstitutionActionBundle(BaseAction):
                 #if they have execute permission, skip all policies
                 if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
                     action.execute()
+                    action.pass_action()
                 else:
                     for policy in self.community.get_constitution_policies():
                         # Execute the most recently updated policy that passes filter()
@@ -1093,6 +1096,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
                     #if they have execute permission, skip all policies
                     if action.initiator.has_perm(self._meta.app_label + '.can_execute_' + action.action_codename):
                         action.execute()
+                        action.pass_action()
                     else:
                         for policy in self.community.get_platform_policies():
                             # Execute the most recently updated policy that passes filter()
@@ -1144,6 +1148,7 @@ class PlatformActionBundle(BaseAction):
                 #if they have execute permission, skip all policies
                 if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
                     action.execute()
+                    action.pass_action()
                 elif not action.community_post:
                     for policy in action.community.get_platform_policies():
                         # Execute the most recently updated policy that passes filter()

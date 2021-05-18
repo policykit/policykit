@@ -1,14 +1,11 @@
-import json
 from unittest import skip
 
-import requests
 from django.contrib.auth.models import Permission
 from django.test import Client, TestCase
 from integrations.metagov.library import update_metagov_community, metagov_slug
-from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackStarterKit, SlackUser
-from policyengine.models import CommunityRole, PlatformAction, PlatformPolicy, Proposal
-from policyengine.views import check_policy, filter_policy
+from integrations.metagov.models import MetagovProcess, MetagovPlatformAction
+from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
+from policyengine.models import CommunityRole, PlatformPolicy
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -68,13 +65,13 @@ class EvaluationTests(TestCase):
 
         # action initiated by user with "can_execute" should pass
         action = SlackPinMessage(initiator=self.user_with_can_execute, community=self.community)
-        action.execute = lambda: None # don't do anything on execute
+        action.execute = lambda: None  # don't do anything on execute
         action.save()
         self.assertEqual(action.proposal.status, "passed")
 
         # action initiated by user without "can_execute" should fail
         action = SlackPinMessage(initiator=self.user, community=self.community)
-        action.execute = lambda: None # don't do anything on execute
+        action.execute = lambda: None  # don't do anything on execute
         action.save()
         self.assertEqual(action.proposal.status, "failed")
 
