@@ -132,7 +132,10 @@
   </div>
   <div class="actionCollapsible" id="constitutionPolicies">
     <div class="actionButton" id="addConstitutionPolicy">
-      <p>Add Constitution Policy</p>
+      <p>New Constitution Policy</p>
+    </div>
+    <div class="actionButton" id="uploadConstitutionPolicy">
+      <p>Upload Constitution Policy</p>
     </div>
     <div class="actionButton" id="editConstitutionPolicy">
       <p>Edit Constitution Policy</p>
@@ -151,7 +154,10 @@
   </div>
   <div class="actionCollapsible" id="platformPolicies">
     <div class="actionButton" id="addPlatformPolicy">
-      <p>Add Platform Policy</p>
+      <p>New Platform Policy</p>
+    </div>
+    <div class="actionButton" id="uploadPlatformPolicy">
+      <p>Upload Platform Policy</p>
     </div>
     <div class="actionButton" id="editPlatformPolicy">
       <p>Edit Platform Policy</p>
@@ -170,7 +176,7 @@
   </div>
   <div class="actionCollapsible" id="roles">
     <div class="actionButton" id="addRole">
-      <p>Add Role</p>
+      <p>New Role</p>
     </div>
     <div class="actionButton" id="editRole">
       <p>Edit Role</p>
@@ -192,7 +198,7 @@
   </div>
   <div class="actionCollapsible" id="documents">
     <div class="actionButton" id="addDocument">
-      <p>Add Document</p>
+      <p>New Document</p>
     </div>
     <div class="actionButton" id="editDocument">
       <p>Edit Document</p>
@@ -216,10 +222,12 @@
   document.getElementById("documentsHeader").addEventListener("click", toggleActionMenu);
 
   document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('Constitution', 'Add'); });
+  document.getElementById("uploadConstitutionPolicy").addEventListener("click", function(){ uploadPolicy('Constitution'); });
   document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', 'Change'); });
   document.getElementById("removeConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Remove"); });
   document.getElementById("recoverConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Recover"); });
   document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('Platform', 'Add'); });
+  document.getElementById("uploadPlatformPolicy").addEventListener("click", function(){ uploadPolicy('Platform'); });
   document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', 'Change'); });
   document.getElementById("removePlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Remove"); });
   document.getElementById("recoverPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Recover"); });
@@ -242,32 +250,66 @@
     }
   }
 
-  function navEditor(type, operation) {
-    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+  function navEditor(type, operation, use_saved_policy=false) {
+    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&use_saved_policy=${use_saved_policy}`;
   }
 
   function navPolicySelect(type, operation) {
-    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`
+    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`;
   }
 
   function navRoleAdd() {
-    window.location.href = `{{server_url}}/main/roleeditor?operation=Add`
+    window.location.href = `{{server_url}}/main/roleeditor?operation=Add`;
   }
 
   function navRoleSelect(operation) {
-    window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`
+    window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`;
   }
 
   function navRoleUsers(operation) {
-    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`
+    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`;
   }
 
   function navDocumentAdd() {
-    window.location.href = `{{server_url}}/main/documenteditor?operation=Add`
+    window.location.href = `{{server_url}}/main/documenteditor?operation=Add`;
   }
 
   function navDocumentSelect(operation) {
-    window.location.href = `{{server_url}}/main/selectdocument?operation=${operation}`
+    window.location.href = `{{server_url}}/main/selectdocument?operation=${operation}`;
+  }
+
+  function uploadPolicy(type) {
+    // User selects which policy they would like to upload. Policy is read into a json object.
+    let input_elem = document.createElement('input');
+    input_elem.type = 'file';
+    input_elem.onchange = e => {
+      let reader = new FileReader();
+      reader.onload = e => {
+        let policy_data = JSON.parse(e.target.result);
+
+        fetch(`../../../main/editor_upload/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            'name': policy_data.name,
+            'description': policy_data.description,
+            'is_bundled': policy_data.is_bundled,
+            'filter': policy_data.filter,
+            'initialize': policy_data.initialize,
+            'check': policy_data.check,
+            'notify': policy_data.notify,
+            'success': policy_data.success,
+            'fail': policy_data.fail
+          })
+        }).then(response => {
+          navEditor(type, 'Add', true);
+        });
+      }
+      reader.readAsText(e.target.files[0]);
+    }
+    input_elem.click();
   }
 </script>
 {% endblock %}

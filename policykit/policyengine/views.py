@@ -148,7 +148,16 @@ def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
     type = request.GET.get('type')
+    operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
+    use_saved_policy = request.GET.get('use_saved_policy')
+
+    data = {
+        'server_url': SERVER_URL,
+        'user': get_user(request),
+        'type': type,
+        'operation': operation
+    }
 
     if policy_id:
         policy = None
@@ -159,24 +168,43 @@ def editor(request):
         else:
             return HttpResponseBadRequest()
 
-        return render(request, 'policyadmin/dashboard/editor.html', {
-            'server_url': SERVER_URL,
-            'user': get_user(request),
-            'policy': policy_id,
-            'name': policy.name,
-            'description': policy.description,
-            'filter': policy.filter,
-            'initialize': policy.initialize,
-            'check': policy.check,
-            'notify': policy.notify,
-            'success': policy.success,
-            'fail': policy.fail
-        })
+        data['policy'] = policy_id
+        data['name'] = policy.name
+        data['description'] = policy.description
+        data['filter'] = policy.filter
+        data['initialize'] = policy.initialize
+        data['check'] = policy.check
+        data['notify'] = policy.notify
+        data['success'] = policy.success
+        data['fail'] = policy.fail
 
-    return render(request, 'policyadmin/dashboard/editor.html', {
-        'server_url': SERVER_URL,
-        'user': get_user(request)
-    })
+    elif use_saved_policy.lower() == 'true': # Boolean auto-converted to string so need to check in this way
+        data['name'] = request.session['policy_name']
+        data['description'] = request.session['policy_description']
+        data['filter'] = request.session['policy_filter']
+        data['initialize'] = request.session['policy_initialize']
+        data['check'] = request.session['policy_check']
+        data['notify'] = request.session['policy_notify']
+        data['success'] = request.session['policy_success']
+        data['fail'] = request.session['policy_fail']
+
+    return render(request, 'policyadmin/dashboard/editor.html', data)
+
+@csrf_exempt
+def editor_upload(request):
+    data = json.loads(request.body.decode('utf-8'))
+
+    request.session['policy_name'] = data['name']
+    request.session['policy_description'] = data['description']
+    request.session['policy_is_bundled'] = data['is_bundled']
+    request.session['policy_filter'] = data['filter']
+    request.session['policy_initialize'] = data['initialize']
+    request.session['policy_check'] = data['check']
+    request.session['policy_notify'] = data['notify']
+    request.session['policy_success'] = data['success']
+    request.session['policy_fail'] = data['fail']
+
+    return HttpResponse()
 
 @login_required(login_url='/login')
 def selectrole(request):
