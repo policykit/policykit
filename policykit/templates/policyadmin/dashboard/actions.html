@@ -3,13 +3,6 @@
 
 {% block styles %}
 <style>
-  .body {
-    width: 80%;
-    min-height: 90vh;
-    margin: 0 10vw;
-    padding-top: 3vh;
-  }
-
   .actionMenu {
     display: flex;
     flex-direction: row;
@@ -17,9 +10,8 @@
     width: 40%;
     height: 2.8em;
     cursor: pointer;
-    font-family: "Montserrat", sans-serif;
+    font-family: "Nunito", sans-serif;
     font-size: 1.2em;
-    font-weight: bold;
     margin-top: 5vh;
     background-color: #4451b2;
     color: #ffffff;
@@ -65,144 +57,142 @@
 {% endblock %}
 
 {% block content %}
-<div class="body">
-  {% if user.community.platform == "slack" %}
-    <div class="actionMenu" id="slackActionsHeader">
-      <h3 class="actionMenuHeading">SLACK ACTIONS</h3>
-      <span class="material-icons actionMenuIcon">add_circle_outline</span>
-    </div>
-    <div class="actionCollapsible" id="slackActions">
-      <div class="actionButton">
-        <p>Join Conversation</p>
-      </div>
-      <div class="actionButton">
-        <p>Kick from Conversation</p>
-      </div>
-      <div class="actionButton">
-        <p>Pin Message</p>
-      </div>
-      <div class="actionButton">
-        <p>Post Message</p>
-      </div>
-      <div class="actionButton">
-        <p>Rename Conversation</p>
-      </div>
-      <div class="actionButton">
-        <p>Schedule Message</p>
-      </div>
-    </div>
-  {% elif user.community.platform == "reddit" %}
-    <div class="actionMenu" id="redditActionsHeader">
-      <h3 class="actionMenuHeading">REDDIT ACTIONS</h3>
-      <span class="material-icons actionMenuIcon">add_circle_outline</span>
-    </div>
-    <div class="actionCollapsible" id="redditActions">
-    </div>
-  {% elif user.community.platform == "discord" %}
-    <div class="actionMenu" id="discordActionsHeader">
-      <h3 class="actionMenuHeading">DISCORD ACTIONS</h3>
-      <span class="material-icons actionMenuIcon">add_circle_outline</span>
-    </div>
-    <div class="actionCollapsible" id="discordActions">
-      <div class="actionButton">
-        <p>Post Message</p>
-      </div>
-      <div class="actionButton">
-        <p>Rename Channel</p>
-      </div>
-    </div>
-  {% elif user.community.platform == "discourse" %}
-    <div class="actionMenu" id="discourseActionsHeader">
-      <h3 class="actionMenuHeading">DISCOURSE ACTIONS</h3>
-      <span class="material-icons actionMenuIcon">add_circle_outline</span>
-    </div>
-    <div class="actionCollapsible" id="discourseActions">
-      <div class="actionButton">
-        <p>Create Topic</p>
-      </div>
-      <div class="actionButton">
-        <p>Create Post</p>
-      </div>
-    </div>
-  {% endif %}
-
-  <div class="actionMenu" id="constitutionPoliciesHeader">
-    <h3 class="actionMenuHeading">CONSTITUTION POLICIES</h3>
+{% if user.community.platform == "slack" %}
+  <div class="actionMenu" id="slackActionsHeader">
+    <h3 class="actionMenuHeading">SLACK ACTIONS</h3>
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
-  <div class="actionCollapsible" id="constitutionPolicies">
-    <div class="actionButton" id="addConstitutionPolicy">
-      <p>Add Constitution Policy</p>
+  <div class="actionCollapsible" id="slackActions">
+    <div class="actionButton">
+      <p>Join Conversation</p>
     </div>
-    <div class="actionButton" id="editConstitutionPolicy">
-      <p>Edit Constitution Policy</p>
+    <div class="actionButton">
+      <p>Kick from Conversation</p>
     </div>
-    <div class="actionButton" id="removeConstitutionPolicy">
-      <p>Remove Constitution Policy</p>
+    <div class="actionButton">
+      <p>Pin Message</p>
     </div>
-    <div class="actionButton" id="recoverConstitutionPolicy">
-      <p>Recover Constitution Policy</p>
+    <div class="actionButton">
+      <p>Post Message</p>
+    </div>
+    <div class="actionButton">
+      <p>Rename Conversation</p>
+    </div>
+    <div class="actionButton">
+      <p>Schedule Message</p>
     </div>
   </div>
-
-  <div class="actionMenu" id="platformPoliciesHeader">
-    <h3 class="actionMenuHeading">PLATFORM POLICIES</h3>
+{% elif user.community.platform == "reddit" %}
+  <div class="actionMenu" id="redditActionsHeader">
+    <h3 class="actionMenuHeading">REDDIT ACTIONS</h3>
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
-  <div class="actionCollapsible" id="platformPolicies">
-    <div class="actionButton" id="addPlatformPolicy">
-      <p>Add Platform Policy</p>
-    </div>
-    <div class="actionButton" id="editPlatformPolicy">
-      <p>Edit Platform Policy</p>
-    </div>
-    <div class="actionButton" id="removePlatformPolicy">
-      <p>Remove Platform Policy</p>
-    </div>
-    <div class="actionButton" id="recoverPlatformPolicy">
-      <p>Recover Platform Policy</p>
-    </div>
+  <div class="actionCollapsible" id="redditActions">
   </div>
-
-  <div class="actionMenu" id="rolesHeader">
-    <h3 class="actionMenuHeading">ROLES / PERMISSIONS</h3>
+{% elif user.community.platform == "discord" %}
+  <div class="actionMenu" id="discordActionsHeader">
+    <h3 class="actionMenuHeading">DISCORD ACTIONS</h3>
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
-  <div class="actionCollapsible" id="roles">
-    <div class="actionButton" id="addRole">
-      <p>Add Role</p>
+  <div class="actionCollapsible" id="discordActions">
+    <div class="actionButton">
+      <p>Post Message</p>
     </div>
-    <div class="actionButton" id="editRole">
-      <p>Edit Role</p>
-    </div>
-    <div class="actionButton" id="removeRole">
-      <p>Remove Role</p>
-    </div>
-    <div class="actionButton" id="addUserToRole">
-      <p>Add User to Role</p>
-    </div>
-    <div class="actionButton" id="removeUserFromRole">
-      <p>Remove User from Role</p>
+    <div class="actionButton">
+      <p>Rename Channel</p>
     </div>
   </div>
-
-  <div class="actionMenu" id="documentsHeader">
-    <h3 class="actionMenuHeading">COMMUNITY DOCUMENTS</h3>
+{% elif user.community.platform == "discourse" %}
+  <div class="actionMenu" id="discourseActionsHeader">
+    <h3 class="actionMenuHeading">DISCOURSE ACTIONS</h3>
     <span class="material-icons actionMenuIcon">add_circle_outline</span>
   </div>
-  <div class="actionCollapsible" id="documents">
-    <div class="actionButton" id="addDocument">
-      <p>Add Document</p>
+  <div class="actionCollapsible" id="discourseActions">
+    <div class="actionButton">
+      <p>Create Topic</p>
     </div>
-    <div class="actionButton" id="editDocument">
-      <p>Edit Document</p>
+    <div class="actionButton">
+      <p>Create Post</p>
     </div>
-    <div class="actionButton" id="removeDocument">
-      <p>Remove Document</p>
-    </div>
-    <div class="actionButton" id="recoverDocument">
-      <p>Recover Document</p>
-    </div>
+  </div>
+{% endif %}
+
+<div class="actionMenu" id="constitutionPoliciesHeader">
+  <h3 class="actionMenuHeading">CONSTITUTION POLICIES</h3>
+  <span class="material-icons actionMenuIcon">add_circle_outline</span>
+</div>
+<div class="actionCollapsible" id="constitutionPolicies">
+  <div class="actionButton" id="addConstitutionPolicy">
+    <p>Add Constitution Policy</p>
+  </div>
+  <div class="actionButton" id="editConstitutionPolicy">
+    <p>Edit Constitution Policy</p>
+  </div>
+  <div class="actionButton" id="removeConstitutionPolicy">
+    <p>Remove Constitution Policy</p>
+  </div>
+  <div class="actionButton" id="recoverConstitutionPolicy">
+    <p>Recover Constitution Policy</p>
+  </div>
+</div>
+
+<div class="actionMenu" id="platformPoliciesHeader">
+  <h3 class="actionMenuHeading">PLATFORM POLICIES</h3>
+  <span class="material-icons actionMenuIcon">add_circle_outline</span>
+</div>
+<div class="actionCollapsible" id="platformPolicies">
+  <div class="actionButton" id="addPlatformPolicy">
+    <p>Add Platform Policy</p>
+  </div>
+  <div class="actionButton" id="editPlatformPolicy">
+    <p>Edit Platform Policy</p>
+  </div>
+  <div class="actionButton" id="removePlatformPolicy">
+    <p>Remove Platform Policy</p>
+  </div>
+  <div class="actionButton" id="recoverPlatformPolicy">
+    <p>Recover Platform Policy</p>
+  </div>
+</div>
+
+<div class="actionMenu" id="rolesHeader">
+  <h3 class="actionMenuHeading">ROLES / PERMISSIONS</h3>
+  <span class="material-icons actionMenuIcon">add_circle_outline</span>
+</div>
+<div class="actionCollapsible" id="roles">
+  <div class="actionButton" id="addRole">
+    <p>Add Role</p>
+  </div>
+  <div class="actionButton" id="editRole">
+    <p>Edit Role</p>
+  </div>
+  <div class="actionButton" id="removeRole">
+    <p>Remove Role</p>
+  </div>
+  <div class="actionButton" id="addUserToRole">
+    <p>Add User to Role</p>
+  </div>
+  <div class="actionButton" id="removeUserFromRole">
+    <p>Remove User from Role</p>
+  </div>
+</div>
+
+<div class="actionMenu" id="documentsHeader">
+  <h3 class="actionMenuHeading">COMMUNITY DOCUMENTS</h3>
+  <span class="material-icons actionMenuIcon">add_circle_outline</span>
+</div>
+<div class="actionCollapsible" id="documents">
+  <div class="actionButton" id="addDocument">
+    <p>Add Document</p>
+  </div>
+  <div class="actionButton" id="editDocument">
+    <p>Edit Document</p>
+  </div>
+  <div class="actionButton" id="removeDocument">
+    <p>Remove Document</p>
+  </div>
+  <div class="actionButton" id="recoverDocument">
+    <p>Recover Document</p>
   </div>
 </div>
 {% endblock %}

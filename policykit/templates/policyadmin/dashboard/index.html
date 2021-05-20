@@ -9,10 +9,6 @@
   .body {
     display: flex;
     flex-direction: row;
-    width: 80vw;
-    min-height: 90vh;
-    margin: 0 10vw;
-    padding-top: 3vh;
   }
 
   .leftCol {
@@ -20,7 +16,6 @@
     flex-direction: column;
     align-items: center;
     width: 60%;
-    height: 90vh;
   }
 
   .rightCol {
@@ -28,7 +23,6 @@
     flex-direction: column;
     align-items: center;
     width: 40%;
-    height: 80vh;
   }
 
   .searchBar {
@@ -40,28 +34,22 @@
     border-width: 0px;
     padding: 10px 30px;
     background-color: #ffffff;
-    color: #ebecf1;
     outline: none;
-    font-family: 'Karla', sans-serif;
-    font-size: 1.2em;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
   }
 
   .proposeButton {
     width: 80%;
     padding: 2% 20%;
+    margin: 1vh 0 3vh auto;
     border-width: 0px;
-    border-radius: 30px;
+    border-radius: 20px;
     background-color: #4451b2;
     color: #ffffff;
-    line-height: 1.7em;
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
-    font-size: 1.7em;
-    box-shadow: 0 0 2px #9fa2b5;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
     outline: none;
-    margin-top: 1vh;
-    margin-bottom: 3vh;
-    margin-left: auto;
   }
 
   .proposeButton:hover {
@@ -75,15 +63,12 @@
     margin-bottom: 1vh;
     margin-left: auto;
     background-color: #ffffff;
-    border-radius: 30px;
-    box-shadow: 0 0 2px #9fa2b5;
+    border-radius: 20px;
   }
 
   .sidebarPanelTitle {
-    color: #373456;
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
-    font-size: 1.8em;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
     padding-top: 2.6vh;
     padding-left: 2vw;
   }
@@ -109,18 +94,15 @@
   .actionPanel {
     width: 90%;
     margin-right: auto;
-    min-height: 45vh;
+    min-height: 60vh;
     margin-top: 3vh;
     background-color: #ffffff;
-    border-radius: 30px;
-    box-shadow: 0 0 2px #9fa2b5;
+    border-radius: 20px;
   }
 
   .actionPanelTitle {
-    color: #373456;
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
-    font-size: 2.3em;
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
     padding-top: 1.6vh;
     padding-left: 2vw;
   }
@@ -128,7 +110,7 @@
   .actionPanelContent {
     width: 92%;
     margin-left: 4%;
-    height: 35vh;
+    height: 50vh;
     overflow: auto;
   }
 
@@ -192,7 +174,7 @@
   }
 
   .control-label {
-    font-family: 'Karla', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-weight: bold;
     font-size: 1.2em;
     color: #373456;
@@ -223,7 +205,7 @@
 {% block content %}
 <div class="body">
   <div class="leftCol">
-    <input type="text" class="searchBar" placeholder="Search">
+    <!--<input type="text" class="searchBar" placeholder="Search">-->
 
     <!--<div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>

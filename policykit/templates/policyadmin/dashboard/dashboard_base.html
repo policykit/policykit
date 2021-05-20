@@ -12,7 +12,9 @@
   <link rel="stylesheet" href="{% static "bootstrap/css/semantic.min.css" %}">
   <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
 
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&family=Itim&family=Karla:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -20,31 +22,28 @@
     body {
       margin: 0px;
       padding: 0px;
-      background-color: #ebecf1;
+      background-color: #f8f9fa;
     }
 
     .header {
-      position: sticky;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
       z-index: 999;
       top: 0;
+      width: 100%;
       height: 7vh;
-      padding: 0 10vw;
+      padding: 0 15vw;
+      background-color: #f8f9fa;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .brandContainer {
       display: flex;
       flex-direction: row;
       align-items: center;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e5e7e9;
-    }
-
-    .brand {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-      padding: 1vh 0;
-    }
-
-    .brand:hover {
       cursor: pointer;
     }
 
@@ -53,59 +52,38 @@
     }
 
     .brandName {
-      font-family: 'Baloo Da 2', sans-serif;
-      font-weight: bold;
-      font-size: 2.3em;
-      color: #373456;
-      margin-left: 1vw;
-      line-height: 2.3em;
-      white-space: nowrap;
+      font-family: 'Nunito', sans-serif;
+      font-size: 2em;
+      margin-left: 0.5em;
+    }
+
+    .communityContainer {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
     }
 
     .communityName {
-      font-family: 'Baloo Da 2', sans-serif;
-      font-weight: bold;
+      font-family: 'Nunito', sans-serif;
       font-size: 1.6em;
-      color: #373456;
-      margin-left: 0.5vw;
-      line-height: 1.4em;
-      white-space: nowrap;
     }
 
-    .profile {
-      margin-left: auto;
-      width: 13vw;
-      height: 100%;
-      border: 1px solid #ffffff;
-    }
-
-    .profileButton {
-      position: relative;
+    .profileContainer {
       display: flex;
       flex-direction: row;
-      justify-content: flex-end;
       align-items: center;
-      width: 100%;
-      height: 100%;
-    }
-
-    .profile:hover {
       cursor: pointer;
     }
 
-    .profilePicture {
-      width: 40px;
-      border-radius: 50%;
-      margin-left: 1vw;
+    .profileName {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.6em;
     }
 
-    .profileName {
-      color: #373456;
-      padding: 0% 1%;
-      font-family: 'Karla', sans-serif;
-      font-weight: normal;
-      font-size: 1.6em;
-      white-space: nowrap;
+    .profilePicture {
+      width: 35px;
+      border-radius: 50%;
+      margin-left: 1vw;
     }
 
     .profileDropdown {
@@ -124,9 +102,8 @@
     }
 
     .profileDropdownElement h4 {
-      font-weight: bold;
+      font-family: 'Nunito', sans-serif;
       font-size: 1.2em;
-      font-family: 'Karla', sans-serif;
     }
 
     .profileDropdownElement:hover {
@@ -139,6 +116,12 @@
       text-decoration: none;
     }
 
+    .content {
+      margin: 7vh 15vw 2vh 15vw;
+      min-height: 90vh;
+      padding-top: 3vh;
+    }
+
   </style>
 
   {% block styles %}
@@ -147,22 +130,23 @@
 
 <body>
   <div class="header">
-    <div class="brand" id="brand">
+    <div class="brandContainer" id="brand">
       <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
       <h2 class="brandName">PolicyKit</h2>
-      <h3 class="communityName">| {{user.community.community_name}}</h3>
     </div>
 
-    <div class="profile" id="profile">
-      <div class="profileButton">
-        <h3 class="profileName">Hi, {{user.readable_name}}</h3>
-        {% if user.avatar %}
-          <img class="profilePicture" src="{{user.avatar}}">
-        {% else %}
-          <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
-        {% endif %}
-      </div>
-      <div class="profileDropdown">
+    <div class="communityContainer">
+      <h3 class="communityName">{{user.community.community_name}}</h3>
+    </div>
+
+    <div class="profileContainer" id="profile">
+      <h3 class="profileName">Hi, {{user.readable_name}}</h3>
+      <!--{% if user.avatar %}
+        <img class="profilePicture" src="{{user.avatar}}">
+      {% else %}
+        <img class="profilePicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+      {% endif %}-->
+      <!--<div class="profileDropdown">
         <div class="profileDropdownElement">
           <h4><a href="{% url 'settings' %}">Settings</a></h4>
         </div>
@@ -175,12 +159,14 @@
         <div class="profileDropdownElement">
           <h4><a href="{% url 'logout' %}">Log Out</a></h4>
         </div>
-      </div>
+      </div>-->
     </div>
   </div>
 
-  {% block content %}
-  {% endblock %}
+  <div class="content">
+    {% block content %}
+    {% endblock %}
+  </div>
 
   <script>
     document.getElementById("brand").addEventListener("click", navHome);
