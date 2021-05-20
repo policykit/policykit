@@ -79,15 +79,16 @@
     overflow: auto;
   }
 
-  .sidebarPanelContent thead th {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa;
-  }
-
   .sidebarPicture {
     height: 1.5em;
     border-radius: 50%;
+  }
+
+  .sidebarItem {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1em;
+    color: #333333;
+    cursor: pointer;
   }
 
   .actionPanel {
@@ -110,12 +111,6 @@
     margin-left: 4%;
     height: 50vh;
     overflow: auto;
-  }
-
-  .actionPanelContent thead th {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa;
   }
 
   .modal {
@@ -173,7 +168,6 @@
 
   .control-label {
     font-family: 'Nunito', sans-serif;
-    font-weight: bold;
     font-size: 1.2em;
     color: #373456;
   }
@@ -212,15 +206,9 @@
       <h3 class="actionPanelTitle">All actions</h3>
       <div class="actionPanelContent">
         <table class="table table-hover">
-          <thead>
-            <tr>
-              <th scope="col">Action</th>
-              <th scope="col">Date</th>
-            </tr>
-          </thead>
           <tbody>
             {% for action in action_log %}
-              <tr>
+              <tr class="sidebarItem">
                 <td>{{action.actor}}</td>
                 <td>{{action.time_elapsed}} ago</td>
               </tr>
@@ -238,16 +226,9 @@
       <h4 class="sidebarPanelTitle">Users</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col">Name</th>
-                <th scope="col">Roles</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in users.items %}
-                <tr>
+                <tr class="sidebarItem">
                   <td>
                     {% if value.avatar %}
                       <img class="sidebarPicture" src="{{value.avatar}}">
@@ -276,15 +257,9 @@
       <h4 class="sidebarPanelTitle">Roles</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Users</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in roles.items %}
-                <tr>
+                <tr class="sidebarItem">
                   <td>{{key}}</td>
                   <td>
                     {% if value.users|length == 1 %}
@@ -306,16 +281,9 @@
       <h4 class="sidebarPanelTitle">Community documents</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in docs.items %}
-                <tr id="document_{{key}}">
-                  <td>{{key}}</td>
+                <tr id="document_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
                 </tr>
               {% endfor %}
@@ -328,16 +296,9 @@
       <h4 class="sidebarPanelTitle">Platform policies</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in platform_policies.items %}
-                <tr id="platform_{{key}}">
-                  <td>{{key}}</td>
+                <tr id="platform_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
                 </tr>
               {% endfor %}
@@ -350,16 +311,9 @@
       <h4 class="sidebarPanelTitle">Constitution policies</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in constitution_policies.items %}
-                <tr id="constitution_{{key}}">
-                  <td>{{key}}</td>
+                <tr id="constitution_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
                 </tr>
               {% endfor %}
