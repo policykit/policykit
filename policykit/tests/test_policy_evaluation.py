@@ -1,14 +1,11 @@
-import json
 from unittest import skip
 
-import requests
 from django.contrib.auth.models import Permission
 from django.test import Client, TestCase
 from integrations.metagov.library import update_metagov_community, metagov_slug
-from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackStarterKit, SlackUser
-from policyengine.models import CommunityRole, PlatformAction, PlatformPolicy, Proposal
-from policyengine.views import check_policy, filter_policy
+from integrations.metagov.models import MetagovProcess, MetagovPlatformAction
+from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
+from policyengine.models import CommunityRole, PlatformPolicy, ConstitutionPolicy, PolicykitAddCommunityDoc
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -24,8 +21,8 @@ class EvaluationTests(TestCase):
     def setUp(self):
         # Set up a Slack community and a user
         user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
-        p1 = Permission.objects.get(name="Can add slack pin message")
-        user_group.permissions.add(p1)
+        can_add = Permission.objects.get(name="Can add slack pin message")
+        user_group.permissions.add(can_add)
         self.community = SlackCommunity.objects.create(
             community_name="my test community",
             team_id="TMQ3PKX",
@@ -45,6 +42,70 @@ class EvaluationTests(TestCase):
                 ]
             ),
         )
+
+    def test_can_execute(self):
+        """Test that users with can_execute permissions can execute any action and mark it as 'passed'"""
+        all_actions_fail_policy = {
+            **all_actions_pass_policy,
+            "check": "return FAILED",
+        }
+        policy = PlatformPolicy(
+            **all_actions_fail_policy,
+            community=self.community,
+            description="all actions fail",
+            name="all actions fail",
+        )
+        policy.save()
+
+        # create a test user with can_execute permissions
+        can_execute = Permission.objects.get(name="Can execute slack pin message")
+        can_add = Permission.objects.get(name="Can add slack pin message")
+        user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.community)
+        user_with_can_execute.user_permissions.add(can_add)
+        user_with_can_execute.user_permissions.add(can_execute)
+
+        # action initiated by user with "can_execute" should pass
+        action = SlackPinMessage(initiator=user_with_can_execute, community=self.community)
+        action.execute = lambda: None  # don't do anything on execute
+        action.save()
+        self.assertEqual(action.proposal.status, "passed")
+
+        # action initiated by user without "can_execute" should fail
+        action = SlackPinMessage(initiator=self.user, community=self.community)
+        action.execute = lambda: None  # don't do anything on execute
+        action.save()
+        self.assertEqual(action.proposal.status, "failed")
+
+    def test_can_execute_constitution(self):
+        """Test that users with can_execute permissions can execute any constitution action and mark it as 'passed'"""
+        all_actions_fail_policy = {
+            **all_actions_pass_policy,
+            "check": "return FAILED",
+        }
+        policy = ConstitutionPolicy(
+            **all_actions_fail_policy,
+            community=self.community,
+            description="all actions fail",
+            name="all actions fail",
+        )
+        policy.save()
+
+        # create a test user with can_execute permissions for PolicykitAddCommunityDoc
+        can_add = Permission.objects.get(name="Can add policykit add community doc")
+        can_execute = Permission.objects.get(name="Can execute policykit add community doc")
+        user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.community)
+        user_with_can_execute.user_permissions.add(can_add)
+        user_with_can_execute.user_permissions.add(can_execute)
+
+        # action initiated by user with "can_execute" should pass
+        action = PolicykitAddCommunityDoc(name="my doc", initiator=user_with_can_execute, community=self.community)
+        action.save()
+        self.assertEqual(action.proposal.status, "passed")
+
+        # action initiated by user without "can_execute" should fail
+        action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.community)
+        action.save()
+        self.assertEqual(action.proposal.status, "failed")
 
     def test_close_process(self):
         # 1) Create Policy and PlatformAction
@@ -161,6 +222,7 @@ return FAILED"""
 
         # Check that evaluation debug log was generated
         from django_db_logger.models import EvaluationLog
+
         self.assertEqual(EvaluationLog.objects.filter(community=policy.community, msg__contains="help!").count(), 1)
 
     def test_policy_order(self):
