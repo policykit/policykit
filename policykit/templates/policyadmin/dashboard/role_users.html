@@ -8,40 +8,68 @@
     flex-direction: column;
   }
 
+  .headerText {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
+  }
+
   .form-row {
-    margin-top: 3vh;
-    margin-bottom: 3vh;
+    margin-top: 1em;
+    margin-bottom: 1em;
   }
 
   .control-label {
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    color: #373456;
   }
 
   .dropdown {
     width: 20%;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
   }
 
-  .submitButton {
-    width: 10%;
+  .btn {
+    padding: 0.5em 2vw;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    border-radius: 30px;
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn:hover {
+    background-color: #3b4699;
+    color: #ffffff;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
-  {% if operation == "Add" %}
-    <h3>Add a User to a Role</h3>
-  {% elif operation == "Remove" %}
-    <h3>Remove a User from a Role</h3>
-  {% endif %}
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      {% if operation == "Add" %}
+        <h3 class="headerText">Grant a role to a user</h3>
+      {% elif operation == "Remove" %}
+        <h3 class="headerText">Revoke a role from a user</h3>
+      {% endif %}
+    </div>
+  </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="user">User:</label>
+    <label class="control-label col-sm-1" for="role">Role</label>
+    <div class="col-sm-11">
+      <select class="dropdown" name="role" id="role">
+        {% for role in roles %}
+          <option value="{{role.name}}">{{role.role_name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="user">User</label>
     <div class="col-sm-11">
       <select class="dropdown" name="user" id="user">
         {% for user in users %}
@@ -52,17 +80,15 @@
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="role">Role:</label>
+    <div class="col-sm-1"></div>
     <div class="col-sm-11">
-      <select class="dropdown" name="role" id="role">
-        {% for role in roles %}
-          <option value="{{role.name}}">{{role.role_name}}</option>
-        {% endfor %}
-      </select>
+      {% if operation == "Add" %}
+        <button type="button" class="btn" id="submit">Grant role</button>
+      {% elif operation == "Remove" %}
+        <button type="button" class="btn" id="submit">Revoke role</button>
+      {% endif %}
     </div>
   </div>
-
-  <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
 </div>
 {% endblock %}
 

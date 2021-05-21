@@ -8,15 +8,19 @@
     flex-direction: column;
   }
 
+  .headerText {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
+  }
+
   .form-row {
-    margin-top: 3vh;
-    margin-bottom: 3vh;
+    margin-top: 1em;
+    margin-bottom: 1em;
   }
 
   .control-label {
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    color: #373456;
   }
 
   .name {
@@ -25,24 +29,29 @@
 
   .description {
     resize: none;
-    width: 40%;
+    width: 60%;
   }
 
-  .permissionTable {
+  .permissionsContainer {
     width: 40%;
-    max-height: 40vh;
-    overflow: auto;
-    font-size: 1.2em;
+    min-height: 40vh;
+    margin-left: 1%;
+    border-radius: 20px;
     background-color: #ffffff;
   }
 
-  .permissionTable thead th {
-    position: sticky;
-    top: 0;
-    background-color: #ebecf1;
+  .permissionsTable {
+    width: 92%;
+    margin-top: 2vh;
+    margin-left: 4%;
+    height: 36vh;
+    overflow: auto;
   }
 
-  .permissionTable:hover {
+  .permissionItem {
+    font-family: "Nunito", sans-serif;
+    font-size: 1em;
+    color: #333333;
     cursor: pointer;
   }
 
@@ -50,54 +59,75 @@
     background-color: #b1b5cc;
   }
 
-  .submitButton {
-    width: 10%;
+  .btn {
+    padding: 0.5em 2vw;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    border-radius: 30px;
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn:hover {
+    background-color: #3b4699;
+    color: #ffffff;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
-  {% if operation == "Add" %}
-    <h3>Add a new Role</h3>
-  {% elif operation == "Change" %}
-    <h3>Change an existing Role</h3>
-  {% endif %}
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      {% if operation == "Add" %}
+        <h3 class="headerText">Propose a new role</h3>
+      {% elif operation == "Change" %}
+        <h3 class="headerText">Propose changes to this role</h3>
+      {% endif %}
+    </div>
+  </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="name">Name:</label>
+    <label class="control-label col-sm-1" for="name">Name</label>
     <div class="col-sm-11">
       <input type="text" class="form-control name" id="name" required>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="description">Description:</label>
+    <label class="control-label col-sm-1" for="description">Description</label>
     <div class="col-sm-11">
-      <textarea class="form-control description" id="description" required rows="6"></textarea>
+      <textarea class="form-control description" id="description" rows="6"></textarea>
     </div>
   </div>
 
-  <div class="form-row permissionTable">
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col">Select which Permissions the Role should have</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for permission in permissions %}
-          <tr id="{{permission}}">
-            <td>{{permission}}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="permissions">Permissions</label>
+    <div class="permissionsContainer">
+      <div class="permissionsTable">
+        <table class="table table-hover" id="permissions">
+          <tbody>
+            {% for permission in permissions %}
+              <tr class="permissionItem" id="{{permission}}">
+                <td>{{permission}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      {% if operation == "Add" %}
+        <button type="button" class="btn" id="submit">Propose role</button>
+      {% elif operation == "Change" %}
+        <button type="button" class="btn" id="submit">Propose changes</button>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}
 
