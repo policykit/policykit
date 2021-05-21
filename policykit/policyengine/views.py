@@ -148,6 +148,7 @@ def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
     type = request.GET.get('type')
+    operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
 
     if policy_id:
@@ -162,6 +163,8 @@ def editor(request):
         return render(request, 'policyadmin/dashboard/editor.html', {
             'server_url': SERVER_URL,
             'user': get_user(request),
+            'type': type,
+            'operation': operation,
             'policy': policy_id,
             'name': policy.name,
             'description': policy.description,
@@ -175,7 +178,9 @@ def editor(request):
 
     return render(request, 'policyadmin/dashboard/editor.html', {
         'server_url': SERVER_URL,
-        'user': get_user(request)
+        'user': get_user(request),
+        'type': type,
+        'operation': operation
     })
 
 @login_required(login_url='/login')

@@ -6,17 +6,27 @@
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.js" %}">
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/css-hint.js" %}">
-
 <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
 
 <style>
   .body {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
   }
 
-  .editor {
-    width: 100%;
+  .headerText {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
+  }
+
+  .form-row {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .control-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
   }
 
   .name {
@@ -25,11 +35,7 @@
 
   .description {
     resize: none;
-    width: 40%;
-  }
-
-  .bundled {
-    width: auto;
+    width: 60%;
   }
 
   .code {
@@ -43,25 +49,28 @@
     extraKeys: ("Ctrl-Space": "autocomplete");
   }
 
-  .form-row {
-    margin-bottom: 20px;
-  }
-
-  .control-label {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1em;
-  }
-
   .btn {
+    padding: 0.5em 2vw;
+    margin-right: 0.4vw;
+    border: 1px solid #4451b2;
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
     background-color: #ffffff;
     color: #4451b2;
-    border: 1px solid #4451b2;
+  }
+
+  .btn:hover {
+    background-color: #4451b2;
+    color: #ffffff;
   }
 
   .btn-propose {
     background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn-propose:hover {
+    background-color: #3b4699;
     color: #ffffff;
   }
 
@@ -92,72 +101,85 @@
 
 {% block content %}
 <div class="body">
-  <form class="form-horizontal editor">
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="name">Name:</label>
-      <div class="col-sm-11">
-        <input type="text" class="form-control name" id="name" required>
-      </div>
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      {% if operation == "Add" %}
+        <h3 class="headerText">Propose a new {{type|lower}} policy</h3>
+      {% elif operation == "Change" %}
+        <h3 class="headerText">Propose edits to this {{type|lower}} policy</h3>
+      {% endif %}
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="description">Description:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control description" id="description" required rows="6"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="name">Name</label>
+    <div class="col-sm-11">
+      <input type="text" class="form-control name" id="name" required>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="filter">Filter:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control code" id="filter" required rows="3"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="description">Description</label>
+    <div class="col-sm-11">
+      <textarea class="form-control description" id="description" rows="6"></textarea>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="initialize">Initialize:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control code" id="initialize" required rows="3"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="filter">Filter</label>
+    <div class="col-sm-11">
+      <textarea class="form-control code" id="filter" required rows="3"></textarea>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="notify">Notify:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control code" id="notify" required rows="3"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="initialize">Initialize</label>
+    <div class="col-sm-11">
+      <textarea class="form-control code" id="initialize" required rows="3"></textarea>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="check">Check:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control code" id="check" required rows="3"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="check">Check</label>
+    <div class="col-sm-11">
+      <textarea class="form-control code" id="check" required rows="3"></textarea>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="pass">Pass:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control code" id="pass" required rows="3"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="notify">Notify</label>
+    <div class="col-sm-11">
+      <textarea class="form-control code" id="notify" required rows="3"></textarea>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label class="control-label col-sm-1" for="fail">Fail:</label>
-      <div class="col-sm-11">
-        <textarea class="form-control code" id="fail" required rows="3"></textarea>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="pass">Pass</label>
+    <div class="col-sm-11">
+      <textarea class="form-control code" id="pass" required rows="3"></textarea>
     </div>
+  </div>
 
-    <div class="form-row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-11">
-        <button type="button" class="btn btn-propose" id="propose">Propose Policy</button>
-        <button type="button" class="btn" id="addtobundle">Add to Policy Bundle</button>
-        <button type="button" class="btn" id="documentation">Open PolicyKit Documentation</button>
-      </div>
+  <div class="form-row">
+    <label class="control-label col-sm-1" for="fail">Fail</label>
+    <div class="col-sm-11">
+      <textarea class="form-control code" id="fail" required rows="3"></textarea>
     </div>
-  </form>
+  </div>
+
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      {% if operation == "Add" %}
+        <button type="button" class="btn btn-propose" id="propose">Propose policy</button>
+      {% elif operation == "Change" %}
+        <button type="button" class="btn btn-propose" id="propose">Propose edits</button>
+      {% endif %}
+      <button type="button" class="btn" id="addtobundle">Add to policy bundle</button>
+      <button type="button" class="btn" id="documentation">View documentation</button>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

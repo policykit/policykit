@@ -14,8 +14,8 @@
   }
 
   .form-row {
-    margin-top: 1em;
-    margin-bottom: 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 
   .control-label {
@@ -23,7 +23,7 @@
     font-size: 1.2em;
   }
 
-  .dropdown {
+  .dropdownContainer {
     width: 20%;
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
@@ -56,7 +56,7 @@
   <div class="form-row">
     <label class="control-label col-sm-1" for="document">Document</label>
     <div class="col-sm-11">
-      <select class="dropdown" name="document" id="document">
+      <select class="dropdownContainer" name="document" id="document">
         {% for document in documents %}
           <option value="{{document.id}}">{{document.name}}</option>
         {% endfor %}
