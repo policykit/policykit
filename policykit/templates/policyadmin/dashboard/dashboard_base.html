@@ -86,6 +86,15 @@
       text-decoration: none;
     }
 
+    .dropdownMenu {
+      border-radius: 10px;
+    }
+
+    .dropdownItem {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1em;
+    }
+
     .content {
       margin: 7vh 15vw 2vh 15vw;
       min-height: 63vh;
@@ -140,13 +149,13 @@
 
     <div class="profileContainer dropdown" id="profile">
       <a href="#" class="profileName dropdown-toggle" data-toggle="dropdown">Hi, {{user.readable_name}}</a>
-      <div class="dropdown-menu">
-        <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
-        <a href="{% url 'django_db_logger:logs' %}" class="dropdown-item">Logs</a>
+      <div class="dropdown-menu dropdownMenu">
+        <a href="{% url 'settings' %}" class="dropdown-item dropdownItem">Settings</a>
+        <a href="{% url 'django_db_logger:logs' %}" class="dropdown-item dropdownItem">Logs</a>
         <div class="dropdown-divider"></div>
-        <a href="https://policykit.readthedocs.io/" target="_blank" class="dropdown-item">Help</a>
+        <a href="https://policykit.readthedocs.io/" target="_blank" class="dropdown-item dropdownItem">Documentation</a>
         <div class="dropdown-divider"></div>
-        <a href="{% url 'logout' %}" class="dropdown-item">Log Out</a>
+        <a href="{% url 'logout' %}" class="dropdown-item dropdownItem">Log out</a>
       </div>
     </div>
   </div>
