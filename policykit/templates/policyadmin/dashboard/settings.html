@@ -3,11 +3,6 @@
 
 {% block styles %}
 <style>
-  .body {
-    min-height: 90vh;
-    margin: 0 10vw;
-    padding-top: 3vh;
-  }
   h2, h3 {
     padding-bottom: 1em;
   }
@@ -51,15 +46,12 @@
 {% endblock %}
 
 {% block content %}
-  <div class="body">
-    <h2>Settings</h2>
+<h2>Settings</h2>
 
-    <h3>Metagov Configuration</h3>
-    <div class="config-container">
-      {% include "metagov_config.html" %}
-    </div>
-
-  </div>
+<h3>Metagov Configuration</h3>
+<div class="config-container">
+  {% include "metagov_config.html" %}
+</div>
 {% endblock %}
 
 {% block scripts %}
