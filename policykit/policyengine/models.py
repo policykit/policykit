@@ -8,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.conf import settings
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.core.exceptions import ValidationError
-from policyengine.views import execute_policy
+from policyengine.views import govern_action
 from datetime import datetime, timezone
 import urllib
 import json
@@ -528,16 +528,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
-                    action = self
-                    #if they have execute permission, skip all policies
-                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                        action.execute()
-                    else:
-                        for policy in self.community.get_constitution_policies():
-                            # Execute the most recently updated policy that passes filter()
-                            was_executed = execute_policy(policy, action, is_first_evaluation=True)
-                            if was_executed:
-                                break
+                    govern_action(self, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
         else:
@@ -563,6 +554,7 @@ class ConstitutionActionBundle(BaseAction):
         if self.bundle_type == ConstitutionActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 action.execute()
+                action.pass_action()
 
     def pass_action(self):
         proposal = self.proposal
@@ -581,16 +573,8 @@ class ConstitutionActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             action = self
-            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-                #if they have execute permission, skip all policies
-                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                    action.execute()
-                else:
-                    for policy in self.community.get_constitution_policies():
-                        # Execute the most recently updated policy that passes filter()
-                        was_executed = execute_policy(policy, action, is_first_evaluation=True)
-                        if was_executed:
-                            break
+            if action.initiator.has_perm(action._meta.app_label + '.add_' + action.action_codename):
+                govern_action(action, is_first_evaluation=True)
 
         super(ConstitutionActionBundle, self).save(*args, **kwargs)
 
@@ -1089,16 +1073,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
                 super(PlatformAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
-                    action = self
-                    #if they have execute permission, skip all policies
-                    if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                        action.execute()
-                    else:
-                        for policy in self.community.get_platform_policies():
-                            # Execute the most recently updated policy that passes filter()
-                            was_executed = execute_policy(policy, action, is_first_evaluation=True)
-                            if was_executed:
-                                break
+                    govern_action(self, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED,
                                                         author=self.initiator)
@@ -1140,16 +1115,8 @@ class PlatformActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             action = self
-            if action.initiator.has_perm(action.app_name + '.add_' + action.action_codename):
-                #if they have execute permission, skip all policies
-                if action.initiator.has_perm(action.app_name + '.can_execute_' + action.action_codename):
-                    action.execute()
-                elif not action.community_post:
-                    for policy in action.community.get_platform_policies():
-                        # Execute the most recently updated policy that passes filter()
-                        was_executed = execute_policy(policy, action, is_first_evaluation=True)
-                        if was_executed:
-                            break
+            if action.initiator.has_perm(action._meta.app_label + '.add_' + action.action_codename):
+                govern_action(action, is_first_evaluation=True)
 
         super(PlatformActionBundle, self).save(*args, **kwargs)
 

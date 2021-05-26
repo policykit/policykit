@@ -274,8 +274,6 @@ def roleeditor(request):
 
 @login_required(login_url='/login')
 def selectpolicy(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy
-
     user = get_user(request)
     policies = None
     type = request.GET.get('type')
@@ -302,8 +300,6 @@ def selectpolicy(request):
 
 @login_required(login_url='/login')
 def selectdocument(request):
-    from policyengine.models import CommunityDoc
-
     user = get_user(request)
     operation = request.GET.get('operation')
 
@@ -752,6 +748,36 @@ def document_action_recover(request):
     action.save()
 
     return HttpResponse()
+
+def govern_action(action, is_first_evaluation: bool):
+    """
+    Govern platform and constitution actions:
+    - If the initiator has "can execute" permission, execute the action and mark it as "passed."
+    - Otherwise, try executing the relevant policies. Stop at the first policy that passes the `filter` step.
+
+    This can be run repeatedly to check proposed actions.
+    """
+    from policyengine.models import PlatformAction, PlatformActionBundle, ConstitutionAction, ConstitutionActionBundle
+
+    #if they have execute permission, skip all policies
+    if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
+        action.execute()
+        action.pass_action()
+    else:
+        policies = None
+        if isinstance(action, PlatformAction) or isinstance(action, PlatformActionBundle):
+            policies = action.community.get_platform_policies().filter(is_active=True)
+        elif isinstance(action, ConstitutionAction) or isinstance(action, ConstitutionActionBundle):
+            policies = action.community.get_constitution_policies().filter(is_active=True)
+        else:
+            raise Exception("govern_action: unrecognized action")
+
+        for policy in policies:
+            # Execute the most recently updated policy that passes filter()
+            was_executed = execute_policy(policy, action, is_first_evaluation=is_first_evaluation)
+            if was_executed:
+                break
+
 
 def execute_policy(policy, action, is_first_evaluation: bool):
     """
