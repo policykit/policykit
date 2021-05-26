@@ -150,7 +150,6 @@ def editor(request):
     type = request.GET.get('type')
     operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
-    use_saved_policy = request.GET.get('use_saved_policy')
 
     data = {
         'server_url': SERVER_URL,
@@ -178,33 +177,7 @@ def editor(request):
         data['success'] = policy.success
         data['fail'] = policy.fail
 
-    elif use_saved_policy.lower() == 'true': # Boolean auto-converted to string so need to check in this way
-        data['name'] = request.session['policy_name']
-        data['description'] = request.session['policy_description']
-        data['filter'] = request.session['policy_filter']
-        data['initialize'] = request.session['policy_initialize']
-        data['check'] = request.session['policy_check']
-        data['notify'] = request.session['policy_notify']
-        data['success'] = request.session['policy_success']
-        data['fail'] = request.session['policy_fail']
-
     return render(request, 'policyadmin/dashboard/editor.html', data)
-
-@csrf_exempt
-def editor_upload(request):
-    data = json.loads(request.body.decode('utf-8'))
-
-    request.session['policy_name'] = data['name']
-    request.session['policy_description'] = data['description']
-    request.session['policy_is_bundled'] = data['is_bundled']
-    request.session['policy_filter'] = data['filter']
-    request.session['policy_initialize'] = data['initialize']
-    request.session['policy_check'] = data['check']
-    request.session['policy_notify'] = data['notify']
-    request.session['policy_success'] = data['success']
-    request.session['policy_fail'] = data['fail']
-
-    return HttpResponse()
 
 @login_required(login_url='/login')
 def selectrole(request):

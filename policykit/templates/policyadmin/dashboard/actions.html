@@ -220,12 +220,10 @@
 {% block scripts %}
 <script>
   document.getElementById("addConstitutionPolicy").addEventListener("click", function(){ navEditor('Constitution', 'Add'); });
-  document.getElementById("uploadConstitutionPolicy").addEventListener("click", function(){ uploadPolicy('Constitution'); });
   document.getElementById("editConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', 'Change'); });
   document.getElementById("removeConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Remove"); });
   document.getElementById("recoverConstitutionPolicy").addEventListener("click", function(){ navPolicySelect('Constitution', "Recover"); });
   document.getElementById("addPlatformPolicy").addEventListener("click", function(){ navEditor('Platform', 'Add'); });
-  document.getElementById("uploadPlatformPolicy").addEventListener("click", function(){ uploadPolicy('Platform'); });
   document.getElementById("editPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', 'Change'); });
   document.getElementById("removePlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Remove"); });
   document.getElementById("recoverPlatformPolicy").addEventListener("click", function(){ navPolicySelect('Platform', "Recover"); });
@@ -265,40 +263,6 @@
 
   function navDocumentSelect(operation) {
     window.location.href = `{{server_url}}/main/selectdocument?operation=${operation}`;
-  }
-
-  function uploadPolicy(type) {
-    // User selects which policy they would like to upload. Policy is read into a json object.
-    let input_elem = document.createElement('input');
-    input_elem.type = 'file';
-    input_elem.onchange = e => {
-      let reader = new FileReader();
-      reader.onload = e => {
-        let policy_data = JSON.parse(e.target.result);
-
-        fetch(`../../../main/editor_upload/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            'name': policy_data.name,
-            'description': policy_data.description,
-            'is_bundled': policy_data.is_bundled,
-            'filter': policy_data.filter,
-            'initialize': policy_data.initialize,
-            'check': policy_data.check,
-            'notify': policy_data.notify,
-            'success': policy_data.success,
-            'fail': policy_data.fail
-          })
-        }).then(response => {
-          navEditor(type, 'Add', true);
-        });
-      }
-      reader.readAsText(e.target.files[0]);
-    }
-    input_elem.click();
   }
 </script>
 {% endblock %}

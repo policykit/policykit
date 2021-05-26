@@ -23,7 +23,6 @@ urlpatterns = [
     path('logout/', policyviews.logout, name="logout"),
     path('main/', policyviews.v2),
     path('main/editor/', policyviews.editor),
-    path('main/editor_upload/', policyviews.editor_upload),
     path('main/selectrole/', policyviews.selectrole),
     path('main/roleusers/', policyviews.roleusers),
     path('main/roleeditor/', policyviews.roleeditor),

@@ -113,6 +113,13 @@
   </div>
 
   <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      <button type="button" class="btn" id="upload">Upload policy</button>
+    </div>
+  </div>
+
+  <div class="form-row">
     <label class="control-label col-sm-1" for="name">Name</label>
     <div class="col-sm-11">
       <input type="text" class="form-control name" id="name" required>
@@ -198,6 +205,7 @@
 <script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
 
 <script>
+  document.getElementById("upload").addEventListener("click", upload);
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("download").addEventListener("click", download);
   document.getElementById("documentation").addEventListener("click", documentation);
@@ -238,36 +246,6 @@
     }).then(response => {
       window.location.href = "{{server_url}}/main/";
     });
-  }
-
-  function download() {
-    const name = document.getElementById("name").value;
-
-    let policy_data = {
-      'name': name,
-      'description': document.getElementById("description").value,
-      'is_bundled': false,
-      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
-      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
-      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
-      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
-      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
-      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
-    };
-
-    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
-
-    // Only allow alphanumeric characters and underscores in the filename
-    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".txt";
-
-    // https://stackoverflow.com/questions/45831191/generate-and-download-file-from-js
-    let download_elem = document.createElement('a');
-    download_elem.setAttribute('href', policy_data_string);
-    download_elem.setAttribute('download', filename);
-    download_elem.style.display = 'none';
-    document.body.appendChild(download_elem);
-    download_elem.click();
-    document.body.removeChild(download_elem);
   }
 
   // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
@@ -386,6 +364,76 @@
         }
       })
     })
+  }
+
+  function is_policy_default() {
+    if (document.getElementById('name').value != "") {
+      return false;
+    }
+    if (document.getElementById('description').value != "") {
+      return false;
+    }
+    for (let i = 0; i < Object.keys(DEFAULT_VALUES).length; i++) {
+      if (editors[i].getValue() != Object.values(DEFAULT_VALUES)[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function upload(type) {
+    if (is_policy_default() || confirm("Warning: This will overwrite your policy code! Are you sure you want to upload a policy?")) {
+      // User selects which policy they would like to upload. Policy is read into a json object.
+      let input_elem = document.createElement('input');
+      input_elem.type = 'file';
+      input_elem.onchange = e => {
+        let reader = new FileReader();
+        reader.onload = e => {
+          let policy_data = JSON.parse(e.target.result);
+
+          document.getElementById('name').value = decodeHtml(`${policy_data.name}`);
+          document.getElementById('description').value = decodeHtml(`${policy_data.description}`);
+          editors[0].setValue(decodeHtml(`${policy_data.filter}`));
+          editors[1].setValue(decodeHtml(`${policy_data.initialize}`));
+          editors[2].setValue(decodeHtml(`${policy_data.check}`));
+          editors[3].setValue(decodeHtml(`${policy_data.notify}`));
+          editors[4].setValue(decodeHtml(`${policy_data.success}`));
+          editors[5].setValue(decodeHtml(`${policy_data.fail}`));
+        }
+        reader.readAsText(e.target.files[0]);
+      }
+      input_elem.click();
+    }
+  }
+
+  function download() {
+    const name = document.getElementById("name").value;
+
+    let policy_data = {
+      'name': name,
+      'description': document.getElementById("description").value,
+      'is_bundled': false,
+      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
+      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
+      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
+      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
+      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
+      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
+    };
+
+    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
+
+    // Only allow alphanumeric characters and underscores in the filename
+    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".txt";
+
+    // https://stackoverflow.com/questions/45831191/generate-and-download-file-from-js
+    let download_elem = document.createElement('a');
+    download_elem.setAttribute('href', policy_data_string);
+    download_elem.setAttribute('download', filename);
+    download_elem.style.display = 'none';
+    document.body.appendChild(download_elem);
+    download_elem.click();
+    document.body.removeChild(download_elem);
   }
 </script>
 {% endblock %}
