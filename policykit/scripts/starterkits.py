@@ -514,7 +514,7 @@ democracy_policy2_slack = GenericPolicy.objects.create(
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
+yes_votes = action.proposal.get_yes_votes(users=voter_users)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
     return PASSED
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
@@ -554,7 +554,7 @@ else:
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
+yes_votes = action.proposal.get_yes_votes(users=voter_users)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
    return PASSED
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
@@ -591,18 +591,21 @@ else:
                                                            """,
     initialize="pass",
     check="""
+import datetime
 import math
-
-voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
-if len(yes_votes) >= math.ceil(voter_users.count()/2):
-   return PASSED
+def hasVoterRole(user):
+	return user.has_role('Democracy: Voter')
+# voter_users = list(filter(hasVoterRole, users))
+voter_users = users
+yes_votes = action.proposal.get_yes_votes(users=voter_users)
+debug(f'yes votes are {len(yes_votes)}')
+if len(yes_votes) >= 1:
+    return PASSED
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
-   return FAILED
+    return FAILED
                                                            """,
     notify="""
-voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.community.notify_action(action, policy, users=voter_users, template='Please vote')
+action.community.notify_action(action, policy, users, template='Please vote on proposal', channel=846398942119329862)
                                                            """,
     success="action.execute()",
     fail="pass",
@@ -634,7 +637,7 @@ else:
 import math
 
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-yes_votes = action.proposal.get_yes_votes(users=voter_users, value=True)
+yes_votes = action.proposal.get_yes_votes(users=voter_users)
 if len(yes_votes) >= math.ceil(voter_users.count()/2):
    return PASSED
 elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):

@@ -822,10 +822,12 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
 
     elif check_result == Proposal.PROPOSED and is_first_evaluation:
         # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
-        if action.community_origin:
-            debug(f"Reverting")
-            action.revert()
-
+        try: 
+            if action.community_origin:
+                debug(f"Reverting")
+                action.revert()
+        except:
+            pass
         # Run "notify" block of policy
         debug(f"Notifying")
         notify_policy(policy, action, **optional_args)
