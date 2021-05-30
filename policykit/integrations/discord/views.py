@@ -475,6 +475,8 @@ def post_policy(policy, action, users=None, template=None, channel=None):
         return
 
     res = policy.community.make_call(f'channels/{channel_id}/messages', values={'content': message})
+    policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")
+    policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8E/@me', method="PUT")
 
     if action.action_type == "ConstitutionAction":
         action.community_post = res['id']
