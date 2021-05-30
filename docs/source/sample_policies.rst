@@ -467,3 +467,156 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
     # Delete the topic
     metagov.perform_action("discourse.delete-topic", {"id": action.event_data["id"]})
+
+Vote on Adding Payment Pointers to a Web Monetization Rev Share config
+----------------------------------------------------------------------
+
+When a Discourse user adds a wallet to their profile, start a vote on whether to add the wallet to the community's `probabilistic revenue share config <https://webmonetization.org/docs/probabilistic-rev-sharing/>`_.
+This policy assumes that there is a custom `User Field <https://meta.discourse.org/t/how-to-create-and-configure-custom-user-fields/113192>`_ in Discourse in position "1" that holds an UpHold or GateHub wallet payment pointer.
+This policy also assumes that the Discourse server has the experimental `Metagov Web Monetization Discourse plugin <https://github.com/metagov/discourse-web-monetization>`_ installed, to generate revenue from forum content in the form of Web Monetization micropayments. All content generated on Discourse will be split equally between all wallets rev share config, which is stored in Metagov.
+
+**Required Metagov Plugins**: ``discourse``
+
+**Filter:**
+
+.. code-block:: python
+
+    is_user_fields_changed = action.action_codename == "metagovaction" and action.event_type == "discourse.user_fields_changed"
+    if not is_user_fields_changed:
+      return False
+
+    user = action.event_data["username"]
+    custom_wallet_field_key = "1"
+    old_wallet = action.event_data.get("old_user_fields", {}).get(custom_wallet_field_key)
+    new_wallet = action.event_data.get("user_fields", {}).get(custom_wallet_field_key)
+    if old_wallet == new_wallet:
+      debug(f"no wallet change for {user}, they must have changed another field. skipping.")
+      return False
+
+    debug(f"User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
+    action.data.set("old_wallet", old_wallet)
+    action.data.set("new_wallet", new_wallet)
+    return True
+
+**Initialize:** ``pass``
+
+**Notify:**
+
+.. code-block:: python
+
+    user = action.event_data["username"]
+
+    old_wallet = action.data.get("old_wallet")
+    new_wallet = action.data.get("new_wallet")
+    if not new_wallet:
+      debug("wallet was removed, no need to vote")
+      return
+
+    #get the current config
+    response = metagov.perform_action("revshare.get-config", {})
+    debug(f"get-config response: {response}")
+
+    parameters = {
+        "title": f"Add '{new_wallet}' to revshare config - test",
+        "details": f"{user} proposes to add wallet '{new_wallet}' and remove wallet '{old_wallet or ''}'. The current revshare configuraton is: {response}",
+       "options": ["approve", "disapprove"],
+       "topic_id": 133
+    }
+    result = metagov.start_process("discourse.poll", parameters)
+    poll_url = result.outcome.get("poll_url")
+    debug(f"Vote at {poll_url}")
+
+
+    params = {
+        "title": f"Request to add '{new_wallet}' under review",
+        "raw": f"Vote occurring at {poll_url}",
+        "target_usernames": [user]
+    }
+    response = metagov.perform_action("discourse.create-message", params)
+    action.data.set("dm_topic_id", response["topic_id"])
+
+
+
+
+
+**Check:**
+
+.. code-block:: python
+
+    new_wallet = action.data.get("new_wallet")
+    if not new_wallet:
+      debug("wallet was removed, no need to vote")
+      return PASSED
+
+
+    result = metagov.get_process()
+    if not result:
+      return None
+
+    debug(f"Discourse Poll ({result.status}) outcome: {result.outcome}")
+
+    agrees = result.outcome.get("votes", {}).get("approve", 0)
+    disagrees = result.outcome.get("votes", {}).get("disapprove", 0)
+
+    if (agrees >= 1) or (disagrees >= 3):
+      # custom closing condition was met, close the poll in Discourse
+      metagov.close_process()
+      return PASSED if agrees > disagrees else FAILED
+    elif result.status == "completed":
+      # the poll was "closed" on discourse by a user
+      return PASSED if agrees > disagrees else FAILED
+
+    return None # pending
+
+
+
+
+**Pass:**
+
+.. code-block:: python
+
+     user = action.event_data["username"]
+     old_wallet = action.data.get("old_wallet")
+     new_wallet = action.data.get("new_wallet")
+
+     debug(f"APPROVED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
+
+     # remove old pointer.
+     if old_wallet:
+       response = metagov.perform_action("revshare.remove-pointer", {"pointer": old_wallet})
+       debug(f"remove-pointer response: {response}")
+
+     if new_wallet:
+       # add new pointer.
+       response = metagov.perform_action("revshare.add-pointer", {"pointer": new_wallet, "weight": 1})
+       debug(f"add-pointer response: {response}")
+
+
+       params = {
+           "raw": f"Your new payment pointer was added to the revshare config $$$! Current config is {response}",
+           "target_usernames": [user],
+           "topic_id": action.data.get("dm_topic_id")
+       }
+       metagov.perform_action("discourse.create-message", params)
+
+
+
+**Fail:**
+
+.. code-block:: python
+
+    user = action.event_data["username"]
+    old_wallet = action.data.get("old_wallet")
+    new_wallet = action.data.get("new_wallet")
+
+    debug(f"FAILED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
+
+    params = {
+        "raw": f"Your request to get $$ was rejected",
+        "target_usernames": [user],
+       "topic_id": action.data.get("dm_topic_id")
+    }
+    metagov.perform_action("discourse.create-message", params)
+
+
+
