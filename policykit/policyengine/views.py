@@ -151,6 +151,13 @@ def editor(request):
     operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
 
+    data = {
+        'server_url': SERVER_URL,
+        'user': get_user(request),
+        'type': type,
+        'operation': operation
+    }
+
     if policy_id:
         policy = None
         if type == 'Platform':
@@ -160,28 +167,17 @@ def editor(request):
         else:
             return HttpResponseBadRequest()
 
-        return render(request, 'policyadmin/dashboard/editor.html', {
-            'server_url': SERVER_URL,
-            'user': get_user(request),
-            'type': type,
-            'operation': operation,
-            'policy': policy_id,
-            'name': policy.name,
-            'description': policy.description,
-            'filter': policy.filter,
-            'initialize': policy.initialize,
-            'check': policy.check,
-            'notify': policy.notify,
-            'success': policy.success,
-            'fail': policy.fail
-        })
+        data['policy'] = policy_id
+        data['name'] = policy.name
+        data['description'] = policy.description
+        data['filter'] = policy.filter
+        data['initialize'] = policy.initialize
+        data['check'] = policy.check
+        data['notify'] = policy.notify
+        data['success'] = policy.success
+        data['fail'] = policy.fail
 
-    return render(request, 'policyadmin/dashboard/editor.html', {
-        'server_url': SERVER_URL,
-        'user': get_user(request),
-        'type': type,
-        'operation': operation
-    })
+    return render(request, 'policyadmin/dashboard/editor.html', data)
 
 @login_required(login_url='/login')
 def selectrole(request):

@@ -162,6 +162,21 @@
     margin-bottom: 1vh;
   }
 
+  .btn {
+    padding: 0.5em 2vw;
+    margin-right: 0.4vw;
+    border: 1px solid #4451b2;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    background-color: #ffffff;
+    color: #4451b2;
+  }
+
+  .btn:hover {
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
   .form-row {
     margin-bottom: 2vh;
   }
@@ -403,6 +418,13 @@
         <textarea class="form-control code" id="fail" readonly rows="3"></textarea>
       </div>
     </div>
+
+    <div class="form-row">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-11">
+        <button type="button" class="btn" id="download">Download policy</button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -413,7 +435,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/addon/display/autorefresh.min.js"></script>
 
 <script>
+  document.getElementById("download").addEventListener("click", download);
+
   document.getElementById("proposeAction").addEventListener("click", navActions);
+
   {% for key, value in platform_policies.items %}
     document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal('code', {
       name: `{{value.name}}`,
@@ -426,6 +451,7 @@
       fail: `{{value.fail}}`
     }); });
   {% endfor %}
+
   {% for key, value in constitution_policies.items %}
     document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal('code', {
       name: `{{value.name}}`,
@@ -438,16 +464,19 @@
       fail: `{{value.fail}}`
     }); });
   {% endfor %}
+
   {% for key, value in docs.items %}
     document.getElementById("document_{{key}}").addEventListener("click", function(){ showModal('doc', {
       name: `{{value.name}}`,
       text: `{{value.text}}`
     }); });
   {% endfor %}
+
   modals = document.getElementsByClassName("modal");
   for (let i = 0; i < modals.length; i++) {
     modals[i].addEventListener("click", hideModal);
   }
+
   closeButtons = document.getElementsByClassName("close");
   for (let i = 0; i < closeButtons.length; i++) {
     closeButtons[i].addEventListener("click", hideModal);
@@ -511,6 +540,36 @@
     for (let i = 0; i < modals.length; i++) {
       modals[i].style.display = "none";
     }
+  }
+
+  function download() {
+    const name = document.getElementById("name").value;
+
+    let policy_data = {
+      'name': name,
+      'description': document.getElementById("description").value,
+      'is_bundled': false,
+      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
+      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
+      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
+      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
+      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
+      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
+    };
+
+    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
+
+    // Only allow alphanumeric characters and underscores in the filename
+    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".txt";
+
+    // https://stackoverflow.com/questions/45831191/generate-and-download-file-from-js
+    let download_elem = document.createElement('a');
+    download_elem.setAttribute('href', policy_data_string);
+    download_elem.setAttribute('download', filename);
+    download_elem.style.display = 'none';
+    document.body.appendChild(download_elem);
+    download_elem.click();
+    document.body.removeChild(download_elem);
   }
 </script>
 {% endblock %}
