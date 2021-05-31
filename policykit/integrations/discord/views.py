@@ -21,8 +21,10 @@ logger = logging.getLogger(__name__)
 websocket.enableTrace(False)
 
 # Used for Boolean voting
-EMOJI_LIKE = ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']
-EMOJI_DISLIKE = ['👎', '👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿']
+# EMOJI_LIKE = ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']
+EMOJI_LIKE = '👍'
+# EMOJI_DISLIKE = ['👎', '👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿']
+EMOJI_DISLIKE = '👎'
 
 
 GATEWAY_VERSION = 8
@@ -271,8 +273,8 @@ def handle_event(name, data):
             if action_res.exists():
                 action = action_res[0]
                 reaction = data['emoji']['name']
-                if reaction in (EMOJI_LIKE + EMOJI_DISLIKE):
-                    val = (reaction in EMOJI_LIKE)
+                if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
+                    val = (reaction == EMOJI_LIKE)
                     user = DiscordUser.objects.get(username=f"{data['user_id']}:{data['guild_id']}",
                                                                community=action.community)
                     vote = BooleanVote.objects.filter(proposal=action.proposal, user=user)
