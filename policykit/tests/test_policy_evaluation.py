@@ -96,6 +96,8 @@ class EvaluationTests(TestCase):
         user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.community)
         user_with_can_execute.user_permissions.add(can_add)
         user_with_can_execute.user_permissions.add(can_execute)
+        self.assertTrue(user_with_can_execute.has_perm("policyengine.add_policykitaddcommunitydoc"))
+        self.assertTrue(user_with_can_execute.has_perm("policyengine.can_execute_policykitaddcommunitydoc"))
 
         # action initiated by user with "can_execute" should pass
         action = PolicykitAddCommunityDoc(name="my doc", initiator=user_with_can_execute, community=self.community)
@@ -106,6 +108,34 @@ class EvaluationTests(TestCase):
         action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.community)
         action.save()
         self.assertEqual(action.proposal.status, "failed")
+
+    def test_cannot_propose_constitution(self):
+        """Test that action fails when a user does not have permission to propose constitution change"""
+        policy = ConstitutionPolicy(
+            **all_actions_pass_policy,
+            community=self.community,
+            description="all actions pass",
+            name="all actions pass",
+        )
+        policy.save()
+
+        # action initiated by user without "can_add" should fail
+        user = SlackUser.objects.create(username="test-user", community=self.community)
+        self.assertEqual(user.has_perm("policyengine.add_policykitaddcommunitydoc"), False)
+        action = PolicykitAddCommunityDoc(name="my doc", initiator=user, community=self.community)
+        action.save()
+        action.refresh_from_db()  # test that it was saved to the db with correct proposal
+        self.assertEqual(action.proposal.status, "failed")
+
+        # action initiated by user with "can_add" should pass
+        user = SlackUser.objects.create(username="second-user", community=self.community)
+        can_add = Permission.objects.get(name="Can add policykit add community doc")
+        user.user_permissions.add(can_add)
+        self.assertTrue(user.has_perm("policyengine.add_policykitaddcommunitydoc"))
+        action = PolicykitAddCommunityDoc(name="my other doc", initiator=user, community=self.community)
+        action.save()
+        action.refresh_from_db()  # test that it was saved to the db with correct proposal
+        self.assertEqual(action.proposal.status, "passed")
 
     def test_close_process(self):
         # 1) Create Policy and PlatformAction
