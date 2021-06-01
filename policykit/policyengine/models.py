@@ -655,7 +655,6 @@ class PolicykitRecoverCommunityDoc(ConstitutionAction):
         permissions = (
             ('can_execute_policykitrecovercommunitydoc', 'Can execute policykit recover community doc'),
         )
-
 class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     description = models.TextField(null=True, blank=True, default='')
@@ -667,7 +666,11 @@ class PolicykitAddRole(ConstitutionAction):
     def __str__(self):
         return "Add Role: " + self.name
 
+    # FIXME: Hacky behavior: getter function creating a side effect
     def shouldCreate(self):
+        if self.ready:
+            self.ready = False
+            return True
         return self.ready
 
     def execute(self):
@@ -720,7 +723,11 @@ class PolicykitEditRole(ConstitutionAction):
     def __str__(self):
         return "Edit Role: " + self.name
 
+    # FIXME: Hacky behavior: getter function creating a side effect
     def shouldCreate(self):
+        if self.ready:
+            self.ready = False
+            return True
         return self.ready
 
     def execute(self):
@@ -749,7 +756,11 @@ class PolicykitAddUserRole(ConstitutionAction):
         else:
             return "Add User to Role: [ERROR: role not found]"
 
+    # FIXME: Hacky behavior: getter function creating a side effect
     def shouldCreate(self):
+        if self.ready:
+            self.ready = False
+            return True
         return self.ready
 
     def execute(self):
@@ -774,7 +785,11 @@ class PolicykitRemoveUserRole(ConstitutionAction):
         else:
             return "Remove User from Role: [ERROR: role not found]"
 
+    # FIXME: Hacky behavior: getter function creating a side effect
     def shouldCreate(self):
+        if self.ready:
+            self.ready = False
+            return True
         return self.ready
 
     def execute(self):
