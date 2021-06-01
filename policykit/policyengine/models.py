@@ -531,6 +531,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                     govern_action(self, is_first_evaluation=True)
             else:
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
+                super(ConstitutionAction, self).save(*args, **kwargs)
         else:
             if not self.pk: # Runs only when object is new
                 self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
