@@ -7,12 +7,13 @@ from django.shortcuts import render, redirect
 from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
-import urllib.parse
+from django.conf import settings
+
 import logging
 import json
 import parser
 import html
-
+import base64
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -122,26 +123,29 @@ def logout(request):
 
 @login_required(login_url='/login')
 def settings_page(request):
-    from integrations.metagov.library import get_or_create_metagov_community, get_plugin_config_schemas
+    from integrations.metagov.library import get_or_create_metagov_community, get_plugin_config_schemas, metagov_slug
 
     user = get_user(request)
     community = user.community
 
-    plugin_schemas = None
-    metagov_config = None
-    if user.has_perm("metagov.can_edit_metagov_config") or True:
+    context = {
+        'metagov_enabled': settings.METAGOV_ENABLED,
+        'server_url': settings.SERVER_URL,
+        'user': get_user(request),
+    }
+
+    # If user is permitted to edit Metagov config, add additional context
+    if user.has_perm("metagov.can_edit_metagov_config"):
         result = get_or_create_metagov_community(community)
         if result:
-            metagov_config = json.dumps(result)
-            plugin_schemas = json.dumps(get_plugin_config_schemas())
+            context['metagov_config'] = json.dumps(result)
+            context['plugin_schemas'] = json.dumps(get_plugin_config_schemas())
+            context['metagov_server_url'] = settings.METAGOV_URL
+            context['metagov_community_slug'] = metagov_slug(community)
+            # nagivate back to this page after slack install
+            context['slack_redirect_uri'] = f"{settings.SERVER_URL}/main/settings"
 
-    return render(request, 'policyadmin/dashboard/settings.html', {
-        'metagov_enabled': METAGOV_ENABLED,
-        'metagov_config': metagov_config,
-        'plugin_schemas': plugin_schemas,
-        'server_url': SERVER_URL,
-        'user': get_user(request)
-    })
+    return render(request, 'policyadmin/dashboard/settings.html', context)
 
 @login_required(login_url='/login')
 def editor(request):

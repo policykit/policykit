@@ -122,6 +122,6 @@ class Metagov:
         url = f"{settings.METAGOV_URL}/api/internal/action/{action_type}"
         response = requests.post(url, json={"parameters": parameters}, headers=self.headers)
         if not response.ok:
-            raise Exception(f"Error performing action: {response.status_code} {response.reason} {response.text}")
+            raise Exception(f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}")
         data = response.json()
         return data
