@@ -13,7 +13,6 @@ import logging
 import json
 import parser
 import html
-import base64
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
