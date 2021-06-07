@@ -70,6 +70,10 @@ def oauth(request):
             return response
 
         elif state == "app":
+            # redirect here from metagov authorization, and check the `community` param
+            # fetch user list from metagov
+
+
             # Checks that user is admin
             dataAdmin = parse.urlencode({
                 'token': res['access_token'],
