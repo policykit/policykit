@@ -38,10 +38,10 @@ def get_webhooks(community: Community):
 
 
 def create_metagov_community(name: str, readable_name=""):
-    url = f"{settings.METAGOV_URL}/api/internal/community/{name}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        raise Exception(f"Community '{name}' already exists")
+    # url = f"{settings.METAGOV_URL}/api/internal/community/{name}"
+    # response = requests.get(url)
+    # if response.status_code == 200:
+    #     raise Exception(f"Community '{name}' already exists")
 
     payload = {"name": name, "readable_name": readable_name, "plugins": []}
     url = f"{settings.METAGOV_URL}/api/internal/community/{name}"

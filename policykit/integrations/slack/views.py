@@ -60,14 +60,11 @@ def slack_install(request):
     #TODO if error
     # response = redirect('/login?error=cancel')
     # return response
-    
-    state = request.GET.get('state') #TODO need to validate the request!!!!
-    team_id = request.GET.get('team_id')
+    logger.info(">> slack_install")
+    logger.info(request.GET)
     metagov_community_slug = request.GET.get('community')
+    logger.info(f">>>> Creating SlackCommunity for {metagov_community_slug}")
 
-    
-
-    logger.info(f">>>> Creating SlackCommunity {team_id}, {metagov_community_slug}")
     from policyengine.models import MetaCommunity
     pk = int(metagov_community_slug.split("-")[1]) # FIXME use a manager
     meta_community = MetaCommunity.objects.get(pk=pk)
@@ -96,7 +93,7 @@ def slack_install(request):
     # Getting team info from Slack
     response = requests.post(f"{settings.METAGOV_URL}/api/internal/action/slack.method", json={"parameters": {"method_name":"team.info"}}, headers={"X-Metagov-Community": metagov_community_slug})
     if not response.ok:
-        raise Exception(f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}")
+        raise Exception(f"Error: {response.status_code} {response.reason} {response.text}")
     data = response.json()
     
     team = data["team"]
