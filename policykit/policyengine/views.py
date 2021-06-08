@@ -1,13 +1,14 @@
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 from django.conf import settings
+from urllib.parse import quote
 
 import logging
 import json
@@ -20,6 +21,29 @@ db_logger = logging.getLogger("db")
 def homepage(request):
     return render(request, 'home.html', {})
 
+
+def new_community(request):
+    platform = request.GET.get('platform')
+    if not platform or platform != "slack":
+        return HttpResponseBadRequest()
+
+    from policyengine.models import MetaCommunity
+    # 1. Create Community in PolicyKit
+    community = MetaCommunity.objects.create()
+
+    # 2. Create Community in Metagov
+    from integrations.metagov.library import create_metagov_community
+    metagov_community_json = create_metagov_community(name=community.metagov_name)
+    logger.info(f">> created MG community {metagov_community_json}")
+    # 3. Initiate authorization flow to install Metagov to platform
+
+    # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
+    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
+    encoded_redirect_uri = quote(redirect_uri, safe='')
+
+    # redirect to metagov to authorize the app
+    url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_name}&redirect_uri={encoded_redirect_uri}"
+    return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
 def v2(request):

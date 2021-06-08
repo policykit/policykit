@@ -27,6 +27,7 @@ def update_metagov_community(community: Community, plugins=[]):
     data = response.json()
     return data
 
+
 def get_webhooks(community: Community):
     url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}/hooks"
     response = requests.get(url)
@@ -34,6 +35,21 @@ def get_webhooks(community: Community):
         raise Exception(response.text or "Unknown error")
     data = response.json()
     return [f"{settings.METAGOV_URL}{hook}" for hook in data["hooks"]]
+
+
+def create_metagov_community(name: str, readable_name=""):
+    url = f"{settings.METAGOV_URL}/api/internal/community/{name}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        raise Exception(f"Community '{name}' already exists")
+
+    payload = {"name": name, "readable_name": readable_name, "plugins": []}
+    url = f"{settings.METAGOV_URL}/api/internal/community/{name}"
+    response = requests.put(url, json=payload)
+    if not response.ok:
+        raise Exception(response.text or "Unknown error")
+    return response.json()
+
 
 def get_or_create_metagov_community(community: Community):
     url = f"{settings.METAGOV_URL}/api/internal/community/{metagov_slug(community)}"
@@ -44,12 +60,14 @@ def get_or_create_metagov_community(community: Community):
         raise Exception(response.text or "Unknown error")
     return response.json()
 
+
 def get_plugin_config_schemas():
     url = f"{settings.METAGOV_URL}/api/internal/plugin-schemas"
     response = requests.get(url)
     if not response.ok:
         raise Exception(response.text or "Unknown error")
     return response.json()
+
 
 class Metagov:
     """
@@ -122,6 +140,8 @@ class Metagov:
         url = f"{settings.METAGOV_URL}/api/internal/action/{action_type}"
         response = requests.post(url, json={"parameters": parameters}, headers=self.headers)
         if not response.ok:
-            raise Exception(f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}")
+            raise Exception(
+                f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}"
+            )
         data = response.json()
         return data

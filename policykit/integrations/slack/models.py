@@ -87,6 +87,9 @@ class SlackCommunity(Community):
 
             data = {}
 
+            # XXXXXXX figure this out
+            # lift the whole user thing into MG?
+            # PK needs to have user tokens for now, I guess
             if obj.AUTH == "user":
                 data['token'] = action.proposal.author.access_token
                 if not data['token']:
@@ -101,7 +104,7 @@ class SlackCommunity(Community):
                 admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
                 data['token'] = admin_user.access_token
             else:
-                data['token'] = self.access_token
+                data['token'] = self.access_token #use metagov 
 
 
             for item in obj_fields:

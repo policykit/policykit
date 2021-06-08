@@ -57,6 +57,17 @@ class CommunityManager(PolymorphicManager):
                 return community
         raise Community.DoesNotExist
 
+class MetaCommunity(models.Model):
+    #TODO add blank readable_name derived from first installation
+    
+
+    # add manager with `get_by_metagov_name`
+
+    @property
+    def metagov_name(self):
+        if not self.pk:
+            return None
+        return f"community-{self.pk}"
 
 class Community(PolymorphicModel):
     """Community"""
@@ -69,6 +80,9 @@ class Community(PolymorphicModel):
 
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
+
+    # TODO make this required, figure out migration script to generate meta community for each commmunity
+    meta_community = models.ForeignKey(MetaCommunity, models.CASCADE, null=True)
 
     objects = CommunityManager()
 

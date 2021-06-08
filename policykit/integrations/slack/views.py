@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from urllib import parse
 import urllib.request
-from policykit.settings import SLACK_CLIENT_SECRET, SLACK_CLIENT_ID
+# from policykit.settings import SLACK_CLIENT_SECRET, SLACK_CLIENT_ID
 from django.contrib.auth import login, authenticate
 import logging
 from django.shortcuts import redirect
@@ -12,6 +12,8 @@ from policyengine.models import *
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 import datetime
+from django.conf import settings
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -40,124 +42,142 @@ NUMBERS = {0: 'zero',
            9: 'nine'}
 
 
+def slack_login(request):
+    """redirect after metagov has gotten the slack user token"""
+    logger.info(f"slack_login")
+    logger.info(request.GET)
+    user_token = request.GET.get('user_token')
+    team_id = request.GET.get('team_id')
+    user = authenticate(request, user_token=user_token, team_id=team_id, platform="slack")
+    if user:
+        login(request, user)
+        response = redirect('/main')
+    else:
+        response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
+    return response
 
-# Create your views here.
+def slack_install(request):
+    #TODO if error
+    # response = redirect('/login?error=cancel')
+    # return response
+    
+    state = request.GET.get('state') #TODO need to validate the request!!!!
+    team_id = request.GET.get('team_id')
+    metagov_community_slug = request.GET.get('community')
 
-def oauth(request):
-    code = request.GET.get('code')
-    state = request.GET.get('state')
+    
 
-    data = parse.urlencode({
-        'client_id': SLACK_CLIENT_ID,
-        'client_secret': SLACK_CLIENT_SECRET,
-        'code': code,
+    logger.info(f">>>> Creating SlackCommunity {team_id}, {metagov_community_slug}")
+    from policyengine.models import MetaCommunity
+    pk = int(metagov_community_slug.split("-")[1]) # FIXME use a manager
+    meta_community = MetaCommunity.objects.get(pk=pk)
+    # the SlackCommunity will be linked to this MetaCommunity
+
+    # redirect here from metagov authorization, and check the `community` param
+    # fetch user list from metagov
+
+
+    # Checks that user is admin
+    # dataAdmin = parse.urlencode({
+    #     'token': res['access_token'],
+    #     'user': res['authed_user']['id']
+    # }).encode()
+    # reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=dataAdmin)
+    # respInfo = urllib.request.urlopen(reqInfo)
+    # resInfo = json.loads(respInfo.read())
+
+    # if resInfo['user']['is_admin'] == False:
+    #     response = redirect('/login?error=user_is_not_an_admin')
+    #     return response
+
+    
+    # curl -iX POST "https://prototype.metagov.org/api/internal/action/slack.method" -H  "accept: application/json" -H  "X-Metagov-Community: slack-tmq3pkxt9" -d '{"parameters":{"method_name":"team.info"}}'
+
+    # Getting team info from Slack
+    response = requests.post(f"{settings.METAGOV_URL}/api/internal/action/slack.method", json={"parameters": {"method_name":"team.info"}}, headers={"X-Metagov-Community": metagov_community_slug})
+    if not response.ok:
+        raise Exception(f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}")
+    data = response.json()
+    
+    team = data["team"]
+    logger.info(f"TEAM: {team}")
+    team_id = team["id"]
+    readable_name = team["name"] #update MetaCommunity
+
+    s = SlackCommunity.objects.filter(team_id=team_id)
+    community = None
+    #TODO: metagov get team info
+    user_group,_ = CommunityRole.objects.get_or_create(role_name = "Base User", name="Slack: " + team_id + ": Base User")
+
+    # user = SlackUser.objects.filter(username=res['authed_user']['id'])
+
+    if not s.exists():
+        logger.info("Creating new SlackCommunity")
+        community = SlackCommunity.objects.create(
+            meta_community=meta_community,
+            community_name=readable_name, #res['team']['name']
+            team_id=team_id,
+            
+            # bot_id = res['bot_user_id'],
+            # access_token=res['access_token'],
+            base_role=user_group
+        )
+        user_group.community = community
+        user_group.save()
+
+        #get the list of users, create SlackUser object for each user
+        # TODO GET metagov action/slack.method
+        # X-Metagov-Community: community.meta_community.metagov_name
+        data2 = parse.urlencode({
+            'token':community.access_token
         }).encode()
 
-    req = urllib.request.Request('https://slack.com/api/oauth.v2.access', data=data)
-    resp = urllib.request.urlopen(req)
-    res = json.loads(resp.read().decode('utf-8'))
+        req2 = urllib.request.Request('https://slack.com/api/users.list', data=data2)
+        resp2 = urllib.request.urlopen(req2)
+        res2 = json.loads(resp2.read().decode('utf-8'))
 
-    logger.info(res)
-
-    if res['ok']:
-        if state =="user":
-            user = authenticate(request, oauth=res, platform="slack")
-            if user:
-                login(request, user)
-                response = redirect('/main')
-            else:
-                response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
-            return response
-
-        elif state == "app":
-            # redirect here from metagov authorization, and check the `community` param
-            # fetch user list from metagov
-
-
-            # Checks that user is admin
-            dataAdmin = parse.urlencode({
-                'token': res['access_token'],
-                'user': res['authed_user']['id']
-            }).encode()
-            reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=dataAdmin)
-            respInfo = urllib.request.urlopen(reqInfo)
-            resInfo = json.loads(respInfo.read())
-
-            if resInfo['user']['is_admin'] == False:
-                response = redirect('/login?error=user_is_not_an_admin')
-                return response
-
-            s = SlackCommunity.objects.filter(team_id=res['team']['id'])
-            community = None
-            user_group,_ = CommunityRole.objects.get_or_create(role_name = "Base User", name="Slack: " + res['team']['name'] + ": Base User")
-
-            user = SlackUser.objects.filter(username=res['authed_user']['id'])
-
-            if not s.exists():
-                community = SlackCommunity.objects.create(
-                    community_name=res['team']['name'],
-                    team_id=res['team']['id'],
-                    bot_id = res['bot_user_id'],
-                    access_token=res['access_token'],
-                    base_role=user_group
-                )
-                user_group.community = community
-                user_group.save()
-
-                #get the list of users, create SlackUser object for each user
-                data2 = parse.urlencode({
-                    'token':community.access_token
-                }).encode()
-
-                req2 = urllib.request.Request('https://slack.com/api/users.list', data=data2)
-                resp2 = urllib.request.urlopen(req2)
-                res2 = json.loads(resp2.read().decode('utf-8'))
-
-                #https://api.slack.com/methods/users.list
-                if res2['ok']:
-                    for new_user in res2['members']:
-                        if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
-                            if new_user['id'] == res['authed_user']['id']:
-                                u,_ = SlackUser.objects.get_or_create(
-                                    username=res['authed_user']['id'],
-                                    readable_name=new_user['real_name'],
-                                    access_token=res['authed_user']['access_token'],
-                                    is_community_admin=True,
-                                    community=community
-                                )
-                            else:
-                                u,_ = SlackUser.objects.get_or_create(
-                                    username=new_user['id'],
-                                    readable_name=new_user['real_name'],
-                                    avatar=new_user['profile']['image_24'],
-                                    community=community
-                                )
-                            u.save()
-            else:
-                community = s[0]
-                community.community_name = res['team']['name']
-                community.team_id = res['team']['id']
-                community.bot_id = res['bot_user_id']
-                community.access_token = res['access_token']
-                community.save()
-
-                response = redirect('/login?success=true')
-                return response
-
-            context = {
-                "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
-                "community_name": community.community_name,
-                "creator_token": res['authed_user']['access_token'],
-                "platform": "slack"
-            }
-            return render(request, "policyadmin/init_starterkit.html", context)
+        #https://api.slack.com/methods/users.list
+        if res2['ok']:
+            for new_user in res2['members']:
+                if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
+                    # if new_user['id'] == res['authed_user']['id']:
+                    #     u,_ = SlackUser.objects.get_or_create(
+                    #         username=res['authed_user']['id'],
+                    #         readable_name=new_user['real_name'],
+                    #         access_token=res['authed_user']['access_token'],
+                    #         is_community_admin=True, #XXX need this
+                    #         community=community
+                    #     )
+                    # else:
+                    u,_ = SlackUser.objects.get_or_create(
+                        username=new_user['id'],
+                        readable_name=new_user['real_name'],
+                        avatar=new_user['profile']['image_24'],
+                        community=community
+                    )
+                    # u.save()
+        
+        context = {
+            "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
+            "community_name": community.community_name,
+            "creator_token": None,
+            # "creator_token": res['authed_user']['access_token'], #what is this for
+            "platform": "slack"
+        }
+        return render(request, "policyadmin/init_starterkit.html", context)
+        
     else:
-        # error message stating that the sign-in/add-to-slack didn't work
-        response = redirect('/login?error=cancel')
+        logger.info("community already exists..leaving it as is")
+        # community = s[0]
+        # community.community_name = res['team']['name']
+        # community.team_id = res['team']['id']
+        # community.bot_id = res['bot_user_id']
+        # community.access_token = res['access_token']
+        # community.save()
+
+        response = redirect('/login?success=true')
         return response
 
-    response = redirect('/login?success=true')
-    return response
 
 def is_policykit_bot_action(community, event):
     return event.get('user') == community.bot_id
