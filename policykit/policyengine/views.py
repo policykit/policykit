@@ -38,7 +38,7 @@ def new_community(request):
     # 3. Initiate authorization flow to install Metagov to platform
 
     # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
-    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
+    redirect_uri = f"{settings.SERVER_URL}/{platform}/install?community={community.metagov_name}"
     encoded_redirect_uri = quote(redirect_uri, safe='')
 
     # redirect to metagov to authorize the app
