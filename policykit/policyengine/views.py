@@ -161,7 +161,7 @@ def settings_page(request):
 
     # If user is permitted to edit Metagov config, add additional context
     if user.has_perm("metagov.can_edit_metagov_config") and community.metagov_slug:
-        result = MetagovAPI.get_metagov_community(community)
+        result = MetagovAPI.get_metagov_community(community.metagov_slug)
         context['metagov_config'] = json.dumps(result)
         context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
         context['metagov_server_url'] = settings.METAGOV_URL
