@@ -82,7 +82,7 @@ class SlackCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def notify_action(self, action, policy, users=None, post_type="channel", template=None, channel=None):
+    def notify_action(self, action, policy, users=[], post_type="channel", template=None, channel=None):
         from integrations.slack.views import post_policy
 
         post_policy(policy, action, users, post_type, template, channel)
