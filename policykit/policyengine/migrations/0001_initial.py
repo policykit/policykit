@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('readable_name', models.CharField(blank=True, max_length=300)),
-                ('metagov_slug', models.SlugField(blank=True, max_length=36, unique=True)),
+                ('metagov_slug', models.SlugField(blank=True, max_length=36, null=True, unique=True)),
             ],
         ),
         migrations.CreateModel(

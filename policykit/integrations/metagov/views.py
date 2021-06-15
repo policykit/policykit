@@ -62,11 +62,7 @@ def internal_receive_outcome(request, id):
 @csrf_exempt
 def internal_receive_action(request):
     """
-    Receive event from Metagov, and create a new MetagovPlatformAction.
-
-    1) Find the `CommunityPlatform` that this metagov community corresponds to (e.g. the SlackCommunity that was configured to use Metagov.)
-    2) Get or create a MetagovUser that' stied to the original community (the SlackCommunity)
-    3) Give the user permission to propose MetagovPlatformActions
+    Receive event from Metagov
     """
 
     if request.method != "POST" or not request.body:
@@ -85,17 +81,24 @@ def internal_receive_action(request):
         logger.error(f"Received event for community {metagov_community_slug} which doesn't exist in PolicyKit")
         return HttpResponseBadRequest("CommunityPlatform does not exist")
 
-    # special cases for receiving events from "governable platforms" that have full fledged pk integrations
+    # Special cases for receiving events from "governable platforms" that have fully featured integrations
+
     if body.get("source") == "slack":
+        # Route Slack event to the correct SlackCommunity handler
         slack_community = SlackCommunity.objects.filter(community=community).first()
         if slack_community is None:
             return HttpResponseBadRequest(f"no slack community exists for {metagov_community_slug}")
         slack_community.handle_metagov_event(body)
         return HttpResponse()
 
-    # FIXME: just choosing the first CommunityPlatform to attach this event to..
-    platform_community = CommunityPlatform.objects.filter(community=community).first()
+    # For all other sources, create generic MetagovPlatformActions.
 
+    platform_community = CommunityPlatform.objects.filter(community=community).first()
+    if platform_community is None:
+        logger.error(f"No platforms exist for community '{community}'")
+        return HttpResponse()
+
+    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovPlatformActions
 
     # Hack so MetagovUser username doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.

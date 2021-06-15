@@ -39,23 +39,22 @@ class StarterKit(PolymorphicModel):
     def __str__(self):
         return self.name
 
+
 class Community(models.Model):
     readable_name = models.CharField(max_length=300, blank=True)
-    metagov_slug = models.SlugField(max_length=36, unique=True, blank=True)
+    metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
 
     def __str__(self):
         prefix = super().__str__()
         return '{} {}'.format(prefix, self.readable_name or '')
 
     def save(self, *args, **kwargs):
-        is_first_save = not self.pk
-        super(Community, self).save(*args, **kwargs)
-        if is_first_save and settings.METAGOV_ENABLED:
-            # Create a corresponding community in Metagov
+        if settings.METAGOV_ENABLED and not self.pk and not self.metagov_slug:
+            # If this is the first save, create a corresponding community in Metagov
             response = MetagovAPI.create_empty_metagov_community(self.readable_name)
-            logger.debug(f"Created new Metagov community: {response}. Saving slug in model..")
             self.metagov_slug = response["slug"]
-            self.save(update_fields=["metagov_slug"])
+            logger.debug(f"Created new Metagov community '{self.metagov_slug}' Saving slug in model.")
+        super(Community, self).save(*args, **kwargs)
 
 
 @receiver(post_delete, sender=Community)

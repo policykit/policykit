@@ -30,9 +30,17 @@ def new_community(request):
         return HttpResponseBadRequest()
 
     from policyengine.models import Community
-    # Create Community. Automatically creates community in Metagov too.
-    community = Community.objects.create()
-
+    community: Community = None
+    if request.user.is_authenticated:
+        # user is already logged in, so we are authorizing to an existing community
+        logger.info(">>> authorizing slack for existing community")
+        user = get_user(request)
+        community = user.community.community
+    else:
+        # user is not logged in, so we are creating a new community
+        logger.info(">>> authorizing slack for new community")
+        community = Community.objects.create()
+    logger.info(f">>> community: {community.metagov_slug}")
     # Initiate authorization flow to install Metagov to platform.
     # On successful completion, the Metagov Slack plugin will be enabled for the community.
 
@@ -45,13 +53,12 @@ def new_community(request):
     request.session['community_install_state'] = state
 
     # redirect to metagov to authorize the app
-    #TODO pass session state and validate it at the /install endpoint
     url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
     return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import CommunityPlatform, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
+    from policyengine.models import CommunityUser
 
     user = get_user(request)
     user.community = user.community
@@ -166,8 +173,6 @@ def settings_page(request):
         context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
         context['metagov_server_url'] = settings.METAGOV_URL
         context['metagov_community_slug'] = community.metagov_slug
-        # nagivate back to this page after slack install
-        context['slack_redirect_uri'] = f"{settings.SERVER_URL}/main/settings"
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
 
