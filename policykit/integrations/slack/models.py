@@ -222,6 +222,7 @@ class SlackPostMessage(PlatformAction):
 
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
+    timestamp = models.CharField(max_length=32, blank=True)
 
     action_codename = "slackpostmessage"
     app_name = "slackintegration"
@@ -230,10 +231,11 @@ class SlackPostMessage(PlatformAction):
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
     def revert(self):
-        admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True)[0]
-        # self time_stamp..?
-        # FIXME: bot can only delete messages from itself
-        values = {"token": admin_user.access_token, "ts": self.time_stamp, "channel": self.channel}
+        admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True, access_token__isnull=False).first()
+        if admin_user is None:
+            raise Exception("Cannot delete post, no admin access token found")
+
+        values = {"token": admin_user.access_token, "ts": self.timestamp, "channel": self.channel}
         super().revert(values, "chat.delete")
 
 
@@ -288,7 +290,7 @@ class SlackPinMessage(PlatformAction):
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
     channel = models.CharField("channel", max_length=150)
-    timestamp = models.CharField("timestamp", max_length=150)
+    timestamp = models.CharField(max_length=32)
 
     action_codename = "slackpinmessage"
     app_name = "slackintegration"

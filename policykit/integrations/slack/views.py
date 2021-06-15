@@ -210,7 +210,7 @@ def maybe_create_new_api_action(community, outer_event):
             new_api_action.community = community
             new_api_action.text = event["text"]
             new_api_action.channel = event["channel"]
-            new_api_action.time_stamp = event["ts"]
+            new_api_action.timestamp = event["ts"]
 
             u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
 
