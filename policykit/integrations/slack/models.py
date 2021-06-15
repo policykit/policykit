@@ -1,119 +1,194 @@
-from django.db import models
-from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
-from django.contrib.auth.models import Permission, ContentType, User
-import urllib
 import json
 import logging
+import urllib
+
+import requests
+from django.conf import settings
+from django.contrib.auth.models import Permission
+from django.db import models
+from policyengine.models import (
+    BooleanVote,
+    Community,
+    CommunityRole,
+    CommunityUser,
+    ConstitutionPolicy,
+    LogAPICall,
+    NumberVote,
+    PlatformAction,
+    PlatformActionBundle,
+    PlatformPolicy,
+    Proposal,
+    StarterKit,
+)
 
 logger = logging.getLogger(__name__)
 
-SLACK_ACTIONS = ['slackpostmessage',
-                 'slackschedulemessage',
-                 'slackrenameconversation',
-                 'slackkickconversation',
-                 'slackjoinconversation',
-                 'slackpinmessage'
-                 ]
+SLACK_ACTIONS = [
+    "slackpostmessage",
+    "slackschedulemessage",
+    "slackrenameconversation",
+    "slackkickconversation",
+    "slackjoinconversation",
+    "slackpinmessage",
+]
 
-SLACK_VIEW_PERMS = ['Can view slack post message', 'Can view slack schedule message', 'Can view slack rename conversation', 'Can view slack kick conversation', 'Can view slack join conversation', 'Can view slack pin message']
+SLACK_VIEW_PERMS = [
+    "Can view slack post message",
+    "Can view slack schedule message",
+    "Can view slack rename conversation",
+    "Can view slack kick conversation",
+    "Can view slack join conversation",
+    "Can view slack pin message",
+]
 
-SLACK_PROPOSE_PERMS = ['Can add slack post message', 'Can add slack schedule message', 'Can add slack rename conversation', 'Can add slack kick conversation', 'Can add slack join conversation', 'Can add slack pin message']
+SLACK_PROPOSE_PERMS = [
+    "Can add slack post message",
+    "Can add slack schedule message",
+    "Can add slack rename conversation",
+    "Can add slack kick conversation",
+    "Can add slack join conversation",
+    "Can add slack pin message",
+]
 
-SLACK_EXECUTE_PERMS = ['Can execute slack post message', 'Can execute slack schedule message', 'Can execute slack rename conversation', 'Can execute slack kick conversation', 'Can execute slack join conversation', 'Can execute slack pin message']
+SLACK_EXECUTE_PERMS = [
+    "Can execute slack post message",
+    "Can execute slack schedule message",
+    "Can execute slack rename conversation",
+    "Can execute slack kick conversation",
+    "Can execute slack join conversation",
+    "Can execute slack pin message",
+]
+
+NUMBERS_TEXT = {
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+}
+
 
 class SlackUser(CommunityUser):
     pass
 
-class SlackCommunity(Community):
-    API = 'https://slack.com/api/'
 
+class SlackCommunity(Community):
     platform = "slack"
 
-    team_id = models.CharField('team_id', max_length=150, unique=True)
+    team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    access_token = models.CharField('access_token',
-                                    max_length=300,
-                                    unique=True)
-
-    bot_id = models.CharField('bot_id', max_length=150, unique=True, default='')
-
-    def notify_action(self, action, policy, users=None, post_type='channel', template=None, channel=None):
+    def notify_action(self, action, policy, users=None, post_type="channel", template=None, channel=None):
         from integrations.slack.views import post_policy
+
         post_policy(policy, action, users, post_type, template, channel)
 
-    def make_call(self, url, values=None, action=None, method=None):
-        if not url.startswith("http"):
-            url = SlackCommunity.API + url
-        if values:
-            url += "?" + urllib.parse.urlencode(values)
-        logger.info(f"Making call: {url}")
-        req = urllib.request.Request(url)
-        resp = urllib.request.urlopen(req)
-        resp_body = resp.read().decode('utf-8')
-        if resp_body:
-            return json.loads(resp_body)
+    def handle_metagov_event(self, outer_event):
+        logger.info(f"SlackCommunity recieved metagov event: {outer_event['event_type']}")
+        if outer_event["initiator"].get("is_metagov_bot") == True:
+            logger.info("Ignoring bot event")
+            return
+
+        event_type = outer_event["event_type"]
+        initiator = outer_event["initiator"].get("user_id")
+
+        from integrations.slack.views import maybe_create_new_api_action
+
+        new_api_action = maybe_create_new_api_action(self, outer_event)
+
+        if new_api_action is not None:
+            new_api_action.community_origin = True
+            new_api_action.is_bundled = False
+            new_api_action.save()  # save triggers policy evaluation
+        else:
+            logger.info(f"No PlatformAction created for event '{event_type}'")
+
+        if event_type == "reaction_added":
+            event = outer_event["data"]
+            ts = event["item"]["ts"]
+
+            # check if this ts corresponds to a community_post action or bundle
+            action = PlatformAction.objects.filter(community=self, community_post=ts).first()
+            action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
+
+            if action is not None and (event["reaction"] == "+1" or event["reaction"] == "-1"):
+                value = True if event["reaction"] == "+1" else False
+                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
+                logger.info(f"Processing boolean Slack vote {value} by {user}")
+                existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
+                if existing_vote is not None:
+                    existing_vote.boolean_value = value
+                    existing_vote.save()
+                else:
+                    BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
+
+            elif action_bundle is not None and event["reaction"] in NUMBERS_TEXT.keys():
+                bundled_actions = list(action_bundle.bundled_actions.all())
+                num = NUMBERS_TEXT[event["reaction"]]
+                voted_action = bundled_actions[num]
+                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
+                logger.info(f"Processing numeric Slack vote {num} for action {voted_action} by user {user}")
+
+                existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
+                if existing_vote is not None:
+                    existing_vote.number_value = num
+                    existing_vote.save()
+                else:
+                    NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
+
+    def make_call(self, method_name, values={}, action=None, method=None):
+        response = requests.post(
+            f"{settings.METAGOV_URL}/api/internal/action/slack.method",
+            json={"parameters": {"method_name": method_name, **values}},
+            headers={"X-Metagov-Community": self.metagov_slug},
+        )
+        if not response.ok:
+            raise Exception(f"Error: {response.status_code} {response.reason} {response.text}")
+        if response.content:
+            return response.json()
         return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-
-        from policyengine.models import LogAPICall
+        logger.debug(f">> SlackCommunity.execute_platform_action {action.ACTION} for {action}")
         from policyengine.views import clean_up_proposals
 
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
-            logger.info('EXECUTING ACTION BELOW:')
             call = obj.ACTION
-            logger.info(call)
-
-            obj_fields = []
-            for f in obj._meta.get_fields():
-                if f.name not in ['polymorphic_ctype',
-                                  'community',
-                                  'initiator',
-                                  'communityapi_ptr',
-                                  'platformaction',
-                                  'platformactionbundle',
-                                  'community_revert',
-                                  'community_origin',
-                                  'is_bundled',
-                                  'proposal',
-                                  'platformaction_ptr',
-                                  'data',
-                                  'community_post',
-                                  'metagovprocess'
-                                  ]:
-                    obj_fields.append(f.name)
 
             data = {}
+            if hasattr(action, "EXECUTE_PARAMETERS"):
+                for fieldname in action.EXECUTE_PARAMETERS:
+                    data[fieldname] = getattr(action, fieldname)
 
+            logger.debug(f"Preparing to make request {call} which requires token type {obj.AUTH}...")
             if obj.AUTH == "user":
-                data['token'] = action.proposal.author.access_token
-                if not data['token']:
-                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
-                    data['token'] = admin_user.access_token
+                data["token"] = action.proposal.author.access_token
+                if not data["token"]:
+                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True).first()
+                    if admin_user and admin_user.access_token:
+                        data["token"] = admin_user.access_token
             elif obj.AUTH == "admin_bot":
                 if action.proposal.author.is_community_admin:
-                    data['token'] = action.proposal.author.access_token
-                else:
-                    data['token'] = self.access_token
+                    data["token"] = action.proposal.author.access_token
             elif obj.AUTH == "admin_user":
-                admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
-                data['token'] = admin_user.access_token
-            else:
-                data['token'] = self.access_token
+                admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True).first()
+                if admin_user and admin_user.access_token:
+                    data["token"] = admin_user.access_token
 
+            logger.debug(f"Overriding token? {True if data.get('token') else False}")
 
-            for item in obj_fields:
-                try :
-                    if item != 'id':
-                        value = getattr(obj, item)
-                        data[item] = value
-                except obj.DoesNotExist:
-                    continue
-
-            res = LogAPICall.make_api_call(self, data, call)
-
+            try:
+                LogAPICall.make_api_call(self, data, call)
+            except Exception as e:
+                logger.error(f"Error making API call in execute_platform_action: {e}")
+                clean_up_proposals(action, False)
+                raise
 
             # delete PolicyKit Post
             if delete_policykit_post:
@@ -126,153 +201,134 @@ class SlackCommunity(Community):
                     posted_action = action
 
                 if posted_action.community_post:
-                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True)[0]
-                    values = {'token': admin_user.access_token,
-                              'ts': posted_action.community_post,
-                              'channel': obj.channel
-                            }
-                    call = 'chat.delete'
-                    _ = LogAPICall.make_api_call(self, values, call)
+                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True).first()
+                    if admin_user and admin_user.access_token:
+                        values = {
+                            "token": admin_user.access_token,
+                            "ts": posted_action.community_post,
+                            "channel": obj.channel,
+                        }
+                        LogAPICall.make_api_call(self, values, "chat.delete")
+                    else:
+                        logger.error("Can't delete PolicyKit community post, no admin token to use for chat.delete")
 
-            if res['ok']:
-                clean_up_proposals(action, True)
-            else:
-                error_message = res['error']
-                logger.info(error_message)
-                clean_up_proposals(action, False)
-
-        else:
-            clean_up_proposals(action, True)
+        clean_up_proposals(action, True)
 
 
 class SlackPostMessage(PlatformAction):
-    ACTION = 'chat.postMessage'
-    AUTH = 'admin_bot'
-    text = models.TextField()
-    channel = models.CharField('channel', max_length=150)
+    ACTION = "chat.postMessage"
+    AUTH = "admin_bot"
+    EXECUTE_PARAMETERS = ["text", "channel"]
 
-    action_codename = 'slackpostmessage'
-    app_name = 'slackintegration'
+    text = models.TextField()
+    channel = models.CharField("channel", max_length=150)
+
+    action_codename = "slackpostmessage"
+    app_name = "slackintegration"
 
     class Meta:
-        permissions = (
-            ('can_execute_slackpostmessage', 'Can execute slack post message'),
-        )
+        permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
     def revert(self):
         admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True)[0]
-        values = {'token': admin_user.access_token,
-                  'ts': self.time_stamp,
-                  'channel': self.channel
-                }
-        super().revert(values, 'chat.delete')
+        # self time_stamp..?
+        # FIXME: bot can only delete messages from itself
+        values = {"token": admin_user.access_token, "ts": self.time_stamp, "channel": self.channel}
+        super().revert(values, "chat.delete")
+
 
 class SlackRenameConversation(PlatformAction):
-    ACTION = 'conversations.rename'
-    AUTH = 'admin_user'
+    ACTION = "conversations.rename"
+    AUTH = "admin_user"
+    EXECUTE_PARAMETERS = ["channel", "name"]
 
     action_type = "SlackRenameConversation"
 
-    name = models.CharField('name', max_length=150)
-    channel = models.CharField('channel', max_length=150)
+    name = models.CharField("name", max_length=150)
+    channel = models.CharField("channel", max_length=150)
 
-    action_codename = 'slackrenameconversation'
-    app_name = 'slackintegration'
+    action_codename = "slackrenameconversation"
+    app_name = "slackintegration"
 
     class Meta:
-        permissions = (
-            ('can_execute_slackrenameconversation', 'Can execute slack rename conversation'),
-        )
+        permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
 
-    def get_channel_info(self):
-        values = {'token': self.community.access_token,
-                'channel': self.channel
-                }
-        data = urllib.parse.urlencode(values)
-        data = data.encode('utf-8')
-        req = urllib.request.Request('https://slack.com/api/conversations.info?', data)
-        resp = urllib.request.urlopen(req)
-        res = json.loads(resp.read().decode('utf-8'))
-        prev_names = res['channel']['previous_names']
-        return prev_names
+    def get_previous_names(self):
+        response = self.community.make_metagov_call("conversations.info", {"channel": self.channel})
+        return response["channel"]["previous_names"]
 
     def revert(self):
-        values = {'name': self.prev_name,
-                'token': self.initiator.access_token,
-                'channel': self.channel
-                }
-        super().revert(values, 'conversations.rename')
+        # self.prev_name is not persisted...? add a field to the model
+        values = {"name": self.prev_name, "token": self.initiator.access_token, "channel": self.channel}
+        super().revert(values, "conversations.rename")
+
 
 class SlackJoinConversation(PlatformAction):
-    ACTION = 'conversations.invite'
-    AUTH = 'admin_user'
-    channel = models.CharField('channel', max_length=150)
-    users = models.CharField('users', max_length=15)
+    ACTION = "conversations.invite"
+    AUTH = "admin_user"
+    EXECUTE_PARAMETERS = ["channel", "users"]
 
-    action_codename = 'slackjoinconversation'
-    app_name = 'slackintegration'
+    channel = models.CharField("channel", max_length=150)
+    users = models.CharField("users", max_length=15)
+
+    action_codename = "slackjoinconversation"
+    app_name = "slackintegration"
 
     class Meta:
-        permissions = (
-            ('can_execute_slackjoinconversation', 'Can execute slack join conversation'),
-        )
+        permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
     def revert(self):
         admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True)[0]
-        values = {'user': self.users,
-                  'token': admin_user.access_token,
-                  'channel': self.channel
-                }
-        super().revert(values, 'conversations.kick')
+        values = {"user": self.users, "token": admin_user.access_token, "channel": self.channel}
+        super().revert(values, "conversations.kick")
+
 
 class SlackPinMessage(PlatformAction):
-    ACTION = 'pins.add'
-    AUTH = 'bot'
-    channel = models.CharField('channel', max_length=150)
-    timestamp = models.CharField('timestamp', max_length=150)
+    ACTION = "pins.add"
+    AUTH = "bot"
+    EXECUTE_PARAMETERS = ["channel", "timestamp"]
+    channel = models.CharField("channel", max_length=150)
+    timestamp = models.CharField("timestamp", max_length=150)
 
-    action_codename = 'slackpinmessage'
-    app_name = 'slackintegration'
+    action_codename = "slackpinmessage"
+    app_name = "slackintegration"
 
     class Meta:
-        permissions = (
-            ('can_execute_slackpinmessage', 'Can execute slack pin message'),
-        )
+        permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
 
     def revert(self):
-        values = {'token': self.community.access_token,
-                  'channel': self.channel,
-                  'timestamp': self.timestamp
-                }
-        super().revert(values, 'pins.remove')
+        values = {"channel": self.channel, "timestamp": self.timestamp}
+        super().revert(values, "pins.remove")
+
 
 class SlackScheduleMessage(PlatformAction):
-    ACTION = 'chat.scheduleMessage'
+    ACTION = "chat.scheduleMessage"
+    EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
     text = models.TextField()
-    channel = models.CharField('channel', max_length=150)
-    post_at = models.IntegerField('post at')
+    channel = models.CharField("channel", max_length=150)
+    post_at = models.IntegerField("post at")
 
-    action_codename = 'slackschedulemessage'
-    app_name = 'slackintegration'
+    action_codename = "slackschedulemessage"
+    app_name = "slackintegration"
 
     class Meta:
-        permissions = (
-            ('can_execute_slackschedulemessage', 'Can execute slack schedule message'),
-        )
+        permissions = (("can_execute_slackschedulemessage", "Can execute slack schedule message"),)
+
 
 class SlackKickConversation(PlatformAction):
-    ACTION = 'conversations.kick'
-    AUTH = 'user'
-    user = models.CharField('user', max_length=15)
-    channel = models.CharField('channel', max_length=150)
+    ACTION = "conversations.kick"
+    AUTH = "user"
+    EXECUTE_PARAMETERS = ["user", "channel"]
 
-    action_codename = 'slackkickconversation'
-    app_name = 'slackintegration'
+    user = models.CharField("user", max_length=15)
+    channel = models.CharField("channel", max_length=150)
+
+    action_codename = "slackkickconversation"
+    app_name = "slackintegration"
 
     class Meta:
-        permissions = (
-            ('can_execute_slackkickconversation', 'Can execute slack kick conversation'),
-        )
+        permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
+
 
 class SlackStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
@@ -328,29 +384,29 @@ class SlackStarterKit(StarterKit):
             jsonDec = json.decoder.JSONDecoder()
             perm_set = jsonDec.decode(role.plat_perm_set)
 
-            if 'view' in perm_set:
+            if "view" in perm_set:
                 for perm in SLACK_VIEW_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            if 'propose' in perm_set:
+            if "propose" in perm_set:
                 for perm in SLACK_PROPOSE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
-            if 'execute' in perm_set:
+            if "execute" in perm_set:
                 for perm in SLACK_EXECUTE_PERMS:
                     p1 = Permission.objects.get(name=perm)
                     c.permissions.add(p1)
 
             if role.user_group == "admins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+                group = CommunityUser.objects.filter(community=community, is_community_admin=True)
                 for user in group:
                     c.user_set.add(user)
             elif role.user_group == "nonadmins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+                group = CommunityUser.objects.filter(community=community, is_community_admin=False)
                 for user in group:
                     c.user_set.add(user)
             elif role.user_group == "all":
-                group = CommunityUser.objects.filter(community = community)
+                group = CommunityUser.objects.filter(community=community)
                 for user in group:
                     c.user_set.add(user)
             elif role.user_group == "creator":

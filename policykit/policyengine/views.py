@@ -1,14 +1,17 @@
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 from django.conf import settings
+from urllib.parse import quote
+import integrations.metagov.api as MetagovAPI
 
+import random
 import logging
 import json
 import parser
@@ -20,6 +23,31 @@ db_logger = logging.getLogger("db")
 def homepage(request):
     return render(request, 'home.html', {})
 
+
+def new_community(request):
+    platform = request.GET.get('platform')
+    if not platform or platform != "slack":
+        return HttpResponseBadRequest()
+
+    from policyengine.models import ParentCommunity
+    # Create ParentCommunity. Automatically creates community in Metagov too.
+    community = ParentCommunity.objects.create()
+
+    # Initiate authorization flow to install Metagov to platform.
+    # On successful completion, the Metagov Slack plugin will be enabled for the community.
+
+    # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
+    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
+    encoded_redirect_uri = quote(redirect_uri, safe='')
+
+    # store state in user's session so we can validate it later
+    state = "".join([str(random.randint(0, 9)) for i in range(8)])
+    request.session['community_install_state'] = state
+
+    # redirect to metagov to authorize the app
+    #TODO pass session state and validate it at the /install endpoint
+    url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
+    return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
 def v2(request):
@@ -122,8 +150,6 @@ def logout(request):
 
 @login_required(login_url='/login')
 def settings_page(request):
-    from integrations.metagov.library import get_or_create_metagov_community, get_plugin_config_schemas, metagov_slug
-
     user = get_user(request)
     community = user.community
 
@@ -134,15 +160,14 @@ def settings_page(request):
     }
 
     # If user is permitted to edit Metagov config, add additional context
-    if user.has_perm("metagov.can_edit_metagov_config"):
-        result = get_or_create_metagov_community(community)
-        if result:
-            context['metagov_config'] = json.dumps(result)
-            context['plugin_schemas'] = json.dumps(get_plugin_config_schemas())
-            context['metagov_server_url'] = settings.METAGOV_URL
-            context['metagov_community_slug'] = metagov_slug(community)
-            # nagivate back to this page after slack install
-            context['slack_redirect_uri'] = f"{settings.SERVER_URL}/main/settings"
+    if user.has_perm("metagov.can_edit_metagov_config") and community.metagov_slug:
+        result = MetagovAPI.get_metagov_community(community)
+        context['metagov_config'] = json.dumps(result)
+        context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
+        context['metagov_server_url'] = settings.METAGOV_URL
+        context['metagov_community_slug'] = community.metagov_slug
+        # nagivate back to this page after slack install
+        context['slack_redirect_uri'] = f"{settings.SERVER_URL}/main/settings"
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
 

@@ -2,10 +2,16 @@ from unittest import skip
 
 from django.contrib.auth.models import Permission
 from django.test import Client, TestCase
-from integrations.metagov.library import update_metagov_community, metagov_slug
+import integrations.metagov.api as MetagovAPI
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import CommunityRole, PlatformPolicy, ConstitutionPolicy, PolicykitAddCommunityDoc
+from policyengine.models import (
+    ParentCommunity,
+    CommunityRole,
+    PlatformPolicy,
+    ConstitutionPolicy,
+    PolicykitAddCommunityDoc,
+)
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -23,17 +29,17 @@ class EvaluationTests(TestCase):
         user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
         can_add = Permission.objects.get(name="Can add slack pin message")
         user_group.permissions.add(can_add)
+        parent_community = ParentCommunity.objects.create()
         self.community = SlackCommunity.objects.create(
             community_name="my test community",
+            parent_community=parent_community,
             team_id="TMQ3PKX",
-            bot_id="test",
-            access_token="test",
             base_role=user_group,
         )
         self.user = SlackUser.objects.create(username="test", community=self.community)
 
         # Activate a plugin to use in tests
-        update_metagov_community(
+        MetagovAPI.update_metagov_community(
             community=self.community,
             plugins=list(
                 [
@@ -285,17 +291,18 @@ return FAILED"""
 
 class MetagovPlatformActionTest(TestCase):
     def setUp(self):
-        user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
+        user_group = CommunityRole.objects.create(role_name="fake role 2", name="testing role 2")
         p1 = Permission.objects.get(name="Can add slack pin message")
         user_group.permissions.add(p1)
+        parent_community = ParentCommunity.objects.create()
         self.community = SlackCommunity.objects.create(
             community_name="test community",
-            team_id="test123",
-            bot_id="test",
-            access_token="test",
+            parent_community=parent_community,
+            team_id="test000",
             base_role=user_group,
         )
 
+    # @skip("FIXME")
     def test_metagov_trigger(self):
         # 1) Create Policy that is triggered by a metagov action
 
@@ -313,7 +320,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.save()
 
         event_payload = {
-            "community": metagov_slug(self.community),
+            "community": self.community.metagov_slug,
             "initiator": {"user_id": "miriam", "provider": "discourse"},
             "source": "discourse",
             "event_type": "post_created",
@@ -337,4 +344,40 @@ and action.event_type == 'discourse.post_created'"""
         self.assertEqual(action.data.get("test_verify_username"), "miriam")
         self.assertEqual(action.event_data["raw"], "post text")
 
+        self.assertEqual(action.proposal.status, "passed")
+
+    def test_metagov_slack_trigger(self):
+        """Test receiving a Slack event from Metagov that creates a SlackPinMessage action"""
+        # 1) Create Policy that is triggered by a metagov action
+        policy = PlatformPolicy()
+        policy.community = self.community
+        policy.filter = """return action.action_codename == 'slackpinmessage'"""
+        policy.initialize = "pass"
+        policy.notify = "pass"
+        policy.check = "return PASSED"
+        policy.success = "action.data.set('got here', True)"
+        policy.fail = "pass"
+        policy.description = "test"
+        policy.name = "test policy"
+        policy.save()
+
+        event_payload = {
+            "community": self.community.metagov_slug,
+            "initiator": {"user_id": "alice", "provider": "slack"},
+            "source": "slack",
+            "event_type": "pin_added",
+            "data": {"channel_id": "123", "item": {"message": {"ts": "123"}}},
+        }
+
+        # 2) Mimick an incoming notification from Metagov that the action has occurred
+        client = Client()
+        response = client.post(f"/metagov/internal/action", data=event_payload, content_type="application/json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(SlackPinMessage.objects.all().count(), 1)
+
+        action = SlackPinMessage.objects.first()
+        self.assertEqual(action.community.platform, "slack")
+        self.assertEqual(action.initiator.username, "alice")
+        self.assertEqual(action.data.get("got here"), True)
         self.assertEqual(action.proposal.status, "passed")

@@ -5,33 +5,35 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import ContentType, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotFound
+from django.http import (
+    JsonResponse,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseServerError,
+    HttpResponseNotFound,
+)
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.library import metagov_slug, update_metagov_community, get_webhooks
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from policyengine.models import Community, CommunityRole
+from policyengine.models import ParentCommunity, Community, CommunityRole
+from integrations.slack.models import SlackCommunity
+import integrations.metagov.api as MetagovAPI
 
 logger = logging.getLogger(__name__)
 
 
-@login_required(login_url='/login')
+@login_required(login_url="/login")
 @csrf_exempt
 def save_config(request):
     user = get_user(request)
     community = user.community
     data = json.loads(request.body)
 
-    if data.get("name") != metagov_slug(community):
-        return HttpResponseBadRequest("Changing the name is not permitted")
-    if data.get("readable_name") != community.community_name:
-        return HttpResponseBadRequest("Changing the readable_name is not permitted")
-
     try:
-        community_config = update_metagov_community(community, data.get("plugins", []))
+        community_config = MetagovAPI.update_metagov_community(community, data.get("plugins", []))
     except Exception as e:
         return HttpResponseBadRequest(e)
 
-    hooks = get_webhooks(community)
+    hooks = MetagovAPI.get_webhooks(community)
     return JsonResponse({"hooks": hooks, "config": community_config})
 
 
@@ -55,6 +57,7 @@ def internal_receive_outcome(request, id):
     process.save()
     return HttpResponse()
 
+
 # INTERNAL ENDPOINT, no auth
 @csrf_exempt
 def internal_receive_action(request):
@@ -77,17 +80,29 @@ def internal_receive_action(request):
     metagov_community_slug = body.get("community")
 
     try:
-        community = Community.objects.get_by_metagov_name(name=metagov_community_slug)
-    except Community.DoesNotExist:
+        community = ParentCommunity.objects.get(metagov_slug=metagov_community_slug)
+    except ParentCommunity.DoesNotExist:
         logger.error(f"Received event for community {metagov_community_slug} which doesn't exist in PolicyKit")
         return HttpResponseBadRequest("Community does not exist")
+
+    # special cases for receiving events from "governable platforms" that have full fledged pk integrations
+    if body.get("source") == "slack":
+        slack_community = SlackCommunity.objects.filter(parent_community=community).first()
+        if slack_community is None:
+            return HttpResponseBadRequest(f"no slack community exists for {metagov_community_slug}")
+        slack_community.handle_metagov_event(body)
+        return HttpResponse()
+
+    # FIXME: just choosing the first Community to attach this event to..
+    platform_community = Community.objects.filter(parent_community=community).first()
+
 
     # Hack so MetagovUser username doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.
     initiator = body["initiator"]
     prefixed_username = f"{initiator['provider']}.{initiator['user_id']}"
     metagov_user, _ = MetagovUser.objects.get_or_create(
-        username=prefixed_username, provider=initiator["provider"], community=community
+        username=prefixed_username, provider=initiator["provider"], community=platform_community
     )
 
     # Give this user permission to propose any MetagovPlatformAction
@@ -95,7 +110,7 @@ def internal_receive_action(request):
         role_name="Base User", name=f"Metagov: {metagov_community_slug}: Base User"
     )
     if usergroup_created:
-        user_group.community = community
+        user_group.community = platform_community
         content_type = ContentType.objects.get_for_model(MetagovPlatformAction)
         permission, _ = Permission.objects.get_or_create(
             codename="add_metagovaction",
@@ -108,7 +123,7 @@ def internal_receive_action(request):
 
     # Create MetagovPlatformAction
     new_api_action = MetagovPlatformAction()
-    new_api_action.community = community
+    new_api_action.community = platform_community
     new_api_action.initiator = metagov_user
     new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])

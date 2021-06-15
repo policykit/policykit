@@ -400,8 +400,10 @@ def oauth(request):
         user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discord: " + guild_info['name'] + ": Base User")
 
         if not s.exists():
+            parent_community = ParentCommunity.objects.create(readable_name=guild_info['name'])
             community = DiscordCommunity.objects.create(
                 community_name=guild_info['name'],
+                parent_community=parent_community,
                 team_id=guild_id,
                 base_role=user_group
             )

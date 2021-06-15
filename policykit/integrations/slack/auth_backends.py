@@ -1,54 +1,40 @@
-from django.conf import settings
+import logging
+
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
-from integrations.slack.models import SlackUser, SlackCommunity
-from urllib import parse
-import urllib.request
-import json
-import logging
+from integrations.slack.models import SlackCommunity, SlackUser
+from integrations.slack.utils import get_slack_user_fields
 
 logger = logging.getLogger(__name__)
 
+
 class SlackBackend(BaseBackend):
-
-    def authenticate(self, request, oauth=None, platform=None):
-        if not oauth:
+    def authenticate(self, request, oauth=None, platform=None, user_token=None, user_id=None, team_id=None):
+        if not user_token or not team_id or not user_id:
+            logger.error("missing user token or team")
             return None
 
-        if platform != 'slack':
+        if platform != "slack":
             return None
 
-        s = SlackCommunity.objects.filter(team_id=oauth['team']['id'])
+        try:
+            community = SlackCommunity.objects.get(team_id=team_id)
+        except SlackCommunity.DoesNotExist:
+            return None
 
-        if s.exists():
-            data = parse.urlencode({'token': oauth['authed_user']['access_token']}).encode()
-            req = urllib.request.Request('https://slack.com/api/users.identity', data=data)
-            resp = urllib.request.urlopen(req)
-            user_info = json.loads(resp.read().decode('utf-8'))
+        response = community.make_call("users.info", {"user": user_id})
+        user_info = response["user"]
+        user_fields = get_slack_user_fields(user_info)
+        user_fields["password"] = user_token
+        user_fields["access_token"] = user_token
 
-            slack_user = SlackUser.objects.filter(username=oauth['authed_user']['id'])
-
-            if slack_user.exists():
-                # update user info
-                slack_user = slack_user[0]
-                slack_user.access_token = oauth['authed_user']['access_token']
-                slack_user.community = s[0]
-                slack_user.password = oauth['authed_user']['access_token']
-                slack_user.readable_name = user_info['user']['name']
-                slack_user.avatar = user_info['user']['image_24']
-                slack_user.save()
-            else:
-                slack_user,_ = SlackUser.objects.get_or_create(
-                    username = oauth['authed_user']['id'],
-                    password = oauth['authed_user']['access_token'],
-                    community = s[0],
-                    readable_name = user_info['user']['name'],
-                    avatar = user_info['user']['image_24'],
-                    access_token = oauth['authed_user']['access_token'],
-                )
-            return slack_user
-        return None
-
+        slack_user, created = SlackUser.objects.update_or_create(
+            community=community,
+            username=user_info["id"],
+            defaults=user_fields,
+        )
+        logger.debug(f"Created or updated {slack_user} (created: {created})")
+        return slack_user
 
     def get_user(self, user_id):
         try:

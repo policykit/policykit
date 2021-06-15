@@ -39,6 +39,14 @@
     // Uses https://github.com/jsonform/jsonform
     $('form#json-editor-form').jsonForm({
       schema: {"type": "object", "properties": schemas},
+      // TODO
+      // form: [
+      //   "*",
+      //   {
+      //     "key": "slack",
+      //     "type": "hidden"
+      //   }
+      // ],
       value: loaded_plugin_config,
       validate: false,
       onSubmit: function (errors, values) {

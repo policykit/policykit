@@ -1,166 +1,182 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from urllib import parse
-import urllib.request
-from policykit.settings import SLACK_CLIENT_SECRET, SLACK_CLIENT_ID
-from django.contrib.auth import login, authenticate
-import logging
-from django.shortcuts import redirect
-import json
-from integrations.slack.models import SlackStarterKit, SlackCommunity, SlackUser, SlackRenameConversation, SlackJoinConversation, SlackPostMessage, SlackPinMessage
-from policyengine.models import *
-from django.contrib.auth.models import User, Group
-from django.views.decorators.csrf import csrf_exempt
 import datetime
+import json
+import logging
+from django.http.response import HttpResponseBadRequest
+
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect, render
+from integrations.slack.models import (
+    SlackCommunity,
+    SlackJoinConversation,
+    SlackPinMessage,
+    SlackPostMessage,
+    SlackRenameConversation,
+    SlackStarterKit,
+    SlackUser,
+)
+from integrations.slack.utils import get_slack_user_fields
+from policyengine.models import CommunityRole, LogAPICall, ParentCommunity, PlatformActionBundle
 
 logger = logging.getLogger(__name__)
 
-NUMBERS_TEXT = {'zero': 0,
-                'one': 1,
-                'two': 2,
-                'three': 3,
-                'four': 4,
-                'five': 5,
-                'six': 6,
-                'seven': 7,
-                'eight': 8,
-                'nine': 9
-                }
+
+NUMBERS = {
+    0: "zero",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+}
 
 
-NUMBERS = {0: 'zero',
-           1: 'one',
-           2: 'two',
-           3: 'three',
-           4: 'four',
-           5: 'five',
-           6: 'six',
-           7: 'seven',
-           8: 'eight',
-           9: 'nine'}
-
-
-
-# Create your views here.
-
-def oauth(request):
-    code = request.GET.get('code')
-    state = request.GET.get('state')
-
-    data = parse.urlencode({
-        'client_id': SLACK_CLIENT_ID,
-        'client_secret': SLACK_CLIENT_SECRET,
-        'code': code,
-        }).encode()
-
-    req = urllib.request.Request('https://slack.com/api/oauth.v2.access', data=data)
-    resp = urllib.request.urlopen(req)
-    res = json.loads(resp.read().decode('utf-8'))
-
-    logger.info(res)
-
-    if res['ok']:
-        if state =="user":
-            user = authenticate(request, oauth=res, platform="slack")
-            if user:
-                login(request, user)
-                response = redirect('/main')
-            else:
-                response = redirect('/login?error=policykit_not_yet_installed_to_that_community')
-            return response
-
-        elif state == "app":
-            # Checks that user is admin
-            dataAdmin = parse.urlencode({
-                'token': res['access_token'],
-                'user': res['authed_user']['id']
-            }).encode()
-            reqInfo = urllib.request.Request('https://slack.com/api/users.info', data=dataAdmin)
-            respInfo = urllib.request.urlopen(reqInfo)
-            resInfo = json.loads(respInfo.read())
-
-            if resInfo['user']['is_admin'] == False:
-                response = redirect('/login?error=user_is_not_an_admin')
-                return response
-
-            s = SlackCommunity.objects.filter(team_id=res['team']['id'])
-            community = None
-            user_group,_ = CommunityRole.objects.get_or_create(role_name = "Base User", name="Slack: " + res['team']['name'] + ": Base User")
-
-            user = SlackUser.objects.filter(username=res['authed_user']['id'])
-
-            if not s.exists():
-                community = SlackCommunity.objects.create(
-                    community_name=res['team']['name'],
-                    team_id=res['team']['id'],
-                    bot_id = res['bot_user_id'],
-                    access_token=res['access_token'],
-                    base_role=user_group
-                )
-                user_group.community = community
-                user_group.save()
-
-                #get the list of users, create SlackUser object for each user
-                data2 = parse.urlencode({
-                    'token':community.access_token
-                }).encode()
-
-                req2 = urllib.request.Request('https://slack.com/api/users.list', data=data2)
-                resp2 = urllib.request.urlopen(req2)
-                res2 = json.loads(resp2.read().decode('utf-8'))
-
-                #https://api.slack.com/methods/users.list
-                if res2['ok']:
-                    for new_user in res2['members']:
-                        if (not new_user['deleted']) and (not new_user['is_bot']) and (new_user['id'] != 'USLACKBOT'):
-                            if new_user['id'] == res['authed_user']['id']:
-                                u,_ = SlackUser.objects.get_or_create(
-                                    username=res['authed_user']['id'],
-                                    readable_name=new_user['real_name'],
-                                    access_token=res['authed_user']['access_token'],
-                                    is_community_admin=True,
-                                    community=community
-                                )
-                            else:
-                                u,_ = SlackUser.objects.get_or_create(
-                                    username=new_user['id'],
-                                    readable_name=new_user['real_name'],
-                                    avatar=new_user['profile']['image_24'],
-                                    community=community
-                                )
-                            u.save()
-            else:
-                community = s[0]
-                community.community_name = res['team']['name']
-                community.team_id = res['team']['id']
-                community.bot_id = res['bot_user_id']
-                community.access_token = res['access_token']
-                community.save()
-
-                response = redirect('/login?success=true')
-                return response
-
-            context = {
-                "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
-                "community_name": community.community_name,
-                "creator_token": res['authed_user']['access_token'],
-                "platform": "slack"
-            }
-            return render(request, "policyadmin/init_starterkit.html", context)
+def slack_login(request):
+    """redirect after metagov has gotten the slack user token"""
+    logger.info(f"slack_login")
+    logger.info(request.GET)
+    user_token = request.GET.get("user_token")
+    user_id = request.GET.get("user_id")
+    team_id = request.GET.get("team_id")
+    user = authenticate(request, user_token=user_token, team_id=team_id, user_id=user_id, platform="slack")
+    if user:
+        login(request, user)
+        response = redirect("/main")
     else:
-        # error message stating that the sign-in/add-to-slack didn't work
-        response = redirect('/login?error=cancel')
-        return response
-
-    response = redirect('/login?success=true')
+        response = redirect("/login?error=policykit_not_yet_installed_to_that_community")
     return response
 
-def is_policykit_bot_action(community, event):
-    return event.get('user') == community.bot_id
 
-def is_policykit_action(integration, test_a, test_b, api_name):
+def slack_install(request):
+    logger.info(">> slack_install")
+    logger.debug(request.GET)
+
+    expected_state = request.session.get("community_install_state")
+    if expected_state is None or request.GET.get("state") is None or (not request.GET.get("state") == expected_state):
+        logger.error(f"expected {expected_state}")
+        return HttpResponseBadRequest("bad state")
+
+    if request.GET.get("error"):
+        logger.error(request.GET.get("error"))
+        return redirect("/login?error=cancel")
+
+    # metagov identifier for the "parent community" to install Slack to
+    metagov_community_slug = request.GET.get("community")
+
+    # TODO(issue): stop passing user id and token
+    user_id = request.GET.get("user_id")
+    user_token = request.GET.get("user_token")
+
+    try:
+        parent_community = ParentCommunity.objects.get(metagov_slug=metagov_community_slug)
+    except ParentCommunity.DoesNotExist:
+        logger.error(f"community not found: {metagov_community_slug}")
+        return redirect("/login?error=cancel")
+
+    # Get team info from Slack
+    response = requests.post(
+        f"{settings.METAGOV_URL}/api/internal/action/slack.method",
+        json={"parameters": {"method_name": "team.info"}},
+        headers={"X-Metagov-Community": metagov_community_slug},
+    )
+    if not response.ok:
+        raise Exception(f"Error: {response.status_code} {response.reason} {response.text}")
+    data = response.json()
+    team = data["team"]
+    team_id = team["id"]
+    readable_name = team["name"]
+
+    # Set readable_name for ParentCommunity
+    if not parent_community.readable_name:
+        parent_community.readable_name = readable_name
+        parent_community.save()
+
+    user_group, _ = CommunityRole.objects.get_or_create(
+        role_name="Base User", name="Slack: " + readable_name + ": Base User"
+    )
+
+    slack_community = SlackCommunity.objects.filter(team_id=team_id).first()
+    if slack_community is None:
+        logger.info(f"Creating new SlackCommunity under {parent_community}")
+        slack_community = SlackCommunity.objects.create(
+            parent_community=parent_community,
+            community_name=readable_name,
+            team_id=team_id,
+            base_role=user_group,
+        )
+        user_group.community = slack_community
+        user_group.save()
+
+        # get the list of users, create SlackUser object for each user
+        logger.info(f"Fetching user list for {slack_community}...")
+        response = LogAPICall.make_api_call(slack_community, {}, "users.list")
+        for new_user in response["members"]:
+            if (not new_user["deleted"]) and (not new_user["is_bot"]) and (new_user["id"] != "USLACKBOT"):
+                u, _ = SlackUser.objects.get_or_create(
+                    username=new_user["id"],
+                    readable_name=new_user["real_name"],
+                    avatar=new_user["profile"]["image_24"],
+                    is_community_admin=new_user["is_admin"],
+                    community=slack_community,
+                )
+                if user_token and user_id and new_user["id"] == user_id:
+                    logger.debug(f"Storing access_token for installing user ({user_id})")
+                    u.access_token = user_token
+                    u.save()
+
+        context = {
+            "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
+            "community_name": slack_community.community_name,
+            "creator_token": None,
+            # "creator_token": res['authed_user']['access_token'], #what is this for
+            "platform": "slack",
+        }
+        return render(request, "policyadmin/init_starterkit.html", context)
+
+    else:
+        logger.debug("community already exists, updating name..")
+        slack_community.community_name = readable_name
+        slack_community.save()
+
+        logger.debug(f"updating name of {slack_community.parent_community} to be {readable_name}")
+        slack_community.parent_community.readable_name = readable_name
+        slack_community.parent_community.save()
+
+        # Delete the newly created parent community, since it already existed
+        logger.debug(f"deleting {parent_community}")
+        parent_community.delete()
+
+        # Store token for the user who (re)installed Slack
+        if user_token and user_id:
+            installer = SlackUser.objects.filter(community=slack_community, username=user_id).first()
+            if installer is not None:
+                logger.debug(f"Storing access_token for installing user ({user_id})")
+                installer.access_token = user_token
+                installer.save()
+            else:
+                logger.debug(f"User '{user_id}' is re-installing but no SlackUser exists for them, creating one..")
+                response = slack_community.make_call("users.info", {"user": user_id})
+                user_info = response["user"]
+                user_fields = get_slack_user_fields(user_info)
+                user_fields["password"] = user_token
+                user_fields["access_token"] = user_token
+                SlackUser.objects.create(
+                    community=slack_community,
+                    username=user_info["id"],
+                    defaults=user_fields,
+                )
+
+        return redirect("/login?success=true")
+
+
+def is_policykit_action(community, test_a, test_b, api_name):
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
-    logs = LogAPICall.objects.filter(proposal_time__gte=current_time_minus, call_type=api_name)
+    logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus, call_type=api_name)
 
     if logs.exists():
         for log in logs:
@@ -170,231 +186,144 @@ def is_policykit_action(integration, test_a, test_b, api_name):
 
     return False
 
-def maybe_create_new_api_action(community, event):
+
+def maybe_create_new_api_action(community, outer_event):
     new_api_action = None
-    if event.get('type') == "channel_rename":
-        if not is_policykit_action(community, event['channel']['name'], 'name', SlackRenameConversation.ACTION):
+    event_type = outer_event["event_type"]
+    initiator = outer_event.get("initiator").get("user_id")
+    event = outer_event["data"]
+    if event_type == "channel_rename":
+        if not is_policykit_action(community, event["channel"]["name"], "name", SlackRenameConversation.ACTION):
             new_api_action = SlackRenameConversation()
             new_api_action.community = community
-            new_api_action.name = event['channel']['name']
-            new_api_action.channel = event['channel']['id']
+            new_api_action.name = event["channel"]["name"]
+            new_api_action.channel = event["channel"]["id"]
 
-            u,_ = SlackUser.objects.get_or_create(username=event['user'],
-                                                  community=community)
+            u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
             new_api_action.initiator = u
-            prev_names = new_api_action.get_channel_info()
+            prev_names = new_api_action.get_previous_names()
             new_api_action.prev_name = prev_names[0]
 
-    elif event.get('type') == 'message' and event.get('subtype') == None:
-        if not is_policykit_action(community, event['text'], 'text', SlackPostMessage.ACTION):
+    elif event_type == "message" and event.get("subtype") == None:
+        if not is_policykit_action(community, event["text"], "text", SlackPostMessage.ACTION):
             new_api_action = SlackPostMessage()
             new_api_action.community = community
-            new_api_action.text = event['text']
-            new_api_action.channel = event['channel']
-            new_api_action.time_stamp = event['ts']
+            new_api_action.text = event["text"]
+            new_api_action.channel = event["channel"]
+            new_api_action.time_stamp = event["ts"]
 
-            u,_ = SlackUser.objects.get_or_create(username=event['user'], community=community)
+            u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
 
             new_api_action.initiator = u
 
-    elif event.get('type') == "member_joined_channel":
-        if not is_policykit_action(community, event['channel'], 'channel', SlackJoinConversation.ACTION):
+    elif event_type == "member_joined_channel":
+        if not is_policykit_action(community, event["channel"], "channel", SlackJoinConversation.ACTION):
             new_api_action = SlackJoinConversation()
             new_api_action.community = community
-            if event.get('inviter'):
-                u,_ = SlackUser.objects.get_or_create(username=event['inviter'],
-                                                        community=community)
+            if event.get("inviter"):
+                u, _ = SlackUser.objects.get_or_create(username=event["inviter"], community=community)
                 new_api_action.initiator = u
             else:
-                u,_ = SlackUser.objects.get_or_create(username=event['user'],
-                                                        community=community)
+                u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
                 new_api_action.initiator = u
-            new_api_action.users = event.get('user')
-            new_api_action.channel = event['channel']
+            new_api_action.users = initiator
+            new_api_action.channel = event["channel"]
 
-    elif event.get('type') == 'pin_added':
-        if not is_policykit_action(community, event['channel_id'], 'channel', SlackPinMessage.ACTION):
+    elif event_type == "pin_added":
+        if not is_policykit_action(community, event["channel_id"], "channel", SlackPinMessage.ACTION):
             new_api_action = SlackPinMessage()
             new_api_action.community = community
 
-            u,_ = SlackUser.objects.get_or_create(username=event['user'],
-                                                    community=community)
+            u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
             new_api_action.initiator = u
-            new_api_action.channel = event['channel_id']
-            new_api_action.timestamp = event['item']['message']['ts']
+            new_api_action.channel = event["channel_id"]
+            new_api_action.timestamp = event["item"]["message"]["ts"]
 
     return new_api_action
 
-@csrf_exempt
-def action(request):
-    json_data = json.loads(request.body)
-    logger.info('RECEIVED ACTION')
-    logger.info(json_data)
-    action_type = json_data.get('type')
 
-    if action_type == "url_verification":
-        challenge = json_data.get('challenge')
-        return HttpResponse(challenge)
-
-    elif action_type == "event_callback":
-        event = json_data.get('event')
-        team_id = json_data.get('team_id')
-        community = SlackCommunity.objects.get(team_id=team_id)
-        admin_user = SlackUser.objects.filter(is_community_admin=True)[0]
-
-        new_api_action = None
-        if not is_policykit_bot_action(community, event):
-            new_api_action = maybe_create_new_api_action(community, event)
-
-        if new_api_action is not None:
-            new_api_action.community_origin = True
-            new_api_action.is_bundled = False
-            new_api_action.save() # save triggers policy evaluation
-        else:
-            logger.info(f"No PlatformAction created for event '{event.get('type')}'")
-
-        if event.get('type') == 'reaction_added':
-            ts = event['item']['ts']
-            action = None
-            action_res = PlatformAction.objects.filter(community_post=ts)
-            if action_res.exists():
-                action = action_res[0]
-
-                if event['reaction'] == '+1' or event['reaction'] == '-1':
-                    if event['reaction'] == '+1':
-                        value = True
-                    elif event['reaction'] == '-1':
-                        value = False
-
-                    user,_ = SlackUser.objects.get_or_create(username=event['user'],
-                                                            community=action.community)
-                    uv = BooleanVote.objects.filter(proposal=action.proposal,
-                                                                 user=user)
-                    if uv.exists():
-                        uv = uv[0]
-                        uv.boolean_value = value
-                        uv.save()
-                    else:
-                        uv = BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
-
-            if action == None:
-                action_res = PlatformActionBundle.objects.filter(community_post=ts)
-                if action_res.exists():
-                    action = action_res[0]
-
-                    bundled_actions = list(action.bundled_actions.all())
-
-                    if event['reaction'] in NUMBERS_TEXT.keys():
-                        num = NUMBERS_TEXT[event['reaction']]
-                        voted_action = bundled_actions[num]
-
-                        user,_ = SlackUser.objects.get_or_create(username=event['user'],
-                                                               community=voted_action.community)
-                        uv = NumberVote.objects.filter(proposal=voted_action.proposal,
-                                                                 user=user)
-                        if uv.exists():
-                            uv = uv[0]
-                            uv.number_value = 1
-                            uv.save()
-                        else:
-                            uv = NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=1)
-
-    return HttpResponse("")
-
-def post_policy(policy, action, users=None, post_type='channel', template=None, channel=None):
-    from policyengine.models import LogAPICall, PlatformActionBundle
-
+def post_policy(policy, action, users=[], post_type="channel", template=None, channel=None):
     if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
-        policy_message_default = "This action is governed by the following policy: " + policy.explanation + '. Decide between options below:\n'
+        policy_message_default = (
+            "This action is governed by the following policy: "
+            + policy.explanation
+            + ". Decide between options below:\n"
+        )
 
         bundled_actions = action.bundled_actions.all()
         for num, a in enumerate(bundled_actions):
-            policy_message_default += ':' + NUMBERS[num] + ': ' + str(a) + '\n'
+            policy_message_default += ":" + NUMBERS[num] + ": " + str(a) + "\n"
     else:
-        policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote with :thumbsup: or :thumbsdown: on this post.'
-
-    values = {'token': policy.community.access_token}
+        policy_message_default = (
+            "This action is governed by the following policy: "
+            + policy.description
+            + ". Vote with :thumbsup: or :thumbsdown: on this post."
+        )
 
     if not template:
         policy_message = policy_message_default
     else:
         policy_message = template
 
-    values['text'] = policy_message
+    values = {"text": policy_message}
 
-    # mpim - all users
+    # mpim = multi person message
     # im each user
     # channel all users
     # channel ephemeral users
+    usernames = [user.username for user in users]
 
     if post_type == "mpim":
-        api_call = 'chat.postMessage'
-        usernames = [user.username for user in users]
-        info = {'token': policy.community.access_token}
-        info['users'] = ','.join(usernames)
-        call = policy.community.API + 'conversations.open'
-        res = LogAPICall.make_api_call(policy.community, info, call)
-        channel = res['channel']['id']
-        values['channel'] = channel
-
-        call = policy.community_integration.API + api_call
-        res = LogAPICall.make_api_call(policy.community, values, call)
-
-        action.community_post = res['ts']
+        # open conversation among participants
+        response = LogAPICall.make_api_call(policy.community, {"users": ",".join(usernames)}, "conversations.open")
+        channel = response["channel"]["id"]
+        # post to group message
+        values["channel"] = channel
+        response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
+        action.community_post = response["ts"]
         action.save()
 
-    elif post_type == 'im':
-        api_call = 'chat.postMessage'
-        usernames = [user.username for user in users]
-
+    elif post_type == "im":
+        # message each user individually
         for username in usernames:
-            info = {'token': policy.community.access_token}
-            info['users'] = username
-            call = policy.community.API + 'conversations.open'
-            res = LogAPICall.make_api_call(policy.community, info, call)
-            channel = res['channel']['id']
-            values['channel'] = channel
+            response = LogAPICall.make_api_call(policy.community, {"users": username}, "conversations.open")
+            channel = response["channel"]["id"]
 
-            call = policy.community.API + api_call
-            res = LogAPICall.make_api_call(policy.community, values, call)
-
-            action.community_post = res['ts']
+            # post to direct message
+            values["channel"] = channel
+            response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
+            action.community_post = response["ts"]
             action.save()
 
-    elif post_type == 'ephemeral':
-        api_call = 'chat.postEphemeral'
-        usernames = [user.username for user in users]
-
+    elif post_type == "ephemeral":
         for username in usernames:
-            values['user'] = username
+            values["user"] = username
 
             if channel:
-                values['channel'] = channel
+                values["channel"] = channel
             else:
                 if action.action_type == "PlatformAction":
-                    values['channel'] = action.channel
+                    values["channel"] = action.channel
                 else:
                     a = action.bundled_actions.all()[0]
-                    values['channel'] = a.channel
-            call = policy.community.API + api_call
+                    values["channel"] = a.channel
 
-            res = LogAPICall.make_api_call(policy.community, values, call)
-
-            action.community_post = res['ts']
+            response = LogAPICall.make_api_call(policy.community, values, "chat.postEphemeral")
+            action.community_post = response["message_ts"]
             action.save()
-    elif post_type == 'channel':
-        api_call = 'chat.postMessage'
+
+    elif post_type == "channel":
+        # post in channel
         if channel:
-            values['channel'] = channel
+            values["channel"] = channel
         else:
+            # if channel not specified, post in channel where the action occurred
             if action.action_type == "PlatformAction":
-                values['channel'] = action.channel
+                values["channel"] = action.channel
             else:
                 a = action.bundled_actions.all()[0]
-                values['channel'] = a.channel
+                values["channel"] = a.channel
 
-        call = policy.community.API + api_call
-        res = LogAPICall.make_api_call(policy.community, values, call)
-
-        action.community_post = res['ts']
+        response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
+        action.community_post = response["ts"]
         action.save()

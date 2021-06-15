@@ -1,16 +1,14 @@
 from django.db import models, transaction
-from django.db.models.signals import post_save
 from actstream import action
-from django.dispatch import receiver
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.conf import settings
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from polymorphic.models import PolymorphicModel, PolymorphicManager
-from django.core.exceptions import ValidationError
+import integrations.metagov.api as MetagovAPI
 from policyengine.views import govern_action
 from datetime import datetime, timezone
-import urllib
 import json
 import logging
 
@@ -41,25 +39,33 @@ class StarterKit(PolymorphicModel):
     def __str__(self):
         return self.name
 
+class ParentCommunity(models.Model):
+    readable_name = models.CharField(max_length=300, blank=True)
+    metagov_slug = models.SlugField(max_length=36, unique=True, blank=True)
 
-class CommunityManager(PolymorphicManager):
-    """Community Manager"""
+    def __str__(self):
+        prefix = super().__str__()
+        return '{} {}'.format(prefix, self.readable_name or '')
 
-    def get_by_metagov_name(self, name):
-        """
-        Iterate through all communities to find the one we're looking for. This is
-        not performant, if there are a lot of communities we should add the metagov name
-        as a CharField on Community.
-        """
-        from integrations.metagov.library import metagov_slug
-        for community in self.get_queryset().all():
-            if metagov_slug(community) == name:
-                return community
-        raise Community.DoesNotExist
+    def save(self, *args, **kwargs):
+        is_first_save = not self.pk
+        super(ParentCommunity, self).save(*args, **kwargs)
+        if is_first_save and settings.METAGOV_ENABLED:
+            # Create a corresponding community in Metagov
+            response = MetagovAPI.create_empty_metagov_community(self.readable_name)
+            logger.debug(f"Created new Metagov community: {response}. Saving slug in model..")
+            self.metagov_slug = response["slug"]
+            self.save(update_fields=["metagov_slug"])
+
+
+@receiver(post_delete, sender=ParentCommunity)
+def post_delete_parent_community(sender, instance, **kwargs):
+    if instance.metagov_slug and settings.METAGOV_ENABLED:
+        MetagovAPI.delete_community(instance.metagov_slug)
 
 
 class Community(PolymorphicModel):
-    """Community"""
+    """Community on a specific platform"""
 
     community_name = models.CharField('team_name', max_length=1000)
     """The name of the community."""
@@ -70,10 +76,14 @@ class Community(PolymorphicModel):
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
 
-    objects = CommunityManager()
+    parent_community = models.ForeignKey(ParentCommunity, models.CASCADE)
 
     def __str__(self):
         return self.community_name
+
+    @property
+    def metagov_slug(self):
+        return self.parent_community.metagov_slug
 
     def notify_action(self, action, policy, users):
         """
@@ -118,11 +128,6 @@ class Community(PolymorphicModel):
         """
         Saves the community. Note: Only meant for internal use.
         """
-        if not self.pk and settings.METAGOV_ENABLED:
-            # Create a corresponding community in Metagov
-            from integrations.metagov.library import update_metagov_community
-            update_metagov_community(self)
-
         super(Community, self).save(*args, **kwargs)
 
 class CommunityRole(Group):
