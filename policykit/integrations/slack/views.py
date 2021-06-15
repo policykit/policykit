@@ -273,7 +273,7 @@ def post_policy(policy, action, users=[], post_type="channel", template=None, ch
     # channel ephemeral users
     usernames = [user.username for user in users or []]
 
-    if len(usernames == 0) and post_type in ["im", "ephemeral"]:
+    if len(usernames) == 0 and post_type in ["im", "ephemeral"]:
         raise Exception(f"user(s) required for post type '{post_type}'")
 
     if post_type == "mpim":
