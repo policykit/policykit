@@ -271,7 +271,7 @@ def post_policy(policy, action, users=[], post_type="channel", template=None, ch
     # im each user
     # channel all users
     # channel ephemeral users
-    usernames = [user.username for user in users]
+    usernames = [user.username for user in users or []]
 
     if post_type == "mpim":
         # open conversation among participants
