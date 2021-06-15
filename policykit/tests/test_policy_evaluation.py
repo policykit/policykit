@@ -6,7 +6,7 @@ import integrations.metagov.api as MetagovAPI
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
 from policyengine.models import (
-    ParentCommunity,
+    Community,
     CommunityRole,
     PlatformPolicy,
     ConstitutionPolicy,
@@ -29,18 +29,18 @@ class EvaluationTests(TestCase):
         user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
         can_add = Permission.objects.get(name="Can add slack pin message")
         user_group.permissions.add(can_add)
-        parent_community = ParentCommunity.objects.create()
-        self.community = SlackCommunity.objects.create(
+        community = Community.objects.create()
+        self.slack_community = SlackCommunity.objects.create(
             community_name="my test community",
-            parent_community=parent_community,
+            community=community,
             team_id="TMQ3PKX",
             base_role=user_group,
         )
-        self.user = SlackUser.objects.create(username="test", community=self.community)
+        self.user = SlackUser.objects.create(username="test", community=self.slack_community)
 
         # Activate a plugin to use in tests
         MetagovAPI.update_metagov_community(
-            community=self.community,
+            community=self.slack_community,
             plugins=list(
                 [
                     {"name": "randomness", "config": {"default_low": 2, "default_high": 200}},
@@ -57,7 +57,7 @@ class EvaluationTests(TestCase):
         }
         policy = PlatformPolicy(
             **all_actions_fail_policy,
-            community=self.community,
+            community=self.slack_community,
             description="all actions fail",
             name="all actions fail",
         )
@@ -66,18 +66,18 @@ class EvaluationTests(TestCase):
         # create a test user with can_execute permissions
         can_execute = Permission.objects.get(name="Can execute slack pin message")
         can_add = Permission.objects.get(name="Can add slack pin message")
-        user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.community)
+        user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.slack_community)
         user_with_can_execute.user_permissions.add(can_add)
         user_with_can_execute.user_permissions.add(can_execute)
 
         # action initiated by user with "can_execute" should pass
-        action = SlackPinMessage(initiator=user_with_can_execute, community=self.community)
+        action = SlackPinMessage(initiator=user_with_can_execute, community=self.slack_community)
         action.execute = lambda: None  # don't do anything on execute
         action.save()
         self.assertEqual(action.proposal.status, "passed")
 
         # action initiated by user without "can_execute" should fail
-        action = SlackPinMessage(initiator=self.user, community=self.community)
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community)
         action.execute = lambda: None  # don't do anything on execute
         action.save()
         self.assertEqual(action.proposal.status, "failed")
@@ -90,7 +90,7 @@ class EvaluationTests(TestCase):
         }
         policy = ConstitutionPolicy(
             **all_actions_fail_policy,
-            community=self.community,
+            community=self.slack_community,
             description="all actions fail",
             name="all actions fail",
         )
@@ -99,19 +99,19 @@ class EvaluationTests(TestCase):
         # create a test user with can_execute permissions for PolicykitAddCommunityDoc
         can_add = Permission.objects.get(name="Can add policykit add community doc")
         can_execute = Permission.objects.get(name="Can execute policykit add community doc")
-        user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.community)
+        user_with_can_execute = SlackUser.objects.create(username="powerful-user", community=self.slack_community)
         user_with_can_execute.user_permissions.add(can_add)
         user_with_can_execute.user_permissions.add(can_execute)
         self.assertTrue(user_with_can_execute.has_perm("policyengine.add_policykitaddcommunitydoc"))
         self.assertTrue(user_with_can_execute.has_perm("policyengine.can_execute_policykitaddcommunitydoc"))
 
         # action initiated by user with "can_execute" should pass
-        action = PolicykitAddCommunityDoc(name="my doc", initiator=user_with_can_execute, community=self.community)
+        action = PolicykitAddCommunityDoc(name="my doc", initiator=user_with_can_execute, community=self.slack_community)
         action.save()
         self.assertEqual(action.proposal.status, "passed")
 
         # action initiated by user without "can_execute" should fail
-        action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.community)
+        action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.slack_community)
         action.save()
         self.assertEqual(action.proposal.status, "failed")
 
@@ -119,26 +119,26 @@ class EvaluationTests(TestCase):
         """Test that action fails when a user does not have permission to propose constitution change"""
         policy = ConstitutionPolicy(
             **all_actions_pass_policy,
-            community=self.community,
+            community=self.slack_community,
             description="all actions pass",
             name="all actions pass",
         )
         policy.save()
 
         # action initiated by user without "can_add" should fail
-        user = SlackUser.objects.create(username="test-user", community=self.community)
+        user = SlackUser.objects.create(username="test-user", community=self.slack_community)
         self.assertEqual(user.has_perm("policyengine.add_policykitaddcommunitydoc"), False)
-        action = PolicykitAddCommunityDoc(name="my doc", initiator=user, community=self.community)
+        action = PolicykitAddCommunityDoc(name="my doc", initiator=user, community=self.slack_community)
         action.save()
         action.refresh_from_db()  # test that it was saved to the db with correct proposal
         self.assertEqual(action.proposal.status, "failed")
 
         # action initiated by user with "can_add" should pass
-        user = SlackUser.objects.create(username="second-user", community=self.community)
+        user = SlackUser.objects.create(username="second-user", community=self.slack_community)
         can_add = Permission.objects.get(name="Can add policykit add community doc")
         user.user_permissions.add(can_add)
         self.assertTrue(user.has_perm("policyengine.add_policykitaddcommunitydoc"))
-        action = PolicykitAddCommunityDoc(name="my other doc", initiator=user, community=self.community)
+        action = PolicykitAddCommunityDoc(name="my other doc", initiator=user, community=self.slack_community)
         action.save()
         action.refresh_from_db()  # test that it was saved to the db with correct proposal
         self.assertEqual(action.proposal.status, "passed")
@@ -166,7 +166,7 @@ return FAILED
         }
         policy = PlatformPolicy(
             **policy_code,
-            community=self.community,
+            community=self.slack_community,
             description="test",
             name="test policy",
         )
@@ -174,7 +174,7 @@ return FAILED
 
         action = SlackPinMessage()
         action.initiator = self.user
-        action.community = self.community
+        action.community = self.slack_community
 
         # 2) Save action to trigger policy execution
         action.save()
@@ -191,7 +191,7 @@ return FAILED
         print("\nTesting external process\n")
         # 1) Create Policy and PlatformAction
         policy = PlatformPolicy()
-        policy.community = self.community
+        policy.community = self.slack_community
         policy.filter = "return True"
         policy.initialize = """
 result = metagov.start_process("loomio.poll", {"title": "[test] policykit poll", "options": ["one", "two", "three"], "closing_at": "2021-05-11"})
@@ -217,7 +217,7 @@ return FAILED
 
         action = SlackPinMessage()
         action.initiator = self.user
-        action.community = self.community
+        action.community = self.slack_community
 
         # 2) Save action to trigger execution of check() and notify()
         action.save()
@@ -233,7 +233,7 @@ return FAILED
         print("\nTesting perform_action from metagov\n")
         # 1) Create Policy that performs a metagov action
         policy = PlatformPolicy()
-        policy.community = self.community
+        policy.community = self.slack_community
         policy.filter = "return True"
         policy.initialize = "debug('help!')"
         policy.check = """parameters = {"low": 4, "high": 5}
@@ -251,7 +251,7 @@ return FAILED"""
         # 2) Save an action to trigger the policy execution
         action = SlackPinMessage()
         action.initiator = self.user
-        action.community = self.community
+        action.community = self.slack_community
         action.save()
 
         self.assertEqual(action.proposal.status, "passed")
@@ -264,28 +264,28 @@ return FAILED"""
     def test_policy_order(self):
         first_policy = PlatformPolicy.objects.create(
             **all_actions_pass_policy,
-            community=self.community,
+            community=self.slack_community,
             name="policy that passes",
         )
 
         # new action should pass
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.community)
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
         self.assertEqual(action.proposal.status, "passed")
 
         second_policy = PlatformPolicy.objects.create(
             **{**all_actions_pass_policy, "check": "return FAILED"},
-            community=self.community,
+            community=self.slack_community,
             name="policy that fails",
         )
 
         # new action should fail, because of most recent policy
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.community)
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
         self.assertEqual(action.proposal.status, "failed")
 
         first_policy.description = "updated description"
         first_policy.save()
         # new action should pass, "first_policy" is now most recent
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.community)
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
         self.assertEqual(action.proposal.status, "passed")
 
 
@@ -294,10 +294,10 @@ class MetagovPlatformActionTest(TestCase):
         user_group = CommunityRole.objects.create(role_name="fake role 2", name="testing role 2")
         p1 = Permission.objects.get(name="Can add slack pin message")
         user_group.permissions.add(p1)
-        parent_community = ParentCommunity.objects.create()
-        self.community = SlackCommunity.objects.create(
+        community = Community.objects.create()
+        self.slack_community = SlackCommunity.objects.create(
             community_name="test community",
-            parent_community=parent_community,
+            community=community,
             team_id="test000",
             base_role=user_group,
         )
@@ -307,7 +307,7 @@ class MetagovPlatformActionTest(TestCase):
         # 1) Create Policy that is triggered by a metagov action
 
         policy = PlatformPolicy()
-        policy.community = self.community
+        policy.community = self.slack_community
         policy.filter = """return action.action_codename == 'metagovaction' \
 and action.event_type == 'discourse.post_created'"""
         policy.initialize = "action.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
@@ -320,7 +320,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.save()
 
         event_payload = {
-            "community": self.community.metagov_slug,
+            "community": self.slack_community.metagov_slug,
             "initiator": {"user_id": "miriam", "provider": "discourse"},
             "source": "discourse",
             "event_type": "post_created",
@@ -350,7 +350,7 @@ and action.event_type == 'discourse.post_created'"""
         """Test receiving a Slack event from Metagov that creates a SlackPinMessage action"""
         # 1) Create Policy that is triggered by a metagov action
         policy = PlatformPolicy()
-        policy.community = self.community
+        policy.community = self.slack_community
         policy.filter = """return action.action_codename == 'slackpinmessage'"""
         policy.initialize = "pass"
         policy.notify = "pass"
@@ -362,7 +362,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.save()
 
         event_payload = {
-            "community": self.community.metagov_slug,
+            "community": self.slack_community.metagov_slug,
             "initiator": {"user_id": "alice", "provider": "slack"},
             "source": "slack",
             "event_type": "pin_added",

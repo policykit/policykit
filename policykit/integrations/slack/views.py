@@ -17,7 +17,7 @@ from integrations.slack.models import (
     SlackUser,
 )
 from integrations.slack.utils import get_slack_user_fields
-from policyengine.models import CommunityRole, LogAPICall, ParentCommunity, PlatformActionBundle
+from policyengine.models import CommunityRole, LogAPICall, Community, PlatformActionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +73,8 @@ def slack_install(request):
     user_token = request.GET.get("user_token")
 
     try:
-        parent_community = ParentCommunity.objects.get(metagov_slug=metagov_community_slug)
-    except ParentCommunity.DoesNotExist:
+        community = Community.objects.get(metagov_slug=metagov_community_slug)
+    except Community.DoesNotExist:
         logger.error(f"community not found: {metagov_community_slug}")
         return redirect("/login?error=cancel")
 
@@ -91,10 +91,10 @@ def slack_install(request):
     team_id = team["id"]
     readable_name = team["name"]
 
-    # Set readable_name for ParentCommunity
-    if not parent_community.readable_name:
-        parent_community.readable_name = readable_name
-        parent_community.save()
+    # Set readable_name for Community
+    if not community.readable_name:
+        community.readable_name = readable_name
+        community.save()
 
     user_group, _ = CommunityRole.objects.get_or_create(
         role_name="Base User", name="Slack: " + readable_name + ": Base User"
@@ -102,9 +102,9 @@ def slack_install(request):
 
     slack_community = SlackCommunity.objects.filter(team_id=team_id).first()
     if slack_community is None:
-        logger.info(f"Creating new SlackCommunity under {parent_community}")
+        logger.info(f"Creating new SlackCommunity under {community}")
         slack_community = SlackCommunity.objects.create(
-            parent_community=parent_community,
+            community=community,
             community_name=readable_name,
             team_id=team_id,
             base_role=user_group,
@@ -143,13 +143,13 @@ def slack_install(request):
         slack_community.community_name = readable_name
         slack_community.save()
 
-        logger.debug(f"updating name of {slack_community.parent_community} to be {readable_name}")
-        slack_community.parent_community.readable_name = readable_name
-        slack_community.parent_community.save()
+        logger.debug(f"updating name of {slack_community.community} to be {readable_name}")
+        slack_community.community.readable_name = readable_name
+        slack_community.community.save()
 
-        # Delete the newly created parent community, since it already existed
-        logger.debug(f"deleting {parent_community}")
-        parent_community.delete()
+        # Delete the newly created community, since it already existed
+        logger.debug(f"deleting {community}")
+        community.delete()
 
         # Store token for the user who (re)installed Slack
         if user_token and user_id:

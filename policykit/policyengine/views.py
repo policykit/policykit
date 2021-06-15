@@ -29,9 +29,9 @@ def new_community(request):
     if not platform or platform != "slack":
         return HttpResponseBadRequest()
 
-    from policyengine.models import ParentCommunity
-    # Create ParentCommunity. Automatically creates community in Metagov too.
-    community = ParentCommunity.objects.create()
+    from policyengine.models import Community
+    # Create Community. Automatically creates community in Metagov too.
+    community = Community.objects.create()
 
     # Initiate authorization flow to install Metagov to platform.
     # On successful completion, the Metagov Slack plugin will be enabled for the community.
@@ -51,7 +51,7 @@ def new_community(request):
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
+    from policyengine.models import CommunityPlatform, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
 
     user = get_user(request)
     user.community = user.community
@@ -500,7 +500,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
+    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, CommunityPlatform
     from django.contrib.auth.models import Permission
 
     starterkit_name = request.POST['starterkit']
@@ -510,7 +510,7 @@ def initialize_starterkit(request):
 
     starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
 
-    community = Community.objects.get(community_name=community_name)
+    community = CommunityPlatform.objects.get(community_name=community_name)
     starter_kit.init_kit(community, creator_token)
 
     logger.info('starterkit initialized')

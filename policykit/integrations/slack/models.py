@@ -8,7 +8,7 @@ from django.contrib.auth.models import Permission
 from django.db import models
 from policyengine.models import (
     BooleanVote,
-    Community,
+    CommunityPlatform,
     CommunityRole,
     CommunityUser,
     ConstitutionPolicy,
@@ -77,7 +77,7 @@ class SlackUser(CommunityUser):
     pass
 
 
-class SlackCommunity(Community):
+class SlackCommunity(CommunityPlatform):
     platform = "slack"
 
     team_id = models.CharField("team_id", max_length=150, unique=True)

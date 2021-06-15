@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import ContentType, Permission, User
 from django.db import models
-from policyengine.models import (Community, CommunityRole, CommunityUser,
+from policyengine.models import (CommunityPlatform, CommunityRole, CommunityUser,
                                  ConstitutionPolicy, PlatformAction,
                                  PlatformPolicy, Proposal, StarterKit)
 

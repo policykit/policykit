@@ -14,7 +14,7 @@ from django.http import (
 )
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from policyengine.models import ParentCommunity, Community, CommunityRole
+from policyengine.models import Community, CommunityPlatform, CommunityRole
 from integrations.slack.models import SlackCommunity
 import integrations.metagov.api as MetagovAPI
 
@@ -64,7 +64,7 @@ def internal_receive_action(request):
     """
     Receive event from Metagov, and create a new MetagovPlatformAction.
 
-    1) Find the `Community` that this metagov community corresponds to (e.g. the SlackCommunity that was configured to use Metagov.)
+    1) Find the `CommunityPlatform` that this metagov community corresponds to (e.g. the SlackCommunity that was configured to use Metagov.)
     2) Get or create a MetagovUser that' stied to the original community (the SlackCommunity)
     3) Give the user permission to propose MetagovPlatformActions
     """
@@ -80,21 +80,21 @@ def internal_receive_action(request):
     metagov_community_slug = body.get("community")
 
     try:
-        community = ParentCommunity.objects.get(metagov_slug=metagov_community_slug)
-    except ParentCommunity.DoesNotExist:
+        community = Community.objects.get(metagov_slug=metagov_community_slug)
+    except Community.DoesNotExist:
         logger.error(f"Received event for community {metagov_community_slug} which doesn't exist in PolicyKit")
-        return HttpResponseBadRequest("Community does not exist")
+        return HttpResponseBadRequest("CommunityPlatform does not exist")
 
     # special cases for receiving events from "governable platforms" that have full fledged pk integrations
     if body.get("source") == "slack":
-        slack_community = SlackCommunity.objects.filter(parent_community=community).first()
+        slack_community = SlackCommunity.objects.filter(community=community).first()
         if slack_community is None:
             return HttpResponseBadRequest(f"no slack community exists for {metagov_community_slug}")
         slack_community.handle_metagov_event(body)
         return HttpResponse()
 
-    # FIXME: just choosing the first Community to attach this event to..
-    platform_community = Community.objects.filter(parent_community=community).first()
+    # FIXME: just choosing the first CommunityPlatform to attach this event to..
+    platform_community = CommunityPlatform.objects.filter(community=community).first()
 
 
     # Hack so MetagovUser username doesn't clash with usernames from other communities (django User requires unique username).
