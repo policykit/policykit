@@ -9,7 +9,40 @@ This is a library of example Platform Policies to get started.
 Slack Policies
 ==============
 
-Add examples here
+Don't allow posts in channel
+----------------------------
+
+This could be extended to add any logic to determine who can post in a given channel.
+Posts in the channel are auto-deleted, and the user is notified about why it happened.
+
+**Filter:**
+
+.. code-block:: python
+
+  return action.action_codename == "slackpostmessage" and action.channel == "ABC123"
+
+**Initialize:** ``pass``
+
+**Check:** ``return FAILED``
+
+**Notify:** ``pass``
+
+**Pass:** ``pass``
+
+**Fail:**
+
+.. code-block:: python
+
+  # create an ephemeral post that is only visible to the poster
+  message = f"Post was deleted because of policy '{policy.name}'"
+  action.community.notify_action(
+    action,
+    policy,
+    users=[action.initiator],
+    post_type="ephemeral",
+    template=message
+  )
+
 
 Discourse Policies
 ==================
