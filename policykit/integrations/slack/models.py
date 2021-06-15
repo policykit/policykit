@@ -6,6 +6,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.db import models
+from integrations.slack.utils import get_admin_user_token
 from policyengine.models import (
     BooleanVote,
     CommunityPlatform,
@@ -170,16 +171,17 @@ class SlackCommunity(CommunityPlatform):
             if obj.AUTH == "user":
                 data["token"] = action.proposal.author.access_token
                 if not data["token"]:
-                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True).first()
-                    if admin_user and admin_user.access_token:
-                        data["token"] = admin_user.access_token
+                    # we don't have the token for the user who proposed the action, so use an admin user token instead
+                    admin_user_token = get_admin_user_token(self.community)
+                    if admin_user_token:
+                        data["token"] = admin_user_token
             elif obj.AUTH == "admin_bot":
-                if action.proposal.author.is_community_admin:
+                if action.proposal.author.is_community_admin and action.proposal.author.access_token:
                     data["token"] = action.proposal.author.access_token
             elif obj.AUTH == "admin_user":
-                admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True).first()
-                if admin_user and admin_user.access_token:
-                    data["token"] = admin_user.access_token
+                admin_user_token = get_admin_user_token(self.community)
+                if admin_user_token:
+                    data["token"] = admin_user_token
 
             logger.debug(f"Overriding token? {True if data.get('token') else False}")
 
@@ -201,10 +203,10 @@ class SlackCommunity(CommunityPlatform):
                     posted_action = action
 
                 if posted_action.community_post:
-                    admin_user = SlackUser.objects.filter(community=action.community, is_community_admin=True).first()
-                    if admin_user and admin_user.access_token:
+                    admin_user_token = get_admin_user_token(self.community)
+                    if admin_user_token:
                         values = {
-                            "token": admin_user.access_token,
+                            "token": admin_user_token,
                             "ts": posted_action.community_post,
                             "channel": obj.channel,
                         }
@@ -231,11 +233,11 @@ class SlackPostMessage(PlatformAction):
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
     def revert(self):
-        admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True, access_token__isnull=False).first()
-        if admin_user is None:
-            raise Exception("Cannot delete post, no admin access token found")
+        admin_user_token = get_admin_user_token(self.community)
+        if admin_user_token is None:
+            raise Exception("No admin access token found")
 
-        values = {"token": admin_user.access_token, "ts": self.timestamp, "channel": self.channel}
+        values = {"token": admin_user_token, "ts": self.timestamp, "channel": self.channel}
         super().revert(values, "chat.delete")
 
 
@@ -280,8 +282,10 @@ class SlackJoinConversation(PlatformAction):
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
     def revert(self):
-        admin_user = SlackUser.objects.filter(community=self.community, is_community_admin=True)[0]
-        values = {"user": self.users, "token": admin_user.access_token, "channel": self.channel}
+        admin_user_token = get_admin_user_token(self.community)
+        if admin_user_token is None:
+            raise Exception("No admin access token found")
+        values = {"user": self.users, "token": admin_user_token, "channel": self.channel}
         super().revert(values, "conversations.kick")
 
 
