@@ -6,7 +6,7 @@ from django.contrib.auth import views
 from django.urls import path
 from policyengine import views as policyviews
 from django.conf import settings
-
+# from schema_graph.views import Schema
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(
@@ -18,7 +18,7 @@ urlpatterns = [
             'discord_client_id': settings.DISCORD_CLIENT_ID,
         }
     )),
-    path('new-community', policyviews.new_community),
+    path('authorize-platform', policyviews.authorize_platform),
     path('logout/', policyviews.logout, name="logout"),
     path('main/', policyviews.v2),
     path('main/editor/', policyviews.editor),
@@ -38,7 +38,8 @@ urlpatterns = [
     path('discord/', include('integrations.discord.urls')),
     path('discourse/', include('integrations.discourse.urls')),
     url(r'^$', policyviews.homepage),
-    url('^activity/', include('actstream.urls'))
+    url('^activity/', include('actstream.urls')),
+    # path("schema/", Schema.as_view()),
 ]
 
 if settings.METAGOV_ENABLED:

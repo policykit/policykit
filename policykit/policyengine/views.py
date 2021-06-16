@@ -24,7 +24,7 @@ def homepage(request):
     return render(request, 'home.html', {})
 
 
-def new_community(request):
+def authorize_platform(request):
     platform = request.GET.get('platform')
     if not platform or platform != "slack":
         return HttpResponseBadRequest()
@@ -33,14 +33,16 @@ def new_community(request):
     community: Community = None
     if request.user.is_authenticated:
         # user is already logged in, so we are authorizing to an existing community
-        logger.info(">>> authorizing slack for existing community")
         user = get_user(request)
+        if user.community.platform == "slack":
+            return HttpResponseBadRequest()
         community = user.community.community
     else:
         # user is not logged in, so we are creating a new community
-        logger.info(">>> authorizing slack for new community")
         community = Community.objects.create()
-    logger.info(f">>> community: {community.metagov_slug}")
+
+    logger.info(f"Starting authorization flow for '{platform}' for metagov community '{community.metagov_slug}'")
+
     # Initiate authorization flow to install Metagov to platform.
     # On successful completion, the Metagov Slack plugin will be enabled for the community.
 
