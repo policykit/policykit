@@ -1,6 +1,5 @@
 import json
 import logging
-import urllib
 
 import requests
 from django.conf import settings
@@ -88,59 +87,6 @@ class SlackCommunity(CommunityPlatform):
 
         post_policy(policy, action, users, post_type, template, channel)
 
-    def handle_metagov_event(self, outer_event):
-        logger.info(f"SlackCommunity recieved metagov event: {outer_event['event_type']}")
-        if outer_event["initiator"].get("is_metagov_bot") == True:
-            logger.info("Ignoring bot event")
-            return
-
-        event_type = outer_event["event_type"]
-        initiator = outer_event["initiator"].get("user_id")
-
-        from integrations.slack.views import maybe_create_new_api_action
-
-        new_api_action = maybe_create_new_api_action(self, outer_event)
-
-        if new_api_action is not None:
-            new_api_action.community_origin = True
-            new_api_action.is_bundled = False
-            new_api_action.save()  # save triggers policy evaluation
-        else:
-            logger.info(f"No PlatformAction created for event '{event_type}'")
-
-        if event_type == "reaction_added":
-            event = outer_event["data"]
-            ts = event["item"]["ts"]
-
-            # check if this ts corresponds to a community_post action or bundle
-            action = PlatformAction.objects.filter(community=self, community_post=ts).first()
-            action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
-
-            if action is not None and (event["reaction"] == "+1" or event["reaction"] == "-1"):
-                value = True if event["reaction"] == "+1" else False
-                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
-                logger.info(f"Processing boolean Slack vote {value} by {user}")
-                existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
-                if existing_vote is not None:
-                    existing_vote.boolean_value = value
-                    existing_vote.save()
-                else:
-                    BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
-
-            elif action_bundle is not None and event["reaction"] in NUMBERS_TEXT.keys():
-                bundled_actions = list(action_bundle.bundled_actions.all())
-                num = NUMBERS_TEXT[event["reaction"]]
-                voted_action = bundled_actions[num]
-                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
-                logger.info(f"Processing numeric Slack vote {num} for action {voted_action} by user {user}")
-
-                existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
-                if existing_vote is not None:
-                    existing_vote.number_value = num
-                    existing_vote.save()
-                else:
-                    NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
-
     def make_call(self, method_name, values={}, action=None, method=None):
         response = requests.post(
             f"{settings.METAGOV_URL}/api/internal/action/slack.method",
@@ -216,6 +162,62 @@ class SlackCommunity(CommunityPlatform):
 
         clean_up_proposals(action, True)
 
+    def handle_metagov_event(self, outer_event):
+        """
+        Receive Slack Metagov Event for this community
+        """
+        logger.info(f"SlackCommunity recieved metagov event: {outer_event['event_type']}")
+        if outer_event["initiator"].get("is_metagov_bot") == True:
+            logger.info("Ignoring bot event")
+            return
+
+        event_type = outer_event["event_type"]
+        initiator = outer_event["initiator"].get("user_id")
+
+        from integrations.slack.views import maybe_create_new_api_action
+
+        new_api_action = maybe_create_new_api_action(self, outer_event)
+
+        if new_api_action is not None:
+            new_api_action.community_origin = True
+            new_api_action.is_bundled = False
+            new_api_action.save()  # save triggers policy evaluation
+        else:
+            logger.info(f"No PlatformAction created for event '{event_type}'")
+
+        if event_type == "reaction_added":
+            event = outer_event["data"]
+            ts = event["item"]["ts"]
+
+            # check if this ts corresponds to a community_post action or bundle
+            action = PlatformAction.objects.filter(community=self, community_post=ts).first()
+            action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
+
+            if action is not None and (event["reaction"] == "+1" or event["reaction"] == "-1"):
+                value = True if event["reaction"] == "+1" else False
+                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
+                logger.info(f"Processing boolean Slack vote {value} by {user}")
+                existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
+                if existing_vote is not None:
+                    existing_vote.boolean_value = value
+                    existing_vote.save()
+                else:
+                    BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
+
+            elif action_bundle is not None and event["reaction"] in NUMBERS_TEXT.keys():
+                bundled_actions = list(action_bundle.bundled_actions.all())
+                num = NUMBERS_TEXT[event["reaction"]]
+                voted_action = bundled_actions[num]
+                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
+                logger.info(f"Processing numeric Slack vote {num} for action {voted_action} by user {user}")
+
+                existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
+                if existing_vote is not None:
+                    existing_vote.number_value = num
+                    existing_vote.save()
+                else:
+                    NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
+
 
 class SlackPostMessage(PlatformAction):
     ACTION = "chat.postMessage"
@@ -245,7 +247,6 @@ class SlackRenameConversation(PlatformAction):
     ACTION = "conversations.rename"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
-
     action_type = "SlackRenameConversation"
 
     name = models.CharField("name", max_length=150)
@@ -262,8 +263,10 @@ class SlackRenameConversation(PlatformAction):
         return response["channel"]["previous_names"]
 
     def revert(self):
-        # self.prev_name is not persisted...? add a field to the model
-        values = {"name": self.prev_name, "token": self.initiator.access_token, "channel": self.channel}
+        # TODO: self.prev_name is not persisted, why? Add a field to the model.
+        values = {"name": self.prev_name, "channel": self.channel}
+        if self.initiator.access_token:
+            values["token"] = self.initiator.access_token
         super().revert(values, "conversations.rename")
 
 

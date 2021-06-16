@@ -53,9 +53,7 @@ def slack_login(request):
 
 
 def slack_install(request):
-    logger.info(">> slack_install")
     logger.debug(request.GET)
-
     expected_state = request.session.get("community_install_state")
     if expected_state is None or request.GET.get("state") is None or (not request.GET.get("state") == expected_state):
         logger.error(f"expected {expected_state}")
@@ -101,6 +99,7 @@ def slack_install(request):
     )
 
     slack_community = SlackCommunity.objects.filter(team_id=team_id).first()
+    #FIXME: both these branches need to validate that the `plugin` team ID matches.
     if slack_community is None:
         logger.info(f"Creating new SlackCommunity under {community}")
         slack_community = SlackCommunity.objects.create(
@@ -132,8 +131,7 @@ def slack_install(request):
         context = {
             "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
             "community_name": slack_community.community_name,
-            "creator_token": None,
-            # "creator_token": res['authed_user']['access_token'], #what is this for
+            "creator_token": user_token,
             "platform": "slack",
         }
         return render(request, "policyadmin/init_starterkit.html", context)
@@ -142,8 +140,6 @@ def slack_install(request):
         logger.debug("community already exists, updating name..")
         slack_community.community_name = readable_name
         slack_community.save()
-
-        logger.debug(f"updating name of {slack_community.community} to be {readable_name}")
         slack_community.community.readable_name = readable_name
         slack_community.community.save()
 
@@ -295,6 +291,7 @@ def post_policy(policy, action, users=[], post_type="channel", template=None, ch
             # post to direct message
             values["channel"] = channel
             response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
+            # FIXME: there are several community posts (one per user IM) but not all are persisted
             action.community_post = response["ts"]
             action.save()
 

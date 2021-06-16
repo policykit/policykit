@@ -33,20 +33,17 @@
           description = schemas[k].properties[field].description
           schemas[k].properties[field].description = 'Optional' + (description ? `: ${description}` : '')
         }
+
+        // make slack fields "read-only" because they are activated through oauth install. this is purely visual
+        if (k == "slack") {
+          schemas[k].properties[field].readonly = true
+        }
       }
     }
 
     // Uses https://github.com/jsonform/jsonform
     $('form#json-editor-form').jsonForm({
       schema: {"type": "object", "properties": schemas},
-      // TODO
-      // form: [
-      //   "*",
-      //   {
-      //     "key": "slack",
-      //     "type": "hidden"
-      //   }
-      // ],
       value: loaded_plugin_config,
       validate: false,
       onSubmit: function (errors, values) {
@@ -64,6 +61,7 @@
               }
 
               var body = {...loaded_config, plugins}
+
               fetch('../../../metagov/save_config', {
                 method: 'POST',
                 headers: {

@@ -79,7 +79,7 @@ def internal_receive_action(request):
         community = Community.objects.get(metagov_slug=metagov_community_slug)
     except Community.DoesNotExist:
         logger.error(f"Received event for community {metagov_community_slug} which doesn't exist in PolicyKit")
-        return HttpResponseBadRequest("CommunityPlatform does not exist")
+        return HttpResponseBadRequest("Community does not exist")
 
     # Special cases for receiving events from "governable platforms" that have fully featured integrations
 
