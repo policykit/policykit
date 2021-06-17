@@ -84,6 +84,7 @@ class SlackCommunity(CommunityPlatform):
 
     def notify_action(self, action, policy, users=[], post_type="channel", template=None, channel=None):
         from integrations.slack.views import post_policy
+
         post_policy(policy, action, users, post_type, template, channel)
 
     def make_call(self, method_name, values={}, action=None, method=None):
@@ -117,14 +118,14 @@ class SlackCommunity(CommunityPlatform):
                 data["token"] = action.proposal.author.access_token
                 if not data["token"]:
                     # we don't have the token for the user who proposed the action, so use an admin user token instead
-                    admin_user_token = get_admin_user_token(self.community)
+                    admin_user_token = get_admin_user_token(self)
                     if admin_user_token:
                         data["token"] = admin_user_token
             elif obj.AUTH == "admin_bot":
                 if action.proposal.author.is_community_admin and action.proposal.author.access_token:
                     data["token"] = action.proposal.author.access_token
             elif obj.AUTH == "admin_user":
-                admin_user_token = get_admin_user_token(self.community)
+                admin_user_token = get_admin_user_token(self)
                 if admin_user_token:
                     data["token"] = admin_user_token
 
@@ -148,7 +149,7 @@ class SlackCommunity(CommunityPlatform):
                     posted_action = action
 
                 if posted_action.community_post:
-                    admin_user_token = get_admin_user_token(self.community)
+                    admin_user_token = get_admin_user_token(self)
                     if admin_user_token:
                         values = {
                             "token": admin_user_token,
@@ -182,7 +183,7 @@ class SlackCommunity(CommunityPlatform):
             new_api_action.is_bundled = False
             new_api_action.save()  # save triggers policy evaluation
         else:
-            logger.debug(f"No PlatformAction created for event '{event_type}'")
+            logger.debug(f"{event_type}: no PlatformAction created")
 
         if event_type == "reaction_added":
             event = outer_event["data"]
@@ -246,7 +247,6 @@ class SlackRenameConversation(PlatformAction):
     ACTION = "conversations.rename"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
-    action_type = "SlackRenameConversation"
 
     name = models.CharField("name", max_length=150)
     channel = models.CharField("channel", max_length=150)
@@ -262,6 +262,9 @@ class SlackRenameConversation(PlatformAction):
         return response["channel"]["previous_names"]
 
     def revert(self):
+        # "only the user that originally created a channel or an admin may rename it"
+        # Use the initiating users access token if we have it (since they already successfully renamed)
+
         # TODO: self.prev_name is not persisted, why? Add a field to the model.
         values = {"name": self.prev_name, "channel": self.channel}
         if self.initiator.access_token:

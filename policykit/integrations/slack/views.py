@@ -168,11 +168,13 @@ def slack_install(request):
 
 def is_policykit_action(community, test_a, test_b, api_name):
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
-    logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus, call_type=api_name)
 
+    logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus, call_type=api_name)
     if logs.exists():
+        # logger.debug(f"Made {logs.count()} calls to {api_name} in the last 2 seconds")
         for log in logs:
             j_info = json.loads(log.extra_info)
+            # logger.debug(j_info)
             if test_a == j_info[test_b]:
                 return True
 
@@ -183,19 +185,18 @@ def maybe_create_new_api_action(community, outer_event):
     new_api_action = None
     event_type = outer_event["event_type"]
     initiator = outer_event.get("initiator").get("user_id")
-    event = outer_event["data"]
-    if event_type == "channel_rename":
-        if not is_policykit_action(community, event["channel"]["name"], "name", SlackRenameConversation.ACTION):
-            new_api_action = SlackRenameConversation()
-            new_api_action.community = community
-            new_api_action.name = event["channel"]["name"]
-            new_api_action.channel = event["channel"]["id"]
+    if not initiator:
+        # logger.debug(f"{event_type} event does not have an initiating user ID, skipping")
+        return
 
+    event = outer_event["data"]
+    if event_type == "message" and event.get("subtype") == "channel_name":
+        if not is_policykit_action(community, event["name"], "name", SlackRenameConversation.ACTION):
+            new_api_action = SlackRenameConversation(community=community, name=event["name"], channel=event["channel"])
+            new_api_action.prev_name = event["old_name"]
+            logger.debug(f"Previous name: {new_api_action.prev_name}, new name: {new_api_action.name}")
             u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
             new_api_action.initiator = u
-            prev_names = new_api_action.get_previous_names()
-            new_api_action.prev_name = prev_names[0]
-
     elif event_type == "message" and event.get("subtype") == None:
         if not is_policykit_action(community, event["text"], "text", SlackPostMessage.ACTION):
             new_api_action = SlackPostMessage()

@@ -12,11 +12,11 @@ def get_slack_user_fields(user_info):
     }
 
 
-def get_admin_user_token(community):
+def get_admin_user_token(platform_community):
     from integrations.slack.models import SlackUser
 
     admin_user = SlackUser.objects.filter(
-        community=community, is_community_admin=True, access_token__isnull=False
+        community=platform_community, is_community_admin=True, access_token__isnull=False
     ).first()
     if admin_user:
         return admin_user.access_token
