@@ -237,7 +237,7 @@ class SlackPostMessage(PlatformAction):
     def revert(self):
         admin_user_token = get_admin_user_token(self.community)
         if admin_user_token is None:
-            raise Exception("No admin access token found")
+            raise Exception("No admin access token found, can't revert slackpostmessage")
 
         values = {"token": admin_user_token, "ts": self.timestamp, "channel": self.channel}
         super().revert(values, "chat.delete")
@@ -262,13 +262,16 @@ class SlackRenameConversation(PlatformAction):
         return response["channel"]["previous_names"]
 
     def revert(self):
-        # "only the user that originally created a channel or an admin may rename it"
-        # Use the initiating users access token if we have it (since they already successfully renamed)
-
+        # only the user that originally created a channel or an admin may rename it
         # TODO: self.prev_name is not persisted, why? Add a field to the model.
         values = {"name": self.prev_name, "channel": self.channel}
-        if self.initiator.access_token:
-            values["token"] = self.initiator.access_token
+        # Use the initiators access token if we have it (since they already successfully renamed)
+        values["token"] = self.initiator.access_token
+        if not values["token"]:
+            # Otherwise, use any admin user token that we have
+            values["token"] = get_admin_user_token(self.community)
+        if not values["token"]:
+            raise Exception("No admin access token found, can't revert slackrenameconversation")
         super().revert(values, "conversations.rename")
 
 
