@@ -1,7 +1,6 @@
 import datetime
 import json
 import logging
-from django.http.response import HttpResponseBadRequest
 
 import requests
 from django.conf import settings
@@ -17,7 +16,7 @@ from integrations.slack.models import (
     SlackUser,
 )
 from integrations.slack.utils import get_slack_user_fields
-from policyengine.models import CommunityRole, LogAPICall, Community, PlatformActionBundle
+from policyengine.models import Community, CommunityRole, LogAPICall, PlatformActionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -38,30 +37,32 @@ NUMBERS = {
 
 def slack_login(request):
     """redirect after metagov has gotten the slack user token"""
-    logger.info(f"slack_login")
-    logger.info(request.GET)
+    logger.debug(f"slack_login: {request.GET}")
+
+    if request.GET.get("error"):
+        return redirect(f"/login?error={request.GET.get('error')}")
+
     user_token = request.GET.get("user_token")
     user_id = request.GET.get("user_id")
     team_id = request.GET.get("team_id")
-    user = authenticate(request, user_token=user_token, team_id=team_id, user_id=user_id, platform="slack")
+    user = authenticate(request, user_token=user_token, user_id=user_id, team_id=team_id)
     if user:
         login(request, user)
-        response = redirect("/main")
-    else:
-        response = redirect("/login?error=policykit_not_yet_installed_to_that_community")
-    return response
+        return redirect("/main")
+
+    # Note: this is not always an accurate error message.
+    return redirect("/login?error=policykit_not_yet_installed_to_that_community")
 
 
 def slack_install(request):
-    logger.debug(request.GET)
+    logger.debug(f"Slack installation completed: {request.GET}")
     expected_state = request.session.get("community_install_state")
     if expected_state is None or request.GET.get("state") is None or (not request.GET.get("state") == expected_state):
         logger.error(f"expected {expected_state}")
-        return HttpResponseBadRequest("bad state")
+        return redirect("/login?error=bad_state")
 
     if request.GET.get("error"):
-        logger.error(request.GET.get("error"))
-        return redirect("/login?error=cancel")
+        return redirect(f"/login?error={request.GET.get('error')}")
 
     # metagov identifier for the "parent community" to install Slack to
     metagov_community_slug = request.GET.get("community")
@@ -73,8 +74,8 @@ def slack_install(request):
     try:
         community = Community.objects.get(metagov_slug=metagov_community_slug)
     except Community.DoesNotExist:
-        logger.error(f"community not found: {metagov_community_slug}")
-        return redirect("/login?error=cancel")
+        logger.error(f"Community not found: {metagov_community_slug}")
+        return redirect("/login?error=community_not_found")
 
     # Get team info from Slack
     response = requests.post(
@@ -83,7 +84,7 @@ def slack_install(request):
         headers={"X-Metagov-Community": metagov_community_slug},
     )
     if not response.ok:
-        raise Exception(f"Error: {response.status_code} {response.reason} {response.text}")
+        return redirect("/login?error=server_error")
     data = response.json()
     team = data["team"]
     team_id = team["id"]
@@ -99,9 +100,8 @@ def slack_install(request):
     )
 
     slack_community = SlackCommunity.objects.filter(team_id=team_id).first()
-    #FIXME: both these branches need to validate that the `plugin` team ID matches.
     if slack_community is None:
-        logger.info(f"Creating new SlackCommunity under {community}")
+        logger.debug(f"Creating new SlackCommunity under {community}")
         slack_community = SlackCommunity.objects.create(
             community=community,
             community_name=readable_name,
@@ -112,7 +112,7 @@ def slack_install(request):
         user_group.save()
 
         # get the list of users, create SlackUser object for each user
-        logger.info(f"Fetching user list for {slack_community}...")
+        logger.debug(f"Fetching user list for {slack_community}...")
         response = LogAPICall.make_api_call(slack_community, {}, "users.list")
         for new_user in response["members"]:
             if (not new_user["deleted"]) and (not new_user["is_bot"]) and (new_user["id"] != "USLACKBOT"):
@@ -142,10 +142,6 @@ def slack_install(request):
         slack_community.save()
         slack_community.community.readable_name = readable_name
         slack_community.community.save()
-
-        # Delete the newly created community, since it already existed
-        logger.debug(f"deleting {community}")
-        community.delete()
 
         # Store token for the user who (re)installed Slack
         if user_token and user_id:

@@ -9,22 +9,22 @@ logger = logging.getLogger(__name__)
 
 
 class SlackBackend(BaseBackend):
-    def authenticate(self, request, oauth=None, platform=None, user_token=None, user_id=None, team_id=None):
+    def authenticate(self, request, user_token=None, user_id=None, team_id=None):
         if not user_token or not team_id or not user_id:
-            logger.error("missing user token or team")
-            return None
-
-        if platform != "slack":
+            logger.error("Missing user token or team")
             return None
 
         try:
             community = SlackCommunity.objects.get(team_id=team_id)
         except SlackCommunity.DoesNotExist:
+            logger.error(f"No SlackCommunity found for {team_id}")
             return None
 
+        # Get info about this user by hitting the Slack 'users.info' endpoint through Metagov
         response = community.make_call("users.info", {"user": user_id})
         user_info = response["user"]
         user_fields = get_slack_user_fields(user_info)
+        # Store the user's token. This is only necessary if we want PolicyKit to be able to make requests on their behalf later on.
         user_fields["password"] = user_token
         user_fields["access_token"] = user_token
 
@@ -33,7 +33,7 @@ class SlackBackend(BaseBackend):
             username=user_info["id"],
             defaults=user_fields,
         )
-        logger.debug(f"Created or updated {slack_user} (created: {created})")
+        logger.debug(f"{'Created' if created else 'Updated'} Slack user {slack_user}")
         return slack_user
 
     def get_user(self, user_id):

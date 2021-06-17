@@ -30,18 +30,8 @@ def authorize_platform(request):
         return HttpResponseBadRequest()
 
     from policyengine.models import Community
-    community: Community = None
-    if request.user.is_authenticated:
-        # user is already logged in, so we are authorizing to an existing community
-        user = get_user(request)
-        if user.community.platform == "slack":
-            return HttpResponseBadRequest()
-        community = user.community.community
-    else:
-        # user is not logged in, so we are creating a new community
-        community = Community.objects.create()
-
-    logger.info(f"Starting authorization flow for '{platform}' for metagov community '{community.metagov_slug}'")
+    community = Community.objects.create()
+    logger.info(f"Initiating authorization flow to install '{platform}' to new community '{community}'.")
 
     # Initiate authorization flow to install Metagov to platform.
     # On successful completion, the Metagov Slack plugin will be enabled for the community.
@@ -521,7 +511,6 @@ def initialize_starterkit(request):
     starter_kit.init_kit(community, creator_token)
 
     logger.info('starterkit initialized')
-    logger.info('creator_token' + creator_token)
 
     response = redirect('/login?success=true')
     return response
