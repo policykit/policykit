@@ -302,7 +302,6 @@ class MetagovPlatformActionTest(TestCase):
             base_role=user_group,
         )
 
-    # @skip("FIXME")
     def test_metagov_trigger(self):
         # 1) Create Policy that is triggered by a metagov action
 
