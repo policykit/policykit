@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.db import models
-from integrations.slack.utils import get_admin_user_token
+from integrations.slack.utils import get_admin_user_token, reaction_to_boolean
 from policyengine.models import (
     BooleanVote,
     CommunityPlatform,
@@ -192,17 +192,17 @@ class SlackCommunity(CommunityPlatform):
             # check if this ts corresponds to a community_post action or bundle
             action = PlatformAction.objects.filter(community=self, community_post=ts).first()
             action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
+            reaction_bool = reaction_to_boolean(event["reaction"])
 
-            if action is not None and (event["reaction"] == "+1" or event["reaction"] == "-1"):
-                value = True if event["reaction"] == "+1" else False
+            if action is not None and reaction_bool is not None:
                 user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
-                logger.debug(f"Processing boolean Slack vote {value} by {user}")
+                logger.debug(f"Processing boolean Slack vote {reaction_bool} by {user}")
                 existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
                 if existing_vote is not None:
-                    existing_vote.boolean_value = value
+                    existing_vote.boolean_value = reaction_bool
                     existing_vote.save()
                 else:
-                    BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=value)
+                    BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=reaction_bool)
 
             elif action_bundle is not None and event["reaction"] in NUMBERS_TEXT.keys():
                 bundled_actions = list(action_bundle.bundled_actions.all())

@@ -21,3 +21,11 @@ def get_admin_user_token(platform_community):
     if admin_user:
         return admin_user.access_token
     return None
+
+
+def reaction_to_boolean(reaction: str):
+    if reaction == "+1" or reaction.startswith("+1::skin-tone-"):
+        return True
+    if reaction == "-1" or reaction.startswith("-1::skin-tone-"):
+        return False
+    return None
