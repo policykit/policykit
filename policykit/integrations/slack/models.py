@@ -290,11 +290,20 @@ class SlackJoinConversation(PlatformAction):
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
     def revert(self):
-        admin_user_token = get_admin_user_token(self.community)
-        if admin_user_token is None:
-            raise Exception("No admin access token found")
-        values = {"user": self.users, "token": admin_user_token, "channel": self.channel}
-        super().revert(values, "conversations.kick")
+        values = {"user": self.users, "channel": self.channel}
+        method = "conversations.kick"
+        try:
+            super().revert(values, method)
+        except Exception:
+            # Whether or not bot can kick is based on workspace settings
+            logger.error(f"{method} with bot token failed, attempting with admin token")
+            admin_user_token = get_admin_user_token(self.community)
+            if admin_user_token is None:
+                raise Exception("No admin access token found")
+            values["token"] = admin_user_token
+            # This will fail with `cant_kick_self` if a user is trying to kick itself.
+            # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
+            super().revert(values, method)
 
 
 class SlackPinMessage(PlatformAction):
@@ -318,6 +327,7 @@ class SlackPinMessage(PlatformAction):
 class SlackScheduleMessage(PlatformAction):
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
+
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
     post_at = models.IntegerField("post at")
