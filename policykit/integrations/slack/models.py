@@ -118,17 +118,15 @@ class SlackCommunity(CommunityPlatform):
                 data["token"] = action.proposal.author.access_token
                 if not data["token"]:
                     # we don't have the token for the user who proposed the action, so use an admin user token instead
-                    admin_user_token = get_admin_user_token(self)
-                    if admin_user_token:
-                        data["token"] = admin_user_token
+                    data["token"] = get_admin_user_token(self)
             elif obj.AUTH == "admin_bot":
-                if action.proposal.author.is_community_admin and action.proposal.author.access_token:
+                if action.proposal.author.is_community_admin:
                     data["token"] = action.proposal.author.access_token
             elif obj.AUTH == "admin_user":
-                admin_user_token = get_admin_user_token(self)
-                if admin_user_token:
-                    data["token"] = admin_user_token
+                data["token"] = get_admin_user_token(self)
 
+            if data["token"] is None:
+                data.pop("token")  # remove token override if we don't have one
             logger.debug(f"Overriding token? {True if data.get('token') else False}")
 
             try:
@@ -149,16 +147,12 @@ class SlackCommunity(CommunityPlatform):
                     posted_action = action
 
                 if posted_action.community_post:
-                    admin_user_token = get_admin_user_token(self)
-                    if admin_user_token:
-                        values = {
-                            "token": admin_user_token,
-                            "ts": posted_action.community_post,
-                            "channel": obj.channel,
-                        }
-                        LogAPICall.make_api_call(self, values, "chat.delete")
-                    else:
-                        logger.error("Can't delete PolicyKit community post, no admin token to use for chat.delete")
+                    values = {
+                        "token": get_admin_user_token(self),
+                        "ts": posted_action.community_post,
+                        "channel": obj.channel,
+                    }
+                    LogAPICall.make_api_call(self, values, "chat.delete")
 
         clean_up_proposals(action, True)
 
@@ -236,9 +230,6 @@ class SlackPostMessage(PlatformAction):
 
     def revert(self):
         admin_user_token = get_admin_user_token(self.community)
-        if admin_user_token is None:
-            raise Exception("No admin access token found, can't revert slackpostmessage")
-
         values = {"token": admin_user_token, "ts": self.timestamp, "channel": self.channel}
         super().revert(values, "chat.delete")
 
@@ -250,6 +241,7 @@ class SlackRenameConversation(PlatformAction):
 
     name = models.CharField("name", max_length=150)
     channel = models.CharField("channel", max_length=150)
+    previous_name = models.CharField(max_length=80)
 
     action_codename = "slackrenameconversation"
     app_name = "slackintegration"
@@ -257,21 +249,17 @@ class SlackRenameConversation(PlatformAction):
     class Meta:
         permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
 
-    def get_previous_names(self):
-        response = self.community.make_metagov_call("conversations.info", {"channel": self.channel})
-        return response["channel"]["previous_names"]
-
     def revert(self):
-        # only the user that originally created a channel or an admin may rename it
-        # TODO: self.prev_name is not persisted, why? Add a field to the model.
-        values = {"name": self.prev_name, "channel": self.channel}
-        # Use the initiators access token if we have it (since they already successfully renamed)
-        values["token"] = self.initiator.access_token
+        # Slack docs: "only the user that originally created a channel or an admin may rename it"
+        values = {
+            "name": self.previous_name,
+            "channel": self.channel,
+            # Use the initiators access token if we have it (since they already successfully renamed)
+            "token": self.initiator.access_token,
+        }
         if not values["token"]:
-            # Otherwise, use any admin user token that we have
+            # Use any admin user token that we have
             values["token"] = get_admin_user_token(self.community)
-        if not values["token"]:
-            raise Exception("No admin access token found, can't revert slackrenameconversation")
         super().revert(values, "conversations.rename")
 
 
@@ -297,10 +285,7 @@ class SlackJoinConversation(PlatformAction):
         except Exception:
             # Whether or not bot can kick is based on workspace settings
             logger.error(f"{method} with bot token failed, attempting with admin token")
-            admin_user_token = get_admin_user_token(self.community)
-            if admin_user_token is None:
-                raise Exception("No admin access token found")
-            values["token"] = admin_user_token
+            values["token"] = get_admin_user_token(self.community)
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
             super().revert(values, method)

@@ -192,9 +192,9 @@ def maybe_create_new_api_action(community, outer_event):
     event = outer_event["data"]
     if event_type == "message" and event.get("subtype") == "channel_name":
         if not is_policykit_action(community, event["name"], "name", SlackRenameConversation.ACTION):
-            new_api_action = SlackRenameConversation(community=community, name=event["name"], channel=event["channel"])
-            new_api_action.prev_name = event["old_name"]
-            logger.debug(f"Previous name: {new_api_action.prev_name}, new name: {new_api_action.name}")
+            new_api_action = SlackRenameConversation(
+                community=community, name=event["name"], channel=event["channel"], previous_name=event["old_name"]
+            )
             u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
             new_api_action.initiator = u
     elif event_type == "message" and event.get("subtype") == None:
