@@ -2,7 +2,7 @@ import logging
 from django.db import models
 from six import python_2_unicode_compatible
 from django.utils.translation import gettext_lazy as _
-from policyengine.models import Community
+from policyengine.models import CommunityPlatform
 
 LOG_LEVELS = (
     (logging.NOTSET, _("NotSet")),
@@ -16,7 +16,7 @@ LOG_LEVELS = (
 
 @python_2_unicode_compatible
 class EvaluationLog(models.Model):
-    community = models.ForeignKey(Community, blank=True, on_delete=models.CASCADE)
+    community = models.ForeignKey(CommunityPlatform, blank=True, on_delete=models.CASCADE)
     logger_name = models.CharField(max_length=100)
     level = models.PositiveSmallIntegerField(choices=LOG_LEVELS, default=logging.ERROR, db_index=True)
     msg = models.TextField(verbose_name="Message")

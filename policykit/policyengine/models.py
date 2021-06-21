@@ -1,16 +1,14 @@
 from django.db import models, transaction
-from django.db.models.signals import post_save
 from actstream import action
-from django.dispatch import receiver
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.conf import settings
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from polymorphic.models import PolymorphicModel, PolymorphicManager
-from django.core.exceptions import ValidationError
+import integrations.metagov.api as MetagovAPI
 from policyengine.views import govern_action
 from datetime import datetime, timezone
-import urllib
 import json
 import logging
 
@@ -42,24 +40,31 @@ class StarterKit(PolymorphicModel):
         return self.name
 
 
-class CommunityManager(PolymorphicManager):
-    """Community Manager"""
+class Community(models.Model):
+    readable_name = models.CharField(max_length=300, blank=True)
+    metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
 
-    def get_by_metagov_name(self, name):
-        """
-        Iterate through all communities to find the one we're looking for. This is
-        not performant, if there are a lot of communities we should add the metagov name
-        as a CharField on Community.
-        """
-        from integrations.metagov.library import metagov_slug
-        for community in self.get_queryset().all():
-            if metagov_slug(community) == name:
-                return community
-        raise Community.DoesNotExist
+    def __str__(self):
+        prefix = super().__str__()
+        return '{} {}'.format(prefix, self.readable_name or '')
+
+    def save(self, *args, **kwargs):
+        if settings.METAGOV_ENABLED and not self.pk and not self.metagov_slug:
+            # If this is the first save, create a corresponding community in Metagov
+            response = MetagovAPI.create_empty_metagov_community(self.readable_name)
+            self.metagov_slug = response["slug"]
+            logger.debug(f"Created new Metagov community '{self.metagov_slug}' Saving slug in model.")
+        super(Community, self).save(*args, **kwargs)
 
 
-class Community(PolymorphicModel):
-    """Community"""
+@receiver(post_delete, sender=Community)
+def post_delete_community(sender, instance, **kwargs):
+    if instance.metagov_slug and settings.METAGOV_ENABLED:
+        MetagovAPI.delete_community(instance.metagov_slug)
+
+
+class CommunityPlatform(PolymorphicModel):
+    """Community on a specific platform"""
 
     community_name = models.CharField('team_name', max_length=1000)
     """The name of the community."""
@@ -70,10 +75,14 @@ class Community(PolymorphicModel):
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
 
-    objects = CommunityManager()
+    community = models.ForeignKey(Community, models.CASCADE)
 
     def __str__(self):
         return self.community_name
+
+    @property
+    def metagov_slug(self):
+        return self.community.metagov_slug
 
     def notify_action(self, action, policy, users):
         """
@@ -118,17 +127,12 @@ class Community(PolymorphicModel):
         """
         Saves the community. Note: Only meant for internal use.
         """
-        if not self.pk and settings.METAGOV_ENABLED:
-            # Create a corresponding community in Metagov
-            from integrations.metagov.library import update_metagov_community
-            update_metagov_community(self)
-
-        super(Community, self).save(*args, **kwargs)
+        super(CommunityPlatform, self).save(*args, **kwargs)
 
 class CommunityRole(Group):
     """CommunityRole"""
 
-    community = models.ForeignKey(Community, models.CASCADE, null=True)
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE, null=True)
     """The community which the role belongs to."""
 
     role_name = models.TextField('readable_name', max_length=300, null=True)
@@ -163,7 +167,7 @@ class CommunityUser(User, PolymorphicModel):
     readable_name = models.CharField('readable_name', max_length=300, null=True)
     """The readable name of the user. May or may not exist."""
 
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
     """The community which the user belongs to."""
 
     access_token = models.CharField('access_token', max_length=300, null=True)
@@ -237,7 +241,7 @@ class CommunityDoc(models.Model):
     text = models.TextField(null=True, blank=True, default = '')
     """The text within the document."""
 
-    community = models.ForeignKey(Community, models.CASCADE, null=True)
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE, null=True)
     """The community which the document belongs to."""
 
     is_active = models.BooleanField(default=True)
@@ -313,7 +317,7 @@ class DataStore(models.Model):
 
 
 class LogAPICall(models.Model):
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
     proposal_time = models.DateTimeField(auto_now_add=True)
     call_type = models.CharField('call_type', max_length=300)
     extra_info = models.TextField()
@@ -439,7 +443,7 @@ class Proposal(models.Model):
 class BaseAction(models.Model):
     """Base Action"""
 
-    community = models.ForeignKey(Community, models.CASCADE, verbose_name='community')
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE, verbose_name='community')
     """The community in which the action is taking place."""
 
     community_post = models.CharField('community_post', max_length=300, null=True)
@@ -468,7 +472,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
 
     # NOTE: Why is this duplicated here?
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
 
     # NOTE: Should be moved to BaseAction
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, null=True)
@@ -1002,7 +1006,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
     AUTH = 'app'
 
     # NOTE: Why is this duplicated here?
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
 
     # FIXME: Should be moved to BaseAction
     initiator = models.ForeignKey(CommunityUser, models.CASCADE)
@@ -1143,7 +1147,7 @@ class BasePolicy(models.Model):
     fail = models.TextField(blank=True, default='')
     """The fail code of the policy."""
 
-    community = models.ForeignKey(Community,
+    community = models.ForeignKey(CommunityPlatform,
         models.CASCADE,
         verbose_name='community',
     )

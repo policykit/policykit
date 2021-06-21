@@ -9,7 +9,105 @@ This is a library of example Platform Policies to get started.
 Slack Policies
 ==============
 
-Add examples here
+Vote on renaming a channel
+--------------------------
+
+**Filter:**
+
+.. code-block:: python
+
+  return action.action_codename == "slackrenameconversation"
+
+**Initialize:** ``pass``
+
+**Check:**
+
+.. code-block:: python
+
+  yes_votes = action.proposal.get_yes_votes().count()
+  no_votes = action.proposal.get_no_votes().count()
+  debug(f"{yes_votes} for, {no_votes} against")
+  if yes_votes >= 1:
+    return PASSED
+  elif no_votes >= 1:
+    return FAILED
+
+  debug("No votes yet....")
+  return None
+
+**Notify:**
+
+.. code-block:: python
+
+  message = f"Should this channel be renamed from #{action.prev_name} to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post."
+  action.community.notify_action(action, policy, template=message)
+
+**Pass:**
+
+.. code-block:: python
+
+  yes_votes = action.proposal.get_yes_votes().count()
+  no_votes = action.proposal.get_no_votes().count()
+
+  action.execute()
+
+  message = f"Proposal to rename this channel to #{action.name} passed with {yes_votes} for and {no_votes} against. This action was governed by Policy: {policy.name}"
+  action.community.notify_action(
+      action,
+      policy,
+      users=[action.initiator],
+      template=message
+  )
+
+**Fail:**
+
+.. code-block:: python
+
+  yes_votes = action.proposal.get_yes_votes().count()
+  no_votes = action.proposal.get_no_votes().count()
+  message = f"Proposal to rename this channel to #{action.name} failed with {yes_votes} for and {no_votes} against. This action was governed by Policy: {policy.name}"
+  action.community.notify_action(
+      action,
+      policy,
+      users=[action.initiator],
+      template=message
+  )
+
+
+Don't allow posts in channel
+----------------------------
+
+This could be extended to add any logic to determine who can post in a given channel.
+Posts in the channel are auto-deleted, and the user is notified about why it happened.
+
+**Filter:**
+
+.. code-block:: python
+
+  return action.action_codename == "slackpostmessage" and action.channel == "ABC123"
+
+**Initialize:** ``pass``
+
+**Check:** ``return FAILED``
+
+**Notify:** ``pass``
+
+**Pass:** ``pass``
+
+**Fail:**
+
+.. code-block:: python
+
+  # create an ephemeral post that is only visible to the poster
+  message = f"Post was deleted because of policy '{policy.name}'"
+  action.community.notify_action(
+    action,
+    policy,
+    users=[action.initiator],
+    post_type="ephemeral",
+    template=message
+  )
+
 
 Discourse Policies
 ==================

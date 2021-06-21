@@ -97,8 +97,10 @@ def init_community_reddit(request):
     user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Reddit: " + title + ": Base User")
 
     if not s.exists():
+        parent_community = Community.objects.create(readable_name=title)
         community = RedditCommunity.objects.create(
             community_name=title,
+            community=parent_community,
             team_id=title,
             access_token=access_token,
             refresh_token=refresh_token,
