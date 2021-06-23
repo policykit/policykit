@@ -230,7 +230,7 @@ Install RabbitMQ and create a virtual host:
 
     sudo rabbitmqctl add_user 'username' 'password'
     sudo rabbitmqctl add_vhost 'policykit-vhost'
-    sudo rabbitmqctl set_permissions -p 'policykit-vhost' 'username'.*' '.*' '.*'
+    sudo rabbitmqctl set_permissions -p 'policykit-vhost' 'username' '.*' '.*' '.*'
 
 In ``policykit/settings.py``, set the ``CELERY_BROKER_URL`` as follows, substituting values for your RabbitMQ username, password, and virtual host:
 
