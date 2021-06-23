@@ -148,9 +148,9 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                                 </Files>
                         </Directory>
 
-                        # 🚨 IMPORTANT if using Metagov: Restrict internal endpoints to local traffic 🚨
+                        # 🚨 IMPORTANT: Restrict internal endpoints to local traffic 🚨
                         <Location /metagov/internal>
-                                Require local
+                                Require ip YOUR-IP-ADDRESS
                         </Location>
 
                         WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
@@ -222,19 +222,21 @@ For more information about configuration options, see the `Celery Daemonization 
 Create RabbitMQ virtual host
 """"""""""""""""""""""""""""
 
-Install RabbitMQ:
+Install RabbitMQ and create a virtual host:
 
 .. code-block:: shell
 
     sudo apt-get install rabbitmq-server
 
-Follow these instruction to `create a RabbitMQ username, password, and virtual host <https://docs.celeryproject.org/en/stable/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq>`_.
+    sudo rabbitmqctl add_user 'username' 'password'
+    sudo rabbitmqctl add_vhost 'policykit-vhost'
+    sudo rabbitmqctl set_permissions -p 'policykit-vhost' 'username'.*' '.*' '.*'
 
 In ``policykit/settings.py``, set the ``CELERY_BROKER_URL`` as follows, substituting values for your RabbitMQ username, password, and virtual host:
 
 .. code-block:: python
 
-    CELERY_BROKER_URL = "amqp://USERNAME:PASSWORD@localhost:5672/VIRTUALHOST"
+    CELERY_BROKER_URL = "amqp://USERNAME:PASSWORD@localhost:5672/CUSTOMVIRTUALHOST"
 
 Create celery user
 """"""""""""""""""
