@@ -61,7 +61,7 @@ On the login page, select "Sign in with Discourse". This will display a screen a
 Metagov
 ~~~~~~~
 
-PolicyKit integrates with `Metagov <http://docs.metagov.org/>`_ to support policies that use of the `Metagov API <https://prototype.metagov.org/redoc/>`_ to use and govern a range of external platforms and governance tools such as Slack, Loomio, and SourceCred.
+PolicyKit integrates with `Metagov <http://docs.metagov.org/>`_ to support policies that use of the `Metagov API <https://metagov.policykit.org/redoc/>`_ to use and govern a range of external platforms and governance tools such as Slack, Loomio, and SourceCred.
 
 Configuring Metagov
 """""""""""""""""""
@@ -91,7 +91,7 @@ Metagov actions
 """"""""""""""""""""""""""
 
 Platform policies have access to a ``metagov`` client that can be used to invoke Metagov ``/action`` and ``/process`` endpoints.
-Refer to the `Metagov API docs <https://prototype.metagov.org/redoc/>`_ to see which actions and processes are available to you.
+Refer to the `Metagov API docs <https://metagov.policykit.org/redoc/>`_ to see which actions and processes are available to you.
 Policy authors can only use actions that are defined in plugins that are *currently enabled* in their community.
 See the :doc:`Sample Policies <../sample_policies>` for more examples.
 
