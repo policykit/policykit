@@ -81,13 +81,17 @@ class LinterTests(TestCase):
         errors = _error_check(code)
         self.assertEqual(len(errors), 0)
 
-    def test_unclosed_string(self):
+    def test_unclosed_string_error(self):
         code = "print('lambda)"
         errors = _error_check(code)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors[0], "1:15: E0001: EOL while scanning string literal (<unknown>, line 1) (syntax-error)")
 
-# Create your tests here.
+    def test_no_return_outside_function_error(self):
+        code = "return"
+        errors = _error_check(code)
+        self.assertEqual(len(errors), 0)
+
 class FilterTests(TestCase):
     def test_import_whitelisted_modules(self):
         for module in whitelisted_modules:

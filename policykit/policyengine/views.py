@@ -502,12 +502,13 @@ def error_check(request):
     """
     data = json.loads(request.body)
     code = data['code']
-    output, errors = _error_check(code)
-    return JsonResponse({'output': output, 'errors': errors})
+    errors = _error_check(code)
+    return JsonResponse({'errors': errors})
 
 class PylintOutput:
     """
-    Used internally by Pylint to write output / error messages to a list.
+    Used internally to write output / error messages to a list
+    from the TextReporter object in _error_check(code).
     """
     def __init__(self):
         self.output = []
@@ -534,13 +535,23 @@ def _error_check(code):
         tmpfile.close()
 
         output = PylintOutput()
-        # We disable refactoring (R) and convention (C) related checks
-        run = Run(["-r", "n", "--disable=R,C", filename], reporter=TextReporter(output), do_exit=False)
+        # We disable refactoring (R), convention (C), and warning (W) related checks
+        run = Run(["-r", "n", "--disable=R,C,W", filename], reporter=TextReporter(output), do_exit=False)
 
         for line in output.read():
+            # Only return lines that have error messages (lines with colons are error messages)
             sep = line.find(':')
-            if sep != -1:
-                errors.append(line[sep + 1:])
+            if sep == -1:
+                continue
+
+            # Don't return lines with error code E0104, which denotes
+            # "Return outside function" error. We don't want to return this
+            # error because many code cells contain returns because they are
+            # inside unseen wrapper functions.
+            if line.find('E0104') != -1:
+                continue
+
+            errors.append(line[sep + 1:])
     finally:
         os.remove(filename)
     return errors
