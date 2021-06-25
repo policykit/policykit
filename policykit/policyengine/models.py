@@ -578,7 +578,7 @@ class ConstitutionActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             action = self
-            if action.initiator.has_perm(action._meta.app_label + '.add_' + action.action_codename):
+            if action.initiator.has_perm(action._meta.app_label + '.add_' + action._meta.verbose_name):
                 govern_action(action, is_first_evaluation=True)
 
         super(ConstitutionActionBundle, self).save(*args, **kwargs)
@@ -1120,7 +1120,7 @@ class PlatformActionBundle(BaseAction):
     def save(self, *args, **kwargs):
         if not self.pk:
             action = self
-            if action.initiator.has_perm(action._meta.app_label + '.add_' + action.action_codename):
+            if action.initiator.has_perm(action._meta.app_label + '.add_' + action._meta.verbose_name):
                 govern_action(action, is_first_evaluation=True)
 
         super(PlatformActionBundle, self).save(*args, **kwargs)

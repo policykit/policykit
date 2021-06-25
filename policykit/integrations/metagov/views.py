@@ -14,7 +14,7 @@ from django.http import (
 )
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole
+from policyengine.models import Community, CommunityPlatform, CommunityRole, PlatformAction
 from integrations.slack.models import SlackCommunity
 import integrations.metagov.api as MetagovAPI
 
@@ -43,16 +43,22 @@ def internal_receive_outcome(request, id):
     if request.method != "POST" or not request.body:
         return HttpResponseBadRequest()
     try:
-        process = MetagovProcess.objects.get(pk=id)
-    except MetagovProcess.DoesNotExist:
-        return HttpResponseNotFound()
-
-    try:
         body = json.loads(request.body)
     except ValueError:
         return HttpResponseBadRequest("unable to decode body")
 
     logger.info(f"Received external process outcome: {body}")
+
+    # Special case for Slack voting mechanism
+    if body["name"] == "slack.emoji-vote":
+        community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
+        community.handle_metagov_process(body)
+        return HttpResponse()
+
+    try:
+        process = MetagovProcess.objects.get(pk=id)
+    except MetagovProcess.DoesNotExist:
+        return HttpResponseNotFound()
     process.json_data = json.dumps(body)
     process.save()
     return HttpResponse()
