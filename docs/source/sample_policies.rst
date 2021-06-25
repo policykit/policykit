@@ -423,7 +423,7 @@ Add a NEAR DAO proposal
 -----------------------
 
 When a new Discourse topic is created with tag ``dao-proposal``, add a new proposal to the community's NEAR DAO.
-Uses the `near.call <https://prototype.metagov.org/redoc/#operation/near.call>`_ action.
+Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_ action.
 
 **Required Metagov Plugins**: ``discourse`` ``near``
 
