@@ -94,7 +94,8 @@ class SlackCommunity(CommunityPlatform):
             headers={"X-Metagov-Community": self.metagov_slug},
         )
         if not response.ok:
-            raise Exception(f"Error: {response.status_code} {response.reason} {response.text}")
+            logger.error(f"Error making Slack request {method_name} with params {values}")
+            raise Exception(f"{response.status_code} {response.reason} {response.text}")
         if response.content:
             return response.json()
         return None
@@ -165,9 +166,6 @@ class SlackCommunity(CommunityPlatform):
             logger.debug("Ignoring bot event")
             return
 
-        event_type = outer_event["event_type"]
-        initiator = outer_event["initiator"].get("user_id")
-
         from integrations.slack.views import maybe_create_new_api_action
 
         new_api_action = maybe_create_new_api_action(self, outer_event)
@@ -176,41 +174,107 @@ class SlackCommunity(CommunityPlatform):
             new_api_action.community_origin = True
             new_api_action.is_bundled = False
             new_api_action.save()  # save triggers policy evaluation
-        else:
-            logger.debug(f"{event_type}: no PlatformAction created")
+            logger.debug(f"PlatformAction saved: {new_api_action.pk}")
 
-        if event_type == "reaction_added":
-            event = outer_event["data"]
-            ts = event["item"]["ts"]
+    def handle_metagov_process(self, process):
+        """
+        Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
+        This function gets called any time a slack.emoji-vote associated with
+        this SlackCommunity gets updated (e.g. if a vote was cast).
+        """
+        assert process["name"] == "slack.emoji-vote"
+        outcome = process["outcome"]
+        status = process["status"]  # TODO: handle 'completed' status, which means that process was "closed"
+        ts = outcome["message_ts"]
+        votes = outcome["votes"]
 
-            # check if this ts corresponds to a community_post action or bundle
-            action = PlatformAction.objects.filter(community=self, community_post=ts).first()
-            action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
-            reaction_bool = reaction_to_boolean(event["reaction"])
+        action = PlatformAction.objects.filter(community=self, community_post=ts).first()
+        action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
+        if action is not None:
+            # Expect this process to be a boolean vote on an action.
+            for (k, v) in votes.items():
+                assert k == "yes" or k == "no"
+                reaction_bool = True if k == "yes" else False
+                for u in v["users"]:
+                    user, _ = SlackUser.objects.get_or_create(username=u, community=self)
+                    existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
+                    if existing_vote is None:
+                        logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
+                        BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=reaction_bool)
+                    elif existing_vote.boolean_value != reaction_bool:
+                        logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
+                        existing_vote.boolean_value = reaction_bool
+                        existing_vote.save()
 
-            if action is not None and reaction_bool is not None:
-                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
-                logger.debug(f"Processing boolean Slack vote {reaction_bool} by {user}")
-                existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
-                if existing_vote is not None:
-                    existing_vote.boolean_value = reaction_bool
-                    existing_vote.save()
-                else:
-                    BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=reaction_bool)
+        elif action_bundle is not None:
+            # Expect this process to be a choice vote on an action bundle.
+            bundled_actions = list(action_bundle.bundled_actions.all())
+            for (k, v) in votes.items():
+                num, voted_action = [(idx, a) for (idx, a) in enumerate(bundled_actions) if str(a) == k][0]
+                for u in v["users"]:
+                    user, _ = SlackUser.objects.get_or_create(username=u, community=self)
+                    existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
+                    if existing_vote is None:
+                        logger.debug(
+                            f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
+                        )
+                        NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
+                    elif existing_vote.number_value != num:
+                        logger.debug(
+                            f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
+                        )
+                        existing_vote.number_value = num
+                        existing_vote.save()
 
-            elif action_bundle is not None and event["reaction"] in NUMBERS_TEXT.keys():
-                bundled_actions = list(action_bundle.bundled_actions.all())
-                num = NUMBERS_TEXT[event["reaction"]]
-                voted_action = bundled_actions[num]
-                user, _ = SlackUser.objects.get_or_create(username=initiator, community=self)
-                logger.debug(f"Processing numeric Slack vote {num} for action {voted_action} by user {user}")
+    def post_message(self, text, users=[], post_type="channel", channel=None):
+        """
+        POST TYPES:
+        mpim = multi person message
+        im = direct message(s)
+        channel = post in channel
+        ephemeral = ephemeral post(s) in channel that is only visible to one user
+        """
+        usernames = [user.username for user in users or []]
+        if len(usernames) == 0 and post_type in ["mpim", "im", "ephemeral"]:
+            raise Exception(f"user(s) required for post type '{post_type}'")
+        values = {"text": text}
 
-                existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
-                if existing_vote is not None:
-                    existing_vote.number_value = num
-                    existing_vote.save()
-                else:
-                    NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
+        if post_type == "mpim":
+            # open conversation among participants
+            response = LogAPICall.make_api_call(self, {"users": ",".join(usernames)}, "conversations.open")
+            channel = response["channel"]["id"]
+            # post to group message
+            values["channel"] = channel
+            response = LogAPICall.make_api_call(self, values, "chat.postMessage")
+            return [response["ts"]]
+
+        if post_type == "im":
+            # message each user individually
+            posts = []
+            for username in usernames:
+                response = LogAPICall.make_api_call(self, {"users": username}, "conversations.open")
+                channel = response["channel"]["id"]
+                # post to direct message
+                values["channel"] = channel
+                response = LogAPICall.make_api_call(self, values, "chat.postMessage")
+                posts.append(response["ts"])
+            return posts
+
+        if post_type == "ephemeral":
+            posts = []
+            for username in usernames:
+                values["user"] = username
+                values["channel"] = channel
+                response = LogAPICall.make_api_call(self, values, "chat.postEphemeral")
+                posts.append(response["message_ts"])
+            return posts
+
+        if post_type == "channel":
+            values["channel"] = channel
+            response = LogAPICall.make_api_call(self, values, "chat.postMessage")
+            return [response["ts"]]
+
+        return []
 
 
 class SlackPostMessage(PlatformAction):

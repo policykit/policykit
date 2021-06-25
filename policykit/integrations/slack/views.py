@@ -1,7 +1,6 @@
 import datetime
 import json
 import logging
-
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -19,20 +18,6 @@ from integrations.slack.utils import get_slack_user_fields
 from policyengine.models import Community, CommunityRole, LogAPICall, PlatformActionBundle
 
 logger = logging.getLogger(__name__)
-
-
-NUMBERS = {
-    0: "zero",
-    1: "one",
-    2: "two",
-    3: "three",
-    4: "four",
-    5: "five",
-    6: "six",
-    7: "seven",
-    8: "eight",
-    9: "nine",
-}
 
 
 def slack_login(request):
@@ -235,92 +220,74 @@ def maybe_create_new_api_action(community, outer_event):
     return new_api_action
 
 
+def default_election_vote_message(policy):
+    return (
+        "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"
+    )
+
+
+def default_boolean_vote_message(policy):
+    return (
+        "This action is governed by the following policy: "
+        + policy.description
+        + ". Vote with :thumbsup: or :thumbsdown: on this post."
+    )
+
+
 def post_policy(policy, action, users=[], post_type="channel", template=None, channel=None):
+    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}"}
+
     if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
-        policy_message_default = (
-            "This action is governed by the following policy: "
-            + policy.explanation
-            + ". Decide between options below:\n"
-        )
-
-        bundled_actions = action.bundled_actions.all()
-        for num, a in enumerate(bundled_actions):
-            policy_message_default += ":" + NUMBERS[num] + ": " + str(a) + "\n"
+        payload["poll_type"] = "choice"
+        payload["title"] = template or default_election_vote_message(policy)
+        payload["options"] = [str(a) for a in action.bundled_actions.all()]
     else:
-        policy_message_default = (
-            "This action is governed by the following policy: "
-            + policy.description
-            + ". Vote with :thumbsup: or :thumbsdown: on this post."
-        )
+        payload["poll_type"] = "boolean"
+        payload["title"] = template or default_boolean_vote_message(policy)
 
-    if not template:
-        policy_message = policy_message_default
-    else:
-        policy_message = template
-
-    values = {"text": policy_message}
-
-    # mpim = multi person message
-    # im each user
-    # channel all users
-    # channel ephemeral users
-    usernames = [user.username for user in users or []]
-
-    if len(usernames) == 0 and post_type in ["im", "ephemeral"]:
-        raise Exception(f"user(s) required for post type '{post_type}'")
-
-    if post_type == "mpim":
-        # open conversation among participants
-        response = LogAPICall.make_api_call(policy.community, {"users": ",".join(usernames)}, "conversations.open")
-        channel = response["channel"]["id"]
-        # post to group message
-        values["channel"] = channel
-        response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
-        action.community_post = response["ts"]
-        action.save()
-
-    elif post_type == "im":
-        # message each user individually
-        for username in usernames:
-            response = LogAPICall.make_api_call(policy.community, {"users": username}, "conversations.open")
+    if channel is None:
+        # Determine wich channel to post in
+        if post_type == "channel":
+            if action.action_type == "PlatformAction" and hasattr(action, "channel"):
+                channel = action.channel
+            elif action.action_type == "PlatformActionBundle":
+                first_action = action.bundled_actions.all()[0]
+                if hasattr(first_action, "channel"):
+                    channel = first_action.channel
+        # For "mpim" (multi-persom im), open a private conversation among participants, to post the vote in.
+        if post_type == "mpim" and users is not None and len(users) > 0:
+            usernames = ",".join([user.username for user in users])
+            response = LogAPICall.make_api_call(policy.community, {"users": usernames}, "conversations.open")
             channel = response["channel"]["id"]
 
-            # post to direct message
-            values["channel"] = channel
-            response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
-            # FIXME: there are several community posts (one per user IM) but not all are persisted
-            action.community_post = response["ts"]
-            action.save()
+    if channel is None:
+        raise Exception("Failed to determine which channel to post in")
 
-    elif post_type == "ephemeral":
-        for username in usernames:
-            values["user"] = username
+    payload["channel"] = channel
 
-            if channel:
-                values["channel"] = channel
-            else:
-                if action.action_type == "PlatformAction":
-                    values["channel"] = action.channel
-                else:
-                    a = action.bundled_actions.all()[0]
-                    values["channel"] = a.channel
+    # Kick off process in Metagov
+    logger.debug(f"Starting slack vote on {action} governed by {policy}. Payload: {payload}")
+    response = requests.post(
+        f"{settings.METAGOV_URL}/api/internal/process/slack.emoji-vote",
+        json=payload,
+        headers={"X-Metagov-Community": policy.community.metagov_slug},
+    )
+    if not response.ok:
+        raise Exception(f"Error starting process: {response.status_code} {response.reason} {response.text}")
+    location = response.headers.get("location")
+    if not location:
+        raise Exception("Response missing location header")
 
-            response = LogAPICall.make_api_call(policy.community, values, "chat.postEphemeral")
-            action.community_post = response["message_ts"]
-            action.save()
+    # TODO: this location URL should be stored somewhere, so we can use it to close the Metagov process when policy evaluation "completes"
+    process_location = f"{settings.METAGOV_URL}{location}"
+    logger.debug(f"Started, process located at {process_location}")
 
-    elif post_type == "channel":
-        # post in channel
-        if channel:
-            values["channel"] = channel
-        else:
-            # if channel not specified, post in channel where the action occurred
-            if action.action_type == "PlatformAction":
-                values["channel"] = action.channel
-            else:
-                a = action.bundled_actions.all()[0]
-                values["channel"] = a.channel
+    response = requests.get(process_location)
+    if not response.ok:
+        raise Exception(f"{response.status_code} {response.reason} {response.text}")
 
-        response = LogAPICall.make_api_call(policy.community, values, "chat.postMessage")
-        action.community_post = response["ts"]
-        action.save()
+    process = response.json()
+    ts = process["outcome"]["message_ts"]
+    logger.debug(f"Saving {ts} as community_post")
+    action.community_post = ts
+    action.save()
