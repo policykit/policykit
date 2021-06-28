@@ -26,6 +26,9 @@ def create_empty_metagov_community(readable_name=""):
 
 
 def update_metagov_community(community, plugins=[]):
+    if not community.metagov_slug:
+        raise Exception(f"no metagov slug for {community}")
+
     payload = {"slug": community.metagov_slug, "readable_name": community.community_name, "plugins": plugins}
     response = requests.put(f"{community_base}/{community.metagov_slug}", json=payload)
     if not response.ok:

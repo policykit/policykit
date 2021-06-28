@@ -1,17 +1,12 @@
-from unittest import skip
-
+"""
+Policy evaluation tests that do NOT require Metagov to be running
+"""
 from django.contrib.auth.models import Permission
-from django.test import Client, TestCase
-import integrations.metagov.api as MetagovAPI
-from integrations.metagov.models import MetagovProcess, MetagovPlatformAction
+from django.test import Client, TestCase, override_settings
+from django_db_logger.models import EvaluationLog
+from integrations.metagov.models import MetagovPlatformAction
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import (
-    Community,
-    CommunityRole,
-    PlatformPolicy,
-    ConstitutionPolicy,
-    PolicykitAddCommunityDoc,
-)
+from policyengine.models import Community, CommunityRole, ConstitutionPolicy, PlatformPolicy, PolicykitAddCommunityDoc
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -24,6 +19,7 @@ all_actions_pass_policy = {
 
 
 class EvaluationTests(TestCase):
+    @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
     def setUp(self):
         # Set up a Slack community and a user
         user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
@@ -37,17 +33,6 @@ class EvaluationTests(TestCase):
             base_role=user_group,
         )
         self.user = SlackUser.objects.create(username="test", community=self.slack_community)
-
-        # Activate a plugin to use in tests
-        MetagovAPI.update_metagov_community(
-            community=self.slack_community,
-            plugins=list(
-                [
-                    {"name": "randomness", "config": {"default_low": 2, "default_high": 200}},
-                    # {"name": "loomio", "config": {"api_key": ""}},
-                ]
-            ),
-        )
 
     def test_can_execute(self):
         """Test that users with can_execute permissions can execute any action and mark it as 'passed'"""
@@ -106,7 +91,9 @@ class EvaluationTests(TestCase):
         self.assertTrue(user_with_can_execute.has_perm("policyengine.can_execute_policykitaddcommunitydoc"))
 
         # action initiated by user with "can_execute" should pass
-        action = PolicykitAddCommunityDoc(name="my doc", initiator=user_with_can_execute, community=self.slack_community)
+        action = PolicykitAddCommunityDoc(
+            name="my doc", initiator=user_with_can_execute, community=self.slack_community
+        )
         action.save()
         self.assertEqual(action.proposal.status, "passed")
 
@@ -142,124 +129,6 @@ class EvaluationTests(TestCase):
         action.save()
         action.refresh_from_db()  # test that it was saved to the db with correct proposal
         self.assertEqual(action.proposal.status, "passed")
-
-    def test_close_process(self):
-        # 1) Create Policy and PlatformAction
-        policy_code = {
-            **all_actions_pass_policy,
-            "initialize": """
-metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
-""",
-            "check": """
-result = metagov.close_process()
-action.data.set('status', result.status)
-action.data.set('outcome', result.outcome)
-
-if result is None:
-    return #still processing
-if result.errors:
-    return FAILED
-if result.outcome:
-    return PASSED if result.outcome.get('winner') else FAILED
-return FAILED
-""",
-        }
-        policy = PlatformPolicy(
-            **policy_code,
-            community=self.slack_community,
-            description="test",
-            name="test policy",
-        )
-        policy.save()
-
-        action = SlackPinMessage()
-        action.initiator = self.user
-        action.community = self.slack_community
-
-        # 2) Save action to trigger policy execution
-        action.save()
-
-        process = MetagovProcess.objects.filter(action=action, policy=policy).first()
-        self.assertIsNotNone(process)
-
-        self.assertEqual(action.proposal.status, "passed")
-        self.assertEqual(action.data.get("status"), "completed")
-        self.assertIsNotNone(action.data.get("outcome").get("winner"))
-
-    @skip("Don't run loomio vote test because it requires an API key")
-    def test_loomio_vote(self):
-        print("\nTesting external process\n")
-        # 1) Create Policy and PlatformAction
-        policy = PlatformPolicy()
-        policy.community = self.slack_community
-        policy.filter = "return True"
-        policy.initialize = """
-result = metagov.start_process("loomio.poll", {"title": "[test] policykit poll", "options": ["one", "two", "three"], "closing_at": "2021-05-11"})
-poll_url = result.outcome.get('poll_url')
-action.data.set('poll_url', poll_url)
-"""
-        policy.notify = "pass"
-        policy.check = """
-result = metagov.get_process()
-if result.status != "completed":
-    return None #still processing
-if result.errors:
-    return FAILED
-if result.outcome:
-    return PASSED if result.outcome.get('value') == 27 else FAILED
-return FAILED
-"""
-        policy.success = "pass"
-        policy.fail = "pass"
-        policy.description = "test"
-        policy.name = "test policy"
-        policy.save()
-
-        action = SlackPinMessage()
-        action.initiator = self.user
-        action.community = self.slack_community
-
-        # 2) Save action to trigger execution of check() and notify()
-        action.save()
-
-        process = MetagovProcess.objects.filter(action=action, policy=policy).first()
-        self.assertIsNotNone(process)
-        self.assertEqual(process.data.status, "pending")
-        self.assertTrue("https://www.loomio.org/p/" in process.data.outcome.get("poll_url"))
-        self.assertEqual(action.proposal.status, "proposed")
-        self.assertTrue("https://www.loomio.org/p/" in action.data.get("poll_url"))
-
-    def test_perform_action(self):
-        print("\nTesting perform_action from metagov\n")
-        # 1) Create Policy that performs a metagov action
-        policy = PlatformPolicy()
-        policy.community = self.slack_community
-        policy.filter = "return True"
-        policy.initialize = "debug('help!')"
-        policy.check = """parameters = {"low": 4, "high": 5}
-response = metagov.perform_action('randomness.random-int', parameters)
-if response and response.get('value') == 4:
-    return PASSED
-return FAILED"""
-        policy.notify = "pass"
-        policy.success = "pass"
-        policy.fail = "pass"
-        policy.description = "test"
-        policy.name = "test policy"
-        policy.save()
-
-        # 2) Save an action to trigger the policy execution
-        action = SlackPinMessage()
-        action.initiator = self.user
-        action.community = self.slack_community
-        action.save()
-
-        self.assertEqual(action.proposal.status, "passed")
-
-        # Check that evaluation debug log was generated
-        from django_db_logger.models import EvaluationLog
-
-        self.assertEqual(EvaluationLog.objects.filter(community=policy.community, msg__contains="help!").count(), 1)
 
     def test_policy_order(self):
         first_policy = PlatformPolicy.objects.create(
@@ -354,7 +223,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.initialize = "pass"
         policy.notify = "pass"
         policy.check = "return PASSED"
-        policy.success = "action.data.set('got here', True)"
+        policy.success = "action.data.set('got here', True)\ndebug('hello world!')"
         policy.fail = "pass"
         policy.description = "test"
         policy.name = "test policy"
@@ -380,3 +249,8 @@ and action.event_type == 'discourse.post_created'"""
         self.assertEqual(action.initiator.username, "alice")
         self.assertEqual(action.data.get("got here"), True)
         self.assertEqual(action.proposal.status, "passed")
+
+        # Check that evaluation debug log was generated
+        self.assertEqual(
+            EvaluationLog.objects.filter(community=policy.community, msg__contains="hello world!").count(), 1
+        )

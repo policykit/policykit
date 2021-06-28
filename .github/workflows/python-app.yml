@@ -1,7 +1,6 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-
 name: PolicyKit Django application
 
 on:
@@ -13,16 +12,46 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  run_integration_tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
-    - uses: actions/checkout@v2
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: Install dependencies
+    - name: Checkout PolicyKit repository
+      uses: actions/checkout@v2
+    - name: Install PolicyKit dependencies
       working-directory: ./policykit
       run: |
-        python -m pip install --upgrade pip
+        python -m venv env
+        source env/bin/activate
         pip install -r requirements.txt
+        deactivate
+    - name: Checkout Metagov repository
+      uses: actions/checkout@v2
+      with:
+        repository: metagov/metagov-prototype
+        path: metagov-prototype
+    - name: Set up Metagov
+      working-directory: ./metagov-prototype/metagov
+      run: |
+        python -m venv env
+        source env/bin/activate
+        pip install -r requirements.txt
+        cd metagov
+        echo "DJANGO_SECRET_KEY=t5y0(1hpfj2%%qrys%ro$*dfb6p$h%3t2dmag=+9o%t(=l3w#9" > .env
+        echo "DEBUG=True" >> .env
+        cd ..
+        python manage.py migrate
+    - name: Run Metagov server and PolicyKit tests
+      working-directory: ./metagov-prototype/metagov
+      run: |
+        source env/bin/activate
+        python manage.py runserver 8000 &
+        sleep 10
+        cd ../../policykit
+        pwd
+        source env/bin/activate
+        INTEGRATION=1 PRIVATE_FILE_PATH=private_template.py METAGOV_URL=http://127.0.0.1:8000 POLICYKIT_LOG_FILE=tmp.log python manage.py test
