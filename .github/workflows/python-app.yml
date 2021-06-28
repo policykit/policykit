@@ -12,7 +12,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  run_integration_tests:
+  unit_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Checkout PolicyKit repository
+      uses: actions/checkout@v2
+    - name: Install PolicyKit dependencies
+      working-directory: ./policykit
+      run: |
+        pip install -r requirements.txt
+    - name: Run PolicyKit unit tests
+      working-directory: ./policykit
+      run: |
+        PRIVATE_FILE_PATH=private_template.py POLICYKIT_LOG_FILE=tmp.log python manage.py test
+
+  integration_tests:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -52,6 +71,5 @@ jobs:
         python manage.py runserver 8000 &
         sleep 10
         cd ../../policykit
-        pwd
         source env/bin/activate
         INTEGRATION=1 PRIVATE_FILE_PATH=private_template.py METAGOV_URL=http://127.0.0.1:8000 POLICYKIT_LOG_FILE=tmp.log python manage.py test
