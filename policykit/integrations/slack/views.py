@@ -109,7 +109,7 @@ def slack_install(request):
                 )
                 if user_token and user_id and new_user["id"] == user_id:
                     logger.debug(f"Storing access_token for installing user ({user_id})")
-                    # Installer has is_community_admin because they are an admin in Slack, AND we requested special user scoped from them
+                    # Installer has is_community_admin because they are an admin in Slack, AND we requested special user scopes from them
                     u.is_community_admin = True
                     u.access_token = user_token
                     u.save()
@@ -134,7 +134,7 @@ def slack_install(request):
             installer = SlackUser.objects.filter(community=slack_community, username=user_id).first()
             if installer is not None:
                 logger.debug(f"Storing access_token for installing user ({user_id})")
-                # Installer has is_community_admin because they are an admin in Slack, AND we requested special user scoped from them
+                # Installer has is_community_admin because they are an admin in Slack, AND we requested special user scopes from them
                 installer.is_community_admin = True
                 installer.access_token = user_token
                 installer.save()
