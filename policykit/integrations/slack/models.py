@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.db import models
-from integrations.slack.utils import get_admin_user_token, reaction_to_boolean
+from integrations.slack.utils import get_admin_user_token
 from policyengine.models import (
     BooleanVote,
     CommunityPlatform,

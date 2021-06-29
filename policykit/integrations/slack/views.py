@@ -105,11 +105,12 @@ def slack_install(request):
                     username=new_user["id"],
                     readable_name=new_user["real_name"],
                     avatar=new_user["profile"]["image_24"],
-                    is_community_admin=new_user["is_admin"],
                     community=slack_community,
                 )
                 if user_token and user_id and new_user["id"] == user_id:
                     logger.debug(f"Storing access_token for installing user ({user_id})")
+                    # Installer has is_community_admin because they are an admin in Slack, AND we requested special user scopes from them
+                    u.is_community_admin = True
                     u.access_token = user_token
                     u.save()
 
@@ -133,6 +134,8 @@ def slack_install(request):
             installer = SlackUser.objects.filter(community=slack_community, username=user_id).first()
             if installer is not None:
                 logger.debug(f"Storing access_token for installing user ({user_id})")
+                # Installer has is_community_admin because they are an admin in Slack, AND we requested special user scopes from them
+                installer.is_community_admin = True
                 installer.access_token = user_token
                 installer.save()
             else:
@@ -140,7 +143,7 @@ def slack_install(request):
                 response = slack_community.make_call("users.info", {"user": user_id})
                 user_info = response["user"]
                 user_fields = get_slack_user_fields(user_info)
-                user_fields["password"] = user_token
+                user_fields["is_community_admin"] = True
                 user_fields["access_token"] = user_token
                 SlackUser.objects.create(
                     community=slack_community,
@@ -290,4 +293,6 @@ def post_policy(policy, action, users=[], post_type="channel", template=None, ch
     ts = process["outcome"]["message_ts"]
     action.community_post = ts
     action.save()
-    logger.debug(f"Saved action with '{ts}' as community_post, and process at {action.proposal.governance_process_url}")
+    logger.debug(
+        f"Saved action with '{ts}' as community_post, and process at {action.proposal.governance_process_url}"
+    )
