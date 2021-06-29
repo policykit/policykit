@@ -278,16 +278,16 @@ def post_policy(policy, action, users=[], post_type="channel", template=None, ch
     if not location:
         raise Exception("Response missing location header")
 
-    # TODO: this location URL should be stored somewhere, so we can use it to close the Metagov process when policy evaluation "completes"
-    process_location = f"{settings.METAGOV_URL}{location}"
-    logger.debug(f"Started, process located at {process_location}")
+    # Store location URL of the process, so we can use it to close the Metagov process when policy evaluation "completes"
+    action.proposal.governance_process_url = f"{settings.METAGOV_URL}{location}"
+    action.proposal.save()
 
-    response = requests.get(process_location)
+    # Get the unique 'ts' of the vote post, and save it on the action
+    response = requests.get(action.proposal.governance_process_url)
     if not response.ok:
         raise Exception(f"{response.status_code} {response.reason} {response.text}")
-
     process = response.json()
     ts = process["outcome"]["message_ts"]
-    logger.debug(f"Saving {ts} as community_post")
     action.community_post = ts
     action.save()
+    logger.debug(f"Saved action with '{ts}' as community_post, and process at {action.proposal.governance_process_url}")

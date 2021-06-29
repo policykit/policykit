@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from actstream import action
+import requests
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -386,6 +387,9 @@ class Proposal(models.Model):
     status = models.CharField(choices=STATUS, max_length=10)
     """Status of the proposal. One of PROPOSED, PASSED or FAILED."""
 
+    governance_process_url = models.URLField(max_length=100, blank=True)
+    """URL for the GovernanceProcess that is being used to make a decision about this Proposal"""
+
     def get_time_elapsed(self):
         """
         Returns a datetime object representing the time elapsed since the proposal's creation.
@@ -439,6 +443,15 @@ class Proposal(models.Model):
         if not self.pk:
             self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
+
+    def close_governance_process(self):
+        if not self.governance_process_url:
+            return
+        response = requests.delete(self.governance_process_url)
+        if not response.ok:
+            logger.error(f"Error closing process: {response.status_code} {response.reason} {response.text}")
+        logger.debug(f"Closed governance process: {response.text}")
+
 
 class BaseAction(models.Model):
     """Base Action"""
