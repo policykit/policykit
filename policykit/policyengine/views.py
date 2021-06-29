@@ -827,6 +827,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
+            action.proposal.close_governance_process()
 
     elif check_result == Proposal.FAILED:
         # run "fail" block of policy
@@ -839,6 +840,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
+            action.proposal.close_governance_process()
 
         # If this is the first time evaluating, and it originated in a community, revert it
         if is_first_evaluation and action.community_origin:
