@@ -82,19 +82,21 @@
   }
 
   .marker .tooltip {
-    display: none;
-    position: absolute;
+    visibility: hidden;
+    width: 400px;
     background-color: #f5f5b5;
     color: #000000;
     border: 1px solid #000000;
     padding: 2px;
-    width: 400px;
-    left: 10px;
-    top: -1em;
+    position: absolute;
+    z-index: 1;
+    bottom: 110%;
+    opacity: 0;
   }
 
   .marker:hover .tooltip {
-    display: block;
+    visibility: visible;
+    opacity: 1;
   }
 </style>
 {% endblock %}
@@ -315,7 +317,7 @@
             marker.classList.add('marker')
             marker.innerHTML = '●'
 
-            const tooltip = document.createElement('div')
+            const tooltip = document.createElement('span')
             tooltip.classList.add('tooltip')
             tooltip.innerHTML = error
             marker.appendChild(tooltip)
