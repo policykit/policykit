@@ -39,6 +39,12 @@ ALLOWED_HOSTS = ['policykit.org',
                  '54.190.197.117',
                  'localhost']
 
+# Let environment variables override private.py, for testing
+if os.environ.get("METAGOV_URL"):
+    METAGOV_URL = os.environ.get("METAGOV_URL")
+if os.environ.get("SERVER_URL"):
+    SERVER_URL = os.environ.get("SERVER_URL")
+
 try:
     METAGOV_ENABLED = True if METAGOV_URL else False
 except NameError:

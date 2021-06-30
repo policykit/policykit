@@ -3,7 +3,7 @@
 Installation and Getting Started
 ====================================
 
-| On this page, we will take you through the process of setting up PolicyKit, both for development and for production.
+| On this page, we will take you through the process of setting up PolicyKit, both for local development and on an Ubuntu server.
 
 Getting Started
 ---------------
@@ -61,8 +61,8 @@ From the shell prompt, run the following command to create the starterkits:
 Open PolicyKit in the browser at http://localhost:8000/main
 
 
-Running PolicyKit in Production
--------------------------------
+Running PolicyKit on a Server
+-----------------------------
 
 | Thus far, we have been run in Ubuntu 18.04 and Ubuntu 20.04, and the below instructions should work for both.
 
@@ -73,8 +73,7 @@ Running PolicyKit in Production
 5. Make the following additional changes to ``private.py``:
 
    - Set the ``SERVER_URL`` field
-   - [Optional] Fill in any necessary API keys/secrets for platform integrations
-   - [Optional] If you're using Metagov, set the ``METAGOV_URL``
+   - You can leave the platform integration API keys/secrets empty for now. Follow the instructions under "Set up Integrations" to set up each integration.
 
 6. Make the following additional changes to ``policykit/settings.py``:
 
@@ -149,9 +148,9 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                                 </Files>
                         </Directory>
 
-                        # 🚨 IMPORTANT if using Metagov: Restrict internal endpoints to local traffic 🚨
+                        # 🚨 IMPORTANT: Restrict internal endpoints to local traffic 🚨
                         <Location /metagov/internal>
-                                Require local
+                                Require ip YOUR-IP-ADDRESS
                         </Location>
 
                         WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
@@ -201,12 +200,11 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                 sudo chown -R www-data:www-data /var/log/django
                 sudo chown -R www-data:www-data /var/databases/policykit
 
-10. Load your site in the browser and navigate to ``/main``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
+10. Load your site in the browser and navigate to ``/login``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
 
   Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you have defined in ``settings.py``).
 
-9. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
-
+11. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
 
 Set up Celery
 ^^^^^^^^^^^^^
@@ -224,19 +222,21 @@ For more information about configuration options, see the `Celery Daemonization 
 Create RabbitMQ virtual host
 """"""""""""""""""""""""""""
 
-Install RabbitMQ:
+Install RabbitMQ and create a virtual host:
 
 .. code-block:: shell
 
     sudo apt-get install rabbitmq-server
 
-Follow these instruction to `create a RabbitMQ username, password, and virtual host <https://docs.celeryproject.org/en/stable/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq>`_.
+    sudo rabbitmqctl add_user 'username' 'password'
+    sudo rabbitmqctl add_vhost 'policykit-vhost'
+    sudo rabbitmqctl set_permissions -p 'policykit-vhost' 'username' '.*' '.*' '.*'
 
 In ``policykit/settings.py``, set the ``CELERY_BROKER_URL`` as follows, substituting values for your RabbitMQ username, password, and virtual host:
 
 .. code-block:: python
 
-    CELERY_BROKER_URL = "amqp://USERNAME:PASSWORD@localhost:5672/VIRTUALHOST"
+    CELERY_BROKER_URL = "amqp://USERNAME:PASSWORD@localhost:5672/CUSTOMVIRTUALHOST"
 
 Create celery user
 """"""""""""""""""
@@ -399,3 +399,55 @@ Troubleshooting
 
 
 If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/policykit_beat.log``.
+
+Set up Integrations
+^^^^^^^^^^^^^^^^^^^
+
+Before your instance of PolicyKit can be installed onto external platforms,
+you'll need to go through setup steps for each :doc:`integration <integrations>`
+that you want to support:
+
+
+Metagov
+"""""""
+
+1. Deploy an instance of Metagov on the same machine as PolicyKit. See `Installing Metagov <https://docs.metagov.org/en/latest/installation.html>`_ for instructions.
+2. In the ``.env`` file in Metagov, set the URL for receiving events: ``DRIVER_EVENT_RECEIVER_URL=[POLICYKIT_URL]/metagov/internal/action``
+3. To enable Metagov in PolicyKit, set the ``METAGOV_URL`` in your ``private.py`` file to point to your Metagov instance.
+4. Ensure that ``/metagov/internal`` is restricted to local traffic. Follow the Apache2 example above.
+
+Slack
+"""""
+The Slack integration occurs through Metagov. Follow the setup instructions for the Metagov Slack Plugin to create a new Slack App to use with PolicyKit.
+
+Discord
+"""""""
+
+1. Go to https://discord.com/developers/applications
+2. Click "New Application" to create your PolicyKit application
+3. Under OAuth2, add the redirect URL ``[POLICYKIT_URL]/discord/oauth``
+4. Add a new Bot and enable these options:
+
+    - Public Bot
+    - Requires OAuth2 Code Grant
+    - Presence Intent
+    - Server Members Intent
+
+5. Copy the bot token into ``DISCORD_BOT_TOKEN`` in ``private.py`` file on your PolicyKit server.
+6. On the OAuth2 page, get the Client ID and Client Secret and copy them into ``private.py``.
+7. Reload apache2: ``systemctl reload apache2``
+8. To test it out, open ``[POLICYKIT_URL]/main`` and click "Install PolicyKit to Discord."
+9. Now, you should be able to use "Sign in with Discord" to access the PolicyKit dashboard for the community you just installed PolicyKit to.
+
+Discourse
+"""""""""
+
+There is no admin setup required for Discourse.
+Each Discourse community that installs PolicyKit needs to register the PolicyKit auth redirect separately.
+
+Reddit
+""""""
+
+1. Create a new app at https://www.reddit.com/prefs/apps
+2. Set the ``REDDIT_CLIENT_SECRET`` in ``private.py``.
+3. Reload apache2: ``systemctl reload apache2``

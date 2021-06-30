@@ -33,6 +33,11 @@
           description = schemas[k].properties[field].description
           schemas[k].properties[field].description = 'Optional' + (description ? `: ${description}` : '')
         }
+
+        // make slack fields "read-only" because they are activated through oauth install. this is purely visual
+        if (k == "slack") {
+          schemas[k].properties[field].readonly = true
+        }
       }
     }
 
@@ -56,6 +61,7 @@
               }
 
               var body = {...loaded_config, plugins}
+
               fetch('../../../metagov/save_config', {
                 method: 'POST',
                 headers: {
