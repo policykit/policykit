@@ -11,13 +11,11 @@ from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
 from pylint.lint import Run
 from pylint.reporters.text import TextReporter
-import urllib.parse
 from urllib.parse import quote
 import tempfile
 import random
 import logging
 import json
-import parser
 import html
 import os
 
@@ -828,7 +826,11 @@ def execute_policy(policy, action, is_first_evaluation: bool):
         # Log unhandled exception to the db, so policy author can view it in the UI.
         error = evaluation_logger(policy=policy, action=action, level="ERROR")
         error("Exception: " + str(e))
-        raise
+
+        # If there was an exception, treat it as if the action didn't pass this policy's filter.
+        # This means the action will fall through to the next policy (which might be 'all actions pass' or 'all actions fail' for example)
+        # Note: there might be side-effects from a partial execution that can't be undone!
+        return False
 
 def _execute_policy(policy, action, is_first_evaluation: bool):
     debug = evaluation_logger(policy, action)
