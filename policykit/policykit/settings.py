@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_filters',
     'django_tables2',
+    'django_extensions',
     'django_db_logger',
     'actstream',
     'policyengine',
