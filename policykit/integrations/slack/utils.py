@@ -108,7 +108,9 @@ def slack_event_to_platform_action(community, outer_event):
 
 
 def start_emoji_vote(policy, action, users=None, post_type="channel", template=None, channel=None):
-    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}", "channel": channel}
+    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}"}
+    if channel is not None:
+        payload["channel"] = channel
     if users is not None and len(users) > 0:
         if isinstance(users[0], str):
             payload["users"] = users
@@ -126,11 +128,11 @@ def start_emoji_vote(policy, action, users=None, post_type="channel", template=N
     if channel is None and users is None:
         # Determine which channel to post in
         if post_type == "channel":
-            if action.action_type == "PlatformAction" and hasattr(action, "channel"):
+            if action.action_type == "PlatformAction" and hasattr(action, "channel") and action.channel:
                 payload["channel"] = action.channel
             elif action.action_type == "PlatformActionBundle":
                 first_action = action.bundled_actions.all()[0]
-                if hasattr(first_action, "channel"):
+                if hasattr(first_action, "channel") and first_action.channel:
                     payload["channel"] = first_action.channel
 
     if payload.get("channel") is None and payload.get("users") is None:
