@@ -291,8 +291,13 @@ class SlackPostMessage(PlatformAction):
 
     def revert(self):
         admin_user_token = SlackUtils.get_admin_user_token(self.community)
-        values = {"token": admin_user_token, "ts": self.timestamp, "channel": self.channel}
-        super().revert(values, "chat.delete")
+        values = {
+            "method_name": "chat.delete",
+            "token": admin_user_token,
+            "ts": self.timestamp,
+            "channel": self.channel,
+        }
+        super().revert(values, "slack.method")
 
 
 class SlackRenameConversation(PlatformAction):
