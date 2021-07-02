@@ -108,11 +108,12 @@ def slack_event_to_platform_action(community, outer_event):
 
 
 def start_emoji_vote(policy, action, users=None, post_type="channel", template=None, channel=None):
-    payload = {
-        "callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}",
-        "channel": channel,
-        "users": [user.username for user in users] if users else None,
-    }
+    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}", "channel": channel}
+    if users is not None and len(users) > 0:
+        if isinstance(users[0], str):
+            payload["users"] = users
+        else:
+            payload["users"] = [u.username for u in users]
 
     if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
         payload["poll_type"] = "choice"
@@ -132,7 +133,7 @@ def start_emoji_vote(policy, action, users=None, post_type="channel", template=N
                 if hasattr(first_action, "channel"):
                     payload["channel"] = first_action.channel
 
-    if payload["channel"] is None and users is None:
+    if payload.get("channel") is None and payload.get("users") is None:
         raise Exception("Failed to determine which channel to post in")
 
     # Kick off process in Metagov
