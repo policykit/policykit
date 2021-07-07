@@ -1,16 +1,20 @@
+from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
+import integrations.metagov.api as MetagovAPI
 from pylint.lint import Run
 from pylint.reporters.text import TextReporter
 import urllib.parse
+from urllib.parse import quote
 import tempfile
+import random
 import logging
 import json
 import parser
@@ -23,9 +27,33 @@ db_logger = logging.getLogger("db")
 def homepage(request):
     return render(request, 'home.html', {})
 
+def authorize_platform(request):
+    platform = request.GET.get('platform')
+    if not platform or platform != "slack":
+        return HttpResponseBadRequest()
+
+    from policyengine.models import Community
+    community = Community.objects.create()
+    logger.info(f"Initiating authorization flow to install '{platform}' to new community '{community}'.")
+
+    # Initiate authorization flow to install Metagov to platform.
+    # On successful completion, the Metagov Slack plugin will be enabled for the community.
+
+    # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
+    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
+    encoded_redirect_uri = quote(redirect_uri, safe='')
+
+    # store state in user's session so we can validate it later
+    state = "".join([str(random.randint(0, 9)) for i in range(8)])
+    request.session['community_install_state'] = state
+
+    # redirect to metagov to authorize the app
+    url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
+    return HttpResponseRedirect(url)
+
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
+    from policyengine.models import CommunityUser
 
     user = get_user(request)
     user.community = user.community
@@ -124,26 +152,24 @@ def logout(request):
 
 @login_required(login_url='/login')
 def settings_page(request):
-    from integrations.metagov.library import get_or_create_metagov_community, get_plugin_config_schemas
-
     user = get_user(request)
     community = user.community
 
-    plugin_schemas = None
-    metagov_config = None
-    if user.has_perm("metagov.can_edit_metagov_config") or True:
-        result = get_or_create_metagov_community(community)
-        if result:
-            metagov_config = json.dumps(result)
-            plugin_schemas = json.dumps(get_plugin_config_schemas())
+    context = {
+        'metagov_enabled': settings.METAGOV_ENABLED,
+        'server_url': settings.SERVER_URL,
+        'user': get_user(request),
+    }
 
-    return render(request, 'policyadmin/dashboard/settings.html', {
-        'metagov_enabled': METAGOV_ENABLED,
-        'metagov_config': metagov_config,
-        'plugin_schemas': plugin_schemas,
-        'server_url': SERVER_URL,
-        'user': get_user(request)
-    })
+    # If user is permitted to edit Metagov config, add additional context
+    if user.has_perm("metagov.can_edit_metagov_config") and community.metagov_slug:
+        result = MetagovAPI.get_metagov_community(community.metagov_slug)
+        context['metagov_config'] = json.dumps(result)
+        context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
+        context['metagov_server_url'] = settings.METAGOV_URL
+        context['metagov_community_slug'] = community.metagov_slug
+
+    return render(request, 'policyadmin/dashboard/settings.html', context)
 
 @login_required(login_url='/login')
 def editor(request):
@@ -474,7 +500,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
+    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, CommunityPlatform
     from django.contrib.auth.models import Permission
 
     starterkit_name = request.POST['starterkit']
@@ -484,11 +510,10 @@ def initialize_starterkit(request):
 
     starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
 
-    community = Community.objects.get(community_name=community_name)
+    community = CommunityPlatform.objects.get(community_name=community_name)
     starter_kit.init_kit(community, creator_token)
 
     logger.info('starterkit initialized')
-    logger.info('creator_token' + creator_token)
 
     response = redirect('/login?success=true')
     return response
@@ -861,6 +886,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
+            action.proposal.close_governance_process()
 
     elif check_result == Proposal.FAILED:
         # run "fail" block of policy
@@ -873,6 +899,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
+            action.proposal.close_governance_process()
 
         # If this is the first time evaluating, and it originated in a community, revert it
         if is_first_evaluation and action.community_origin:
@@ -880,10 +907,9 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
 
     elif check_result == Proposal.PROPOSED and is_first_evaluation:
         # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
-        if action.community_origin:
+        if hasattr(action, 'community_origin'):
             debug(f"Reverting")
             action.revert()
-
         # Run "notify" block of policy
         debug(f"Notifying")
         notify_policy(policy, action, **optional_args)
