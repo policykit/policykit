@@ -8,8 +8,6 @@ from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
-from pylint.lint import Run
-from pylint.reporters.text import TextReporter
 from django.conf import settings
 from urllib.parse import quote
 import integrations.metagov.api as MetagovAPI
