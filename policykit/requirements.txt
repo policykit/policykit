@@ -79,7 +79,6 @@ typing-extensions==3.7.4.3
 urllib3==1.25.8
 vine==1.3.0
 wcwidth==0.1.8
-websocket==0.2.1
 websocket-client==0.58.0
 wrapt==1.12.1
 zipp==2.0.1

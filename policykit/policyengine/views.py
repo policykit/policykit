@@ -502,7 +502,8 @@ def error_check(request):
     """
     data = json.loads(request.body)
     code = data['code']
-    errors = _error_check(code)
+    function_name = data['function_name']
+    errors = _error_check(code, function_name)
     return JsonResponse({'errors': errors})
 
 class PylintOutput:
@@ -519,7 +520,31 @@ class PylintOutput:
     def read(self):
         return self.output
 
-def _error_check(code):
+def should_keep_error_message(error_message, function_name):
+    """
+    Checks provided error message and returns whether or not the error message
+    should be kept.
+    """
+    # Don't return lines with error code E0104, which denotes
+    # "Return outside function" error. We don't want to return this
+    # error because many code cells contain returns because they are
+    # inside unseen wrapper functions.
+    if error_message.find('E0104') != -1:
+        return False
+
+    # Don't return lines which say that a pre-defined local variable in
+    # our wrapper function is undefined. check_policy has a few extra
+    # pre-defined local variables than the other wrapper functions.
+    local_variables = ['policy', 'action', 'users', 'debug', 'metagov']
+    if function_name == 'check':
+        local_variables.extend(['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED'])
+    for variable in local_variables:
+        if error_message.find(f"E0602: Undefined variable '{variable}' (undefined-variable)") != -1:
+            return False
+
+    return True
+
+def _error_check(code, function_name = 'filter'):
     """
     Checks provided Python code for errors. Syntax errors are checked for with
     Pylint. Returns a list of errors from linting.
@@ -544,14 +569,8 @@ def _error_check(code):
             if sep == -1:
                 continue
 
-            # Don't return lines with error code E0104, which denotes
-            # "Return outside function" error. We don't want to return this
-            # error because many code cells contain returns because they are
-            # inside unseen wrapper functions.
-            if line.find('E0104') != -1:
-                continue
-
-            errors.append(line[sep + 1:])
+            if should_keep_error_message(line, function_name):
+                errors.append(line[sep + 1:])
     finally:
         os.remove(filename)
     return errors

@@ -305,7 +305,10 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 'code': code })
+        body: JSON.stringify({
+          'code': code,
+          'function_name': code_id
+        })
       })
       .then(response => response.json())
       .then(data => {

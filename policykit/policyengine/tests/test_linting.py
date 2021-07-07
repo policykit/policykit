@@ -81,7 +81,7 @@ class LinterTests(TestCase):
         errors = _error_check(code)
         self.assertEqual(len(errors), 0)
 
-    def test_unclosed_string_error(self):
+    def test_pylint_works(self):
         code = "print('lambda)"
         errors = _error_check(code)
         self.assertEqual(len(errors), 1)
@@ -91,6 +91,22 @@ class LinterTests(TestCase):
         code = "return"
         errors = _error_check(code)
         self.assertEqual(len(errors), 0)
+
+    def test_no_undefined_predefined_variables_error(self):
+        for variable in ['policy', 'action', 'users', 'debug', 'metagov']:
+            code = f"x = {variable}"
+            errors = _error_check(code)
+            self.assertEqual(len(errors), 0)
+
+        for variable in ['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED']:
+            code = f"x = {variable}"
+            errors = _error_check(code)
+            self.assertEqual(len(errors), 1)
+
+        for variable in ['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED']:
+            code = f"x = {variable}"
+            errors = _error_check(code, 'check')
+            self.assertEqual(len(errors), 0)
 
 class FilterTests(TestCase):
     def test_import_whitelisted_modules(self):

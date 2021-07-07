@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 import urllib
@@ -49,7 +49,7 @@ class DiscordChannel(models.Model):
     channel_id = models.IntegerField()
     channel_name = models.TextField()
 
-class DiscordCommunity(Community):
+class DiscordCommunity(CommunityPlatform):
     API = 'https://discordapp.com/api/'
     platform = "discord"
 
