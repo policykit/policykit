@@ -139,7 +139,7 @@ def slack_install(request):
                 user_fields = get_slack_user_fields(user_info)
                 user_fields["is_community_admin"] = True
                 user_fields["access_token"] = user_token
-                SlackUser.objects.create(
+                SlackUser.objects.update_or_create(
                     community=slack_community,
                     username=user_info["id"],
                     defaults=user_fields,
