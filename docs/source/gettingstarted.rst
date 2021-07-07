@@ -50,7 +50,7 @@ Getting Started
 
 ::
 
- python manage.py shell
+ python manage.py shell_plus
 
 From the shell prompt, run the following command to create the starterkits:
 

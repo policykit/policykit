@@ -30,14 +30,7 @@ SECRET_KEY = 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['policykit.org',
-                 'www.policykit.org',
-                 'ec2-52-41-245-161.us-west-2.compute.amazonaws.com',
-                 '52.41.245.161',
-                 '127.0.0.1',
-                 'ec2-54-190-197-117.us-west-2.compute.amazonaws.com',
-                 '54.190.197.117',
-                 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1']
 
 # Let environment variables override private.py, for testing
 if os.environ.get("METAGOV_URL"):
@@ -72,6 +65,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_filters',
     'django_tables2',
+    'django_extensions',
     'django_db_logger',
     'actstream',
     'policyengine',
@@ -228,8 +222,6 @@ LOGGING = {
     },
     'loggers': loggers
 }
-
-from celery.schedules import crontab
 
 # Replace with "amqp://USERNAME:PASSWORD@localhost:5672/VIRTUALHOST"
 CELERY_BROKER_URL = 'amqp://'
