@@ -1,5 +1,3 @@
-import datetime
-import json
 import logging
 import requests
 from django.conf import settings
@@ -7,15 +5,11 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 from integrations.slack.models import (
     SlackCommunity,
-    SlackJoinConversation,
-    SlackPinMessage,
-    SlackPostMessage,
-    SlackRenameConversation,
     SlackStarterKit,
     SlackUser,
 )
 from integrations.slack.utils import get_slack_user_fields
-from policyengine.models import Community, CommunityRole, LogAPICall, PlatformActionBundle
+from policyengine.models import Community, CommunityRole
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +134,7 @@ def slack_install(request):
                 installer.save()
             else:
                 logger.debug(f"User '{user_id}' is re-installing but no SlackUser exists for them, creating one..")
-                response = slack_community.make_call("users.info", {"user": user_id})
+                response = slack_community.make_call("slack.method", {"method_name": "users.info", "user": user_id})
                 user_info = response["user"]
                 user_fields = get_slack_user_fields(user_info)
                 user_fields["is_community_admin"] = True
@@ -154,145 +148,3 @@ def slack_install(request):
         return redirect("/login?success=true")
 
 
-def is_policykit_action(community, test_a, test_b, api_name):
-    current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
-
-    logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus, call_type=api_name)
-    if logs.exists():
-        # logger.debug(f"Made {logs.count()} calls to {api_name} in the last 2 seconds")
-        for log in logs:
-            j_info = json.loads(log.extra_info)
-            # logger.debug(j_info)
-            if test_a == j_info[test_b]:
-                return True
-
-    return False
-
-
-def maybe_create_new_api_action(community, outer_event):
-    new_api_action = None
-    event_type = outer_event["event_type"]
-    initiator = outer_event.get("initiator").get("user_id")
-    if not initiator:
-        # logger.debug(f"{event_type} event does not have an initiating user ID, skipping")
-        return
-
-    event = outer_event["data"]
-    if event_type == "message" and event.get("subtype") == "channel_name":
-        if not is_policykit_action(community, event["name"], "name", SlackRenameConversation.ACTION):
-            new_api_action = SlackRenameConversation(
-                community=community, name=event["name"], channel=event["channel"], previous_name=event["old_name"]
-            )
-            u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
-            new_api_action.initiator = u
-    elif event_type == "message" and event.get("subtype") == None:
-        if not is_policykit_action(community, event["text"], "text", SlackPostMessage.ACTION):
-            new_api_action = SlackPostMessage()
-            new_api_action.community = community
-            new_api_action.text = event["text"]
-            new_api_action.channel = event["channel"]
-            new_api_action.timestamp = event["ts"]
-
-            u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
-
-            new_api_action.initiator = u
-
-    elif event_type == "member_joined_channel":
-        if not is_policykit_action(community, event["channel"], "channel", SlackJoinConversation.ACTION):
-            new_api_action = SlackJoinConversation()
-            new_api_action.community = community
-            if event.get("inviter"):
-                u, _ = SlackUser.objects.get_or_create(username=event["inviter"], community=community)
-                new_api_action.initiator = u
-            else:
-                u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
-                new_api_action.initiator = u
-            new_api_action.users = initiator
-            new_api_action.channel = event["channel"]
-
-    elif event_type == "pin_added":
-        if not is_policykit_action(community, event["channel_id"], "channel", SlackPinMessage.ACTION):
-            new_api_action = SlackPinMessage()
-            new_api_action.community = community
-
-            u, _ = SlackUser.objects.get_or_create(username=initiator, community=community)
-            new_api_action.initiator = u
-            new_api_action.channel = event["channel_id"]
-            new_api_action.timestamp = event["item"]["message"]["ts"]
-
-    return new_api_action
-
-
-def default_election_vote_message(policy):
-    return (
-        "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"
-    )
-
-
-def default_boolean_vote_message(policy):
-    return (
-        "This action is governed by the following policy: "
-        + policy.description
-        + ". Vote with :thumbsup: or :thumbsdown: on this post."
-    )
-
-
-def post_policy(policy, action, users=[], post_type="channel", template=None, channel=None):
-    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}"}
-
-    if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
-        payload["poll_type"] = "choice"
-        payload["title"] = template or default_election_vote_message(policy)
-        payload["options"] = [str(a) for a in action.bundled_actions.all()]
-    else:
-        payload["poll_type"] = "boolean"
-        payload["title"] = template or default_boolean_vote_message(policy)
-
-    if channel is None:
-        # Determine wich channel to post in
-        if post_type == "channel":
-            if action.action_type == "PlatformAction" and hasattr(action, "channel"):
-                channel = action.channel
-            elif action.action_type == "PlatformActionBundle":
-                first_action = action.bundled_actions.all()[0]
-                if hasattr(first_action, "channel"):
-                    channel = first_action.channel
-        # For "mpim" (multi-persom im), open a private conversation among participants, to post the vote in.
-        if post_type == "mpim" and users is not None and len(users) > 0:
-            usernames = ",".join([user.username for user in users])
-            response = LogAPICall.make_api_call(policy.community, {"users": usernames}, "conversations.open")
-            channel = response["channel"]["id"]
-
-    if channel is None:
-        raise Exception("Failed to determine which channel to post in")
-
-    payload["channel"] = channel
-
-    # Kick off process in Metagov
-    logger.debug(f"Starting slack vote on {action} governed by {policy}. Payload: {payload}")
-    response = requests.post(
-        f"{settings.METAGOV_URL}/api/internal/process/slack.emoji-vote",
-        json=payload,
-        headers={"X-Metagov-Community": policy.community.metagov_slug},
-    )
-    if not response.ok:
-        raise Exception(f"Error starting process: {response.status_code} {response.reason} {response.text}")
-    location = response.headers.get("location")
-    if not location:
-        raise Exception("Response missing location header")
-
-    # Store location URL of the process, so we can use it to close the Metagov process when policy evaluation "completes"
-    action.proposal.governance_process_url = f"{settings.METAGOV_URL}{location}"
-    action.proposal.save()
-
-    # Get the unique 'ts' of the vote post, and save it on the action
-    response = requests.get(action.proposal.governance_process_url)
-    if not response.ok:
-        raise Exception(f"{response.status_code} {response.reason} {response.text}")
-    process = response.json()
-    ts = process["outcome"]["message_ts"]
-    action.community_post = ts
-    action.save()
-    logger.debug(
-        f"Saved action with '{ts}' as community_post, and process at {action.proposal.governance_process_url}"
-    )

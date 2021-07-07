@@ -82,21 +82,19 @@
   }
 
   .marker .tooltip {
-    visibility: hidden;
-    width: 400px;
+    display: none;
+    position: absolute;
     background-color: #f5f5b5;
     color: #000000;
     border: 1px solid #000000;
     padding: 2px;
-    position: absolute;
-    z-index: 1;
-    bottom: 110%;
-    opacity: 0;
+    width: 400px;
+    left: 10px;
+    top: -1em;
   }
 
   .marker:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
+    display: block;
   }
 </style>
 {% endblock %}
@@ -195,13 +193,15 @@
 
 {% block scripts %}
 <script src={% static "codemirror/lib/codemirror.js" %}></script>
-<link rel="stylesheet" type="text/css" href={% static "codemirror/lib/codemirror.css" %}/>
+<script src={% static "codemirror/lib/codemirror.css" %}></script>
 <script src={% static "codemirror/mode/python/python.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
-<link rel="stylesheet" type="text/css" href={% static "codemirror/addon/hint/show-hint.css" %}/>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.js" %}></script>
+<script src={% static "codemirror/addon/hint/simple-hint.cs" %}></script>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
-<link rel="stylesheet" type="text/css" href={% static "codemirror/addon/hint/show-hint.css" %}/>
+<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
 <script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
 
 <script>
@@ -263,6 +263,7 @@
     document.getElementById('description').value = decodeHtml(`{{description}}`)
   {% endif %}
 
+
   const DEFAULT_VALUES = {
     "filter": "return True\n\n",
     "initialize": "pass\n\n",
@@ -282,12 +283,46 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
+        gutters: ['warnings'],
         extraKeys: {"Ctrl-Space": "autocomplete"},
         matchBrackets: true,
         gutters: ['warnings']
     }));
 
-    editors[i].setValue(decodeHtml(DEFAULT_VALUES[code_id]));
+    switch (i) {
+      case 0:
+        {% if filter %}
+          editors[i].setValue(decodeHtml(`{{filter}}`));
+          break;
+        {% endif %}
+      case 1:
+        {% if initialize %}
+          editors[i].setValue(decodeHtml(`{{initialize}}`));
+          break;
+        {% endif %}
+      case 2:
+        {% if check %}
+          editors[i].setValue(decodeHtml(`{{check}}`));
+          break;
+        {% endif %}
+      case 3:
+        {% if notify %}
+          editors[i].setValue(decodeHtml(`{{notify}}`));
+          break;
+        {% endif %}
+      case 4:
+        {% if success %}
+          editors[i].setValue(decodeHtml(`{{success}}`));
+          break;
+        {% endif %}
+      case 5:
+        {% if fail %}
+          editors[i].setValue(decodeHtml(`{{fail}}`));
+          break;
+        {% endif %}
+      default:
+        editors[i].setValue(decodeHtml(DEFAULT_VALUES[code_id]));
+    }
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {
@@ -311,19 +346,20 @@
       .then(data => {
         cm.clearGutter('warnings')
 
-        if (data.errors.length > 0) {
+        if (data.is_error) {
           for (const error of data.errors) {
+            const message = 'Line ' + error.lineno + ': "' + error.code + '" ' + error.message
+
             const marker = document.createElement('div')
             marker.classList.add('marker')
             marker.innerHTML = '●'
 
-            const tooltip = document.createElement('span')
+            const tooltip = document.createElement('div')
             tooltip.classList.add('tooltip')
-            tooltip.innerHTML = error
+            tooltip.innerHTML = message
             marker.appendChild(tooltip)
 
-            const lineno = parseInt(error.substring(0, error.indexOf(':')))
-            cm.setGutterMarker(lineno - 1, 'warnings', marker)
+            cm.setGutterMarker(error.lineno - 1, 'warnings', marker)
           }
         }
       })

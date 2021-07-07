@@ -21,7 +21,7 @@ class SlackBackend(BaseBackend):
             return None
 
         # Get info about this user by hitting the Slack 'users.info' endpoint through Metagov
-        response = community.make_call("users.info", {"user": user_id})
+        response = community.make_call("slack.method", {"method_name": "users.info", "user": user_id})
         user_info = response["user"]
         user_fields = get_slack_user_fields(user_info)
         # Store the user's token. This is only necessary if we want PolicyKit to be able to make requests on their behalf later on.

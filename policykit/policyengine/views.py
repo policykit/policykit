@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
@@ -11,19 +10,21 @@ from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
 from pylint.lint import Run
 from pylint.reporters.text import TextReporter
+from django.conf import settings
 from urllib.parse import quote
-import tempfile
+import integrations.metagov.api as MetagovAPI
+
 import random
 import logging
 import json
 import html
-import os
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
 
 def homepage(request):
     return render(request, 'home.html', {})
+
 
 def authorize_platform(request):
     platform = request.GET.get('platform')
@@ -518,66 +519,29 @@ def initialize_starterkit(request):
 
 @csrf_exempt
 def error_check(request):
-    """
-    Takes a request object containing Python code data. Calls _error_check(code)
-    to check provided Python code for errors.
-    Returns a JSON response containing the output and errors from linting.
-    """
     data = json.loads(request.body)
     code = data['code']
-    errors = _error_check(code)
-    return JsonResponse({'errors': errors})
 
-class PylintOutput:
-    """
-    Used internally to write output / error messages to a list
-    from the TextReporter object in _error_check(code).
-    """
-    def __init__(self):
-        self.output = []
-
-    def write(self, line):
-        self.output.append(line)
-
-    def read(self):
-        return self.output
-
-def _error_check(code):
-    """
-    Checks provided Python code for errors. Syntax errors are checked for with
-    Pylint. Returns a list of errors from linting.
-    """
-    # Since Pylint can only be used on files and not strings directly, we must
-    # save the code to a temporary file. The file will be deleted after we are
-    # finished.
-    (fd, filename) = tempfile.mkstemp()
     errors = []
+
+    # Note: only catches first SyntaxError in code
+    #   when user fixes this error, then it will catch the next one, and so on
+    #   could use linter, but that has false positives sometimes
+    #   since syntax errors often affect future code
     try:
-        tmpfile = os.fdopen(fd, 'w')
-        tmpfile.write(code)
-        tmpfile.close()
+        parser.suite(code)
+    except SyntaxError as e:
+        errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
 
-        output = PylintOutput()
-        # We disable refactoring (R), convention (C), and warning (W) related checks
-        run = Run(["-r", "n", "--disable=R,C,W", filename], reporter=TextReporter(output), do_exit=False)
+    try:
+        filter_errors = filter_code(code)
+        errors.extend(filter_errors)
+    except SyntaxError as e:
+        pass
 
-        for line in output.read():
-            # Only return lines that have error messages (lines with colons are error messages)
-            sep = line.find(':')
-            if sep == -1:
-                continue
-
-            # Don't return lines with error code E0104, which denotes
-            # "Return outside function" error. We don't want to return this
-            # error because many code cells contain returns because they are
-            # inside unseen wrapper functions.
-            if line.find('E0104') != -1:
-                continue
-
-            errors.append(line[sep + 1:])
-    finally:
-        os.remove(filename)
-    return errors
+    if len(errors) > 0:
+        return JsonResponse({ 'is_error': True, 'errors': errors })
+    return JsonResponse({ 'is_error': False })
 
 @csrf_exempt
 def policy_action_save(request):

@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.db import models
-from integrations.slack.utils import get_admin_user_token
+import integrations.slack.utils as SlackUtils
 from policyengine.models import (
     BooleanVote,
     CommunityPlatform,
@@ -83,14 +83,13 @@ class SlackCommunity(CommunityPlatform):
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
     def notify_action(self, action, policy, users=[], post_type="channel", template=None, channel=None):
-        from integrations.slack.views import post_policy
-
-        post_policy(policy, action, users, post_type, template, channel)
+        SlackUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
 
     def make_call(self, method_name, values={}, action=None, method=None):
+        """Called by LogAPICall.make_api_call. Don't change the function signature."""
         response = requests.post(
-            f"{settings.METAGOV_URL}/api/internal/action/slack.method",
-            json={"parameters": {"method_name": method_name, **values}},
+            f"{settings.METAGOV_URL}/api/internal/action/{method_name}",
+            json={"parameters": values},
             headers={"X-Metagov-Community": self.metagov_slug},
         )
         if not response.ok:
@@ -101,7 +100,6 @@ class SlackCommunity(CommunityPlatform):
         return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        logger.debug(f">> SlackCommunity.execute_platform_action {action.ACTION} for {action}")
         from policyengine.views import clean_up_proposals
 
         obj = action
@@ -110,6 +108,8 @@ class SlackCommunity(CommunityPlatform):
             call = obj.ACTION
 
             data = {}
+            admin_user_token = SlackUtils.get_admin_user_token(community=self)
+
             if hasattr(action, "EXECUTE_PARAMETERS"):
                 for fieldname in action.EXECUTE_PARAMETERS:
                     data[fieldname] = getattr(action, fieldname)
@@ -119,19 +119,19 @@ class SlackCommunity(CommunityPlatform):
                 data["token"] = action.proposal.author.access_token
                 if not data["token"]:
                     # we don't have the token for the user who proposed the action, so use an admin user token instead
-                    data["token"] = get_admin_user_token(self)
+                    data["token"] = admin_user_token
             elif obj.AUTH == "admin_bot":
                 if action.proposal.author.is_community_admin:
                     data["token"] = action.proposal.author.access_token
             elif obj.AUTH == "admin_user":
-                data["token"] = get_admin_user_token(self)
+                data["token"] = admin_user_token
 
             if data["token"] is None:
                 data.pop("token")  # remove token override if we don't have one
             logger.debug(f"Overriding token? {True if data.get('token') else False}")
 
             try:
-                LogAPICall.make_api_call(self, data, call)
+                self.__make_generic_api_call(call, data)
             except Exception as e:
                 logger.error(f"Error making API call in execute_platform_action: {e}")
                 clean_up_proposals(action, False)
@@ -149,11 +149,11 @@ class SlackCommunity(CommunityPlatform):
 
                 if posted_action.community_post:
                     values = {
-                        "token": get_admin_user_token(self),
+                        "token": admin_user_token,
                         "ts": posted_action.community_post,
                         "channel": obj.channel,
                     }
-                    LogAPICall.make_api_call(self, values, "chat.delete")
+                    self.__make_generic_api_call("chat.delete", values)
 
         clean_up_proposals(action, True)
 
@@ -166,10 +166,7 @@ class SlackCommunity(CommunityPlatform):
             logger.debug("Ignoring bot event")
             return
 
-        from integrations.slack.views import maybe_create_new_api_action
-
-        new_api_action = maybe_create_new_api_action(self, outer_event)
-
+        new_api_action = SlackUtils.slack_event_to_platform_action(self, outer_event)
         if new_api_action is not None:
             new_api_action.community_origin = True
             new_api_action.is_bundled = False
@@ -240,23 +237,19 @@ class SlackCommunity(CommunityPlatform):
         values = {"text": text}
 
         if post_type == "mpim":
-            # open conversation among participants
-            response = LogAPICall.make_api_call(self, {"users": ",".join(usernames)}, "conversations.open")
-            channel = response["channel"]["id"]
             # post to group message
             values["channel"] = channel
-            response = LogAPICall.make_api_call(self, values, "chat.postMessage")
+            values["users"] = usernames
+            response = LogAPICall.make_api_call(self, values, "slack.post-message")
             return [response["ts"]]
 
         if post_type == "im":
             # message each user individually
             posts = []
             for username in usernames:
-                response = LogAPICall.make_api_call(self, {"users": username}, "conversations.open")
-                channel = response["channel"]["id"]
-                # post to direct message
                 values["channel"] = channel
-                response = LogAPICall.make_api_call(self, values, "chat.postMessage")
+                values["users"] = [username]
+                response = LogAPICall.make_api_call(self, values, "slack.post-message")
                 posts.append(response["ts"])
             return posts
 
@@ -265,16 +258,20 @@ class SlackCommunity(CommunityPlatform):
             for username in usernames:
                 values["user"] = username
                 values["channel"] = channel
-                response = LogAPICall.make_api_call(self, values, "chat.postEphemeral")
+                response = self.__make_generic_api_call("chat.postEphemeral", values)
                 posts.append(response["message_ts"])
             return posts
 
         if post_type == "channel":
             values["channel"] = channel
-            response = LogAPICall.make_api_call(self, values, "chat.postMessage")
+            response = LogAPICall.make_api_call(self, values, "slack.post-message")
             return [response["ts"]]
 
         return []
+
+    def __make_generic_api_call(self, method: str, values):
+        """Make any Slack method request using Metagov action 'slack.method' """
+        return LogAPICall.make_api_call(self, {"method_name": method, **values}, "slack.method")
 
 
 class SlackPostMessage(PlatformAction):
@@ -293,9 +290,14 @@ class SlackPostMessage(PlatformAction):
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
     def revert(self):
-        admin_user_token = get_admin_user_token(self.community)
-        values = {"token": admin_user_token, "ts": self.timestamp, "channel": self.channel}
-        super().revert(values, "chat.delete")
+        admin_user_token = SlackUtils.get_admin_user_token(self.community)
+        values = {
+            "method_name": "chat.delete",
+            "token": admin_user_token,
+            "ts": self.timestamp,
+            "channel": self.channel,
+        }
+        super().revert(values, "slack.method")
 
 
 class SlackRenameConversation(PlatformAction):
@@ -323,7 +325,7 @@ class SlackRenameConversation(PlatformAction):
         }
         if not values["token"]:
             # Use any admin user token that we have
-            values["token"] = get_admin_user_token(self.community)
+            values["token"] = self.community.__get_admin_user_token()
         super().revert(values, "conversations.rename")
 
 
@@ -349,7 +351,7 @@ class SlackJoinConversation(PlatformAction):
         except Exception:
             # Whether or not bot can kick is based on workspace settings
             logger.error(f"{method} with bot token failed, attempting with admin token")
-            values["token"] = get_admin_user_token(self.community)
+            values["token"] = self.community.__get_admin_user_token()
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
             super().revert(values, method)
