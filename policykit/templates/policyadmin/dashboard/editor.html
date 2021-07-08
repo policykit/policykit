@@ -201,8 +201,6 @@
 <link rel="stylesheet" type="text/css" href={% static "codemirror/addon/hint/show-hint.css" %}/>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
-<link rel="stylesheet" type="text/css" href={% static "codemirror/addon/hint/show-hint.css" %}/>
-<script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
 
 <script>
   document.getElementById("upload").addEventListener("click", upload);
@@ -287,7 +285,40 @@
         gutters: ['warnings']
     }));
 
-    editors[i].setValue(decodeHtml(DEFAULT_VALUES[code_id]));
+    switch (i) {
+      case 0:
+        {% if filter %}
+          editors[i].setValue(decodeHtml(`{{filter}}`));
+          break;
+        {% endif %}
+      case 1:
+        {% if initialize %}
+          editors[i].setValue(decodeHtml(`{{initialize}}`));
+          break;
+        {% endif %}
+      case 2:
+        {% if check %}
+          editors[i].setValue(decodeHtml(`{{check}}`));
+          break;
+        {% endif %}
+      case 3:
+        {% if notify %}
+          editors[i].setValue(decodeHtml(`{{notify}}`));
+          break;
+        {% endif %}
+      case 4:
+        {% if success %}
+          editors[i].setValue(decodeHtml(`{{success}}`));
+          break;
+        {% endif %}
+      case 5:
+        {% if fail %}
+          editors[i].setValue(decodeHtml(`{{fail}}`));
+          break;
+        {% endif %}
+      default:
+        editors[i].setValue(decodeHtml(DEFAULT_VALUES[code_id]));
+    }
 
     // https://stackoverflow.com/questions/11401317/autocomplete-for-python-in-codemirror
     editors[i].on('inputRead', function onChange(editor, input) {

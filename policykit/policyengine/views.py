@@ -531,20 +531,6 @@ def error_check(request):
     errors = _error_check(code, function_name)
     return JsonResponse({'errors': errors})
 
-class PylintOutput:
-    """
-    Used internally to write output / error messages to a list
-    from the TextReporter object in _error_check(code).
-    """
-    def __init__(self):
-        self.output = []
-
-    def write(self, line):
-        self.output.append(line)
-
-    def read(self):
-        return self.output
-
 def should_keep_error_message(error_message, function_name):
     """
     Checks provided error message and returns whether or not the error message
@@ -568,6 +554,20 @@ def should_keep_error_message(error_message, function_name):
             return False
 
     return True
+
+class PylintOutput:
+    """
+    Used internally to write output / error messages to a list
+    from the TextReporter object in _error_check(code).
+    """
+    def __init__(self):
+        self.output = []
+
+    def write(self, line):
+        self.output.append(line)
+
+    def read(self):
+        return self.output
 
 def _error_check(code, function_name = 'filter'):
     """
