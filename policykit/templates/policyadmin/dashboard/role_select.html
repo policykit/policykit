@@ -6,44 +6,57 @@
   .body {
     display: flex;
     flex-direction: column;
-    width: 80%;
-    margin: 0 10vw;
-    padding-top: 3vh;
+  }
+
+  .headerText {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
   }
 
   .form-row {
-    margin-top: 3vh;
-    margin-bottom: 3vh;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 
   .control-label {
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    color: #373456;
   }
 
-  .dropdown {
+  .dropdownContainer {
     width: 20%;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
   }
 
-  .submitButton {
-    width: 10%;
+  .btn {
+    padding: 0.5em 2vw;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    border-radius: 30px;
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn:hover {
+    background-color: #3b4699;
+    color: #ffffff;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
-  <h3>Which Role would you like to {{operation}}?</h3>
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      <h3 class="headerText">Which role would you like to {{operation|lower}}?</h3>
+    </div>
+  </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="role">Role:</label>
+    <label class="control-label col-sm-1" for="role">Role</label>
     <div class="col-sm-11">
-      <select class="dropdown" name="role" id="role">
+      <select class="dropdownContainer" name="role" id="role">
         {% for role in roles %}
           <option value="{{role.name}}">{{role.role_name}}</option>
         {% endfor %}
@@ -51,7 +64,12 @@
     </div>
   </div>
 
-  <button class="btn btn-success submitButton" id="submit">{{operation}}</button>
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      <button type="button" class="btn" id="submit">{{operation}} role</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 

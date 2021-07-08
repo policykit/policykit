@@ -1,5 +1,10 @@
 from django.test import TestCase
 from policyengine.filter import *
+from policykit.settings import SERVER_URL
+from policyengine.views import _error_check
+from urllib import parse
+import urllib.request
+import json
 
 def is_valid(code):
     errors = filter_code(code)
@@ -70,7 +75,39 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
 """,
 ]
 
-# Create your tests here.
+class LinterTests(TestCase):
+    def test_init(self):
+        code = "pass"
+        errors = _error_check(code)
+        self.assertEqual(len(errors), 0)
+
+    def test_pylint_works(self):
+        code = "print('lambda)"
+        errors = _error_check(code)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0], "1:15: E0001: EOL while scanning string literal (<unknown>, line 1) (syntax-error)")
+
+    def test_no_return_outside_function_error(self):
+        code = "return"
+        errors = _error_check(code)
+        self.assertEqual(len(errors), 0)
+
+    def test_no_undefined_predefined_variables_error(self):
+        for variable in ['policy', 'action', 'users', 'debug', 'metagov']:
+            code = f"x = {variable}"
+            errors = _error_check(code)
+            self.assertEqual(len(errors), 0)
+
+        for variable in ['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED']:
+            code = f"x = {variable}"
+            errors = _error_check(code)
+            self.assertEqual(len(errors), 1)
+
+        for variable in ['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED']:
+            code = f"x = {variable}"
+            errors = _error_check(code, 'check')
+            self.assertEqual(len(errors), 0)
+
 class FilterTests(TestCase):
     def test_import_whitelisted_modules(self):
         for module in whitelisted_modules:

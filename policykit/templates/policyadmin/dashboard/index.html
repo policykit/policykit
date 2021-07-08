@@ -9,10 +9,6 @@
   .body {
     display: flex;
     flex-direction: row;
-    width: 80vw;
-    min-height: 90vh;
-    margin: 0 10vw;
-    padding-top: 3vh;
   }
 
   .leftCol {
@@ -20,7 +16,6 @@
     flex-direction: column;
     align-items: center;
     width: 60%;
-    height: 90vh;
   }
 
   .rightCol {
@@ -28,7 +23,6 @@
     flex-direction: column;
     align-items: center;
     width: 40%;
-    height: 80vh;
   }
 
   .searchBar {
@@ -40,28 +34,22 @@
     border-width: 0px;
     padding: 10px 30px;
     background-color: #ffffff;
-    color: #ebecf1;
     outline: none;
-    font-family: 'Karla', sans-serif;
-    font-size: 1.2em;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
   }
 
   .proposeButton {
     width: 80%;
     padding: 2% 20%;
+    margin: 0.5em 0 1em auto;
     border-width: 0px;
-    border-radius: 30px;
+    border-radius: 20px;
     background-color: #4451b2;
     color: #ffffff;
-    line-height: 1.7em;
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
-    font-size: 1.7em;
-    box-shadow: 0 0 2px #9fa2b5;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
     outline: none;
-    margin-top: 1vh;
-    margin-bottom: 3vh;
-    margin-left: auto;
   }
 
   .proposeButton:hover {
@@ -70,35 +58,25 @@
 
   .sidebarPanel {
     width: 80%;
-    min-height: 30vh;
-    margin-top: 1vh;
-    margin-bottom: 1vh;
+    min-height: 20em;
+    margin-top: 1em;
+    margin-bottom: 1em;
     margin-left: auto;
+    border-radius: 20px;
     background-color: #ffffff;
-    border-radius: 30px;
-    box-shadow: 0 0 2px #9fa2b5;
   }
 
   .sidebarPanelTitle {
-    color: #373456;
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
-    font-size: 1.8em;
-    padding-top: 2.6vh;
-    padding-left: 2vw;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
+    padding: 1em 0 0.5em 2vw;
   }
 
   .sidebarPanelContent {
     width: 92%;
     margin-left: 4%;
-    height: 20vh;
+    height: 13.5em;
     overflow: auto;
-  }
-
-  .sidebarPanelContent thead th {
-    position: sticky;
-    top: 0;
-    background-color: #ebecf1;
   }
 
   .sidebarPicture {
@@ -106,36 +84,33 @@
     border-radius: 50%;
   }
 
+  .sidebarItem {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1em;
+    color: #333333;
+    cursor: pointer;
+  }
+
   .actionPanel {
     width: 90%;
     margin-right: auto;
-    min-height: 45vh;
-    margin-top: 3vh;
+    min-height: 40em;
+    margin-top: 0.5em;
     background-color: #ffffff;
-    border-radius: 30px;
-    box-shadow: 0 0 2px #9fa2b5;
+    border-radius: 20px;
   }
 
   .actionPanelTitle {
-    color: #373456;
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
-    font-size: 2.3em;
-    padding-top: 1.6vh;
-    padding-left: 2vw;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.5em;
+    padding: 1em 0 0.5em 2vw;
   }
 
   .actionPanelContent {
     width: 92%;
     margin-left: 4%;
-    height: 35vh;
+    height: 33.5em;
     overflow: auto;
-  }
-
-  .actionPanelContent thead th {
-    position: sticky;
-    top: 0;
-    background-color: #ebecf1;
   }
 
   .modal {
@@ -187,13 +162,27 @@
     margin-bottom: 1vh;
   }
 
+  .btn {
+    padding: 0.5em 2vw;
+    margin-right: 0.4vw;
+    border: 1px solid #4451b2;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    background-color: #ffffff;
+    color: #4451b2;
+  }
+
+  .btn:hover {
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
   .form-row {
     margin-bottom: 2vh;
   }
 
   .control-label {
-    font-family: 'Karla', sans-serif;
-    font-weight: bold;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
     color: #373456;
   }
@@ -223,24 +212,18 @@
 {% block content %}
 <div class="body">
   <div class="leftCol">
-    <input type="text" class="searchBar" placeholder="Search">
+    <!--<input type="text" class="searchBar" placeholder="Search">-->
 
     <!--<div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>
     </div>-->
     <div class="actionPanel">
-      <h3 class="actionPanelTitle">All actions</h3>
+      <h3 class="actionPanelTitle">Recent actions</h3>
       <div class="actionPanelContent">
         <table class="table table-hover">
-          <thead>
-            <tr>
-              <th scope="col">Action</th>
-              <th scope="col">Date</th>
-            </tr>
-          </thead>
           <tbody>
             {% for action in action_log %}
-              <tr>
+              <tr class="sidebarItem">
                 <td>{{action.actor}}</td>
                 <td>{{action.time_elapsed}} ago</td>
               </tr>
@@ -252,22 +235,15 @@
   </div>
 
   <div class="rightCol">
-    <input type="button" class="proposeButton" value="Propose Action" id="proposeAction">
+    <input type="button" class="proposeButton" value="Propose action" id="proposeAction">
 
     <div class="sidebarPanel">
       <h4 class="sidebarPanelTitle">Users</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col">Name</th>
-                <th scope="col">Roles</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in users.items %}
-                <tr>
+                <tr class="sidebarItem">
                   <td>
                     {% if value.avatar %}
                       <img class="sidebarPicture" src="{{value.avatar}}">
@@ -296,15 +272,9 @@
       <h4 class="sidebarPanelTitle">Roles</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Users</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in roles.items %}
-                <tr>
+                <tr class="sidebarItem">
                   <td>{{key}}</td>
                   <td>
                     {% if value.users|length == 1 %}
@@ -323,19 +293,12 @@
     </div>
 
     <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Community Documents</h4>
+      <h4 class="sidebarPanelTitle">Community documents</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in docs.items %}
-                <tr id="document_{{key}}">
-                  <td>{{key}}</td>
+                <tr id="document_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
                 </tr>
               {% endfor %}
@@ -345,19 +308,12 @@
     </div>
 
     <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Platform Policies</h4>
+      <h4 class="sidebarPanelTitle">Platform policies</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in platform_policies.items %}
-                <tr id="platform_{{key}}">
-                  <td>{{key}}</td>
+                <tr id="platform_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
                 </tr>
               {% endfor %}
@@ -367,19 +323,12 @@
     </div>
 
     <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Constitution Policies</h4>
+      <h4 class="sidebarPanelTitle">Constitution policies</h4>
       <div class="sidebarPanelContent">
           <table class="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-              </tr>
-            </thead>
             <tbody>
               {% for key, value in constitution_policies.items %}
-                <tr id="constitution_{{key}}">
-                  <td>{{key}}</td>
+                <tr id="constitution_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
                 </tr>
               {% endfor %}
@@ -469,6 +418,13 @@
         <textarea class="form-control code" id="fail" readonly rows="3"></textarea>
       </div>
     </div>
+
+    <div class="form-row">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-11">
+        <button type="button" class="btn" id="download">Download policy</button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -479,7 +435,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/addon/display/autorefresh.min.js"></script>
 
 <script>
+  document.getElementById("download").addEventListener("click", download);
+
   document.getElementById("proposeAction").addEventListener("click", navActions);
+
   {% for key, value in platform_policies.items %}
     document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal('code', {
       name: `{{value.name}}`,
@@ -492,6 +451,7 @@
       fail: `{{value.fail}}`
     }); });
   {% endfor %}
+
   {% for key, value in constitution_policies.items %}
     document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal('code', {
       name: `{{value.name}}`,
@@ -504,16 +464,19 @@
       fail: `{{value.fail}}`
     }); });
   {% endfor %}
+
   {% for key, value in docs.items %}
     document.getElementById("document_{{key}}").addEventListener("click", function(){ showModal('doc', {
       name: `{{value.name}}`,
       text: `{{value.text}}`
     }); });
   {% endfor %}
+
   modals = document.getElementsByClassName("modal");
   for (let i = 0; i < modals.length; i++) {
     modals[i].addEventListener("click", hideModal);
   }
+
   closeButtons = document.getElementsByClassName("close");
   for (let i = 0; i < closeButtons.length; i++) {
     closeButtons[i].addEventListener("click", hideModal);
@@ -577,6 +540,36 @@
     for (let i = 0; i < modals.length; i++) {
       modals[i].style.display = "none";
     }
+  }
+
+  function download() {
+    const name = document.getElementById("name").value;
+
+    let policy_data = {
+      'name': name,
+      'description': document.getElementById("description").value,
+      'is_bundled': false,
+      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
+      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
+      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
+      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
+      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
+      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
+    };
+
+    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
+
+    // Only allow alphanumeric characters and underscores in the filename
+    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".txt";
+
+    // https://stackoverflow.com/questions/45831191/generate-and-download-file-from-js
+    let download_elem = document.createElement('a');
+    download_elem.setAttribute('href', policy_data_string);
+    download_elem.setAttribute('download', filename);
+    download_elem.style.display = 'none';
+    document.body.appendChild(download_elem);
+    download_elem.click();
+    document.body.removeChild(download_elem);
   }
 </script>
 {% endblock %}

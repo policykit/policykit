@@ -1,18 +1,25 @@
+from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream.models import Action
 from policyengine.filter import *
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
+import integrations.metagov.api as MetagovAPI
+from pylint.lint import Run
+from pylint.reporters.text import TextReporter
 import urllib.parse
+from urllib.parse import quote
+import tempfile
+import random
 import logging
 import json
 import parser
 import html
-
+import os
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -20,10 +27,33 @@ db_logger = logging.getLogger("db")
 def homepage(request):
     return render(request, 'home.html', {})
 
+def authorize_platform(request):
+    platform = request.GET.get('platform')
+    if not platform or platform != "slack":
+        return HttpResponseBadRequest()
+
+    from policyengine.models import Community
+    community = Community.objects.create()
+    logger.info(f"Initiating authorization flow to install '{platform}' to new community '{community}'.")
+
+    # Initiate authorization flow to install Metagov to platform.
+    # On successful completion, the Metagov Slack plugin will be enabled for the community.
+
+    # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
+    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
+    encoded_redirect_uri = quote(redirect_uri, safe='')
+
+    # store state in user's session so we can validate it later
+    state = "".join([str(random.randint(0, 9)) for i in range(8)])
+    request.session['community_install_state'] = state
+
+    # redirect to metagov to authorize the app
+    url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
+    return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import Community, CommunityUser, CommunityRole, CommunityDoc, PlatformPolicy, ConstitutionPolicy
+    from policyengine.models import CommunityUser
 
     user = get_user(request)
     user.community = user.community
@@ -122,33 +152,39 @@ def logout(request):
 
 @login_required(login_url='/login')
 def settings_page(request):
-    from integrations.metagov.library import get_or_create_metagov_community, get_plugin_config_schemas
-
     user = get_user(request)
     community = user.community
 
-    plugin_schemas = None
-    metagov_config = None
-    if user.has_perm("metagov.can_edit_metagov_config") or True:
-        result = get_or_create_metagov_community(community)
-        if result:
-            metagov_config = json.dumps(result)
-            plugin_schemas = json.dumps(get_plugin_config_schemas())
+    context = {
+        'metagov_enabled': settings.METAGOV_ENABLED,
+        'server_url': settings.SERVER_URL,
+        'user': get_user(request),
+    }
 
-    return render(request, 'policyadmin/dashboard/settings.html', {
-        'metagov_enabled': METAGOV_ENABLED,
-        'metagov_config': metagov_config,
-        'plugin_schemas': plugin_schemas,
-        'server_url': SERVER_URL,
-        'user': get_user(request)
-    })
+    # If user is permitted to edit Metagov config, add additional context
+    if user.has_perm("metagov.can_edit_metagov_config") and community.metagov_slug:
+        result = MetagovAPI.get_metagov_community(community.metagov_slug)
+        context['metagov_config'] = json.dumps(result)
+        context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
+        context['metagov_server_url'] = settings.METAGOV_URL
+        context['metagov_community_slug'] = community.metagov_slug
+
+    return render(request, 'policyadmin/dashboard/settings.html', context)
 
 @login_required(login_url='/login')
 def editor(request):
     from policyengine.models import PlatformPolicy, ConstitutionPolicy
 
     type = request.GET.get('type')
+    operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
+
+    data = {
+        'server_url': SERVER_URL,
+        'user': get_user(request),
+        'type': type,
+        'operation': operation
+    }
 
     if policy_id:
         policy = None
@@ -159,24 +195,17 @@ def editor(request):
         else:
             return HttpResponseBadRequest()
 
-        return render(request, 'policyadmin/dashboard/editor.html', {
-            'server_url': SERVER_URL,
-            'user': get_user(request),
-            'policy': policy_id,
-            'name': policy.name,
-            'description': policy.description,
-            'filter': policy.filter,
-            'initialize': policy.initialize,
-            'check': policy.check,
-            'notify': policy.notify,
-            'success': policy.success,
-            'fail': policy.fail
-        })
+        data['policy'] = policy_id
+        data['name'] = policy.name
+        data['description'] = policy.description
+        data['filter'] = policy.filter
+        data['initialize'] = policy.initialize
+        data['check'] = policy.check
+        data['notify'] = policy.notify
+        data['success'] = policy.success
+        data['fail'] = policy.fail
 
-    return render(request, 'policyadmin/dashboard/editor.html', {
-        'server_url': SERVER_URL,
-        'user': get_user(request)
-    })
+    return render(request, 'policyadmin/dashboard/editor.html', data)
 
 @login_required(login_url='/login')
 def selectrole(request):
@@ -246,8 +275,6 @@ def roleeditor(request):
 
 @login_required(login_url='/login')
 def selectpolicy(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy
-
     user = get_user(request)
     policies = None
     type = request.GET.get('type')
@@ -274,8 +301,6 @@ def selectpolicy(request):
 
 @login_required(login_url='/login')
 def selectdocument(request):
-    from policyengine.models import CommunityDoc
-
     user = get_user(request)
     operation = request.GET.get('operation')
 
@@ -475,7 +500,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, Community
+    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, CommunityPlatform
     from django.contrib.auth.models import Permission
 
     starterkit_name = request.POST['starterkit']
@@ -485,40 +510,95 @@ def initialize_starterkit(request):
 
     starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
 
-    community = Community.objects.get(community_name=community_name)
+    community = CommunityPlatform.objects.get(community_name=community_name)
     starter_kit.init_kit(community, creator_token)
 
     logger.info('starterkit initialized')
-    logger.info('creator_token' + creator_token)
 
     response = redirect('/login?success=true')
     return response
 
 @csrf_exempt
 def error_check(request):
+    """
+    Takes a request object containing Python code data. Calls _error_check(code)
+    to check provided Python code for errors.
+    Returns a JSON response containing the output and errors from linting.
+    """
     data = json.loads(request.body)
     code = data['code']
+    function_name = data['function_name']
+    errors = _error_check(code, function_name)
+    return JsonResponse({'errors': errors})
 
+class PylintOutput:
+    """
+    Used internally to write output / error messages to a list
+    from the TextReporter object in _error_check(code).
+    """
+    def __init__(self):
+        self.output = []
+
+    def write(self, line):
+        self.output.append(line)
+
+    def read(self):
+        return self.output
+
+def should_keep_error_message(error_message, function_name):
+    """
+    Checks provided error message and returns whether or not the error message
+    should be kept.
+    """
+    # Don't return lines with error code E0104, which denotes
+    # "Return outside function" error. We don't want to return this
+    # error because many code cells contain returns because they are
+    # inside unseen wrapper functions.
+    if error_message.find('E0104') != -1:
+        return False
+
+    # Don't return lines which say that a pre-defined local variable in
+    # our wrapper function is undefined. check_policy has a few extra
+    # pre-defined local variables than the other wrapper functions.
+    local_variables = ['policy', 'action', 'users', 'debug', 'metagov']
+    if function_name == 'check':
+        local_variables.extend(['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED'])
+    for variable in local_variables:
+        if error_message.find(f"E0602: Undefined variable '{variable}' (undefined-variable)") != -1:
+            return False
+
+    return True
+
+def _error_check(code, function_name = 'filter'):
+    """
+    Checks provided Python code for errors. Syntax errors are checked for with
+    Pylint. Returns a list of errors from linting.
+    """
+    # Since Pylint can only be used on files and not strings directly, we must
+    # save the code to a temporary file. The file will be deleted after we are
+    # finished.
+    (fd, filename) = tempfile.mkstemp()
     errors = []
-
-    # Note: only catches first SyntaxError in code
-    #   when user fixes this error, then it will catch the next one, and so on
-    #   could use linter, but that has false positives sometimes
-    #   since syntax errors often affect future code
     try:
-        parser.suite(code)
-    except SyntaxError as e:
-        errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
+        tmpfile = os.fdopen(fd, 'w')
+        tmpfile.write(code)
+        tmpfile.close()
 
-    try:
-        filter_errors = filter_code(code)
-        errors.extend(filter_errors)
-    except SyntaxError as e:
-        pass
+        output = PylintOutput()
+        # We disable refactoring (R), convention (C), and warning (W) related checks
+        run = Run(["-r", "n", "--disable=R,C,W", filename], reporter=TextReporter(output), do_exit=False)
 
-    if len(errors) > 0:
-        return JsonResponse({ 'is_error': True, 'errors': errors })
-    return JsonResponse({ 'is_error': False })
+        for line in output.read():
+            # Only return lines that have error messages (lines with colons are error messages)
+            sep = line.find(':')
+            if sep == -1:
+                continue
+
+            if should_keep_error_message(line, function_name):
+                errors.append(line[sep + 1:])
+    finally:
+        os.remove(filename)
+    return errors
 
 @csrf_exempt
 def policy_action_save(request):
@@ -725,6 +805,36 @@ def document_action_recover(request):
 
     return HttpResponse()
 
+def govern_action(action, is_first_evaluation: bool):
+    """
+    Govern platform and constitution actions:
+    - If the initiator has "can execute" permission, execute the action and mark it as "passed."
+    - Otherwise, try executing the relevant policies. Stop at the first policy that passes the `filter` step.
+
+    This can be run repeatedly to check proposed actions.
+    """
+    from policyengine.models import PlatformAction, PlatformActionBundle, ConstitutionAction, ConstitutionActionBundle
+
+    #if they have execute permission, skip all policies
+    if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
+        action.execute()
+        action.pass_action()
+    else:
+        policies = None
+        if isinstance(action, PlatformAction) or isinstance(action, PlatformActionBundle):
+            policies = action.community.get_platform_policies().filter(is_active=True)
+        elif isinstance(action, ConstitutionAction) or isinstance(action, ConstitutionActionBundle):
+            policies = action.community.get_constitution_policies().filter(is_active=True)
+        else:
+            raise Exception("govern_action: unrecognized action")
+
+        for policy in policies:
+            # Execute the most recently updated policy that passes filter()
+            was_executed = execute_policy(policy, action, is_first_evaluation=is_first_evaluation)
+            if was_executed:
+                break
+
+
 def execute_policy(policy, action, is_first_evaluation: bool):
     """
     Execute policy for given action. This can be run repeatedly to check proposed actions.
@@ -776,6 +886,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
+            action.proposal.close_governance_process()
 
     elif check_result == Proposal.FAILED:
         # run "fail" block of policy
@@ -788,6 +899,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
+            action.proposal.close_governance_process()
 
         # If this is the first time evaluating, and it originated in a community, revert it
         if is_first_evaluation and action.community_origin:
@@ -795,10 +907,9 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
 
     elif check_result == Proposal.PROPOSED and is_first_evaluation:
         # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
-        if action.community_origin:
+        if hasattr(action, 'community_origin'):
             debug(f"Reverting")
             action.revert()
-
         # Run "notify" block of policy
         debug(f"Notifying")
         notify_policy(policy, action, **optional_args)

@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import Community, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
 import urllib
 from urllib import parse
@@ -21,7 +21,7 @@ DISCOURSE_PROPOSE_PERMS = ['Can add discourse create topic', 'Can add discourse 
 
 DISCOURSE_EXECUTE_PERMS = ['Can execute discourse create topic', 'Can execute discourse create post']
 
-class DiscourseCommunity(Community):
+class DiscourseCommunity(CommunityPlatform):
     platform = "discourse"
 
     team_id = models.CharField('team_id', max_length=150, unique=True)

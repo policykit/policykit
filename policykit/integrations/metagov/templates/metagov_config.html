@@ -11,6 +11,11 @@
       <div id="alerts"></div>
     </div>
   </div>
+  {% if not user.community.platform == "slack" %}
+    <a href="/authorize-platform?platform=slack">
+      Enable Slack Plugin
+    </a>
+  {% endif %}
 </div>
 {% elif metagov_enabled %}
   <div>Metagov is enabled for this community, but you do not have access to view the configuration.</div>

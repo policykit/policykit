@@ -21,8 +21,11 @@ logger = logging.getLogger(__name__)
 websocket.enableTrace(False)
 
 # Used for Boolean voting
-EMOJI_LIKE = '%F0%9F%91%8D'
-EMOJI_DISLIKE = '%F0%9F%91%8E'
+# EMOJI_LIKE = ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']
+EMOJI_LIKE = '👍'
+# EMOJI_DISLIKE = ['👎', '👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿']
+EMOJI_DISLIKE = '👎'
+
 
 GATEWAY_VERSION = 8
 
@@ -265,22 +268,27 @@ def handle_event(name, data):
 
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
+            action_res = action_res or ConstitutionAction.objects.filter(community_post=data['message_id'])
+            # logger.debug(action_res.get())
             if action_res.exists():
+                action = action_res[0]
+                reaction = data['emoji']['name']
                 if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                     val = (reaction == EMOJI_LIKE)
-
-                    user,_ = DiscordUser.objects.get_or_create(username=data['user_id'],
+                    user = DiscordUser.objects.get(username=f"{data['user_id']}:{data['guild_id']}",
                                                                community=action.community)
                     vote = BooleanVote.objects.filter(proposal=action.proposal, user=user)
 
                     if vote.exists():
                         vote = vote[0]
-                        vote.boolean_value = value
+                        vote.boolean_value = val
                         vote.save()
+
                     else:
                         vote = BooleanVote.objects.create(proposal=action.proposal,
                                                           user=user,
                                                           boolean_value=val)
+
 
 def on_message(wsapp, message):
     global heartbeat_interval, sequence_number, ack_received
@@ -392,8 +400,10 @@ def oauth(request):
         user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discord: " + guild_info['name'] + ": Base User")
 
         if not s.exists():
+            parent_community = Community.objects.create(readable_name=guild_info['name'])
             community = DiscordCommunity.objects.create(
                 community_name=guild_info['name'],
+                community=parent_community,
                 team_id=guild_id,
                 base_role=user_group
             )
@@ -470,6 +480,11 @@ def post_policy(policy, action, users=None, template=None, channel=None):
 
     res = policy.community.make_call(f'channels/{channel_id}/messages', values={'content': message})
 
-    if action.action_type == "PlatformAction":
+    if action.action_type == "ConstitutionAction" or action.action_type == "PlatformAction":
         action.community_post = res['id']
         action.save()
+
+    time.sleep(1)
+    policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")
+    time.sleep(1)
+    policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8E/@me', method="PUT")
