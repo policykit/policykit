@@ -129,6 +129,7 @@ class EvaluationTests(TestCase):
         self.assertEqual(action.proposal.status, "passed")
 
     def test_policy_order(self):
+        """Policies are tried in correct order"""
         first_policy = PlatformPolicy.objects.create(
             **all_actions_pass_policy,
             community=self.slack_community,
@@ -154,3 +155,37 @@ class EvaluationTests(TestCase):
         # new action should pass, "first_policy" is now most recent
         action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
         self.assertEqual(action.proposal.status, "passed")
+
+    def test_policy_exception(self):
+        """Policies that raise exceptions are skipped"""
+        PlatformPolicy.objects.create(
+            **all_actions_pass_policy,
+            community=self.slack_community,
+            name="all actions pass",
+        )
+        exception_policy = PlatformPolicy.objects.create(
+            **{**all_actions_pass_policy, "initialize": "action.data.set('was_executed', True)\nraise Exception"},
+            community=self.slack_community,
+            name="raises an exception",
+        )
+
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        # test that the exception policy was executed
+        self.assertEqual(action.data.get("was_executed"), True)
+        # test that we fell back to the all actions pass to ultimately pass the action
+        self.assertEqual(action.proposal.status, "passed")
+
+        # test with falling back to a policy that fails
+
+        PlatformPolicy.objects.create(
+            **{**all_actions_pass_policy, "check": "return FAILED"},
+            community=self.slack_community,
+            name="all actions fail",
+        )
+        # re-save this policy so it becomes the most recent policy
+        exception_policy.description = "updated description"
+        exception_policy.save()
+
+        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        self.assertEqual(action.data.get("was_executed"), True)
+        self.assertEqual(action.proposal.status, "failed")
