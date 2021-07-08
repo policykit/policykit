@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
@@ -6,12 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from actstream.models import Action
 from policyengine.filter import *
+from policyengine.linter import _error_check
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
-from django.conf import settings
+import urllib.parse
 from urllib.parse import quote
-import integrations.metagov.api as MetagovAPI
-
 import random
 import logging
 import json
@@ -22,7 +22,6 @@ db_logger = logging.getLogger("db")
 
 def homepage(request):
     return render(request, 'home.html', {})
-
 
 def authorize_platform(request):
     platform = request.GET.get('platform')
@@ -517,29 +516,16 @@ def initialize_starterkit(request):
 
 @csrf_exempt
 def error_check(request):
+    """
+    Takes a request object containing Python code data. Calls _error_check(code)
+    to check provided Python code for errors.
+    Returns a JSON response containing the output and errors from linting.
+    """
     data = json.loads(request.body)
     code = data['code']
-
-    errors = []
-
-    # Note: only catches first SyntaxError in code
-    #   when user fixes this error, then it will catch the next one, and so on
-    #   could use linter, but that has false positives sometimes
-    #   since syntax errors often affect future code
-    try:
-        parser.suite(code)
-    except SyntaxError as e:
-        errors.append({ 'type': 'syntax', 'lineno': e.lineno, 'code': e.text, 'message': str(e) })
-
-    try:
-        filter_errors = filter_code(code)
-        errors.extend(filter_errors)
-    except SyntaxError as e:
-        pass
-
-    if len(errors) > 0:
-        return JsonResponse({ 'is_error': True, 'errors': errors })
-    return JsonResponse({ 'is_error': False })
+    function_name = data['function_name']
+    errors = _error_check(code, function_name)
+    return JsonResponse({'errors': errors})
 
 @csrf_exempt
 def policy_action_save(request):

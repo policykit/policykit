@@ -82,19 +82,21 @@
   }
 
   .marker .tooltip {
-    display: none;
-    position: absolute;
+    visibility: hidden;
+    width: 400px;
     background-color: #f5f5b5;
     color: #000000;
     border: 1px solid #000000;
     padding: 2px;
-    width: 400px;
-    left: 10px;
-    top: -1em;
+    position: absolute;
+    z-index: 1;
+    bottom: 110%;
+    opacity: 0;
   }
 
   .marker:hover .tooltip {
-    display: block;
+    visibility: visible;
+    opacity: 1;
   }
 </style>
 {% endblock %}
@@ -193,16 +195,12 @@
 
 {% block scripts %}
 <script src={% static "codemirror/lib/codemirror.js" %}></script>
-<script src={% static "codemirror/lib/codemirror.css" %}></script>
+<link rel="stylesheet" type="text/css" href={% static "codemirror/lib/codemirror.css" %}/>
 <script src={% static "codemirror/mode/python/python.js" %}></script>
 <script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
-<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
-<script src={% static "codemirror/addon/hint/simple-hint.js" %}></script>
-<script src={% static "codemirror/addon/hint/simple-hint.cs" %}></script>
+<link rel="stylesheet" type="text/css" href={% static "codemirror/addon/hint/show-hint.css" %}/>
 <script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
 <script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
-<script src={% static "codemirror/addon/hint/show-hint.css" %}></script>
-<script src={% static "codemirror/addon/hint/css-hint.js" %}></script>
 
 <script>
   document.getElementById("upload").addEventListener("click", upload);
@@ -263,7 +261,6 @@
     document.getElementById('description').value = decodeHtml(`{{description}}`)
   {% endif %}
 
-
   const DEFAULT_VALUES = {
     "filter": "return True\n\n",
     "initialize": "pass\n\n",
@@ -272,6 +269,8 @@
     "pass": "action.execute()\n\n",
     "fail": "pass\n\n"
   };
+
+  CodeMirror.defineOption('functionName', 'filter', (cm, val) => { return; });
 
   var editors = [];
 
@@ -283,10 +282,10 @@
         autoRefresh: true,
         lineNumbers: true,
         theme: 'eclipse',
-        gutters: ['warnings'],
         extraKeys: {"Ctrl-Space": "autocomplete"},
         matchBrackets: true,
-        gutters: ['warnings']
+        gutters: ['warnings'],
+        functionName: code_id
     }));
 
     switch (i) {
@@ -333,33 +332,33 @@
     });
 
     editors[i].on('change', (cm, change) => {
-      code = cm.getValue()
-
       fetch('../../../main/policyengine/error_check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 'code': code })
+        body: JSON.stringify({
+          'code': cm.getValue(),
+          'function_name': cm.getOption('functionName')
+        })
       })
       .then(response => response.json())
       .then(data => {
         cm.clearGutter('warnings')
 
-        if (data.is_error) {
+        if (data.errors.length > 0) {
           for (const error of data.errors) {
-            const message = 'Line ' + error.lineno + ': "' + error.code + '" ' + error.message
-
             const marker = document.createElement('div')
             marker.classList.add('marker')
             marker.innerHTML = '●'
 
-            const tooltip = document.createElement('div')
+            const tooltip = document.createElement('span')
             tooltip.classList.add('tooltip')
-            tooltip.innerHTML = message
+            tooltip.innerHTML = error
             marker.appendChild(tooltip)
 
-            cm.setGutterMarker(error.lineno - 1, 'warnings', marker)
+            const lineno = parseInt(error.substring(0, error.indexOf(':')))
+            cm.setGutterMarker(lineno - 1, 'warnings', marker)
           }
         }
       })
