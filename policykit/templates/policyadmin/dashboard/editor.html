@@ -270,6 +270,8 @@
     "fail": "pass\n\n"
   };
 
+  CodeMirror.defineOption('functionName', 'filter', (cm, val) => { return; });
+
   var editors = [];
 
   for (let i = 0; i < Object.keys(DEFAULT_VALUES).length; i++) {
@@ -282,7 +284,8 @@
         theme: 'eclipse',
         extraKeys: {"Ctrl-Space": "autocomplete"},
         matchBrackets: true,
-        gutters: ['warnings']
+        gutters: ['warnings'],
+        functionName: code_id
     }));
 
     switch (i) {
@@ -329,16 +332,14 @@
     });
 
     editors[i].on('change', (cm, change) => {
-      code = cm.getValue()
-
       fetch('../../../main/policyengine/error_check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          'code': code,
-          'function_name': code_id
+          'code': cm.getValue(),
+          'function_name': cm.getOption('functionName')
         })
       })
       .then(response => response.json())
