@@ -1,4 +1,5 @@
 from django.test import TestCase
+from policyengine.views import _error_check
 
 class LinterTests(TestCase):
     def test_init(self):

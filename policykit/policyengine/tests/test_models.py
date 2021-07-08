@@ -69,8 +69,6 @@ class ModelTestCase(TestCase):
         self.community = SlackCommunity.objects.create(
             community_name='test',
             team_id='test',
-            bot_id='test',
-            access_token='test',
             base_role=self.role_default
         )
         self.role_default.community = self.community
