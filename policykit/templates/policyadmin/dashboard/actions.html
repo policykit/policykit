@@ -38,6 +38,9 @@
     font-size: 1.5em;
     padding: 1em 0 0.5em 2vw;
   }
+  .actionPanelTitle:first-letter {
+    text-transform: capitalize;
+  }
 
   .actionPanelContent {
     width: 92%;
@@ -50,6 +53,12 @@
     font-size: 1em;
     cursor: pointer;
   }
+  .actionItem td a {
+    color: unset;
+  }
+  .actionItem td a:hover {
+    text-decoration: unset;
+  }
 
   .actionItem:hover {
     color: #808b96;
@@ -60,61 +69,6 @@
 {% block content %}
 <h2 class="actionScreenHeader">Which action would you like to propose?</h2>
 <div class="actionsContainer">
-  <!--{% if user.community.platform == "slack" %}
-    <div class="actionMenu" id="slackActionsHeader">
-      <h3 class="actionMenuHeading">Slack actions</h3>
-    </div>
-    <div class="actionContent" id="slackActions">
-      <div class="actionButton">
-        <p>Join conversation</p>
-      </div>
-      <div class="actionButton">
-        <p>Kick from conversation</p>
-      </div>
-      <div class="actionButton">
-        <p>Pin message</p>
-      </div>
-      <div class="actionButton">
-        <p>Post message</p>
-      </div>
-      <div class="actionButton">
-        <p>Rename conversation</p>
-      </div>
-      <div class="actionButton">
-        <p>Schedule message</p>
-      </div>
-    </div>
-  {% elif user.community.platform == "reddit" %}
-    <div class="actionMenu" id="redditActionsHeader">
-      <h3 class="actionMenuHeading">Reddit actions</h3>
-    </div>
-    <div class="actionContent" id="redditActions">
-    </div>
-  {% elif user.community.platform == "discord" %}
-    <div class="actionMenu" id="discordActionsHeader">
-      <h3 class="actionMenuHeading">Discord actions</h3>
-    </div>
-    <div class="actionContent" id="discordActions">
-      <div class="actionButton">
-        <p>Post message</p>
-      </div>
-      <div class="actionButton">
-        <p>Rename channel</p>
-      </div>
-    </div>
-  {% elif user.community.platform == "discourse" %}
-    <div class="actionMenu" id="discourseActionsHeader">
-      <h3 class="actionMenuHeading">Discourse actions</h3>
-    </div>
-    <div class="actionContent" id="discourseActions">
-      <div class="actionButton">
-        <p>Create topic</p>
-      </div>
-      <div class="actionButton">
-        <p>Create post</p>
-      </div>
-    </div>
-  {% endif %}-->
 
   <div class="actionsCol">
 
@@ -161,6 +115,23 @@
         </table>
       </div>
     </div>
+
+    {% for app_name, action_list in actions %}
+      <div class="actionPanel">
+        <h4 class="actionPanelTitle">{{app_name}} platform actions</h4>
+        <div class="actionPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for codename in action_list %}
+                <tr class="actionItem" onclick="proposePlatformActionLink('{{ app_name }}', '{{ codename }}')">
+                  <td>Propose {{codename}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
 
   </div>
 
@@ -236,6 +207,10 @@
   document.getElementById("editDocument").addEventListener("click", function(){ navDocumentSelect('Change'); });
   document.getElementById("removeDocument").addEventListener("click", function(){ navDocumentSelect('Remove'); });
   document.getElementById("recoverDocument").addEventListener("click", function(){ navDocumentSelect('Recover'); });
+
+  function proposePlatformActionLink(app_name, action_codename) {
+    window.location.href = `{{server_url}}/main/actions/${app_name}/${action_codename}`
+  }
 
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`

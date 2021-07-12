@@ -1,0 +1,84 @@
+{% extends "./dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+  .body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .headerText {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
+  }
+  table {
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  th {
+    padding-right: 1em;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+  }
+  th label {
+    margin: 0;
+  }
+  td {
+    padding-top: 1em;
+    padding-bottom: 1em;
+  }
+
+  .btn {
+    padding: 0.5em 2vw;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn:hover {
+    background-color: #3b4699;
+    color: #ffffff;
+  }
+  .alert {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    margin-top: 1em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      <h3 class="headerText">Propose {{codename}}</h3>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="col-sm-11">
+      <form action="/main/actions/{{app_name}}/{{codename}}" method="post">
+        {% csrf_token %}
+        <table>
+          {{ form.as_table }}
+        </table>
+        <input type="submit" class="btn" value="Propose action">
+        {% if action and action.proposal.status is not None %}
+          {% if action.proposal.status == "failed" %}
+            <div class="alert">Action failed. See logs for more information.</div>
+          {% elif action.proposal.status == "proposed" %}
+            <div class="alert">Action proposed.</div>
+          {% elif action.proposal.status == "passed" %}
+            <div class="alert">Action passed!</div>
+          {% endif %}
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

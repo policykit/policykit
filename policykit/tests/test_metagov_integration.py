@@ -87,6 +87,7 @@ return FAILED
         action = SlackPinMessage()
         action.initiator = self.user
         action.community = self.slack_community
+        action.community_origin = True
 
         # 2) Save action to trigger policy execution
         action.save()
@@ -121,6 +122,7 @@ return FAILED"""
         action = SlackPinMessage()
         action.initiator = self.user
         action.community = self.slack_community
+        action.community_origin = True
         action.save()
 
         self.assertEqual(action.proposal.status, "passed")

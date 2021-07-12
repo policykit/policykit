@@ -3,6 +3,7 @@ from actstream import action
 import requests
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.forms import ModelForm
 from django.conf import settings
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -1288,3 +1289,21 @@ class NumberVote(UserVote):
 
     def __str__(self):
         return str(self.user) + ' : ' + str(self.number_value)
+
+class PlatformActionForm(ModelForm):
+    class Meta:
+        model = PlatformAction
+        exclude = [
+            "initiator",
+            "community",
+            "community_revert",
+            "community_origin",
+            "is_bundled",
+            "community_post",
+            "proposal",
+            "data"
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super(PlatformActionForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ''

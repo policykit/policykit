@@ -65,6 +65,30 @@ class EvaluationTests(TestCase):
         action.save()
         self.assertEqual(action.proposal.status, "failed")
 
+    def test_non_community_origin_actions(self):
+        """Actions that didnt originate on the community platform should executed on 'pass'"""
+        first_policy = PlatformPolicy.objects.create(
+            **all_actions_pass_policy,
+            community=self.slack_community,
+            name="policy that passes",
+        )
+
+        # engine should call "execute" for non-community actions on pass
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=False)
+        # mock the execute function
+        action.execute = lambda: action.data.set("was_executed", True)
+        action.save()
+        self.assertEqual(action.proposal.status, "passed")
+        self.assertEqual(action.data.get("was_executed"), True)
+
+        # engine should not call "execute" for community actions on pass
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
+        # mock the execute function
+        action.execute = lambda: action.data.set("was_executed", True)
+        action.save()
+        self.assertEqual(action.proposal.status, "passed")
+        self.assertEqual(action.data.get("was_executed"), None)
+
     def test_can_execute_constitution(self):
         """Test that users with can_execute permissions can execute any constitution action and mark it as 'passed'"""
         all_actions_fail_policy = {
@@ -137,7 +161,9 @@ class EvaluationTests(TestCase):
         )
 
         # new action should pass
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        action = SlackPinMessage.objects.create(
+            initiator=self.user, community=self.slack_community, community_origin=True
+        )
         self.assertEqual(action.proposal.status, "passed")
 
         second_policy = PlatformPolicy.objects.create(
@@ -147,13 +173,17 @@ class EvaluationTests(TestCase):
         )
 
         # new action should fail, because of most recent policy
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
+        action.revert = lambda: None
+        action.save()
         self.assertEqual(action.proposal.status, "failed")
 
         first_policy.description = "updated description"
         first_policy.save()
         # new action should pass, "first_policy" is now most recent
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        action = SlackPinMessage.objects.create(
+            initiator=self.user, community=self.slack_community, community_origin=True
+        )
         self.assertEqual(action.proposal.status, "passed")
 
     def test_policy_exception(self):
@@ -164,12 +194,17 @@ class EvaluationTests(TestCase):
             name="all actions pass",
         )
         exception_policy = PlatformPolicy.objects.create(
-            **{**all_actions_pass_policy, "initialize": "action.data.set('was_executed', True)\nraise Exception"},
+            **{
+                **all_actions_pass_policy,
+                "initialize": "action.data.set('was_executed', True)\nraise Exception('thrown from policy')",
+            },
             community=self.slack_community,
             name="raises an exception",
         )
 
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
+        action.revert = lambda: None
+        action.save()
         # test that the exception policy was executed
         self.assertEqual(action.data.get("was_executed"), True)
         # test that we fell back to the all actions pass to ultimately pass the action
@@ -186,6 +221,8 @@ class EvaluationTests(TestCase):
         exception_policy.description = "updated description"
         exception_policy.save()
 
-        action = SlackPinMessage.objects.create(initiator=self.user, community=self.slack_community)
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
+        action.revert = lambda: None
+        action.save()
         self.assertEqual(action.data.get("was_executed"), True)
         self.assertEqual(action.proposal.status, "failed")

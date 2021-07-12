@@ -5,12 +5,14 @@ from django.contrib.auth.models import Permission
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
+from django.forms import modelform_factory
+from django.apps import apps
 from actstream.models import Action
-from policyengine.filter import *
+from policyengine.filter import filter_code
 from policyengine.linter import _error_check
+from policyengine.utils import find_action_cls, get_action_codenames
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
-import urllib.parse
 from urllib.parse import quote
 import random
 import logging
@@ -337,11 +339,51 @@ def documenteditor(request):
 @login_required(login_url='/login')
 def actions(request):
     user = get_user(request)
-
+    app_names = [user.community.platform] # TODO: show actions for other connected platforms
+    actions = [(app_name, get_action_codenames(app_name)) for app_name in app_names]
     return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
+        'actions': actions
     })
+
+@login_required(login_url='/login')
+def propose_action(request, app_name, codename):
+    cls = find_action_cls(app_name, codename)
+    if not cls:
+        return HttpResponseBadRequest()
+
+    from policyengine.models import PlatformActionForm
+
+    ActionForm = modelform_factory(
+        cls,
+        form=PlatformActionForm,
+        fields=getattr(cls, "EXECUTE_PARAMETERS", "__all__"),
+        localized_fields="__all__"
+    )
+
+    new_action = None
+    if request.method == 'POST':
+        form = ActionForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_action = form.save(commit=False)
+            new_action.initiator = request.user
+            new_action.community = request.user.community
+            new_action.save()
+    else:
+        form = ActionForm()
+    return render(
+        request,
+        "policyadmin/dashboard/action_proposer.html",
+        {
+            "server_url": SERVER_URL,
+            "user": get_user(request),
+            "form": form,
+            "app_name": app_name,
+            "codename": codename,
+            "action": new_action
+        },
+    )
 
 def evaluation_logger(policy, action, level="DEBUG"):
     """
@@ -788,7 +830,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
     if not filter_result:
         return False
 
-    from policyengine.models import Proposal
+    from policyengine.models import Proposal, ConstitutionAction, PlatformAction
 
     optional_args = {}
     if METAGOV_ENABLED:
@@ -814,12 +856,20 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
         action.pass_action()
         assert action.proposal.status == Proposal.PASSED
 
+        # EXECUTE the action if....
+        # it is a PlatformAction that was proposed in the PolicyKit UI
+        if issubclass(type(action), PlatformAction) and not action.community_origin:
+            action.execute()
+        # it is a constitution action
+        elif issubclass(type(action), ConstitutionAction):
+            action.execute()
+
         if METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
             optional_args["metagov"].close_process()
             action.proposal.close_governance_process()
 
-    elif check_result == Proposal.FAILED:
+    if check_result == Proposal.FAILED:
         # run "fail" block of policy
         fail_policy(policy, action, **optional_args)
         debug(f"Executed fail block of policy")
@@ -832,20 +882,20 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
             optional_args["metagov"].close_process()
             action.proposal.close_governance_process()
 
-        # If this is the first time evaluating, and it originated in a community, revert it
-        if is_first_evaluation and action.community_origin:
-            action.revert()
+    # Revert the action if necessary
+    should_revert = is_first_evaluation and \
+        check_result in [Proposal.PROPOSED, Proposal.FAILED] and \
+        issubclass(type(action), PlatformAction) and \
+        action.community_origin
 
-    elif check_result == Proposal.PROPOSED and is_first_evaluation:
-        # Revert if this action originated in the community (ie it was not proposed manually in the PK UI)
-        if hasattr(action, 'community_origin'):
-            debug(f"Reverting")
-            action.revert()
+    if should_revert:
+        debug(f"Reverting")
+        action.revert()
+
+    # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
+    if check_result == Proposal.PROPOSED and is_first_evaluation:
         # Run "notify" block of policy
         debug(f"Notifying")
         notify_policy(policy, action, **optional_args)
-    else:
-        # do nothing, it's still pending
-        pass
 
     return True
