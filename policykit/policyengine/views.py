@@ -362,6 +362,7 @@ def propose_action(request, app_name, codename):
         localized_fields="__all__"
     )
 
+    new_action = None
     if request.method == 'POST':
         form = ActionForm(request.POST, request.FILES)
         if form.is_valid():
