@@ -362,13 +362,19 @@ def propose_action(request, app_name, codename):
         localized_fields="__all__"
     )
 
+    error = None
     if request.method == 'POST':
         form = ActionForm(request.POST, request.FILES)
         if form.is_valid():
             new_action = form.save(commit=False)
             new_action.initiator = request.user
             new_action.community = request.user.community
-            new_action.save()
+            try:
+                new_action.save()
+            except Exception as e:
+                logger.error(f"Error saving proposed action: {e}")
+                error = str(e) # display error to the user, for now
+                new_action.delete()
     else:
         form = ActionForm()
     return render(
@@ -379,7 +385,8 @@ def propose_action(request, app_name, codename):
             "user": get_user(request),
             "form": form,
             "app_name": app_name,
-            "codename": codename
+            "codename": codename,
+            "error": error
         },
     )
 

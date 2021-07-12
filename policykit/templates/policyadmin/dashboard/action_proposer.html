@@ -41,6 +41,12 @@
     background-color: #3b4699;
     color: #ffffff;
   }
+  .alert {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    color: red;
+    margin-top: 1em;
+  }
 </style>
 {% endblock %}
 
@@ -62,6 +68,9 @@
           {{ form.as_table }}
         </table>
         <input type="submit" class="btn" value="Propose action">
+        {% if error %}
+          <div class="alert">{{ error }}</div>
+        {% endif %}
       </form>
     </div>
   </div>
