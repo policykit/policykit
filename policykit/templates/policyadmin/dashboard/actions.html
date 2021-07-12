@@ -123,8 +123,8 @@
           <table class="table table-hover">
             <tbody>
               {% for codename in action_list %}
-                <tr class="actionItem">
-                  <td><a href="{% url 'propose_action_form' app_name=app_name codename=codename %}">Propose {{codename}}</a></td>
+                <tr class="actionItem" onclick="proposePlatformActionLink('{{ app_name }}', '{{ codename }}')">
+                  <td>Propose {{codename}}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -207,6 +207,10 @@
   document.getElementById("editDocument").addEventListener("click", function(){ navDocumentSelect('Change'); });
   document.getElementById("removeDocument").addEventListener("click", function(){ navDocumentSelect('Remove'); });
   document.getElementById("recoverDocument").addEventListener("click", function(){ navDocumentSelect('Recover'); });
+
+  function proposePlatformActionLink(app_name, action_codename) {
+    window.location.href = `{{server_url}}/main/actions/${app_name}/${action_codename}`
+  }
 
   function navEditor(type, operation) {
     window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`

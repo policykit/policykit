@@ -29,7 +29,7 @@ urlpatterns = [
     path('main/documenteditor/', policyviews.documenteditor),
     path('main/selectdocument/', policyviews.selectdocument),
     path('main/actions/', policyviews.actions),
-    path('main/actions/<str:app_name>/<str:codename>', policyviews.propose_action, name="propose_action_form"),
+    path('main/actions/<str:app_name>/<str:codename>', policyviews.propose_action),
     path('main/policyengine/', include('policyengine.urls')),
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
