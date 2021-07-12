@@ -44,7 +44,6 @@
   .alert {
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
-    color: red;
     margin-top: 1em;
   }
 </style>
@@ -68,8 +67,8 @@
           {{ form.as_table }}
         </table>
         <input type="submit" class="btn" value="Propose action">
-        {% if error %}
-          <div class="alert">{{ error }}</div>
+        {% if action and action.proposal.status is not None %}
+          <div class="alert">Action was {{ action.proposal.status }}.</div>
         {% endif %}
       </form>
     </div>
