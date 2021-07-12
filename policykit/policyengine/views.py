@@ -858,10 +858,10 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
 
         # EXECUTE the action if....
         # it is a PlatformAction that was proposed in the PolicyKit UI
-        if issubclass(action, PlatformAction) and not action.community_origin:
+        if issubclass(type(action), PlatformAction) and not action.community_origin:
             action.execute()
         # it is a constitution action
-        elif issubclass(action, ConstitutionAction):
+        elif issubclass(type(action), ConstitutionAction):
             action.execute()
 
         if METAGOV_ENABLED:
@@ -883,7 +883,11 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
             action.proposal.close_governance_process()
 
     # Revert the action if necessary
-    should_revert = is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and issubclass(action, PlatformAction) and action.community_origin
+    should_revert = is_first_evaluation and \
+        check_result in [Proposal.PROPOSED, Proposal.FAILED] and \
+        issubclass(type(action), PlatformAction) and \
+        action.community_origin
+
     if should_revert:
         debug(f"Reverting")
         action.revert()
