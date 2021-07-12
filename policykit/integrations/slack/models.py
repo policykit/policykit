@@ -126,8 +126,6 @@ class SlackCommunity(CommunityPlatform):
             elif obj.AUTH == "admin_user":
                 data["token"] = admin_user_token
 
-            if data["token"] is None:
-                data.pop("token")  # remove token override if we don't have one
             logger.debug(f"Overriding token? {True if data.get('token') else False}")
 
             try:
@@ -271,7 +269,8 @@ class SlackCommunity(CommunityPlatform):
 
     def __make_generic_api_call(self, method: str, values):
         """Make any Slack method request using Metagov action 'slack.method' """
-        return LogAPICall.make_api_call(self, {"method_name": method, **values}, "slack.method")
+        cleaned = {k: v for k, v in values.items() if v is not None} if values else {}
+        return LogAPICall.make_api_call(self, {"method_name": method, **cleaned}, "slack.method")
 
 
 class SlackPostMessage(PlatformAction):

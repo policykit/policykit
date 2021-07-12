@@ -339,7 +339,8 @@ def connect_gateway():
     wst.daemon = True
     wst.start()
 
-connect_gateway()
+if DISCORD_CLIENT_ID:
+    connect_gateway()
 
 def oauth(request):
     state = request.GET.get('state')
