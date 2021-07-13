@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -9,7 +8,6 @@ from integrations.discord.models import *
 from urllib import parse
 import urllib.request
 import json
-import base64
 import logging
 import websocket
 import threading

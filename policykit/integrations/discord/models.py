@@ -45,8 +45,8 @@ DISCORD_EXECUTE_PERMS = [
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.
 class DiscordChannel(models.Model):
-    guild_id = models.IntegerField()
-    channel_id = models.IntegerField()
+    guild_id = models.BigIntegerField()
+    channel_id = models.BigIntegerField()
     channel_name = models.TextField()
 
 class DiscordCommunity(CommunityPlatform):
@@ -99,11 +99,10 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-    channel_id = models.IntegerField()
-    message_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
+    message_id = models.BigIntegerField()
     text = models.TextField()
 
-    ACTION = f"channels/{channel_id}/messages"
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
@@ -128,11 +127,10 @@ class DiscordPostMessage(PlatformAction):
             self.save()
 
 class DiscordDeleteMessage(PlatformAction):
-    channel_id = models.IntegerField()
-    message_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
+    message_id = models.BigIntegerField()
     text = models.TextField(blank=True, default='')
 
-    ACTION = f"channels/{channel_id}/messages/{message_id}"
     AUTH = 'user'
 
     action_codename = 'discorddeletemessage'
@@ -159,11 +157,10 @@ class DiscordDeleteMessage(PlatformAction):
             self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
 class DiscordRenameChannel(PlatformAction):
-    channel_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
     name = models.TextField()
     name_old = models.TextField(blank=True, default='')
 
-    ACTION = f"channels/{channel_id}"
     AUTH = 'user'
 
     action_codename = 'discordrenamechannel'
@@ -199,11 +196,9 @@ class DiscordRenameChannel(PlatformAction):
             c.save()
 
 class DiscordCreateChannel(PlatformAction):
-    guild_id = models.IntegerField()
-    channel_id = models.IntegerField(blank=True)
+    channel_id = models.BigIntegerField(blank=True)
     name = models.TextField()
 
-    ACTION = f"guilds/{guild_id}/channels"
     AUTH = 'user'
 
     action_codename = 'discordcreatechannel'
@@ -221,20 +216,20 @@ class DiscordCreateChannel(PlatformAction):
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
-            channel = self.community.make_call(f"guilds/{self.guild_id}/channels", {'name': self.name})
+            guild_id = self.community.team_id
+            channel = self.community.make_call(f"guilds/{guild_id}/channels", {'name': self.name})
             self.channel_id = channel['id']
 
             # Create a new DiscordChannel object
             DiscordChannel.objects.get_or_create(
-                guild_id=self.guild_id,
+                guild_id=guild_id,
                 channel_id=self.channel_id,
                 channel_name=channel['name']
             )
 
 class DiscordDeleteChannel(PlatformAction):
-    channel_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
 
-    ACTION = f"channels/{channel_id}"
     AUTH = 'user'
 
     action_codename = 'discorddeletechannel'
