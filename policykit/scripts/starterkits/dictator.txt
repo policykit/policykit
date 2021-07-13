@@ -10,7 +10,7 @@
       "check": "return PASSED",
       "notify": "pass",
       "success": "pass",
-      "fail": "pass",
+      "fail": "pass"
     }
   ],
   "constitution_policies": [
@@ -23,7 +23,7 @@
       "check": "return FAILED",
       "notify": "pass",
       "success": "action.execute()",
-      "fail": "pass",
+      "fail": "pass"
     }
   ],
   "roles": [
@@ -33,7 +33,7 @@
       "user_group": "all",
       "permission_sets": [
         "view",
-        "propose",
+        "propose"
       ],
       "permissions": [
         "Can view boolean vote",
@@ -58,8 +58,8 @@
         "Can view policykit add community doc",
         "Can view policykit change community doc",
         "Can view policykit delete community doc",
-        "Can view policykit recover community doc",
-      ],
+        "Can view policykit recover community doc"
+      ]
     },
     {
       "name": "Dictator",
@@ -68,7 +68,7 @@
       "permission_sets": [
         "view",
         "propose",
-        "execute",
+        "execute"
       ],
       "permissions": [
         "Can add boolean vote",
@@ -117,7 +117,7 @@
         "Can execute policykit change community doc",
         "Can execute policykit delete community doc",
         "Can execute policykit recover community doc",
-      ],
-    },
-  ],
+      ]
+    }
+  ]
 }

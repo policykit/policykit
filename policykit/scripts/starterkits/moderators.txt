@@ -10,7 +10,7 @@
       "check": "return PASSED",
       "notify": "pass",
       "success": "pass",
-      "fail": "pass",
+      "fail": "pass"
     }
   ],
   "constitution_policies": [
@@ -23,7 +23,7 @@
       "check": "if action.initiator.groups.filter(name = "Administrator").exists():\n    return PASSED\nelse:\n    return FAILED",
       "notify": "pass",
       "success": "action.execute()",
-      "fail": "pass",
+      "fail": "pass"
     }
   ],
   "roles": [
@@ -32,7 +32,7 @@
       "is_base_role": true,
       "user_group": "nonadmins",
       "permission_sets": [
-        "view",
+        "view"
       ],
       "permissions": [
         "Can view boolean vote",
@@ -57,8 +57,8 @@
         "Can view policykit add community doc",
         "Can view policykit change community doc",
         "Can view policykit delete community doc",
-        "Can view policykit recover community doc",
-      ],
+        "Can view policykit recover community doc"
+      ]
     },
     {
       "name": "Moderator",
@@ -66,7 +66,7 @@
       "user_group": "admins",
       "permission_sets": [
         "view",
-        "propose",
+        "propose"
       ],
       "permissions": [
         "Can add boolean vote",
@@ -97,8 +97,8 @@
         "Can add policykit add community doc",
         "Can add policykit change community doc",
         "Can add policykit delete community doc",
-        "Can add policykit recover community doc",
-      ],
-    },
-  ],
+        "Can add policykit recover community doc"
+      ]
+    }
+  ]
 }

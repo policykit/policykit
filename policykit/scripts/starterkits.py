@@ -14,11 +14,13 @@ from integrations.reddit.models import RedditStarterKit
 from integrations.slack.models import SlackStarterKit
 from policyengine.models import *
 import json
+import os
 
 def init_starter_kit(filename):
-    f = open(f'starterkits/{filename}.txt')
+    logger.info(filename)
+    f = open(f'{os.getcwd()}/scripts/starterkits/{filename}.txt')
 
-    data = json.loads(f)
+    data = json.loads(f.read())
 
     ## TODO: Define platform names in platform models, not here
     platform_starter_kits = [
@@ -29,7 +31,6 @@ def init_starter_kit(filename):
     ]
 
     for starter_kit in platform_starter_kits:
-        ## TODO: Check why we call save first? Seems odd -- we just created the starter kits
         starter_kit.save()
 
         for pp in data['platform_policies']:

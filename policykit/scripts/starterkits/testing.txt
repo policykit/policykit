@@ -10,7 +10,7 @@
       "check": "return PASSED",
       "notify": "pass",
       "success": "pass",
-      "fail": "pass",
+      "fail": "pass"
     }
   ],
   "constitution_policies": [
@@ -23,7 +23,7 @@
       "check": "return PASSED",
       "notify": "pass",
       "success": "pass",
-      "fail": "pass",
+      "fail": "pass"
     }
   ],
   "roles": [
@@ -33,7 +33,7 @@
       "user_group": "all",
       "permission_sets": [
         "view",
-        "propose",
+        "propose"
       ],
       "permissions": [
         "Can add boolean vote",
@@ -64,8 +64,8 @@
         "Can add policykit add community doc",
         "Can add policykit change community doc",
         "Can add policykit delete community doc",
-        "Can add policykit recover community doc",
-      ],
-    },
-  ],
+        "Can add policykit recover community doc"
+      ]
+    }
+  ]
 }

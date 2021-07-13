@@ -20,28 +20,6 @@ DISCORD_ACTIONS = [
     'discorddeletechannel'
 ]
 
-DISCORD_VIEW_PERMS = [
-    'Can view discord post message',
-    'Can view discord delete message',
-    'Can view discord rename channel',
-    'Can view discord create channel',
-    'Can view discord delete channel'
-]
-DISCORD_PROPOSE_PERMS = [
-    'Can add discord post message',
-    'Can add discord delete message',
-    'Can add discord rename channel',
-    'Can add discord create channel',
-    'Can add discord delete channel'
-]
-DISCORD_EXECUTE_PERMS = [
-    'Can execute discord post message',
-    'Can execute discord delete message',
-    'Can execute discord rename channel',
-    'Can execute discord create channel',
-    'Can execute discord delete channel'
-]
-
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.
 class DiscordChannel(models.Model):
@@ -52,6 +30,13 @@ class DiscordChannel(models.Model):
 class DiscordCommunity(CommunityPlatform):
     API = 'https://discordapp.com/api/'
     platform = "discord"
+    permissions = [
+        "discord post message",
+        "discord delete message",
+        "discord rename channel",
+        "discord create channel",
+        "discord delete channel"
+    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
@@ -254,37 +239,22 @@ class DiscordDeleteChannel(PlatformAction):
 class DiscordStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
+            p = None
             if policy.is_constitution:
                 p = ConstitutionPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
-
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
-
             else:
                 p = PlatformPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
-
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
+            p.community = community
+            p.name = policy.name
+            p.description = policy.description
+            p.filter = policy.filter
+            p.initialize = policy.initialize
+            p.check = policy.check
+            p.notify = policy.notify
+            p.success = policy.success
+            p.fail = policy.fail
+            p.proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+            p.save()
 
         for role in self.genericrole_set.all():
             c = None

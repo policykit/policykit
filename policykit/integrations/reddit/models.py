@@ -15,12 +15,6 @@ REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
 REDDIT_ACTIONS = ['redditmakepost']
 
-REDDIT_VIEW_PERMS = ['Can view reddit make post']
-
-REDDIT_PROPOSE_PERMS = ['Can add reddit make post']
-
-REDDIT_EXECUTE_PERMS = ['Can execute reddit make post']
-
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
         'grant_type': 'refresh_token',
@@ -42,19 +36,14 @@ def refresh_access_token(refresh_token):
 
 class RedditCommunity(CommunityPlatform):
     API = 'https://oauth.reddit.com/'
-
     platform = "reddit"
+    permissions = [
+        'reddit make post'
+    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
-
-    access_token = models.CharField('access_token',
-                                    max_length=300,
-                                    unique=True)
-
-    refresh_token = models.CharField('refresh_token',
-                               max_length=500,
-                               null=True)
-
+    access_token = models.CharField('access_token', max_length=300, unique=True)
+    refresh_token = models.CharField('refresh_token', max_length=500, null=True)
 
     def make_call(self, url, values=None, action=None, method=None):
         logger.info(self.API + url)

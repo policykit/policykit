@@ -32,33 +32,6 @@ SLACK_ACTIONS = [
     "slackpinmessage",
 ]
 
-SLACK_VIEW_PERMS = [
-    "Can view slack post message",
-    "Can view slack schedule message",
-    "Can view slack rename conversation",
-    "Can view slack kick conversation",
-    "Can view slack join conversation",
-    "Can view slack pin message",
-]
-
-SLACK_PROPOSE_PERMS = [
-    "Can add slack post message",
-    "Can add slack schedule message",
-    "Can add slack rename conversation",
-    "Can add slack kick conversation",
-    "Can add slack join conversation",
-    "Can add slack pin message",
-]
-
-SLACK_EXECUTE_PERMS = [
-    "Can execute slack post message",
-    "Can execute slack schedule message",
-    "Can execute slack rename conversation",
-    "Can execute slack kick conversation",
-    "Can execute slack join conversation",
-    "Can execute slack pin message",
-]
-
 NUMBERS_TEXT = {
     "zero": 0,
     "one": 1,
@@ -72,13 +45,19 @@ NUMBERS_TEXT = {
     "nine": 9,
 }
 
-
 class SlackUser(CommunityUser):
     pass
 
-
 class SlackCommunity(CommunityPlatform):
     platform = "slack"
+    permissions = [
+        'slack post message',
+        'slack schedule message',
+        'slack rename conversation',
+        'slack kick conversation',
+        'slack join conversation',
+        'slack pin message'
+    ]
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 

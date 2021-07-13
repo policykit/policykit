@@ -74,6 +74,9 @@ class CommunityPlatform(PolymorphicModel):
     platform = None
     """The name of the platform ('Slack', 'Reddit', etc.)."""
 
+    permissions = None
+    """The list of platform-specific permissions."""
+
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
 
@@ -85,6 +88,73 @@ class CommunityPlatform(PolymorphicModel):
     @property
     def metagov_slug(self):
         return self.community.metagov_slug
+
+    def init(starter_kit):
+        """
+        Initializes the community with the inputted starter kit.
+        Note: Only meant for internal use.
+        """
+        for policy in starter_kit.genericpolicy_set.all():
+            p = None
+            if policy.is_constitution:
+                p = ConstitutionPolicy()
+            else:
+                p = PlatformPolicy()
+            p.community = self
+            p.name = policy.name
+            p.description = policy.description
+            p.filter = policy.filter
+            p.initialize = policy.initialize
+            p.check = policy.check
+            p.notify = policy.notify
+            p.success = policy.success
+            p.fail = policy.fail
+            p.proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+            p.save()
+
+        for role in starter_kit.genericrole_set.all():
+            c = None
+            if role.is_base_role:
+                c = self.base_role
+            else:
+                c = CommunityRole()
+                c.community = self
+                c.role_name = role.role_name
+                c.name = f"{platform}: {community_name}: {role.role_name}"
+                c.description = role.description
+                c.save()
+
+            for perm in role.permissions.all():
+                c.permissions.add(perm)
+
+            jsonDec = json.decoder.JSONDecoder()
+            perm_set = jsonDec.decode(role.plat_perm_set)
+
+            for perm in self.permissions:
+                if 'view' in perm_set:
+                    c.permissions.add(Permission.objects.get(name=f"Can view {perm}"))
+                if 'propose' in perm_set:
+                    c.permissions.add(Permission.objects.get(name=f"Can add {perm}"))
+                if 'execute' in perm_set:
+                    c.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
+
+            if role.user_group == "admins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "nonadmins":
+                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "all":
+                group = CommunityUser.objects.filter(community = community)
+                for user in group:
+                    c.user_set.add(user)
+            elif role.user_group == "creator":
+                user = CommunityUser.objects.get(access_token=creator_token)
+                c.user_set.add(user)
+
+            c.save()
 
     def notify_action(self, action, policy, users):
         """

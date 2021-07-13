@@ -11,18 +11,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 DISCOURSE_ACTIONS = [
-                    'discoursecreatetopic',
-                    'discoursecreatepost'
-                  ]
-
-DISCOURSE_VIEW_PERMS = ['Can view discourse create topic', 'Can view discourse create post']
-
-DISCOURSE_PROPOSE_PERMS = ['Can add discourse create topic', 'Can add discourse create post']
-
-DISCOURSE_EXECUTE_PERMS = ['Can execute discourse create topic', 'Can execute discourse create post']
+    'discoursecreatetopic',
+    'discoursecreatepost'
+]
 
 class DiscourseCommunity(CommunityPlatform):
     platform = "discourse"
+    permissions = [
+        "discourse create topic",
+        "discourse create post"
+    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
