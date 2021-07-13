@@ -1,12 +1,8 @@
 from django.db import models
 from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
-from django.contrib.auth.models import Permission, ContentType, User
-from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
-import urllib
-from urllib import parse
-import urllib.request
-import urllib.error
-import base64
+from django.contrib.auth.models import Permission, ContentType
+from policykit.settings import DISCORD_BOT_TOKEN
+import requests
 import json
 import logging
 
@@ -67,29 +63,20 @@ class DiscordCommunity(CommunityPlatform):
         for p in perms:
             self.base_role.permissions.add(p)
 
-    def make_call(self, url, values=None, action=None, method=None):
-        data = None
-        if values:
-            data = urllib.parse.urlencode(values)
-            data = data.encode('utf-8')
+    def make_call(self, url, values=None, action=None, method="GET"):
+        response = requests.request(
+            method=method,
+            url=self.API + url,
+            json=values,
+            headers={'Authorization': 'Bot %s' % DISCORD_BOT_TOKEN}
+        )
+        logger.debug(f"Made request to {response.request.method} {response.request.url} with body {response.request.body}")
 
-        req = urllib.request.Request(self.API + url, data, method=method)
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-
-        try:
-            resp = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            logger.error('reached HTTPError')
-            logger.error(e.code)
-            error_message = e.read()
-            logger.error(error_message)
-            raise
-
-        res = resp.read().decode('utf-8')
-        if res:
-            return json.loads(res)
+        if not response.ok:
+            logger.error(f"{response.status_code} {response.reason} {response.text}")
+            raise Exception(f"{response.status_code} {response.reason} {response.text}")
+        if response.content:
+            return response.json()
         return None
 
 class DiscordUser(CommunityUser):
@@ -217,8 +204,9 @@ class DiscordCreateChannel(PlatformAction):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
             guild_id = self.community.team_id
-            channel = self.community.make_call(f"guilds/{guild_id}/channels", {'name': self.name})
+            channel = self.community.make_call(f"guilds/{guild_id}/channels", {'name': self.name}, method="POST")
             self.channel_id = channel['id']
+            self.save()
 
             # Create a new DiscordChannel object
             DiscordChannel.objects.get_or_create(
