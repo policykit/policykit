@@ -513,7 +513,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
                                            """,
     notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.community.notify_action(action, policy, users=voter_users, template='Please vote')
+action.community.initiate_vote(action, policy, users=voter_users, template='Please vote')
                                            """,
     success="action.execute()",
     fail="pass",
@@ -553,7 +553,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
                                                            """,
     notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.community.notify_action(action, policy, users=voter_users, template='Please vote')
+action.community.initiate_vote(action, policy, users=voter_users, template='Please vote')
                                                            """,
     success="action.execute()",
     fail="pass",
@@ -595,7 +595,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
     return FAILED
                                                            """,
     notify="""
-action.community.notify_action(action, policy, users, template='Please vote on proposal')
+action.community.initiate_vote(action, policy, users, template='Please vote on proposal')
                                                            """,
     success="action.execute()",
     fail="pass",
@@ -635,7 +635,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
                                                            """,
     notify="""
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
-action.community.notify_action(action, policy, users=voter_users, template='Please vote')
+action.community.initiate_vote(action, policy, users=voter_users, template='Please vote')
                                                            """,
     success="action.execute()",
     fail="pass",
@@ -1127,7 +1127,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
     notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
+action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
     success="action.execute()",
     fail="pass",
@@ -1166,7 +1166,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
     notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
+action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
     success="action.execute()",
     fail="pass",
@@ -1205,7 +1205,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
     notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
+action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
     success="action.execute()",
     fail="pass",
@@ -1244,7 +1244,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):
     notify="""
 jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
-action.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
+action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
     success="action.execute()",
     fail="pass",

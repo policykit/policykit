@@ -4,6 +4,7 @@ import requests
 from policyengine.models import PlatformActionBundle, LogAPICall
 import datetime
 import json
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +25,17 @@ def get_slack_user_fields(user_info):
 def is_policykit_action(community, test_a, test_b, api_name):
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
 
-    logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus, call_type=api_name)
+    logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus).filter(
+        Q(call_type=api_name) | Q(call_type="slack.method")
+    )
     if logs.exists():
         # logger.debug(f"Made {logs.count()} calls to {api_name} in the last 2 seconds")
         for log in logs:
             j_info = json.loads(log.extra_info)
             # logger.debug(j_info)
+            if log.call_type == "slack.method" and j_info.get("method_name") != api_name:
+                # if this was a generic API call, the method_name must match the provided api_name
+                continue
             if test_a == j_info[test_b]:
                 return True
 

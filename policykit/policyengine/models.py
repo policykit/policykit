@@ -86,7 +86,7 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
-    def notify_action(self, action, policy, users):
+    def initiate_vote(self, action, policy, users):
         """
         Sends a notification to users of a pending action.
 
