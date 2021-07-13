@@ -140,6 +140,8 @@ def handle_message_delete_event(data):
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
     # Gets the channel message
+    # This doesn't work, it always returns 404. The message has already been deleted.
+    # There is no way to retrieve deleted messages in Discord
     message = community.make_call(f"channels/{data['channel_id']}/messages/{data['id']}")
 
     action = DiscordDeleteMessage()
@@ -162,6 +164,7 @@ def handle_channel_update_event(data):
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
     action = DiscordRenameChannel()
+    # FIXME: name_old is not stored, so the action cannot be reverted.
     action.community = community
     action.channel_id = data['id']
     action.name = data['name']
@@ -242,8 +245,8 @@ def handle_event(name, data):
 
         if name == 'MESSAGE_CREATE':
             action = handle_message_create_event(data)
-        elif name == 'MESSAGE_DELETE':
-            action = handle_message_delete_event(data)
+        # elif name == 'MESSAGE_DELETE':
+        #     action = handle_message_delete_event(data)
         elif name == 'CHANNEL_UPDATE':
             action = handle_channel_update_event(data)
         elif name == 'CHANNEL_CREATE':
