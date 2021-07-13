@@ -86,6 +86,9 @@ class SlackCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
+    def notify_action(self, *args, **kwargs):
+        self.initiate_vote(*args, **kwargs)
+
     def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
         SlackUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
 
