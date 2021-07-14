@@ -30,17 +30,16 @@ def on_transaction_commit(func):
     return inner
 
 class StarterKit(PolymorphicModel):
-    """Starter Kit"""
+    """Starter kit"""
 
     name = models.TextField(null=True, blank=True, default = '')
     """The name of the starter kit."""
 
     platform = models.TextField(null=True, blank=True, default = '')
-    """The name of the platform ('Slack', 'Reddit', etc.)."""
+    """The name of the platform ('slack', 'reddit', etc.)."""
 
     def __str__(self):
         return self.name
-
 
 class Community(models.Model):
     readable_name = models.CharField(max_length=300, blank=True)
@@ -89,7 +88,7 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
-    def init(starter_kit):
+    def init(starter_kit, creator_token=None):
         """
         Initializes the community with the inputted starter kit.
         Note: Only meant for internal use.

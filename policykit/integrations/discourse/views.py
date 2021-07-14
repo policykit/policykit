@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL
-from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseStarterKit
+from integrations.discourse.models import DiscourseCommunity, DiscourseUser
 from integrations.discourse.utils import get_discourse_user_fields
 from policyengine.models import *
 from django.contrib.auth import login, authenticate

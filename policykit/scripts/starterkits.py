@@ -8,13 +8,12 @@ exec(open('scripts/starterkits.py').read())
 """
 
 from django.contrib.auth.models import Permission
-from integrations.discord.models import DiscordStarterKit
-from integrations.discourse.models import DiscourseStarterKit
-from integrations.reddit.models import RedditStarterKit
-from integrations.slack.models import SlackStarterKit
-from policyengine.models import *
+from policyengine.models import StarterKit, GenericPolicy, GenericRole
 import json
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 def init_starter_kit(filename):
     logger.info(filename)
@@ -22,13 +21,9 @@ def init_starter_kit(filename):
 
     data = json.loads(f.read())
 
-    ## TODO: Define platform names in platform models, not here
-    platform_starter_kits = [
-        SlackStarterKit(name=data['name'], platform="slack"),
-        RedditStarterKit(name=data['name'], platform="reddit"),
-        DiscordStarterKit(name=data['name'], platform="discord"),
-        DiscourseStarterKit(name=data['name'], platform="discourse")
-    ]
+    platform_starter_kits = []
+    for platform in ["slack", "reddit", "discord", "discourse"]:
+        platform_starter_kits.append(StarterKit(name=data['name'], platform=platform))
 
     for starter_kit in platform_starter_kits:
         starter_kit.save()

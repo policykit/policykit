@@ -10,7 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
 REDDIT_ACTIONS = ['redditmakepost']
@@ -32,7 +31,6 @@ def refresh_access_token(refresh_token):
     resp = urllib.request.urlopen(req)
     res = json.loads(resp.read().decode('utf-8'))
     return res
-
 
 class RedditCommunity(CommunityPlatform):
     API = 'https://oauth.reddit.com/'
@@ -104,12 +102,9 @@ class RedditCommunity(CommunityPlatform):
         from redditintegration.views import post_policy
         post_policy(policy, action, users)
 
-
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser
         from policyengine.views import clean_up_proposals
-
-        logger.info('here')
 
         logger.info(action)
 
@@ -148,7 +143,6 @@ class RedditCommunity(CommunityPlatform):
                 except obj.DoesNotExist:
                     continue
 
-
             data['sr'] = action.community.community_name
             data['api_type'] = 'json'
 
@@ -168,8 +162,7 @@ class RedditCommunity(CommunityPlatform):
                     posted_action = action
 
                 if posted_action.community_post:
-                    values = {'id': posted_action.community_post
-                            }
+                    values = {'id': posted_action.community_post}
                     call = 'api/remove'
                     _ = LogAPICall.make_api_call(self, values, call)
 
@@ -179,42 +172,26 @@ class RedditCommunity(CommunityPlatform):
 
         clean_up_proposals(action, True)
 
-
 class RedditUser(CommunityUser):
-    refresh_token = models.CharField('refresh_token',
-                               max_length=500,
-                               null=True)
+    refresh_token = models.CharField('refresh_token', max_length=500, null=True)
 
     def refresh_access_token(self):
         res = refresh_access_token(self.refresh_token)
         self.access_token = res['access_token']
         self.save()
 
-
 class RedditMakePost(PlatformAction):
     ACTION = 'api/submit'
     AUTH = 'user'
 
-    title = models.CharField('title',
-                               max_length=500,
-                               null=True)
+    title = models.CharField('title', max_length=500, null=True)
     text = models.TextField()
-
-    kind = models.CharField('kind',
-                               max_length=30,
-                               default="self")
-
-    name = models.CharField('name',
-                               max_length=100,
-                               null=True)
-    communityaction_ptr = models.CharField('ptr',
-                               max_length=100,
-                               null=True)
+    kind = models.CharField('kind', max_length=30, default="self")
+    name = models.CharField('name', max_length=100, null=True)
+    communityaction_ptr = models.CharField('ptr', max_length=100, null=True)
 
     action_codename = 'redditmakepost'
-
     app_name = 'redditintegration'
-
     action_type = "RedditMakePost"
 
     class Meta:
@@ -222,98 +199,11 @@ class RedditMakePost(PlatformAction):
             ('can_execute_redditmakepost', 'Can execute reddit make post'),
         )
 
-
     def revert(self):
-        values = {'id': self.name
-                }
+        values = {'id': self.name}
         super().revert(values, 'api/remove')
 
     def execute(self):
         if not self.community_revert:
             self.community.make_call('api/approve', {'id': self.name})
         super().execute()
-
-class RedditStarterKit(StarterKit):
-    def init_kit(self, community, creator_token=None):
-        for policy in self.genericpolicy_set.all():
-            if policy.is_constitution:
-                p = ConstitutionPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
-
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
-
-            else:
-                p = PlatformPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
-
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
-
-        for role in self.genericrole_set.all():
-            c = None
-            if role.is_base_role:
-                c = community.base_role
-                role.is_base_role = False
-            else:
-                c = CommunityRole()
-                c.community = community
-                c.role_name = role.role_name
-                c.name = "Reddit: " + community.community_name + ": " + role.role_name
-                c.description = role.description
-                c.save()
-
-            for perm in role.permissions.all():
-                c.permissions.add(perm)
-
-            jsonDec = json.decoder.JSONDecoder()
-            perm_set = jsonDec.decode(role.plat_perm_set)
-
-            if 'view' in perm_set:
-                for perm in REDDIT_VIEW_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-            if 'propose' in perm_set:
-                for perm in REDDIT_PROPOSE_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-            if 'execute' in perm_set:
-                for perm in REDDIT_EXECUTE_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-
-            if role.user_group == "admins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "nonadmins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "all":
-                group = CommunityUser.objects.filter(community = community)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "creator":
-                user = CommunityUser.objects.get(access_token=creator_token)
-                c.user_set.add(user)
-
-            c.save()

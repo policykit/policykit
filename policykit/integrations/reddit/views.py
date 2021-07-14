@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
-from integrations.reddit.models import RedditStarterKit, RedditCommunity, RedditUser, REDDIT_USER_AGENT
+from integrations.reddit.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt

@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 from integrations.slack.models import (
     SlackCommunity,
-    SlackStarterKit,
     SlackUser,
 )
 from integrations.slack.utils import get_slack_user_fields
@@ -146,5 +145,3 @@ def slack_install(request):
                 )
 
         return redirect("/login?success=true")
-
-

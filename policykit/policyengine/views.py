@@ -538,23 +538,19 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, CommunityPlatform
-    from django.contrib.auth.models import Permission
+    from policyengine.models import StarterKit, CommunityPlatform
 
     starterkit_name = request.POST['starterkit']
+    platform = request.POST['platform']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
-    platform = request.POST['platform']
 
     starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
 
     community = CommunityPlatform.objects.get(community_name=community_name)
-    starter_kit.init_kit(community, creator_token)
+    community.init(starter_kit, creator_token)
 
-    logger.info('starterkit initialized')
-
-    response = redirect('/login?success=true')
-    return response
+    return redirect('/login?success=true')
 
 @csrf_exempt
 def error_check(request):
