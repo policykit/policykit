@@ -23,7 +23,7 @@ Check
 Notify
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-| If the policy involves reaching out to one or more community members for input, then the code for notifying members occurs in this function. While policy authors can send messages to users in any function, this function is specifically for notifications soliciting user input. Authors may use the helper method ``notify_action()`` to send messages to community members, with ability to customize the post. For instance, the notification post can include instructions, such as to deliberate the action before voting. This function is only run once, after a new action does not return ``PASSED`` or ``FAILED`` from the first ``check()``, so as to not unnecessarily notify users.
+| If the policy involves reaching out to one or more community members for input, then the code for notifying members occurs in this function. While policy authors can send messages to users in any function, this function is specifically for notifications soliciting user input. Authors may use the method ``initiate_vote()`` to start a vote on whether or not to pass the action. This function is only run once, after a new action does not return ``PASSED`` or ``FAILED`` from the first ``check()``, so as to not unnecessarily notify users.
 
 Pass
 ~~~~~~~~~~~~~~~~~~~~~~~~

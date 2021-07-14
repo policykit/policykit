@@ -51,9 +51,15 @@ class DiscordCommunity(CommunityPlatform):
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
-    def notify_action(self, action, policy, users=None, template=None, channel=None):
-        from integrations.discord.views import post_policy
-        post_policy(policy, action, users, template, channel)
+    def notify_action(self, *args, **kwargs):
+        self.initiate_vote(*args, **kwargs)
+
+    def initiate_vote(self, action, policy, users=None, template=None, channel=None):
+        from integrations.discord.views import initiate_action_vote
+        initiate_action_vote(policy, action, users, template, channel)
+
+    def post_message(self, text, channel):
+        return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
 
     def save(self, *args, **kwargs):
         super(DiscordCommunity, self).save(*args, **kwargs)
@@ -107,7 +113,7 @@ class DiscordPostMessage(PlatformAction):
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
-            message = self.community.make_call(f"channels/{self.channel_id}/messages", {'content': self.text})
+            message = self.community.post_message(text=self.text, channel=self.channel_id)
 
             self.message_id = message['id']
             self.community_post = self.message_id

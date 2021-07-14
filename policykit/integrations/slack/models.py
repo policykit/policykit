@@ -72,6 +72,10 @@ NUMBERS_TEXT = {
     "nine": 9,
 }
 
+# Name of generic Slack action in Metagov
+# See: https://metagov.policykit.org/redoc/#operation/slack.method
+SLACK_METHOD_ACTION = "slack.method"
+
 
 class SlackUser(CommunityUser):
     pass
@@ -82,7 +86,10 @@ class SlackCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def notify_action(self, action, policy, users=[], post_type="channel", template=None, channel=None):
+    def notify_action(self, *args, **kwargs):
+        self.initiate_vote(*args, **kwargs)
+
+    def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
         SlackUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
 
     def make_call(self, method_name, values={}, action=None, method=None):
@@ -221,7 +228,7 @@ class SlackCommunity(CommunityPlatform):
                         existing_vote.number_value = num
                         existing_vote.save()
 
-    def post_message(self, text, users=[], post_type="channel", channel=None):
+    def post_message(self, text, users=[], post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):
         """
         POST TYPES:
         mpim = multi person message
@@ -232,11 +239,13 @@ class SlackCommunity(CommunityPlatform):
         usernames = [user.username for user in users or []]
         if len(usernames) == 0 and post_type in ["mpim", "im", "ephemeral"]:
             raise Exception(f"user(s) required for post type '{post_type}'")
+        if channel is None and post_type in ["channel", "ephemeral"]:
+            raise Exception(f"channel required for post type '{post_type}'")
+
         values = {"text": text}
 
         if post_type == "mpim":
             # post to group message
-            values["channel"] = channel
             values["users"] = usernames
             response = LogAPICall.make_api_call(self, values, "slack.post-message")
             return [response["ts"]]
@@ -245,7 +254,6 @@ class SlackCommunity(CommunityPlatform):
             # message each user individually
             posts = []
             for username in usernames:
-                values["channel"] = channel
                 values["users"] = [username]
                 response = LogAPICall.make_api_call(self, values, "slack.post-message")
                 posts.append(response["ts"])
@@ -262,6 +270,11 @@ class SlackCommunity(CommunityPlatform):
 
         if post_type == "channel":
             values["channel"] = channel
+            if thread_ts:
+                # post message in response as a threaded message reply
+                values["thread_ts"] = thread_ts
+                values["reply_broadcast"] = reply_broadcast
+
             response = LogAPICall.make_api_call(self, values, "slack.post-message")
             return [response["ts"]]
 
@@ -270,7 +283,7 @@ class SlackCommunity(CommunityPlatform):
     def __make_generic_api_call(self, method: str, values):
         """Make any Slack method request using Metagov action 'slack.method' """
         cleaned = {k: v for k, v in values.items() if v is not None} if values else {}
-        return LogAPICall.make_api_call(self, {"method_name": method, **cleaned}, "slack.method")
+        return LogAPICall.make_api_call(self, {"method_name": method, **cleaned}, SLACK_METHOD_ACTION)
 
 
 class SlackPostMessage(PlatformAction):
@@ -296,7 +309,7 @@ class SlackPostMessage(PlatformAction):
             "ts": self.timestamp,
             "channel": self.channel,
         }
-        super().revert(values, "slack.method")
+        super().revert(values, SLACK_METHOD_ACTION)
 
 
 class SlackRenameConversation(PlatformAction):
@@ -317,15 +330,13 @@ class SlackRenameConversation(PlatformAction):
     def revert(self):
         # Slack docs: "only the user that originally created a channel or an admin may rename it"
         values = {
+            "method_name": SlackRenameConversation.ACTION,
             "name": self.previous_name,
             "channel": self.channel,
             # Use the initiators access token if we have it (since they already successfully renamed)
-            "token": self.initiator.access_token,
+            "token": self.initiator.access_token or self.community.__get_admin_user_token(),
         }
-        if not values["token"]:
-            # Use any admin user token that we have
-            values["token"] = self.community.__get_admin_user_token()
-        super().revert(values, "conversations.rename")
+        super().revert(values, SLACK_METHOD_ACTION)
 
 
 class SlackJoinConversation(PlatformAction):
@@ -343,17 +354,16 @@ class SlackJoinConversation(PlatformAction):
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
     def revert(self):
-        values = {"user": self.users, "channel": self.channel}
-        method = "conversations.kick"
+        values = {"method_name": "conversations.kick", "user": self.users, "channel": self.channel}
         try:
-            super().revert(values, method)
+            super().revert(values, SLACK_METHOD_ACTION)
         except Exception:
             # Whether or not bot can kick is based on workspace settings
-            logger.error(f"{method} with bot token failed, attempting with admin token")
+            logger.error(f"kick with bot token failed, attempting with admin token")
             values["token"] = self.community.__get_admin_user_token()
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
-            super().revert(values, method)
+            super().revert(values, SLACK_METHOD_ACTION)
 
 
 class SlackPinMessage(PlatformAction):
@@ -370,8 +380,8 @@ class SlackPinMessage(PlatformAction):
         permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
 
     def revert(self):
-        values = {"channel": self.channel, "timestamp": self.timestamp}
-        super().revert(values, "pins.remove")
+        values = {"method_name": "pins.remove", "channel": self.channel, "timestamp": self.timestamp}
+        super().revert(values, SLACK_METHOD_ACTION)
 
 
 class SlackScheduleMessage(PlatformAction):

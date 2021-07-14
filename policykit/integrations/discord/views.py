@@ -461,7 +461,7 @@ def auth(request, guild_id=None, access_token=None):
     else:
         return redirect('/login?error=invalid_login')
 
-def post_policy(policy, action, users=None, template=None, channel=None):
+def initiate_action_vote(policy, action, users=None, template=None, channel=None):
     message = "This action is governed by the following policy: " + policy.name
     if template:
         message = template
@@ -480,7 +480,7 @@ def post_policy(policy, action, users=None, template=None, channel=None):
     if channel_id == None:
         return
 
-    res = policy.community.make_call(f'channels/{channel_id}/messages', values={'content': message})
+    res = policy.community.post_message(text=message, channel=channel_id)
 
     if action.action_type == "ConstitutionAction" or action.action_type == "PlatformAction":
         action.community_post = res['id']
