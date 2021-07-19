@@ -7,6 +7,7 @@ from integrations.slack.models import (
     SlackCommunity,
     SlackStarterKit,
     SlackUser,
+    SLACK_METHOD_ACTION
 )
 from integrations.slack.utils import get_slack_user_fields
 from policyengine.models import Community, CommunityRole
@@ -92,7 +93,8 @@ def slack_install(request):
 
         # get the list of users, create SlackUser object for each user
         logger.debug(f"Fetching user list for {slack_community}...")
-        response = LogAPICall.make_api_call(slack_community, {}, "users.list")
+        from policyengine.models import LogAPICall
+        response = LogAPICall.make_api_call(slack_community, {"method_name": "users.list"}, SLACK_METHOD_ACTION)
         for new_user in response["members"]:
             if (not new_user["deleted"]) and (not new_user["is_bot"]) and (new_user["id"] != "USLACKBOT"):
                 u, _ = SlackUser.objects.get_or_create(

@@ -32,7 +32,12 @@ urlpatterns = [
     path('main/actions/<str:app_name>/<str:codename>', policyviews.propose_action),
     path('main/policyengine/', include('policyengine.urls')),
     path('main/settings/', policyviews.settings_page, name="settings"),
+    path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
+
+    path('api/integrations/disable', policyviews.disable_integration, name="disable_integration"),
+    path('api/integrations/enable', policyviews.enable_integration, name="enable_integration"),
+
     path('admin/', admin.site.urls),
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),
