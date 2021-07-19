@@ -6,57 +6,131 @@
   h2, h3 {
     padding-bottom: 1em;
   }
-  .config-container {
-    padding-bottom: 3em;
-  }
-
-  .form-row {
+  .title-row {
     margin-bottom: 20px;
   }
-  .btn {
+  .card-title {
+    font-family: "Nunito", sans-serif;
+    font-size: 1.5em;
+  }
+  .card {
+    margin-bottom: 24px;
+  }
+  .card code {
+    padding-right: 1em;
+    color: black;
+  }
+  .configList {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  .btn.btn-primary {
+    padding: 0.5em 2vw;
+    font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
+    background-color: #4451b2;
+    color: #ffffff;
   }
-  form .help-block {
-    font-style: italic;
+  .dropdown {
+    float: right;
   }
-  legend {
-    text-transform: uppercase;
+  .dropdown-menu {
+    width: 100%;
   }
-  /*https://github.com/jsonform/jsonform/blob/f30484e3300cfb4bb4f7efefdde736798103e46d/lib/jsonform.js#L862*/
-  .glyphicon-minus-sign:before {
-    content: "\2212";
-}
-  .glyphicon-plus-sign:before {
-    content: "\002B";
+  .dropdown .dropdown-item {
+    font-size: 1.2em;
+    font-family: 'Nunito';
   }
-  .glyphicon-list:before {
-    content: "\2261";
-  }
-  .glyphicon {
-      position: relative;
-      top: 1px;
-      display: inline-block;
-      font-style: normal;
-      font-weight: normal;
-      line-height: 1;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+  .btn.btn-primary:hover {
+    background-color: #3b4699;
+    color: #ffffff;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<h2>Settings</h2>
-
-<h3>Metagov Configuration</h3>
-<div class="config-container">
-  {% include "metagov_config.html" %}
+<div class="form-row title-row">
+  <div class="col-sm-8">
+    <h2>Integrations</h2>
+  </div>
+  <div class="col-sm-4">
+    {% if metagov_enabled %}
+    <div class="dropdown show">
+      <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Add Integration
+      </a>
+    
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+        {% for name, data in disabled_integrations %}
+        <a class="dropdown-item" href="{% url 'add_integration' %}?integration={{name}}">
+          {%if data.readable_name %}{{data.readable_name}}{% else %}{{name}}{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
 </div>
+
+{% if not metagov_enabled %}
+  <div class="card">
+    <div class="card-body">
+      Integrations are not supported for this installation of PolicyKit.
+    </div>
+  </div>
+{% else %}
+
+  {% for name, data in enabled_integrations %}
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">{%if data.readable_name %}{{data.readable_name}}{% else %}{{name}}{% endif %}</h5>
+      {% if data.config and not data.hide_config %}
+      <p class="card-text">
+        <ul class="configList">
+          {% for k,v in data.config %}
+          <li class="configListItem">{{v}}</li>
+          {% endfor %}
+        </ul>
+      </p>
+      {% endif %}
+      
+      {% if data.webhook_url %}
+      <p class="card-text">
+          {% if data.webhook_instructions %}
+            <p><b>Webhook Instructions: </b>{{data.webhook_instructions}}</p>
+          {% endif %}
+          <code id="{{name}}-webhook">{{data.webhook_url}}</code>
+          <a class="copyToClipboard" onClick="copyToClipboard('{{name}}-webhook')" href="javascript:void(0);">Copy Webhook URL</a>
+      </p>
+      {% endif %}
+
+      <a href="{% url 'disable_integration' %}?id={{data.id}}&name={{name}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card">
+    <div class="card-body">
+      No integrations enabled.
+    </div>
+  </div>
+  {% endfor %}
+
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
-  <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
-  <script src={% static "policyengine/js/underscore-min.js" %}></script>
-  <script src={% static "policyengine/js/jsonform.js" %}></script>
-  {% include "metagov_config_script.html" %}
+<script>
+  function copyToClipboard(id) {
+    var copyText = document.getElementById(id)
+    // https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
+    var textArea = document.createElement("textarea");
+    textArea.value = copyText.textContent;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("Copy");
+    textArea.remove();
+  }
+</script>
+<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
 {% endblock %}

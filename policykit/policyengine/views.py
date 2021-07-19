@@ -3,18 +3,18 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http.response import HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.forms import modelform_factory
-from django.apps import apps
 from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
-from policyengine.utils import find_action_cls, get_action_codenames
+from policyengine.utils import find_action_cls, get_action_codenames, construct_authorize_install_url
+from policyengine.integration_data import integration_data
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
-from urllib.parse import quote
-import random
+
 import logging
 import json
 import html
@@ -29,24 +29,9 @@ def authorize_platform(request):
     platform = request.GET.get('platform')
     if not platform or platform != "slack":
         return HttpResponseBadRequest()
-
     from policyengine.models import Community
-    community = Community.objects.create()
-    logger.info(f"Initiating authorization flow to install '{platform}' to new community '{community}'.")
-
-    # Initiate authorization flow to install Metagov to platform.
-    # On successful completion, the Metagov Slack plugin will be enabled for the community.
-
-    # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
-    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
-    encoded_redirect_uri = quote(redirect_uri, safe='')
-
-    # store state in user's session so we can validate it later
-    state = "".join([str(random.randint(0, 9)) for i in range(8)])
-    request.session['community_install_state'] = state
-
-    # redirect to metagov to authorize the app
-    url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
+    new_community = Community.objects.create()
+    url = construct_authorize_install_url(request, integration=platform, community=new_community)
     return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
@@ -159,15 +144,112 @@ def settings_page(request):
         'user': get_user(request),
     }
 
-    # If user is permitted to edit Metagov config, add additional context
-    if user.has_perm("metagov.can_edit_metagov_config") and community.metagov_slug:
+    if community.metagov_slug:
         result = MetagovAPI.get_metagov_community(community.metagov_slug)
-        context['metagov_config'] = json.dumps(result)
-        context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
         context['metagov_server_url'] = settings.METAGOV_URL
         context['metagov_community_slug'] = community.metagov_slug
+        enabled_integrations = {}
+        for plugin in result["plugins"]:
+            integration = plugin["name"]
+            if integration not in integration_data.keys():
+                logger.warn(f"unsupported integration {integration} is enabled for community {community}")
+                continue
+        
+            # Only include configs if user has privileged metagov config role, since they may contain API Keys
+            config_tuples = []
+            if user.has_perm("metagov.can_edit_metagov_config"):
+                config = plugin["config"]
+                for (k,v) in config.items():
+                    readable_key = k.replace("_", " ").replace("-", " ").capitalize()
+                    config_tuples.append((readable_key, v))
+            data = {
+                **plugin,
+                **integration_data[integration],
+                "config": config_tuples
+            }
+            enabled_integrations[integration] = data
+
+        disabled_integrations = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
+
+        # FIXME(#384) support multi-platform communities. Here we're hiding slack from the "Add Integrations" dropdown,
+        # because we don't have support for multiple CommunityPlatforms connected to one Community.
+        disabled_integrations_mod = [(k, v) for (k,v) in disabled_integrations if k not in ["slack"]]
+
+        context["enabled_integrations"] = enabled_integrations.items()
+        context["disabled_integrations"] = disabled_integrations_mod
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
+
+@login_required(login_url="/login")
+@csrf_exempt
+def add_integration(request):
+    """
+    This view renders a form for enabling an integration, OR initiates an oauth install flow.
+    """
+    integration = request.GET.get("integration")
+    user = get_user(request)
+    community = user.community
+    metadata = MetagovAPI.get_plugin_metadata(integration)
+
+    if metadata["auth_type"] == "oauth":
+        url = construct_authorize_install_url(request, integration=integration, community=community)
+        return HttpResponseRedirect(url)
+
+    context = {
+        "integration": integration,
+        "metadata": metadata,
+        "metadata_string": json.dumps(metadata),
+        "additional_data": integration_data[integration]
+    }
+    return render(request, 'policyadmin/dashboard/integration_settings.html', context)
+
+
+@login_required(login_url="/login")
+@csrf_exempt
+def enable_integration(request):
+    """
+    API Endpoint to enable a Metagov plugin (called on config form submission from JS)
+    """
+    name = request.GET.get("name") # name of the plugin
+    user = get_user(request)
+    community = user.community
+
+    if not user.has_perm("metagov.can_edit_metagov_config"):
+        return HttpResponseForbidden()
+
+    assert name is not None
+    config = json.loads(request.body)
+    logger.warn(f"Making request to enable {name} with config {config}")
+    res = MetagovAPI.enable_plugin(community.metagov_slug, name, config)
+    logger.debug(res)
+    return JsonResponse(res, safe=False)
+
+@login_required(login_url="/login")
+@csrf_exempt
+def disable_integration(request):
+    """
+    API Endpoint to disable a Metagov plugin (navigated to from Settings page)
+    """
+    # name of the plugin
+    name = request.GET.get("name")
+    # id of the plugin (for disabling only)
+    id = request.GET.get("id")
+    assert id is not None and name is not None
+
+    user = get_user(request)
+    community = user.community
+
+    if not user.has_perm("metagov.can_edit_metagov_config"):
+        logger.error(f"User {user} does not have permission to disable plugin.")
+        return redirect("/main/settings?error=not_permitted")
+
+    # hack: disallow disabling the plugin if the user is logged in with it
+    if community.platform == name:
+        return redirect("/main/settings?error=not_permitted")
+
+    logger.debug(f"Deleting plugin {name} {id}")
+    MetagovAPI.delete_plugin(name=name, id=id)
+    return redirect("/main/settings")
 
 @login_required(login_url='/login')
 def editor(request):

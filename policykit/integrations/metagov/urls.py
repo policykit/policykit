@@ -5,6 +5,5 @@ from integrations.metagov import views
 
 urlpatterns = [
     path("internal/outcome/<int:id>", views.internal_receive_outcome),
-    path("internal/action", views.internal_receive_action),
-    path("save_config", views.save_config),
+    path("internal/action", views.internal_receive_action)
 ]
