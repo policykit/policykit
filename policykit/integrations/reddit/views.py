@@ -120,7 +120,7 @@ def init_community_reddit(request):
         return response
 
     context = {
-        "starterkits": [kit.name for kit in RedditStarterKit.objects.all()],
+        "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='reddit')],
         "community_name": community.community_name,
         "creator_token": access_token,
         "platform": "reddit"

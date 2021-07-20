@@ -433,7 +433,7 @@ def oauth(request):
             return redirect('/login?success=true')
 
         context = {
-            "starterkits": [kit.name for kit in DiscordStarterKit.objects.all()],
+            "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='discord')],
             "community_name": community.community_name,
             "platform": "discord"
         }

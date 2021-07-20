@@ -20,7 +20,7 @@
       "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",
-      "check": "if action.initiator.groups.filter(name = "Administrator").exists():\n    return PASSED\nelse:\n    return FAILED",
+      "check": "if action.initiator.groups.filter(name = 'Administrator').exists():\n    return PASSED\nelse:\n    return FAILED",
       "notify": "pass",
       "success": "action.execute()",
       "fail": "pass"

@@ -3,12 +3,9 @@ import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
-from integrations.slack.models import (
-    SlackCommunity,
-    SlackUser,
-)
+from integrations.slack.models import SlackCommunity, SlackUser
 from integrations.slack.utils import get_slack_user_fields
-from policyengine.models import Community, CommunityRole
+from policyengine.models import Community, CommunityRole, StarterKit
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +105,7 @@ def slack_install(request):
                     u.save()
 
         context = {
-            "starterkits": [kit.name for kit in SlackStarterKit.objects.all()],
+            "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='slack')],
             "community_name": slack_community.community_name,
             "creator_token": user_token,
             "platform": "slack",

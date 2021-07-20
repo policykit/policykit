@@ -116,7 +116,7 @@
         "Can execute policykit add community doc",
         "Can execute policykit change community doc",
         "Can execute policykit delete community doc",
-        "Can execute policykit recover community doc",
+        "Can execute policykit recover community doc"
       ]
     }
   ]

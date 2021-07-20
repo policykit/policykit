@@ -88,12 +88,12 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
-    def init(starter_kit, creator_token=None):
+    def init(self, starter_kit, creator_token=None):
         """
         Initializes the community with the inputted starter kit.
         Note: Only meant for internal use.
         """
-        for policy in starter_kit.genericpolicy_set.all():
+        for policy in GenericPolicy.objects.filter(starterkit__id=starter_kit.id):
             p = None
             if policy.is_constitution:
                 p = ConstitutionPolicy()
@@ -111,7 +111,7 @@ class CommunityPlatform(PolymorphicModel):
             p.proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
             p.save()
 
-        for role in starter_kit.genericrole_set.all():
+        for role in GenericRole.objects.filter(starterkit__id=starter_kit.id):
             c = None
             if role.is_base_role:
                 c = self.base_role
@@ -138,15 +138,15 @@ class CommunityPlatform(PolymorphicModel):
                     c.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
 
             if role.user_group == "admins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
+                group = CommunityUser.objects.filter(community = self, is_community_admin = True)
                 for user in group:
                     c.user_set.add(user)
             elif role.user_group == "nonadmins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
+                group = CommunityUser.objects.filter(community = self, is_community_admin = False)
                 for user in group:
                     c.user_set.add(user)
             elif role.user_group == "all":
-                group = CommunityUser.objects.filter(community = community)
+                group = CommunityUser.objects.filter(community = self)
                 for user in group:
                     c.user_set.add(user)
             elif role.user_group == "creator":

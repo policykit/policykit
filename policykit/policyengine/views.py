@@ -548,7 +548,10 @@ def initialize_starterkit(request):
     starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
 
     community = CommunityPlatform.objects.get(community_name=community_name)
-    community.init(starter_kit, creator_token)
+    if creator_token:
+        community.init(starter_kit, creator_token=creator_token)
+    else:
+        community.init(starter_kit)
 
     return redirect('/login?success=true')
 

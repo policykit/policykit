@@ -129,7 +129,7 @@ def auth(request):
                 )
 
             context = {
-                "starterkits": [kit.name for kit in DiscourseStarterKit.objects.all()],
+                "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='discourse')],
                 "community_name": community.community_name,
                 "platform": "discourse"
             }
