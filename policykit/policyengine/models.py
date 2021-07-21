@@ -1,5 +1,5 @@
 from django.db import models, transaction
-from actstream import action
+from actstream import action as actstream_action
 import requests
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -513,7 +513,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         """
         self.proposal.status = Proposal.PASSED
         self.proposal.save()
-        action.send(self, verb='was passed', community_id=self.community.id)
+        actstream_action.send(self, verb='was passed', community_id=self.community.id, action_codename=self.action_codename)
 
     def fail_action(self):
         """
@@ -521,7 +521,7 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
         """
         self.proposal.status = Proposal.FAILED
         self.proposal.save()
-        # NOTE: Do we want to send an action to the log here? Seems important.
+        actstream_action.send(self, verb='was failed', community_id=self.community.id, action_codename=self.action_codename)
 
     def shouldCreate(self):
         """
@@ -1043,9 +1043,17 @@ class PlatformAction(BaseAction, PolymorphicModel):
     action_codename = ''
     """The codename of the action."""
 
+    readable_name = ''
+    """Readable name of the action type."""
+
     class Meta:
         verbose_name = 'platformaction'
         verbose_name_plural = 'platformactions'
+
+    def __str__(self):
+        if self.readable_name and self.community.platform:
+            return f"{self.community.platform} {self.readable_name}"
+        return self.action_codename or super(PlatformAction, self).__str__()
 
     def revert(self, values, call, method=None):
         """
@@ -1067,7 +1075,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
         """
         self.proposal.status = Proposal.PASSED
         self.proposal.save()
-        action.send(self, verb='was passed', community_id=self.community.id)
+        actstream_action.send(self, verb='was passed', community_id=self.community.id, action_codename=self.action_codename)
 
     def fail_action(self):
         """
@@ -1075,6 +1083,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
         """
         self.proposal.status = Proposal.FAILED
         self.proposal.save()
+        actstream_action.send(self, verb='was failed', community_id=self.community.id, action_codename=self.action_codename)
 
     def save(self, *args, **kwargs):
         """

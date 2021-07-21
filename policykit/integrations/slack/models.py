@@ -296,6 +296,7 @@ class SlackPostMessage(PlatformAction):
     timestamp = models.CharField(max_length=32, blank=True)
 
     action_codename = "slackpostmessage"
+    readable_name = "post message"
     app_name = "slackintegration"
 
     class Meta:
@@ -322,6 +323,7 @@ class SlackRenameConversation(PlatformAction):
     previous_name = models.CharField(max_length=80)
 
     action_codename = "slackrenameconversation"
+    readable_name = "rename conversation"
     app_name = "slackintegration"
 
     class Meta:
@@ -348,6 +350,7 @@ class SlackJoinConversation(PlatformAction):
     users = models.CharField("users", max_length=15)
 
     action_codename = "slackjoinconversation"
+    readable_name = "join conversation"
     app_name = "slackintegration"
 
     class Meta:
@@ -374,6 +377,7 @@ class SlackPinMessage(PlatformAction):
     timestamp = models.CharField(max_length=32)
 
     action_codename = "slackpinmessage"
+    readable_name = "pin message"
     app_name = "slackintegration"
 
     class Meta:
@@ -393,6 +397,7 @@ class SlackScheduleMessage(PlatformAction):
     post_at = models.IntegerField("post at")
 
     action_codename = "slackschedulemessage"
+    readable_name = "schedule message"
     app_name = "slackintegration"
 
     class Meta:
@@ -408,6 +413,7 @@ class SlackKickConversation(PlatformAction):
     channel = models.CharField("channel", max_length=150)
 
     action_codename = "slackkickconversation"
+    readable_name = "remove user from conversation"
     app_name = "slackintegration"
 
     class Meta:

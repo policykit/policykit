@@ -122,9 +122,9 @@
         <div class="actionPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for codename in action_list %}
-                <tr class="actionItem" onclick="proposePlatformActionLink('{{ app_name }}', '{{ codename }}')">
-                  <td>Propose {{codename}}</td>
+              {% for action in action_list %}
+                <tr class="actionItem" onclick="proposePlatformActionLink('{{ app_name }}', '{{ action.action_codename }}')">
+                  <td>Propose {{action.readable_name|default:action.action_codename}}</td>
                 </tr>
               {% endfor %}
             </tbody>
