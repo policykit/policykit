@@ -240,6 +240,11 @@ def disable_integration(request):
     if community.platform == name:
         return redirect("/main/settings?error=not_permitted")
 
+    # Temporary: disallow disabling the plugins that have a corresponding PlatformCommunity.
+    # We would need to delete the SlackCommunity as well, which we should show a warning for!
+    if community.platform == "slack":
+        return redirect("/main/settings?error=not_permitted")
+
     logger.debug(f"Deleting plugin {name} {id}")
     MetagovAPI.delete_plugin(name=name, id=id)
     return redirect("/main/settings")
