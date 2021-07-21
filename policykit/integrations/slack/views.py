@@ -54,8 +54,8 @@ def slack_install(request):
     try:
         community = Community.objects.get(metagov_slug=metagov_community_slug)
     except Community.DoesNotExist:
-        logger.error(f"Community not found: {metagov_community_slug}")
-        return redirect("/login?error=community_not_found")
+        logger.debug(f"Community not found: {metagov_community_slug}, creating it")
+        community = Community.objects.create(metagov_slug=metagov_community_slug)
 
     # Get team info from Slack
     response = requests.post(

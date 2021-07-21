@@ -30,9 +30,7 @@ def authorize_platform(request):
     platform = request.GET.get('platform')
     if not platform or platform != "slack":
         return HttpResponseBadRequest()
-    from policyengine.models import Community
-    new_community = Community.objects.create()
-    url = construct_authorize_install_url(request, integration=platform, community=new_community)
+    url = construct_authorize_install_url(request, integration=platform)
     return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
@@ -168,10 +166,10 @@ def settings_page(request):
 
         # FIXME(#384) support multi-platform communities. Here we're hiding slack from the "Add Integrations" dropdown,
         # because we don't have support for multiple CommunityPlatforms connected to one Community.
-        disabled_integrations_mod = [(k, v) for (k,v) in disabled_integrations if k not in ["slack"]]
+        # disabled_integrations_mod = [(k, v) for (k,v) in disabled_integrations if k not in ["slack"]]
 
         context["enabled_integrations"] = enabled_integrations.items()
-        context["disabled_integrations"] = disabled_integrations_mod
+        context["disabled_integrations"] = disabled_integrations
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
 
