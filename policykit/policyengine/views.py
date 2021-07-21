@@ -164,10 +164,6 @@ def settings_page(request):
 
         disabled_integrations = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
 
-        # FIXME(#384) support multi-platform communities. Here we're hiding slack from the "Add Integrations" dropdown,
-        # because we don't have support for multiple CommunityPlatforms connected to one Community.
-        # disabled_integrations_mod = [(k, v) for (k,v) in disabled_integrations if k not in ["slack"]]
-
         context["enabled_integrations"] = enabled_integrations.items()
         context["disabled_integrations"] = disabled_integrations
 
