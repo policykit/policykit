@@ -50,6 +50,18 @@
 {% endblock %}
 
 {% block content %}
+{% if request.GET.error %}
+  <div class="error">
+    {% if request.GET.error == 'slack_wrong_community' %}
+      Failed to add Slack integration. PolicyKit is already installed to the selected workspace. Uninstall PolicyKit from your Slack workspace and try again.
+    {% elif request.GET.error == 'slack_installer_is_not_admin' %}
+      Failed to add Slack integration. Only Slack workspace admins are permitted to install PolicyKit.
+    {% else %}
+      Error: {{ request.GET.error }}
+    {% endif %}
+  </div>
+{% endif %}
+
 <div class="form-row title-row">
   <div class="col-sm-8">
     <h2>Integrations</h2>

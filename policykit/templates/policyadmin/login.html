@@ -25,7 +25,15 @@
 {% block content %}
 
 {% if request.GET.error %}
-  Error: {{ request.GET.error }}
+  <div class="error">
+    {% if request.GET.error == 'slack_wrong_community' %}
+      PolicyKit is already installed to your Slack workspace! Sign in with Slack to continue.
+    {% elif request.GET.error == 'slack_installer_is_not_admin' %}
+      Installation failed! Only Slack workspace admins are permitted to install PolicyKit.
+    {% else %}
+      Error: {{ request.GET.error }}
+    {% endif %}
+  </div>
 {% endif %}
 
 {% if request.GET.success %}
