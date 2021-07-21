@@ -86,6 +86,12 @@
   </div>
 {% endif %}
 
+{% if request.GET.success %}
+  <div class="alert alert-success" role="alert">
+    Integration added!
+  </div>
+{% endif %}
+
 {% if not metagov_enabled %}
   <div class="card">
     <div class="card-body">
