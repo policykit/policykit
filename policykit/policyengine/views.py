@@ -1,4 +1,5 @@
 from django.conf import settings
+from actstream import action as actstream_action
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
@@ -10,7 +11,7 @@ from django.forms import modelform_factory
 from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
-from policyengine.utils import find_action_cls, get_action_codenames, construct_authorize_install_url
+from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url
 from policyengine.integration_data import integration_data
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
@@ -36,7 +37,7 @@ def authorize_platform(request):
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import CommunityUser
+    from policyengine.models import CommunityUser, PlatformAction
 
     user = get_user(request)
     user.community = user.community
@@ -107,15 +108,8 @@ def v2(request):
                 'fail': cp.fail
             }
 
-    action_log_data = []
-    logger.info(f'Number of action objects: {Action.objects.all().count()}')
-    for action in Action.objects.filter(data__community_id=user.community.id):
-        action_data = {
-            'actor': action.actor,
-            'verb': action.verb,
-            'time_elapsed': action.timesince
-        }
-        action_log_data.append(action_data)
+    action_log = Action.objects.filter(data__community_id=user.community.id)[:20]
+    pending_actions = PlatformAction.objects.filter(community=user.community, proposal__status="proposed")
 
     return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
@@ -125,7 +119,8 @@ def v2(request):
         'docs': doc_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
-        'action_log': action_log_data
+        'action_log': action_log,
+        'pending_actions': pending_actions
     })
 
 def logout(request):
@@ -422,7 +417,7 @@ def documenteditor(request):
 def actions(request):
     user = get_user(request)
     app_names = [user.community.platform] # TODO: show actions for other connected platforms
-    actions = [(app_name, get_action_codenames(app_name)) for app_name in app_names]
+    actions = [(app_name, get_action_classes(app_name)) for app_name in app_names]
     return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
@@ -473,7 +468,7 @@ def evaluation_logger(policy, action, level="DEBUG"):
     """
     level_num = getattr(logging, level)
     def log(msg):
-        message = f"[{action}][{policy}] {msg}"
+        message = f"[{action} ({action.pk})][{policy} ({policy.pk})] {msg}"
         db_logger.log(level_num, message, {"community": policy.community})
         logger.log(level_num, message)
     return log
@@ -976,6 +971,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
     if check_result == Proposal.PROPOSED and is_first_evaluation:
+        actstream_action.send(action, verb='was proposed', community_id=action.community.id, action_codename=action.action_codename)
         # Run "notify" block of policy
         debug(f"Notifying")
         notify_policy(policy, action, **optional_args)
