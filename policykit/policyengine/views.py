@@ -30,9 +30,7 @@ def authorize_platform(request):
     platform = request.GET.get('platform')
     if not platform or platform != "slack":
         return HttpResponseBadRequest()
-    from policyengine.models import Community
-    new_community = Community.objects.create()
-    url = construct_authorize_install_url(request, integration=platform, community=new_community)
+    url = construct_authorize_install_url(request, integration=platform)
     return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
@@ -166,12 +164,8 @@ def settings_page(request):
 
         disabled_integrations = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
 
-        # FIXME(#384) support multi-platform communities. Here we're hiding slack from the "Add Integrations" dropdown,
-        # because we don't have support for multiple CommunityPlatforms connected to one Community.
-        disabled_integrations_mod = [(k, v) for (k,v) in disabled_integrations if k not in ["slack"]]
-
         context["enabled_integrations"] = enabled_integrations.items()
-        context["disabled_integrations"] = disabled_integrations_mod
+        context["disabled_integrations"] = disabled_integrations
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
 
@@ -240,6 +234,11 @@ def disable_integration(request):
 
     # hack: disallow disabling the plugin if the user is logged in with it
     if community.platform == name:
+        return redirect("/main/settings?error=not_permitted")
+
+    # Temporary: disallow disabling the plugins that have a corresponding PlatformCommunity.
+    # We would need to delete the SlackCommunity as well, which we should show a warning for!
+    if community.platform == "slack":
         return redirect("/main/settings?error=not_permitted")
 
     logger.debug(f"Deleting plugin {name} {id}")
@@ -615,8 +614,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser, Proposal, CommunityPlatform
-    from django.contrib.auth.models import Permission
+    from policyengine.models import StarterKit, CommunityPlatform
 
     starterkit_name = request.POST['starterkit']
     community_name = request.POST['community_name']
@@ -630,8 +628,11 @@ def initialize_starterkit(request):
 
     logger.info('starterkit initialized')
 
-    response = redirect('/login?success=true')
-    return response
+    redirect_route = request.GET.get("redirect")
+    if redirect_route:
+        return redirect(f"{redirect_route}?success=true")
+
+    return redirect('/login?success=true')
 
 @csrf_exempt
 def error_check(request):

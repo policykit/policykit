@@ -50,6 +50,7 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="form-row title-row">
   <div class="col-sm-8">
     <h2>Integrations</h2>
@@ -72,6 +73,24 @@
     {% endif %}
   </div>
 </div>
+
+{% if request.GET.error %}
+  <div class="alert alert-danger" role="alert">
+    {% if request.GET.error == 'slack_wrong_community' %}
+      Failed to add Slack integration. PolicyKit is already installed to the selected workspace, but for a different PolicyKit community. Contact a PolicyKit administrator for support.
+    {% elif request.GET.error == 'slack_installer_is_not_admin' %}
+      Failed to add Slack integration. Only Slack workspace admins are permitted to install PolicyKit.
+    {% else %}
+      Error: {{ request.GET.error }}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if request.GET.success %}
+  <div class="alert alert-success" role="alert">
+    Integration added!
+  </div>
+{% endif %}
 
 {% if not metagov_enabled %}
   <div class="card">
