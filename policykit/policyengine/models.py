@@ -1183,6 +1183,7 @@ class BasePolicy(models.Model):
     description = models.TextField(null=True, blank=True)
     """The description of the policy. May be empty."""
 
+    # make this an attribute that is calculated
     is_bundled = models.BooleanField(default=False)
     """True if the policy is part of a bundle. Default is False."""
 
@@ -1200,7 +1201,7 @@ class BasePolicy(models.Model):
     """The datastore containing any additional data for the policy. May or may not exist."""
 
     class Meta:
-        abstract = True
+        abstract = False
 
 class ConstitutionPolicy(BasePolicy):
     """ConstitutionPolicy"""
@@ -1212,20 +1213,21 @@ class ConstitutionPolicy(BasePolicy):
     class Meta:
         verbose_name = 'constitutionpolicy'
         verbose_name_plural = 'constitutionpolicies'
+        proxy = True
 
     def __str__(self):
         return 'ConstitutionPolicy: ' + self.name
 
-class ConstitutionPolicyBundle(BasePolicy):
-    bundled_policies = models.ManyToManyField(ConstitutionPolicy)
+class BasePolicyBundle(BasePolicy):
+    bundled_policies = models.ManyToManyField(BasePolicy, related_name="policies")
 
-    # NOTE: Should be defined in BasePolicy
+class ConstitutionPolicyBundle(BasePolicyBundle):
     policy_type = "ConstitutionPolicyBundle"
-    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
     class Meta:
         verbose_name = 'constitutionpolicybundle'
         verbose_name_plural = 'constitutionpolicybundles'
+        proxy = True
 
 class PlatformPolicy(BasePolicy):
     """PlatformPolicy"""
@@ -1237,20 +1239,18 @@ class PlatformPolicy(BasePolicy):
     class Meta:
         verbose_name = 'platformpolicy'
         verbose_name_plural = 'platformpolicies'
+        proxy = True
 
     def __str__(self):
         return 'PlatformPolicy: ' + self.name
 
-class PlatformPolicyBundle(BasePolicy):
-    bundled_policies = models.ManyToManyField(PlatformPolicy)
-
-    # NOTE: Should be defined in BasePolicy
+class PlatformPolicyBundle(BasePolicyBundle):
     policy_type = "PlatformPolicyBundle"
-    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
     class Meta:
         verbose_name = 'platformpolicybundle'
         verbose_name_plural = 'platformpolicybundles'
+        proxy = True
 
 class UserVote(models.Model):
     """UserVote"""
