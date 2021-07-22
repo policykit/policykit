@@ -843,7 +843,6 @@ class PolicykitAddPlatformPolicy(EditorModel):
         policy = PlatformPolicy()
         policy.name = self.name
         policy.description = self.description
-        policy.is_bundled = self.is_bundled
         policy.filter = self.filter
         policy.initialize = self.initialize
         policy.check = self.check
@@ -869,7 +868,6 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         policy.community = self.community
         policy.name = self.name
         policy.description = self.description
-        policy.is_bundled = self.is_bundled
         policy.filter = self.filter
         policy.initialize = self.initialize
         policy.check = self.check
@@ -1183,15 +1181,13 @@ class BasePolicy(models.Model):
     description = models.TextField(null=True, blank=True)
     """The description of the policy. May be empty."""
 
-    # make this an attribute that is calculated
-    is_bundled = models.BooleanField(default=False)
-    """True if the policy is part of a bundle. Default is False."""
-
     is_active = models.BooleanField(default=True)
     """True if the policy is active. Default is True."""
 
     modified_at = models.DateTimeField(auto_now=True)
     """Datetime object representing the last time the policy was modified."""
+
+    bundled_policies = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="member_of_bundle")
 
     data = models.OneToOneField(DataStore,
         models.CASCADE,
@@ -1202,6 +1198,11 @@ class BasePolicy(models.Model):
 
     class Meta:
         abstract = False
+
+    @property
+    def is_bundled(self):
+        """True if the policy is part of a bundle"""
+        return self.member_of_bundle.count() > 0
 
 class ConstitutionPolicy(BasePolicy):
     """ConstitutionPolicy"""
@@ -1218,10 +1219,7 @@ class ConstitutionPolicy(BasePolicy):
     def __str__(self):
         return 'ConstitutionPolicy: ' + self.name
 
-class BasePolicyBundle(BasePolicy):
-    bundled_policies = models.ManyToManyField(BasePolicy, related_name="policies")
-
-class ConstitutionPolicyBundle(BasePolicyBundle):
+class ConstitutionPolicyBundle(BasePolicy):
     policy_type = "ConstitutionPolicyBundle"
 
     class Meta:
@@ -1244,7 +1242,7 @@ class PlatformPolicy(BasePolicy):
     def __str__(self):
         return 'PlatformPolicy: ' + self.name
 
-class PlatformPolicyBundle(BasePolicyBundle):
+class PlatformPolicyBundle(BasePolicy):
     policy_type = "PlatformPolicyBundle"
 
     class Meta:
