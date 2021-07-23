@@ -11,12 +11,11 @@ from policyengine.models import (
     CommunityPlatform,
     CommunityRole,
     CommunityUser,
-    ConstitutionPolicy,
+    BasePolicy,
     LogAPICall,
     NumberVote,
     PlatformAction,
     PlatformActionBundle,
-    PlatformPolicy,
     Proposal,
     StarterKit,
 )
@@ -423,37 +422,21 @@ class SlackKickConversation(PlatformAction):
 class SlackStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
-            if policy.is_constitution:
-                p = ConstitutionPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
+            p = BasePolicy()
+            p.kind = BasePolicy.CONSTITUTION if policy.is_constitution else BasePolicy.PLATFORM
+            p.community = community
+            p.filter = policy.filter
+            p.initialize = policy.initialize
+            p.check = policy.check
+            p.notify = policy.notify
+            p.success = policy.success
+            p.fail = policy.fail
+            p.description = policy.description
+            p.name = policy.name
 
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
-
-            else:
-                p = PlatformPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
-
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
+            proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+            p.proposal = proposal
+            p.save()
 
         for role in self.genericrole_set.all():
             c = None

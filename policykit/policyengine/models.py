@@ -112,13 +112,13 @@ class CommunityPlatform(PolymorphicModel):
         """
         Returns a QuerySet of all platform policies in the community.
         """
-        return PlatformPolicy.objects.filter(community=self).order_by('-modified_at')
+        return BasePolicy.platform_policies.filter(community=self).order_by('-modified_at')
 
     def get_constitution_policies(self):
         """
         Returns a QuerySet of all constitution policies in the community.
         """
-        return ConstitutionPolicy.objects.filter(community=self).order_by('-modified_at')
+        return BasePolicy.constitution_policies.filter(community=self).order_by('-modified_at')
 
     def get_documents(self):
         """
@@ -841,7 +841,8 @@ class PolicykitAddPlatformPolicy(EditorModel):
         return "Add Platform Policy: " + self.name
 
     def execute(self):
-        policy = PlatformPolicy()
+        policy = BasePolicy()
+        policy.kind = BasePolicy.PLATFORM
         policy.name = self.name
         policy.description = self.description
         policy.filter = self.filter
@@ -865,7 +866,8 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         return "Add Constitution Policy: " + self.name
 
     def execute(self):
-        policy = ConstitutionPolicy()
+        policy = BasePolicy()
+        policy.kind = BasePolicy.CONSTITUTION
         policy.community = self.community
         policy.name = self.name
         policy.description = self.description
@@ -883,7 +885,7 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         )
 
 class PolicykitChangePlatformPolicy(EditorModel):
-    platform_policy = models.ForeignKey('PlatformPolicy', models.CASCADE)
+    platform_policy = models.ForeignKey('BasePolicy', models.CASCADE)
 
     action_codename = 'policykitchangeplatformpolicy'
 
@@ -907,7 +909,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
         )
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
-    constitution_policy = models.ForeignKey('ConstitutionPolicy', models.CASCADE)
+    constitution_policy = models.ForeignKey('BasePolicy', models.CASCADE)
 
     action_codename = 'policykitchangeconstitutionpolicy'
 
@@ -931,7 +933,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         )
 
 class PolicykitRemovePlatformPolicy(ConstitutionAction):
-    platform_policy = models.ForeignKey('PlatformPolicy',
+    platform_policy = models.ForeignKey('BasePolicy',
                                          models.SET_NULL,
                                          null=True)
 
@@ -952,7 +954,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
         )
 
 class PolicykitRecoverPlatformPolicy(ConstitutionAction):
-    platform_policy = models.ForeignKey('PlatformPolicy',
+    platform_policy = models.ForeignKey('BasePolicy',
                                          models.SET_NULL,
                                          null=True)
 
@@ -973,7 +975,7 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
         )
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('ConstitutionPolicy',
+    constitution_policy = models.ForeignKey('BasePolicy',
                                             models.SET_NULL,
                                             null=True)
 
@@ -994,7 +996,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         )
 
 class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('ConstitutionPolicy',
+    constitution_policy = models.ForeignKey('BasePolicy',
                                             models.SET_NULL,
                                             null=True)
 
@@ -1147,9 +1149,26 @@ class PlatformActionBundle(BaseAction):
 
         super(PlatformActionBundle, self).save(*args, **kwargs)
 
+class PlatformPolicyManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(kind=BasePolicy.PLATFORM)
+
+class ConstitutionPolicyManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(kind=BasePolicy.CONSTITUTION)
 
 class BasePolicy(models.Model):
     """BasePolicy"""
+
+    PLATFORM = 'platform'
+    CONSTITUTION = 'constitution'
+    POLICY_KIND = [
+        (PLATFORM, 'platform'),
+        (CONSTITUTION, 'constitution')
+    ]
+
+    kind = models.CharField(choices=POLICY_KIND, blank=True, max_length=30)
+    """What kind of policy (platform, constitution, or trigger)"""
 
     filter = models.TextField(blank=True, default='')
     """The filter code of the policy."""
@@ -1197,6 +1216,11 @@ class BasePolicy(models.Model):
     )
     """The datastore containing any additional data for the policy. May or may not exist."""
 
+    # Managers
+    objects = models.Manager()
+    platform_policies = PlatformPolicyManager()
+    constitution_policies = ConstitutionPolicyManager()
+
     class Meta:
         abstract = False
 
@@ -1205,25 +1229,25 @@ class BasePolicy(models.Model):
         """True if the policy is part of a bundle"""
         return self.member_of_bundle.count() > 0
 
-class ConstitutionPolicy(BasePolicy):
-    """ConstitutionPolicy"""
+# class ConstitutionPolicy(BasePolicy):
+#     """ConstitutionPolicy"""
 
-    # NOTE: Should be defined in BasePolicy
-    policy_type = "ConstitutionPolicy"
-    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
+#     # NOTE: Should be defined in BasePolicy
+#     policy_type = "ConstitutionPolicy"
+#     """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
-    class Meta:
-        verbose_name = 'constitutionpolicy'
-        verbose_name_plural = 'constitutionpolicies'
-        proxy = True
+#     class Meta:
+#         verbose_name = 'constitutionpolicy'
+#         verbose_name_plural = 'constitutionpolicies'
+#         proxy = True
 
-    def __str__(self):
-        return 'ConstitutionPolicy: ' + self.name
+#     def __str__(self):
+#         return 'ConstitutionPolicy: ' + self.name
 
-    def save(self, *args, **kwargs):
-        if self.pk and self.bundled_policies.count() > 0:
-            raise ValidationError("ConstitutionPolicy cannot act as a bundle")
-        super(ConstitutionPolicy, self).save(*args, **kwargs)
+#     def save(self, *args, **kwargs):
+#         if self.pk and self.bundled_policies.count() > 0:
+#             raise ValidationError("ConstitutionPolicy cannot act as a bundle")
+#         super(ConstitutionPolicy, self).save(*args, **kwargs)
 
 class ConstitutionPolicyBundle(BasePolicy):
     policy_type = "ConstitutionPolicyBundle"
@@ -1233,25 +1257,25 @@ class ConstitutionPolicyBundle(BasePolicy):
         verbose_name_plural = 'constitutionpolicybundles'
         proxy = True
 
-class PlatformPolicy(BasePolicy):
-    """PlatformPolicy"""
+# class PlatformPolicy(BasePolicy):
+#     """PlatformPolicy"""
 
-    # NOTE: Should be defined in BasePolicy
-    policy_type = "PlatformPolicy"
-    """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
+#     # NOTE: Should be defined in BasePolicy
+#     policy_type = "PlatformPolicy"
+#     """The type of policy (PlatformPolicy, ConstitutionPolicy, PlatformPolicyBundle, or ConstitutionPolicyBundle)."""
 
-    class Meta:
-        verbose_name = 'platformpolicy'
-        verbose_name_plural = 'platformpolicies'
-        proxy = True
+#     class Meta:
+#         verbose_name = 'platformpolicy'
+#         verbose_name_plural = 'platformpolicies'
+#         proxy = True
 
-    def __str__(self):
-        return 'PlatformPolicy: ' + self.name
+#     def __str__(self):
+#         return 'PlatformPolicy: ' + self.name
 
-    def save(self, *args, **kwargs):
-        if self.pk and self.bundled_policies.count() > 0:
-            raise ValidationError("PlatformPolicy cannot act as a bundle")
-        super(PlatformPolicy, self).save(*args, **kwargs)
+#     def save(self, *args, **kwargs):
+#         if self.pk and self.bundled_policies.count() > 0:
+#             raise ValidationError("PlatformPolicy cannot act as a bundle")
+#         super(PlatformPolicy, self).save(*args, **kwargs)
 
 class PlatformPolicyBundle(BasePolicy):
     policy_type = "PlatformPolicyBundle"

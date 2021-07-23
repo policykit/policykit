@@ -12,7 +12,7 @@ from django.test import Client, LiveServerTestCase, TestCase
 from django_db_logger.models import EvaluationLog
 from integrations.metagov.models import MetagovPlatformAction, MetagovProcess
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import Community, CommunityRole, PlatformPolicy
+from policyengine.models import Community, CommunityRole, BasePolicy
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -76,8 +76,9 @@ if result.outcome:
 return FAILED
 """,
         }
-        policy = PlatformPolicy(
+        policy = BasePolicy(
             **policy_code,
+            kind=BasePolicy.PLATFORM,
             community=self.slack_community,
             description="test",
             name="test policy",
@@ -102,7 +103,7 @@ return FAILED
     def test_perform_action(self):
         """Integration-test metagov.perform_action function with randomness plugin"""
         # 1) Create Policy that performs a metagov action
-        policy = PlatformPolicy()
+        policy = BasePolicy(kind=BasePolicy.PLATFORM)
         policy.community = self.slack_community
         policy.filter = "return True"
         policy.initialize = "debug('help!')"
@@ -154,7 +155,7 @@ class MetagovPlatformActionTest(TestCase):
         """Test policy triggered by generic metagov event"""
         # 1) Create Policy that is triggered by a metagov action
 
-        policy = PlatformPolicy()
+        policy = BasePolicy(kind=BasePolicy.PLATFORM)
         policy.community = self.slack_community
         policy.filter = """return action.action_codename == 'metagovaction' \
 and action.event_type == 'discourse.post_created'"""
@@ -197,7 +198,7 @@ and action.event_type == 'discourse.post_created'"""
     def test_metagov_slack_trigger(self):
         """Test receiving a Slack event from Metagov that creates a SlackPinMessage action"""
         # 1) Create Policy that is triggered by a metagov action
-        policy = PlatformPolicy()
+        policy = BasePolicy(kind=BasePolicy.PLATFORM)
         policy.community = self.slack_community
         policy.filter = """return action.action_codename == 'slackpinmessage'"""
         policy.initialize = "pass"

@@ -2,12 +2,8 @@ import json
 import logging
 
 import requests
-from django.conf import settings
-from django.contrib.auth.models import ContentType, Permission, User
 from django.db import models
-from policyengine.models import (CommunityPlatform, CommunityRole, CommunityUser,
-                                 ConstitutionPolicy, PlatformAction,
-                                 PlatformPolicy, Proposal, StarterKit)
+from policyengine.models import CommunityUser, PlatformAction, BasePolicy
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +23,7 @@ class MetagovProcess(models.Model):
 
     location = models.CharField(max_length=100, blank=True)
     json_data = models.CharField(max_length=2000, blank=True, null=True)
-    policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
+    policy = models.ForeignKey(BasePolicy, on_delete=models.CASCADE)
     action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
 
     class Meta:
