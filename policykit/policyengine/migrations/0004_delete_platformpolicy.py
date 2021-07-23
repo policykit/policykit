@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('metagov', '0004_alter_metagovprocess_policy'),
-        ('policyengine', '0003_auto_20210723_1448'),
+        ('policyengine', '0003_base_policy_migration'),
     ]
 
     operations = [
