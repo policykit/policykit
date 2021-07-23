@@ -2,8 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
-from celery.schedules import crontab
-from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
+from policyengine.models import Proposal, LogAPICall, PlatformAction, BooleanVote
 from integrations.reddit.models import RedditCommunity, RedditUser, RedditMakePost
 import datetime
 import logging

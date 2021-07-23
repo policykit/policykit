@@ -1,11 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
-from celery.schedules import crontab
 from django.conf import settings
-from policyengine.models import Proposal, LogAPICall, PlatformPolicy, PlatformAction, BooleanVote, NumberVote
-from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic, DiscourseCreatePost
-from urllib import parse
+from policyengine.models import Proposal, PlatformAction, BooleanVote
+from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic
 import urllib.request
 import urllib.error
 import json

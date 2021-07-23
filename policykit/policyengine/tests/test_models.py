@@ -539,7 +539,7 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
 
     def test_all_platform_policy_actions(self):
         self.action_add_policy.save()
-        policies = PlatformPolicy.objects.filter(name='Test Name')
+        policies = BasePolicy.platform_policies.filter(name='Test Name')
         self.assertEqual(policies.count(), 1)
         p = policies[0]
         self.assertEqual(p.name, 'Test Name')
@@ -554,9 +554,9 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
 
         self.action_change_policy.platform_policy = p
         self.action_change_policy.save()
-        policies = PlatformPolicy.objects.filter(name='Test Name')
+        policies = BasePolicy.platform_policies.filter(name='Test Name')
         self.assertEqual(policies.count(), 0)
-        policies = PlatformPolicy.objects.filter(name='Another Name')
+        policies = BasePolicy.platform_policies.filter(name='Another Name')
         self.assertEqual(policies.count(), 1)
         p = policies[0]
         self.assertEqual(p.name, 'Another Name')
@@ -571,16 +571,16 @@ class PlatformPolicyActionsTestCase(ModelTestCase):
 
         self.action_remove_policy.platform_policy = p
         self.action_remove_policy.save()
-        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=True)
+        policies = BasePolicy.platform_policies.filter(name='Another Name', is_active=True)
         self.assertEqual(policies.count(), 0)
-        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=False)
+        policies = BasePolicy.platform_policies.filter(name='Another Name', is_active=False)
         self.assertEqual(policies.count(), 1)
 
         self.action_recover_policy.platform_policy = p
         self.action_recover_policy.save()
-        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=True)
+        policies = BasePolicy.platform_policies.filter(name='Another Name', is_active=True)
         self.assertEqual(policies.count(), 1)
-        policies = PlatformPolicy.objects.filter(name='Another Name', is_active=False)
+        policies = BasePolicy.platform_policies.filter(name='Another Name', is_active=False)
         self.assertEqual(policies.count(), 0)
 
 class ConstitutionPolicyTestCase(ModelTestCase):

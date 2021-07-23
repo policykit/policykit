@@ -1173,8 +1173,8 @@ class BasePolicy(models.Model):
         (CONSTITUTION, 'constitution')
     ]
 
-    kind = models.CharField(choices=POLICY_KIND, blank=True, max_length=30)
-    """What kind of policy (platform, constitution, or trigger)"""
+    kind = models.CharField(choices=POLICY_KIND, max_length=30)
+    """Kind of policy (platform or constitution)."""
 
     filter = models.TextField(blank=True, default='')
     """The filter code of the policy."""
