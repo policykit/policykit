@@ -4,7 +4,7 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.http.response import HttpResponseForbidden
+from django.http.response import HttpResponseForbidden, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.forms import modelform_factory
@@ -652,7 +652,6 @@ def policy_action_save(request):
     user = get_user(request)
 
     action = None
-    # FIXME remove special casing jhust do a single type ChangePolicy
     if data['type'] == 'Constitution' and data['operation'] == 'Add':
         action = PolicykitAddConstitutionPolicy()
         action.is_bundled = data['is_bundled']
@@ -661,10 +660,18 @@ def policy_action_save(request):
         action.is_bundled = data['is_bundled']
     elif data['type'] == 'Constitution' and data['operation'] == 'Change':
         action = PolicykitChangeConstitutionPolicy()
-        action.constitution_policy = Policy.objects.get(id=data['policy'])
+        try:
+            policy = Policy.objects.get(pk=data['policy'])
+        except Policy.DoesNotExist:
+            return HttpResponseNotFound()
+        action.constitution_policy = policy
     elif data['type'] == 'Platform' and data['operation'] == 'Change':
         action = PolicykitChangePlatformPolicy()
-        action.platform_policy = Policy.objects.get(id=data['policy'])
+        try:
+            policy = Policy.objects.get(pk=data['policy'])
+        except Policy.DoesNotExist:
+            return HttpResponseNotFound()
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 
@@ -678,7 +685,11 @@ def policy_action_save(request):
     action.notify = data['notify']
     action.success = data['success']
     action.fail = data['fail']
-    action.save()
+    try:
+        action.save()
+    except Exception as e:
+        logger.error(f"Error saving policy: {e}")
+        return HttpResponseBadRequest()
 
     return HttpResponse()
 
@@ -690,7 +701,10 @@ def policy_action_remove(request):
     user = get_user(request)
 
     action = None
-    policy = Policy.objects.get(data['policy'])
+    try:
+        policy = Policy.objects.get(pk=data['policy'])
+    except Policy.DoesNotExist:
+        return HttpResponseNotFound()
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
         action.constitution_policy = policy
@@ -714,7 +728,10 @@ def policy_action_recover(request):
     user = get_user(request)
 
     action = None
-    policy = Policy.objects.get(data['policy'])
+    try:
+        policy = Policy.objects.get(pk=data['policy'])
+    except Policy.DoesNotExist:
+        return HttpResponseNotFound()
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
         action.constitution_policy = policy

@@ -189,6 +189,12 @@
       <button type="button" class="btn" id="documentation">View documentation</button>
     </div>
   </div>
+  <div class="form-row">
+    <div class="col-sm-1"></div>
+    <div class="control-label col-sm-11">
+      <div id="alerts"></div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}
@@ -242,7 +248,15 @@
         'fail': fail
       })
     }).then(response => {
-      window.location.href = "{{server_url}}/main/";
+      if (!response.ok) {
+          response.text().then(text => {
+            console.error(text)
+            msg = "Something went wrong."
+            $('#alerts').html(msg).css("color", "red");
+          })
+        } else {
+          window.location.href = "{{server_url}}/main/";
+        }
     });
   }
 

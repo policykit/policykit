@@ -3,14 +3,44 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
+import json
+import os
+import datetime
+
+
+dirname = f"downloaded_policies_{datetime.datetime.now().isoformat()}"
+os.mkdir(dirname)
+
+def download(policy):
+    filename = str(policy.community) + "_" + policy.name
+    filename = filename.replace(" ", "_")
+    print(f"Downloading policy backup before migrating: {filename}")
+    data = {
+        "name": policy.name,
+        "description": policy.description,
+        "filter": policy.filter,
+        "initialize": policy.initialize,
+        "check": policy.check,
+        "notify": policy.notify,
+        "success": policy.success,
+        "fail": policy.fail,
+    }
+    jsonString = json.dumps(data, indent=4)
+    jsonFile = open(f"{dirname}/{filename}.json", "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
+
 def migrate_policies(apps, schema_editor):
     """
     Migrate policies from old PlatformPolicy and ConstitionPolicy tables into the new Policy table.
-    If something goes wrong, revert to the previous commit and download all policies as backup before proceeding (can use `exec(open('scripts/download_all_policies.py').read())`
     """
     from policyengine.models import Policy, CommunityPlatform
     PlatformPolicy = apps.get_model('policyengine', 'PlatformPolicy')
     for policy in PlatformPolicy.objects.all():
+        download(policy)
+        if policy.name is None:
+            print("skipping unnamed policy")
+            continue
         print(f"\nMigrating pp {policy.name}")
         community = CommunityPlatform.objects.get(pk=policy.community.pk)
         Policy.objects.create(
@@ -29,6 +59,10 @@ def migrate_policies(apps, schema_editor):
         )
     ConstitutionPolicy = apps.get_model('policyengine', 'ConstitutionPolicy')
     for policy in ConstitutionPolicy.objects.all():
+        download(policy)
+        if policy.name is None:
+            print("skipping unnamed policy")
+            continue
         print(f"\nMigrating cp {policy.name}")
         community = CommunityPlatform.objects.get(pk=policy.community.pk)
         Policy.objects.create(

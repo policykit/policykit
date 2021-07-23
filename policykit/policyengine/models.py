@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
 from policyengine.views import govern_action
@@ -476,7 +477,8 @@ class BaseAction(models.Model):
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
-        null=True
+        null=True,
+        blank=True
     )
     """The datastore containing any additional data for the action. May or may not exist."""
 
@@ -806,7 +808,7 @@ class PolicykitRemoveUserRole(ConstitutionAction):
         )
 
 class EditorModel(ConstitutionAction):
-    name = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
 
     filter = models.TextField(blank=True,
@@ -833,6 +835,11 @@ class EditorModel(ConstitutionAction):
         default=DEFAULT_FAIL,
         verbose_name="Fail"
     )
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            raise ValidationError("Name is required.")
+        super(EditorModel, self).save(*args, **kwargs)
 
 class PolicykitAddPlatformPolicy(EditorModel):
     action_codename = 'policykitaddplatformpolicy'
@@ -1200,8 +1207,7 @@ class Policy(models.Model):
     )
     """The community which the policy belongs to."""
 
-    # FIXME: Should not allow this to be null.
-    name = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=100)
     """The name of the policy."""
 
     description = models.TextField(null=True, blank=True)
@@ -1220,7 +1226,8 @@ class Policy(models.Model):
     data = models.OneToOneField(DataStore,
         models.CASCADE,
         verbose_name='data',
-        null=True
+        null=True,
+        blank=True,
     )
     """The datastore containing any additional data for the policy. May or may not exist."""
 
@@ -1231,6 +1238,15 @@ class Policy(models.Model):
 
     class Meta:
         abstract = False
+
+    def __str__(self):
+        prefix = "PlatformPolicy: " if self.kind == self.PLATFORM else "ConstitutionPolicy: "
+        return prefix + self.name
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            raise ValidationError("Name is required.")
+        super(Policy, self).save(*args, **kwargs)
 
     @property
     def is_bundled(self):
