@@ -8,7 +8,7 @@ class policyEngineConfig(AppConfig):
         from actstream import registry
         registry.register(self.get_model('PlatformAction'))
         registry.register(self.get_model('PlatformActionBundle'))
-        registry.register(self.get_model('BasePolicy'))
+        registry.register(self.get_model('Policy'))
         registry.register(self.get_model('ConstitutionAction'))
         registry.register(self.get_model('ConstitutionActionBundle'))
         registry.register(self.get_model('CommunityUser'))

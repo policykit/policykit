@@ -11,7 +11,7 @@ from policyengine.models import (
     CommunityPlatform,
     CommunityRole,
     CommunityUser,
-    BasePolicy,
+    Policy,
     LogAPICall,
     NumberVote,
     PlatformAction,
@@ -422,8 +422,8 @@ class SlackKickConversation(PlatformAction):
 class SlackStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
-            p = BasePolicy()
-            p.kind = BasePolicy.CONSTITUTION if policy.is_constitution else BasePolicy.PLATFORM
+            p = Policy()
+            p.kind = Policy.CONSTITUTION if policy.is_constitution else Policy.PLATFORM
             p.community = community
             p.filter = policy.filter
             p.initialize = policy.initialize

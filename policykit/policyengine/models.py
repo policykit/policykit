@@ -112,13 +112,13 @@ class CommunityPlatform(PolymorphicModel):
         """
         Returns a QuerySet of all platform policies in the community.
         """
-        return BasePolicy.platform_policies.filter(community=self).order_by('-modified_at')
+        return Policy.platform_policies.filter(community=self).order_by('-modified_at')
 
     def get_constitution_policies(self):
         """
         Returns a QuerySet of all constitution policies in the community.
         """
-        return BasePolicy.constitution_policies.filter(community=self).order_by('-modified_at')
+        return Policy.constitution_policies.filter(community=self).order_by('-modified_at')
 
     def get_documents(self):
         """
@@ -841,8 +841,8 @@ class PolicykitAddPlatformPolicy(EditorModel):
         return "Add Platform Policy: " + self.name
 
     def execute(self):
-        policy = BasePolicy()
-        policy.kind = BasePolicy.PLATFORM
+        policy = Policy()
+        policy.kind = Policy.PLATFORM
         policy.name = self.name
         policy.description = self.description
         policy.filter = self.filter
@@ -866,8 +866,8 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         return "Add Constitution Policy: " + self.name
 
     def execute(self):
-        policy = BasePolicy()
-        policy.kind = BasePolicy.CONSTITUTION
+        policy = Policy()
+        policy.kind = Policy.CONSTITUTION
         policy.community = self.community
         policy.name = self.name
         policy.description = self.description
@@ -885,7 +885,7 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         )
 
 class PolicykitChangePlatformPolicy(EditorModel):
-    platform_policy = models.ForeignKey('BasePolicy', models.CASCADE)
+    platform_policy = models.ForeignKey('Policy', models.CASCADE)
 
     action_codename = 'policykitchangeplatformpolicy'
 
@@ -893,7 +893,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
         return "Change Platform Policy: " + self.name
 
     def execute(self):
-        assert self.platform_policy.kind == BasePolicy.PLATFORM
+        assert self.platform_policy.kind == Policy.PLATFORM
         self.platform_policy.name = self.name
         self.platform_policy.description = self.description
         self.platform_policy.filter = self.filter
@@ -910,7 +910,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
         )
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
-    constitution_policy = models.ForeignKey('BasePolicy', models.CASCADE)
+    constitution_policy = models.ForeignKey('Policy', models.CASCADE)
 
     action_codename = 'policykitchangeconstitutionpolicy'
 
@@ -918,7 +918,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         return "Change Constitution Policy: " + self.name
 
     def execute(self):
-        assert self.constitution_policy.kind == BasePolicy.CONSTITUTION
+        assert self.constitution_policy.kind == Policy.CONSTITUTION
         self.constitution_policy.name = self.name
         self.constitution_policy.description = self.description
         self.constitution_policy.filter = self.filter
@@ -935,7 +935,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         )
 
 class PolicykitRemovePlatformPolicy(ConstitutionAction):
-    platform_policy = models.ForeignKey('BasePolicy',
+    platform_policy = models.ForeignKey('Policy',
                                          models.SET_NULL,
                                          null=True)
 
@@ -947,7 +947,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
         return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
-        assert self.platform_policy.kind == BasePolicy.PLATFORM
+        assert self.platform_policy.kind == Policy.PLATFORM
         self.platform_policy.is_active = False
         self.platform_policy.save()
 
@@ -957,7 +957,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
         )
 
 class PolicykitRecoverPlatformPolicy(ConstitutionAction):
-    platform_policy = models.ForeignKey('BasePolicy',
+    platform_policy = models.ForeignKey('Policy',
                                          models.SET_NULL,
                                          null=True)
 
@@ -969,7 +969,7 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
         return "Recover Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
-        assert self.platform_policy.kind == BasePolicy.PLATFORM
+        assert self.platform_policy.kind == Policy.PLATFORM
         self.platform_policy.is_active = True
         self.platform_policy.save()
 
@@ -979,7 +979,7 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
         )
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('BasePolicy',
+    constitution_policy = models.ForeignKey('Policy',
                                             models.SET_NULL,
                                             null=True)
 
@@ -991,7 +991,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
-        assert self.constitution_policy.kind == BasePolicy.CONSTITUTION
+        assert self.constitution_policy.kind == Policy.CONSTITUTION
         self.constitution_policy.is_active = False
         self.constitution_policy.save()
 
@@ -1001,7 +1001,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         )
 
 class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('BasePolicy',
+    constitution_policy = models.ForeignKey('Policy',
                                             models.SET_NULL,
                                             null=True)
 
@@ -1013,7 +1013,7 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
         return "Recover Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
-        assert self.constitution_policy.kind == BasePolicy.CONSTITUTION
+        assert self.constitution_policy.kind == Policy.CONSTITUTION
         self.constitution_policy.is_active = True
         self.constitution_policy.save()
 
@@ -1157,14 +1157,14 @@ class PlatformActionBundle(BaseAction):
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(kind=BasePolicy.PLATFORM)
+        return super().get_queryset().filter(kind=Policy.PLATFORM)
 
 class ConstitutionPolicyManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(kind=BasePolicy.CONSTITUTION)
+        return super().get_queryset().filter(kind=Policy.CONSTITUTION)
 
-class BasePolicy(models.Model):
-    """BasePolicy"""
+class Policy(models.Model):
+    """Policy"""
 
     PLATFORM = 'platform'
     CONSTITUTION = 'constitution'

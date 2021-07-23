@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, BasePolicy, Proposal, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
@@ -243,8 +243,8 @@ class DiscordDeleteChannel(PlatformAction):
 class DiscordStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
-            p = BasePolicy()
-            p.kind = BasePolicy.CONSTITUTION if policy.is_constitution else BasePolicy.PLATFORM
+            p = Policy()
+            p.kind = Policy.CONSTITUTION if policy.is_constitution else Policy.PLATFORM
             p.community = community
             p.filter = policy.filter
             p.initialize = policy.initialize

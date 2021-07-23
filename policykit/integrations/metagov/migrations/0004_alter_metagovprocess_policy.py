@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='metagovprocess',
             name='policy',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.basepolicy'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.policy'),
         ),
     ]

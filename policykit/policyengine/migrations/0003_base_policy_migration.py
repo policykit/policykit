@@ -5,16 +5,16 @@ import django.db.models.deletion
 
 def migrate_policies(apps, schema_editor):
     """
-    Migrate policies from old PlatformPolicy and ConstitionPolicy tables into the new BasePolicy table.
+    Migrate policies from old PlatformPolicy and ConstitionPolicy tables into the new Policy table.
     If something goes wrong, revert to the previous commit and download all policies as backup before proceeding (can use `exec(open('scripts/download_all_policies.py').read())`
     """
-    from policyengine.models import BasePolicy, CommunityPlatform
+    from policyengine.models import Policy, CommunityPlatform
     PlatformPolicy = apps.get_model('policyengine', 'PlatformPolicy')
     for policy in PlatformPolicy.objects.all():
         print(f"\nMigrating pp {policy.name}")
         community = CommunityPlatform.objects.get(pk=policy.community.pk)
-        BasePolicy.objects.create(
-            kind=BasePolicy.PLATFORM,
+        Policy.objects.create(
+            kind=Policy.PLATFORM,
             filter=policy.filter,
             initialize=policy.initialize,
             check=policy.check,
@@ -31,8 +31,8 @@ def migrate_policies(apps, schema_editor):
     for policy in ConstitutionPolicy.objects.all():
         print(f"\nMigrating cp {policy.name}")
         community = CommunityPlatform.objects.get(pk=policy.community.pk)
-        BasePolicy.objects.create(
-            kind=BasePolicy.CONSTITUTION,
+        Policy.objects.create(
+            kind=Policy.CONSTITUTION,
             filter=policy.filter,
             initialize=policy.initialize,
             check=policy.check,
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BasePolicy',
+            name='Policy',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('kind', models.CharField(choices=[('platform', 'platform'), ('constitution', 'constitution')], max_length=30)),
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, null=True)),
                 ('is_active', models.BooleanField(default=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
-                ('bundled_policies', models.ManyToManyField(blank=True, related_name='member_of_bundle', to='policyengine.BasePolicy')),
+                ('bundled_policies', models.ManyToManyField(blank=True, related_name='member_of_bundle', to='policyengine.Policy')),
                 ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.communityplatform', verbose_name='community')),
                 ('data', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='policyengine.datastore', verbose_name='data')),
             ],
@@ -115,32 +115,32 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='policykitchangeconstitutionpolicy',
             name='constitution_policy',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.basepolicy'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.policy'),
         ),
         migrations.AlterField(
             model_name='policykitchangeplatformpolicy',
             name='platform_policy',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.basepolicy'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='policyengine.policy'),
         ),
         migrations.AlterField(
             model_name='policykitrecoverconstitutionpolicy',
             name='constitution_policy',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.basepolicy'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.policy'),
         ),
         migrations.AlterField(
             model_name='policykitrecoverplatformpolicy',
             name='platform_policy',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.basepolicy'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.policy'),
         ),
         migrations.AlterField(
             model_name='policykitremoveconstitutionpolicy',
             name='constitution_policy',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.basepolicy'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.policy'),
         ),
         migrations.AlterField(
             model_name='policykitremoveplatformpolicy',
             name='platform_policy',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.basepolicy'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='policyengine.policy'),
         ),
         migrations.DeleteModel(
             name='ConstitutionPolicy',

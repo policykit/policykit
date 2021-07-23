@@ -7,7 +7,7 @@ python manage.py shell
 exec(open('scripts/download_all_policies.py').read())
 """
 
-from policyengine.models import BasePolicy
+from policyengine.models import Policy
 import json
 import os
 import datetime
@@ -36,5 +36,5 @@ def download(policy):
     jsonFile.write(jsonString)
     jsonFile.close()
 
-for policy in BasePolicy.objects.all():
+for policy in Policy.objects.all():
     download(policy)

@@ -3,8 +3,8 @@
 Policy
 ====================================
 
-BasePolicy
+Policy
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: policyengine.models
-  :members: BasePolicy
+  :members: Policy

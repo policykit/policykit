@@ -4,7 +4,7 @@ Policy evaluation tests that do NOT require Metagov to be enabled
 from django.contrib.auth.models import Permission
 from django.test import TestCase, override_settings
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import Community, CommunityRole, BasePolicy, PolicykitAddCommunityDoc
+from policyengine.models import Community, CommunityRole, Policy, PolicykitAddCommunityDoc
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -38,9 +38,9 @@ class EvaluationTests(TestCase):
             **all_actions_pass_policy,
             "check": "return FAILED",
         }
-        policy = BasePolicy(
+        policy = Policy(
             **all_actions_fail_policy,
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             description="all actions fail",
             name="all actions fail",
@@ -68,9 +68,9 @@ class EvaluationTests(TestCase):
 
     def test_non_community_origin_actions(self):
         """Actions that didnt originate on the community platform should executed on 'pass'"""
-        first_policy = BasePolicy.objects.create(
+        first_policy = Policy.objects.create(
             **all_actions_pass_policy,
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             name="policy that passes",
         )
@@ -97,9 +97,9 @@ class EvaluationTests(TestCase):
             **all_actions_pass_policy,
             "check": "return FAILED",
         }
-        policy = BasePolicy(
+        policy = Policy(
             **all_actions_fail_policy,
-            kind=BasePolicy.CONSTITUTION,
+            kind=Policy.CONSTITUTION,
             community=self.slack_community,
             description="all actions fail",
             name="all actions fail",
@@ -129,9 +129,9 @@ class EvaluationTests(TestCase):
 
     def test_cannot_propose_constitution(self):
         """Test that action fails when a user does not have permission to propose constitution change"""
-        policy = BasePolicy(
+        policy = Policy(
             **all_actions_pass_policy,
-            kind=BasePolicy.CONSTITUTION,
+            kind=Policy.CONSTITUTION,
             community=self.slack_community,
             description="all actions pass",
             name="all actions pass",
@@ -158,9 +158,9 @@ class EvaluationTests(TestCase):
 
     def test_policy_order(self):
         """Policies are tried in correct order"""
-        first_policy = BasePolicy.objects.create(
+        first_policy = Policy.objects.create(
             **all_actions_pass_policy,
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             name="policy that passes",
         )
@@ -171,9 +171,9 @@ class EvaluationTests(TestCase):
         )
         self.assertEqual(action.proposal.status, "passed")
 
-        second_policy = BasePolicy.objects.create(
+        second_policy = Policy.objects.create(
             **{**all_actions_pass_policy, "check": "return FAILED"},
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             name="policy that fails",
         )
@@ -194,18 +194,18 @@ class EvaluationTests(TestCase):
 
     def test_policy_exception(self):
         """Policies that raise exceptions are skipped"""
-        BasePolicy.objects.create(
+        Policy.objects.create(
             **all_actions_pass_policy,
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             name="all actions pass",
         )
-        exception_policy = BasePolicy.objects.create(
+        exception_policy = Policy.objects.create(
             **{
                 **all_actions_pass_policy,
                 "initialize": "action.data.set('was_executed', True)\nraise Exception('thrown from policy')",
             },
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             name="raises an exception",
         )
@@ -220,9 +220,9 @@ class EvaluationTests(TestCase):
 
         # test with falling back to a policy that fails
 
-        BasePolicy.objects.create(
+        Policy.objects.create(
             **{**all_actions_pass_policy, "check": "return FAILED"},
-            kind=BasePolicy.PLATFORM,
+            kind=Policy.PLATFORM,
             community=self.slack_community,
             name="all actions fail",
         )

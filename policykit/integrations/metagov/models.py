@@ -3,7 +3,7 @@ import logging
 
 import requests
 from django.db import models
-from policyengine.models import CommunityUser, PlatformAction, BasePolicy
+from policyengine.models import CommunityUser, PlatformAction, Policy
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class MetagovProcess(models.Model):
 
     location = models.CharField(max_length=100, blank=True)
     json_data = models.CharField(max_length=2000, blank=True, null=True)
-    policy = models.ForeignKey(BasePolicy, on_delete=models.CASCADE)
+    policy = models.ForeignKey(Policy, on_delete=models.CASCADE)
     action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
 
     class Meta:
