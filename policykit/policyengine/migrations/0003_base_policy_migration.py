@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
             name='BasePolicy',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('kind', models.CharField(blank=True, choices=[('platform', 'platform'), ('constitution', 'constitution')], max_length=30)),
+                ('kind', models.CharField(choices=[('platform', 'platform'), ('constitution', 'constitution')], max_length=30)),
                 ('filter', models.TextField(blank=True, default='')),
                 ('initialize', models.TextField(blank=True, default='')),
                 ('check', models.TextField(blank=True, default='')),
