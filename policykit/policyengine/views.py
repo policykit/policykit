@@ -868,6 +868,7 @@ def govern_action(action, is_first_evaluation: bool):
         action.pass_action()
     else:
         policies = None
+        # xxx
         if isinstance(action, PlatformAction) or isinstance(action, PlatformActionBundle):
             policies = action.community.get_platform_policies().filter(is_active=True)
         elif isinstance(action, ConstitutionAction) or isinstance(action, ConstitutionActionBundle):

@@ -7,6 +7,7 @@ from django.forms import ModelForm
 from django.conf import settings
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
 from policyengine.views import govern_action
@@ -1219,6 +1220,11 @@ class ConstitutionPolicy(BasePolicy):
     def __str__(self):
         return 'ConstitutionPolicy: ' + self.name
 
+    def save(self, *args, **kwargs):
+        if self.pk and self.bundled_policies.count() > 0:
+            raise ValidationError("ConstitutionPolicy cannot act as a bundle")
+        super(ConstitutionPolicy, self).save(*args, **kwargs)
+
 class ConstitutionPolicyBundle(BasePolicy):
     policy_type = "ConstitutionPolicyBundle"
 
@@ -1241,6 +1247,11 @@ class PlatformPolicy(BasePolicy):
 
     def __str__(self):
         return 'PlatformPolicy: ' + self.name
+
+    def save(self, *args, **kwargs):
+        if self.pk and self.bundled_policies.count() > 0:
+            raise ValidationError("PlatformPolicy cannot act as a bundle")
+        super(PlatformPolicy, self).save(*args, **kwargs)
 
 class PlatformPolicyBundle(BasePolicy):
     policy_type = "PlatformPolicyBundle"
