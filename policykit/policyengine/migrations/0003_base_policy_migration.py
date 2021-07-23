@@ -4,10 +4,15 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 def migrate_policies(apps, schema_editor):
-    from policyengine.models import BasePolicy
+    """
+    Migrate policies from old PlatformPolicy and ConstitionPolicy tables into the new BasePolicy table.
+    If something goes wrong, revert to the previous commit and download all policies as backup before proceeding (can use `exec(open('scripts/download_all_policies.py').read())`
+    """
+    from policyengine.models import BasePolicy, CommunityPlatform
     PlatformPolicy = apps.get_model('policyengine', 'PlatformPolicy')
     for policy in PlatformPolicy.objects.all():
-        print(f"Migrating pp {policy.name}")
+        print(f"\nMigrating pp {policy.name}")
+        community = CommunityPlatform.objects.get(pk=policy.community.pk)
         BasePolicy.objects.create(
             kind=BasePolicy.PLATFORM,
             filter=policy.filter,
@@ -16,16 +21,16 @@ def migrate_policies(apps, schema_editor):
             notify=policy.notify,
             success=policy.success,
             fail=policy.fail,
-            community=policy.community,
+            community=community,
             name=policy.name,
             description=policy.description,
             is_active=policy.is_active,
             modified_at=policy.modified_at,
-            data=policy.data,
         )
     ConstitutionPolicy = apps.get_model('policyengine', 'ConstitutionPolicy')
     for policy in ConstitutionPolicy.objects.all():
-        print(f"Migrating cp {policy.name}")
+        print(f"\nMigrating cp {policy.name}")
+        community = CommunityPlatform.objects.get(pk=policy.community.pk)
         BasePolicy.objects.create(
             kind=BasePolicy.CONSTITUTION,
             filter=policy.filter,
@@ -34,12 +39,11 @@ def migrate_policies(apps, schema_editor):
             notify=policy.notify,
             success=policy.success,
             fail=policy.fail,
-            community=policy.community,
+            community=community,
             name=policy.name,
             description=policy.description,
             is_active=policy.is_active,
             modified_at=policy.modified_at,
-            data=policy.data,
         )
 
 

@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('policyengine', '0003_auto_20210723_1448'),
+        ('policyengine', '0003_base_policy_migration'),
         ('metagov', '0003_auto_20210720_2102'),
     ]
 
