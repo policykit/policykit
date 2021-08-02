@@ -117,7 +117,7 @@ def internal_receive_action(request):
     new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])
 
-    # Save to create Proposal and trigger PlatformPolicy evaluations
+    # Save to create Proposal and trigger policy evaluations
     new_api_action.save()
     if not new_api_action.pk:
         return HttpResponseServerError()

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.http.response import HttpResponseForbidden
+from django.http.response import HttpResponseForbidden, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.forms import modelform_factory
@@ -247,8 +247,6 @@ def disable_integration(request):
 
 @login_required(login_url='/login')
 def editor(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy
-
     type = request.GET.get('type')
     operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
@@ -261,12 +259,11 @@ def editor(request):
     }
 
     if policy_id:
+        from policyengine.models import Policy
         policy = None
-        if type == 'Platform':
-            policy = PlatformPolicy.objects.filter(id=policy_id)[0]
-        elif type == 'Constitution':
-            policy = ConstitutionPolicy.objects.filter(id=policy_id)[0]
-        else:
+        try:
+            policy = Policy.objects.get(id=policy_id)
+        except Policy.DoesNotExist:
             return HttpResponseBadRequest()
 
         data['policy'] = policy_id
@@ -649,7 +646,7 @@ def error_check(request):
 
 @csrf_exempt
 def policy_action_save(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
+    from policyengine.models import Policy, PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -663,10 +660,18 @@ def policy_action_save(request):
         action.is_bundled = data['is_bundled']
     elif data['type'] == 'Constitution' and data['operation'] == 'Change':
         action = PolicykitChangeConstitutionPolicy()
-        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+        try:
+            policy = Policy.objects.get(pk=data['policy'])
+        except Policy.DoesNotExist:
+            return HttpResponseNotFound()
+        action.constitution_policy = policy
     elif data['type'] == 'Platform' and data['operation'] == 'Change':
         action = PolicykitChangePlatformPolicy()
-        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+        try:
+            policy = Policy.objects.get(pk=data['policy'])
+        except Policy.DoesNotExist:
+            return HttpResponseNotFound()
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 
@@ -680,24 +685,32 @@ def policy_action_save(request):
     action.notify = data['notify']
     action.success = data['success']
     action.fail = data['fail']
-    action.save()
+    try:
+        action.save()
+    except Exception as e:
+        logger.error(f"Error saving policy: {e}")
+        return HttpResponseBadRequest()
 
     return HttpResponse()
 
 @csrf_exempt
 def policy_action_remove(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
+    from policyengine.models import Policy, PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
 
     action = None
-    if data['type'] == 'Constitution':
+    try:
+        policy = Policy.objects.get(pk=data['policy'])
+    except Policy.DoesNotExist:
+        return HttpResponseNotFound()
+    if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
-        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
-    elif data['type'] == 'Platform':
+        action.constitution_policy = policy
+    elif policy.kind == Policy.PLATFORM:
         action = PolicykitRemovePlatformPolicy()
-        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 
@@ -709,18 +722,22 @@ def policy_action_remove(request):
 
 @csrf_exempt
 def policy_action_recover(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
+    from policyengine.models import Policy, PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
 
     action = None
-    if data['type'] == 'Constitution':
+    try:
+        policy = Policy.objects.get(pk=data['policy'])
+    except Policy.DoesNotExist:
+        return HttpResponseNotFound()
+    if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
-        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
-    elif data['type'] == 'Platform':
+        action.constitution_policy = policy
+    elif policy.kind == Policy.PLATFORM:
         action = PolicykitRecoverPlatformPolicy()
-        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 

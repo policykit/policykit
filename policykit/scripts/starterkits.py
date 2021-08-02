@@ -208,7 +208,7 @@ else:
     return FAILED
                                                """,
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
     name="Admin and User: All Constitution Actions from Moderators Pass",
@@ -236,7 +236,7 @@ else:
     return FAILED
                                                       """,
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
     name="Admin and User: All Constitution Actions from Moderators Pass",
@@ -264,7 +264,7 @@ else:
     return FAILED
                                                      """,
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
     name="Admin and User: All Constitution Actions from Moderators Pass",
@@ -292,7 +292,7 @@ else:
     return FAILED
                                                      """,
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitution actions pass if proposed by moderator",
     name="Admin and User: All Constitution Actions from Moderators Pass",
@@ -515,7 +515,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.initiate_vote(action, policy, users=voter_users, template='Please vote')
                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
     name="Democracy: Constitution Actions Voted In",
@@ -555,7 +555,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.initiate_vote(action, policy, users=voter_users, template='Please vote')
                                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
     name="Democracy: Constitution Actions Voted In",
@@ -597,7 +597,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
     notify="""
 action.community.initiate_vote(action, policy, users, template='Please vote on proposal')
                                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
     name="Democracy: Constitution Actions Voted In",
@@ -637,7 +637,7 @@ elif action.proposal.get_time_elapsed() > datetime.timedelta(days=1):
 voter_users = users.filter(groups__name__in=['Democracy: Voter'])
 action.community.initiate_vote(action, policy, users=voter_users, template='Please vote')
                                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: all constitution actions must be approved by voters in voting process",
     name="Democracy: Constitution Actions Voted In",
@@ -830,7 +830,7 @@ dictator_policy1_slack = GenericPolicy.objects.create(
     initialize="pass",
     check="return FAILED",
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: only actions proposed by dictator pass",
     name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
@@ -853,7 +853,7 @@ dictator_policy1_reddit = GenericPolicy.objects.create(
     initialize="pass",
     check="return FAILED",
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: only actions proposed by dictator pass",
     name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
@@ -876,7 +876,7 @@ dictator_policy1_discord = GenericPolicy.objects.create(
     initialize="pass",
     check="return FAILED",
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: only actions proposed by dictator pass",
     name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
@@ -899,7 +899,7 @@ dictator_policy1_discourse = GenericPolicy.objects.create(
     initialize="pass",
     check="return FAILED",
     notify="pass",
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: only actions proposed by dictator pass",
     name="Benevolent Dictator: Only Benevolent Dictator's Constitution Actions Pass",
@@ -1129,7 +1129,7 @@ jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
     name="Jury: Constitution Actions Passed by Jury",
@@ -1168,7 +1168,7 @@ jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
     name="Jury: Constitution Actions Passed by Jury",
@@ -1207,7 +1207,7 @@ jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
     name="Jury: Constitution Actions Passed by Jury",
@@ -1246,7 +1246,7 @@ jury = action.data.get('jury')
 jury_users = users.filter(username__in=jury)
 action.community.initiate_vote(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')
                                            """,
-    success="action.execute()",
+    success="pass",
     fail="pass",
     description="Starter Constitution Policy: constitutions actions by non-moderator must be passed by random jury of 3 members",
     name="Jury: Constitution Actions Passed by Jury",

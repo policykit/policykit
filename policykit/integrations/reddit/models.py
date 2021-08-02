@@ -1,6 +1,6 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
-from django.contrib.auth.models import Permission, ContentType, User
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
+from django.contrib.auth.models import Permission
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
 from urllib import parse
@@ -246,37 +246,21 @@ class RedditMakePost(PlatformAction):
 class RedditStarterKit(StarterKit):
     def init_kit(self, community, creator_token=None):
         for policy in self.genericpolicy_set.all():
-            if policy.is_constitution:
-                p = ConstitutionPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
+            p = Policy()
+            p.kind = Policy.CONSTITUTION if policy.is_constitution else Policy.PLATFORM
+            p.community = community
+            p.filter = policy.filter
+            p.initialize = policy.initialize
+            p.check = policy.check
+            p.notify = policy.notify
+            p.success = policy.success
+            p.fail = policy.fail
+            p.description = policy.description
+            p.name = policy.name
 
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
-
-            else:
-                p = PlatformPolicy()
-                p.community = community
-                p.filter = policy.filter
-                p.initialize = policy.initialize
-                p.check = policy.check
-                p.notify = policy.notify
-                p.success = policy.success
-                p.fail = policy.fail
-                p.description = policy.description
-                p.name = policy.name
-
-                proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-                p.proposal = proposal
-                p.save()
+            proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+            p.proposal = proposal
+            p.save()
 
         for role in self.genericrole_set.all():
             c = None
