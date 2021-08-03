@@ -255,7 +255,7 @@ class DiscordStarterKit(StarterKit):
             p.description = policy.description
             p.name = policy.name
 
-            proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
+            proposal = Proposal.objects.create(status=Proposal.PASSED)
             p.proposal = proposal
             p.save()
 
