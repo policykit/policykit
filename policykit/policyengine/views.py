@@ -18,6 +18,7 @@ import random
 import logging
 import json
 import html
+import os
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -538,20 +539,97 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, CommunityPlatform
+    """
+    Takes a request object containing starter-kit information.
+    Initializes the community with the selected starter kit.
+    """
+    from policyengine.models import Proposal, CommunityPlatform, PlatformPolicy, ConstitutionPolicy, CommunityRole
 
     starterkit_name = request.POST['starterkit']
     platform = request.POST['platform']
     community_name = request.POST['community_name']
     creator_token = request.POST['creator_token']
 
-    starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
+    logger.debug(f'Initializing with starter kit: {starter_kit_name}')
+    f = open(f'{os.getcwd()}/starterkits/{starter_kit_name}.txt')
+
+    data = json.loads(f.read())
 
     community = CommunityPlatform.objects.get(community_name=community_name)
-    if creator_token:
-        community.init(starter_kit, creator_token=creator_token)
-    else:
-        community.init(starter_kit)
+
+    # Initialize platform policies from starter kit
+    for policy in data['platform_policies']:
+        PlatformPolicy.objects.create(
+            name=policy['name'],
+            description=policy['description'],
+            is_bundled=policy['is_bundled'],
+            filter=policy['filter'],
+            initialize=policy['initialize'],
+            check=policy['check'],
+            notify=policy['notify'],
+            success=policy['success'],
+            fail=policy['fail'],
+            community=community,
+            proposal=Proposal.objects.create(author=None, status=Proposal.PASSED)
+        )
+
+    # Initialize constitution policies from starter kit
+    for policy in data['constitution_policies']:
+        ConstitutionPolicy.objects.create(
+            name=policy['name'],
+            description=policy['description'],
+            is_bundled=policy['is_bundled'],
+            filter=policy['filter'],
+            initialize=policy['initialize'],
+            check=policy['check'],
+            notify=policy['notify'],
+            success=policy['success'],
+            fail=policy['fail'],
+            community=community,
+            proposal=Proposal.objects.create(author=None, status=Proposal.PASSED)
+        )
+
+    # Initialize roles from starter kit
+    for role in data['roles']:
+        r, _ = CommunityRole.objects.create(
+            role_name=role['name'],
+            name=f"{platform}: {community.community_name}: {role['name']}",
+            description=role['description']
+        )
+
+        if role['is_base_role']:
+            community.base_role = r
+            community.save()
+
+        # Add PolicyKit-related permissions
+        for perm in role['permissions']:
+            r.permissions.add(perm)
+
+        # Add platform-specific permissions
+        for perm in community.permissions:
+            if 'view' in role['permission_sets']:
+                r.permissions.add(Permission.objects.get(name=f"Can view {perm}"))
+            if 'propose' in role['permission_sets']:
+                r.permissions.add(Permission.objects.get(name=f"Can add {perm}"))
+            if 'execute' in role['permission_sets']:
+                r.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
+
+        group = None
+        if role['user_group'] == "all":
+            group = CommunityUser.objects.filter(community=community)
+        elif role['user_group'] == "admins":
+            group = CommunityUser.objects.filter(community=community, is_community_admin=True)
+        elif role['user_group'] == "nonadmins":
+            group = CommunityUser.objects.filter(community=community, is_community_admin=False)
+        elif role['user_group'] == "creator":
+            group = CommunityUser.objects.filter(community=community, access_token=creator_token)
+
+        for user in group:
+            r.user_set.add(user)
+
+        r.save()
+
+    f.close()
 
     return redirect('/login?success=true')
 

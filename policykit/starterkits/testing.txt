@@ -3,7 +3,7 @@
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
-      "description": "Starter Platform Policy: all platform actions pass automatically",
+      "description": "All platform actions pass automatically",
       "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",
@@ -16,7 +16,7 @@
   "constitution_policies": [
     {
       "name": "All Constitution Actions Pass",
-      "description": "Starter Constitution Policy: all constitution actions pass automatically",
+      "description": "All constitution actions pass automatically",
       "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",

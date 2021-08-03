@@ -18,7 +18,6 @@ from policyengine.models import (
     PlatformActionBundle,
     PlatformPolicy,
     Proposal,
-    StarterKit,
 )
 
 logger = logging.getLogger(__name__)

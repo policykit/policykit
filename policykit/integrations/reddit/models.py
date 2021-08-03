@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
 from django.contrib.auth.models import Permission, ContentType, User
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib

@@ -29,18 +29,6 @@ def on_transaction_commit(func):
         transaction.on_commit(lambda: func(*args, **kwargs))
     return inner
 
-class StarterKit(PolymorphicModel):
-    """Starter kit"""
-
-    name = models.TextField(null=True, blank=True, default = '')
-    """The name of the starter kit."""
-
-    platform = models.TextField(null=True, blank=True, default = '')
-    """The name of the platform ('slack', 'reddit', etc.)."""
-
-    def __str__(self):
-        return self.name
-
 class Community(models.Model):
     readable_name = models.CharField(max_length=300, blank=True)
     metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
@@ -87,73 +75,6 @@ class CommunityPlatform(PolymorphicModel):
     @property
     def metagov_slug(self):
         return self.community.metagov_slug
-
-    def init(self, starter_kit, creator_token=None):
-        """
-        Initializes the community with the inputted starter kit.
-        Note: Only meant for internal use.
-        """
-        for policy in GenericPolicy.objects.filter(starterkit__id=starter_kit.id):
-            p = None
-            if policy.is_constitution:
-                p = ConstitutionPolicy()
-            else:
-                p = PlatformPolicy()
-            p.community = self
-            p.name = policy.name
-            p.description = policy.description
-            p.filter = policy.filter
-            p.initialize = policy.initialize
-            p.check = policy.check
-            p.notify = policy.notify
-            p.success = policy.success
-            p.fail = policy.fail
-            p.proposal = Proposal.objects.create(author=None, status=Proposal.PASSED)
-            p.save()
-
-        for role in GenericRole.objects.filter(starterkit__id=starter_kit.id):
-            c = None
-            if role.is_base_role:
-                c = self.base_role
-            else:
-                c = CommunityRole()
-                c.community = self
-                c.role_name = role.role_name
-                c.name = f"{platform}: {community_name}: {role.role_name}"
-                c.description = role.description
-                c.save()
-
-            for perm in role.permissions.all():
-                c.permissions.add(perm)
-
-            jsonDec = json.decoder.JSONDecoder()
-            perm_set = jsonDec.decode(role.plat_perm_set)
-
-            for perm in self.permissions:
-                if 'view' in perm_set:
-                    c.permissions.add(Permission.objects.get(name=f"Can view {perm}"))
-                if 'propose' in perm_set:
-                    c.permissions.add(Permission.objects.get(name=f"Can add {perm}"))
-                if 'execute' in perm_set:
-                    c.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
-
-            if role.user_group == "admins":
-                group = CommunityUser.objects.filter(community = self, is_community_admin = True)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "nonadmins":
-                group = CommunityUser.objects.filter(community = self, is_community_admin = False)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "all":
-                group = CommunityUser.objects.filter(community = self)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "creator":
-                user = CommunityUser.objects.get(access_token=creator_token)
-                c.user_set.add(user)
-
-            c.save()
 
     def notify_action(self, action, policy, users):
         """
@@ -386,7 +307,6 @@ class DataStore(models.Model):
             return False
         return True
 
-
 class LogAPICall(models.Model):
     community = models.ForeignKey(CommunityPlatform, models.CASCADE)
     proposal_time = models.DateTimeField(auto_now_add=True)
@@ -401,34 +321,6 @@ class LogAPICall(models.Model):
                                       )
         res = community.make_call(call, values=values, action=action, method=method)
         return res
-
-class GenericPolicy(models.Model):
-    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-    name = models.TextField(null=True, blank=True, default = '')
-    description = models.TextField(null=True, blank=True, default = '')
-    filter = models.TextField(null=True, blank=True, default='')
-    initialize = models.TextField(null=True, blank=True, default='')
-    check = models.TextField(null=True, blank=True, default='')
-    notify = models.TextField(null=True, blank=True, default='')
-    success = models.TextField(null=True, blank=True, default='')
-    fail = models.TextField(null=True, blank=True, default='')
-    is_bundled = models.BooleanField(default=False)
-    is_constitution = models.BooleanField(default=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-class GenericRole(Group):
-    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-    role_name = models.TextField(blank=True, null=True, default='')
-    description = models.TextField(blank=True, null=True, default='')
-    is_base_role = models.BooleanField(default=False)
-    user_group = models.TextField(blank=True, null=True, default='')
-    plat_perm_set = models.TextField(blank=True, null=True, default='')
-
-    def __str__(self):
-        return self.role_name
 
 class Proposal(models.Model):
     """Proposal"""

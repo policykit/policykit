@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 from integrations.slack.models import SlackCommunity, SlackUser
 from integrations.slack.utils import get_slack_user_fields
-from policyengine.models import Community, CommunityRole, StarterKit
+from policyengine.models import Community, CommunityRole
 
 logger = logging.getLogger(__name__)
 
