@@ -148,7 +148,7 @@ def settings_page(request):
             if integration not in integration_data.keys():
                 logger.warn(f"unsupported integration {integration} is enabled for community {community}")
                 continue
-        
+
             # Only include configs if user has privileged metagov config role, since they may contain API Keys
             config_tuples = []
             if user.has_perm("metagov.can_edit_metagov_config"):
@@ -612,12 +612,11 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-<<<<<<< HEAD
     """
     Takes a request object containing starter-kit information.
     Initializes the community with the selected starter kit.
     """
-    from policyengine.models import Proposal, CommunityPlatform, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser
+    from policyengine.models import Proposal, CommunityPlatform, Policy, CommunityRole, CommunityUser
 
     post_data = json.loads(request.body)
 
@@ -630,10 +629,10 @@ def initialize_starterkit(request):
 
     # Initialize platform policies from starter kit
     for policy in kit_data['platform_policies']:
-        PlatformPolicy.objects.create(
+        Policy.objects.create(
+            kind=Policy.PLATFORM,
             name=policy['name'],
             description=policy['description'],
-            is_bundled=policy['is_bundled'],
             filter=policy['filter'],
             initialize=policy['initialize'],
             check=policy['check'],
@@ -645,10 +644,10 @@ def initialize_starterkit(request):
 
     # Initialize constitution policies from starter kit
     for policy in kit_data['constitution_policies']:
-        ConstitutionPolicy.objects.create(
+        Policy.objects.create(
+            kind=Policy.CONSTITUTION,
             name=policy['name'],
             description=policy['description'],
-            is_bundled=policy['is_bundled'],
             filter=policy['filter'],
             initialize=policy['initialize'],
             check=policy['check'],
@@ -701,27 +700,6 @@ def initialize_starterkit(request):
     f.close()
 
     return HttpResponse()
-=======
-    from policyengine.models import StarterKit, CommunityPlatform
-
-    starterkit_name = request.POST['starterkit']
-    community_name = request.POST['community_name']
-    creator_token = request.POST['creator_token']
-    platform = request.POST['platform']
-
-    starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
-
-    community = CommunityPlatform.objects.get(community_name=community_name)
-    starter_kit.init_kit(community, creator_token)
-
-    logger.info('starterkit initialized')
-
-    redirect_route = request.GET.get("redirect")
-    if redirect_route:
-        return redirect(f"{redirect_route}?success=true")
-
-    return redirect('/login?success=true')
->>>>>>> master
 
 @csrf_exempt
 def error_check(request):

@@ -5,7 +5,6 @@
     {
       "name": "All Platform Actions Pass",
       "description": "Starter Platform Policy: all platform actions pass automatically",
-      "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",
       "check": "return PASSED",
@@ -18,7 +17,6 @@
     {
       "name": "Moderators: All Constitution Actions from Moderators Pass",
       "description": "Starter Constitution Policy: constitution actions pass if proposed by moderator",
-      "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",
       "check": "if action.initiator.groups.filter(name = 'Administrator').exists():\n    return PASSED\nelse:\n    return FAILED",

@@ -5,7 +5,6 @@
     {
       "name": "All Platform Actions Pass",
       "description": "All platform actions pass automatically",
-      "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",
       "check": "return PASSED",
@@ -18,7 +17,6 @@
     {
       "name": "All Constitution Actions Pass",
       "description": "All constitution actions pass automatically",
-      "is_bundled": false,
       "filter": "return True",
       "initialize": "pass",
       "check": "return PASSED",
