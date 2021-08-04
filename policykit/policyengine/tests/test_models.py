@@ -98,8 +98,7 @@ class ModelTestCase(TestCase):
             community=self.community
         )
         self.proposal = Proposal.objects.create(
-            status=Proposal.PROPOSED,
-            author=self.user1
+            status=Proposal.PROPOSED
         )
         self.booleanvote1 = BooleanVote.objects.create(
             proposal=self.proposal,

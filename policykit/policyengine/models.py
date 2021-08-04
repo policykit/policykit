@@ -336,15 +336,6 @@ class Proposal(models.Model):
         (PASSED, 'passed')
     ]
 
-    author = models.ForeignKey(
-        CommunityUser,
-        models.CASCADE,
-        verbose_name='author',
-        blank=True,
-        null=True
-    )
-    """The user who created the proposal."""
-
     proposal_time = models.DateTimeField(auto_now_add=True)
     """Datetime object representing when the proposal was created."""
 
@@ -506,17 +497,17 @@ class ConstitutionAction(BaseAction, PolymorphicModel):
                 if hasattr(self, 'proposal'):
                     self.proposal.status = Proposal.PROPOSED
                 else:
-                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED, author=self.initiator)
+                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED)
                 super(ConstitutionAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
                     govern_action(self, is_first_evaluation=True)
             else:
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
                 super(ConstitutionAction, self).save(*args, **kwargs)
         else:
             if not self.pk: # Runs only when object is new
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED, author=self.initiator)
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
             super(ConstitutionAction, self).save(*args, **kwargs)
 
 
@@ -1070,16 +1061,14 @@ class PlatformAction(BaseAction, PolymorphicModel):
 
             #runs only if they have propose permission
             if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                self.proposal = Proposal.objects.create(status=Proposal.PROPOSED,
-                                                author=self.initiator)
+                self.proposal = Proposal.objects.create(status=Proposal.PROPOSED)
 
                 super(PlatformAction, self).save(*args, **kwargs)
 
                 if not self.is_bundled:
                     govern_action(self, is_first_evaluation=True)
             else:
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED,
-                                                        author=self.initiator)
+                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
                 super(PlatformAction, self).save(*args, **kwargs)
         else:
             super(PlatformAction, self).save(*args, **kwargs)
