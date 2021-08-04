@@ -1,5 +1,6 @@
 {
-  "name": "Testing Starter Kit",
+  "name": "Testing",
+  "description": "All members of the community have complete access to PolicyKit actions.",
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
@@ -29,6 +30,7 @@
   "roles": [
     {
       "name": "Base User",
+      "description": "",
       "is_base_role": true,
       "user_group": "all",
       "permission_sets": [

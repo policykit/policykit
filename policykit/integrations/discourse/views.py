@@ -4,6 +4,7 @@ from policykit.settings import SERVER_URL
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser
 from integrations.discourse.utils import get_discourse_user_fields
 from policyengine.models import *
+from policyengine.utils import get_starterkits_info
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from Crypto.PublicKey import RSA
@@ -129,7 +130,8 @@ def auth(request):
                 )
 
             context = {
-                "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='discourse')],
+                "server_url": SERVER_URL,
+                "starterkits": get_starterkits_info(),
                 "community_name": community.community_name,
                 "platform": "discourse"
             }

@@ -1,4 +1,6 @@
 from django.apps import apps
+import os
+import json
 
 def find_action_cls(app_name: str, action_codename: str):
     """
@@ -22,3 +24,17 @@ def get_action_codenames(app_name: str):
                 codename = getattr(cls, "action_codename")
                 action_list.append(codename)
     return action_list
+
+def get_starterkits_info():
+    """
+    Get a list of all starter-kit names and descriptions.
+    """
+    starterkits = []
+    for kit_file in os.listdir('./starterkits'):
+        f = open(f'{os.getcwd()}/starterkits/{kit_file}')
+        data = json.loads(f.read())
+        starterkits.append({
+            'name': data['name'],
+            'description': data['description']
+        })
+    return starterkits

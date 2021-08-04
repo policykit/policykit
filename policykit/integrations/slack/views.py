@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from integrations.slack.models import SlackCommunity, SlackUser
 from integrations.slack.utils import get_slack_user_fields
 from policyengine.models import Community, CommunityRole
+from policyengine.utils import get_starterkits_info
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,8 @@ def slack_install(request):
                     u.save()
 
         context = {
-            "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='slack')],
+            "server_url": SERVER_URL,
+            "starterkits": get_starterkits_info(),
             "community_name": slack_community.community_name,
             "creator_token": user_token,
             "platform": "slack",

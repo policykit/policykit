@@ -1,5 +1,6 @@
 {
-  "name": "Dictator Starter Kit",
+  "name": "Dictator",
+  "description": "One user is given complete access and control over all policies and actions.",
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
@@ -29,6 +30,7 @@
   "roles": [
     {
       "name": "Base User",
+      "description": "",
       "is_base_role": true,
       "user_group": "all",
       "permission_sets": [
@@ -63,6 +65,7 @@
     },
     {
       "name": "Dictator",
+      "description": "Has ability to propose and execute actions",
       "is_base_role": false,
       "user_group": "creator",
       "permission_sets": [

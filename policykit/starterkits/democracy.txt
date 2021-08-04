@@ -1,5 +1,6 @@
 {
-  "name": "Democracy Starter Kit",
+  "name": "Democracy",
+  "description": "A specified population of users votes in order to pass constitution actions.",
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
@@ -29,6 +30,7 @@
   "roles": [
     {
       "name": "Base User",
+      "description": "",
       "is_base_role": true,
       "user_group": "nonadmins",
       "permission_sets": [
@@ -69,6 +71,7 @@
     },
     {
       "name": "Voter",
+      "description": "Has ability to vote",
       "is_base_role": false,
       "user_group": "admins",
       "permission_sets": [

@@ -543,22 +543,19 @@ def initialize_starterkit(request):
     Takes a request object containing starter-kit information.
     Initializes the community with the selected starter kit.
     """
-    from policyengine.models import Proposal, CommunityPlatform, PlatformPolicy, ConstitutionPolicy, CommunityRole
+    from policyengine.models import Proposal, CommunityPlatform, PlatformPolicy, ConstitutionPolicy, CommunityRole, CommunityUser
 
-    starterkit_name = request.POST['starterkit']
-    platform = request.POST['platform']
-    community_name = request.POST['community_name']
-    creator_token = request.POST['creator_token']
+    post_data = json.loads(request.body)
 
-    logger.debug(f'Initializing with starter kit: {starter_kit_name}')
-    f = open(f'{os.getcwd()}/starterkits/{starter_kit_name}.txt')
+    logger.debug(f'Initializing with starter kit: {post_data["starterkit"]}')
+    f = open(f'{os.getcwd()}/starterkits/{post_data["starterkit"]}.txt')
 
-    data = json.loads(f.read())
+    kit_data = json.loads(f.read())
 
-    community = CommunityPlatform.objects.get(community_name=community_name)
+    community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
 
     # Initialize platform policies from starter kit
-    for policy in data['platform_policies']:
+    for policy in kit_data['platform_policies']:
         PlatformPolicy.objects.create(
             name=policy['name'],
             description=policy['description'],
@@ -569,12 +566,11 @@ def initialize_starterkit(request):
             notify=policy['notify'],
             success=policy['success'],
             fail=policy['fail'],
-            community=community,
-            proposal=Proposal.objects.create(author=None, status=Proposal.PASSED)
+            community=community
         )
 
     # Initialize constitution policies from starter kit
-    for policy in data['constitution_policies']:
+    for policy in kit_data['constitution_policies']:
         ConstitutionPolicy.objects.create(
             name=policy['name'],
             description=policy['description'],
@@ -585,16 +581,16 @@ def initialize_starterkit(request):
             notify=policy['notify'],
             success=policy['success'],
             fail=policy['fail'],
-            community=community,
-            proposal=Proposal.objects.create(author=None, status=Proposal.PASSED)
+            community=community
         )
 
     # Initialize roles from starter kit
-    for role in data['roles']:
-        r, _ = CommunityRole.objects.create(
+    for role in kit_data['roles']:
+        r = CommunityRole.objects.create(
             role_name=role['name'],
-            name=f"{platform}: {community.community_name}: {role['name']}",
-            description=role['description']
+            name=f"{post_data['platform']}: {community.community_name}: {role['name']}",
+            description=role['description'],
+            community=community
         )
 
         if role['is_base_role']:
@@ -602,8 +598,7 @@ def initialize_starterkit(request):
             community.save()
 
         # Add PolicyKit-related permissions
-        for perm in role['permissions']:
-            r.permissions.add(perm)
+        r.permissions.set(Permission.objects.filter(name__in=role['permissions']))
 
         # Add platform-specific permissions
         for perm in community.permissions:
@@ -622,7 +617,7 @@ def initialize_starterkit(request):
         elif role['user_group'] == "nonadmins":
             group = CommunityUser.objects.filter(community=community, is_community_admin=False)
         elif role['user_group'] == "creator":
-            group = CommunityUser.objects.filter(community=community, access_token=creator_token)
+            group = CommunityUser.objects.filter(community=community, access_token=post_data["creator_token"])
 
         for user in group:
             r.user_set.add(user)
@@ -631,7 +626,7 @@ def initialize_starterkit(request):
 
     f.close()
 
-    return redirect('/login?success=true')
+    return HttpResponse()
 
 @csrf_exempt
 def error_check(request):

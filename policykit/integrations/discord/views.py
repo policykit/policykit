@@ -5,6 +5,7 @@ from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from policykit.settings import SERVER_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
 from policyengine.models import *
+from policyengine.utils import get_starterkits_info
 from integrations.discord.models import *
 from urllib import parse
 import urllib.request
@@ -433,7 +434,8 @@ def oauth(request):
             return redirect('/login?success=true')
 
         context = {
-            "starterkits": [kit.name for kit in StarterKit.objects.filter(platform='discord')],
+            "server_url": SERVER_URL,
+            "starterkits": get_starterkits_info(),
             "community_name": community.community_name,
             "platform": "discord"
         }

@@ -1,5 +1,6 @@
 {
-  "name": "Moderators Starter Kit",
+  "name": "Moderators",
+  "description": "Mimics a basic Moderator and User structure.",
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
@@ -29,6 +30,7 @@
   "roles": [
     {
       "name": "Base User",
+      "description": "",
       "is_base_role": true,
       "user_group": "nonadmins",
       "permission_sets": [
@@ -62,6 +64,7 @@
     },
     {
       "name": "Moderator",
+      "description": "Has ability to propose actions",
       "is_base_role": false,
       "user_group": "admins",
       "permission_sets": [

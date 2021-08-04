@@ -1,5 +1,6 @@
 {
-  "name": "Jury Starter Kit",
+  "name": "Jury",
+  "description": "A random jury is called upon to vote whenever a constitution action is proposed.",
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
@@ -29,6 +30,7 @@
   "roles": [
     {
       "name": "Base User",
+      "description": "",
       "is_base_role": true,
       "user_group": "all",
       "permission_sets": [
