@@ -667,8 +667,10 @@ def initialize_starterkit(request):
         )
 
         if role['is_base_role']:
+            old_base_role = community.base_role
             community.base_role = r
             community.save()
+            old_base_role.delete()
 
         # Add PolicyKit-related permissions
         r.permissions.set(Permission.objects.filter(name__in=role['permissions']))
