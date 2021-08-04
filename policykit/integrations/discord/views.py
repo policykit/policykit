@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -10,7 +9,6 @@ from integrations.discord.models import *
 from urllib import parse
 import urllib.request
 import json
-import base64
 import logging
 import websocket
 import threading
@@ -143,6 +141,8 @@ def handle_message_delete_event(data):
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
     # Gets the channel message
+    # This doesn't work, it always returns 404. The message has already been deleted.
+    # There is no way to retrieve deleted messages in Discord
     message = community.make_call(f"channels/{data['channel_id']}/messages/{data['id']}")
 
     action = DiscordDeleteMessage()
@@ -165,6 +165,7 @@ def handle_channel_update_event(data):
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
     action = DiscordRenameChannel()
+    # FIXME: name_old is not stored, so the action cannot be reverted.
     action.community = community
     action.channel_id = data['id']
     action.name = data['name']
@@ -245,8 +246,8 @@ def handle_event(name, data):
 
         if name == 'MESSAGE_CREATE':
             action = handle_message_create_event(data)
-        elif name == 'MESSAGE_DELETE':
-            action = handle_message_delete_event(data)
+        # elif name == 'MESSAGE_DELETE':
+        #     action = handle_message_delete_event(data)
         elif name == 'CHANNEL_UPDATE':
             action = handle_channel_update_event(data)
         elif name == 'CHANNEL_CREATE':
@@ -462,7 +463,7 @@ def auth(request, guild_id=None, access_token=None):
     else:
         return redirect('/login?error=invalid_login')
 
-def post_policy(policy, action, users=None, template=None, channel=None):
+def initiate_action_vote(policy, action, users=None, template=None, channel=None):
     message = "This action is governed by the following policy: " + policy.name
     if template:
         message = template
@@ -481,7 +482,7 @@ def post_policy(policy, action, users=None, template=None, channel=None):
     if channel_id == None:
         return
 
-    res = policy.community.make_call(f'channels/{channel_id}/messages', values={'content': message})
+    res = policy.community.post_message(text=message, channel=channel_id)
 
     if action.action_type == "ConstitutionAction" or action.action_type == "PlatformAction":
         action.community_post = res['id']

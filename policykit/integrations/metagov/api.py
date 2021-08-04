@@ -42,21 +42,32 @@ def get_metagov_community(slug):
         raise Exception(response.text or "Unknown error")
     return response.json()
 
+#### PLUGIN MANAGEMENT ####
+plugin_base = f"{settings.METAGOV_URL}/api/internal/plugin"
+
+def enable_plugin(community_slug, name, config):
+    headers = {"X-Metagov-Community": community_slug}
+    response = requests.post(f"{plugin_base}/{name}", json=config, headers=headers)
+    if not response.ok:
+        raise Exception(response.text or "Unknown error")
+    return response.json()
+
+def delete_plugin(name: str, id):
+    response = requests.delete(f"{plugin_base}/{name}/{id}")
+    if not response.ok and response.status_code != 404:
+        raise Exception(response.text or "Unknown error")
 
 #### SCHEMAS ####
 
-
-def get_webhooks(community):
-    url = f"{settings.METAGOV_URL}/api/internal/community/{community.metagov_slug}/hooks"
+def get_plugin_config_schemas():
+    url = f"{settings.METAGOV_URL}/api/internal/plugin-schemas"
     response = requests.get(url)
     if not response.ok:
         raise Exception(response.text or "Unknown error")
-    data = response.json()
-    return [f"{settings.METAGOV_URL}{hook}" for hook in data["hooks"]]
+    return response.json()
 
-
-def get_plugin_config_schemas():
-    url = f"{settings.METAGOV_URL}/api/internal/plugin-schemas"
+def get_plugin_metadata(plugin):
+    url = f"{settings.METAGOV_URL}/api/internal/plugin/{plugin}/metadata"
     response = requests.get(url)
     if not response.ok:
         raise Exception(response.text or "Unknown error")

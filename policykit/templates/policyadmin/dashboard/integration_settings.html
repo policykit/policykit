@@ -1,0 +1,138 @@
+{% extends "./dashboard_base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+  h2 {
+    padding-bottom: 0.5em;
+  }
+  .config-container {
+    padding-top: 1em;
+    padding-bottom: 3em;
+  }
+  .form-row {
+    margin-bottom: 20px;
+  }
+  .btn.btn-primary {
+    padding: 0.5em 2vw;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+  .btn.btn-primary:hover {
+    background-color: #3b4699;
+    color: #ffffff;
+  }
+  form .help-block {
+    font-style: italic;
+  }
+  legend {
+    text-transform: uppercase;
+  }
+  /*https://github.com/jsonform/jsonform/blob/f30484e3300cfb4bb4f7efefdde736798103e46d/lib/jsonform.js#L862*/
+  .glyphicon-minus-sign:before {
+    content: "\2212";
+}
+  .glyphicon-plus-sign:before {
+    content: "\002B";
+  }
+  .glyphicon-list:before {
+    content: "\2261";
+  }
+  .glyphicon {
+      position: relative;
+      top: 1px;
+      display: inline-block;
+      font-style: normal;
+      font-weight: normal;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Enable {{additional_data.readable_name}}</h2>
+{%if additional_data.description %}
+<div class="form-row mb-2 text-muted">
+  <div class="col-sm-8">{{additional_data.description }}</div>
+</div>
+{% endif %}
+{%if additional_data.config_instructions %}
+<div class="form-row">
+  <div class="col-sm-8"><b>Instructions: </b>{{additional_data.config_instructions}}</div>
+</div>
+{% endif %}
+<div class="config-container">
+  <div class="form-row">
+    <div class="col-sm-8">
+      <form id="json-editor-form"></form>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="col-sm-8">
+      <div id="alerts"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}`
+  <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+  <script src={% static "policyengine/js/underscore-min.js" %}></script>
+  <script src={% static "policyengine/js/jsonform.js" %}></script>
+  <script>
+    // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+    function decodeHtml(html) {
+      var txt = document.createElement("textarea");
+      txt.innerHTML = html;
+      return txt.value;
+    }
+    const metadata = JSON.parse(decodeHtml("{{metadata_string}}"));
+    const schema = metadata.schemas.config
+    schema.type = "object";
+    schema.title = "config";
+    if (!schema.properties) {
+      schema.properties = {}
+    }
+
+    // Uses https://github.com/jsonform/jsonform
+    $('form#json-editor-form').jsonForm({
+      schema: schema,
+      validate: true,
+      onSubmit: function (errors, values) {
+          if (errors) {
+            console.error(errors)
+            $('#alerts').html('An error occurred').css("color", "red");
+            return
+          }
+          url = `../../../api/integrations/enable?name={{integration}}`
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(values)
+          }).then(response => {
+            if (!response.ok) {
+              response.text().then(text => {
+                console.error(text)
+                msg = "Something went wrong."
+                if (response.status == 403) {
+                  msg = "You do not have permission to delete integrations."
+                }
+                $('#alerts').html(msg).css("color", "red");
+              })
+            } else {
+              response.json().then(data => {
+                console.log(data)
+                window.location.href = "/main/settings"
+              })
+            }
+          })
+        }
+      });
+  </script>
+{% endblock %}

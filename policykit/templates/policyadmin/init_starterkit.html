@@ -61,6 +61,7 @@
     </div>
   </div>
 
+<<<<<<< HEAD
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
@@ -71,6 +72,347 @@
       </select>
     </div>
   </div>
+=======
+            }
+        
+            .brandLogo {
+                width: 60px;
+            }
+        
+            .brandName {
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 2.3em;
+                color: #373456;
+                margin-left: 1vw;
+                line-height: 2.3em;
+                white-space: nowrap;
+            }
+        
+            .communityName {
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 1.6em;
+                color: #373456;
+                margin-left: 0.5vw;
+                line-height: 1.4em;
+                white-space: nowrap;
+            }
+        
+            .titles {
+                width: 272px;
+                height: 31px;
+                left: 584px;
+                top: 184px;
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 2.3em;
+                color: #373456;
+                line-height: 2.3em;
+                text-align: center;
+            }
+        
+            /*.logo {
+                width: 125px;
+                height: 95px;
+                left: 16px;
+                top: 15px;
+                filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+            }*/
+        
+            .button {
+                width: 204px;
+                height: 200px;
+                left: 944px;
+                top: 617px;
+                box-shadow: 10px 10px 4px rgba(0, 0, 0, 0.25);
+                border-radius: 65px;
+            }
+        
+            .button:hover {
+                cursor: pointer;
+            }
+        
+            label {
+                font-family: 'Baloo Da 2', sans-serif;
+                font-weight: bold;
+                font-size: 2.3em;
+                color: #373456;
+                line-height: 2.3em;
+                text-align: center;
+            }
+        
+            .images {
+                display: flex;
+                flex-flow: row wrap;
+                justify-content: center;
+            }
+        
+            .kit {
+                display:flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        
+            .desc {
+                color: #373456;
+                padding: 0% 1%;
+                font-family: 'Karla', sans-serif;
+                font-weight: normal;
+                font-size: 1em;
+                width: 200px;
+                text-align: center;
+            }
+        
+            label {
+                 font-family: 'Karla', sans-serif;
+                 font-weight: normal;
+                 font-size: 1.8em;
+                 color: #373456;
+                 line-height: 1.8em;
+                 display: block;
+                 text-align: center;
+                 line-height: 100%;
+            }
+        
+            /* The Modal (background) */
+            .modal {
+                display: none; /* Hidden by default */
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            }
+        
+            /* Modal Content */
+            .modal-content {
+                position: relative;
+                background-color: #fefefe;
+                margin: auto;
+                padding: 0;
+                border: 1px solid #888;
+                width: 80%;
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+                animation-name: animatetop;
+                animation-duration: 0.4s
+            }
+        
+            /* Add Animation */
+            @keyframes animatetop {
+                from {top: -300px; opacity: 0}
+                to {top: 0; opacity: 1}
+            }
+    
+        
+            /* The Close Button */
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+        
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+        
+            /* Modal Header */
+            .modal-header {
+                padding: 2px 16px;
+                background-color: #4451b2;
+                color: #ffffff;
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
+            /* Modal Body */
+            .modal-body {
+                padding: 2px 16px;
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
+            /* Modal Footer */
+            .modal-footer {
+                padding: 16px 16px;
+                background-color: #4451b2;
+                color: #ffffff;
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
+            h3 {
+                font-family: 'Baloo Da 2', sans-serif;
+            }
+        
+            .rectext {
+                color: FF9502;
+                font-weight: bold;
+                font-family: 'Baloo Da 2', sans-serif;
+                
+            }
+        
+        </style>
+    </head>
+    <body>
+        <div class="brand" id="brand">
+            <img class = "brandLogo" src = {% static "policyengine/img/logo.png" %}>
+            <h2 class = "brandName">PolicyKit</h2>
+            <h3 class = "communityName">| {{ community_name }}</h3>
+        </div>
+        
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2 id = "modalkitname">Testing Starter Kit</h2>
+                </div>
+                <div class="modal-body">
+                    <h3>Policies:</h3>
+                        <ul id = "policylist"></ul>
+                    <h3>Roles:</h3>
+                    <ul id = "rolelist">
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <span class = "rectext">Recommended for: </span><span id = "recfooter"></span><br><br>
+                    <span class = "rectext">Not Recommended for: </span><span id = "notrecfooter"></span>
+                </div>
+            </div>
+        </div>
+        
+        <form action="/main/policyengine/initialize_starterkit?redirect={{redirect|default_if_none:''}}" method="post" name="form" id="form">
+            
+            <label for="starterkit">Choose a System of Governance:</label>
+            <div class="images">
+                <div class = "kit">
+                    <h1 class = "titles">Testing</h1>
+                    <img src={% static "policyengine/img/testing.png" %} class = "button" id = "testing" name="Testing Starter Kit" width = "150" height = "100" onclick = "submitFunc(event)"/>
+                    <p class = "desc">A Starter Kit that gives all members the community complete access to PolicyKit actions. </p>
+                    <button id="testBtn" type="button">More Info</button>
+                </div>
+                
+                <div class = "kit">
+                    <h1 class = "titles">Admin + User</h1>
+                    <img src={% static "policyengine/img/admin.png" %} class = "button" id = "admin" name="Admin and User Starter Kit" onclick = "submitFunc(event)"/>
+                    <p class = "desc"> A Starter Kit that mimics a basic Moderator and User structure.  </p>
+                    <button id="adminBtn" type="button">More Info</button>
+                </div>
+                
+                <div class = "kit">
+                    <h1 class = "titles">Democracy</h1>
+                    <img src={% static "policyengine/img/democracy.png" %} class = "button" id = "democracy" name="Democracy Starter Kit" onclick = "submitFunc(event)"/>
+                    <p class = "desc">A specified population of users votes in order to pass constitution actions</p>
+                    <button id="demoBtn" type="button">More Info</button>
+                </div>
+            
+                <div class = "kit">
+                    <h1 class = "titles">Dictator</h1>
+                    <img src={% static "policyengine/img/dictator.png" %} class = "button" id = "dictator" name="Dictator Starter Kit" onclick = "submitFunc(event)"/>
+                    <p class = "desc">One user is given complete access and control over all policies and actions</p>
+                    <button id="dictBtn" type="button">More Info</button>
+                 </div>
+                
+                <div class = "kit">
+                    <h1 class = "titles">Jury</h1>
+                    <img src={% static "policyengine/img/jury.png" %} class = "button" id = "jury" name="Jury Starter Kit" onclick = "submitFunc(event)"/>
+                    <p class = "desc">A random jury is called upon to vote whenever a constitution action is proposed.</p>
+                    <button id="juryBtn" type="button">More Info</button>
+                </div>
+                
+                <div class = "kit">
+                    <h1 class = "titles">Extra</h1>
+                    <img src={% static "policyengine/img/meritocracy.png" %} class = "button" id = "jury" name="Jury Starter Kit" width = "150" height = "100"/>
+                    <p class = "desc">This does nothing.</p>
+                    <button id="extraBtn" type="button">More Info</button>
+                </div>
+            </div>
+            
+            <input type="hidden" name="starterkit" id="starterkit" value = "">
+            <input type="hidden" name="community_name" value="{{ community_name }}">
+            <input type="hidden" name="platform" value="{{ platform }}">
+            <input type="hidden" name="creator_token" value="{{ creator_token }}">
+        </form>
+        
+        <script>
+            function submitFunc(event) {
+                document.getElementById("starterkit").value = event.target.name;
+                document.getElementById("form").submit();
+            }
+        
+            // Get the modal
+            var modal = document.getElementById("myModal");
+            
+            // Get the button that opens the modal
+            var testBtn = document.getElementById("testBtn");
+            var adminBtn = document.getElementById("adminBtn");
+            var demoBtn = document.getElementById("demoBtn");
+            var dictBtn = document.getElementById("dictBtn");
+            var juryBtn = document.getElementById("juryBtn");
+            var extraBtn = document.getElementById("extraBtn");
+            
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+            
+            // When the user clicks on the button, open the modal
+            testBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Testing Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("All Constitution Actions Pass: all constitution actions pass automatically"));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions pass automatically"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view and propose all actions (platform and constitution actions)"));
+                rolelist.appendChild(role1)
+                
+                document.getElementById("recfooter").innerHTML = "A smaller community of good-faith users looking to test out PolicyKit and gain maximum flexibility in creating subsequent policies and governance structures; community looking to allow members to easily test and experiment with PolicyKit.";
+                document.getElementById("notrecfooter").innerHTML = "Larger communities of users; communities with toxic users; communities that are looking for an immediate and substantial change to the governmental structure.";
+                
+                modal.style.display = "block";
+            }
+        
+            adminBtn.onclick = function() {
+                document.getElementById("modalkitname").innerHTML = "Admin and User Starter Kit";
+                
+                var policylist = document.getElementById('policylist');
+                policylist.innerHTML = '';
+                
+                var policy1 = document.createElement("li");
+                var policy2 = document.createElement("li");
+                
+                policy1.appendChild(document.createTextNode("All Constitution Actions from Moderators Pass: constitution actions pass if proposed by user with Moderator role."));
+                policy2.appendChild(document.createTextNode("All Platform Actions Pass: all platform actions pass automatically"));
+                
+                policylist.appendChild(policy1)
+                policylist.appendChild(policy2)
+                
+                var rolelist = document.getElementById('rolelist');
+                rolelist.innerHTML = '';
+                
+                var role1 = document.createElement("li");
+                var role2 = document.createElement("li");
+                
+                role1.appendChild(document.createTextNode("Base User: can view all actions (platform and constitution actions)"));
+                role2.appendChild(document.createTextNode("Moderator: can view and propose all actions (platform and constitution actions)"));
+>>>>>>> master
 
   <div class="form-row">
     <div class="col-sm-1"></div>

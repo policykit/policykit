@@ -320,7 +320,7 @@ policyengine_functions = [
     'get_all_boolean_votes',
     'get_all_number_votes',
     'get_one_number_votes',
-    'notify_action',
+    'initiate_vote',
     'get_time_elapsed',
     'get_users',
     'genericrole_set.all',

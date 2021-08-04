@@ -1,6 +1,6 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
-from django.contrib.auth.models import Permission, ContentType, User
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
+from django.contrib.auth.models import Permission
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
 from urllib import parse
@@ -98,9 +98,9 @@ class RedditCommunity(CommunityPlatform):
         self.access_token = res['access_token']
         self.save()
 
-    def notify_action(self, action, policy, users=None):
-        from redditintegration.views import post_policy
-        post_policy(policy, action, users)
+    def initiate_vote(self, action, policy, users=None):
+        from redditintegration.views import initiate_action_vote
+        initiate_action_vote(policy, action, users)
 
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall, CommunityUser

@@ -1,12 +1,9 @@
 import json
 import logging
 
-from django.contrib.auth import get_user
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import ContentType, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import (
-    JsonResponse,
     HttpResponse,
     HttpResponseBadRequest,
     HttpResponseServerError,
@@ -14,27 +11,10 @@ from django.http import (
 )
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole, PlatformAction
+from policyengine.models import Community, CommunityPlatform, CommunityRole
 from integrations.slack.models import SlackCommunity
-import integrations.metagov.api as MetagovAPI
 
 logger = logging.getLogger(__name__)
-
-
-@login_required(login_url="/login")
-@csrf_exempt
-def save_config(request):
-    user = get_user(request)
-    community = user.community
-    data = json.loads(request.body)
-
-    try:
-        community_config = MetagovAPI.update_metagov_community(community, data.get("plugins", []))
-    except Exception as e:
-        return HttpResponseBadRequest(e)
-
-    hooks = MetagovAPI.get_webhooks(community)
-    return JsonResponse({"hooks": hooks, "config": community_config})
 
 
 # INTERNAL ENDPOINT, no auth
@@ -137,7 +117,7 @@ def internal_receive_action(request):
     new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])
 
-    # Save to create Proposal and trigger PlatformPolicy evaluations
+    # Save to create Proposal and trigger policy evaluations
     new_api_action.save()
     if not new_api_action.pk:
         return HttpResponseServerError()

@@ -135,7 +135,7 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
-def post_policy(policy, action, users, template=None):
+def initiate_action_vote(policy, action, users, template=None):
     from policyengine.models import LogAPICall
 
     policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'

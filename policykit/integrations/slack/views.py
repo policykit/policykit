@@ -3,7 +3,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
-from integrations.slack.models import SlackCommunity, SlackUser
+from integrations.slack.models import SlackCommunity, SlackUser, SLACK_METHOD_ACTION
 from integrations.slack.utils import get_slack_user_fields
 from policyengine.models import Community, CommunityRole
 from policyengine.utils import get_starterkits_info
@@ -32,26 +32,31 @@ def slack_login(request):
 
 def slack_install(request):
     logger.debug(f"Slack installation completed: {request.GET}")
-    expected_state = request.session.get("community_install_state")
-    if expected_state is None or request.GET.get("state") is None or (not request.GET.get("state") == expected_state):
-        logger.error(f"expected {expected_state}")
-        return redirect("/login?error=bad_state")
-
-    if request.GET.get("error"):
-        return redirect(f"/login?error={request.GET.get('error')}")
 
     # metagov identifier for the "parent community" to install Slack to
     metagov_community_slug = request.GET.get("community")
+    is_new_community = False
+    try:
+        community = Community.objects.get(metagov_slug=metagov_community_slug)
+    except Community.DoesNotExist:
+        logger.debug(f"Community not found: {metagov_community_slug}, creating it")
+        is_new_community = True
+        community = Community.objects.create(metagov_slug=metagov_community_slug)
+
+    # if we're enabling an integration for an existing community, so redirect to the settings page
+    redirect_route = "/login" if is_new_community else "/main/settings"
+
+    expected_state = request.session.get("community_install_state")
+    if expected_state is None or request.GET.get("state") is None or (not request.GET.get("state") == expected_state):
+        logger.error(f"expected {expected_state}")
+        return redirect(f"{redirect_route}?error=bad_state")
+
+    if request.GET.get("error"):
+        return redirect(f"{redirect_route}?error={request.GET.get('error')}")
 
     # TODO(issue): stop passing user id and token
     user_id = request.GET.get("user_id")
     user_token = request.GET.get("user_token")
-
-    try:
-        community = Community.objects.get(metagov_slug=metagov_community_slug)
-    except Community.DoesNotExist:
-        logger.error(f"Community not found: {metagov_community_slug}")
-        return redirect("/login?error=community_not_found")
 
     # Get team info from Slack
     response = requests.post(
@@ -60,7 +65,7 @@ def slack_install(request):
         headers={"X-Metagov-Community": metagov_community_slug},
     )
     if not response.ok:
-        return redirect("/login?error=server_error")
+        return redirect(f"{redirect_route}?error=server_error")
     data = response.json()
     team = data["team"]
     team_id = team["id"]
@@ -89,7 +94,9 @@ def slack_install(request):
 
         # get the list of users, create SlackUser object for each user
         logger.debug(f"Fetching user list for {slack_community}...")
-        response = LogAPICall.make_api_call(slack_community, {}, "users.list")
+        from policyengine.models import LogAPICall
+
+        response = LogAPICall.make_api_call(slack_community, {"method_name": "users.list"}, SLACK_METHOD_ACTION)
         for new_user in response["members"]:
             if (not new_user["deleted"]) and (not new_user["is_bot"]) and (new_user["id"] != "USLACKBOT"):
                 u, _ = SlackUser.objects.get_or_create(
@@ -111,6 +118,8 @@ def slack_install(request):
             "community_name": slack_community.community_name,
             "creator_token": user_token,
             "platform": "slack",
+            # redirect to settings page or login page depending on whether it's a new community
+            "redirect": redirect_route
         }
         return render(request, "policyadmin/init_starterkit.html", context)
 
@@ -143,4 +152,4 @@ def slack_install(request):
                     defaults=user_fields,
                 )
 
-        return redirect("/login?success=true")
+        return redirect(f"{redirect_route}?success=true")

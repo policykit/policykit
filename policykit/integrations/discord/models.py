@@ -1,12 +1,8 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, ConstitutionPolicy, Proposal, PlatformPolicy, CommunityRole
-from django.contrib.auth.models import Permission, ContentType, User
-from policykit.settings import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN
-import urllib
-from urllib import parse
-import urllib.request
-import urllib.error
-import base64
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
+from django.contrib.auth.models import Permission, ContentType
+from policykit.settings import DISCORD_BOT_TOKEN
+import requests
 import json
 import logging
 
@@ -23,8 +19,8 @@ DISCORD_ACTIONS = [
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.
 class DiscordChannel(models.Model):
-    guild_id = models.IntegerField()
-    channel_id = models.IntegerField()
+    guild_id = models.BigIntegerField()
+    channel_id = models.BigIntegerField()
     channel_name = models.TextField()
 
 class DiscordCommunity(CommunityPlatform):
@@ -40,9 +36,15 @@ class DiscordCommunity(CommunityPlatform):
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
-    def notify_action(self, action, policy, users=None, template=None, channel=None):
-        from integrations.discord.views import post_policy
-        post_policy(policy, action, users, template, channel)
+    def notify_action(self, *args, **kwargs):
+        self.initiate_vote(*args, **kwargs)
+
+    def initiate_vote(self, action, policy, users=None, template=None, channel=None):
+        from integrations.discord.views import initiate_action_vote
+        initiate_action_vote(policy, action, users, template, channel)
+
+    def post_message(self, text, channel):
+        return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
 
     def save(self, *args, **kwargs):
         super(DiscordCommunity, self).save(*args, **kwargs)
@@ -52,29 +54,20 @@ class DiscordCommunity(CommunityPlatform):
         for p in perms:
             self.base_role.permissions.add(p)
 
-    def make_call(self, url, values=None, action=None, method=None):
-        data = None
-        if values:
-            data = urllib.parse.urlencode(values)
-            data = data.encode('utf-8')
+    def make_call(self, url, values=None, action=None, method="GET"):
+        response = requests.request(
+            method=method,
+            url=self.API + url,
+            json=values,
+            headers={'Authorization': 'Bot %s' % DISCORD_BOT_TOKEN}
+        )
+        logger.debug(f"Made request to {response.request.method} {response.request.url} with body {response.request.body}")
 
-        req = urllib.request.Request(self.API + url, data, method=method)
-        req.add_header('Authorization', 'Bot %s' % DISCORD_BOT_TOKEN)
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        req.add_header("User-Agent", "Mozilla/5.0") # yes, this is strange. discord requires it when using urllib for some weird reason
-
-        try:
-            resp = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            logger.error('reached HTTPError')
-            logger.error(e.code)
-            error_message = e.read()
-            logger.error(error_message)
-            raise
-
-        res = resp.read().decode('utf-8')
-        if res:
-            return json.loads(res)
+        if not response.ok:
+            logger.error(f"{response.status_code} {response.reason} {response.text}")
+            raise Exception(f"{response.status_code} {response.reason} {response.text}")
+        if response.content:
+            return response.json()
         return None
 
 class DiscordUser(CommunityUser):
@@ -84,11 +77,10 @@ class DiscordUser(CommunityUser):
         group.user_set.add(self)
 
 class DiscordPostMessage(PlatformAction):
-    channel_id = models.IntegerField()
-    message_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
+    message_id = models.BigIntegerField()
     text = models.TextField()
 
-    ACTION = f"channels/{channel_id}/messages"
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
@@ -106,18 +98,17 @@ class DiscordPostMessage(PlatformAction):
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
-            message = self.community.make_call(f"channels/{self.channel_id}/messages", {'content': self.text})
+            message = self.community.post_message(text=self.text, channel=self.channel_id)
 
             self.message_id = message['id']
             self.community_post = self.message_id
             self.save()
 
 class DiscordDeleteMessage(PlatformAction):
-    channel_id = models.IntegerField()
-    message_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
+    message_id = models.BigIntegerField()
     text = models.TextField(blank=True, default='')
 
-    ACTION = f"channels/{channel_id}/messages/{message_id}"
     AUTH = 'user'
 
     action_codename = 'discorddeletemessage'
@@ -144,11 +135,10 @@ class DiscordDeleteMessage(PlatformAction):
             self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
 class DiscordRenameChannel(PlatformAction):
-    channel_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
     name = models.TextField()
     name_old = models.TextField(blank=True, default='')
 
-    ACTION = f"channels/{channel_id}"
     AUTH = 'user'
 
     action_codename = 'discordrenamechannel'
@@ -184,11 +174,9 @@ class DiscordRenameChannel(PlatformAction):
             c.save()
 
 class DiscordCreateChannel(PlatformAction):
-    guild_id = models.IntegerField()
-    channel_id = models.IntegerField(blank=True)
+    channel_id = models.BigIntegerField(blank=True)
     name = models.TextField()
 
-    ACTION = f"guilds/{guild_id}/channels"
     AUTH = 'user'
 
     action_codename = 'discordcreatechannel'
@@ -206,20 +194,21 @@ class DiscordCreateChannel(PlatformAction):
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
         if not self.community_origin or (self.community_origin and self.community_revert):
-            channel = self.community.make_call(f"guilds/{self.guild_id}/channels", {'name': self.name})
+            guild_id = self.community.team_id
+            channel = self.community.make_call(f"guilds/{guild_id}/channels", {'name': self.name}, method="POST")
             self.channel_id = channel['id']
+            self.save()
 
             # Create a new DiscordChannel object
             DiscordChannel.objects.get_or_create(
-                guild_id=self.guild_id,
+                guild_id=guild_id,
                 channel_id=self.channel_id,
                 channel_name=channel['name']
             )
 
 class DiscordDeleteChannel(PlatformAction):
-    channel_id = models.IntegerField()
+    channel_id = models.BigIntegerField()
 
-    ACTION = f"channels/{channel_id}"
     AUTH = 'user'
 
     action_codename = 'discorddeletechannel'

@@ -94,10 +94,11 @@
   .actionPanel {
     width: 90%;
     margin-right: auto;
-    min-height: 40em;
+    max-height: 40em;
     margin-top: 0.5em;
     background-color: #ffffff;
     border-radius: 20px;
+    margin-bottom: 2em;
   }
 
   .actionPanelTitle {
@@ -109,7 +110,7 @@
   .actionPanelContent {
     width: 92%;
     margin-left: 4%;
-    height: 33.5em;
+    max-height: 33.5em;
     overflow: auto;
   }
 
@@ -213,10 +214,26 @@
 <div class="body">
   <div class="leftCol">
     <!--<input type="text" class="searchBar" placeholder="Search">-->
-
-    <!--<div class="actionPanel">
+    <div class="actionPanel">
       <h3 class="actionPanelTitle">Pending actions</h3>
-    </div>-->
+      <div class="actionPanelContent">
+        <table class="table table-hover">
+          <tbody>
+              {% for action in pending_actions %}
+                <tr class="sidebarItem">
+                  <td>{{action|capfirst}} by {{action.initiator}}</td>
+                  <td>{{action.proposal.proposal_time|timesince}} ago</td>
+                </tr>
+              {% empty %}
+                <tr class="sidebarItem">
+                  <td>No pending actions.</td>
+                </tr>
+              {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="actionPanel">
       <h3 class="actionPanelTitle">Recent actions</h3>
       <div class="actionPanelContent">
@@ -224,8 +241,12 @@
           <tbody>
             {% for action in action_log %}
               <tr class="sidebarItem">
-                <td>{{action.actor}}</td>
-                <td>{{action.time_elapsed}} ago</td>
+                <td>{{action.actor|capfirst}} {{action.verb|default_if_none:""}}</td>
+                <td>{{action.timesince}} ago</td>
+              </tr>
+            {% empty %}
+              <tr class="sidebarItem">
+                <td>No recent actions.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -300,6 +321,10 @@
               {% for key, value in docs.items %}
                 <tr id="document_{{key}}" class="sidebarItem">
                   <td>{{value.name}}</td>
+                </tr>
+              {% empty %}
+                <tr class="sidebarItem">
+                  <td>No documents.</td>
                 </tr>
               {% endfor %}
             </tbody>

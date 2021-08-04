@@ -1,12 +1,8 @@
 import json
 import logging
 import requests
-from django.conf import settings
-from django.contrib.auth.models import ContentType, Permission, User
 from django.db import models
-from policyengine.models import (CommunityPlatform, CommunityRole, CommunityUser,
-                                 ConstitutionPolicy, PlatformAction,
-                                 PlatformPolicy, Proposal)
+from policyengine.models import CommunityUser, PlatformAction, Policy
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +21,8 @@ class MetagovProcess(models.Model):
     """
 
     location = models.CharField(max_length=100, blank=True)
-    json_data = models.CharField(max_length=500, blank=True, null=True)
-    policy = models.ForeignKey(PlatformPolicy, on_delete=models.CASCADE)
+    json_data = models.CharField(max_length=2000, blank=True, null=True)
+    policy = models.ForeignKey(Policy, on_delete=models.CASCADE)
     action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
 
     class Meta:
@@ -100,7 +96,7 @@ class MetagovPlatformAction(PlatformAction):
 
     action_codename = "metagovaction"
     app_name = "metagov"
-    json_data = models.CharField(max_length=500, blank=True, null=True)
+    json_data = models.CharField(max_length=2000, blank=True, null=True)
     event_type = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):

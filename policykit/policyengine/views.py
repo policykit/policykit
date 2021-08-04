@@ -1,20 +1,21 @@
 from django.conf import settings
+from actstream import action as actstream_action
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http.response import HttpResponseForbidden, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.forms import modelform_factory
-from django.apps import apps
 from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
-from policyengine.utils import find_action_cls, get_action_codenames
+from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url
+from policyengine.integration_data import integration_data
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
-from urllib.parse import quote
-import random
+
 import logging
 import json
 import html
@@ -30,29 +31,12 @@ def authorize_platform(request):
     platform = request.GET.get('platform')
     if not platform or platform != "slack":
         return HttpResponseBadRequest()
-
-    from policyengine.models import Community
-    community = Community.objects.create()
-    logger.info(f"Initiating authorization flow to install '{platform}' to new community '{community}'.")
-
-    # Initiate authorization flow to install Metagov to platform.
-    # On successful completion, the Metagov Slack plugin will be enabled for the community.
-
-    # redirect_uri is the endpoint that will create the SlackCommunity after the authorization succeeds
-    redirect_uri = f"{settings.SERVER_URL}/{platform}/install"
-    encoded_redirect_uri = quote(redirect_uri, safe='')
-
-    # store state in user's session so we can validate it later
-    state = "".join([str(random.randint(0, 9)) for i in range(8)])
-    request.session['community_install_state'] = state
-
-    # redirect to metagov to authorize the app
-    url = f"{settings.METAGOV_URL}/auth/{platform}/authorize?type=app&community={community.metagov_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
+    url = construct_authorize_install_url(request, integration=platform)
     return HttpResponseRedirect(url)
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import CommunityUser
+    from policyengine.models import CommunityUser, PlatformAction
 
     user = get_user(request)
     user.community = user.community
@@ -123,15 +107,8 @@ def v2(request):
                 'fail': cp.fail
             }
 
-    action_log_data = []
-    logger.info(f'Number of action objects: {Action.objects.all().count()}')
-    for action in Action.objects.filter(data__community_id=user.community.id):
-        action_data = {
-            'actor': action.actor,
-            'verb': action.verb,
-            'time_elapsed': action.timesince
-        }
-        action_log_data.append(action_data)
+    action_log = Action.objects.filter(data__community_id=user.community.id)[:20]
+    pending_actions = PlatformAction.objects.filter(community=user.community, proposal__status="proposed")
 
     return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
@@ -141,7 +118,8 @@ def v2(request):
         'docs': doc_data,
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
-        'action_log': action_log_data
+        'action_log': action_log,
+        'pending_actions': pending_actions
     })
 
 def logout(request):
@@ -160,20 +138,116 @@ def settings_page(request):
         'user': get_user(request),
     }
 
-    # If user is permitted to edit Metagov config, add additional context
-    if user.has_perm("metagov.can_edit_metagov_config") and community.metagov_slug:
+    if community.metagov_slug:
         result = MetagovAPI.get_metagov_community(community.metagov_slug)
-        context['metagov_config'] = json.dumps(result)
-        context['plugin_schemas'] = json.dumps(MetagovAPI.get_plugin_config_schemas())
         context['metagov_server_url'] = settings.METAGOV_URL
         context['metagov_community_slug'] = community.metagov_slug
+        enabled_integrations = {}
+        for plugin in result["plugins"]:
+            integration = plugin["name"]
+            if integration not in integration_data.keys():
+                logger.warn(f"unsupported integration {integration} is enabled for community {community}")
+                continue
+        
+            # Only include configs if user has privileged metagov config role, since they may contain API Keys
+            config_tuples = []
+            if user.has_perm("metagov.can_edit_metagov_config"):
+                config = plugin["config"]
+                for (k,v) in config.items():
+                    readable_key = k.replace("_", " ").replace("-", " ").capitalize()
+                    config_tuples.append((readable_key, v))
+            data = {
+                **plugin,
+                **integration_data[integration],
+                "config": config_tuples
+            }
+            enabled_integrations[integration] = data
+
+        disabled_integrations = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
+
+        context["enabled_integrations"] = enabled_integrations.items()
+        context["disabled_integrations"] = disabled_integrations
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
 
+@login_required(login_url="/login")
+@csrf_exempt
+def add_integration(request):
+    """
+    This view renders a form for enabling an integration, OR initiates an oauth install flow.
+    """
+    integration = request.GET.get("integration")
+    user = get_user(request)
+    community = user.community
+    metadata = MetagovAPI.get_plugin_metadata(integration)
+
+    if metadata["auth_type"] == "oauth":
+        url = construct_authorize_install_url(request, integration=integration, community=community)
+        return HttpResponseRedirect(url)
+
+    context = {
+        "integration": integration,
+        "metadata": metadata,
+        "metadata_string": json.dumps(metadata),
+        "additional_data": integration_data[integration]
+    }
+    return render(request, 'policyadmin/dashboard/integration_settings.html', context)
+
+
+@login_required(login_url="/login")
+@csrf_exempt
+def enable_integration(request):
+    """
+    API Endpoint to enable a Metagov plugin (called on config form submission from JS)
+    """
+    name = request.GET.get("name") # name of the plugin
+    user = get_user(request)
+    community = user.community
+
+    if not user.has_perm("metagov.can_edit_metagov_config"):
+        return HttpResponseForbidden()
+
+    assert name is not None
+    config = json.loads(request.body)
+    logger.warn(f"Making request to enable {name} with config {config}")
+    res = MetagovAPI.enable_plugin(community.metagov_slug, name, config)
+    logger.debug(res)
+    return JsonResponse(res, safe=False)
+
+@login_required(login_url="/login")
+@csrf_exempt
+def disable_integration(request):
+    """
+    API Endpoint to disable a Metagov plugin (navigated to from Settings page)
+    """
+    # name of the plugin
+    name = request.GET.get("name")
+    # id of the plugin (for disabling only)
+    id = request.GET.get("id")
+    assert id is not None and name is not None
+
+    user = get_user(request)
+    community = user.community
+
+    if not user.has_perm("metagov.can_edit_metagov_config"):
+        logger.error(f"User {user} does not have permission to disable plugin.")
+        return redirect("/main/settings?error=not_permitted")
+
+    # hack: disallow disabling the plugin if the user is logged in with it
+    if community.platform == name:
+        return redirect("/main/settings?error=not_permitted")
+
+    # Temporary: disallow disabling the plugins that have a corresponding PlatformCommunity.
+    # We would need to delete the SlackCommunity as well, which we should show a warning for!
+    if community.platform == "slack":
+        return redirect("/main/settings?error=not_permitted")
+
+    logger.debug(f"Deleting plugin {name} {id}")
+    MetagovAPI.delete_plugin(name=name, id=id)
+    return redirect("/main/settings")
+
 @login_required(login_url='/login')
 def editor(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy
-
     type = request.GET.get('type')
     operation = request.GET.get('operation')
     policy_id = request.GET.get('policy')
@@ -186,12 +260,11 @@ def editor(request):
     }
 
     if policy_id:
+        from policyengine.models import Policy
         policy = None
-        if type == 'Platform':
-            policy = PlatformPolicy.objects.filter(id=policy_id)[0]
-        elif type == 'Constitution':
-            policy = ConstitutionPolicy.objects.filter(id=policy_id)[0]
-        else:
+        try:
+            policy = Policy.objects.get(id=policy_id)
+        except Policy.DoesNotExist:
             return HttpResponseBadRequest()
 
         data['policy'] = policy_id
@@ -341,7 +414,7 @@ def documenteditor(request):
 def actions(request):
     user = get_user(request)
     app_names = [user.community.platform] # TODO: show actions for other connected platforms
-    actions = [(app_name, get_action_codenames(app_name)) for app_name in app_names]
+    actions = [(app_name, get_action_classes(app_name)) for app_name in app_names]
     return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
@@ -392,7 +465,7 @@ def evaluation_logger(policy, action, level="DEBUG"):
     """
     level_num = getattr(logging, level)
     def log(msg):
-        message = f"[{action}][{policy}] {msg}"
+        message = f"[{action} ({action.pk})][{policy} ({policy.pk})] {msg}"
         db_logger.log(level_num, message, {"community": policy.community})
         logger.log(level_num, message)
     return log
@@ -539,6 +612,7 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
+<<<<<<< HEAD
     """
     Takes a request object containing starter-kit information.
     Initializes the community with the selected starter kit.
@@ -627,6 +701,27 @@ def initialize_starterkit(request):
     f.close()
 
     return HttpResponse()
+=======
+    from policyengine.models import StarterKit, CommunityPlatform
+
+    starterkit_name = request.POST['starterkit']
+    community_name = request.POST['community_name']
+    creator_token = request.POST['creator_token']
+    platform = request.POST['platform']
+
+    starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
+
+    community = CommunityPlatform.objects.get(community_name=community_name)
+    starter_kit.init_kit(community, creator_token)
+
+    logger.info('starterkit initialized')
+
+    redirect_route = request.GET.get("redirect")
+    if redirect_route:
+        return redirect(f"{redirect_route}?success=true")
+
+    return redirect('/login?success=true')
+>>>>>>> master
 
 @csrf_exempt
 def error_check(request):
@@ -643,7 +738,7 @@ def error_check(request):
 
 @csrf_exempt
 def policy_action_save(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
+    from policyengine.models import Policy, PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -657,10 +752,18 @@ def policy_action_save(request):
         action.is_bundled = data['is_bundled']
     elif data['type'] == 'Constitution' and data['operation'] == 'Change':
         action = PolicykitChangeConstitutionPolicy()
-        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
+        try:
+            policy = Policy.objects.get(pk=data['policy'])
+        except Policy.DoesNotExist:
+            return HttpResponseNotFound()
+        action.constitution_policy = policy
     elif data['type'] == 'Platform' and data['operation'] == 'Change':
         action = PolicykitChangePlatformPolicy()
-        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+        try:
+            policy = Policy.objects.get(pk=data['policy'])
+        except Policy.DoesNotExist:
+            return HttpResponseNotFound()
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 
@@ -674,24 +777,32 @@ def policy_action_save(request):
     action.notify = data['notify']
     action.success = data['success']
     action.fail = data['fail']
-    action.save()
+    try:
+        action.save()
+    except Exception as e:
+        logger.error(f"Error saving policy: {e}")
+        return HttpResponseBadRequest()
 
     return HttpResponse()
 
 @csrf_exempt
 def policy_action_remove(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
+    from policyengine.models import Policy, PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
 
     action = None
-    if data['type'] == 'Constitution':
+    try:
+        policy = Policy.objects.get(pk=data['policy'])
+    except Policy.DoesNotExist:
+        return HttpResponseNotFound()
+    if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
-        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
-    elif data['type'] == 'Platform':
+        action.constitution_policy = policy
+    elif policy.kind == Policy.PLATFORM:
         action = PolicykitRemovePlatformPolicy()
-        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 
@@ -703,18 +814,22 @@ def policy_action_remove(request):
 
 @csrf_exempt
 def policy_action_recover(request):
-    from policyengine.models import PlatformPolicy, ConstitutionPolicy, PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
+    from policyengine.models import Policy, PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
 
     action = None
-    if data['type'] == 'Constitution':
+    try:
+        policy = Policy.objects.get(pk=data['policy'])
+    except Policy.DoesNotExist:
+        return HttpResponseNotFound()
+    if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
-        action.constitution_policy = ConstitutionPolicy.objects.get(id=data['policy'])
-    elif data['type'] == 'Platform':
+        action.constitution_policy = policy
+    elif policy.kind == Policy.PLATFORM:
         action = PolicykitRecoverPlatformPolicy()
-        action.platform_policy = PlatformPolicy.objects.get(id=data['policy'])
+        action.platform_policy = policy
     else:
         return HttpResponseBadRequest()
 
@@ -966,6 +1081,7 @@ def _execute_policy(policy, action, is_first_evaluation: bool):
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
     if check_result == Proposal.PROPOSED and is_first_evaluation:
+        actstream_action.send(action, verb='was proposed', community_id=action.community.id, action_codename=action.action_codename)
         # Run "notify" block of policy
         debug(f"Notifying")
         notify_policy(policy, action, **optional_args)
