@@ -625,6 +625,7 @@ def initialize_starterkit(request):
 
     kit_data = json.loads(f.read())
 
+    # TODO: Community name is not necessarily unique! Should use pk instead.
     community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
 
     # Initialize platform policies from starter kit
