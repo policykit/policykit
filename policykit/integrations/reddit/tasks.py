@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
-from policyengine.models import Proposal, LogAPICall, PlatformAction, BooleanVote
+from policyengine.models import PolicyEvaluation, LogAPICall, PlatformAction, BooleanVote
 from integrations.reddit.models import RedditCommunity, RedditUser, RedditMakePost
 import datetime
 import logging
@@ -66,12 +66,13 @@ def reddit_listener_actions():
             action.save() # save triggers policy evaluation
 
         # Manage proposals
-        proposed_actions = PlatformAction.objects.filter(
-            community=community,
-            proposal__status=Proposal.PROPOSED,
-            community_post__isnull=False
+        pending_evaluations = PolicyEvaluation.objects.filter(
+            status=PolicyEvaluation.PROPOSED,
+            action__community=community,
+            action__community_post__isnull=False
         )
-        for proposed_action in proposed_actions:
+        for evaluation in pending_evaluations:
+            proposed_action = evaluation.action
             id = proposed_action.community_post.split('_')[1]
 
             call = 'r/policykit/comments/' + id + '.json'
@@ -98,7 +99,7 @@ def reddit_listener_actions():
 
                     if u.exists():
                         u = u[0]
-                        bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal,
+                        bool_vote = BooleanVote.objects.filter(evaluation=evaluation,
                                                                user=u)
                         if bool_vote.exists():
                             vote = bool_vote[0]
@@ -106,7 +107,7 @@ def reddit_listener_actions():
                                 vote.boolean_value = val
                                 vote.save()
                         else:
-                            b = BooleanVote.objects.create(proposal=proposed_action.proposal,
+                            b = BooleanVote.objects.create(evaluation=evaluation,
                                                            user=u,
                                                            boolean_value=val)
                             logger.info('created vote')

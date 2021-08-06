@@ -270,15 +270,18 @@ def handle_event(name, data):
         if name == 'MESSAGE_REACTION_ADD':
             action_res = PlatformAction.objects.filter(community_post=data['message_id'])
             action_res = action_res or ConstitutionAction.objects.filter(community_post=data['message_id'])
-            # logger.debug(action_res.get())
-            if action_res.exists():
-                action = action_res[0]
+            if not action_res.exists():
+                return
+            action = action_res[0]
+            evaluation_res = PolicyEvaluation.objects.filter(action=action, status=PolicyEvaluation.PROPOSED)
+            if evaluation_res.exists():
+                evaluation = evaluation_res[0]
                 reaction = data['emoji']['name']
                 if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                     val = (reaction == EMOJI_LIKE)
                     user = DiscordUser.objects.get(username=f"{data['user_id']}:{data['guild_id']}",
                                                                community=action.community)
-                    vote = BooleanVote.objects.filter(proposal=action.proposal, user=user)
+                    vote = BooleanVote.objects.filter(evaluation=evaluation, user=user)
 
                     if vote.exists():
                         vote = vote[0]
@@ -286,7 +289,7 @@ def handle_event(name, data):
                         vote.save()
 
                     else:
-                        vote = BooleanVote.objects.create(proposal=action.proposal,
+                        vote = BooleanVote.objects.create(evaluation=evaluation,
                                                           user=user,
                                                           boolean_value=val)
 

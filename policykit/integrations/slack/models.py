@@ -16,7 +16,7 @@ from policyengine.models import (
     NumberVote,
     PlatformAction,
     PlatformActionBundle,
-    Proposal,
+    PolicyEvaluation,
     StarterKit,
 )
 
@@ -89,7 +89,14 @@ class SlackCommunity(CommunityPlatform):
         self.initiate_vote(*args, **kwargs)
 
     def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
-        SlackUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
+        # TODO: pass evaluation to initiate_vote so we don't need to do this lookup.
+        evaluation = PolicyEvaluation.objects.get(action=action, policy=policy)
+        community_post_ts = SlackUtils.start_emoji_vote(evaluation, users, post_type, template, channel)
+        logger.debug(
+            f"Saving action with community_post '{community_post_ts}', and process at {evaluation.governance_process_url}"
+        )
+        action.community_post = community_post_ts
+        action.save()
 
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""
@@ -106,8 +113,6 @@ class SlackCommunity(CommunityPlatform):
         return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.views import clean_up_proposals
-
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -138,7 +143,6 @@ class SlackCommunity(CommunityPlatform):
                 self.__make_generic_api_call(call, data)
             except Exception as e:
                 logger.error(f"Error making API call in execute_platform_action: {e}")
-                clean_up_proposals(action, False)
                 raise
 
             # delete PolicyKit Post
@@ -158,8 +162,6 @@ class SlackCommunity(CommunityPlatform):
                         "channel": obj.channel,
                     }
                     self.__make_generic_api_call("chat.delete", values)
-
-        clean_up_proposals(action, True)
 
     def handle_metagov_event(self, outer_event):
         """
@@ -192,16 +194,23 @@ class SlackCommunity(CommunityPlatform):
         action = PlatformAction.objects.filter(community=self, community_post=ts).first()
         action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
         if action is not None:
+            try:
+                evaluation = PolicyEvaluation.objects.get(action=action)
+            except PolicyEvaluation.DoesNotExist:
+                logger.warn(
+                    f"No policy evaluation found for slack.emoji-vote action {action}, ignoring Metagov process {process.get('id')}"
+                )
+                return
             # Expect this process to be a boolean vote on an action.
             for (k, v) in votes.items():
                 assert k == "yes" or k == "no"
                 reaction_bool = True if k == "yes" else False
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
+                    existing_vote = BooleanVote.objects.filter(evaluation=evaluation, user=user).first()
                     if existing_vote is None:
                         logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
-                        BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=reaction_bool)
+                        BooleanVote.objects.create(evaluation=evaluation, user=user, boolean_value=reaction_bool)
                     elif existing_vote.boolean_value != reaction_bool:
                         logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
                         existing_vote.boolean_value = reaction_bool
@@ -212,14 +221,23 @@ class SlackCommunity(CommunityPlatform):
             bundled_actions = list(action_bundle.bundled_actions.all())
             for (k, v) in votes.items():
                 num, voted_action = [(idx, a) for (idx, a) in enumerate(bundled_actions) if str(a) == k][0]
+
+                try:
+                    evaluation = PolicyEvaluation.objects.get(action=voted_action)
+                except PolicyEvaluation.DoesNotExist:
+                    logger.warn(
+                        f"No policy evaluation found action {voted_action} bundled in {action_bundle}. Ignoring"
+                    )
+                    return
+
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
+                    existing_vote = NumberVote.objects.filter(evaluation=evaluation, user=user).first()
                     if existing_vote is None:
                         logger.debug(
                             f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
                         )
-                        NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
+                        NumberVote.objects.create(evaluation=evaluation, user=user, number_value=num)
                     elif existing_vote.number_value != num:
                         logger.debug(
                             f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
@@ -433,9 +451,6 @@ class SlackStarterKit(StarterKit):
             p.fail = policy.fail
             p.description = policy.description
             p.name = policy.name
-
-            proposal = Proposal.objects.create(status=Proposal.PASSED)
-            p.proposal = proposal
             p.save()
 
         for role in self.genericrole_set.all():

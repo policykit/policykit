@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, PolicyEvaluation, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
@@ -254,9 +254,6 @@ class DiscordStarterKit(StarterKit):
             p.fail = policy.fail
             p.description = policy.description
             p.name = policy.name
-
-            proposal = Proposal.objects.create(status=Proposal.PASSED)
-            p.proposal = proposal
             p.save()
 
         for role in self.genericrole_set.all():

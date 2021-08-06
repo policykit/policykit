@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, PolicyEvaluation, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
 import urllib
 import urllib.request
@@ -67,8 +67,7 @@ class DiscourseCommunity(CommunityPlatform):
         return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.models import LogAPICall, CommunityUser
-        from policyengine.views import clean_up_proposals
+        from policyengine.models import LogAPICall
 
         obj = action
 
@@ -115,14 +114,9 @@ class DiscourseCommunity(CommunityPlatform):
                     call = 'posts/{0}.json'.format(posted_action.community_post)
                     _ = LogAPICall.make_api_call(self, data, call)
 
-            if res['ok']:
-                clean_up_proposals(action, True)
-            else:
+            if not res['ok']:
                 error_message = res['error']
                 logger.info(error_message)
-                clean_up_proposals(action, False)
-        else:
-            clean_up_proposals(action, True)
 
 class DiscourseUser(CommunityUser):
     def save(self, *args, **kwargs):
@@ -211,9 +205,6 @@ class DiscourseStarterKit(StarterKit):
             p.fail = policy.fail
             p.description = policy.description
             p.name = policy.name
-
-            proposal = Proposal.objects.create(status=Proposal.PASSED)
-            p.proposal = proposal
             p.save()
 
         for role in self.genericrole_set.all():

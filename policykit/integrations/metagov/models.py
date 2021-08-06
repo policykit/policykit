@@ -1,57 +1,10 @@
 import json
 import logging
 
-import requests
 from django.db import models
-from policyengine.models import CommunityUser, PlatformAction, Policy
+from policyengine.models import CommunityUser, PlatformAction
 
 logger = logging.getLogger(__name__)
-
-
-class MetagovProcessData(object):
-    def __init__(self, obj):
-        self.status = obj.get("status")
-        self.errors = obj.get("errors")
-        self.outcome = obj.get("outcome")
-
-
-class MetagovProcess(models.Model):
-    """
-    Represents a governance process in Metagov. The governance process is tied to the unique
-    "evaluation," or policy:action combination, that kicked it off using `start`.
-    """
-
-    location = models.CharField(max_length=100, blank=True)
-    json_data = models.CharField(max_length=2000, blank=True, null=True)
-    policy = models.ForeignKey(Policy, on_delete=models.CASCADE)
-    action = models.ForeignKey(PlatformAction, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ["policy", "action"]
-
-    @property
-    def data(self) -> MetagovProcessData:
-        """
-        A ``MetagovProcessData`` object with ``status`, ``errors``, and ``outcome``.
-        This is the most recent data that we've received from Metagov at the Callback URL (post_outcome view).
-        """
-        if self.json_data:
-            data = json.loads(self.json_data)
-            return MetagovProcessData(data)
-        return None
-
-    def close(self):
-        if self.data.status == "completed":
-            # it's already closed, do nothing
-            return
-
-        logger.info(f"Making request to close process at '{self.location}'")
-        response = requests.delete(self.location)
-        if not response.ok:
-            raise Exception(f"Error closing process: {response.status_code} {response.reason} {response.text}")
-        logger.info(response.text)
-        self.json_data = response.text
-        self.save()
 
 
 class MetagovUser(CommunityUser):

@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
-from policyengine.views import govern_action
+from policyengine import engine
 from datetime import datetime, timezone
 import json
 import logging
@@ -363,8 +363,8 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
-class Proposal(models.Model):
-    """Proposal"""
+class PolicyEvaluation(models.Model):
+    """PolicyEvaluation"""
 
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -376,17 +376,32 @@ class Proposal(models.Model):
     ]
 
     proposal_time = models.DateTimeField(auto_now_add=True)
-    """Datetime object representing when the proposal was created."""
+    """Datetime object representing when the first evaluation started."""
 
     status = models.CharField(choices=STATUS, max_length=10)
-    """Status of the proposal. One of PROPOSED, PASSED or FAILED."""
+    """Status of the evaluation. One of PROPOSED, PASSED or FAILED."""
+
+    policy = models.ForeignKey('Policy', on_delete=models.SET_NULL, editable=False, blank=True, null=True)
+    """The policy that is being evaluated."""
+
+    action = models.ForeignKey('BaseAction', on_delete=models.CASCADE, editable=False)
+    """The action that triggered the evaluation."""
 
     governance_process_url = models.URLField(max_length=100, blank=True)
-    """URL for the GovernanceProcess that is being used to make a decision about this Proposal"""
+    """URL for the GovernanceProcess that is being used to make a decision about this PolicyEvaluation"""
+
+    governance_process_json = models.JSONField(max_length=1000, null=True, blank=True)
+    """Serialized Metagov governance process"""
+
+    data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
+    """The datastore containing any additional data to persist for the evaluation."""
+
+    def __str__(self):
+        return f"PolicyEvaluation {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
     def get_time_elapsed(self):
         """
-        Returns a datetime object representing the time elapsed since the proposal's creation.
+        Returns a datetime object representing the time elapsed since the first evaluation.
         """
         return datetime.now(timezone.utc) - self.proposal_time
 
@@ -395,69 +410,79 @@ class Proposal(models.Model):
         For Boolean voting. Returns all boolean votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return BooleanVote.objects.filter(proposal=self, user__in=users)
-        return BooleanVote.objects.filter(proposal=self)
+            return BooleanVote.objects.filter(evaluation=self, user__in=users)
+        return BooleanVote.objects.filter(evaluation=self)
 
     def get_yes_votes(self, users=None):
         """
         For Boolean voting. Returns the yes votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return BooleanVote.objects.filter(boolean_value=True, proposal=self, user__in=users)
-        return BooleanVote.objects.filter(boolean_value=True, proposal=self)
+            return BooleanVote.objects.filter(boolean_value=True, evaluation=self, user__in=users)
+        return BooleanVote.objects.filter(boolean_value=True, evaluation=self)
 
     def get_no_votes(self, users=None):
         """
         For Boolean voting. Returns the no votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users)
-        return BooleanVote.objects.filter(boolean_value=False, proposal=self)
+            return BooleanVote.objects.filter(boolean_value=False, evaluation=self, user__in=users)
+        return BooleanVote.objects.filter(boolean_value=False, evaluation=self)
 
     def get_all_number_votes(self, users=None):
         """
         For Number voting. Returns all number votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return NumberVote.objects.filter(proposal=self, user__in=users)
-        return NumberVote.objects.filter(proposal=self)
+            return NumberVote.objects.filter(evaluation=self, user__in=users)
+        return NumberVote.objects.filter(evaluation=self)
 
     def get_one_number_votes(self, value, users=None):
         """
         For Number voting. Returns number votes for the specified value as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)
-        return NumberVote.objects.filter(number_value=value, proposal=self)
+            return NumberVote.objects.filter(number_value=value, evaluation=self, user__in=users)
+        return NumberVote.objects.filter(number_value=value, evaluation=self)
 
     def save(self, *args, **kwargs):
         """
-        Saves the proposal. Note: Only meant for internal use.
+        Saves the evaluation. Note: Only meant for internal use.
         """
         if not self.pk:
             self.data = DataStore.objects.create()
-        super(Proposal, self).save(*args, **kwargs)
+        super(PolicyEvaluation, self).save(*args, **kwargs)
 
-    def close_governance_process(self):
-        if not self.governance_process_url:
-            return
-        response = requests.delete(self.governance_process_url)
-        if not response.ok:
-            logger.error(f"Error closing process: {response.status_code} {response.reason} {response.text}")
-        logger.debug(f"Closed governance process: {response.text}")
+    def pass_action(self):
+        """
+        Sets the evaluation to PASSED.
+        """
+        self.status = PolicyEvaluation.PASSED
+        self.save()
+        action = self.action
+        actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_codename)
+
+    def fail_action(self):
+        """
+        Sets the evaluation to FAILED.
+        """
+        self.status = PolicyEvaluation.FAILED
+        self.save()
+        action = self.action
+        actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_codename)
 
 
-class BaseAction(models.Model):
+class BaseAction(PolymorphicModel):
     """Base Action"""
 
     community = models.ForeignKey(CommunityPlatform, models.CASCADE, verbose_name='community')
     """The community in which the action is taking place."""
 
+    initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
+    """The User who initiated the action. May not exist if initiated by PolicyKit."""
+
     community_post = models.CharField('community_post', max_length=300, null=True)
     """The notification which is sent to the community to alert them of the action. May or may not exist."""
-
-    proposal = models.OneToOneField(Proposal, models.CASCADE)
-    """The proposal in which the action was proposed."""
 
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
@@ -465,90 +490,32 @@ class BaseAction(models.Model):
     app_name = 'policyengine'
     """The name of the application sending the action."""
 
-    data = models.OneToOneField(DataStore,
-        models.CASCADE,
-        verbose_name='data',
-        null=True,
-        blank=True
-    )
-    """The datastore containing any additional data for the action. May or may not exist."""
+    action_codename = ''
+    """The codename of the action."""
 
-    class Meta:
-        abstract = True
+    def save(self, *args, **kwargs):
+        """
+        Saves the action. If new, evaluates against current policies. Note: Only meant for internal use.
+        """
+        if not self.pk:
+            # Runs if initiator has propose permission, OR if there is no initiator.
+            can_propose_perm = self._meta.app_label + '.add_' + self.action_codename
+            if not self.initiator or self.initiator.has_perm(can_propose_perm):
+                super(BaseAction, self).save(*args, **kwargs)
+                engine.govern_action(self)
+
+        super(BaseAction, self).save(*args, **kwargs)
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
-
-    # NOTE: Why is this duplicated here?
-    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
-
-    # NOTE: Should be moved to BaseAction
-    initiator = models.ForeignKey(CommunityUser, models.CASCADE, null=True)
-    """The User who initiated the action. May not exist if initiated by PolicyKit."""
-
-    # NOTE: Why is this duplicated here?
-    is_bundled = models.BooleanField(default=False)
 
     # NOTE: Should be moved to BaseAction
     action_type = "ConstitutionAction"
     """Type of action (Constitution or Platform)."""
 
-    # FIXME: Move this to BaseAction
-    action_codename = ''
-    """The codename of the action."""
-
     class Meta:
         verbose_name = 'constitutionaction'
         verbose_name_plural = 'constitutionactions'
-
-    def pass_action(self):
-        """
-        Sets the action's proposal to PASSED.
-        """
-        self.proposal.status = Proposal.PASSED
-        self.proposal.save()
-        actstream_action.send(self, verb='was passed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def fail_action(self):
-        """
-        Sets the action's proposal to FAILED.
-        """
-        self.proposal.status = Proposal.FAILED
-        self.proposal.save()
-        actstream_action.send(self, verb='was failed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def shouldCreate(self):
-        """
-        True if the action needs to be created. Note: Only meant for internal use.
-        """
-        return not self.pk # Runs only when object is new
-
-    def save(self, *args, **kwargs):
-        """
-        Saves the action. If new, checks it against current passed policies. Note: Only meant for internal use.
-        """
-        if self.shouldCreate():
-            if self.data is None:
-                self.data = DataStore.objects.create()
-
-            #runs only if they have propose permission
-            if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                if hasattr(self, 'proposal'):
-                    self.proposal.status = Proposal.PROPOSED
-                else:
-                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED)
-                super(ConstitutionAction, self).save(*args, **kwargs)
-
-                if not self.is_bundled:
-                    govern_action(self, is_first_evaluation=True)
-            else:
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
-                super(ConstitutionAction, self).save(*args, **kwargs)
-        else:
-            if not self.pk: # Runs only when object is new
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
-            super(ConstitutionAction, self).save(*args, **kwargs)
-
 
 class ConstitutionActionBundle(BaseAction):
     ELECTION = 'election'
@@ -567,29 +534,10 @@ class ConstitutionActionBundle(BaseAction):
         if self.bundle_type == ConstitutionActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 action.execute()
-                action.pass_action()
-
-    def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
-
-    def fail_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.FAILED
-        proposal.save()
 
     class Meta:
         verbose_name = 'constitutionactionbundle'
         verbose_name_plural = 'constitutionactionbundles'
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            action = self
-            if action.initiator.has_perm(action._meta.app_label + '.add_' + action._meta.verbose_name):
-                govern_action(action, is_first_evaluation=True)
-
-        super(ConstitutionActionBundle, self).save(*args, **kwargs)
 
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
@@ -1027,29 +975,16 @@ class PlatformAction(BaseAction, PolymorphicModel):
     ACTION = None
     AUTH = 'app'
 
-    # NOTE: Why is this duplicated here?
-    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
-
-    # FIXME: Should be moved to BaseAction
-    initiator = models.ForeignKey(CommunityUser, models.CASCADE)
-    """The User who initiated the action. May not exist if initiated by PolicyKit."""
-
     community_revert = models.BooleanField(default=False)
     """True if the action has been reverted on the platform."""
 
     community_origin = models.BooleanField(default=False)
     """True if the action originated on the platform."""
 
-    # NOTE: Why is this duplicated here?
-    is_bundled = models.BooleanField(default=False)
-
     # FIXME: Should be moved to BaseAction
+    # FIXME remove action_type
     action_type = "PlatformAction"
     """Type of action (Constitution or Platform)."""
-
-    # FIXME: Should be moved to BaseAction
-    action_codename = ''
-    """The codename of the action."""
 
     readable_name = ''
     """Readable name of the action type."""
@@ -1077,44 +1012,6 @@ class PlatformAction(BaseAction, PolymorphicModel):
         """
         self.community.execute_platform_action(self)
 
-    def pass_action(self):
-        """
-        Sets the action's proposal to PASSED.
-        """
-        self.proposal.status = Proposal.PASSED
-        self.proposal.save()
-        actstream_action.send(self, verb='was passed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def fail_action(self):
-        """
-        Sets the action's proposal to FAILED.
-        """
-        self.proposal.status = Proposal.FAILED
-        self.proposal.save()
-        actstream_action.send(self, verb='was failed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def save(self, *args, **kwargs):
-        """
-        Saves the action. If new, checks it against current passed policies. Note: Only meant for internal use.
-        """
-        if not self.pk:
-            if self.data is None:
-                self.data = DataStore.objects.create()
-
-            #runs only if they have propose permission
-            if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                self.proposal = Proposal.objects.create(status=Proposal.PROPOSED)
-
-                super(PlatformAction, self).save(*args, **kwargs)
-
-                if not self.is_bundled:
-                    govern_action(self, is_first_evaluation=True)
-            else:
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
-                super(PlatformAction, self).save(*args, **kwargs)
-        else:
-            super(PlatformAction, self).save(*args, **kwargs)
-
 class PlatformActionBundle(BaseAction):
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -1132,27 +1029,9 @@ class PlatformActionBundle(BaseAction):
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
 
-    def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
-
-    def fail_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.FAILED
-        proposal.save()
-
     class Meta:
         verbose_name = 'platformactionbundle'
         verbose_name_plural = 'platformactionbundles'
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            action = self
-            if action.initiator.has_perm(action._meta.app_label + '.add_' + action._meta.verbose_name):
-                govern_action(action, is_first_evaluation=True)
-
-        super(PlatformActionBundle, self).save(*args, **kwargs)
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
@@ -1171,6 +1050,13 @@ class Policy(models.Model):
         (PLATFORM, 'platform'),
         (CONSTITUTION, 'constitution')
     ]
+
+    FILTER = 'filter'
+    INITIALIZE = 'initialize'
+    CHECK = 'check'
+    NOTIFY = 'notify'
+    SUCCESS = 'success'
+    FAIL = 'fail'
 
     kind = models.CharField(choices=POLICY_KIND, max_length=30)
     """Kind of policy (platform or constitution)."""
@@ -1215,14 +1101,6 @@ class Policy(models.Model):
     bundled_policies = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="member_of_bundle")
     """Policies bundled inside this policy."""
 
-    data = models.OneToOneField(DataStore,
-        models.CASCADE,
-        verbose_name='data',
-        null=True,
-        blank=True,
-    )
-    """The datastore containing any additional data for the policy. May or may not exist."""
-
     # Managers
     objects = models.Manager()
     platform_policies = PlatformPolicyManager()
@@ -1252,8 +1130,8 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
     """The user who cast the vote."""
 
-    proposal = models.ForeignKey(Proposal, models.CASCADE)
-    """The proposal which is being voted on."""
+    evaluation = models.ForeignKey(PolicyEvaluation, models.CASCADE)
+    """The policy evaluation that initiated the vote."""
 
     vote_time = models.DateTimeField(auto_now_add=True)
     """Datetime object representing when the vote was cast."""
@@ -1302,9 +1180,7 @@ class PlatformActionForm(ModelForm):
             "community_revert",
             "community_origin",
             "is_bundled",
-            "community_post",
-            "proposal",
-            "data"
+            "community_post"
         ]
 
     def __init__(self, *args, **kwargs):

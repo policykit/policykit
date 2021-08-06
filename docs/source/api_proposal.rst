@@ -1,10 +1,10 @@
 .. _start:
 
-Proposal
+PolicyEvaluation
 ===============
 
-Proposal
+PolicyEvaluation
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: policyengine.models
-  :members: Proposal
+  :members: PolicyEvaluation

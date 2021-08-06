@@ -486,7 +486,7 @@ democracy_policy1_slack = GenericPolicy.objects.create(
     is_constitution=False,
     is_bundled=False,
 )
-
+#FIXME all starter kit policies
 democracy_policy2_slack = GenericPolicy.objects.create(
     filter="""
                                            if not action.initiator.groups.filter(name = "Moderator").exists():

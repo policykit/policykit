@@ -67,12 +67,12 @@
           {{ form.as_table }}
         </table>
         <input type="submit" class="btn" value="Propose action">
-        {% if action and action.proposal.status is not None %}
-          {% if action.proposal.status == "failed" %}
+        {% if action and evaluation and evaluation.status is not None %}
+          {% if evaluation.status == "failed" %}
             <div class="alert">Action failed. See logs for more information.</div>
-          {% elif action.proposal.status == "proposed" %}
+          {% elif evaluation.status == "proposed" %}
             <div class="alert">Action proposed.</div>
-          {% elif action.proposal.status == "passed" %}
+          {% elif evaluation.status == "passed" %}
             <div class="alert">Action passed!</div>
           {% endif %}
         {% endif %}

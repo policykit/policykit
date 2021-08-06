@@ -5,29 +5,28 @@ import django_tables2 as tables
 
 from django_db_logger.models import EvaluationLog
 
-log_fields = ("create_datetime", "level", "msg")
-
-
 class LogTable(tables.Table):
     create_datetime = tables.DateTimeColumn(format="Y-m-d\TH:m:s")
+    action = tables.Column(accessor='action')
+    policy = tables.Column(accessor='policy')
 
     class Meta:
         model = EvaluationLog
         template_name = "django_tables2/bootstrap.html"
-        fields = log_fields
+        fields = ("create_datetime", "level", "action", "policy", "msg")
 
 
 class CommunityLogFilter(FilterSet):
     class Meta:
         model = EvaluationLog
-        fields = log_fields
+        fields = ("create_datetime", "level", "msg")
 
     @property
     def qs(self):
         parent = super(CommunityLogFilter, self).qs
         user = getattr(self.request, "user", None)
         if user and hasattr(user, "community"):
-            return parent.filter(community=user.community)
+            return parent.filter(community=user.community.community)
         return parent.none()
 
 

@@ -10,8 +10,8 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole
+from integrations.metagov.models import MetagovPlatformAction, MetagovUser
+from policyengine.models import Community, CommunityPlatform, CommunityRole, PolicyEvaluation
 from integrations.slack.models import SlackCommunity
 
 logger = logging.getLogger(__name__)
@@ -36,11 +36,11 @@ def internal_receive_outcome(request, id):
         return HttpResponse()
 
     try:
-        process = MetagovProcess.objects.get(pk=id)
-    except MetagovProcess.DoesNotExist:
+        evaluation = PolicyEvaluation.objects.get(pk=id)
+    except PolicyEvaluation.DoesNotExist:
         return HttpResponseNotFound()
-    process.json_data = json.dumps(body)
-    process.save()
+    evaluation.governance_process_json = json.dumps(body)
+    evaluation.save()
     return HttpResponse()
 
 
@@ -117,7 +117,7 @@ def internal_receive_action(request):
     new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])
 
-    # Save to create Proposal and trigger policy evaluations
+    # Save to create PolicyEvaluation and trigger policy evaluations
     new_api_action.save()
     if not new_api_action.pk:
         return HttpResponseServerError()

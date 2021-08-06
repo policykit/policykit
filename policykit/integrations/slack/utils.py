@@ -113,8 +113,8 @@ def slack_event_to_platform_action(community, outer_event):
     return new_api_action
 
 
-def start_emoji_vote(policy, action, users=None, post_type="channel", template=None, channel=None):
-    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{action.pk}"}
+def start_emoji_vote(evaluation, users=None, post_type="channel", template=None, channel=None):
+    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{evaluation.pk}"}
     if channel is not None:
         payload["channel"] = channel
     if users is not None and len(users) > 0:
@@ -122,6 +122,9 @@ def start_emoji_vote(policy, action, users=None, post_type="channel", template=N
             payload["users"] = users
         else:
             payload["users"] = [u.username for u in users]
+
+    action = evaluation.action
+    policy = evaluation.policy
 
     if action.action_type == "PlatformActionBundle" and action.bundle_type == PlatformActionBundle.ELECTION:
         payload["poll_type"] = "choice"
@@ -158,20 +161,15 @@ def start_emoji_vote(policy, action, users=None, post_type="channel", template=N
         raise Exception("Response missing location header")
 
     # Store location URL of the process, so we can use it to close the Metagov process when policy evaluation "completes"
-    action.proposal.governance_process_url = f"{settings.METAGOV_URL}{location}"
-    action.proposal.save()
+    evaluation.governance_process_url = f"{settings.METAGOV_URL}{location}"
+    evaluation.save()
 
-    # Get the unique 'ts' of the vote post, and save it on the action
-    response = requests.get(action.proposal.governance_process_url)
+    # Get the unique 'ts' of the vote post, and return it
+    response = requests.get(evaluation.governance_process_url)
     if not response.ok:
         raise Exception(f"{response.status_code} {response.reason} {response.text}")
     process = response.json()
-    ts = process["outcome"]["message_ts"]
-    action.community_post = ts
-    action.save()
-    logger.debug(
-        f"Saved action with '{ts}' as community_post, and process at {action.proposal.governance_process_url}"
-    )
+    return process["outcome"]["message_ts"]
 
 
 def default_election_vote_message(policy):

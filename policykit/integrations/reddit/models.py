@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, PolicyEvaluation, CommunityRole
 from django.contrib.auth.models import Permission
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
@@ -116,10 +116,7 @@ class RedditCommunity(CommunityPlatform):
         initiate_action_vote(policy, action, users)
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.models import LogAPICall, CommunityUser
-        from policyengine.views import clean_up_proposals
-
-        logger.info('here')
+        from policyengine.models import LogAPICall
 
         logger.info(action)
 
@@ -141,7 +138,6 @@ class RedditCommunity(CommunityPlatform):
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled',
-                                  'proposal',
                                   'data',
                                   'community_post',
                                   'name'
@@ -186,8 +182,6 @@ class RedditCommunity(CommunityPlatform):
             # approve post
             logger.info('approve executed post')
             action.community.make_call('api/approve', {'id': res['json']['data']['name']})
-
-        clean_up_proposals(action, True)
 
 
 class RedditUser(CommunityUser):
@@ -257,9 +251,6 @@ class RedditStarterKit(StarterKit):
             p.fail = policy.fail
             p.description = policy.description
             p.name = policy.name
-
-            proposal = Proposal.objects.create(status=Proposal.PASSED)
-            p.proposal = proposal
             p.save()
 
         for role in self.genericrole_set.all():

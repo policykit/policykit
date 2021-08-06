@@ -12,22 +12,28 @@ logger = logging.getLogger(__name__)
 @shared_task
 def consider_proposed_actions():
     # import PK modules inside the task so we get code updates.
-    from policyengine.views import govern_action
-    from policyengine.models import ConstitutionAction, PlatformAction, Proposal
+    from policyengine import engine, PolicyDoesNotPassFilter, PolicyDoesNotExist
+    from policyengine.models import PolicyEvaluation
 
-    platform_actions = PlatformAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    logger.debug(f"{platform_actions.count()} proposed PlatformActions")
-    for action in platform_actions:
-        govern_action(action, is_first_evaluation=False)
+    pending_evaluations = PolicyEvaluation.objects.filter(status=PolicyEvaluation.PROPOSED)
+    logger.debug(f"{pending_evaluations.count()} pending evaluations")
+    for evaluation in pending_evaluations:
 
-    """bundle_actions = PlatformActionBundle.objects.filter(proposal__status=Proposal.PROPOSED)
-    for action in bundle_actions:
-        govern_action(action, is_first_evaluation=False)"""
-
-    constitution_actions = ConstitutionAction.objects.filter(proposal__status=Proposal.PROPOSED, is_bundled=False)
-    logger.debug(f"{constitution_actions.count()} proposed ConstitutionActions")
-    for action in constitution_actions:
-        govern_action(action, is_first_evaluation=False)
+        logger.debug(f"Running evaluation for {evaluation}")
+        try:
+            # TODO: what if initiator has fotten .can_execute perms since first eval?
+            engine.run_evaluation(evaluation)
+        except PolicyDoesNotExist as e:
+            logger.warn(f"PolicyEvaluation is no longer valid because the policy has been deleted.")
+            new_evaluation = engine.delete_and_rerun(evaluation)
+            logger.debug(f"New evaluation: {new_evaluation}")
+        except PolicyDoesNotPassFilter as e:
+            # This policy is no longer applicable, so we delete the eavluation and choose a new policy
+            logger.warn(f"PolicyEvaluation is no longer valid because the action does not pass the policy filter.")
+            new_evaluation = engine.delete_and_rerun(evaluation)
+            logger.debug(f"New evaluation: {new_evaluation}")
+        except Exception as e:
+            logger.error(f"Error running evaluation {evaluation}: {e}")
 
     clean_up_logs()
     logger.debug("finished task")
