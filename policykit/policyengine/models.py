@@ -504,6 +504,11 @@ class BaseAction(PolymorphicModel):
         """accessor so policy authors can access model name using a nicer attribute"""
         return self._meta.model_name
 
+    @property
+    def action_codename(self):
+        """added backwards-compatibility for policies that used the old codename attribute. we can remove this eventually."""
+        return self._meta.model_name
+
 class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
     action_kind = ActionKind.CONSTITUTION
