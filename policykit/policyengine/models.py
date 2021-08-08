@@ -146,10 +146,6 @@ class CommunityRole(Group):
     description = models.TextField(null=True, blank=True, default='')
     """The readable description of the role. May be empty."""
 
-    class Meta:
-        verbose_name = 'communityrole'
-        verbose_name_plural = 'communityroles'
-
     def save(self, *args, **kwargs):
         """
         Saves the role. Note: Only meant for internal use.
@@ -514,13 +510,8 @@ class BaseAction(PolymorphicModel):
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
-
-    action_type = "ConstitutionAction" # DELETE
     action_kind = ActionKind.CONSTITUTION
 
-    class Meta:
-        verbose_name = 'constitutionaction'
-        verbose_name_plural = 'constitutionactions'
 
 class ConstitutionActionBundle(BaseAction):
     ELECTION = 'election'
@@ -530,7 +521,6 @@ class ConstitutionActionBundle(BaseAction):
         (BUNDLE, 'bundle')
     ]
 
-    action_type = "ConstitutionActionBundle" # DELETE
     action_kind = ActionKind.CONSTITUTION
 
     bundled_actions = models.ManyToManyField(ConstitutionAction)
@@ -541,9 +531,6 @@ class ConstitutionActionBundle(BaseAction):
             for action in self.bundled_actions.all():
                 action.execute()
 
-    class Meta:
-        verbose_name = 'constitutionactionbundle'
-        verbose_name_plural = 'constitutionactionbundles'
 
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
@@ -988,14 +975,8 @@ class PlatformAction(BaseAction, PolymorphicModel):
     community_origin = models.BooleanField(default=False)
     """True if the action originated on the platform."""
 
-    action_type = "PlatformAction" #TODO DELETE
-
     readable_name = '' #TODO delete
     """Readable name of the action type."""
-
-    class Meta:
-        verbose_name = 'platformaction'
-        verbose_name_plural = 'platformactions'
 
     def __str__(self):
         if self.readable_name and self.community.platform:
@@ -1023,7 +1004,6 @@ class PlatformActionBundle(BaseAction):
         (ELECTION, 'election'),
         (BUNDLE, 'bundle')
     ]
-    action_type = "PlatformActionBundle" #TODO delete
     action_kind = ActionKind.PLATFORM
 
     bundled_actions = models.ManyToManyField(PlatformAction)
@@ -1034,9 +1014,6 @@ class PlatformActionBundle(BaseAction):
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
 
-    class Meta:
-        verbose_name = 'platformactionbundle'
-        verbose_name_plural = 'platformactionbundles'
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
