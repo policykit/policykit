@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.test import Client, LiveServerTestCase, TestCase
 from django_db_logger.models import EvaluationLog
-from integrations.metagov.models import MetagovPlatformAction
+from integrations.metagov.models import MetagovAction
 from integrations.metagov.library import Metagov
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
 from policyengine.models import Community, CommunityRole, Policy, PolicyEvaluation
@@ -208,7 +208,7 @@ return FAILED"""
 
 
 @unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
-class MetagovPlatformActionTest(TestCase):
+class MetagovActionTest(TestCase):
     def setUp(self):
         user_group = CommunityRole.objects.create(role_name="fake role 2", name="testing role 2")
         p1 = Permission.objects.get(name="Can add slack pin message")
@@ -231,7 +231,7 @@ class MetagovPlatformActionTest(TestCase):
 
         policy = Policy(kind=Policy.PLATFORM)
         policy.community = self.slack_community
-        policy.filter = """return action.action_codename == 'metagovaction' \
+        policy.filter = """return action.action_type == 'metagovaction' \
 and action.event_type == 'discourse.post_created'"""
         policy.initialize = (
             "evaluation.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
@@ -258,9 +258,9 @@ and action.event_type == 'discourse.post_created'"""
 
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(MetagovPlatformAction.objects.all().count(), 1)
+        self.assertEqual(MetagovAction.objects.all().count(), 1)
 
-        action = MetagovPlatformAction.objects.filter(event_type="discourse.post_created").first()
+        action = MetagovAction.objects.filter(event_type="discourse.post_created").first()
 
         # the action.community is the community that is connected to metagov
         self.assertEqual(action.community.platform, "slack")
@@ -277,7 +277,7 @@ and action.event_type == 'discourse.post_created'"""
         # 1) Create Policy that is triggered by a metagov action
         policy = Policy(kind=Policy.PLATFORM)
         policy.community = self.slack_community
-        policy.filter = """return action.action_codename == 'slackpinmessage'"""
+        policy.filter = """return action.action_type == 'slackpinmessage'"""
         policy.initialize = "pass"
         policy.notify = "pass"
         policy.check = "return PASSED"

@@ -66,7 +66,7 @@ def govern_action(action):
     )
 
     # if they have execute permission, skip all policies
-    if action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type_new}"):
+    if action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}"):
         action.execute()
         # No `PolicyEvaluation` is created because we don't evaluate it
     else:
@@ -237,7 +237,7 @@ def _execute_policy(evaluation, is_first_evaluation: bool):
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
     if check_result == PolicyEvaluation.PROPOSED and is_first_evaluation:
         actstream_action.send(
-            action, verb="was proposed", community_id=action.community.id, action_codename=action.action_type_new
+            action, verb="was proposed", community_id=action.community.id, action_codename=action.action_type
         )
         # Run "notify" block of policy
         debug(f"Notifying")

@@ -16,7 +16,7 @@ Vote on renaming a channel
 
 .. code-block:: python
 
-  return action.action_codename == "slackrenameconversation"
+  return action.action_type == "slackrenameconversation"
 
 **Initialize:** ``pass``
 
@@ -68,7 +68,7 @@ Posts in the channel are auto-deleted, and the user is notified about why it hap
 
 .. code-block:: python
 
-  return action.action_codename == "slackpostmessage" and action.channel == "ABC123"
+  return action.action_type == "slackpostmessage" and action.channel == "ABC123"
 
 **Initialize:** ``pass``
 
@@ -120,9 +120,9 @@ Finally, you will be on the Policy Editor page, and we can begin creating our po
 
 In PolicyKit, incoming actions are checked against the Filter block of each active policy. Each policy is only executed on the action if the policy's Filter block returns True. The Filter block returns False by default.
 
-We only want our Message Filter policy to run on actions which are messages posted to the Discord channel we are monitoring. To check if the action is a posted message, we can check a property of the ``action`` object called ``action_codename``. The codename for posting a message on Discord is ``"discordpostmessage"``. Thus, our Filter block is::
+We only want our Message Filter policy to run on actions which are messages posted to the Discord channel we are monitoring. To check if the action is a posted message, we can check a property of the ``action`` object called ``action_type``. The codename for posting a message on Discord is ``"discordpostmessage"``. Thus, our Filter block is::
 
-  if action.action_codename == "discordpostmessage":
+  if action.action_type == "discordpostmessage":
     return True
 
 We want to check all posted messages to see if they contain any blacklisted words. For example, suppose we want to ban the words "minecraft", "amazon", and "facebook" (due to repeated spam). In the Check block of the policy, we can check the ``text`` property of the ``action`` object and see if a substring of the text is a banned word. If so, the policy will fail the action (``return FAILED``). Otherwise, it will pass the action (``return PASSED``). If we don't return anything, ``PROPOSED`` will be returned by default, representing an intermediate state. Our Check block is::
@@ -149,7 +149,7 @@ where num refers to a positive non-zero integer value. This command simulates ro
 
 .. code-block:: python
 
-  if action.action_codename != "DiscordPostMessage":
+  if action.action_type != "DiscordPostMessage":
     return False
   tokens = action.text.split()
   if tokens[0] != "!roll":
@@ -215,7 +215,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 
 .. code-block:: python
 
-  if action.action_codename != "DiscordPostMessage":
+  if action.action_type != "DiscordPostMessage":
     return False
   tokens = action.text.split(" ", 1)
   if tokens[0] != "!lottery":
@@ -279,7 +279,7 @@ send them a message explaining why.
 
 .. code-block:: python
 
-    return action.action_codename == "metagovaction" and \
+    return action.action_type == "metagovaction" and \
         action.event_type == "discourse.post_created" and \
         action.event_data["topic_id"] == 116
 
@@ -339,7 +339,7 @@ Vote on Open Collective expense in Open Collective
 
 .. code-block:: python
 
-    return action.action_codename == "metagovaction" and \
+    return action.action_type == "metagovaction" and \
         action.event_type == "opencollective.expense_created"
 
 **Initialize:**
@@ -415,7 +415,7 @@ Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_
 
 .. code-block:: python
 
-    return action.action_codename == "metagovaction" and \
+    return action.action_type == "metagovaction" and \
         action.event_type == "discourse.topic_created" and \
         "dao-proposal" in action.event_data["tags"]
 
@@ -469,7 +469,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
 .. code-block:: python
 
-    return action.action_codename == "metagovaction" and \
+    return action.action_type == "metagovaction" and \
         action.event_type == "discourse.topic_created" and \
         "special-proposal" in action.event_data["tags"]
 
@@ -563,7 +563,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
 .. code-block:: python
 
-    is_user_fields_changed = action.action_codename == "metagovaction" and action.event_type == "discourse.user_fields_changed"
+    is_user_fields_changed = action.action_type == "metagovaction" and action.event_type == "discourse.user_fields_changed"
     if not is_user_fields_changed:
       return False
 

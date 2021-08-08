@@ -98,8 +98,6 @@ class DiscordPostMessage(PlatformAction):
 
     AUTH = 'user'
 
-    action_codename = 'discordpostmessage'
-
     class Meta:
         permissions = (
             ('can_execute_discordpostmessage', 'Can execute discord post message'),
@@ -123,8 +121,6 @@ class DiscordDeleteMessage(PlatformAction):
     text = models.TextField(blank=True, default='')
 
     AUTH = 'user'
-
-    action_codename = 'discorddeletemessage'
 
     class Meta:
         permissions = (
@@ -151,8 +147,6 @@ class DiscordRenameChannel(PlatformAction):
     name_old = models.TextField(blank=True, default='')
 
     AUTH = 'user'
-
-    action_codename = 'discordrenamechannel'
 
     class Meta:
         permissions = (
@@ -188,8 +182,6 @@ class DiscordCreateChannel(PlatformAction):
 
     AUTH = 'user'
 
-    action_codename = 'discordcreatechannel'
-
     class Meta:
         permissions = (
             ('can_execute_discordcreatechannel', 'Can execute discord create channel'),
@@ -217,8 +209,6 @@ class DiscordDeleteChannel(PlatformAction):
     channel_id = models.BigIntegerField()
 
     AUTH = 'user'
-
-    action_codename = 'discorddeletechannel'
 
     class Meta:
         permissions = (

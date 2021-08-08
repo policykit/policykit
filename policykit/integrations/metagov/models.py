@@ -41,14 +41,12 @@ class MetagovConfig(models.Model):
         permissions = [("can_edit_metagov_config", "Can edit Metagov config")]
 
 
-class MetagovPlatformAction(PlatformAction):
+class MetagovAction(PlatformAction):
     """
     This is a PlatformAction model to use as a policy trigger for events received from Metagov.
     It does not represent a "governable" action, because `revert` and `execute` are not implemented (for now).
     Data about the event is stored as a json blob in the `json_data` field.
     """
-
-    action_codename = "metagovaction"
 
     json_data = models.CharField(max_length=2000, blank=True, null=True)
     event_type = models.CharField(max_length=50, blank=True, null=True)

@@ -10,13 +10,13 @@ class ActionKind:
     PLATFORM = "platform"
     CONSTITUTION = "constitution"
 
-def find_action_cls(app_name: str, action_codename: str):
+def find_action_cls(app_name: str, codename: str):
     """
     Get the PlatformAction subclass that has the specified codename
     """
     from policyengine.models import PlatformAction
     for cls in apps.get_app_config(app_name).get_models():
-        if issubclass(cls, PlatformAction) and cls._meta.model_name == action_codename:
+        if issubclass(cls, PlatformAction) and cls._meta.model_name == codename:
             return cls
     return None
 

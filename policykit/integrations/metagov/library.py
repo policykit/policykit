@@ -77,16 +77,16 @@ class Metagov:
             data = json.loads(json_data)
             return MetagovProcessData(data)
 
-    def perform_action(self, action_type, parameters):
+    def perform_action(self, name, parameters):
         """
         Perform an action through Metagov. If the requested action belongs to a plugin that is
         not active for the current community, this will throw an exception.
         """
-        url = f"{settings.METAGOV_URL}/api/internal/action/{action_type}"
+        url = f"{settings.METAGOV_URL}/api/internal/action/{name}"
         response = requests.post(url, json={"parameters": parameters}, headers=self.headers)
         if not response.ok:
             raise Exception(
-                f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}"
+                f"Error performing action {name}: {response.status_code} {response.reason} {response.text}"
             )
         data = response.json()
         return data

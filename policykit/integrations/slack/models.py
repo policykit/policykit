@@ -312,8 +312,6 @@ class SlackPostMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32, blank=True)
 
-    action_codename = "slackpostmessage"
-
     class Meta:
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
@@ -336,8 +334,6 @@ class SlackRenameConversation(PlatformAction):
     name = models.CharField("name", max_length=150)
     channel = models.CharField("channel", max_length=150)
     previous_name = models.CharField(max_length=80)
-
-    action_codename = "slackrenameconversation"
 
     class Meta:
         permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
@@ -362,8 +358,6 @@ class SlackJoinConversation(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     users = models.CharField("users", max_length=15)
 
-    action_codename = "slackjoinconversation"
-
     class Meta:
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
@@ -387,8 +381,6 @@ class SlackPinMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32)
 
-    action_codename = "slackpinmessage"
-
     class Meta:
         permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
 
@@ -405,8 +397,6 @@ class SlackScheduleMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     post_at = models.IntegerField("post at")
 
-    action_codename = "slackschedulemessage"
-
     class Meta:
         permissions = (("can_execute_slackschedulemessage", "Can execute slack schedule message"),)
 
@@ -418,8 +408,6 @@ class SlackKickConversation(PlatformAction):
 
     user = models.CharField("user", max_length=15)
     channel = models.CharField("channel", max_length=150)
-
-    action_codename = "slackkickconversation"
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)

@@ -1,8 +1,7 @@
 import json
 import logging
 
-from django.contrib.auth.models import ContentType, Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -10,7 +9,7 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.models import MetagovPlatformAction, MetagovUser
+from integrations.metagov.models import MetagovAction, MetagovUser
 from policyengine.models import Community, CommunityPlatform, CommunityRole, PolicyEvaluation
 from integrations.slack.models import SlackCommunity
 
@@ -77,14 +76,14 @@ def internal_receive_action(request):
         slack_community.handle_metagov_event(body)
         return HttpResponse()
 
-    # For all other sources, create generic MetagovPlatformActions.
+    # For all other sources, create generic MetagovActions.
 
     platform_community = CommunityPlatform.objects.filter(community=community).first()
     if platform_community is None:
         logger.error(f"No platforms exist for community '{community}'")
         return HttpResponse()
 
-    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovPlatformActions
+    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovActions
 
     # Hack so MetagovUser username doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.
@@ -94,24 +93,19 @@ def internal_receive_action(request):
         username=prefixed_username, provider=initiator["provider"], community=platform_community
     )
 
-    # Give this user permission to propose any MetagovPlatformAction
+    # Give this user permission to propose any MetagovAction
     user_group, usergroup_created = CommunityRole.objects.get_or_create(
         role_name="Base User", name=f"Metagov: {metagov_community_slug}: Base User"
     )
     if usergroup_created:
         user_group.community = platform_community
-        content_type = ContentType.objects.get_for_model(MetagovPlatformAction)
-        permission, _ = Permission.objects.get_or_create(
-            codename="add_metagovaction",
-            name="Can add metagov action",
-            content_type=content_type,
-        )
+        permission = Permission.objects.get(codename="add_metagovaction")
         user_group.permissions.add(permission)
         user_group.save()
     user_group.user_set.add(metagov_user)
 
-    # Create MetagovPlatformAction
-    new_api_action = MetagovPlatformAction()
+    # Create MetagovAction
+    new_api_action = MetagovAction()
     new_api_action.community = platform_community
     new_api_action.initiator = metagov_user
     new_api_action.event_type = f"{body['source']}.{body['event_type']}"
@@ -122,5 +116,5 @@ def internal_receive_action(request):
     if not new_api_action.pk:
         return HttpResponseServerError()
 
-    logger.info(f"Created new MetagovPlatformAction with pk {new_api_action.pk}")
+    logger.info(f"Created new MetagovAction with pk {new_api_action.pk}")
     return HttpResponse()

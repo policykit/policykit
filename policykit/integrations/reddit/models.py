@@ -215,8 +215,6 @@ class RedditMakePost(PlatformAction):
                                max_length=100,
                                null=True)
 
-    action_codename = 'redditmakepost'
-
     class Meta:
         permissions = (
             ('can_execute_redditmakepost', 'Can execute reddit make post'),

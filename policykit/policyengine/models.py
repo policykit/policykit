@@ -457,7 +457,7 @@ class PolicyEvaluation(models.Model):
         self.status = PolicyEvaluation.PASSED
         self.save()
         action = self.action
-        actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type_new)
+        actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type)
 
     def fail_action(self):
         """
@@ -466,7 +466,7 @@ class PolicyEvaluation(models.Model):
         self.status = PolicyEvaluation.FAILED
         self.save()
         action = self.action
-        actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_type_new)
+        actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_type)
 
 class BaseAction(PolymorphicModel):
     """Base Action"""
@@ -484,10 +484,6 @@ class BaseAction(PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
-    # TODO: DELETE
-    action_codename = ''
-    """The codename of the action."""
-
     action_kind = None # platform vs constitution. don't override
 
     def save(self, *args, **kwargs):
@@ -496,7 +492,7 @@ class BaseAction(PolymorphicModel):
         """
         if not self.pk:
             # Runs if initiator has propose permission, OR if there is no initiator.
-            can_propose_perm = f"{self._meta.app_label}.add_{self.action_type_new}"
+            can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
             if not self.initiator or self.initiator.has_perm(can_propose_perm):
                 super(BaseAction, self).save(*args, **kwargs)
                 engine.govern_action(self)
@@ -504,7 +500,7 @@ class BaseAction(PolymorphicModel):
         super(BaseAction, self).save(*args, **kwargs)
 
     @property
-    def action_type_new(self):
+    def action_type(self):
         """accessor so policy authors can access model name using a nicer attribute"""
         return self._meta.model_name
 
@@ -536,8 +532,6 @@ class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
 
-    action_codename = 'policykitaddcommunitydoc'
-
     def __str__(self):
         return "Add Document: " + self.name
 
@@ -556,8 +550,6 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
 
-    action_codename = 'policykitchangecommunitydoc'
-
     def __str__(self):
         return "Edit Document: " + self.name
 
@@ -573,8 +565,6 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 
 class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
-    action_codename = 'policykitdeletecommunitydoc'
 
     def __str__(self):
         if self.doc:
@@ -592,8 +582,6 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
 
 class PolicykitRecoverCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
-    action_codename = 'policykitrecovercommunitydoc'
 
     def __str__(self):
         if self.doc:
@@ -613,8 +601,6 @@ class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
-
-    action_codename = 'policykitaddrole'
     ready = False
 
     def __str__(self):
@@ -642,8 +628,6 @@ class PolicykitAddRole(ConstitutionAction):
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
-    action_codename = 'policykitdeleterole'
-
     def __str__(self):
         if self.role:
             return "Delete Role: " + self.role.role_name
@@ -666,8 +650,6 @@ class PolicykitEditRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
-
-    action_codename = 'policykiteditrole'
     ready = False
 
     def __str__(self):
@@ -692,8 +674,6 @@ class PolicykitEditRole(ConstitutionAction):
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
-
-    action_codename = 'policykitadduserrole'
     ready = False
 
     def __str__(self):
@@ -720,8 +700,6 @@ class PolicykitAddUserRole(ConstitutionAction):
 class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
-
-    action_codename = 'policykitremoveuserrole'
     ready = False
 
     def __str__(self):
@@ -777,7 +755,6 @@ class EditorModel(ConstitutionAction):
         super(EditorModel, self).save(*args, **kwargs)
 
 class PolicykitAddPlatformPolicy(EditorModel):
-    action_codename = 'policykitaddplatformpolicy'
 
     def __str__(self):
         return "Add Platform Policy: " + self.name
@@ -802,7 +779,6 @@ class PolicykitAddPlatformPolicy(EditorModel):
         )
 
 class PolicykitAddConstitutionPolicy(EditorModel):
-    action_codename = 'policykitaddconstitutionpolicy'
 
     def __str__(self):
         return "Add Constitution Policy: " + self.name
@@ -829,8 +805,6 @@ class PolicykitAddConstitutionPolicy(EditorModel):
 class PolicykitChangePlatformPolicy(EditorModel):
     platform_policy = models.ForeignKey('Policy', models.CASCADE)
 
-    action_codename = 'policykitchangeplatformpolicy'
-
     def __str__(self):
         return "Change Platform Policy: " + self.name
 
@@ -853,8 +827,6 @@ class PolicykitChangePlatformPolicy(EditorModel):
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('Policy', models.CASCADE)
-
-    action_codename = 'policykitchangeconstitutionpolicy'
 
     def __str__(self):
         return "Change Constitution Policy: " + self.name
@@ -881,8 +853,6 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
                                          models.SET_NULL,
                                          null=True)
 
-    action_codename = 'policykitremoveplatformpolicy'
-
     def __str__(self):
         if self.platform_policy:
             return "Remove Platform Policy: " + self.platform_policy.name
@@ -902,8 +872,6 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
     platform_policy = models.ForeignKey('Policy',
                                          models.SET_NULL,
                                          null=True)
-
-    action_codename = 'policykitrecoverplatformpolicy'
 
     def __str__(self):
         if self.platform_policy:
@@ -925,8 +893,6 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
                                             models.SET_NULL,
                                             null=True)
 
-    action_codename = 'policykitremoveconstitutionpolicy'
-
     def __str__(self):
         if self.constitution_policy:
             return "Remove Constitution Policy: " + self.constitution_policy.name
@@ -946,8 +912,6 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
     constitution_policy = models.ForeignKey('Policy',
                                             models.SET_NULL,
                                             null=True)
-
-    action_codename = 'policykitrecoverconstitutionpolicy'
 
     def __str__(self):
         if self.constitution_policy:
@@ -981,7 +945,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
     def __str__(self):
         if self.readable_name and self.community.platform:
             return f"{self.community.platform} {self.readable_name}"
-        return self.action_type_new or super(PlatformAction, self).__str__() #TODO: we want the PK sometimes..
+        return self.action_type or super(PlatformAction, self).__str__() #TODO: we want the PK sometimes..
 
     def revert(self, values, call, method=None):
         """

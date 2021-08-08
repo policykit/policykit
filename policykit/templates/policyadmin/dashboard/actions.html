@@ -208,8 +208,8 @@
   document.getElementById("removeDocument").addEventListener("click", function(){ navDocumentSelect('Remove'); });
   document.getElementById("recoverDocument").addEventListener("click", function(){ navDocumentSelect('Recover'); });
 
-  function proposePlatformActionLink(app_name, action_codename) {
-    window.location.href = `{{server_url}}/main/actions/${app_name}/${action_codename}`
+  function proposePlatformActionLink(app_name, action_type) {
+    window.location.href = `{{server_url}}/main/actions/${app_name}/${action_type}`
   }
 
   function navEditor(type, operation) {

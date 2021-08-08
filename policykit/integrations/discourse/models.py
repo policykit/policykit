@@ -133,8 +133,6 @@ class DiscourseCreateTopic(PlatformAction):
     ACTION = 'posts.json'
     AUTH = 'user'
 
-    action_codename = 'discoursecreatetopic'
-
     class Meta:
         permissions = (
             ('can_execute_discoursecreatetopic', 'Can execute discourse create topic'),
@@ -167,8 +165,6 @@ class DiscourseCreatePost(PlatformAction):
 
     ACTION = 'posts.json'
     AUTH = 'user'
-
-    action_codename = 'discoursecreatepost'
 
     class Meta:
         permissions = (
