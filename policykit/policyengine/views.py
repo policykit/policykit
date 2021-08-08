@@ -414,11 +414,19 @@ def documenteditor(request):
 def actions(request):
     user = get_user(request)
     app_names = [user.community.platform] # TODO: show actions for other connected platforms
-    actions = [(app_name, get_action_classes(app_name)) for app_name in app_names]
+
+    actions = {}
+    for app_name in app_names:
+        action_list = []
+        for cls in get_action_classes(app_name):
+            action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
+        if action_list:
+            actions[app_name] = action_list
+
     return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
-        'actions': actions
+        'actions': actions.items()
     })
 
 @login_required(login_url='/login')
