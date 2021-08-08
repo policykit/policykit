@@ -315,7 +315,6 @@ class SlackPostMessage(PlatformAction):
     # REPLICATE FOR ALL:
     action_codename = "slackpostmessage" # RENAME, action_type
     readable_name = "post message" # DELETE, use Meta
-    app_name = "slackintegration" # DELETE
 
     class Meta:
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
@@ -347,7 +346,6 @@ class SlackRenameConversation(PlatformAction):
 
     action_codename = "slackrenameconversation"
     readable_name = "rename conversation"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
@@ -374,7 +372,6 @@ class SlackJoinConversation(PlatformAction):
 
     action_codename = "slackjoinconversation"
     readable_name = "join conversation"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
@@ -401,7 +398,6 @@ class SlackPinMessage(PlatformAction):
 
     action_codename = "slackpinmessage"
     readable_name = "pin message"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
@@ -421,7 +417,6 @@ class SlackScheduleMessage(PlatformAction):
 
     action_codename = "slackschedulemessage"
     readable_name = "schedule message"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackschedulemessage", "Can execute slack schedule message"),)
@@ -437,7 +432,6 @@ class SlackKickConversation(PlatformAction):
 
     action_codename = "slackkickconversation"
     readable_name = "remove user from conversation"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)

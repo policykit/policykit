@@ -134,7 +134,6 @@ class DiscourseCreateTopic(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discoursecreatetopic'
-    app_name = 'discourseintegration'
 
     class Meta:
         permissions = (
@@ -170,7 +169,6 @@ class DiscourseCreatePost(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discoursecreatepost'
-    app_name = 'discourseintegration'
 
     class Meta:
         permissions = (

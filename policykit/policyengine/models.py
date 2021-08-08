@@ -488,10 +488,6 @@ class BaseAction(PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
-    # TODO: DELETE, use Meta
-    app_name = 'policyengine'
-    """The name of the application sending the action."""
-
     # TODO: RENAME, action_type
     action_codename = ''
     """The codename of the action."""

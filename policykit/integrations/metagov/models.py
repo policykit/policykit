@@ -49,7 +49,7 @@ class MetagovPlatformAction(PlatformAction):
     """
 
     action_codename = "metagovaction"
-    app_name = "metagov"
+
     json_data = models.CharField(max_length=2000, blank=True, null=True)
     event_type = models.CharField(max_length=50, blank=True, null=True)
 

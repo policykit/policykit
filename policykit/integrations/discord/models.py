@@ -99,7 +99,6 @@ class DiscordPostMessage(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discordpostmessage'
-    app_name = 'discordintegration'
 
     class Meta:
         permissions = (
@@ -126,7 +125,6 @@ class DiscordDeleteMessage(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discorddeletemessage'
-    app_name = 'discordintegration'
 
     class Meta:
         permissions = (
@@ -155,7 +153,6 @@ class DiscordRenameChannel(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discordrenamechannel'
-    app_name = 'discordintegration'
 
     class Meta:
         permissions = (
@@ -192,7 +189,6 @@ class DiscordCreateChannel(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discordcreatechannel'
-    app_name = 'discordintegration'
 
     class Meta:
         permissions = (
@@ -223,7 +219,6 @@ class DiscordDeleteChannel(PlatformAction):
     AUTH = 'user'
 
     action_codename = 'discorddeletechannel'
-    app_name = 'discordintegration'
 
     class Meta:
         permissions = (
