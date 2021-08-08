@@ -5,6 +5,7 @@ from policyengine.models import PlatformActionBundle, LogAPICall
 import datetime
 import json
 from django.db.models import Q
+from policyengine.utils import ActionKind
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ def start_emoji_vote(evaluation, users=None, post_type="channel", template=None,
     if channel is None and users is None:
         # Determine which channel to post in
         if post_type == "channel":
-            if action.action_type == "PlatformAction" and hasattr(action, "channel") and action.channel:
+            if action.action_kind == ActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
                 payload["channel"] = action.channel
             elif action.action_type == "PlatformActionBundle":
                 first_action = action.bundled_actions.all()[0]

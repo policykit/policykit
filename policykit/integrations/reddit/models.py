@@ -216,10 +216,7 @@ class RedditMakePost(PlatformAction):
                                null=True)
 
     action_codename = 'redditmakepost'
-
     app_name = 'redditintegration'
-
-    action_type = "RedditMakePost"
 
     class Meta:
         permissions = (

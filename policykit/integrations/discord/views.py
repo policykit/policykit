@@ -485,9 +485,8 @@ def initiate_action_vote(policy, action, users=None, template=None, channel=None
 
     res = policy.community.post_message(text=message, channel=channel_id)
 
-    if action.action_type == "ConstitutionAction" or action.action_type == "PlatformAction":
-        action.community_post = res['id']
-        action.save()
+    action.community_post = res['id']
+    action.save()
 
     time.sleep(1)
     policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")

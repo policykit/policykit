@@ -149,7 +149,7 @@ where num refers to a positive non-zero integer value. This command simulates ro
 
 .. code-block:: python
 
-  if action.action_type != "DiscordPostMessage":
+  if action.action_codename != "DiscordPostMessage":
     return False
   tokens = action.text.split()
   if tokens[0] != "!roll":
@@ -215,7 +215,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 
 .. code-block:: python
 
-  if action.action_type != "DiscordPostMessage":
+  if action.action_codename != "DiscordPostMessage":
     return False
   tokens = action.text.split(" ", 1)
   if tokens[0] != "!lottery":

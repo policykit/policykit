@@ -312,12 +312,18 @@ class SlackPostMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32, blank=True)
 
-    action_codename = "slackpostmessage"
-    readable_name = "post message"
-    app_name = "slackintegration"
+    # REPLICATE FOR ALL:
+    action_codename = "slackpostmessage" # RENAME, action_type
+    readable_name = "post message" # DELETE, use Meta
+    app_name = "slackintegration" # DELETE
 
     class Meta:
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
+        # verbose_name = "post message"
+        # verbose_name_plural = "post messages"
+
+    # class PolicyKitMeta:
+    #     pass
 
     def revert(self):
         admin_user_token = SlackUtils.get_admin_user_token(self.community)

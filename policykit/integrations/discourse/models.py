@@ -135,7 +135,6 @@ class DiscourseCreateTopic(PlatformAction):
 
     action_codename = 'discoursecreatetopic'
     app_name = 'discourseintegration'
-    action_type = "DiscourseCreateTopic"
 
     class Meta:
         permissions = (
@@ -172,7 +171,6 @@ class DiscourseCreatePost(PlatformAction):
 
     action_codename = 'discoursecreatepost'
     app_name = 'discourseintegration'
-    action_type = "DiscourseCreatePost"
 
     class Meta:
         permissions = (

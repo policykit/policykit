@@ -2,7 +2,7 @@ import logging
 
 from actstream import action as actstream_action
 from django.conf import settings
-
+from policyengine.utils import ActionKind
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
 
@@ -200,10 +200,10 @@ def _execute_policy(evaluation, is_first_evaluation: bool):
 
         # EXECUTE the action if....
         # it is a PlatformAction that was proposed in the PolicyKit UI
-        if issubclass(type(action), PlatformAction) and not action.community_origin:
+        if action.action_kind == ActionKind.PLATFORM and not action.community_origin:
             action.execute()
         # it is a constitution action
-        elif issubclass(type(action), ConstitutionAction):
+        elif action.action_kind == ActionKind.CONSTITUTION:
             action.execute()
 
         if settings.METAGOV_ENABLED:
@@ -226,7 +226,7 @@ def _execute_policy(evaluation, is_first_evaluation: bool):
     should_revert = (
         is_first_evaluation
         and check_result in [PolicyEvaluation.PROPOSED, PolicyEvaluation.FAILED]
-        and issubclass(type(action), PlatformAction)
+        and action.action_kind == ActionKind.PLATFORM
         and action.community_origin
     )
 

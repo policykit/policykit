@@ -6,6 +6,10 @@ import random
 
 logger = logging.getLogger(__name__)
 
+class ActionKind:
+    PLATFORM = "platform"
+    CONSTITUTION = "constitution"
+
 def find_action_cls(app_name: str, action_codename: str):
     """
     Get the PlatformAction subclass that has the specified codename

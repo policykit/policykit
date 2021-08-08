@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
+from policyengine.utils import ActionKind
 from policyengine import engine
 from datetime import datetime, timezone
 import json
@@ -471,7 +472,6 @@ class PolicyEvaluation(models.Model):
         action = self.action
         actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_codename)
 
-
 class BaseAction(PolymorphicModel):
     """Base Action"""
 
@@ -481,17 +481,22 @@ class BaseAction(PolymorphicModel):
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
     """The User who initiated the action. May not exist if initiated by PolicyKit."""
 
+    # TODO: move to PolicyEvaluation
     community_post = models.CharField('community_post', max_length=300, null=True)
     """The notification which is sent to the community to alert them of the action. May or may not exist."""
 
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
+    # TODO: DELETE, use Meta
     app_name = 'policyengine'
     """The name of the application sending the action."""
 
+    # TODO: RENAME, action_type
     action_codename = ''
     """The codename of the action."""
+
+    action_kind = None # platform vs constitution. don't override
 
     def save(self, *args, **kwargs):
         """
@@ -509,9 +514,8 @@ class BaseAction(PolymorphicModel):
 class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
 
-    # NOTE: Should be moved to BaseAction
-    action_type = "ConstitutionAction"
-    """Type of action (Constitution or Platform)."""
+    action_type = "ConstitutionAction" # DELETE
+    action_kind = ActionKind.CONSTITUTION
 
     class Meta:
         verbose_name = 'constitutionaction'
@@ -525,7 +529,8 @@ class ConstitutionActionBundle(BaseAction):
         (BUNDLE, 'bundle')
     ]
 
-    action_type = "ConstitutionActionBundle"
+    action_type = "ConstitutionActionBundle" # DELETE
+    action_kind = ActionKind.CONSTITUTION
 
     bundled_actions = models.ManyToManyField(ConstitutionAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
@@ -974,6 +979,7 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
 class PlatformAction(BaseAction, PolymorphicModel):
     ACTION = None
     AUTH = 'app'
+    action_kind = ActionKind.PLATFORM
 
     community_revert = models.BooleanField(default=False)
     """True if the action has been reverted on the platform."""
@@ -981,12 +987,9 @@ class PlatformAction(BaseAction, PolymorphicModel):
     community_origin = models.BooleanField(default=False)
     """True if the action originated on the platform."""
 
-    # FIXME: Should be moved to BaseAction
-    # FIXME remove action_type
-    action_type = "PlatformAction"
-    """Type of action (Constitution or Platform)."""
+    action_type = "PlatformAction" #TODO DELETE
 
-    readable_name = ''
+    readable_name = '' #TODO delete
     """Readable name of the action type."""
 
     class Meta:
@@ -1019,8 +1022,9 @@ class PlatformActionBundle(BaseAction):
         (ELECTION, 'election'),
         (BUNDLE, 'bundle')
     ]
+    action_type = "PlatformActionBundle" #TODO delete
+    action_kind = ActionKind.PLATFORM
 
-    action_type = "PlatformActionBundle"
     bundled_actions = models.ManyToManyField(PlatformAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 

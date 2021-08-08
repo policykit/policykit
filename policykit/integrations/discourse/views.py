@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+
 from policykit.settings import SERVER_URL
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseStarterKit
 from integrations.discourse.utils import get_discourse_user_fields
@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto import Random
-from urllib import parse
+from policyengine.utils import ActionKind
 import urllib.request
 import json
 import base64
@@ -164,6 +164,6 @@ def initiate_action_vote(policy, action, users=None, template=None, topic_id=Non
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
-    if action.action_type == "PlatformAction":
+    if action.action_kind == ActionKind.PLATFORM:
         action.community_post = res['id']
         action.save()
