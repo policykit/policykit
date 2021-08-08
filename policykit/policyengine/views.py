@@ -465,6 +465,7 @@ def propose_action(request, app_name, codename):
             "form": form,
             "app_name": app_name,
             "codename": codename,
+            "verbose_name": cls._meta.verbose_name.title(),
             "action": new_action,
             "evaluation": evaluation,
         },
