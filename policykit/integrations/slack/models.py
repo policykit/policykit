@@ -312,17 +312,10 @@ class SlackPostMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32, blank=True)
 
-    # REPLICATE FOR ALL:
-    action_codename = "slackpostmessage" # RENAME, action_type
-    readable_name = "post message" # DELETE, use Meta
+    action_codename = "slackpostmessage"
 
     class Meta:
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
-        # verbose_name = "post message"
-        # verbose_name_plural = "post messages"
-
-    # class PolicyKitMeta:
-    #     pass
 
     def revert(self):
         admin_user_token = SlackUtils.get_admin_user_token(self.community)
@@ -345,7 +338,6 @@ class SlackRenameConversation(PlatformAction):
     previous_name = models.CharField(max_length=80)
 
     action_codename = "slackrenameconversation"
-    readable_name = "rename conversation"
 
     class Meta:
         permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
@@ -371,7 +363,6 @@ class SlackJoinConversation(PlatformAction):
     users = models.CharField("users", max_length=15)
 
     action_codename = "slackjoinconversation"
-    readable_name = "join conversation"
 
     class Meta:
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
@@ -397,7 +388,6 @@ class SlackPinMessage(PlatformAction):
     timestamp = models.CharField(max_length=32)
 
     action_codename = "slackpinmessage"
-    readable_name = "pin message"
 
     class Meta:
         permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
@@ -416,7 +406,6 @@ class SlackScheduleMessage(PlatformAction):
     post_at = models.IntegerField("post at")
 
     action_codename = "slackschedulemessage"
-    readable_name = "schedule message"
 
     class Meta:
         permissions = (("can_execute_slackschedulemessage", "Can execute slack schedule message"),)
@@ -431,10 +420,10 @@ class SlackKickConversation(PlatformAction):
     channel = models.CharField("channel", max_length=150)
 
     action_codename = "slackkickconversation"
-    readable_name = "remove user from conversation"
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
+        verbose_name = "remove user from slack conversation"
 
 
 class SlackStarterKit(StarterKit):

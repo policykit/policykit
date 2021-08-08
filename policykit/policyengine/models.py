@@ -461,7 +461,7 @@ class PolicyEvaluation(models.Model):
         self.status = PolicyEvaluation.PASSED
         self.save()
         action = self.action
-        actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_codename)
+        actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type_new)
 
     def fail_action(self):
         """
@@ -470,7 +470,7 @@ class PolicyEvaluation(models.Model):
         self.status = PolicyEvaluation.FAILED
         self.save()
         action = self.action
-        actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_codename)
+        actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_type_new)
 
 class BaseAction(PolymorphicModel):
     """Base Action"""
@@ -488,7 +488,7 @@ class BaseAction(PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
-    # TODO: RENAME, action_type
+    # TODO: DELETE
     action_codename = ''
     """The codename of the action."""
 
@@ -500,12 +500,17 @@ class BaseAction(PolymorphicModel):
         """
         if not self.pk:
             # Runs if initiator has propose permission, OR if there is no initiator.
-            can_propose_perm = self._meta.app_label + '.add_' + self.action_codename
+            can_propose_perm = f"{self._meta.app_label}.add_{self.action_type_new}"
             if not self.initiator or self.initiator.has_perm(can_propose_perm):
                 super(BaseAction, self).save(*args, **kwargs)
                 engine.govern_action(self)
 
         super(BaseAction, self).save(*args, **kwargs)
+
+    @property
+    def action_type_new(self):
+        """accessor so policy authors can access model name using a nicer attribute"""
+        return self._meta.model_name
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
@@ -995,7 +1000,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
     def __str__(self):
         if self.readable_name and self.community.platform:
             return f"{self.community.platform} {self.readable_name}"
-        return self.action_codename or super(PlatformAction, self).__str__()
+        return self.action_type_new or super(PlatformAction, self).__str__() #TODO: we want the PK sometimes..
 
     def revert(self, values, call, method=None):
         """

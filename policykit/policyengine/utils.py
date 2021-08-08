@@ -16,9 +16,8 @@ def find_action_cls(app_name: str, action_codename: str):
     """
     from policyengine.models import PlatformAction
     for cls in apps.get_app_config(app_name).get_models():
-        if issubclass(cls, PlatformAction) and hasattr(cls, "action_codename"):
-            if action_codename == getattr(cls, "action_codename"):
-                return cls
+        if issubclass(cls, PlatformAction) and cls._meta.model_name == action_codename:
+            return cls
     return None
 
 def get_action_classes(app_name: str):
@@ -28,7 +27,7 @@ def get_action_classes(app_name: str):
     from policyengine.models import PlatformAction
     actions = []
     for cls in apps.get_app_config(app_name).get_models():
-        if issubclass(cls, PlatformAction) and hasattr(cls, "action_codename"):
+        if issubclass(cls, PlatformAction):
             actions.append(cls)
     return actions
 
