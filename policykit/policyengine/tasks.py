@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @shared_task
 def consider_proposed_actions():
     # import PK modules inside the task so we get code updates.
-    from policyengine import engine, PolicyDoesNotPassFilter, PolicyDoesNotExist
+    from policyengine import engine
     from policyengine.models import PolicyEvaluation
 
     pending_evaluations = PolicyEvaluation.objects.filter(status=PolicyEvaluation.PROPOSED)
@@ -23,11 +23,11 @@ def consider_proposed_actions():
         try:
             # TODO: what if initiator has fotten .can_execute perms since first eval?
             engine.run_evaluation(evaluation)
-        except PolicyDoesNotExist as e:
+        except engine.PolicyDoesNotExist as e:
             logger.warn(f"PolicyEvaluation is no longer valid because the policy has been deleted.")
             new_evaluation = engine.delete_and_rerun(evaluation)
             logger.debug(f"New evaluation: {new_evaluation}")
-        except PolicyDoesNotPassFilter as e:
+        except engine.PolicyDoesNotPassFilter as e:
             # This policy is no longer applicable, so we delete the eavluation and choose a new policy
             logger.warn(f"PolicyEvaluation is no longer valid because the action does not pass the policy filter.")
             new_evaluation = engine.delete_and_rerun(evaluation)
