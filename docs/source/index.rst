@@ -26,7 +26,7 @@ Welcome to the Docs for PolicyKit!
    api_doc
    api_user
    api_role
-   api_proposal
+   api_evaluation
    api_votes
    api_datastore
 

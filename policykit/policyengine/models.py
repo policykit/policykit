@@ -46,7 +46,11 @@ class StarterKit(PolymorphicModel):
 
 
 class Community(models.Model):
+    """A Community represents a group of users. They may exist on one or more online platforms."""
+
     readable_name = models.CharField(max_length=300, blank=True)
+    """Readable name describing the community."""
+
     metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
 
     def __str__(self):
@@ -54,6 +58,11 @@ class Community(models.Model):
         return '{} {}'.format(prefix, self.readable_name or '')
 
     def save(self, *args, **kwargs):
+        """
+        Saves the Community. If community is new, creates it in Metagov and stores the Metagov-generated slug.
+
+        :meta private:
+        """
         if settings.METAGOV_ENABLED and not self.pk and not self.metagov_slug:
             # If this is the first save, create a corresponding community in Metagov
             response = MetagovAPI.create_empty_metagov_community(self.readable_name)
@@ -69,18 +78,19 @@ def post_delete_community(sender, instance, **kwargs):
 
 
 class CommunityPlatform(PolymorphicModel):
-    """Community on a specific platform"""
-
-    community_name = models.CharField('team_name', max_length=1000)
-    """The name of the community."""
+    """A CommunityPlatform represents a group of users on a single platform."""
 
     platform = None
     """The name of the platform ('Slack', 'Reddit', etc.)."""
+
+    community_name = models.CharField('team_name', max_length=1000)
+    """The name of the community."""
 
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
 
     community = models.ForeignKey(Community, models.CASCADE)
+    """The ``Community`` that this CommunityPlatform belongs to."""
 
     def __str__(self):
         return self.community_name
@@ -128,11 +138,6 @@ class CommunityPlatform(PolymorphicModel):
         """
         return CommunityDoc.objects.filter(community=self)
 
-    def save(self, *args, **kwargs):
-        """
-        Saves the community. Note: Only meant for internal use.
-        """
-        super(CommunityPlatform, self).save(*args, **kwargs)
 
 class CommunityRole(Group):
     """CommunityRole"""
@@ -145,12 +150,6 @@ class CommunityRole(Group):
 
     description = models.TextField(null=True, blank=True, default='')
     """The readable description of the role. May be empty."""
-
-    def save(self, *args, **kwargs):
-        """
-        Saves the role. Note: Only meant for internal use.
-        """
-        super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
         return str(self.role_name)
@@ -217,6 +216,8 @@ class CommunityUser(User, PolymorphicModel):
     def save(self, *args, **kwargs):
         """
         Saves the user. Note: Only meant for internal use.
+
+        :meta private:
         """
         super(CommunityUser, self).save(*args, **kwargs)
         self.community.base_role.user_set.add(self)
@@ -251,14 +252,9 @@ class CommunityDoc(models.Model):
     def __str__(self):
         return str(self.name)
 
-    def save(self, *args, **kwargs):
-        """
-        Saves the document. Note: Only meant for internal use.
-        """
-        super(CommunityDoc, self).save(*args, **kwargs)
 
 class DataStore(models.Model):
-    """DataStore"""
+    """DataStore used for persisting serializable data on a PolicyEvaluation."""
 
     data_store = models.TextField()
 
@@ -361,7 +357,8 @@ class GenericRole(Group):
         return self.role_name
 
 class PolicyEvaluation(models.Model):
-    """PolicyEvaluation"""
+    """The PolicyEvaluation model represents an evaluation of a policy for a particular action.
+    Any data relevant to the evaluation, such as vote counts, can be retrieved from this model."""
 
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -372,8 +369,8 @@ class PolicyEvaluation(models.Model):
         (PASSED, 'passed')
     ]
 
-    proposal_time = models.DateTimeField(auto_now_add=True)
-    """Datetime object representing when the first evaluation started."""
+    created_at = models.DateTimeField(auto_now_add=True)
+    """Datetime object representing when this evaluation first occurred."""
 
     status = models.CharField(choices=STATUS, max_length=10)
     """Status of the evaluation. One of PROPOSED, PASSED or FAILED."""
@@ -384,14 +381,14 @@ class PolicyEvaluation(models.Model):
     action = models.ForeignKey('BaseAction', on_delete=models.CASCADE, editable=False)
     """The action that triggered the evaluation."""
 
+    data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
+    """Datastore for persisting any additional data related to the evaluation."""
+
     governance_process_url = models.URLField(max_length=100, blank=True)
-    """URL for the GovernanceProcess that is being used to make a decision about this PolicyEvaluation"""
+    """Location of the Metagov GovernanceProcess that is being used to make a decision about this PolicyEvaluation, if any."""
 
     governance_process_json = models.JSONField(max_length=1000, null=True, blank=True)
-    """Serialized Metagov governance process"""
-
-    data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
-    """The datastore containing any additional data to persist for the evaluation."""
+    """Raw Metagov governance process data in JSON format."""
 
     def __str__(self):
         return f"PolicyEvaluation {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
@@ -400,7 +397,7 @@ class PolicyEvaluation(models.Model):
         """
         Returns a datetime object representing the time elapsed since the first evaluation.
         """
-        return datetime.now(timezone.utc) - self.proposal_time
+        return datetime.now(timezone.utc) - self.created_at
 
     def get_all_boolean_votes(self, users=None):
         """
@@ -445,6 +442,8 @@ class PolicyEvaluation(models.Model):
     def save(self, *args, **kwargs):
         """
         Saves the evaluation. Note: Only meant for internal use.
+
+        :meta private:
         """
         if not self.pk:
             self.data = DataStore.objects.create()
@@ -453,6 +452,8 @@ class PolicyEvaluation(models.Model):
     def pass_action(self):
         """
         Sets the evaluation to PASSED.
+
+        :meta private:
         """
         self.status = PolicyEvaluation.PASSED
         self.save()
@@ -462,6 +463,8 @@ class PolicyEvaluation(models.Model):
     def fail_action(self):
         """
         Sets the evaluation to FAILED.
+
+        :meta private:
         """
         self.status = PolicyEvaluation.FAILED
         self.save()
@@ -472,10 +475,11 @@ class BaseAction(PolymorphicModel):
     """Base Action"""
 
     community = models.ForeignKey(CommunityPlatform, models.CASCADE, verbose_name='community')
-    """The community in which the action is taking place."""
+    """The ``CommunityPlatform`` in which the action occurred (or was proposed). If proposed through the PolicyKit app,
+    this is the community that the proposing user was authenticated with."""
 
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
-    """The User who initiated the action. May not exist if initiated by PolicyKit."""
+    """The ``CommunityUser`` who initiated the action. May not exist if initiated by PolicyKit."""
 
     # TODO: move to PolicyEvaluation
     community_post = models.CharField('community_post', max_length=300, null=True)
@@ -489,6 +493,8 @@ class BaseAction(PolymorphicModel):
     def save(self, *args, **kwargs):
         """
         Saves the action. If new, evaluates against current policies. Note: Only meant for internal use.
+
+        :meta private:
         """
         if not self.pk:
             # Runs if initiator has propose permission, OR if there is no initiator.
@@ -501,12 +507,14 @@ class BaseAction(PolymorphicModel):
 
     @property
     def action_type(self):
-        """accessor so policy authors can access model name using a nicer attribute"""
+        """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""
         return self._meta.model_name
 
     @property
     def action_codename(self):
-        """added backwards-compatibility for policies that used the old codename attribute. we can remove this eventually."""
+        """Same as ``action_type``. Added for backwards-compatibility.
+        :meta private:
+        """
         return self._meta.model_name
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
@@ -942,10 +950,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
     """True if the action has been reverted on the platform."""
 
     community_origin = models.BooleanField(default=False)
-    """True if the action originated on the platform."""
-
-    readable_name = '' #TODO delete
-    """Readable name of the action type."""
+    """True if the action originated on the platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
 
     def __str__(self):
         if self.readable_name and self.community.platform:

@@ -108,7 +108,7 @@ def v2(request):
     pending_evaluations = PolicyEvaluation.objects.filter(
         policy__community=user.community,
         status=PolicyEvaluation.PROPOSED
-    ).order_by("-proposal_time")
+    ).order_by("-created_at")
 
     return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
