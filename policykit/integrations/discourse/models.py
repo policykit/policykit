@@ -109,10 +109,11 @@ class DiscourseCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                if posted_action.community_post:
-                    data = {}
-                    call = 'posts/{0}.json'.format(posted_action.community_post)
-                    _ = LogAPICall.make_api_call(self, data, call)
+                for e in PolicyEvaluation.filter(action=posted_action):
+                    if e.community_post:
+                        data = {}
+                        call = 'posts/{0}.json'.format(e.community_post)
+                        _ = LogAPICall.make_api_call(self, data, call)
 
             if not res['ok']:
                 error_message = res['error']

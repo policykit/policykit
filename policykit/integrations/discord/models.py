@@ -112,7 +112,6 @@ class DiscordPostMessage(PlatformAction):
             message = self.community.post_message(text=self.text, channel=self.channel_id)
 
             self.message_id = message['id']
-            self.community_post = self.message_id
             self.save()
 
 class DiscordDeleteMessage(PlatformAction):

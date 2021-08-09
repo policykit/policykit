@@ -173,11 +173,11 @@ class RedditCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                if posted_action.community_post:
-                    values = {'id': posted_action.community_post
-                            }
-                    call = 'api/remove'
-                    _ = LogAPICall.make_api_call(self, values, call)
+                for e in PolicyEvaluation.filter(action=posted_action):
+                    if e.community_post:
+                        values = {'id': e.community_post}
+                        call = 'api/remove'
+                        _ = LogAPICall.make_api_call(self, values, call)
 
             # approve post
             logger.info('approve executed post')

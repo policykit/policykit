@@ -134,8 +134,8 @@ def action(request):
     logger.info(json_data)
 
 def initiate_action_vote(policy, action, users, template=None):
-    from policyengine.models import LogAPICall
-
+    from policyengine.models import LogAPICall, PolicyEvaluation
+    evaluation = PolicyEvaluation.objects.get(policy=policy, action=action)
     policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'
 
     if not template:
@@ -157,5 +157,5 @@ def initiate_action_vote(policy, action, users, template=None):
     logger.info(res)
 
 
-    action.community_post = res['json']['data']['name']
-    action.save()
+    evaluation.community_post = res['json']['data']['name']
+    evaluation.save()

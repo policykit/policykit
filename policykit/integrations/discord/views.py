@@ -268,14 +268,12 @@ def handle_event(name, data):
             consider_proposed_actions()
 
         if name == 'MESSAGE_REACTION_ADD':
-            action_res = PlatformAction.objects.filter(community_post=data['message_id'])
-            action_res = action_res or ConstitutionAction.objects.filter(community_post=data['message_id'])
-            if not action_res.exists():
-                return
-            action = action_res[0]
-            evaluation_res = PolicyEvaluation.objects.filter(action=action, status=PolicyEvaluation.PROPOSED)
-            if evaluation_res.exists():
-                evaluation = evaluation_res[0]
+            evaluation = PolicyEvaluation.objects.filter(
+                community_post=data['message_id'],
+                status=PolicyEvaluation.PROPOSED
+            ).first()
+            if evaluation:
+                action = evaluation.action
                 reaction = data['emoji']['name']
                 if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                     val = (reaction == EMOJI_LIKE)
@@ -465,6 +463,8 @@ def auth(request, guild_id=None, access_token=None):
         return redirect('/login?error=invalid_login')
 
 def initiate_action_vote(policy, action, users=None, template=None, channel=None):
+    #TODO pass eval
+    evaluation = PolicyEvaluation.objects.get(policy=policy, action=action)
     message = "This action is governed by the following policy: " + policy.name
     if template:
         message = template
@@ -485,8 +485,8 @@ def initiate_action_vote(policy, action, users=None, template=None, channel=None
 
     res = policy.community.post_message(text=message, channel=channel_id)
 
-    action.community_post = res['id']
-    action.save()
+    evaluation.community_post = res['id']
+    evaluation.save()
 
     time.sleep(1)
     policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")

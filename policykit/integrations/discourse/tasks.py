@@ -96,8 +96,7 @@ def discourse_listener_actions():
             action__community_post__isnull=False
         )
         for evaluation in pending_evaluations:
-            proposed_action = evaluation.action
-            id = proposed_action.community_post
+            id = evaluation.community_post
 
             req = urllib.request.Request(url + '/posts/' + id + '.json')
             req.add_header("User-Api-Key", api_key)

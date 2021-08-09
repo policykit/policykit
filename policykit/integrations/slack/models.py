@@ -15,10 +15,10 @@ from policyengine.models import (
     LogAPICall,
     NumberVote,
     PlatformAction,
-    PlatformActionBundle,
     PolicyEvaluation,
     StarterKit,
 )
+from policyengine.utils import ActionKind
 
 logger = logging.getLogger(__name__)
 
@@ -93,10 +93,10 @@ class SlackCommunity(CommunityPlatform):
         evaluation = PolicyEvaluation.objects.get(action=action, policy=policy)
         community_post_ts = SlackUtils.start_emoji_vote(evaluation, users, post_type, template, channel)
         logger.debug(
-            f"Saving action with community_post '{community_post_ts}', and process at {evaluation.governance_process_url}"
+            f"Saving evaluation with community_post '{community_post_ts}', and process at {evaluation.governance_process_url}"
         )
-        action.community_post = community_post_ts
-        action.save()
+        evaluation.community_post = community_post_ts
+        evaluation.save()
 
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""
@@ -154,14 +154,15 @@ class SlackCommunity(CommunityPlatform):
                         posted_action = bundle[0]
                 else:
                     posted_action = action
-
-                if posted_action.community_post:
-                    values = {
-                        "token": admin_user_token,
-                        "ts": posted_action.community_post,
-                        "channel": obj.channel,
-                    }
-                    self.__make_generic_api_call("chat.delete", values)
+                
+                for e in PolicyEvaluation.filter(action=posted_action):
+                    if e.community_post:
+                        values = {
+                            "token": admin_user_token,
+                            "ts": e.community_post,
+                            "channel": obj.channel,
+                        }
+                        self.__make_generic_api_call("chat.delete", values)
 
     def handle_metagov_event(self, outer_event):
         """
@@ -191,16 +192,18 @@ class SlackCommunity(CommunityPlatform):
         ts = outcome["message_ts"]
         votes = outcome["votes"]
 
-        action = PlatformAction.objects.filter(community=self, community_post=ts).first()
-        action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
-        if action is not None:
-            try:
-                evaluation = PolicyEvaluation.objects.get(action=action)
-            except PolicyEvaluation.DoesNotExist:
-                logger.warn(
-                    f"No policy evaluation found for slack.emoji-vote action {action}, ignoring Metagov process {process.get('id')}"
-                )
-                return
+        # Find the PolicyEvaluation that this vote corresponds to
+        try:
+            evaluation = PolicyEvaluation.objects.get(community_post=ts, action__community=self)
+        except PolicyEvaluation.DoesNotExist:
+            logger.warn(
+                f"No policy evaluation found for slack.emoji-vote vote ts {ts}, ignoring Metagov process {process.get('id')}"
+            )
+            return
+
+        action = evaluation.action
+
+        if action.action_kind == ActionKind.PLATFORM and action.action_type != "platformactionbundle":
             # Expect this process to be a boolean vote on an action.
             for (k, v) in votes.items():
                 assert k == "yes" or k == "no"
@@ -216,7 +219,8 @@ class SlackCommunity(CommunityPlatform):
                         existing_vote.boolean_value = reaction_bool
                         existing_vote.save()
 
-        elif action_bundle is not None:
+        elif action.action_type == "platformactionbundle":
+            action_bundle = action
             # Expect this process to be a choice vote on an action bundle.
             bundled_actions = list(action_bundle.bundled_actions.all())
             for (k, v) in votes.items():

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
-from policyengine.models import PolicyEvaluation, LogAPICall, PlatformAction, BooleanVote
+from policyengine.models import PolicyEvaluation, LogAPICall, PolicyEvaluation, BooleanVote
 from integrations.reddit.models import RedditCommunity, RedditUser, RedditMakePost
 import datetime
 import logging
@@ -11,7 +11,7 @@ import json
 logger = logging.getLogger(__name__)
 
 def is_policykit_action(community, name, call_type, test_a, test_b):
-    community_post = RedditMakePost.objects.filter(community_post=name)
+    community_post = PolicyEvaluation.objects.filter(community_post=name, action__community=community)
     if community_post.exists():
         logger.info('approve PolicyKit post')
         community.make_call('api/approve', {'id': name})
@@ -69,11 +69,10 @@ def reddit_listener_actions():
         pending_evaluations = PolicyEvaluation.objects.filter(
             status=PolicyEvaluation.PROPOSED,
             action__community=community,
-            action__community_post__isnull=False
+            community_post__isnull=False
         )
         for evaluation in pending_evaluations:
-            proposed_action = evaluation.action
-            id = proposed_action.community_post.split('_')[1]
+            id = evaluation.community_post.split('_')[1]
 
             call = 'r/policykit/comments/' + id + '.json'
             res = community.make_call(call)

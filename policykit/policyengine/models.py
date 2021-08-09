@@ -384,6 +384,9 @@ class PolicyEvaluation(models.Model):
     data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
     """Datastore for persisting any additional data related to the evaluation."""
 
+    community_post = models.CharField(max_length=300, blank=True)
+    """Identifier of the post that is being voted on, if any."""
+
     governance_process_url = models.URLField(max_length=100, blank=True)
     """Location of the Metagov GovernanceProcess that is being used to make a decision about this PolicyEvaluation, if any."""
 
@@ -480,10 +483,6 @@ class BaseAction(PolymorphicModel):
 
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
     """The ``CommunityUser`` who initiated the action. May not exist if initiated by PolicyKit."""
-
-    # TODO: move to PolicyEvaluation
-    community_post = models.CharField('community_post', max_length=300, null=True)
-    """The notification which is sent to the community to alert them of the action. May or may not exist."""
 
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
@@ -953,9 +952,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
     """True if the action originated on the platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
 
     def __str__(self):
-        if self.readable_name and self.community.platform:
-            return f"{self.community.platform} {self.readable_name}"
-        return self.action_type or super(PlatformAction, self).__str__() #TODO: we want the PK sometimes..
+        return self.action_type or super(PlatformAction, self).__str__()
 
     def revert(self, values, call, method=None):
         """
@@ -1135,8 +1132,7 @@ class PlatformActionForm(ModelForm):
             "community",
             "community_revert",
             "community_origin",
-            "is_bundled",
-            "community_post"
+            "is_bundled"
         ]
 
     def __init__(self, *args, **kwargs):
