@@ -5,6 +5,7 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase, override_settings
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
 from policyengine.models import Proposal, Community, CommunityRole, Policy, PolicykitAddCommunityDoc
+from policyengine.tasks import consider_proposed_actions
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -75,7 +76,12 @@ class EvaluationTests(TestCase):
         self.assertEqual(action._test_did_execute, expected_did_execute)
 
         if expected_policy and expected_status:
-            eval = Proposal.objects.get(action=action, policy=expected_policy)
+            try:
+                eval = Proposal.objects.get(action=action, policy=expected_policy)
+            except:
+                raise Exception(
+                    f"Proposal not found! Expected action '{action}' to have a proposal for policy '{expected_policy}'"
+                )
             self.assertEqual(eval.status, expected_status)
         else:
             # there shouldn't have been an proposal generated (meaning the initiator had can_execute perms)
@@ -240,3 +246,31 @@ class EvaluationTests(TestCase):
         self.govern_action_helper(
             action, expected_policy=all_fail_policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
+
+    def test_consider_proposed_actions(self):
+        """Celery-scheduled consider_proposed_actions task works"""
+        policy = Policy.objects.create(
+            **{**all_actions_pass_policy, "check": "return None"},
+            kind=Policy.PLATFORM,
+            community=self.slack_community,
+            name="all actions pending",
+        )
+
+        # Make a pending action
+        action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
+        action.revert = lambda: None
+        self.govern_action_helper(
+            action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.PROPOSED
+        )
+
+        # Run the evaluator, just tests that it doesn't throw
+        consider_proposed_actions()
+
+        # Update the policy so the action passes now
+        policy.check = "return PASSED"
+        policy.save()
+
+        consider_proposed_actions()
+
+        eval = Proposal.objects.get(action=action, policy=policy)
+        self.assertEqual(eval.status, Proposal.PASSED)

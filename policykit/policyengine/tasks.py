@@ -15,9 +15,7 @@ def consider_proposed_actions():
     from policyengine.models import Proposal
 
     pending_proposals = Proposal.objects.filter(status=Proposal.PROPOSED)
-    logger.debug(f"{pending_proposals.count()} pending proposals")
     for proposal in pending_proposals:
-
         logger.debug(f"Evaluating proposal '{proposal}'")
         try:
             engine.evaluate_proposal(proposal)
