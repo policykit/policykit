@@ -510,6 +510,7 @@ class BaseAction(PolymorphicModel):
     @property
     def action_codename(self):
         """Same as ``action_type``. Added for backwards-compatibility.
+
         :meta private:
         """
         return self._meta.model_name
