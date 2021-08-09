@@ -508,13 +508,6 @@ class BaseAction(PolymorphicModel):
         """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""
         return self._meta.model_name
 
-    @property
-    def action_codename(self):
-        """Same as ``action_type``. Added for backwards-compatibility.
-
-        :meta private:
-        """
-        return self._meta.model_name
 
 class ConstitutionAction(BaseAction, PolymorphicModel):
     """Constitution Action"""
