@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, PolicyEvaluation, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
@@ -54,9 +54,9 @@ class DiscordCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, evaluation, users=None, template=None, channel=None):
+    def initiate_vote(self, proposal, users=None, template=None, channel=None):
         from integrations.discord.views import initiate_action_vote
-        initiate_action_vote(evaluation, users, template, channel)
+        initiate_action_vote(proposal, users, template, channel)
 
     def post_message(self, text, channel):
         return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")

@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from django.conf import settings
-from policyengine.models import PolicyEvaluation, PlatformAction, BooleanVote
+from policyengine.models import Proposal, PlatformAction, BooleanVote
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic
 import urllib.request
 import urllib.error
@@ -90,13 +90,13 @@ def discourse_listener_actions():
                 action.revert()
 
         # Manage proposals
-        pending_evaluations = PolicyEvaluation.objects.filter(
-            status=PolicyEvaluation.PROPOSED,
+        pending_proposals = Proposal.objects.filter(
+            status=Proposal.PROPOSED,
             action__community=community,
             action__community_post__isnull=False
         )
-        for evaluation in pending_evaluations:
-            id = evaluation.community_post
+        for proposal in pending_proposals:
+            id = proposal.community_post
 
             req = urllib.request.Request(url + '/posts/' + id + '.json')
             req.add_header("User-Api-Key", api_key)
@@ -116,11 +116,11 @@ def discourse_listener_actions():
                     if u.exists():
                         u = u[0]
 
-                        bool_vote = BooleanVote.objects.filter(evaluation=evaluation, user=u)
+                        bool_vote = BooleanVote.objects.filter(proposal=proposal, user=u)
                         if bool_vote.exists():
                             vote = bool_vote[0]
                             if vote.boolean_value != val:
                                 vote.boolean_value = val
                                 vote.save()
                         else:
-                            b = BooleanVote.objects.create(evaluation=evaluation, user=u, boolean_value=val)
+                            b = BooleanVote.objects.create(proposal=proposal, user=u, boolean_value=val)

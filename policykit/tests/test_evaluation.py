@@ -1,10 +1,10 @@
 """
-Policy evaluation tests that do NOT require Metagov to be enabled
+Policy proposal tests that do NOT require Metagov to be enabled
 """
 from django.contrib.auth.models import Permission
 from django.test import TestCase, override_settings
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import PolicyEvaluation, Community, CommunityRole, Policy, PolicykitAddCommunityDoc
+from policyengine.models import Proposal, Community, CommunityRole, Policy, PolicykitAddCommunityDoc
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -54,14 +54,14 @@ class EvaluationTests(TestCase):
         user_with_can_execute.user_permissions.add(can_add)
         user_with_can_execute.user_permissions.add(can_execute)
 
-        # action initiated by user with "can_execute" should execute, and should NOT generate an evaluation
+        # action initiated by user with "can_execute" should execute, and should NOT generate an proposal
         action = SlackPinMessage(initiator=user_with_can_execute, community=self.slack_community)
         self.govern_action_helper(action, expected_did_execute=True)
 
-        # action initiated by user without "can_execute" should not execute, and should generate an evaluation and fail because of the policy
+        # action initiated by user without "can_execute" should not execute, and should generate an proposal and fail because of the policy
         action = SlackPinMessage(initiator=self.user, community=self.slack_community)
         self.govern_action_helper(
-            action, expected_policy=policy, expected_did_execute=False, expected_status=PolicyEvaluation.FAILED
+            action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
     def govern_action_helper(self, action, expected_did_execute, expected_policy=None, expected_status=None):
@@ -75,11 +75,11 @@ class EvaluationTests(TestCase):
         self.assertEqual(action._test_did_execute, expected_did_execute)
 
         if expected_policy and expected_status:
-            eval = PolicyEvaluation.objects.get(action=action, policy=expected_policy)
+            eval = Proposal.objects.get(action=action, policy=expected_policy)
             self.assertEqual(eval.status, expected_status)
         else:
-            # there shouldn't have been an evaluation generated (meaning the initiator had can_execute perms)
-            self.assertEqual(PolicyEvaluation.objects.filter(action=action).count(), 0)
+            # there shouldn't have been an proposal generated (meaning the initiator had can_execute perms)
+            self.assertEqual(Proposal.objects.filter(action=action).count(), 0)
 
     def test_non_community_origin_actions(self):
         """Actions that didnt originate on the community platform should executed on 'pass'"""
@@ -93,13 +93,13 @@ class EvaluationTests(TestCase):
         # engine should call "execute" for non-community actions on pass
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=False)
         self.govern_action_helper(
-            action, expected_policy=first_policy, expected_did_execute=True, expected_status=PolicyEvaluation.PASSED
+            action, expected_policy=first_policy, expected_did_execute=True, expected_status=Proposal.PASSED
         )
 
         # engine should not call "execute" for community actions on pass
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         self.govern_action_helper(
-            action, expected_policy=first_policy, expected_did_execute=False, expected_status=PolicyEvaluation.PASSED
+            action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
     def test_can_execute_constitution(self):
@@ -132,7 +132,7 @@ class EvaluationTests(TestCase):
         )
         self.govern_action_helper(action, expected_did_execute=True)
 
-        # action initiated by user without "can_execute" should not execute and not generate an evaluation
+        # action initiated by user without "can_execute" should not execute and not generate an proposal
         action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.slack_community)
         self.govern_action_helper(action, expected_did_execute=False)
 
@@ -160,7 +160,7 @@ class EvaluationTests(TestCase):
         self.assertTrue(user.has_perm("policyengine.add_policykitaddcommunitydoc"))
         action = PolicykitAddCommunityDoc(name="my other doc", initiator=user, community=self.slack_community)
         self.govern_action_helper(
-            action, expected_policy=policy, expected_did_execute=True, expected_status=PolicyEvaluation.PASSED
+            action, expected_policy=policy, expected_did_execute=True, expected_status=Proposal.PASSED
         )
 
     def test_policy_order(self):
@@ -175,7 +175,7 @@ class EvaluationTests(TestCase):
         # new action should pass
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         self.govern_action_helper(
-            action, expected_policy=first_policy, expected_did_execute=False, expected_status=PolicyEvaluation.PASSED
+            action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
         second_policy = Policy.objects.create(
@@ -189,7 +189,7 @@ class EvaluationTests(TestCase):
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         action.revert = lambda: None
         self.govern_action_helper(
-            action, expected_policy=second_policy, expected_did_execute=False, expected_status=PolicyEvaluation.FAILED
+            action, expected_policy=second_policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
         first_policy.description = "updated description"
@@ -197,7 +197,7 @@ class EvaluationTests(TestCase):
         # new action should pass, "first_policy" is now most recent
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         self.govern_action_helper(
-            action, expected_policy=first_policy, expected_did_execute=False, expected_status=PolicyEvaluation.PASSED
+            action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
     def test_policy_exception(self):
@@ -211,7 +211,7 @@ class EvaluationTests(TestCase):
         exception_policy = Policy.objects.create(
             **{
                 **all_actions_pass_policy,
-                "initialize": "evaluation.data.set('was_executed', True)\nraise Exception('thrown from policy')",
+                "initialize": "proposal.data.set('was_executed', True)\nraise Exception('thrown from policy')",
             },
             kind=Policy.PLATFORM,
             community=self.slack_community,
@@ -220,7 +220,7 @@ class EvaluationTests(TestCase):
 
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         self.govern_action_helper(
-            action, expected_policy=all_pass_policy, expected_did_execute=False, expected_status=PolicyEvaluation.PASSED
+            action, expected_policy=all_pass_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
         # test with falling back to a policy that fails
@@ -238,5 +238,5 @@ class EvaluationTests(TestCase):
         action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         action.revert = lambda: None
         self.govern_action_helper(
-            action, expected_policy=all_fail_policy, expected_did_execute=False, expected_status=PolicyEvaluation.FAILED
+            action, expected_policy=all_fail_policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )

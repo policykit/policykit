@@ -114,8 +114,8 @@ def slack_event_to_platform_action(community, outer_event):
     return new_api_action
 
 
-def start_emoji_vote(evaluation, users=None, post_type="channel", template=None, channel=None):
-    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{evaluation.pk}"}
+def start_emoji_vote(proposal, users=None, post_type="channel", template=None, channel=None):
+    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{proposal.pk}"}
     if channel is not None:
         payload["channel"] = channel
     if users is not None and len(users) > 0:
@@ -124,8 +124,8 @@ def start_emoji_vote(evaluation, users=None, post_type="channel", template=None,
         else:
             payload["users"] = [u.username for u in users]
 
-    action = evaluation.action
-    policy = evaluation.policy
+    action = proposal.action
+    policy = proposal.policy
 
     if action.action_type == "platformactionbundle" and action.bundle_type == PlatformActionBundle.ELECTION:
         payload["poll_type"] = "choice"
@@ -161,12 +161,12 @@ def start_emoji_vote(evaluation, users=None, post_type="channel", template=None,
     if not location:
         raise Exception("Response missing location header")
 
-    # Store location URL of the process, so we can use it to close the Metagov process when policy evaluation "completes"
-    evaluation.governance_process_url = f"{settings.METAGOV_URL}{location}"
-    evaluation.save()
+    # Store location URL of the process, so we can use it to close the Metagov process when policy proposal "completes"
+    proposal.governance_process_url = f"{settings.METAGOV_URL}{location}"
+    proposal.save()
 
     # Get the unique 'ts' of the vote post, and return it
-    response = requests.get(evaluation.governance_process_url)
+    response = requests.get(proposal.governance_process_url)
     if not response.ok:
         raise Exception(f"{response.status_code} {response.reason} {response.text}")
     process = response.json()

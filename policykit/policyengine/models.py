@@ -99,14 +99,14 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
-    def initiate_vote(self, evaluation, users=None):
+    def initiate_vote(self, proposal, users=None):
         """
         Initiates a vote on whether to pass the action that is currently being evaluated.
 
         Parameters
         -------
-        evaluation
-            The ``PolicyEvaluation`` that is being run.
+        proposal
+            The ``Proposal`` that is being run.
         users
             The users who should be notified.
         """
@@ -252,7 +252,7 @@ class CommunityDoc(models.Model):
 
 
 class DataStore(models.Model):
-    """DataStore used for persisting serializable data on a PolicyEvaluation."""
+    """DataStore used for persisting serializable data on a Proposal."""
 
     data_store = models.TextField()
 
@@ -354,9 +354,9 @@ class GenericRole(Group):
     def __str__(self):
         return self.role_name
 
-class PolicyEvaluation(models.Model):
-    """The PolicyEvaluation model represents an evaluation of a policy for a particular action.
-    Any data relevant to the evaluation, such as vote counts, can be retrieved from this model."""
+class Proposal(models.Model):
+    """The Proposal model represents an proposal of a policy for a particular action.
+    Any data relevant to the proposal, such as vote counts, can be retrieved from this model."""
 
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -367,107 +367,107 @@ class PolicyEvaluation(models.Model):
         (PASSED, 'passed')
     ]
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    """Datetime object representing when this evaluation first occurred."""
+    proposal_time = models.DateTimeField(auto_now_add=True)
+    """Datetime object representing when the proposal was created."""
 
     status = models.CharField(choices=STATUS, max_length=10)
-    """Status of the evaluation. One of PROPOSED, PASSED or FAILED."""
+    """Status of the proposal. One of PROPOSED, PASSED or FAILED."""
 
     policy = models.ForeignKey('Policy', on_delete=models.SET_NULL, editable=False, blank=True, null=True)
     """The policy that is being evaluated."""
 
     action = models.ForeignKey('BaseAction', on_delete=models.CASCADE, editable=False)
-    """The action that triggered the evaluation."""
+    """The action that triggered the proposal."""
 
     data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
-    """Datastore for persisting any additional data related to the evaluation."""
+    """Datastore for persisting any additional data related to the proposal."""
 
     community_post = models.CharField(max_length=300, blank=True)
     """Identifier of the post that is being voted on, if any."""
 
     governance_process_url = models.URLField(max_length=100, blank=True)
-    """Location of the Metagov GovernanceProcess that is being used to make a decision about this PolicyEvaluation, if any."""
+    """Location of the Metagov GovernanceProcess that is being used to make a decision about this Proposal, if any."""
 
     governance_process_json = models.JSONField(max_length=1000, null=True, blank=True)
     """Raw Metagov governance process data in JSON format."""
 
     def __str__(self):
-        return f"PolicyEvaluation {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
+        return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
     def get_time_elapsed(self):
         """
-        Returns a datetime object representing the time elapsed since the first evaluation.
+        Returns a datetime object representing the time elapsed since the first proposal.
         """
-        return datetime.now(timezone.utc) - self.created_at
+        return datetime.now(timezone.utc) - self.proposal_time
 
     def get_all_boolean_votes(self, users=None):
         """
         For Boolean voting. Returns all boolean votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return BooleanVote.objects.filter(evaluation=self, user__in=users)
-        return BooleanVote.objects.filter(evaluation=self)
+            return BooleanVote.objects.filter(proposal=self, user__in=users)
+        return BooleanVote.objects.filter(proposal=self)
 
     def get_yes_votes(self, users=None):
         """
         For Boolean voting. Returns the yes votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return BooleanVote.objects.filter(boolean_value=True, evaluation=self, user__in=users)
-        return BooleanVote.objects.filter(boolean_value=True, evaluation=self)
+            return BooleanVote.objects.filter(boolean_value=True, proposal=self, user__in=users)
+        return BooleanVote.objects.filter(boolean_value=True, proposal=self)
 
     def get_no_votes(self, users=None):
         """
         For Boolean voting. Returns the no votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return BooleanVote.objects.filter(boolean_value=False, evaluation=self, user__in=users)
-        return BooleanVote.objects.filter(boolean_value=False, evaluation=self)
+            return BooleanVote.objects.filter(boolean_value=False, proposal=self, user__in=users)
+        return BooleanVote.objects.filter(boolean_value=False, proposal=self)
 
     def get_all_number_votes(self, users=None):
         """
         For Number voting. Returns all number votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return NumberVote.objects.filter(evaluation=self, user__in=users)
-        return NumberVote.objects.filter(evaluation=self)
+            return NumberVote.objects.filter(proposal=self, user__in=users)
+        return NumberVote.objects.filter(proposal=self)
 
     def get_one_number_votes(self, value, users=None):
         """
         For Number voting. Returns number votes for the specified value as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
         """
         if users:
-            return NumberVote.objects.filter(number_value=value, evaluation=self, user__in=users)
-        return NumberVote.objects.filter(number_value=value, evaluation=self)
+            return NumberVote.objects.filter(number_value=value, proposal=self, user__in=users)
+        return NumberVote.objects.filter(number_value=value, proposal=self)
 
     def save(self, *args, **kwargs):
         """
-        Saves the evaluation. Note: Only meant for internal use.
+        Saves the proposal. Note: Only meant for internal use.
 
         :meta private:
         """
         if not self.pk:
             self.data = DataStore.objects.create()
-        super(PolicyEvaluation, self).save(*args, **kwargs)
+        super(Proposal, self).save(*args, **kwargs)
 
-    def pass_action(self):
+    def pass_evaluation(self):
         """
-        Sets the evaluation to PASSED.
+        Sets the proposal to PASSED.
 
         :meta private:
         """
-        self.status = PolicyEvaluation.PASSED
+        self.status = Proposal.PASSED
         self.save()
         action = self.action
         actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type)
 
-    def fail_action(self):
+    def fail_evaluation(self):
         """
-        Sets the evaluation to FAILED.
+        Sets the proposal to FAILED.
 
         :meta private:
         """
-        self.status = PolicyEvaluation.FAILED
+        self.status = Proposal.FAILED
         self.save()
         action = self.action
         actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_type)
@@ -485,7 +485,8 @@ class BaseAction(PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
-    action_kind = None # platform vs constitution. don't override
+    action_kind = None
+    """Kind of action. One of 'platform' or 'constitution'. Do not override."""
 
     def save(self, *args, **kwargs):
         """
@@ -1082,8 +1083,8 @@ class UserVote(models.Model):
     user = models.ForeignKey(CommunityUser, models.CASCADE)
     """The user who cast the vote."""
 
-    evaluation = models.ForeignKey(PolicyEvaluation, models.CASCADE)
-    """The policy evaluation that initiated the vote."""
+    proposal = models.ForeignKey(Proposal, models.CASCADE)
+    """The policy proposal that initiated the vote."""
 
     vote_time = models.DateTimeField(auto_now_add=True)
     """Datetime object representing when the vote was cast."""

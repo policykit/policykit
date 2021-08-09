@@ -15,7 +15,7 @@ from policyengine.models import (
     LogAPICall,
     NumberVote,
     PlatformAction,
-    PolicyEvaluation,
+    Proposal,
     StarterKit,
 )
 from policyengine.utils import ActionKind
@@ -89,13 +89,13 @@ class SlackCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, evaluation, users=None, post_type="channel", template=None, channel=None):
-        community_post_ts = SlackUtils.start_emoji_vote(evaluation, users, post_type, template, channel)
+    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None):
+        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel)
         logger.debug(
-            f"Saving evaluation with community_post '{community_post_ts}', and process at {evaluation.governance_process_url}"
+            f"Saving proposal with community_post '{community_post_ts}', and process at {proposal.governance_process_url}"
         )
-        evaluation.community_post = community_post_ts
-        evaluation.save()
+        proposal.community_post = community_post_ts
+        proposal.save()
 
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""
@@ -154,7 +154,7 @@ class SlackCommunity(CommunityPlatform):
                 else:
                     posted_action = action
                 
-                for e in PolicyEvaluation.filter(action=posted_action):
+                for e in Proposal.filter(action=posted_action):
                     if e.community_post:
                         values = {
                             "token": admin_user_token,
@@ -176,7 +176,7 @@ class SlackCommunity(CommunityPlatform):
         if new_api_action is not None:
             new_api_action.community_origin = True
             new_api_action.is_bundled = False
-            new_api_action.save()  # save triggers policy evaluation
+            new_api_action.save()  # save triggers policy proposal
             logger.debug(f"PlatformAction saved: {new_api_action.pk}")
 
     def handle_metagov_process(self, process):
@@ -191,16 +191,16 @@ class SlackCommunity(CommunityPlatform):
         ts = outcome["message_ts"]
         votes = outcome["votes"]
 
-        # Find the PolicyEvaluation that this vote corresponds to
+        # Find the Proposal that this vote corresponds to
         try:
-            evaluation = PolicyEvaluation.objects.get(community_post=ts, action__community=self)
-        except PolicyEvaluation.DoesNotExist:
+            proposal = Proposal.objects.get(community_post=ts, action__community=self)
+        except Proposal.DoesNotExist:
             logger.warn(
-                f"No policy evaluation found for slack.emoji-vote vote ts {ts}, ignoring Metagov process {process.get('id')}"
+                f"No policy proposal found for slack.emoji-vote vote ts {ts}, ignoring Metagov process {process.get('id')}"
             )
             return
 
-        action = evaluation.action
+        action = proposal.action
 
         if action.action_kind == ActionKind.PLATFORM and action.action_type != "platformactionbundle":
             # Expect this process to be a boolean vote on an action.
@@ -209,10 +209,10 @@ class SlackCommunity(CommunityPlatform):
                 reaction_bool = True if k == "yes" else False
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = BooleanVote.objects.filter(evaluation=evaluation, user=user).first()
+                    existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
                         logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
-                        BooleanVote.objects.create(evaluation=evaluation, user=user, boolean_value=reaction_bool)
+                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=reaction_bool)
                     elif existing_vote.boolean_value != reaction_bool:
                         logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
                         existing_vote.boolean_value = reaction_bool
@@ -226,21 +226,21 @@ class SlackCommunity(CommunityPlatform):
                 num, voted_action = [(idx, a) for (idx, a) in enumerate(bundled_actions) if str(a) == k][0]
 
                 try:
-                    evaluation = PolicyEvaluation.objects.get(action=voted_action)
-                except PolicyEvaluation.DoesNotExist:
+                    proposal = Proposal.objects.get(action=voted_action)
+                except Proposal.DoesNotExist:
                     logger.warn(
-                        f"No policy evaluation found action {voted_action} bundled in {action_bundle}. Ignoring"
+                        f"No policy proposal found action {voted_action} bundled in {action_bundle}. Ignoring"
                     )
                     return
 
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = NumberVote.objects.filter(evaluation=evaluation, user=user).first()
+                    existing_vote = NumberVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
                         logger.debug(
                             f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
                         )
-                        NumberVote.objects.create(evaluation=evaluation, user=user, number_value=num)
+                        NumberVote.objects.create(proposal=proposal, user=user, number_value=num)
                     elif existing_vote.number_value != num:
                         logger.debug(
                             f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"

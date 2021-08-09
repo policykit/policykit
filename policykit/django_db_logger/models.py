@@ -2,7 +2,7 @@ import logging
 from django.db import models
 from six import python_2_unicode_compatible
 from django.utils.translation import gettext_lazy as _
-from policyengine.models import Community, PolicyEvaluation
+from policyengine.models import Community, Proposal
 
 LOG_LEVELS = (
     (logging.NOTSET, _("NotSet")),
@@ -17,7 +17,7 @@ LOG_LEVELS = (
 @python_2_unicode_compatible
 class EvaluationLog(models.Model):
     community = models.ForeignKey(Community, blank=True, null=True, on_delete=models.SET_NULL)
-    evaluation = models.ForeignKey(PolicyEvaluation, blank=True, null=True, on_delete=models.SET_NULL)
+    proposal = models.ForeignKey(Proposal, blank=True, null=True, on_delete=models.SET_NULL)
     policy_str = models.CharField(max_length=150, blank=True)
     action_str = models.CharField(max_length=150, blank=True)
 
@@ -35,11 +35,11 @@ class EvaluationLog(models.Model):
         verbose_name_plural = verbose_name = "Logging"
 
     def action(self):
-        if self.evaluation and self.evaluation.action:
-            return self.evaluation.action
+        if self.proposal and self.proposal.action:
+            return self.proposal.action
         return self.action_str
 
     def policy(self):
-        if self.evaluation and self.evaluation.policy:
-            return self.evaluation.policy
+        if self.proposal and self.proposal.policy:
+            return self.proposal.policy
         return self.policy_str

@@ -10,7 +10,7 @@ from django.http import (
 )
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.models import MetagovAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole, PolicyEvaluation
+from policyengine.models import Community, CommunityPlatform, CommunityRole, Proposal
 from integrations.slack.models import SlackCommunity
 
 logger = logging.getLogger(__name__)
@@ -35,11 +35,11 @@ def internal_receive_outcome(request, id):
         return HttpResponse()
 
     try:
-        evaluation = PolicyEvaluation.objects.get(pk=id)
-    except PolicyEvaluation.DoesNotExist:
+        proposal = Proposal.objects.get(pk=id)
+    except Proposal.DoesNotExist:
         return HttpResponseNotFound()
-    evaluation.governance_process_json = json.dumps(body)
-    evaluation.save()
+    proposal.governance_process_json = json.dumps(body)
+    proposal.save()
     return HttpResponse()
 
 
@@ -111,7 +111,6 @@ def internal_receive_action(request):
     new_api_action.event_type = f"{body['source']}.{body['event_type']}"
     new_api_action.json_data = json.dumps(body["data"])
 
-    # Save to create PolicyEvaluation and trigger policy evaluations
     new_api_action.save()
     if not new_api_action.pk:
         return HttpResponseServerError()

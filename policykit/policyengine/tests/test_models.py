@@ -95,31 +95,31 @@ class ModelTestCase(TestCase):
             username="test3",
             community=self.community
         )
-        self.proposal = PolicyEvaluation.objects.create(
-            status=PolicyEvaluation.PROPOSED
+        self.proposal = Proposal.objects.create(
+            status=Proposal.PROPOSED
         )
         self.booleanvote1 = BooleanVote.objects.create(
-            evaluation=self.proposal,
+            proposal=self.proposal,
             user=self.user1,
             boolean_value=True
         )
         self.booleanvote2 = BooleanVote.objects.create(
-            evaluation=self.proposal,
+            proposal=self.proposal,
             user=self.user2,
             boolean_value=True
         )
         self.booleanvote3 = BooleanVote.objects.create(
-            evaluation=self.proposal,
+            proposal=self.proposal,
             user=self.user3,
             boolean_value=False
         )
         self.numbervote1 = NumberVote.objects.create(
-            evaluation=self.proposal,
+            proposal=self.proposal,
             user=self.user1,
             number_value=2
         )
         self.numbervote2 = NumberVote.objects.create(
-            evaluation=self.proposal,
+            proposal=self.proposal,
             user=self.user2,
             number_value=3
         )

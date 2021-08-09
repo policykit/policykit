@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, PolicyEvaluation, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
@@ -111,9 +111,9 @@ class RedditCommunity(CommunityPlatform):
         self.access_token = res['access_token']
         self.save()
 
-    def initiate_vote(self, evaluation, users=None):
+    def initiate_vote(self, proposal, users=None):
         from redditintegration.views import initiate_action_vote
-        initiate_action_vote(evaluation, users)
+        initiate_action_vote(proposal, users)
 
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall
@@ -173,7 +173,7 @@ class RedditCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                for e in PolicyEvaluation.filter(action=posted_action):
+                for e in Proposal.filter(action=posted_action):
                     if e.community_post:
                         values = {'id': e.community_post}
                         call = 'api/remove'

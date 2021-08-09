@@ -143,9 +143,9 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
-def initiate_action_vote(evaluation, users=None, template=None, topic_id=None):
+def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
     from policyengine.models import LogAPICall
-    policy = evaluation.policy
+    policy = proposal.policy
     policy_message = "This action is governed by the following policy: " + policy.name
     if template:
         policy_message = template
@@ -165,5 +165,5 @@ def initiate_action_vote(evaluation, users=None, template=None, topic_id=None):
                                   extra_info=json.dumps(data))
 
     if action.action_kind == ActionKind.PLATFORM:
-        evaluation.community_post = res['id']
-        evaluation.save()
+        proposal.community_post = res['id']
+        proposal.save()

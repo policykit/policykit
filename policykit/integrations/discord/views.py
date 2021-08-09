@@ -268,18 +268,18 @@ def handle_event(name, data):
             consider_proposed_actions()
 
         if name == 'MESSAGE_REACTION_ADD':
-            evaluation = PolicyEvaluation.objects.filter(
+            proposal = Proposal.objects.filter(
                 community_post=data['message_id'],
-                status=PolicyEvaluation.PROPOSED
+                status=Proposal.PROPOSED
             ).first()
-            if evaluation:
-                action = evaluation.action
+            if proposal:
+                action = proposal.action
                 reaction = data['emoji']['name']
                 if reaction in [EMOJI_LIKE, EMOJI_DISLIKE]:
                     val = (reaction == EMOJI_LIKE)
                     user = DiscordUser.objects.get(username=f"{data['user_id']}:{data['guild_id']}",
                                                                community=action.community)
-                    vote = BooleanVote.objects.filter(evaluation=evaluation, user=user)
+                    vote = BooleanVote.objects.filter(proposal=proposal, user=user)
 
                     if vote.exists():
                         vote = vote[0]
@@ -287,7 +287,7 @@ def handle_event(name, data):
                         vote.save()
 
                     else:
-                        vote = BooleanVote.objects.create(evaluation=evaluation,
+                        vote = BooleanVote.objects.create(proposal=proposal,
                                                           user=user,
                                                           boolean_value=val)
 
@@ -462,8 +462,8 @@ def auth(request, guild_id=None, access_token=None):
     else:
         return redirect('/login?error=invalid_login')
 
-def initiate_action_vote(evaluation, users=None, template=None, channel=None):
-    policy = evaluation.policy
+def initiate_action_vote(proposal, users=None, template=None, channel=None):
+    policy = proposal.policy
     message = "This action is governed by the following policy: " + policy.name
     if template:
         message = template
@@ -484,8 +484,8 @@ def initiate_action_vote(evaluation, users=None, template=None, channel=None):
 
     res = policy.community.post_message(text=message, channel=channel_id)
 
-    evaluation.community_post = res['id']
-    evaluation.save()
+    proposal.community_post = res['id']
+    proposal.save()
 
     time.sleep(1)
     policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")

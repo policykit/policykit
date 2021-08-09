@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
-from policyengine.models import PolicyEvaluation, LogAPICall, PolicyEvaluation, BooleanVote
+from policyengine.models import Proposal, LogAPICall, Proposal, BooleanVote
 from integrations.reddit.models import RedditCommunity, RedditUser, RedditMakePost
 import datetime
 import logging
@@ -11,7 +11,7 @@ import json
 logger = logging.getLogger(__name__)
 
 def is_policykit_action(community, name, call_type, test_a, test_b):
-    community_post = PolicyEvaluation.objects.filter(community_post=name, action__community=community)
+    community_post = Proposal.objects.filter(community_post=name, action__community=community)
     if community_post.exists():
         logger.info('approve PolicyKit post')
         community.make_call('api/approve', {'id': name})
@@ -63,16 +63,16 @@ def reddit_listener_actions():
         for action in actions:
             action.community_origin = True
             action.is_bundled = False
-            action.save() # save triggers policy evaluation
+            action.save() # save triggers policy proposal
 
         # Manage proposals
-        pending_evaluations = PolicyEvaluation.objects.filter(
-            status=PolicyEvaluation.PROPOSED,
+        pending_proposals = Proposal.objects.filter(
+            status=Proposal.PROPOSED,
             action__community=community,
             community_post__isnull=False
         )
-        for evaluation in pending_evaluations:
-            id = evaluation.community_post.split('_')[1]
+        for proposal in pending_proposals:
+            id = proposal.community_post.split('_')[1]
 
             call = 'r/policykit/comments/' + id + '.json'
             res = community.make_call(call)
@@ -98,7 +98,7 @@ def reddit_listener_actions():
 
                     if u.exists():
                         u = u[0]
-                        bool_vote = BooleanVote.objects.filter(evaluation=evaluation,
+                        bool_vote = BooleanVote.objects.filter(proposal=proposal,
                                                                user=u)
                         if bool_vote.exists():
                             vote = bool_vote[0]
@@ -106,7 +106,7 @@ def reddit_listener_actions():
                                 vote.boolean_value = val
                                 vote.save()
                         else:
-                            b = BooleanVote.objects.create(evaluation=evaluation,
+                            b = BooleanVote.objects.create(proposal=proposal,
                                                            user=u,
                                                            boolean_value=val)
                             logger.info('created vote')

@@ -33,7 +33,7 @@ def authorize_platform(request):
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import CommunityUser, PolicyEvaluation
+    from policyengine.models import CommunityUser, Proposal
 
     user = get_user(request)
     user.community = user.community
@@ -105,10 +105,10 @@ def v2(request):
             }
 
     action_log = Action.objects.filter(data__community_id=user.community.id)[:20]
-    pending_evaluations = PolicyEvaluation.objects.filter(
+    pending_proposals = Proposal.objects.filter(
         policy__community=user.community,
-        status=PolicyEvaluation.PROPOSED
-    ).order_by("-created_at")
+        status=Proposal.PROPOSED
+    ).order_by("-proposal_time")
 
     return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
@@ -119,7 +119,7 @@ def v2(request):
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
         'action_log': action_log,
-        'pending_evaluations': pending_evaluations
+        'pending_proposals': pending_proposals
     })
 
 def logout(request):
@@ -435,7 +435,7 @@ def propose_action(request, app_name, codename):
     if not cls:
         return HttpResponseBadRequest()
 
-    from policyengine.models import PlatformActionForm, PolicyEvaluation
+    from policyengine.models import PlatformActionForm, Proposal
 
     ActionForm = modelform_factory(
         cls,
@@ -445,7 +445,7 @@ def propose_action(request, app_name, codename):
     )
 
     new_action = None
-    evaluation = None
+    proposal = None
     if request.method == 'POST':
         form = ActionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -453,7 +453,7 @@ def propose_action(request, app_name, codename):
             new_action.initiator = request.user
             new_action.community = request.user.community
             new_action.save()
-            evaluation = PolicyEvaluation.objects.filter(action=new_action).first()
+            proposal = Proposal.objects.filter(action=new_action).first()
     else:
         form = ActionForm()
     return render(
@@ -467,7 +467,7 @@ def propose_action(request, app_name, codename):
             "codename": codename,
             "verbose_name": cls._meta.verbose_name.title(),
             "action": new_action,
-            "evaluation": evaluation,
+            "proposal": proposal,
         },
     )
 

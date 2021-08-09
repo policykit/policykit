@@ -15,17 +15,17 @@ class DatabaseLogHandler(logging.Handler):
         msg = self.format(record)
 
         community = record.args.get("community")
-        evaluation = record.args.get("evaluation")
+        proposal = record.args.get("proposal")
         kwargs = {
             "logger_name": record.name,
             "level": record.levelno,
             "msg": msg,
             "trace": trace,
             "community": community,
-            "evaluation": evaluation,
+            "proposal": proposal,
             # Include stringified versions of action and policy so they remain if when the eval is deleted
-            "policy_str": str(evaluation.policy) if evaluation else None,
-            "action_str": str(evaluation.action) if evaluation else None,
+            "policy_str": str(proposal.policy) if proposal else None,
+            "action_str": str(proposal.action) if proposal else None,
         }
 
         EvaluationLog.objects.create(**kwargs)
