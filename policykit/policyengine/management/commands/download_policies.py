@@ -4,14 +4,15 @@ import json
 import datetime
 from pathlib import Path
 
+
 class Command(BaseCommand):
-    help = 'Downloads all policies as text files, in a format that can be uploaded in the PolicyKit UI'
+    help = "Downloads all policies as text files, in a format that can be uploaded in the PolicyKit UI"
 
     def handle(self, *args, **options):
-        # if Policy.objects.all().count() == 0:
-        #     self.stdout.write(self.style.NOTICE(f"No policies to download."))
-        #     return
-        
+        if Policy.objects.all().count() == 0:
+            self.stdout.write(self.style.NOTICE(f"No policies to download."))
+            return
+
         dirname = f"policy_backups/{datetime.datetime.now().isoformat()}"
         Path(dirname).mkdir(parents=True, exist_ok=True)
 
@@ -35,8 +36,6 @@ class Command(BaseCommand):
             jsonFile = open(f"{dirname}/{filename}.json", "w")
             jsonFile.write(jsonString)
             jsonFile.close()
-        
+
         for policy in Policy.objects.all():
             download(policy)
-
-            
