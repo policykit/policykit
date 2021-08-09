@@ -12,6 +12,7 @@ integration_data = {
         "webhook_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Edit Integration > Webhook. Enter the Webhook URL. Select Markdown format and all event types.",
     },
     "slack": {"readable_name": "Slack", "hide_config": True},
+    "github": {"readable_name": "GitHub", "hide_config": True},
     "sourcecred": {
         "readable_name": "SourceCred",
         "description": "SourceCred is a tool for communities to measure and reward value creation. Connect to an existing SourceCred instance in order to use Cred and Grain values in PolicyKit policies.",
