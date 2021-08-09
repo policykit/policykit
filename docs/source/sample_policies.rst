@@ -24,8 +24,8 @@ Vote on renaming a channel
 
 .. code-block:: python
 
-  yes_votes = action.proposal.get_yes_votes().count()
-  no_votes = action.proposal.get_no_votes().count()
+  yes_votes = evaluation.get_yes_votes().count()
+  no_votes = evaluation.get_no_votes().count()
   debug(f"{yes_votes} for, {no_votes} against")
   if yes_votes >= 1:
     return PASSED
@@ -40,7 +40,7 @@ Vote on renaming a channel
 .. code-block:: python
 
   message = f"Should this channel be renamed to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post."
-  action.community.initiate_vote(action, policy, template=message)
+  action.community.initiate_vote(evaluation, template=message)
 
 **Pass:**
 
@@ -186,8 +186,8 @@ where num refers to a positive non-zero integer value. This command simulates ro
     num_modifier = int(tokens[2][1:])
   roll_unmodified = random.randint(1, num_faces)
   roll_modified = roll_unmodified + num_modifier
-  action.data.set('roll_unmodified', roll_unmodified)
-  action.data.set('roll_modified', roll_modified)
+  evaluation.data.set('roll_unmodified', roll_unmodified)
+  evaluation.data.set('roll_modified', roll_modified)
   return PASSED
 
 **Notify:** ``pass``
@@ -196,7 +196,7 @@ where num refers to a positive non-zero integer value. This command simulates ro
 
 .. code-block:: python
 
-  text = 'Roll: ' + str(action.data.get('roll_unmodified')) + " , Result: " + str(action.data.get('roll_modified'))
+  text = 'Roll: ' + str(evaluation.data.get('roll_unmodified')) + " , Result: " + str(evaluation.data.get('roll_modified'))
   action.community.post_message(text=text, channel = "733209360549019688")
 
 **Fail:**
@@ -223,7 +223,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
   if len(tokens) != 2:
     action.community.post_message(text='need a lottery message', channel = "733209360549019688")
     return False
-  action.data.set('message', tokens[1])
+  evaluation.data.set('message', tokens[1])
   return True
 
 **Initialize:** ``pass``
@@ -232,14 +232,14 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 
 .. code-block:: python
 
-  message = action.data.get('message')
-  action.community.initiate_vote(action, policy, template=message, channel = "733209360549019688")
+  message = evaluation.data.get('message')
+  action.community.initiate_vote(evaluation, template=message, channel = "733209360549019688")
 
 **Check:**
 
 .. code-block:: python
 
-  all_votes = action.proposal.get_yes_votes()
+  all_votes = evaluation.get_yes_votes()
   num_votes = len(all_votes)
   if num_votes >= 3:
     return PASSED
@@ -250,7 +250,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 
   import random
 
-  all_votes = action.proposal.get_yes_votes()
+  all_votes = evaluation.get_yes_votes()
   num_votes = len(all_votes)
   winner = random.randint(0, num_votes)
   winner_name = all_votes[winner].user.readable_name
@@ -288,7 +288,7 @@ send them a message explaining why.
 .. code-block:: python
 
     # store the required cred threshold so we can access it later
-    action.data.set("required_cred", 1)
+    evaluation.data.set("required_cred", 1)
 
 **Notify:** ``pass``
 
@@ -302,9 +302,9 @@ send them a message explaining why.
     user_cred = result["value"]
 
     # store the user cred value so we can access it later
-    action.data.set("cred", user_cred)
+    evaluation.data.set("cred", user_cred)
 
-    return PASSED if user_cred >= action.data.get("required_cred") else FAILED
+    return PASSED if user_cred >= evaluation.data.get("required_cred") else FAILED
 
 
 **Pass:** ``pass``
@@ -317,8 +317,8 @@ send them a message explaining why.
     metagov.perform_action("discourse.delete-post", {"id": action.event_data["id"]})
 
     # Let the user know why
-    user_cred = action.data.get("cred")
-    required_cred = action.data.get("required_cred")
+    user_cred = evaluation.data.get("cred")
+    required_cred = evaluation.data.get("required_cred")
     post_url = action.event_data["url"]
     discourse_username = action.initiator.metagovuser.external_username
     params = {
@@ -369,7 +369,7 @@ Vote on Open Collective expense in Open Collective
 
     import datetime
 
-    if action.proposal.get_time_elapsed() > datetime.timedelta(minutes=60):
+    if evaluation.get_time_elapsed() > datetime.timedelta(minutes=60):
         result = metagov.close_process()
         yes_votes = result.outcome["votes"]["yes"]
         no_votes = result.outcome["votes"]["no"]
@@ -482,7 +482,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
     topic_url = action.event_data["url"]
 
     import datetime
-    closing_at = (action.proposal.proposal_time + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+    closing_at = (evaluation.created_at + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
 
     # Kick off a vote in Loomio
     parameters = {
@@ -516,7 +516,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
         agrees = result.outcome["votes"]["agree"]
         disagrees = result.outcome["votes"]["disagree"]
         outcome_text = f"{agrees} people agreed, and {disagrees} people disagreed."
-        action.data.set("outcome_text", outcome_text)
+        evaluation.data.set("outcome_text", outcome_text)
 
         return PASSED if agrees > disagrees else FAILED
 
@@ -529,7 +529,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
 .. code-block:: python
 
-    text = action.data.get('outcome_text')
+    text = evaluation.data.get('outcome_text')
     params = {
         "topic_id": action.event_data["id"],
         "raw": f"{text} The proposal is approved!",
@@ -540,7 +540,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
 .. code-block:: python
 
-    text = action.data.get('outcome_text')
+    text = evaluation.data.get('outcome_text')
     params = {
         "topic_id": action.event_data["id"],
         "raw": f"{text} The proposal is rejected. Deleting this topic."
@@ -576,8 +576,8 @@ This policy also assumes that the Discourse server has the experimental `Metagov
       return False
 
     debug(f"User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
-    action.data.set("old_wallet", old_wallet)
-    action.data.set("new_wallet", new_wallet)
+    evaluation.data.set("old_wallet", old_wallet)
+    evaluation.data.set("new_wallet", new_wallet)
     return True
 
 **Initialize:** ``pass``
@@ -588,8 +588,8 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
     user = action.event_data["username"]
 
-    old_wallet = action.data.get("old_wallet")
-    new_wallet = action.data.get("new_wallet")
+    old_wallet = evaluation.data.get("old_wallet")
+    new_wallet = evaluation.data.get("new_wallet")
     if not new_wallet:
       debug("wallet was removed, no need to vote")
       return
@@ -615,7 +615,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
         "target_usernames": [user]
     }
     response = metagov.perform_action("discourse.create-message", params)
-    action.data.set("dm_topic_id", response["topic_id"])
+    evaluation.data.set("dm_topic_id", response["topic_id"])
 
 
 
@@ -625,7 +625,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
 .. code-block:: python
 
-    new_wallet = action.data.get("new_wallet")
+    new_wallet = evaluation.data.get("new_wallet")
     if not new_wallet:
       debug("wallet was removed, no need to vote")
       return PASSED
@@ -658,8 +658,8 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 .. code-block:: python
 
      user = action.event_data["username"]
-     old_wallet = action.data.get("old_wallet")
-     new_wallet = action.data.get("new_wallet")
+     old_wallet = evaluation.data.get("old_wallet")
+     new_wallet = evaluation.data.get("new_wallet")
 
      debug(f"APPROVED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
 
@@ -677,7 +677,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
        params = {
            "raw": f"Your new payment pointer was added to the revshare config $$$! Current config is {response}",
            "target_usernames": [user],
-           "topic_id": action.data.get("dm_topic_id")
+           "topic_id": evaluation.data.get("dm_topic_id")
        }
        metagov.perform_action("discourse.create-message", params)
 
@@ -688,15 +688,15 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 .. code-block:: python
 
     user = action.event_data["username"]
-    old_wallet = action.data.get("old_wallet")
-    new_wallet = action.data.get("new_wallet")
+    old_wallet = evaluation.data.get("old_wallet")
+    new_wallet = evaluation.data.get("new_wallet")
 
     debug(f"FAILED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
 
     params = {
         "raw": f"Your request to get $$ was rejected",
         "target_usernames": [user],
-       "topic_id": action.data.get("dm_topic_id")
+       "topic_id": evaluation.data.get("dm_topic_id")
     }
     metagov.perform_action("discourse.create-message", params)
 
