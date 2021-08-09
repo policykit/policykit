@@ -414,7 +414,6 @@ class SlackKickConversation(PlatformAction):
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
-        verbose_name = "remove user from slack conversation"
 
 
 class SlackStarterKit(StarterKit):
