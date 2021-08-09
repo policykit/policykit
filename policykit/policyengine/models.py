@@ -99,16 +99,14 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
-    def initiate_vote(self, action, policy, users):
+    def initiate_vote(self, evaluation, users=None):
         """
-        Sends a notification to users of a pending action.
+        Initiates a vote on whether to pass the action that is currently being evaluated.
 
         Parameters
         -------
-        action
-            The pending action.
-        policy
-            The policy being proposed.
+        evaluation
+            The ``PolicyEvaluation`` that is being run.
         users
             The users who should be notified.
         """

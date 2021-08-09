@@ -25,9 +25,9 @@ class DiscourseCommunity(CommunityPlatform):
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
 
-    def initiate_vote(self, action, policy, users=None, template=None, topic_id=None):
+    def initiate_vote(self, evaluation, users=None, template=None, topic_id=None):
         from integrations.discourse.views import initiate_action_vote
-        initiate_action_vote(policy, action, users, template, topic_id)
+        initiate_action_vote(evaluation, users, template, topic_id)
 
     def post_message(self, text, topic_id):
         # TODO: update this method to support commenting on an existing topic,

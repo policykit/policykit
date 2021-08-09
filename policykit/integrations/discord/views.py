@@ -462,9 +462,8 @@ def auth(request, guild_id=None, access_token=None):
     else:
         return redirect('/login?error=invalid_login')
 
-def initiate_action_vote(policy, action, users=None, template=None, channel=None):
-    #TODO pass eval
-    evaluation = PolicyEvaluation.objects.get(policy=policy, action=action)
+def initiate_action_vote(evaluation, users=None, template=None, channel=None):
+    policy = evaluation.policy
     message = "This action is governed by the following policy: " + policy.name
     if template:
         message = template

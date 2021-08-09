@@ -111,9 +111,9 @@ class RedditCommunity(CommunityPlatform):
         self.access_token = res['access_token']
         self.save()
 
-    def initiate_vote(self, action, policy, users=None):
+    def initiate_vote(self, evaluation, users=None):
         from redditintegration.views import initiate_action_vote
-        initiate_action_vote(policy, action, users)
+        initiate_action_vote(evaluation, users)
 
     def execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall

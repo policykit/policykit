@@ -54,9 +54,9 @@ class DiscordCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, action, policy, users=None, template=None, channel=None):
+    def initiate_vote(self, evaluation, users=None, template=None, channel=None):
         from integrations.discord.views import initiate_action_vote
-        initiate_action_vote(policy, action, users, template, channel)
+        initiate_action_vote(evaluation, users, template, channel)
 
     def post_message(self, text, channel):
         return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")

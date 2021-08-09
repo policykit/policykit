@@ -80,6 +80,7 @@ class SlackUser(CommunityUser):
     pass
 
 
+
 class SlackCommunity(CommunityPlatform):
     platform = "slack"
 
@@ -88,9 +89,7 @@ class SlackCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
-        # TODO: pass evaluation to initiate_vote so we don't need to do this lookup.
-        evaluation = PolicyEvaluation.objects.get(action=action, policy=policy)
+    def initiate_vote(self, evaluation, users=None, post_type="channel", template=None, channel=None):
         community_post_ts = SlackUtils.start_emoji_vote(evaluation, users, post_type, template, channel)
         logger.debug(
             f"Saving evaluation with community_post '{community_post_ts}', and process at {evaluation.governance_process_url}"
