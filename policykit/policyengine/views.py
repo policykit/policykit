@@ -230,16 +230,16 @@ def disable_integration(request):
 
     if not user.has_perm("metagov.can_edit_metagov_config"):
         logger.error(f"User {user} does not have permission to disable plugin.")
-        return redirect("/main/settings?error=not_permitted")
+        return redirect("/main/settings?error=insufficient_permissions")
 
     # hack: disallow disabling the plugin if the user is logged in with it
     if community.platform == name:
-        return redirect("/main/settings?error=not_permitted")
+        return redirect("/main/settings?error=cant_delete_current_platform")
 
     # Temporary: disallow disabling the plugins that have a corresponding PlatformCommunity.
     # We would need to delete the SlackCommunity as well, which we should show a warning for!
-    if community.platform == "slack":
-        return redirect("/main/settings?error=not_permitted")
+    if name == "slack":
+        return redirect("/main/settings?error=cant_delete_slack")
 
     logger.debug(f"Deleting plugin {name} {id}")
     MetagovAPI.delete_plugin(name=name, id=id)

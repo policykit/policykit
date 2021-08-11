@@ -27,4 +27,5 @@ integration_data = {
         "description": "Use the MailGun APIs to send emails from PolicyKit policies.",
     },
     "near": {"readable_name": "NEAR", "description": "Make calls to a NEAR smart contracts from PolicyKit policies."},
+    "github": {"readable_name": "GitHub"},
 }
