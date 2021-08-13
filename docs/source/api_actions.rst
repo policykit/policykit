@@ -1,6 +1,6 @@
 .. _start:
 
-Action
+Actions
 ====================================
 
 BaseAction

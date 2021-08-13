@@ -11,7 +11,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
-from policyengine.views import govern_action
+from policyengine.utils import ActionKind
+from policyengine import engine
 from datetime import datetime, timezone
 import json
 import logging
@@ -32,7 +33,11 @@ def on_transaction_commit(func):
     return inner
 
 class Community(models.Model):
+    """A Community represents a group of users. They may exist on one or more online platforms."""
+
     readable_name = models.CharField(max_length=300, blank=True)
+    """Readable name describing the community."""
+
     metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
 
     def __str__(self):
@@ -40,6 +45,11 @@ class Community(models.Model):
         return '{} {}'.format(prefix, self.readable_name or '')
 
     def save(self, *args, **kwargs):
+        """
+        Saves the Community. If community is new, creates it in Metagov and stores the Metagov-generated slug.
+
+        :meta private:
+        """
         if settings.METAGOV_ENABLED and not self.pk and not self.metagov_slug:
             # If this is the first save, create a corresponding community in Metagov
             response = MetagovAPI.create_empty_metagov_community(self.readable_name)
@@ -55,10 +65,7 @@ def post_delete_community(sender, instance, **kwargs):
 
 
 class CommunityPlatform(PolymorphicModel):
-    """Community on a specific platform"""
-
-    community_name = models.CharField('team_name', max_length=1000)
-    """The name of the community."""
+    """A CommunityPlatform represents a group of users on a single platform."""
 
     platform = None
     """The name of the platform ('Slack', 'Reddit', etc.)."""
@@ -66,10 +73,14 @@ class CommunityPlatform(PolymorphicModel):
     permissions = None
     """The list of platform-specific permissions."""
 
+    community_name = models.CharField('team_name', max_length=1000)
+    """The name of the community."""
+
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
 
     community = models.ForeignKey(Community, models.CASCADE)
+    """The ``Community`` that this CommunityPlatform belongs to."""
 
     def __str__(self):
         return self.community_name
@@ -78,16 +89,14 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
-    def initiate_vote(self, action, policy, users):
+    def initiate_vote(self, proposal, users=None):
         """
-        Sends a notification to users of a pending action.
+        Initiates a vote on whether to pass the action that is currently being evaluated.
 
         Parameters
         -------
-        action
-            The pending action.
-        policy
-            The policy being proposed.
+        proposal
+            The ``Proposal`` that is being run.
         users
             The users who should be notified.
         """
@@ -117,11 +126,6 @@ class CommunityPlatform(PolymorphicModel):
         """
         return CommunityDoc.objects.filter(community=self)
 
-    def save(self, *args, **kwargs):
-        """
-        Saves the community. Note: Only meant for internal use.
-        """
-        super(CommunityPlatform, self).save(*args, **kwargs)
 
 class CommunityRole(Group):
     """CommunityRole"""
@@ -134,16 +138,6 @@ class CommunityRole(Group):
 
     description = models.TextField(null=True, blank=True, default='')
     """The readable description of the role. May be empty."""
-
-    class Meta:
-        verbose_name = 'communityrole'
-        verbose_name_plural = 'communityroles'
-
-    def save(self, *args, **kwargs):
-        """
-        Saves the role. Note: Only meant for internal use.
-        """
-        super(CommunityRole, self).save(*args, **kwargs)
 
     def __str__(self):
         return str(self.role_name)
@@ -210,6 +204,8 @@ class CommunityUser(User, PolymorphicModel):
     def save(self, *args, **kwargs):
         """
         Saves the user. Note: Only meant for internal use.
+
+        :meta private:
         """
         super(CommunityUser, self).save(*args, **kwargs)
         self.community.base_role.user_set.add(self)
@@ -244,14 +240,9 @@ class CommunityDoc(models.Model):
     def __str__(self):
         return str(self.name)
 
-    def save(self, *args, **kwargs):
-        """
-        Saves the document. Note: Only meant for internal use.
-        """
-        super(CommunityDoc, self).save(*args, **kwargs)
 
 class DataStore(models.Model):
-    """DataStore"""
+    """DataStore used for persisting serializable data on a Proposal."""
 
     data_store = models.TextField()
 
@@ -325,7 +316,8 @@ class LogAPICall(models.Model):
         return res
 
 class Proposal(models.Model):
-    """Proposal"""
+    """The Proposal model represents an proposal of a policy for a particular action.
+    Any data relevant to the proposal, such as vote counts, can be retrieved from this model."""
 
     PROPOSED = 'proposed'
     FAILED = 'failed'
@@ -342,12 +334,30 @@ class Proposal(models.Model):
     status = models.CharField(choices=STATUS, max_length=10)
     """Status of the proposal. One of PROPOSED, PASSED or FAILED."""
 
+    policy = models.ForeignKey('Policy', on_delete=models.SET_NULL, editable=False, blank=True, null=True)
+    """The policy that is being evaluated."""
+
+    action = models.ForeignKey('BaseAction', on_delete=models.CASCADE, editable=False)
+    """The action that triggered the proposal."""
+
+    data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
+    """Datastore for persisting any additional data related to the proposal."""
+
+    community_post = models.CharField(max_length=300, blank=True)
+    """Identifier of the post that is being voted on, if any."""
+
     governance_process_url = models.URLField(max_length=100, blank=True)
-    """URL for the GovernanceProcess that is being used to make a decision about this Proposal"""
+    """Location of the Metagov GovernanceProcess that is being used to make a decision about this Proposal, if any."""
+
+    governance_process_json = models.JSONField(max_length=1000, null=True, blank=True)
+    """Raw Metagov governance process data in JSON format."""
+
+    def __str__(self):
+        return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
     def get_time_elapsed(self):
         """
-        Returns a datetime object representing the time elapsed since the proposal's creation.
+        Returns a datetime object representing the time elapsed since the first proposal.
         """
         return datetime.now(timezone.utc) - self.proposal_time
 
@@ -394,121 +404,75 @@ class Proposal(models.Model):
     def save(self, *args, **kwargs):
         """
         Saves the proposal. Note: Only meant for internal use.
+
+        :meta private:
         """
         if not self.pk:
             self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
 
-    def close_governance_process(self):
-        if not self.governance_process_url:
-            return
-        response = requests.delete(self.governance_process_url)
-        if not response.ok:
-            logger.error(f"Error closing process: {response.status_code} {response.reason} {response.text}")
-        logger.debug(f"Closed governance process: {response.text}")
+    def pass_evaluation(self):
+        """
+        Sets the proposal to PASSED.
 
+        :meta private:
+        """
+        self.status = Proposal.PASSED
+        self.save()
+        action = self.action
+        actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type)
 
-class BaseAction(models.Model):
+    def fail_evaluation(self):
+        """
+        Sets the proposal to FAILED.
+
+        :meta private:
+        """
+        self.status = Proposal.FAILED
+        self.save()
+        action = self.action
+        actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_type)
+
+class BaseAction(PolymorphicModel):
     """Base Action"""
 
     community = models.ForeignKey(CommunityPlatform, models.CASCADE, verbose_name='community')
-    """The community in which the action is taking place."""
+    """The ``CommunityPlatform`` in which the action occurred (or was proposed). If proposed through the PolicyKit app,
+    this is the community that the proposing user was authenticated with."""
 
-    community_post = models.CharField('community_post', max_length=300, null=True)
-    """The notification which is sent to the community to alert them of the action. May or may not exist."""
-
-    proposal = models.OneToOneField(Proposal, models.CASCADE)
-    """The proposal in which the action was proposed."""
+    initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
+    """The ``CommunityUser`` who initiated the action. May not exist if initiated by PolicyKit."""
 
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
-    app_name = 'policyengine'
-    """The name of the application sending the action."""
-
-    data = models.OneToOneField(DataStore,
-        models.CASCADE,
-        verbose_name='data',
-        null=True,
-        blank=True
-    )
-    """The datastore containing any additional data for the action. May or may not exist."""
-
-    class Meta:
-        abstract = True
-
-class ConstitutionAction(BaseAction, PolymorphicModel):
-    """Constitution Action"""
-
-    # NOTE: Why is this duplicated here?
-    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
-
-    # NOTE: Should be moved to BaseAction
-    initiator = models.ForeignKey(CommunityUser, models.CASCADE, null=True)
-    """The User who initiated the action. May not exist if initiated by PolicyKit."""
-
-    # NOTE: Why is this duplicated here?
-    is_bundled = models.BooleanField(default=False)
-
-    # NOTE: Should be moved to BaseAction
-    action_type = "ConstitutionAction"
-    """Type of action (Constitution or Platform)."""
-
-    # FIXME: Move this to BaseAction
-    action_codename = ''
-    """The codename of the action."""
-
-    class Meta:
-        verbose_name = 'constitutionaction'
-        verbose_name_plural = 'constitutionactions'
-
-    def pass_action(self):
-        """
-        Sets the action's proposal to PASSED.
-        """
-        self.proposal.status = Proposal.PASSED
-        self.proposal.save()
-        actstream_action.send(self, verb='was passed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def fail_action(self):
-        """
-        Sets the action's proposal to FAILED.
-        """
-        self.proposal.status = Proposal.FAILED
-        self.proposal.save()
-        actstream_action.send(self, verb='was failed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def shouldCreate(self):
-        """
-        True if the action needs to be created. Note: Only meant for internal use.
-        """
-        return not self.pk # Runs only when object is new
+    action_kind = None
+    """Kind of action. One of 'platform' or 'constitution'. Do not override."""
 
     def save(self, *args, **kwargs):
         """
-        Saves the action. If new, checks it against current passed policies. Note: Only meant for internal use.
+        Saves the action. If new, evaluates against current policies. Note: Only meant for internal use.
+
+        :meta private:
         """
-        if self.shouldCreate():
-            if self.data is None:
-                self.data = DataStore.objects.create()
+        if not self.pk:
+            # Runs if initiator has propose permission, OR if there is no initiator.
+            can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
+            if not self.initiator or self.initiator.has_perm(can_propose_perm):
+                super(BaseAction, self).save(*args, **kwargs)
+                engine.govern_action(self)
 
-            #runs only if they have propose permission
-            if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                if hasattr(self, 'proposal'):
-                    self.proposal.status = Proposal.PROPOSED
-                else:
-                    self.proposal = Proposal.objects.create(status=Proposal.PROPOSED)
-                super(ConstitutionAction, self).save(*args, **kwargs)
+        super(BaseAction, self).save(*args, **kwargs)
 
-                if not self.is_bundled:
-                    govern_action(self, is_first_evaluation=True)
-            else:
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
-                super(ConstitutionAction, self).save(*args, **kwargs)
-        else:
-            if not self.pk: # Runs only when object is new
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
-            super(ConstitutionAction, self).save(*args, **kwargs)
+    @property
+    def action_type(self):
+        """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""
+        return self._meta.model_name
+
+
+class ConstitutionAction(BaseAction, PolymorphicModel):
+    """Constitution Action"""
+    action_kind = ActionKind.CONSTITUTION
 
 
 class ConstitutionActionBundle(BaseAction):
@@ -519,7 +483,7 @@ class ConstitutionActionBundle(BaseAction):
         (BUNDLE, 'bundle')
     ]
 
-    action_type = "ConstitutionActionBundle"
+    action_kind = ActionKind.CONSTITUTION
 
     bundled_actions = models.ManyToManyField(ConstitutionAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
@@ -528,35 +492,11 @@ class ConstitutionActionBundle(BaseAction):
         if self.bundle_type == ConstitutionActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 action.execute()
-                action.pass_action()
 
-    def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
-
-    def fail_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.FAILED
-        proposal.save()
-
-    class Meta:
-        verbose_name = 'constitutionactionbundle'
-        verbose_name_plural = 'constitutionactionbundles'
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            action = self
-            if action.initiator.has_perm(action._meta.app_label + '.add_' + action._meta.verbose_name):
-                govern_action(action, is_first_evaluation=True)
-
-        super(ConstitutionActionBundle, self).save(*args, **kwargs)
 
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
-
-    action_codename = 'policykitaddcommunitydoc'
 
     def __str__(self):
         return "Add Document: " + self.name
@@ -576,8 +516,6 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
 
-    action_codename = 'policykitchangecommunitydoc'
-
     def __str__(self):
         return "Edit Document: " + self.name
 
@@ -593,8 +531,6 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 
 class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
-    action_codename = 'policykitdeletecommunitydoc'
 
     def __str__(self):
         if self.doc:
@@ -612,8 +548,6 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
 
 class PolicykitRecoverCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
-    action_codename = 'policykitrecovercommunitydoc'
 
     def __str__(self):
         if self.doc:
@@ -633,8 +567,6 @@ class PolicykitAddRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
-
-    action_codename = 'policykitaddrole'
     ready = False
 
     def __str__(self):
@@ -662,8 +594,6 @@ class PolicykitAddRole(ConstitutionAction):
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
-    action_codename = 'policykitdeleterole'
-
     def __str__(self):
         if self.role:
             return "Delete Role: " + self.role.role_name
@@ -686,8 +616,6 @@ class PolicykitEditRole(ConstitutionAction):
     name = models.CharField('name', max_length=300)
     description = models.TextField(null=True, blank=True, default='')
     permissions = models.ManyToManyField(Permission)
-
-    action_codename = 'policykiteditrole'
     ready = False
 
     def __str__(self):
@@ -712,8 +640,6 @@ class PolicykitEditRole(ConstitutionAction):
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
-
-    action_codename = 'policykitadduserrole'
     ready = False
 
     def __str__(self):
@@ -740,8 +666,6 @@ class PolicykitAddUserRole(ConstitutionAction):
 class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
-
-    action_codename = 'policykitremoveuserrole'
     ready = False
 
     def __str__(self):
@@ -797,7 +721,6 @@ class EditorModel(ConstitutionAction):
         super(EditorModel, self).save(*args, **kwargs)
 
 class PolicykitAddPlatformPolicy(EditorModel):
-    action_codename = 'policykitaddplatformpolicy'
 
     def __str__(self):
         return "Add Platform Policy: " + self.name
@@ -822,7 +745,6 @@ class PolicykitAddPlatformPolicy(EditorModel):
         )
 
 class PolicykitAddConstitutionPolicy(EditorModel):
-    action_codename = 'policykitaddconstitutionpolicy'
 
     def __str__(self):
         return "Add Constitution Policy: " + self.name
@@ -849,8 +771,6 @@ class PolicykitAddConstitutionPolicy(EditorModel):
 class PolicykitChangePlatformPolicy(EditorModel):
     platform_policy = models.ForeignKey('Policy', models.CASCADE)
 
-    action_codename = 'policykitchangeplatformpolicy'
-
     def __str__(self):
         return "Change Platform Policy: " + self.name
 
@@ -873,8 +793,6 @@ class PolicykitChangePlatformPolicy(EditorModel):
 
 class PolicykitChangeConstitutionPolicy(EditorModel):
     constitution_policy = models.ForeignKey('Policy', models.CASCADE)
-
-    action_codename = 'policykitchangeconstitutionpolicy'
 
     def __str__(self):
         return "Change Constitution Policy: " + self.name
@@ -901,8 +819,6 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
                                          models.SET_NULL,
                                          null=True)
 
-    action_codename = 'policykitremoveplatformpolicy'
-
     def __str__(self):
         if self.platform_policy:
             return "Remove Platform Policy: " + self.platform_policy.name
@@ -922,8 +838,6 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
     platform_policy = models.ForeignKey('Policy',
                                          models.SET_NULL,
                                          null=True)
-
-    action_codename = 'policykitrecoverplatformpolicy'
 
     def __str__(self):
         if self.platform_policy:
@@ -945,8 +859,6 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
                                             models.SET_NULL,
                                             null=True)
 
-    action_codename = 'policykitremoveconstitutionpolicy'
-
     def __str__(self):
         if self.constitution_policy:
             return "Remove Constitution Policy: " + self.constitution_policy.name
@@ -967,8 +879,6 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
                                             models.SET_NULL,
                                             null=True)
 
-    action_codename = 'policykitrecoverconstitutionpolicy'
-
     def __str__(self):
         if self.constitution_policy:
             return "Recover Constitution Policy: " + self.constitution_policy.name
@@ -987,42 +897,16 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
 class PlatformAction(BaseAction, PolymorphicModel):
     ACTION = None
     AUTH = 'app'
-
-    # NOTE: Why is this duplicated here?
-    community = models.ForeignKey(CommunityPlatform, models.CASCADE)
-
-    # FIXME: Should be moved to BaseAction
-    initiator = models.ForeignKey(CommunityUser, models.CASCADE)
-    """The User who initiated the action. May not exist if initiated by PolicyKit."""
+    action_kind = ActionKind.PLATFORM
 
     community_revert = models.BooleanField(default=False)
     """True if the action has been reverted on the platform."""
 
     community_origin = models.BooleanField(default=False)
-    """True if the action originated on the platform."""
-
-    # NOTE: Why is this duplicated here?
-    is_bundled = models.BooleanField(default=False)
-
-    # FIXME: Should be moved to BaseAction
-    action_type = "PlatformAction"
-    """Type of action (Constitution or Platform)."""
-
-    # FIXME: Should be moved to BaseAction
-    action_codename = ''
-    """The codename of the action."""
-
-    readable_name = ''
-    """Readable name of the action type."""
-
-    class Meta:
-        verbose_name = 'platformaction'
-        verbose_name_plural = 'platformactions'
+    """True if the action originated on the platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
 
     def __str__(self):
-        if self.readable_name and self.community.platform:
-            return f"{self.community.platform} {self.readable_name}"
-        return self.action_codename or super(PlatformAction, self).__str__()
+        return self.action_type or super(PlatformAction, self).__str__()
 
     def revert(self, values, call, method=None):
         """
@@ -1038,44 +922,6 @@ class PlatformAction(BaseAction, PolymorphicModel):
         """
         self.community.execute_platform_action(self)
 
-    def pass_action(self):
-        """
-        Sets the action's proposal to PASSED.
-        """
-        self.proposal.status = Proposal.PASSED
-        self.proposal.save()
-        actstream_action.send(self, verb='was passed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def fail_action(self):
-        """
-        Sets the action's proposal to FAILED.
-        """
-        self.proposal.status = Proposal.FAILED
-        self.proposal.save()
-        actstream_action.send(self, verb='was failed', community_id=self.community.id, action_codename=self.action_codename)
-
-    def save(self, *args, **kwargs):
-        """
-        Saves the action. If new, checks it against current passed policies. Note: Only meant for internal use.
-        """
-        if not self.pk:
-            if self.data is None:
-                self.data = DataStore.objects.create()
-
-            #runs only if they have propose permission
-            if self.initiator.has_perm(self._meta.app_label + '.add_' + self.action_codename):
-                self.proposal = Proposal.objects.create(status=Proposal.PROPOSED)
-
-                super(PlatformAction, self).save(*args, **kwargs)
-
-                if not self.is_bundled:
-                    govern_action(self, is_first_evaluation=True)
-            else:
-                self.proposal = Proposal.objects.create(status=Proposal.FAILED)
-                super(PlatformAction, self).save(*args, **kwargs)
-        else:
-            super(PlatformAction, self).save(*args, **kwargs)
-
 class PlatformActionBundle(BaseAction):
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -1083,8 +929,8 @@ class PlatformActionBundle(BaseAction):
         (ELECTION, 'election'),
         (BUNDLE, 'bundle')
     ]
+    action_kind = ActionKind.PLATFORM
 
-    action_type = "PlatformActionBundle"
     bundled_actions = models.ManyToManyField(PlatformAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
@@ -1093,27 +939,6 @@ class PlatformActionBundle(BaseAction):
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
 
-    def pass_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.PASSED
-        proposal.save()
-
-    def fail_action(self):
-        proposal = self.proposal
-        proposal.status = Proposal.FAILED
-        proposal.save()
-
-    class Meta:
-        verbose_name = 'platformactionbundle'
-        verbose_name_plural = 'platformactionbundles'
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            action = self
-            if action.initiator.has_perm(action._meta.app_label + '.add_' + action._meta.verbose_name):
-                govern_action(action, is_first_evaluation=True)
-
-        super(PlatformActionBundle, self).save(*args, **kwargs)
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
@@ -1132,6 +957,13 @@ class Policy(models.Model):
         (PLATFORM, 'platform'),
         (CONSTITUTION, 'constitution')
     ]
+
+    FILTER = 'filter'
+    INITIALIZE = 'initialize'
+    CHECK = 'check'
+    NOTIFY = 'notify'
+    SUCCESS = 'success'
+    FAIL = 'fail'
 
     kind = models.CharField(choices=POLICY_KIND, max_length=30)
     """Kind of policy (platform or constitution)."""
@@ -1176,14 +1008,6 @@ class Policy(models.Model):
     bundled_policies = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="member_of_bundle")
     """Policies bundled inside this policy."""
 
-    data = models.OneToOneField(DataStore,
-        models.CASCADE,
-        verbose_name='data',
-        null=True,
-        blank=True,
-    )
-    """The datastore containing any additional data for the policy. May or may not exist."""
-
     # Managers
     objects = models.Manager()
     platform_policies = PlatformPolicyManager()
@@ -1214,7 +1038,7 @@ class UserVote(models.Model):
     """The user who cast the vote."""
 
     proposal = models.ForeignKey(Proposal, models.CASCADE)
-    """The proposal which is being voted on."""
+    """The policy proposal that initiated the vote."""
 
     vote_time = models.DateTimeField(auto_now_add=True)
     """Datetime object representing when the vote was cast."""
@@ -1262,10 +1086,7 @@ class PlatformActionForm(ModelForm):
             "community",
             "community_revert",
             "community_origin",
-            "is_bundled",
-            "community_post",
-            "proposal",
-            "data"
+            "is_bundled"
         ]
 
     def __init__(self, *args, **kwargs):

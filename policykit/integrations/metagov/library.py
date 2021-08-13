@@ -2,83 +2,91 @@ import logging
 
 import requests
 from django.conf import settings
-from integrations.metagov.models import MetagovProcess, MetagovProcessData
+import json
 
 logger = logging.getLogger(__name__)
+
+
+class MetagovProcessData(object):
+    def __init__(self, obj):
+        self.status = obj.get("status")
+        self.errors = obj.get("errors")
+        self.outcome = obj.get("outcome")
+
 
 class Metagov:
     """
     Metagov client library to be exposed to policy author
     """
 
-    def __init__(self, policy, action):
-        self.policy = policy
-        self.action = action
-        self.headers = {"X-Metagov-Community": policy.community.metagov_slug}
-
-        # If a GovernanceProcess is created for this Policy+Action evaluation, it will be attached here
-        if action.action_type == "PlatformAction":
-            try:
-                self.process = MetagovProcess.objects.get(policy=policy, action=action)
-            except MetagovProcess.DoesNotExist:
-                self.process = None
-        else:
-            self.process = None
+    def __init__(self, proposal):
+        self.proposal = proposal
+        self.headers = {"X-Metagov-Community": proposal.policy.community.metagov_slug}
 
     def start_process(self, process_name, payload) -> MetagovProcessData:
         """
-        Kick off a governance process in Metagov. The process is tied to this policy evaluation for this action.
+        Kick off a governance process in Metagov. Store the process URL and data on the `proposal`
         """
-        model = MetagovProcess.objects.create(policy=self.policy, action=self.action)
-
-        logger.info(f"Starting Metagov process '{process_name}' for {self.action} governed by {self.policy}")
-        logger.info(payload)
+        logger.debug(f"Starting Metagov process '{process_name}' for {self.proposal}\n{payload}")
 
         url = f"{settings.METAGOV_URL}/api/internal/process/{process_name}"
-        payload["callback_url"] = f"{settings.SERVER_URL}/metagov/internal/outcome/{model.pk}"
+        payload["callback_url"] = f"{settings.SERVER_URL}/metagov/internal/outcome/{self.proposal.pk}"
 
         # Kick off process in Metagov
         response = requests.post(url, json=payload, headers=self.headers)
         if not response.ok:
-            model.delete()
             raise Exception(f"Error starting process: {response.status_code} {response.reason} {response.text}")
         location = response.headers.get("location")
         if not location:
-            model.delete()
             raise Exception("Response missing location header")
 
-        model.location = f"{settings.METAGOV_URL}{location}"
+        self.proposal.governance_process_url = f"{settings.METAGOV_URL}{location}"
 
-        response = requests.get(model.location)
+        response = requests.get(self.proposal.governance_process_url)
         if not response.ok:
             raise Exception(f"Error getting process: {response.status_code} {response.reason} {response.text}")
-        logger.info(response.text)
-        model.json_data = response.text
-        model.save()
-        self.process = model
-        return model.data
+        logger.debug(response.text)
+
+        # store the outcome data on the proposal
+        self.proposal.governance_process_json = response.text
+        self.proposal.save()
+        return self.get_process()
 
     def close_process(self) -> MetagovProcessData:
-        if self.process:
-            self.process.close()
-            return self.process.data
-        return None
+        """
+        Close a GovernanceProcess in Metagov, and store the latest outcome data
+        """
+        location = self.proposal.governance_process_url
+        if not location:
+            return
+
+        logger.debug(f"{self.proposal} making request to close process at '{location}'")
+        response = requests.delete(location)
+        if not response.ok:
+            logger.error(f"Error closing process: {response.status_code} {response.reason} {response.text}")
+            return
+        logger.debug(f"Closed governance process: {response.text}")
+        self.proposal.governance_process_json = response.text
+        self.proposal.save()
+
+        return self.get_process()
 
     def get_process(self) -> MetagovProcessData:
-        if self.process:
-            return self.process.data
-        return None
+        json_data = self.proposal.governance_process_json
+        if json_data:
+            data = json.loads(json_data)
+            return MetagovProcessData(data)
 
-    def perform_action(self, action_type, parameters):
+    def perform_action(self, name, parameters):
         """
         Perform an action through Metagov. If the requested action belongs to a plugin that is
         not active for the current community, this will throw an exception.
         """
-        url = f"{settings.METAGOV_URL}/api/internal/action/{action_type}"
+        url = f"{settings.METAGOV_URL}/api/internal/action/{name}"
         response = requests.post(url, json={"parameters": parameters}, headers=self.headers)
         if not response.ok:
             raise Exception(
-                f"Error performing action {action_type}: {response.status_code} {response.reason} {response.text}"
+                f"Error performing action {name}: {response.status_code} {response.reason} {response.text}"
             )
         data = response.json()
         return data

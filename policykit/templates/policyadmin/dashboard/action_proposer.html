@@ -54,7 +54,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
-      <h3 class="headerText">Propose {{codename}}</h3>
+      <h3 class="headerText">Propose {{verbose_name}}</h3>
     </div>
   </div>
 
@@ -67,12 +67,12 @@
           {{ form.as_table }}
         </table>
         <input type="submit" class="btn" value="Propose action">
-        {% if action and action.proposal.status is not None %}
-          {% if action.proposal.status == "failed" %}
+        {% if action and proposal and proposal.status is not None %}
+          {% if proposal.status == "failed" %}
             <div class="alert">Action failed. See logs for more information.</div>
-          {% elif action.proposal.status == "proposed" %}
+          {% elif proposal.status == "proposed" %}
             <div class="alert">Action proposed.</div>
-          {% elif action.proposal.status == "passed" %}
+          {% elif proposal.status == "passed" %}
             <div class="alert">Action passed!</div>
           {% endif %}
         {% endif %}

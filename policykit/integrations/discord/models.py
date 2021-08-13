@@ -39,9 +39,9 @@ class DiscordCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, action, policy, users=None, template=None, channel=None):
+    def initiate_vote(self, proposal, users=None, template=None, channel=None):
         from integrations.discord.views import initiate_action_vote
-        initiate_action_vote(policy, action, users, template, channel)
+        initiate_action_vote(proposal, users, template, channel)
 
     def post_message(self, text, channel):
         return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
@@ -83,10 +83,6 @@ class DiscordPostMessage(PlatformAction):
 
     AUTH = 'user'
 
-    action_codename = 'discordpostmessage'
-    app_name = 'discordintegration'
-    action_type = "DiscordPostMessage"
-
     class Meta:
         permissions = (
             ('can_execute_discordpostmessage', 'Can execute discord post message'),
@@ -101,7 +97,6 @@ class DiscordPostMessage(PlatformAction):
             message = self.community.post_message(text=self.text, channel=self.channel_id)
 
             self.message_id = message['id']
-            self.community_post = self.message_id
             self.save()
 
 class DiscordDeleteMessage(PlatformAction):
@@ -110,10 +105,6 @@ class DiscordDeleteMessage(PlatformAction):
     text = models.TextField(blank=True, default='')
 
     AUTH = 'user'
-
-    action_codename = 'discorddeletemessage'
-    app_name = 'discordintegration'
-    action_type = "DiscordDeleteMessage"
 
     class Meta:
         permissions = (
@@ -140,10 +131,6 @@ class DiscordRenameChannel(PlatformAction):
     name_old = models.TextField(blank=True, default='')
 
     AUTH = 'user'
-
-    action_codename = 'discordrenamechannel'
-    app_name = 'discordintegration'
-    action_type = "DiscordRenameChannel"
 
     class Meta:
         permissions = (
@@ -179,10 +166,6 @@ class DiscordCreateChannel(PlatformAction):
 
     AUTH = 'user'
 
-    action_codename = 'discordcreatechannel'
-    app_name = 'discordintegration'
-    action_type = "DiscordCreateChannel"
-
     class Meta:
         permissions = (
             ('can_execute_discordcreatechannel', 'Can execute discord create channel'),
@@ -210,10 +193,6 @@ class DiscordDeleteChannel(PlatformAction):
     channel_id = models.BigIntegerField()
 
     AUTH = 'user'
-
-    action_codename = 'discorddeletechannel'
-    app_name = 'discordintegration'
-    action_type = "DiscordDeleteChannel"
 
     class Meta:
         permissions = (

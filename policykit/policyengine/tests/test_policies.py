@@ -90,7 +90,7 @@ class Policy_FilterTestCase(PolicyTestCase):
         action_add_policy.name = 'Filter'
         action_add_policy.description = ''
         action_add_policy.filter = """
-if action.action_codename == "discordpostmessage":
+if action.action_type == "discordpostmessage":
     return True
 """,
         action_add_policy.initialize = 'pass'

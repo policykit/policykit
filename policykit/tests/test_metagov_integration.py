@@ -10,9 +10,11 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.test import Client, LiveServerTestCase, TestCase
 from django_db_logger.models import EvaluationLog
-from integrations.metagov.models import MetagovPlatformAction, MetagovProcess
+from integrations.metagov.models import MetagovAction
+from integrations.metagov.library import Metagov
 from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import Community, CommunityRole, Policy
+from policyengine.models import Community, CommunityRole, Policy, Proposal
+from policyengine import engine
 
 all_actions_pass_policy = {
     "filter": "return True",
@@ -55,7 +57,7 @@ class IntegrationTests(LiveServerTestCase):
         self.community.delete()
 
     def test_close_process(self):
-        """Integration-test metagov process with randomness plugin"""
+        """Integration-test metagov process with randomness plugin. Process is closed from within the policy."""
         # 1) Create Policy and PlatformAction
         policy_code = {
             **all_actions_pass_policy,
@@ -64,8 +66,7 @@ metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", 
 """,
             "check": """
 result = metagov.close_process()
-action.data.set('status', result.status)
-action.data.set('outcome', result.outcome)
+proposal.data.set('reached_close', True)
 
 if result is None:
     return #still processing
@@ -93,12 +94,83 @@ return FAILED
         # 2) Save action to trigger policy execution
         action.save()
 
-        process = MetagovProcess.objects.filter(action=action, policy=policy).first()
-        self.assertIsNotNone(process)
+        proposal = Proposal.objects.get(action=action, policy=policy)
+        self.assertEqual(proposal.status, Proposal.PASSED)
+        self.assertEqual(proposal.data.get("reached_close"), True)
 
-        self.assertEqual(action.proposal.status, "passed")
-        self.assertEqual(action.data.get("status"), "completed")
-        self.assertIsNotNone(action.data.get("outcome").get("winner"))
+        # assert that the process outcome was saved
+        metagov = Metagov(proposal)
+        process_data = metagov.get_process()
+        self.assertEqual(process_data.status, "completed")
+        self.assertIsNotNone(process_data.outcome.get("winner"))
+
+    def test_outcome_endpoint(self):
+        """Integration-test metagov process is updated via the outcome receiver endpoint in PolicyKit"""
+        # 1) Create Policy and PlatformAction
+        policy_code = {
+            **all_actions_pass_policy,
+            "initialize": """
+metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
+""",
+            "check": """
+result = metagov.get_process()
+proposal.data.set('process_status', result.status)
+
+if result is None or result.status == "pending":
+    return None #still processing
+if result.errors:
+    return FAILED
+if result.outcome:
+    return PASSED if result.outcome.get('winner') else FAILED
+return FAILED
+""",
+        }
+        policy = Policy(
+            **policy_code,
+            kind=Policy.PLATFORM,
+            community=self.slack_community,
+            description="test",
+            name="test policy",
+        )
+        policy.save()
+
+        action = SlackPinMessage()
+        action.initiator = self.user
+        action.community = self.slack_community
+        action.community_origin = True
+        action.revert = lambda: None # unset revert function so we don't try to hit slack
+
+        # 2) Save action to trigger policy execution
+        action.save()
+
+        proposal = Proposal.objects.get(action=action, policy=policy)
+        self.assertEqual(proposal.status, Proposal.PROPOSED)
+        self.assertEqual(proposal.data.get("process_status"), "pending")
+
+        # 2) Mimick an incoming notification from Metagov that the process has updated
+        payload = {
+            "name": "randomness.delayed-stochastic-vote",
+            "community": self.slack_community.metagov_slug,
+            "status": "completed",
+            "outcome": {"winner": "three"},
+        }
+
+        client = Client()
+        response = client.post(
+            f"/metagov/internal/outcome/{proposal.pk}", data=payload, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        proposal.refresh_from_db()  # refresh because the outcome data should have been updated
+
+        # re-run proposal
+        engine.evaluate_proposal(proposal)
+
+        self.assertEqual(proposal.status, Proposal.PASSED)
+
+        metagov = Metagov(proposal)
+        process_data = metagov.get_process()
+        self.assertEqual(process_data.status, "completed")
+        self.assertIsNotNone(process_data.outcome.get("winner"))
 
     def test_perform_action(self):
         """Integration-test metagov.perform_action function with randomness plugin"""
@@ -126,16 +198,17 @@ return FAILED"""
         action.community_origin = True
         action.save()
 
-        self.assertEqual(action.proposal.status, "passed")
+        proposal = Proposal.objects.get(action=action, policy=policy)
+        self.assertEqual(proposal.status, Proposal.PASSED)
 
-        # Check that evaluation debug log was generated
+        # Check that proposal debug log was generated
         from django_db_logger.models import EvaluationLog
 
-        self.assertEqual(EvaluationLog.objects.filter(community=policy.community, msg__contains="help!").count(), 1)
+        self.assertEqual(EvaluationLog.objects.filter(proposal=proposal, msg__contains="help!").count(), 1)
 
 
 @unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
-class MetagovPlatformActionTest(TestCase):
+class MetagovActionTest(TestCase):
     def setUp(self):
         user_group = CommunityRole.objects.create(role_name="fake role 2", name="testing role 2")
         p1 = Permission.objects.get(name="Can add slack pin message")
@@ -147,6 +220,7 @@ class MetagovPlatformActionTest(TestCase):
             team_id="test000",
             base_role=user_group,
         )
+
     def tearDown(self):
         # Delete parent community to trigger deletion of Metagov Community
         self.community.delete()
@@ -157,9 +231,11 @@ class MetagovPlatformActionTest(TestCase):
 
         policy = Policy(kind=Policy.PLATFORM)
         policy.community = self.slack_community
-        policy.filter = """return action.action_codename == 'metagovaction' \
+        policy.filter = """return action.action_type == 'metagovaction' \
 and action.event_type == 'discourse.post_created'"""
-        policy.initialize = "action.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
+        policy.initialize = (
+            "proposal.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
+        )
         policy.notify = "pass"
         policy.check = "return PASSED if action.event_data['category'] == 0 else FAILED"
         policy.success = "pass"
@@ -182,29 +258,30 @@ and action.event_type == 'discourse.post_created'"""
 
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(MetagovPlatformAction.objects.all().count(), 1)
+        self.assertEqual(MetagovAction.objects.all().count(), 1)
 
-        action = MetagovPlatformAction.objects.filter(event_type="discourse.post_created").first()
+        action = MetagovAction.objects.filter(event_type="discourse.post_created").first()
 
         # the action.community is the community that is connected to metagov
         self.assertEqual(action.community.platform, "slack")
         self.assertEqual(action.initiator.username, "discourse.miriam")
         self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
-        self.assertEqual(action.data.get("test_verify_username"), "miriam")
         self.assertEqual(action.event_data["raw"], "post text")
 
-        self.assertEqual(action.proposal.status, "passed")
+        proposal = Proposal.objects.get(action=action, policy=policy)
+        self.assertEqual(proposal.data.get("test_verify_username"), "miriam")
+        self.assertEqual(proposal.status, Proposal.PASSED)
 
     def test_metagov_slack_trigger(self):
         """Test receiving a Slack event from Metagov that creates a SlackPinMessage action"""
         # 1) Create Policy that is triggered by a metagov action
         policy = Policy(kind=Policy.PLATFORM)
         policy.community = self.slack_community
-        policy.filter = """return action.action_codename == 'slackpinmessage'"""
+        policy.filter = """return action.action_type == 'slackpinmessage'"""
         policy.initialize = "pass"
         policy.notify = "pass"
         policy.check = "return PASSED"
-        policy.success = "action.data.set('got here', True)\ndebug('hello world!')"
+        policy.success = "proposal.data.set('got here', True)\ndebug('hello world!')"
         policy.fail = "pass"
         policy.description = "test"
         policy.name = "test policy"
@@ -228,10 +305,10 @@ and action.event_type == 'discourse.post_created'"""
         action = SlackPinMessage.objects.first()
         self.assertEqual(action.community.platform, "slack")
         self.assertEqual(action.initiator.username, "alice")
-        self.assertEqual(action.data.get("got here"), True)
-        self.assertEqual(action.proposal.status, "passed")
 
-        # Check that evaluation debug log was generated
-        self.assertEqual(
-            EvaluationLog.objects.filter(community=policy.community, msg__contains="hello world!").count(), 1
-        )
+        proposal = Proposal.objects.get(action=action, policy=policy)
+        self.assertEqual(proposal.data.get("got here"), True)
+        self.assertEqual(proposal.status, Proposal.PASSED)
+
+        # Check that proposal debug log was generated
+        self.assertEqual(EvaluationLog.objects.filter(proposal=proposal, msg__contains="hello world!").count(), 1)

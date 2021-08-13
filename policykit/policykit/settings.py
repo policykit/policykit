@@ -192,7 +192,7 @@ loggers = {}
 for app in ['policyengine'] + INTEGRATIONS:
     loggers.update({app: {"handlers": ["console", "file"], "level": LOG_LEVEL, "propagate": False}})
 # Database logger for policy evaluation logs
-loggers["db"] = {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate": True}
+loggers["db"] = {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate": False}
 # Set log level to WARN for everything else (imported dependencies)
 loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
 

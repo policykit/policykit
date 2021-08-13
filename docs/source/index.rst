@@ -23,10 +23,10 @@ Welcome to the Docs for PolicyKit!
    api_community
    api_actions
    api_policy
+   api_proposal
    api_doc
    api_user
    api_role
-   api_proposal
    api_votes
    api_datastore
 
