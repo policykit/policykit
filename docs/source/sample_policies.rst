@@ -40,14 +40,14 @@ Vote on renaming a channel
 .. code-block:: python
 
   message = f"Should this channel be renamed to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post."
-  action.community.initiate_vote(proposal, template=message)
+  slack.initiate_vote(proposal, template=message)
 
 **Pass:**
 
 .. code-block:: python
 
   text = f"Proposal to rename this channel to #{action.name} passed."
-  action.community.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
+  slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
   action.execute()
 
 **Fail:**
@@ -55,7 +55,7 @@ Vote on renaming a channel
 .. code-block:: python
 
   text = f"Proposal to rename this channel to #{action.name} failed."
-  action.community.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
+  slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
 
 
 Don't allow posts in channel
@@ -84,7 +84,7 @@ Posts in the channel are auto-deleted, and the user is notified about why it hap
 
   # create an ephemeral post that is only visible to the poster
   message = f"Post was deleted because of policy '{policy.name}'"
-  action.community.post_message(
+  slack.post_message(
     channel=action.channel,
     users=[action.initiator],
     post_type="ephemeral",
@@ -155,7 +155,7 @@ where num refers to a positive non-zero integer value. This command simulates ro
   if tokens[0] != "!roll":
     return False
   if len(tokens) < 2 or len(tokens) > 3:
-    action.community.post_message(text='not right number of tokens: should be 2 or 3', channel = "733209360549019688")
+    discord.post_message(text='not right number of tokens: should be 2 or 3', channel = "733209360549019688")
     return False
   return True
 
@@ -169,19 +169,19 @@ where num refers to a positive non-zero integer value. This command simulates ro
   tokens = action.text.split()
   channel = 733209360549019691
   if tokens[1][0] != "d":
-    action.community.post_message(text='not have d', channel=channel)
+    duscird.post_message(text='not have d', channel=channel)
     return FAILED
   if tokens[1][1:].isnumeric() == False:
-    action.community.post_message(text='not numeric num faces', channel=channel)
+    duscird.post_message(text='not numeric num faces', channel=channel)
     return FAILED
   num_faces = int(tokens[1][1:])
   num_modifier = 0
   if len(tokens) == 3:
     if tokens[2][0] != "+":
-      action.community.post_message(text='not have +', channel=channel)
+      duscird.post_message(text='not have +', channel=channel)
       return FAILED
     if tokens[2][1:].isnumeric() == False:
-      action.community.post_message(text='not numeric num modifier', channel=channel)
+      duscird.post_message(text='not numeric num modifier', channel=channel)
       return FAILED
     num_modifier = int(tokens[2][1:])
   roll_unmodified = random.randint(1, num_faces)
@@ -197,14 +197,14 @@ where num refers to a positive non-zero integer value. This command simulates ro
 .. code-block:: python
 
   text = 'Roll: ' + str(proposal.data.get('roll_unmodified')) + " , Result: " + str(proposal.data.get('roll_modified'))
-  action.community.post_message(text=text, channel = "733209360549019688")
+  discord.post_message(text=text, channel = "733209360549019688")
 
 **Fail:**
 
 .. code-block:: python
 
   text = 'Error: Make sure you format your dice roll command correctly!'
-  action.community.post_message(text=text, channel = "733209360549019688")
+  discord.post_message(text=text, channel = "733209360549019688")
 
 Lottery / Raffle
 ------------------------
@@ -221,7 +221,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
   if tokens[0] != "!lottery":
     return False
   if len(tokens) != 2:
-    action.community.post_message(text='need a lottery message', channel = "733209360549019688")
+    discord.post_message(text='need a lottery message', channel = "733209360549019688")
     return False
   proposal.data.set('message', tokens[1])
   return True
@@ -233,7 +233,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 .. code-block:: python
 
   message = proposal.data.get('message')
-  action.community.initiate_vote(proposal, template=message, channel = "733209360549019688")
+  discord.initiate_vote(proposal, template=message, channel = "733209360549019688")
 
 **Check:**
 
@@ -255,7 +255,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
   winner = random.randint(0, num_votes)
   winner_name = all_votes[winner].user.readable_name
   message = "Congratulations! " + winner_name + " has won the lottery!"
-  action.community.post_message(text=message, channel = "733209360549019688")
+  discord.post_message(text=message, channel = "733209360549019688")
 
 **Fail:** ``pass``
 
