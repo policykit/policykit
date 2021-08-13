@@ -49,6 +49,7 @@ class PylintOutput:
         return self.output
 
 def _error_check(code, function_name = 'filter'):
+    #TODO keep using this
     """
     Checks provided Python code for errors. Syntax errors are checked for with
     Pylint. Returns a list of errors from linting.
