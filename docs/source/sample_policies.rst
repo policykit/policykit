@@ -26,13 +26,13 @@ Vote on renaming a channel
 
   yes_votes = proposal.get_yes_votes().count()
   no_votes = proposal.get_no_votes().count()
-  debug(f"{yes_votes} for, {no_votes} against")
+  logger.info(f"{yes_votes} for, {no_votes} against")
   if yes_votes >= 1:
     return PASSED
   elif no_votes >= 1:
     return FAILED
 
-  debug("No votes yet....")
+  logger.info("No votes yet....")
   return None
 
 **Notify:**
@@ -40,14 +40,14 @@ Vote on renaming a channel
 .. code-block:: python
 
   message = f"Should this channel be renamed to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post."
-  action.community.initiate_vote(proposal, template=message)
+  slack.initiate_vote(proposal, template=message)
 
 **Pass:**
 
 .. code-block:: python
 
   text = f"Proposal to rename this channel to #{action.name} passed."
-  action.community.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
+  slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
   action.execute()
 
 **Fail:**
@@ -55,7 +55,7 @@ Vote on renaming a channel
 .. code-block:: python
 
   text = f"Proposal to rename this channel to #{action.name} failed."
-  action.community.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
+  slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
 
 
 Don't allow posts in channel
@@ -84,7 +84,7 @@ Posts in the channel are auto-deleted, and the user is notified about why it hap
 
   # create an ephemeral post that is only visible to the poster
   message = f"Post was deleted because of policy '{policy.name}'"
-  action.community.post_message(
+  slack.post_message(
     channel=action.channel,
     users=[action.initiator],
     post_type="ephemeral",
@@ -155,7 +155,7 @@ where num refers to a positive non-zero integer value. This command simulates ro
   if tokens[0] != "!roll":
     return False
   if len(tokens) < 2 or len(tokens) > 3:
-    action.community.post_message(text='not right number of tokens: should be 2 or 3', channel = "733209360549019688")
+    discord.post_message(text='not right number of tokens: should be 2 or 3', channel = "733209360549019688")
     return False
   return True
 
@@ -169,19 +169,19 @@ where num refers to a positive non-zero integer value. This command simulates ro
   tokens = action.text.split()
   channel = 733209360549019691
   if tokens[1][0] != "d":
-    action.community.post_message(text='not have d', channel=channel)
+    duscird.post_message(text='not have d', channel=channel)
     return FAILED
   if tokens[1][1:].isnumeric() == False:
-    action.community.post_message(text='not numeric num faces', channel=channel)
+    duscird.post_message(text='not numeric num faces', channel=channel)
     return FAILED
   num_faces = int(tokens[1][1:])
   num_modifier = 0
   if len(tokens) == 3:
     if tokens[2][0] != "+":
-      action.community.post_message(text='not have +', channel=channel)
+      duscird.post_message(text='not have +', channel=channel)
       return FAILED
     if tokens[2][1:].isnumeric() == False:
-      action.community.post_message(text='not numeric num modifier', channel=channel)
+      duscird.post_message(text='not numeric num modifier', channel=channel)
       return FAILED
     num_modifier = int(tokens[2][1:])
   roll_unmodified = random.randint(1, num_faces)
@@ -197,14 +197,14 @@ where num refers to a positive non-zero integer value. This command simulates ro
 .. code-block:: python
 
   text = 'Roll: ' + str(proposal.data.get('roll_unmodified')) + " , Result: " + str(proposal.data.get('roll_modified'))
-  action.community.post_message(text=text, channel = "733209360549019688")
+  discord.post_message(text=text, channel = "733209360549019688")
 
 **Fail:**
 
 .. code-block:: python
 
   text = 'Error: Make sure you format your dice roll command correctly!'
-  action.community.post_message(text=text, channel = "733209360549019688")
+  discord.post_message(text=text, channel = "733209360549019688")
 
 Lottery / Raffle
 ------------------------
@@ -221,7 +221,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
   if tokens[0] != "!lottery":
     return False
   if len(tokens) != 2:
-    action.community.post_message(text='need a lottery message', channel = "733209360549019688")
+    discord.post_message(text='need a lottery message', channel = "733209360549019688")
     return False
   proposal.data.set('message', tokens[1])
   return True
@@ -233,7 +233,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 .. code-block:: python
 
   message = proposal.data.get('message')
-  action.community.initiate_vote(proposal, template=message, channel = "733209360549019688")
+  discord.initiate_vote(proposal, template=message, channel = "733209360549019688")
 
 **Check:**
 
@@ -255,7 +255,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
   winner = random.randint(0, num_votes)
   winner_name = all_votes[winner].user.readable_name
   message = "Congratulations! " + winner_name + " has won the lottery!"
-  action.community.post_message(text=message, channel = "733209360549019688")
+  discord.post_message(text=message, channel = "733209360549019688")
 
 **Fail:** ``pass``
 
@@ -450,7 +450,7 @@ Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_
     }
 
     result = metagov.perform_action("near.call", params)
-    debug(f"NEAR call: {result.get('status')}")
+    logger.info(f"NEAR call: {result.get('status')}")
 
 **Fail:** ``pass``
 
@@ -509,8 +509,8 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
     result = metagov.get_process()
 
-    # send debug log of intermediate results. visible in PolicyKit app at /logs.,
-    debug("Loomio result: " + str(result))
+    # log intermediate results. visible in PolicyKit app log page.
+    logger.info("Loomio result: " + str(result))
 
     if result.status == "completed":
         agrees = result.outcome["votes"]["agree"]
@@ -572,10 +572,10 @@ This policy also assumes that the Discourse server has the experimental `Metagov
     old_wallet = action.event_data.get("old_user_fields", {}).get(custom_wallet_field_key)
     new_wallet = action.event_data.get("user_fields", {}).get(custom_wallet_field_key)
     if old_wallet == new_wallet:
-      debug(f"no wallet change for {user}, they must have changed another field. skipping.")
+      logger.info(f"no wallet change for {user}, they must have changed another field. skipping.")
       return False
 
-    debug(f"User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
+    logger.info(f"User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
     proposal.data.set("old_wallet", old_wallet)
     proposal.data.set("new_wallet", new_wallet)
     return True
@@ -591,12 +591,12 @@ This policy also assumes that the Discourse server has the experimental `Metagov
     old_wallet = proposal.data.get("old_wallet")
     new_wallet = proposal.data.get("new_wallet")
     if not new_wallet:
-      debug("wallet was removed, no need to vote")
+      logger.info("wallet was removed, no need to vote")
       return
 
     #get the current config
     response = metagov.perform_action("revshare.get-config", {})
-    debug(f"get-config response: {response}")
+    logger.info(f"get-config response: {response}")
 
     parameters = {
         "title": f"Add '{new_wallet}' to revshare config - test",
@@ -606,7 +606,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
     }
     result = metagov.start_process("discourse.poll", parameters)
     poll_url = result.outcome.get("poll_url")
-    debug(f"Vote at {poll_url}")
+    logger.info(f"Vote at {poll_url}")
 
 
     params = {
@@ -627,7 +627,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
     new_wallet = proposal.data.get("new_wallet")
     if not new_wallet:
-      debug("wallet was removed, no need to vote")
+      logger.info("wallet was removed, no need to vote")
       return PASSED
 
 
@@ -635,7 +635,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
     if not result:
       return None
 
-    debug(f"Discourse Poll ({result.status}) outcome: {result.outcome}")
+    logger.info(f"Discourse Poll ({result.status}) outcome: {result.outcome}")
 
     agrees = result.outcome.get("votes", {}).get("approve", 0)
     disagrees = result.outcome.get("votes", {}).get("disapprove", 0)
@@ -661,17 +661,17 @@ This policy also assumes that the Discourse server has the experimental `Metagov
      old_wallet = proposal.data.get("old_wallet")
      new_wallet = proposal.data.get("new_wallet")
 
-     debug(f"APPROVED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
+     logger.info(f"APPROVED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
 
      # remove old pointer.
      if old_wallet:
        response = metagov.perform_action("revshare.remove-pointer", {"pointer": old_wallet})
-       debug(f"remove-pointer response: {response}")
+       logger.info(f"remove-pointer response: {response}")
 
      if new_wallet:
        # add new pointer.
        response = metagov.perform_action("revshare.add-pointer", {"pointer": new_wallet, "weight": 1})
-       debug(f"add-pointer response: {response}")
+       logger.info(f"add-pointer response: {response}")
 
 
        params = {
@@ -691,7 +691,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
     old_wallet = proposal.data.get("old_wallet")
     new_wallet = proposal.data.get("new_wallet")
 
-    debug(f"FAILED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
+    logger.info(f"FAILED: User {user} changed their wallet from '{old_wallet}' to '{new_wallet}'")
 
     params = {
         "raw": f"Your request to get $$ was rejected",

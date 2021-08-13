@@ -178,7 +178,7 @@ return FAILED
         policy = Policy(kind=Policy.PLATFORM)
         policy.community = self.slack_community
         policy.filter = "return True"
-        policy.initialize = "debug('help!')"
+        policy.initialize = "logger.debug('help!')"
         policy.check = """parameters = {"low": 4, "high": 5}
 response = metagov.perform_action('randomness.random-int', parameters)
 if response and response.get('value') == 4:
@@ -281,7 +281,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.initialize = "pass"
         policy.notify = "pass"
         policy.check = "return PASSED"
-        policy.success = "proposal.data.set('got here', True)\ndebug('hello world!')"
+        policy.success = "proposal.data.set('got here', True)\nlogger.debug('hello world!')"
         policy.fail = "pass"
         policy.description = "test"
         policy.name = "test policy"
