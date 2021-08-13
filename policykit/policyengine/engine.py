@@ -9,6 +9,52 @@ logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
 
 
+class EvaluationLogAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        kwargs["extra"] = self.extra
+        return (msg, kwargs)
+
+
+class EvaluationContext:
+    """
+    Class to hold all variables available in a policy evaluation.
+    All attributes on this class are in scope and can be used by the policy author.
+
+    Attributes:
+        proposal (Proposal): The proposal representing this evaluation.
+        action (BaseAction): The action that triggered this policy evaluation.
+        policy (Policy): The policy being evaluated.
+        slack (SlackCommunity)
+        discord (DiscordCommunity)
+        discourse (DiscourseCommunity)
+        reddit (RedditCommunity)
+        metagov (Metagov): Metagov library for performing enabled actions and processes.
+        logger (logging.Logger): Logger that will log messages to the PolicyKit web interface.
+
+    """
+
+    def __init__(self, proposal):
+        self.action = proposal.action
+        self.policy = proposal.policy
+        self.proposal = proposal
+        self.logger = EvaluationLogAdapter(
+            db_logger, {"community": proposal.action.community.community, "proposal": proposal}
+        )
+
+        from policyengine.models import Community, CommunityPlatform
+
+        parent_community: Community = self.action.community.community
+
+        # Make all CommunityPlatforms available in the evaluation context
+        for comm in CommunityPlatform.objects.filter(community=parent_community):
+            setattr(self, comm.platform, comm)
+
+        if settings.METAGOV_ENABLED:
+            from integrations.metagov.library import Metagov
+
+            self.metagov = Metagov(proposal)
+
+
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
 
@@ -40,22 +86,6 @@ class PolicyDoesNotPassFilter(PolicyEngineError):
     """Raised when trying to evaluate a Proposal where the action no longer passes the policy's filter step"""
 
     pass
-
-
-def evaluation_logger(proposal, level="DEBUG"):
-    """
-    Get a logging function that logs to the database. Logs are visible to the community members at /logs.
-    """
-    level_num = getattr(logging, level)
-
-    def log(msg):
-        context = {"community": proposal.action.community.community, "proposal": proposal}
-        db_logger.log(level_num, str(msg), context)
-
-        message = f"[{proposal.action} ({proposal.action.pk})][{proposal.policy} ({proposal.policy.pk})] {msg}"
-        logger.log(level_num, message)
-
-    return log
 
 
 def govern_action(action):
@@ -91,7 +121,6 @@ def govern_action(action):
             logger.warn(f"There are already {existing_proposals.count()} proposals for action {action}")
 
         while eligible_policies.exists():
-            # logger.debug(f"choosing from {eligible_policies.count()} eligible policies")
             proposal = choose_policy(action, eligible_policies)
             if not proposal:
                 # This means that the action didn't pass the filter for ANY policies.
@@ -114,19 +143,18 @@ def choose_policy(action, policies):
 
     for policy in policies:
         proposal = Proposal.objects.create(policy=policy, action=action, status=Proposal.PROPOSED)
+        context = EvaluationContext(proposal)
         try:
-            passed_filter = exec_code_block(policy.filter, Policy.FILTER, proposal)
+            passed_filter = exec_code_block(policy.filter, context, Policy.FILTER)
         except Exception as e:
             # Log unhandled exception to the db, so policy author can view it in the UI.
-            error = evaluation_logger(proposal, level="ERROR")
-            error("Exception: " + str(e))
+            context.logger.error(f"Exception in 'filter': {str(e)}")
             proposal.delete()
             # If there was an exception raised in 'filter', treat it as if the action didn't pass this policy's filter.
             continue
 
         if passed_filter:
             logger.debug(f"For action '{action}', choosing policy '{policy}'")
-            # proposal.save()
             return proposal
 
         proposal.delete()
@@ -157,54 +185,45 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
     if not proposal.policy.is_active:
         raise PolicyIsNotActive
 
+    context = EvaluationContext(proposal)
     try:
-        return evaluate_proposal_inner(proposal, is_first_evaluation)
+        return evaluate_proposal_inner(context, is_first_evaluation)
     except PolicyDoesNotPassFilter:
         # The policy changed so that the action no longer passes the 'filter' step
         raise
     except PolicyCodeError as e:
         # Log policy code exception to the db, so policy author can view it in the UI.
-        error = evaluation_logger(proposal, level="ERROR")
-        error(f"Exception raised in '{e.step}' block: {e.message}")
+        context.logger.error(f"Exception raised in '{e.step}' block: {e.message}")
         raise
     except Exception as e:
         # Log unhandled exception to the db, so policy author can view it in the UI.
-        error = evaluation_logger(proposal, level="ERROR")
-        error("Unhandled exception: " + str(e))
+        context.logger.error("Unhandled exception: " + str(e))
         raise
 
 
-def evaluate_proposal_inner(proposal, is_first_evaluation: bool):
-    from policyengine.models import ConstitutionAction, PlatformAction, Policy, Proposal
+def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: bool):
+    from policyengine.models import Policy, Proposal
 
-    policy = proposal.policy
-    action = proposal.action
-    debug = evaluation_logger(proposal)
+    policy = context.policy
+    action = context.action
+    proposal = context.proposal
 
-    if not exec_code_block(policy.filter, Policy.FILTER, proposal):
+    if not exec_code_block(policy.filter, context, Policy.FILTER):
         raise PolicyDoesNotPassFilter
-
-    optional_args = {}
-    if settings.METAGOV_ENABLED:
-        from integrations.metagov.library import Metagov
-
-        optional_args["metagov"] = Metagov(proposal)
 
     # If policy is being evaluated for the first time, initialize it
     if is_first_evaluation:
-        # debug(f"Initializing")
         # run "initialize" block of policy
-        exec_code_block(policy.initialize, Policy.INITIALIZE, proposal, **optional_args)
+        exec_code_block(policy.initialize, context, Policy.INITIALIZE)
 
     # Run "check" block of policy
-    check_result = exec_code_block(policy.check, Policy.CHECK, proposal, **optional_args)
+    check_result = exec_code_block(policy.check, context, Policy.CHECK)
     check_result = sanitize_check_result(check_result)
-    debug(f"Check returned '{check_result}'")
+    context.logger.debug(f"Check returned '{check_result}'")
 
     if check_result == Proposal.PASSED:
         # run "pass" block of policy
-        exec_code_block(policy.success, Policy.SUCCESS, proposal, **optional_args)
-        # debug(f"Executed pass block of policy")
+        exec_code_block(policy.success, context, Policy.SUCCESS)
         # mark proposal as 'passed'
         proposal.pass_evaluation()
         assert proposal.status == Proposal.PASSED
@@ -219,19 +238,18 @@ def evaluate_proposal_inner(proposal, is_first_evaluation: bool):
 
         if settings.METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
-            optional_args["metagov"].close_process()
+            context.metagov.close_process()
 
     if check_result == Proposal.FAILED:
         # run "fail" block of policy
-        exec_code_block(policy.fail, Policy.FAIL, proposal, **optional_args)
-        # debug(f"Executed fail block of policy")
+        exec_code_block(policy.fail, context, Policy.FAIL)
         # mark proposal as 'failed'
         proposal.fail_evaluation()
         assert proposal.status == Proposal.FAILED
 
         if settings.METAGOV_ENABLED:
             # Close pending process if exists (does nothing if process was already closed)
-            optional_args["metagov"].close_process()
+            context.metagov.close_process()
 
     # Revert the action if necessary
     should_revert = (
@@ -242,7 +260,7 @@ def evaluate_proposal_inner(proposal, is_first_evaluation: bool):
     )
 
     if should_revert:
-        debug(f"Reverting action")
+        context.logger.debug(f"Reverting action")
         action.revert()
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
@@ -251,41 +269,36 @@ def evaluate_proposal_inner(proposal, is_first_evaluation: bool):
             action, verb="was proposed", community_id=action.community.id, action_codename=action.action_type
         )
         # Run "notify" block of policy
-        debug(f"Notifying")
-        exec_code_block(policy.notify, Policy.NOTIFY, proposal, **optional_args)
+        context.logger.debug(f"Notifying")
+        exec_code_block(policy.notify, context, Policy.NOTIFY)
 
     return True
 
 
-def exec_code_block(code_string: str, step_name: str, proposal, metagov=None):
-    from policyengine.models import CommunityUser
-
-    action = proposal.action
-    policy = proposal.policy
-    users = CommunityUser.objects.filter(community=policy.community)
-    debug = evaluation_logger(proposal)
-
-    _locals = locals()
-    _globals = globals()
-
-    wrapper_start = "def func(proposal, policy, action, users, debug, metagov):\r\n"
-    wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
-
-    wrapper_end = "\r\nresult = func(proposal, policy, action, users, debug, metagov)"
+def exec_code_block(code_string: str, context: EvaluationContext, step_name="unknown"):
+    wrapper_start = "def func():\r\n"
+    lines = ["  " + item for item in code_string.splitlines()]
+    wrapper_end = "\r\nresult = func()"
+    code = wrapper_start + "\r\n".join(lines) + wrapper_end
 
     try:
-        exec_code(code_string, wrapper_start, wrapper_end, None, _locals)
+        return exec_code(code, context)
     except Exception as e:
         logger.exception(f"Got exception in exec_code {step_name} step:")
         raise PolicyCodeError(step=step_name, message=str(e))
 
+
+def exec_code(code, context: EvaluationContext):
+    PASSED, FAILED, PROPOSED = "passed", "failed", "proposed"
+    _locals = locals().copy()
+    # Add all attributes on EvaluationContext to scope
+    _locals.update(context.__dict__)
+    # Remove some variables from scope
+    _locals.pop("code")
+    _locals.pop("context")
+
+    exec(code, _locals, _locals)
     return _locals.get("result")
-
-
-def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    lines = ["  " + item for item in code.splitlines()]
-    code = wrapperStart + "\r\n".join(lines) + wrapperEnd
-    exec(code, globals, locals)
 
 
 def sanitize_check_result(res):

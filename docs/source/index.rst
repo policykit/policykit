@@ -20,6 +20,7 @@ Welcome to the Docs for PolicyKit!
    :maxdepth: 3
    :caption: API REFERENCE
 
+   api_context
    api_community
    api_actions
    api_policy

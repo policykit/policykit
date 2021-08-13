@@ -313,8 +313,8 @@ class LogAPICall(models.Model):
         return res
 
 class Proposal(models.Model):
-    """The Proposal model represents an proposal of a policy for a particular action.
-    Any data relevant to the proposal, such as vote counts, can be retrieved from this model."""
+    """The Proposal model represents the evaluation of a particular policy for a particular action.
+    All data relevant to the evaluation, such as vote counts, is stored in this model."""
 
     PROPOSED = 'proposed'
     FAILED = 'failed'
