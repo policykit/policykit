@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
 import urllib
 import urllib.request
@@ -9,18 +9,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 DISCOURSE_ACTIONS = [
-                    'discoursecreatetopic',
-                    'discoursecreatepost'
-                  ]
-
-DISCOURSE_VIEW_PERMS = ['Can view discourse create topic', 'Can view discourse create post']
-
-DISCOURSE_PROPOSE_PERMS = ['Can add discourse create topic', 'Can add discourse create post']
-
-DISCOURSE_EXECUTE_PERMS = ['Can execute discourse create topic', 'Can execute discourse create post']
+    'discoursecreatetopic',
+    'discoursecreatepost'
+]
 
 class DiscourseCommunity(CommunityPlatform):
     platform = "discourse"
+    permissions = [
+        "discourse create topic",
+        "discourse create post"
+    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
@@ -196,72 +194,3 @@ class DiscourseCreatePost(PlatformAction):
             reply = self.community.make_call('/posts.json', {'raw': self.raw}) #FIXME this needs to have topic_id
             self.post_id = reply['id']
             self.save()
-
-class DiscourseStarterKit(StarterKit):
-    def init_kit(self, community, creator_token=None):
-        for policy in self.genericpolicy_set.all():
-            p = Policy()
-            p.kind = Policy.CONSTITUTION if policy.is_constitution else Policy.PLATFORM
-            p.community = community
-            p.filter = policy.filter
-            p.initialize = policy.initialize
-            p.check = policy.check
-            p.notify = policy.notify
-            p.success = policy.success
-            p.fail = policy.fail
-            p.description = policy.description
-            p.name = policy.name
-
-            proposal = Proposal.objects.create(status=Proposal.PASSED)
-            p.proposal = proposal
-            p.save()
-
-        for role in self.genericrole_set.all():
-            c = None
-            if role.is_base_role:
-                c = community.base_role
-                role.is_base_role = False
-            else:
-                c = CommunityRole()
-                c.community = community
-                c.role_name = role.role_name
-                c.name = "Discourse: " + community.community_name + ": " + role.role_name
-                c.description = role.description
-                c.save()
-
-            for perm in role.permissions.all():
-                c.permissions.add(perm)
-
-            jsonDec = json.decoder.JSONDecoder()
-            perm_set = jsonDec.decode(role.plat_perm_set)
-
-            if 'view' in perm_set:
-                for perm in DISCOURSE_VIEW_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-            if 'propose' in perm_set:
-                for perm in DISCOURSE_PROPOSE_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-            if 'execute' in perm_set:
-                for perm in DISCOURSE_EXECUTE_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-
-            if role.user_group == "admins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "nonadmins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "all":
-                group = CommunityUser.objects.filter(community = community)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "creator":
-                user = CommunityUser.objects.get(access_token=creator_token)
-                c.user_set.add(user)
-
-            c.save()

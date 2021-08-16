@@ -1,0 +1,97 @@
+{
+  "name": "Moderators",
+  "description": "Mimics a basic Moderator and User structure.",
+  "platform_policies": [
+    {
+      "name": "All Platform Actions Pass",
+      "description": "Starter Platform Policy: all platform actions pass automatically",
+      "filter": "return True",
+      "initialize": "pass",
+      "check": "return PASSED",
+      "notify": "pass",
+      "success": "pass",
+      "fail": "pass"
+    }
+  ],
+  "constitution_policies": [
+    {
+      "name": "Moderators: All Constitution Actions from Moderators Pass",
+      "description": "Starter Constitution Policy: constitution actions pass if proposed by moderator",
+      "filter": "return True",
+      "initialize": "pass",
+      "check": "if action.initiator.groups.filter(name = 'Administrator').exists():\n    return PASSED\nelse:\n    return FAILED",
+      "notify": "pass",
+      "success": "action.execute()",
+      "fail": "pass"
+    }
+  ],
+  "roles": [
+    {
+      "name": "Base User",
+      "description": "",
+      "is_base_role": true,
+      "user_group": "nonadmins",
+      "permission_sets": [
+        "view"
+      ],
+      "permissions": [
+        "Can view boolean vote",
+        "Can view number vote",
+        "Can view policykit add role",
+        "Can view policykit delete role",
+        "Can view policykit edit role",
+        "Can view policykit add user role",
+        "Can view policykit remove user role",
+        "Can view policykit change platform policy",
+        "Can view policykit change constitution policy",
+        "Can view policykit remove platform policy",
+        "Can view policykit remove constitution policy",
+        "Can view policykit recover platform policy",
+        "Can view policykit recover constitution policy",
+        "Can view policykit add platform policy",
+        "Can view policykit add constitution policy",
+        "Can view policykit add community doc",
+        "Can view policykit change community doc",
+        "Can view policykit delete community doc",
+        "Can view policykit recover community doc"
+      ]
+    },
+    {
+      "name": "Moderator",
+      "description": "Has ability to propose actions",
+      "is_base_role": false,
+      "user_group": "admins",
+      "permission_sets": [
+        "view",
+        "propose"
+      ],
+      "permissions": [
+        "Can add boolean vote",
+        "Can change boolean vote",
+        "Can delete boolean vote",
+        "Can view boolean vote",
+        "Can add number vote",
+        "Can change number vote",
+        "Can delete number vote",
+        "Can view number vote",
+        "Can add policykit add role",
+        "Can add policykit delete role",
+        "Can add policykit edit role",
+        "Can add policykit add user role",
+        "Can add policykit remove user role",
+        "Can add policykit change platform policy",
+        "Can add policykit change constitution policy",
+        "Can add policykit remove platform policy",
+        "Can add policykit remove constitution policy",
+        "Can add policykit recover platform policy",
+        "Can add policykit recover constitution policy",
+        "Can add policykit add platform policy",
+        "Can add policykit add constitution policy",
+        "Can add policykit add community doc",
+        "Can add policykit change community doc",
+        "Can add policykit delete community doc",
+        "Can add policykit recover community doc"
+      ]
+    }
+  ]
+}

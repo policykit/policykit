@@ -19,6 +19,7 @@ import integrations.metagov.api as MetagovAPI
 import logging
 import json
 import html
+import os
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -147,7 +148,7 @@ def settings_page(request):
             if integration not in integration_data.keys():
                 logger.warn(f"unsupported integration {integration} is enabled for community {community}")
                 continue
-        
+
             # Only include configs if user has privileged metagov config role, since they may contain API Keys
             config_tuples = []
             if user.has_perm("metagov.can_edit_metagov_config"):
@@ -611,25 +612,102 @@ def clean_up_proposals(action, executed):
 
 @csrf_exempt
 def initialize_starterkit(request):
-    from policyengine.models import StarterKit, CommunityPlatform
+    """
+    Takes a request object containing starter-kit information.
+    Initializes the community with the selected starter kit.
+    """
+    from policyengine.models import Proposal, CommunityPlatform, Policy, CommunityRole, CommunityUser
 
-    starterkit_name = request.POST['starterkit']
-    community_name = request.POST['community_name']
-    creator_token = request.POST['creator_token']
-    platform = request.POST['platform']
+    post_data = json.loads(request.body)
 
-    starter_kit = StarterKit.objects.get(name=starterkit_name, platform=platform)
+    logger.debug(f'Initializing with starter kit: {post_data["starterkit"]}')
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{post_data["starterkit"]}.txt')
+    f = open(starter_kit_path)
 
-    community = CommunityPlatform.objects.get(community_name=community_name)
-    starter_kit.init_kit(community, creator_token)
+    kit_data = json.loads(f.read())
 
-    logger.info('starterkit initialized')
+    # TODO: Community name is not necessarily unique! Should use pk instead.
+    community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
+
+    # Initialize platform policies from starter kit
+    for policy in kit_data['platform_policies']:
+        Policy.objects.create(
+            kind=Policy.PLATFORM,
+            name=policy['name'],
+            description=policy['description'],
+            filter=policy['filter'],
+            initialize=policy['initialize'],
+            check=policy['check'],
+            notify=policy['notify'],
+            success=policy['success'],
+            fail=policy['fail'],
+            community=community
+        )
+
+    # Initialize constitution policies from starter kit
+    for policy in kit_data['constitution_policies']:
+        Policy.objects.create(
+            kind=Policy.CONSTITUTION,
+            name=policy['name'],
+            description=policy['description'],
+            filter=policy['filter'],
+            initialize=policy['initialize'],
+            check=policy['check'],
+            notify=policy['notify'],
+            success=policy['success'],
+            fail=policy['fail'],
+            community=community
+        )
+
+    # Initialize roles from starter kit
+    for role in kit_data['roles']:
+        r = CommunityRole.objects.create(
+            role_name=role['name'],
+            name=f"{post_data['platform']}: {community.community_name}: {role['name']}",
+            description=role['description'],
+            community=community
+        )
+
+        if role['is_base_role']:
+            old_base_role = community.base_role
+            community.base_role = r
+            community.save()
+            old_base_role.delete()
+
+        # Add PolicyKit-related permissions
+        r.permissions.set(Permission.objects.filter(name__in=role['permissions']))
+
+        # Add platform-specific permissions
+        for perm in community.permissions:
+            if 'view' in role['permission_sets']:
+                r.permissions.add(Permission.objects.get(name=f"Can view {perm}"))
+            if 'propose' in role['permission_sets']:
+                r.permissions.add(Permission.objects.get(name=f"Can add {perm}"))
+            if 'execute' in role['permission_sets']:
+                r.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
+
+        group = None
+        if role['user_group'] == "all":
+            group = CommunityUser.objects.filter(community=community)
+        elif role['user_group'] == "admins":
+            group = CommunityUser.objects.filter(community=community, is_community_admin=True)
+        elif role['user_group'] == "nonadmins":
+            group = CommunityUser.objects.filter(community=community, is_community_admin=False)
+        elif role['user_group'] == "creator":
+            group = CommunityUser.objects.filter(community=community, access_token=post_data["creator_token"])
+
+        for user in group:
+            r.user_set.add(user)
+
+        r.save()
+
+    f.close()
 
     redirect_route = request.GET.get("redirect")
     if redirect_route:
-        return redirect(f"{redirect_route}?success=true")
-
-    return redirect('/login?success=true')
+        return JsonResponse({'redirect': f"{redirect_route}?success=true"})
+    return JsonResponse({'redirect': '/login?success=true'})
 
 @csrf_exempt
 def error_check(request):

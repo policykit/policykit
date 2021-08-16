@@ -31,19 +31,6 @@ def on_transaction_commit(func):
         transaction.on_commit(lambda: func(*args, **kwargs))
     return inner
 
-class StarterKit(PolymorphicModel):
-    """Starter Kit"""
-
-    name = models.TextField(null=True, blank=True, default = '')
-    """The name of the starter kit."""
-
-    platform = models.TextField(null=True, blank=True, default = '')
-    """The name of the platform ('Slack', 'Reddit', etc.)."""
-
-    def __str__(self):
-        return self.name
-
-
 class Community(models.Model):
     readable_name = models.CharField(max_length=300, blank=True)
     metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
@@ -75,6 +62,9 @@ class CommunityPlatform(PolymorphicModel):
 
     platform = None
     """The name of the platform ('Slack', 'Reddit', etc.)."""
+
+    permissions = None
+    """The list of platform-specific permissions."""
 
     base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
     """The default role which users have."""
@@ -319,7 +309,6 @@ class DataStore(models.Model):
             return False
         return True
 
-
 class LogAPICall(models.Model):
     community = models.ForeignKey(CommunityPlatform, models.CASCADE)
     proposal_time = models.DateTimeField(auto_now_add=True)
@@ -334,34 +323,6 @@ class LogAPICall(models.Model):
                                       )
         res = community.make_call(call, values=values, action=action, method=method)
         return res
-
-class GenericPolicy(models.Model):
-    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-    name = models.TextField(null=True, blank=True, default = '')
-    description = models.TextField(null=True, blank=True, default = '')
-    filter = models.TextField(null=True, blank=True, default='')
-    initialize = models.TextField(null=True, blank=True, default='')
-    check = models.TextField(null=True, blank=True, default='')
-    notify = models.TextField(null=True, blank=True, default='')
-    success = models.TextField(null=True, blank=True, default='')
-    fail = models.TextField(null=True, blank=True, default='')
-    is_bundled = models.BooleanField(default=False)
-    is_constitution = models.BooleanField(default=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-class GenericRole(Group):
-    starterkit = models.ForeignKey(StarterKit, on_delete=models.CASCADE)
-    role_name = models.TextField(blank=True, null=True, default='')
-    description = models.TextField(blank=True, null=True, default='')
-    is_base_role = models.BooleanField(default=False)
-    user_group = models.TextField(blank=True, null=True, default='')
-    plat_perm_set = models.TextField(blank=True, null=True, default='')
-
-    def __str__(self):
-        return self.role_name
 
 class Proposal(models.Model):
     """Proposal"""

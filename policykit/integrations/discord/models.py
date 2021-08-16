@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, StarterKit, Policy, Proposal, CommunityRole
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
@@ -16,28 +16,6 @@ DISCORD_ACTIONS = [
     'discorddeletechannel'
 ]
 
-DISCORD_VIEW_PERMS = [
-    'Can view discord post message',
-    'Can view discord delete message',
-    'Can view discord rename channel',
-    'Can view discord create channel',
-    'Can view discord delete channel'
-]
-DISCORD_PROPOSE_PERMS = [
-    'Can add discord post message',
-    'Can add discord delete message',
-    'Can add discord rename channel',
-    'Can add discord create channel',
-    'Can add discord delete channel'
-]
-DISCORD_EXECUTE_PERMS = [
-    'Can execute discord post message',
-    'Can execute discord delete message',
-    'Can execute discord rename channel',
-    'Can execute discord create channel',
-    'Can execute discord delete channel'
-]
-
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.
 class DiscordChannel(models.Model):
@@ -48,6 +26,13 @@ class DiscordChannel(models.Model):
 class DiscordCommunity(CommunityPlatform):
     API = 'https://discordapp.com/api/'
     platform = "discord"
+    permissions = [
+        "discord post message",
+        "discord delete message",
+        "discord rename channel",
+        "discord create channel",
+        "discord delete channel"
+    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
@@ -239,72 +224,3 @@ class DiscordDeleteChannel(PlatformAction):
         # Execute action if it didn't originate in the community
         if not self.community_origin:
             self.community.make_call(f"channels/{self.channel_id}", method='DELETE')
-
-class DiscordStarterKit(StarterKit):
-    def init_kit(self, community, creator_token=None):
-        for policy in self.genericpolicy_set.all():
-            p = Policy()
-            p.kind = Policy.CONSTITUTION if policy.is_constitution else Policy.PLATFORM
-            p.community = community
-            p.filter = policy.filter
-            p.initialize = policy.initialize
-            p.check = policy.check
-            p.notify = policy.notify
-            p.success = policy.success
-            p.fail = policy.fail
-            p.description = policy.description
-            p.name = policy.name
-
-            proposal = Proposal.objects.create(status=Proposal.PASSED)
-            p.proposal = proposal
-            p.save()
-
-        for role in self.genericrole_set.all():
-            c = None
-            if role.is_base_role:
-                c = community.base_role
-                role.is_base_role = False
-            else:
-                c = CommunityRole()
-                c.community = community
-                c.role_name = role.role_name
-                c.name = "Discord: " + community.community_name + ": " + role.role_name
-                c.description = role.description
-                c.save()
-
-            for perm in role.permissions.all():
-                c.permissions.add(perm)
-
-            jsonDec = json.decoder.JSONDecoder()
-            perm_set = jsonDec.decode(role.plat_perm_set)
-
-            if 'view' in perm_set:
-                for perm in DISCORD_VIEW_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-            if 'propose' in perm_set:
-                for perm in DISCORD_PROPOSE_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-            if 'execute' in perm_set:
-                for perm in DISCORD_EXECUTE_PERMS:
-                    p1 = Permission.objects.get(name=perm)
-                    c.permissions.add(p1)
-
-            if role.user_group == "admins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = True)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "nonadmins":
-                group = CommunityUser.objects.filter(community = community, is_community_admin = False)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "all":
-                group = CommunityUser.objects.filter(community = community)
-                for user in group:
-                    c.user_set.add(user)
-            elif role.user_group == "creator":
-                user = CommunityUser.objects.get(access_token=creator_token)
-                c.user_set.add(user)
-
-            c.save()

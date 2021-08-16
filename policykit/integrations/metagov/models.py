@@ -1,6 +1,5 @@
 import json
 import logging
-
 import requests
 from django.db import models
 from policyengine.models import CommunityUser, PlatformAction, Policy

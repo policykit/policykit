@@ -3,6 +3,8 @@ from django.conf import settings
 import logging
 from urllib.parse import quote
 import random
+import os
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -47,3 +49,20 @@ def construct_authorize_install_url(request, integration, community=None):
     url = f"{settings.METAGOV_URL}/auth/{integration}/authorize?type=app&community={community_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
     logger.debug(url)
     return url
+
+def get_starterkits_info():
+    """
+    Get a list of all starter-kit names and descriptions.
+    """
+    starterkits = []
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    dir_path = os.path.join(cur_path, f'../starterkits')
+    for kit_file in os.listdir(dir_path):
+        kit_path = os.path.join(dir_path, kit_file)
+        f = open(kit_path)
+        data = json.loads(f.read())
+        starterkits.append({
+            'name': data['name'],
+            'description': data['description']
+        })
+    return starterkits

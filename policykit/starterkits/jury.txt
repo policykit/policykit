@@ -1,0 +1,67 @@
+{
+  "name": "Jury",
+  "description": "A random jury is called upon to vote whenever a constitution action is proposed.",
+  "platform_policies": [
+    {
+      "name": "All Platform Actions Pass",
+      "description": "All platform actions pass automatically",
+      "filter": "return True",
+      "initialize": "pass",
+      "check": "return PASSED",
+      "notify": "pass",
+      "success": "pass",
+      "fail": "pass"
+    }
+  ],
+  "constitution_policies": [
+    {
+      "name": "Jury: Constitution Actions Passed by Jury",
+      "description": "Constitutions actions by non-moderator must be passed by random jury of 3 members",
+      "filter": "return True",
+      "initialize": "usernames = [u.username for u in users]\njury = random.sample(usernames, k=3)\naction.data.set('jury', jury)",
+      "check": "import datetime\njury = action.data.get('jury')\njury_users = users.filter(username__in=jury)\nyes_votes = action.proposal.get_yes_votes(users=jury_users)\nif len(yes_votes) >= 2:\n    return PASSED\nelif action.proposal.get_time_elapsed() > datetime.timedelta(days=2):\n    return FAILED",
+      "notify": "jury = action.data.get('jury')\njury_users = users.filter(username__in=jury)\naction.community.notify_action(action, policy, users=jury_users, template='Please deliberate amongst yourselves before voting')",
+      "success": "action.execute()",
+      "fail": "pass"
+    }
+  ],
+  "roles": [
+    {
+      "name": "Base User",
+      "description": "",
+      "is_base_role": true,
+      "user_group": "all",
+      "permission_sets": [
+        "view",
+        "propose"
+      ],
+      "permissions": [
+        "Can add boolean vote",
+        "Can change boolean vote",
+        "Can delete boolean vote",
+        "Can view boolean vote",
+        "Can add number vote",
+        "Can change number vote",
+        "Can delete number vote",
+        "Can view number vote",
+        "Can add policykit add role",
+        "Can add policykit delete role",
+        "Can add policykit edit role",
+        "Can add policykit add user role",
+        "Can add policykit remove user role",
+        "Can add policykit change platform policy",
+        "Can add policykit change constitution policy",
+        "Can add policykit remove platform policy",
+        "Can add policykit remove constitution policy",
+        "Can add policykit recover platform policy",
+        "Can add policykit recover constitution policy",
+        "Can add policykit add platform policy",
+        "Can add policykit add constitution policy",
+        "Can add policykit add community doc",
+        "Can add policykit change community doc",
+        "Can add policykit delete community doc",
+        "Can add policykit recover community doc"
+      ]
+    }
+  ]
+}
