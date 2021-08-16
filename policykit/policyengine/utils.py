@@ -55,8 +55,11 @@ def get_starterkits_info():
     Get a list of all starter-kit names and descriptions.
     """
     starterkits = []
-    for kit_file in os.listdir('./starterkits'):
-        f = open(f'{os.getcwd()}/starterkits/{kit_file}')
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    dir_path = os.path.join(cur_path, f'../starterkits')
+    for kit_file in os.listdir(dir_path):
+        kit_path = os.path.join(dir_path, f'/{kit_file}')
+        f = open(kit_path)
         data = json.loads(f.read())
         starterkits.append({
             'name': data['name'],

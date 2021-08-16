@@ -621,7 +621,9 @@ def initialize_starterkit(request):
     post_data = json.loads(request.body)
 
     logger.debug(f'Initializing with starter kit: {post_data["starterkit"]}')
-    f = open(f'{os.getcwd()}/starterkits/{post_data["starterkit"]}.txt')
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{post_data["starterkit"]}.txt')
+    f = open(starter_kit_path)
 
     kit_data = json.loads(f.read())
 
