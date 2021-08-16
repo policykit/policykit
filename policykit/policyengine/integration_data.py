@@ -19,10 +19,13 @@ integration_data = {
     "discourse": {
         "readable_name": "Discourse",
         "description": "Discourse is an open source discussion platform. Use it as a mailing list, discussion forum, long-form chat room, and more. Connect PolicyKit to Discourse to govern actions and perform votes on the Discourse platform.",
+        "config_instructions": "Create a new admin user to serve as the bot. In the admin screen, navigate to API > New API Key. Select 'single user' and enter the username for your newly created bot user.",
+        "webhook_instructions": "In the admin screen, navigate to API > Webhooks. Copy in the URL under 'Payload URL' and the webhook secret under 'Secret.' Enable TLS and set the webhook to be active.",
     },
     "mailgun": {
         "readable_name": "MailGun",
         "description": "Use the MailGun APIs to send emails from PolicyKit policies.",
     },
     "near": {"readable_name": "NEAR", "description": "Make calls to a NEAR smart contracts from PolicyKit policies."},
+    "github": {"readable_name": "GitHub"},
 }
