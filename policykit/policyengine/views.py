@@ -10,7 +10,7 @@ from django.forms import modelform_factory
 from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
-from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url, get_action_content_types
+from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url, initialize_starterkit_inner
 from policyengine.integration_data import integration_data
 from policykit.settings import SERVER_URL
 import integrations.metagov.api as MetagovAPI
@@ -479,7 +479,7 @@ def initialize_starterkit(request):
     Takes a request object containing starter-kit information.
     Initializes the community with the selected starter kit.
     """
-    from policyengine.models import Proposal, CommunityPlatform, Policy, CommunityRole, CommunityUser
+    from policyengine.models import CommunityPlatform
 
     post_data = json.loads(request.body)
 
@@ -487,88 +487,13 @@ def initialize_starterkit(request):
     cur_path = os.path.abspath(os.path.dirname(__file__))
     starter_kit_path = os.path.join(cur_path, f'../starterkits/{post_data["starterkit"]}.txt')
     f = open(starter_kit_path)
-
     kit_data = json.loads(f.read())
+    f.close()
 
     # TODO: Community name is not necessarily unique! Should use pk instead.
     community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
 
-    # Initialize platform policies from starter kit
-    for policy in kit_data['platform_policies']:
-        Policy.objects.create(
-            kind=Policy.PLATFORM,
-            name=policy['name'],
-            description=policy['description'],
-            filter=policy['filter'],
-            initialize=policy['initialize'],
-            check=policy['check'],
-            notify=policy['notify'],
-            success=policy['success'],
-            fail=policy['fail'],
-            community=community
-        )
-
-    # Initialize constitution policies from starter kit
-    for policy in kit_data['constitution_policies']:
-        Policy.objects.create(
-            kind=Policy.CONSTITUTION,
-            name=policy['name'],
-            description=policy['description'],
-            filter=policy['filter'],
-            initialize=policy['initialize'],
-            check=policy['check'],
-            notify=policy['notify'],
-            success=policy['success'],
-            fail=policy['fail'],
-            community=community
-        )
-
-    # Initialize roles from starter kit
-    for role in kit_data['roles']:
-        r = CommunityRole.objects.create(
-            role_name=role['name'],
-            name=f"{post_data['platform']}: {community.community_name}: {role['name']}",
-            description=role['description'],
-            community=community
-        )
-
-        if role['is_base_role']:
-            old_base_role = community.base_role
-            community.base_role = r
-            community.save()
-            old_base_role.delete()
-
-        # Add PolicyKit-related permissions
-        r.permissions.set(Permission.objects.filter(name__in=role['permissions']))
-
-        # Add permissions for each PlatformAction
-        action_content_types = get_action_content_types(community.platform)
-        if 'view' in role['permission_sets']:
-            view_perms = Permission.objects.filter(content_type__in=action_content_types, name__startswith="Can view")
-            r.permissions.add(view_perms)
-        if 'propose' in role['permission_sets']:
-            propose_perms = Permission.objects.get(content_type__in=action_content_types, name__startswith="Can add")
-            r.permissions.add(propose_perms)
-        if 'execute' in role['permission_sets']:
-            execute_perms = Permission.objects.get(content_type__in=action_content_types, name__startswith="Can execute")
-            r.permissions.add(execute_perms)
-
-        group = None
-        if role['user_group'] == "all":
-            group = CommunityUser.objects.filter(community=community)
-        elif role['user_group'] == "admins":
-            group = CommunityUser.objects.filter(community=community, is_community_admin=True)
-        elif role['user_group'] == "nonadmins":
-            group = CommunityUser.objects.filter(community=community, is_community_admin=False)
-        elif role['user_group'] == "creator":
-            group = CommunityUser.objects.filter(community=community, access_token=post_data["creator_token"])
-
-        for user in group:
-            r.user_set.add(user)
-
-        r.save()
-
-    f.close()
+    initialize_starterkit_inner(community, kit_data)
 
     redirect_route = request.GET.get("redirect")
     if redirect_route:
