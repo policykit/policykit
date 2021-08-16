@@ -26,13 +26,6 @@ class DiscordChannel(models.Model):
 class DiscordCommunity(CommunityPlatform):
     API = 'https://discordapp.com/api/'
     platform = "discord"
-    permissions = [
-        "discord post message",
-        "discord delete message",
-        "discord rename channel",
-        "discord create channel",
-        "discord delete channel"
-    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
 

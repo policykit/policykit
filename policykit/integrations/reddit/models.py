@@ -35,9 +35,6 @@ def refresh_access_token(refresh_token):
 class RedditCommunity(CommunityPlatform):
     API = 'https://oauth.reddit.com/'
     platform = "reddit"
-    permissions = [
-        'reddit make post'
-    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     access_token = models.CharField('access_token', max_length=300, unique=True)

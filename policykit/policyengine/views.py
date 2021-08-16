@@ -10,7 +10,7 @@ from django.forms import modelform_factory
 from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
-from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url
+from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url, get_action_content_types
 from policyengine.integration_data import integration_data
 from policykit.settings import SERVER_URL
 import integrations.metagov.api as MetagovAPI
@@ -541,14 +541,17 @@ def initialize_starterkit(request):
         # Add PolicyKit-related permissions
         r.permissions.set(Permission.objects.filter(name__in=role['permissions']))
 
-        # Add platform-specific permissions
-        for perm in community.permissions:
-            if 'view' in role['permission_sets']:
-                r.permissions.add(Permission.objects.get(name=f"Can view {perm}"))
-            if 'propose' in role['permission_sets']:
-                r.permissions.add(Permission.objects.get(name=f"Can add {perm}"))
-            if 'execute' in role['permission_sets']:
-                r.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
+        # Add permissions for each PlatformAction
+        action_content_types = get_action_content_types(community.platform)
+        if 'view' in role['permission_sets']:
+            view_perms = Permission.objects.filter(content_type__in=action_content_types, name__startswith="Can view")
+            r.permissions.add(view_perms)
+        if 'propose' in role['permission_sets']:
+            propose_perms = Permission.objects.get(content_type__in=action_content_types, name__startswith="Can add")
+            r.permissions.add(propose_perms)
+        if 'execute' in role['permission_sets']:
+            execute_perms = Permission.objects.get(content_type__in=action_content_types, name__startswith="Can execute")
+            r.permissions.add(execute_perms)
 
         group = None
         if role['user_group'] == "all":

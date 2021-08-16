@@ -42,14 +42,6 @@ class SlackUser(CommunityUser):
 
 class SlackCommunity(CommunityPlatform):
     platform = "slack"
-    permissions = [
-        "slack post message",
-        "slack schedule message",
-        "slack rename conversation",
-        "slack kick conversation",
-        "slack join conversation",
-        "slack pin message",
-    ]
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 

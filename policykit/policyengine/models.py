@@ -70,9 +70,6 @@ class CommunityPlatform(PolymorphicModel):
     platform = None
     """The name of the platform ('Slack', 'Reddit', etc.)."""
 
-    permissions = None
-    """The list of platform-specific permissions."""
-
     community_name = models.CharField('team_name', max_length=1000)
     """The name of the community."""
 

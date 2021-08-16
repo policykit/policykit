@@ -33,6 +33,10 @@ def get_action_classes(app_name: str):
             actions.append(cls)
     return actions
 
+def get_action_content_types(app_name: str):
+    from django.contrib.contenttypes.models import ContentType
+    return [ContentType.objects.get_for_model(cls) for cls in get_action_classes(app_name)]
+
 def construct_authorize_install_url(request, integration, community=None):
     logger.debug(f"Constructing URL to install '{integration}' to community '{community}'.")
 

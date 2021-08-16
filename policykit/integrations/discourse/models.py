@@ -1,6 +1,7 @@
 from django.db import models
 from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
+from policyengine.utils import get_action_content_types
 import urllib
 import urllib.request
 import json
@@ -15,10 +16,6 @@ DISCOURSE_ACTIONS = [
 
 class DiscourseCommunity(CommunityPlatform):
     platform = "discourse"
-    permissions = [
-        "discourse create topic",
-        "discourse create post"
-    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
@@ -35,8 +32,7 @@ class DiscourseCommunity(CommunityPlatform):
 
     def save(self, *args, **kwargs):
         super(DiscourseCommunity, self).save(*args, **kwargs)
-
-        content_types = ContentType.objects.filter(model__in=DISCOURSE_ACTIONS)
+        content_types = get_action_content_types(self.platform)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
