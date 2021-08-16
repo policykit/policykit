@@ -48,7 +48,7 @@ class MetagovAction(PlatformAction):
     Data about the event is stored as a json blob in the `json_data` field.
     """
 
-    json_data = models.CharField(max_length=2000, blank=True, null=True)
+    json_data = models.JSONField(blank=True, null=True)
     event_type = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):

@@ -349,7 +349,7 @@ class Proposal(models.Model):
     governance_process_url = models.URLField(max_length=100, blank=True)
     """Location of the Metagov GovernanceProcess that is being used to make a decision about this Proposal, if any."""
 
-    governance_process_json = models.JSONField(max_length=1000, null=True, blank=True)
+    governance_process_json = models.JSONField(null=True, blank=True)
     """Raw Metagov governance process data in JSON format."""
 
     def __str__(self):
