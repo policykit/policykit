@@ -107,7 +107,7 @@
       })
       .then(response => response.json())
       .then(data => {
-        window.location.href = "${data.redirect}?success=true"
+        window.location.href = `${data.redirect}?success=true`
       });
     }
   </script>
