@@ -16,6 +16,7 @@ from policyengine.integration_data import integration_data
 from policykit.settings import SERVER_URL, METAGOV_ENABLED
 import integrations.metagov.api as MetagovAPI
 
+from urllib import parse
 import logging
 import json
 import html
@@ -704,7 +705,10 @@ def initialize_starterkit(request):
 
     f.close()
 
-    return JsonResponse({'redirect': post_data['redirect']})
+    query_params = parse.parse_qs(parse.urlparse(request.url).query)
+    if 'redirect' in query_params:
+        return JsonResponse({'redirect': f"{query_params['redirect'][0]}?success=true"})
+    return JsonResponse({'redirect': '/login?success=true'})
 
 @csrf_exempt
 def error_check(request):

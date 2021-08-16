@@ -66,7 +66,7 @@
     <div class="col-sm-11">
       <select class="dropdownContainer" name="starterkit" id="starterkit">
           {% for kit in starterkits %}
-            <option value="{{kit.name}}">{{kit.name}}</option>
+            <option value="{{kit.name|lower}}">{{kit.name}}</option>
           {% endfor %}
       </select>
     </div>

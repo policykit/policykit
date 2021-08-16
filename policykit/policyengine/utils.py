@@ -58,7 +58,7 @@ def get_starterkits_info():
     cur_path = os.path.abspath(os.path.dirname(__file__))
     dir_path = os.path.join(cur_path, f'../starterkits')
     for kit_file in os.listdir(dir_path):
-        kit_path = os.path.join(dir_path, f'/{kit_file}')
+        kit_path = os.path.join(dir_path, kit_file)
         f = open(kit_path)
         data = json.loads(f.read())
         starterkits.append({
