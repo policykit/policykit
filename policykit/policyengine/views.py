@@ -702,7 +702,7 @@ def initialize_starterkit(request):
 
     f.close()
 
-    return HttpResponse()
+    return JsonResponse({'redirect': post_data['redirect']})
 
 @csrf_exempt
 def error_check(request):

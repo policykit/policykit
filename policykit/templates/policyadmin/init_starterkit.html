@@ -104,8 +104,10 @@
           'community_name': decodeHtml(`{{community_name}}`),
           'creator_token': decodeHtml(`{{creator_token}}`)
         })
-      }).then(response => {
-        window.location.href = "{{server_url}}/main/"
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.href = "${data.redirect}?success=true"
       });
     }
   </script>
