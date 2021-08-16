@@ -493,7 +493,7 @@ def initialize_starterkit(request):
     # TODO: Community name is not necessarily unique! Should use pk instead.
     community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
 
-    initialize_starterkit_inner(community, kit_data)
+    initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
 
     redirect_route = request.GET.get("redirect")
     if redirect_route:
