@@ -1,6 +1,7 @@
 from django.db import models
 from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
 from django.contrib.auth.models import Permission, ContentType
+from policyengine.utils import get_action_content_types
 import urllib
 import urllib.request
 import json
@@ -15,17 +16,13 @@ DISCOURSE_ACTIONS = [
 
 class DiscourseCommunity(CommunityPlatform):
     platform = "discourse"
-    permissions = [
-        "discourse create topic",
-        "discourse create post"
-    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     api_key = models.CharField('api_key', max_length=100, unique=True)
 
-    def initiate_vote(self, action, policy, users=None, template=None, topic_id=None):
+    def initiate_vote(self, proposal, users=None, template=None, topic_id=None):
         from integrations.discourse.views import initiate_action_vote
-        initiate_action_vote(policy, action, users, template, topic_id)
+        initiate_action_vote(proposal, users, template, topic_id)
 
     def post_message(self, text, topic_id):
         # TODO: update this method to support commenting on an existing topic,
@@ -35,8 +32,7 @@ class DiscourseCommunity(CommunityPlatform):
 
     def save(self, *args, **kwargs):
         super(DiscourseCommunity, self).save(*args, **kwargs)
-
-        content_types = ContentType.objects.filter(model__in=DISCOURSE_ACTIONS)
+        content_types = get_action_content_types(self.platform)
         perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
         for p in perms:
             self.base_role.permissions.add(p)
@@ -65,8 +61,7 @@ class DiscourseCommunity(CommunityPlatform):
         return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.models import LogAPICall, CommunityUser
-        from policyengine.views import clean_up_proposals
+        from policyengine.models import LogAPICall
 
         obj = action
 
@@ -108,19 +103,15 @@ class DiscourseCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                if posted_action.community_post:
-                    data = {}
-                    call = 'posts/{0}.json'.format(posted_action.community_post)
-                    _ = LogAPICall.make_api_call(self, data, call)
+                for e in Proposal.filter(action=posted_action):
+                    if e.community_post:
+                        data = {}
+                        call = 'posts/{0}.json'.format(e.community_post)
+                        _ = LogAPICall.make_api_call(self, data, call)
 
-            if res['ok']:
-                clean_up_proposals(action, True)
-            else:
+            if not res['ok']:
                 error_message = res['error']
                 logger.info(error_message)
-                clean_up_proposals(action, False)
-        else:
-            clean_up_proposals(action, True)
 
 class DiscourseUser(CommunityUser):
     def save(self, *args, **kwargs):
@@ -136,10 +127,6 @@ class DiscourseCreateTopic(PlatformAction):
 
     ACTION = 'posts.json'
     AUTH = 'user'
-
-    action_codename = 'discoursecreatetopic'
-    app_name = 'discourseintegration'
-    action_type = "DiscourseCreateTopic"
 
     class Meta:
         permissions = (
@@ -173,10 +160,6 @@ class DiscourseCreatePost(PlatformAction):
 
     ACTION = 'posts.json'
     AUTH = 'user'
-
-    action_codename = 'discoursecreatepost'
-    app_name = 'discourseintegration'
-    action_type = "DiscourseCreatePost"
 
     class Meta:
         permissions = (

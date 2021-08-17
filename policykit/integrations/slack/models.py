@@ -1,34 +1,22 @@
-import json
 import logging
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.db import models
 import integrations.slack.utils as SlackUtils
 from policyengine.models import (
     BooleanVote,
     CommunityPlatform,
-    CommunityRole,
     CommunityUser,
-    Policy,
     LogAPICall,
     NumberVote,
     PlatformAction,
-    PlatformActionBundle,
     Proposal,
 )
+from policyengine.utils import ActionKind
 
 logger = logging.getLogger(__name__)
 
-SLACK_ACTIONS = [
-    "slackpostmessage",
-    "slackschedulemessage",
-    "slackrenameconversation",
-    "slackkickconversation",
-    "slackjoinconversation",
-    "slackpinmessage",
-]
 
 NUMBERS_TEXT = {
     "zero": 0,
@@ -51,24 +39,22 @@ SLACK_METHOD_ACTION = "slack.method"
 class SlackUser(CommunityUser):
     pass
 
+
 class SlackCommunity(CommunityPlatform):
     platform = "slack"
-    permissions = [
-        'slack post message',
-        'slack schedule message',
-        'slack rename conversation',
-        'slack kick conversation',
-        'slack join conversation',
-        'slack pin message'
-    ]
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
-        SlackUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
+    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None):
+        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel)
+        logger.debug(
+            f"Saving proposal with community_post '{community_post_ts}', and process at {proposal.governance_process_url}"
+        )
+        proposal.community_post = community_post_ts
+        proposal.save()
 
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""
@@ -85,8 +71,6 @@ class SlackCommunity(CommunityPlatform):
         return None
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.views import clean_up_proposals
-
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -117,7 +101,6 @@ class SlackCommunity(CommunityPlatform):
                 self.__make_generic_api_call(call, data)
             except Exception as e:
                 logger.error(f"Error making API call in execute_platform_action: {e}")
-                clean_up_proposals(action, False)
                 raise
 
             # delete PolicyKit Post
@@ -130,15 +113,14 @@ class SlackCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                if posted_action.community_post:
-                    values = {
-                        "token": admin_user_token,
-                        "ts": posted_action.community_post,
-                        "channel": obj.channel,
-                    }
-                    self.__make_generic_api_call("chat.delete", values)
-
-        clean_up_proposals(action, True)
+                for e in Proposal.filter(action=posted_action):
+                    if e.community_post:
+                        values = {
+                            "token": admin_user_token,
+                            "ts": e.community_post,
+                            "channel": obj.channel,
+                        }
+                        self.__make_generic_api_call("chat.delete", values)
 
     def handle_metagov_event(self, outer_event):
         """
@@ -153,7 +135,7 @@ class SlackCommunity(CommunityPlatform):
         if new_api_action is not None:
             new_api_action.community_origin = True
             new_api_action.is_bundled = False
-            new_api_action.save()  # save triggers policy evaluation
+            new_api_action.save()  # save triggers policy proposal
             logger.debug(f"PlatformAction saved: {new_api_action.pk}")
 
     def handle_metagov_process(self, process):
@@ -168,37 +150,53 @@ class SlackCommunity(CommunityPlatform):
         ts = outcome["message_ts"]
         votes = outcome["votes"]
 
-        action = PlatformAction.objects.filter(community=self, community_post=ts).first()
-        action_bundle = PlatformActionBundle.objects.filter(community=self, community_post=ts).first()
-        if action is not None:
+        # Find the Proposal that this vote corresponds to
+        try:
+            proposal = Proposal.objects.get(community_post=ts, action__community=self)
+        except Proposal.DoesNotExist:
+            logger.warn(
+                f"No policy proposal found for slack.emoji-vote vote ts {ts}, ignoring Metagov process {process.get('id')}"
+            )
+            return
+
+        action = proposal.action
+
+        if action.action_kind == ActionKind.PLATFORM and action.action_type != "platformactionbundle":
             # Expect this process to be a boolean vote on an action.
             for (k, v) in votes.items():
                 assert k == "yes" or k == "no"
                 reaction_bool = True if k == "yes" else False
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = BooleanVote.objects.filter(proposal=action.proposal, user=user).first()
+                    existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
                         logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
-                        BooleanVote.objects.create(proposal=action.proposal, user=user, boolean_value=reaction_bool)
+                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=reaction_bool)
                     elif existing_vote.boolean_value != reaction_bool:
                         logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
                         existing_vote.boolean_value = reaction_bool
                         existing_vote.save()
 
-        elif action_bundle is not None:
+        elif action.action_type == "platformactionbundle":
+            action_bundle = action
             # Expect this process to be a choice vote on an action bundle.
             bundled_actions = list(action_bundle.bundled_actions.all())
             for (k, v) in votes.items():
                 num, voted_action = [(idx, a) for (idx, a) in enumerate(bundled_actions) if str(a) == k][0]
+
+                try:
+                    proposal = Proposal.objects.get(action=voted_action)
+                except Proposal.DoesNotExist:
+                    logger.warn(f"No policy proposal found action {voted_action} bundled in {action_bundle}. Ignoring")
+
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = NumberVote.objects.filter(proposal=voted_action.proposal, user=user).first()
+                    existing_vote = NumberVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
                         logger.debug(
                             f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
                         )
-                        NumberVote.objects.create(proposal=voted_action.proposal, user=user, number_value=num)
+                        NumberVote.objects.create(proposal=proposal, user=user, number_value=num)
                     elif existing_vote.number_value != num:
                         logger.debug(
                             f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
@@ -273,10 +271,6 @@ class SlackPostMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32, blank=True)
 
-    action_codename = "slackpostmessage"
-    readable_name = "post message"
-    app_name = "slackintegration"
-
     class Meta:
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
@@ -299,10 +293,6 @@ class SlackRenameConversation(PlatformAction):
     name = models.CharField("name", max_length=150)
     channel = models.CharField("channel", max_length=150)
     previous_name = models.CharField(max_length=80)
-
-    action_codename = "slackrenameconversation"
-    readable_name = "rename conversation"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
@@ -327,10 +317,6 @@ class SlackJoinConversation(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     users = models.CharField("users", max_length=15)
 
-    action_codename = "slackjoinconversation"
-    readable_name = "join conversation"
-    app_name = "slackintegration"
-
     class Meta:
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
@@ -354,10 +340,6 @@ class SlackPinMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32)
 
-    action_codename = "slackpinmessage"
-    readable_name = "pin message"
-    app_name = "slackintegration"
-
     class Meta:
         permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
 
@@ -374,10 +356,6 @@ class SlackScheduleMessage(PlatformAction):
     channel = models.CharField("channel", max_length=150)
     post_at = models.IntegerField("post at")
 
-    action_codename = "slackschedulemessage"
-    readable_name = "schedule message"
-    app_name = "slackintegration"
-
     class Meta:
         permissions = (("can_execute_slackschedulemessage", "Can execute slack schedule message"),)
 
@@ -389,10 +367,6 @@ class SlackKickConversation(PlatformAction):
 
     user = models.CharField("user", max_length=15)
     channel = models.CharField("channel", max_length=150)
-
-    action_codename = "slackkickconversation"
-    readable_name = "remove user from conversation"
-    app_name = "slackintegration"
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)

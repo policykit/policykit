@@ -74,16 +74,16 @@ Metagov events as policy triggers
 """""""""""""""""""""""""""""""""
 
 Platform policies can be "triggered" by events that are emitted by `Metagov listener <https://docs.metagov.org/en/latest/plugin_tutorial.html#listener>`_.
-Use the ``filter`` block to determine whether the event is coming from Metagov. The ``action`` will be an instance of ``MetagovPlatformAction``:
+Use the ``filter`` block to determine whether the event is coming from Metagov. The ``action`` will be an instance of ``MetagovAction``:
 
 .. code-block:: python
 
     # "filter" block
 
-    return action.action_codename == 'metagovaction' \
+    return action.action_type == 'metagovaction' \
         and action.event_type == 'opencollective.expense_created'
 
-    # special properties on MetagovPlatformAction:
+    # special properties on MetagovAction:
     action.event_data                                # dict: data about the event
     action.initiator.metagovuser.external_username   # str: username on the external platform
 

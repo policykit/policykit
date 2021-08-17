@@ -16,11 +16,21 @@ def should_keep_error_message(error_message, function_name):
         return False
 
     # Don't return lines which say that a pre-defined local variable in
-    # our wrapper function is undefined. check_policy has a few extra
-    # pre-defined local variables than the other wrapper functions.
-    local_variables = ['policy', 'action', 'users', 'debug', 'metagov']
-    if function_name == 'check':
-        local_variables.extend(['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED'])
+    # our wrapper function is undefined.
+    local_variables = [
+        'proposal',
+        'policy',
+        'action',
+        'slack',
+        'discord',
+        'discourse',
+        'reddit',
+        'metagov',
+        'logger',
+        'PASSED',
+        'FAILED',
+        'PROPOSED'
+    ]
     for variable in local_variables:
         if error_message.find(f"E0602: Undefined variable '{variable}' (undefined-variable)") != -1:
             return False

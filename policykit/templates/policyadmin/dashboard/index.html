@@ -219,10 +219,10 @@
       <div class="actionPanelContent">
         <table class="table table-hover">
           <tbody>
-              {% for action in pending_actions %}
+              {% for proposal in pending_proposals %}
                 <tr class="sidebarItem">
-                  <td>{{action|capfirst}} by {{action.initiator}}</td>
-                  <td>{{action.proposal.proposal_time|timesince}} ago</td>
+                  <td>{{proposal.action|capfirst}} governed by '{{proposal.policy}}'</td>
+                  <td>{{proposal.proposal_time|timesince}} ago</td>
                 </tr>
               {% empty %}
                 <tr class="sidebarItem">

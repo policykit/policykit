@@ -20,13 +20,14 @@ Welcome to the Docs for PolicyKit!
    :maxdepth: 3
    :caption: API REFERENCE
 
+   api_context
    api_community
    api_actions
    api_policy
+   api_proposal
    api_doc
    api_user
    api_role
-   api_proposal
    api_votes
    api_datastore
 
