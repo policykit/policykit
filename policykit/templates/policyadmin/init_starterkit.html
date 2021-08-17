@@ -101,13 +101,21 @@
         body: JSON.stringify({
           'starterkit': kit,
           'platform': decodeHtml(`{{platform}}`),
-          'community_name': decodeHtml(`{{community_name}}`),
+          'community_id': decodeHtml(`{{community_id}}`),
           'creator_token': decodeHtml(`{{creator_token}}`)
         })
       })
-      .then(response => response.json())
-      .then(data => {
-        window.location.href = `${data.redirect}?success=true`
+      .then(response => {
+        if (!response.ok) {
+          response.text().then(text => {
+            console.error("Error initializing starterkit:");
+            console.error(text);
+          })
+        } else {
+          const redirect = decodeHtml(`{{redirect}}`) || "/login"
+          console.log(`done, redirecting to ${redirect}`)
+          window.location.href = `${redirect}?success=true`
+        }
       });
     }
   </script>

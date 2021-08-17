@@ -482,23 +482,19 @@ def initialize_starterkit(request):
     from policyengine.models import CommunityPlatform
 
     post_data = json.loads(request.body)
+    starterkit = post_data["starterkit"]
+    community = CommunityPlatform.objects.get(pk=post_data["community_id"])
 
-    logger.debug(f'Initializing with starter kit: {post_data["starterkit"]}')
+    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    starter_kit_path = os.path.join(cur_path, f'../starterkits/{post_data["starterkit"]}.txt')
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
     f = open(starter_kit_path)
     kit_data = json.loads(f.read())
     f.close()
 
-    # TODO: Community name is not necessarily unique! Should use pk instead.
-    community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
-
     initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
 
-    redirect_route = request.GET.get("redirect")
-    if redirect_route:
-        return JsonResponse({'redirect': f"{redirect_route}?success=true"})
-    return JsonResponse({'redirect': '/login?success=true'})
+    return JsonResponse({"ok": True})
 
 @csrf_exempt
 def error_check(request):

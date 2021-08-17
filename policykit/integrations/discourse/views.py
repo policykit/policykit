@@ -132,7 +132,7 @@ def auth(request):
             context = {
                 "server_url": SERVER_URL,
                 "starterkits": get_starterkits_info(),
-                "community_name": community.community_name,
+                "community_id": community.pk,
                 "platform": "discourse"
             }
             return render(request, "policyadmin/init_starterkit.html", context)
