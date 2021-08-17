@@ -113,7 +113,7 @@ def slack_install(request):
                     u.save()
 
         context = {
-            "server_url": SERVER_URL,
+            "server_url": settings.SERVER_URL,
             "starterkits": get_starterkits_info(),
             "community_name": slack_community.community_name,
             "creator_token": user_token,
