@@ -123,7 +123,7 @@ def init_community_reddit(request):
     context = {
         "server_url": SERVER_URL,
         "starterkits": get_starterkits_info(),
-        "community_name": community.community_name,
+        "community_id": community.pk,
         "creator_token": access_token,
         "platform": "reddit"
     }
