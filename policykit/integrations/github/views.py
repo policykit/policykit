@@ -52,7 +52,7 @@ def github_install(request):
 
     logger.debug(f"Creating new GithubCommunity under {community}")
     user_group, _ = CommunityRole.objects.get_or_create(
-        role_name="Base User", name="Github: " + readable_name + ": Base User"
+        role_name="Base User", name=f"Github: {readable_name}: Base User"
     )
     github_community = GithubCommunity.objects.create(
         community=community,
