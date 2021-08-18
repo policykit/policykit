@@ -35,10 +35,10 @@ def internal_receive_outcome(request, id):
     except Proposal.DoesNotExist:
         return HttpResponseNotFound()
 
-    if process_name.startswith("slack"):
+    if process_name.startswith("slack."):
         community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
         community.handle_metagov_process(proposal, body)
-    elif process_name.startswith("github"):
+    elif process_name.startswith("github."):
         community = GithubCommunity.objects.get(community__metagov_slug=body["community"])
         community.handle_metagov_process(proposal, body)
     else:

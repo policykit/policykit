@@ -36,6 +36,7 @@ def github_install(request):
         headers={"X-Metagov-Community": metagov_community_slug},
     )
     if not response.ok:
+        logger.error(f"{response.status_code} {response.text}")
         return redirect(f"{redirect_route}?error=server_error")
     data = response.json()
     logger.debug(data)
@@ -49,17 +50,17 @@ def github_install(request):
         logger.debug(f"Github community for installation {team_id} already exists, doing nothing.")
         return redirect(f"{redirect_route}?success=true")
 
-    logger.debug(f"Creating new SlackCommunity under {community}")
+    logger.debug(f"Creating new GithubCommunity under {community}")
     user_group, _ = CommunityRole.objects.get_or_create(
         role_name="Base User", name="Github: " + readable_name + ": Base User"
     )
-    slack_community = GithubCommunity.objects.create(
+    github_community = GithubCommunity.objects.create(
         community=community,
         community_name=readable_name,
         team_id=team_id,
         base_role=user_group,
     )
-    user_group.community = slack_community
+    user_group.community = github_community
     user_group.save()
 
     # starterkit for github...?
