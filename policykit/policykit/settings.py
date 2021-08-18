@@ -50,6 +50,7 @@ INTEGRATIONS = [
     'integrations.reddit',
     'integrations.discord',
     'integrations.discourse',
+    'integrations.github',
     'integrations.metagov'
 ]
 
