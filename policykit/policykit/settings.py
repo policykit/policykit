@@ -30,7 +30,7 @@ SECRET_KEY = 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'dev.policykit.org']
 
 # Let environment variables override private.py, for testing
 if os.environ.get("METAGOV_URL"):
