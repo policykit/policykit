@@ -28,6 +28,10 @@
       PolicyKit is already installed to your Slack workspace! Sign in with Slack to continue.
     {% elif request.GET.error == 'slack_installer_is_not_admin' %}
       Installation failed! Only Slack workspace admins are permitted to install PolicyKit.
+    {% elif request.GET.error == 'discord_wrong_community' %}
+      PolicyKit is already installed to your Discord guild! Sign in with Discord to continue.
+    {% elif request.GET.error == 'discord_installer_is_not_admin' %}
+      Installation failed! Only Discord guild owners are permitted to install PolicyKit.
     {% else %}
       Error: {{ request.GET.error }}
     {% endif %}
@@ -86,24 +90,23 @@ You must be a subscriber to the Subreddit first.
 
 <BR>
 
+{% if metagov_server_url %}
 <P>
-<b>Connect PolicyKit to Discord</b>
-
-<BR>
-You must be an admin of the Discord to add PolicyKit to your server.<BR>
-
-<a href="https://discordapp.com/api/oauth2/authorize?client_id={{discord_client_id}}&response_type=code&redirect_uri={{server_url}}%2Fdiscord%2Foauth&scope=bot%20identify%20guilds&permissions=8589934591&state=policykit_discord_mod_install">
-  Install PolicyKit to Discord
-</a>
+  <b>Connect PolicyKit to Discord</b>
+  <BR>
+  You must be an admin of the Discord to add PolicyKit to your workspace.<BR>
+  <P>
+    <a href="/authorize-platform?platform=discord">
+      Install PolicyKit to Discord
+    </a>
+  </P>
+  <P>
+    <a href="{{metagov_server_url}}/auth/discord/authorize?type=user&redirect_uri={{server_url}}%2Fdiscord%2Flogin">
+      Sign in with Discord
+    </a>
+  </P>
 </P>
-
-<P>
-
-<a href="https://discordapp.com/api/oauth2/authorize?client_id={{discord_client_id}}&response_type=code&redirect_uri={{server_url}}%2Fdiscord%2Foauth&scope=identify%20guilds&state=policykit_discord_user_login">
-  Sign in with Discord
-</a>
-
-</P>
+{% endif %}
 
 <BR>
 

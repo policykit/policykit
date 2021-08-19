@@ -12,6 +12,7 @@ from django.http import (
 from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
 from policyengine.models import Community, CommunityPlatform, CommunityRole
+from integrations.discord.models import DiscordCommunity
 from integrations.slack.models import SlackCommunity
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,10 @@ def internal_receive_outcome(request, id):
     # Special case for Slack voting mechanism
     if body["name"] == "slack.emoji-vote":
         community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
+        community.handle_metagov_process(body)
+        return HttpResponse()
+    elif body["name"] == "discord.emoji-vote":
+        community = DiscordCommunity.objects.get(community__metagov_slug=body["community"])
         community.handle_metagov_process(body)
         return HttpResponse()
 

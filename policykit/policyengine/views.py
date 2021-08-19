@@ -29,7 +29,7 @@ def homepage(request):
 
 def authorize_platform(request):
     platform = request.GET.get('platform')
-    if not platform or platform != "slack":
+    if not platform or platform not in ["slack", "discord"]:
         return HttpResponseBadRequest()
     url = construct_authorize_install_url(request, integration=platform)
     return HttpResponseRedirect(url)

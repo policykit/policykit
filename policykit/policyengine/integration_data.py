@@ -7,10 +7,11 @@ integration_data = {
     },
     "loomio": {
         "readable_name": "Loomio",
-        "description": "Loomio makes is easy for groups of all shapes and sizes to collaborate and make decisions across time and space. Connect to a Loomio team in order to perform Loomio polls and discussions from PolicyKit.",
+        "description": "Loomio makes it easy for groups of all shapes and sizes to collaborate and make decisions across time and space. Connect to a Loomio team in order to perform Loomio polls and discussions from PolicyKit.",
         "config_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Add Integration > API. Select all API scopes. Enter a name for the integration and save. To find the API key, navigate to 'See API Usage' for the new integration.",
         "webhook_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Edit Integration > Webhook. Enter the Webhook URL. Select Markdown format and all event types.",
     },
+    "discord": {"readable_name": "Discord", "hide_config": True},
     "slack": {"readable_name": "Slack", "hide_config": True},
     "sourcecred": {
         "readable_name": "SourceCred",
