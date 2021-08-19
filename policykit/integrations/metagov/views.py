@@ -9,10 +9,10 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole
-from integrations.discord.models import DiscordCommunity
+from integrations.metagov.models import MetagovAction, MetagovUser
+from policyengine.models import Community, CommunityPlatform, CommunityRole, Proposal
 from integrations.slack.models import SlackCommunity
+from integrations.discord.models import DiscordCommunity
 from integrations.github.models import GithubCommunity
 
 logger = logging.getLogger(__name__)
