@@ -14,6 +14,19 @@ class ActionKind:
     CONSTITUTION = "constitution"
 
 
+def default_election_vote_message(policy):
+    return (
+        "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"
+    )
+
+
+def default_boolean_vote_message(policy):
+    return (
+        "This action is governed by the following policy: "
+        + policy.description
+        + ". Vote with :thumbsup: or :thumbsdown: on this post."
+    )
+
 def find_action_cls(app_name: str, codename: str):
     """
     Get the PlatformAction subclass that has the specified codename

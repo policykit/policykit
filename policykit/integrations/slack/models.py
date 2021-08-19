@@ -138,7 +138,7 @@ class SlackCommunity(CommunityPlatform):
             new_api_action.save()  # save triggers policy proposal
             logger.debug(f"PlatformAction saved: {new_api_action.pk}")
 
-    def handle_metagov_process(self, process):
+    def handle_metagov_process(self, proposal, process):
         """
         Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
         This function gets called any time a slack.emoji-vote associated with
@@ -147,17 +147,7 @@ class SlackCommunity(CommunityPlatform):
         assert process["name"] == "slack.emoji-vote"
         outcome = process["outcome"]
         status = process["status"]  # TODO: handle 'completed' status, which means that process was "closed"
-        ts = outcome["message_ts"]
         votes = outcome["votes"]
-
-        # Find the Proposal that this vote corresponds to
-        try:
-            proposal = Proposal.objects.get(community_post=ts, action__community=self)
-        except Proposal.DoesNotExist:
-            logger.warn(
-                f"No policy proposal found for slack.emoji-vote vote ts {ts}, ignoring Metagov process {process.get('id')}"
-            )
-            return
 
         action = proposal.action
 

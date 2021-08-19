@@ -1,11 +1,11 @@
 from django.conf import settings
 import logging
-import requests
 from policyengine.models import PlatformActionBundle, LogAPICall
 import datetime
 import json
 from django.db.models import Q
-from policyengine.utils import ActionKind
+from policyengine.utils import ActionKind, default_election_vote_message, default_boolean_vote_message
+from integrations.metagov.library import Metagov
 
 logger = logging.getLogger(__name__)
 
@@ -149,39 +149,6 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
         raise Exception("Failed to determine which channel to post in")
 
     # Kick off process in Metagov
-    logger.debug(f"Starting slack vote on {action} governed by {policy}. Payload: {payload}")
-    response = requests.post(
-        f"{settings.METAGOV_URL}/api/internal/process/slack.emoji-vote",
-        json=payload,
-        headers={"X-Metagov-Community": policy.community.metagov_slug},
-    )
-    if not response.ok:
-        raise Exception(f"Error starting process: {response.status_code} {response.reason} {response.text}")
-    location = response.headers.get("location")
-    if not location:
-        raise Exception("Response missing location header")
-
-    # Store location URL of the process, so we can use it to close the Metagov process when policy proposal "completes"
-    proposal.governance_process_url = f"{settings.METAGOV_URL}{location}"
-    proposal.save()
-
-    # Get the unique 'ts' of the vote post, and return it
-    response = requests.get(proposal.governance_process_url)
-    if not response.ok:
-        raise Exception(f"{response.status_code} {response.reason} {response.text}")
-    process = response.json()
-    return process["outcome"]["message_ts"]
-
-
-def default_election_vote_message(policy):
-    return (
-        "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"
-    )
-
-
-def default_boolean_vote_message(policy):
-    return (
-        "This action is governed by the following policy: "
-        + policy.description
-        + ". Vote with :thumbsup: or :thumbsdown: on this post."
-    )
+    metagov = Metagov(proposal)
+    process = metagov.start_process("slack.emoji-vote", payload)
+    return process.outcome["message_ts"]

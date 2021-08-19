@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from integrations.metagov.models import MetagovAction, MetagovUser
 from policyengine.models import Community, CommunityPlatform, CommunityRole, Proposal
 from integrations.slack.models import SlackCommunity
+from integrations.github.models import GithubCommunity
 
 logger = logging.getLogger(__name__)
 
@@ -26,19 +27,25 @@ def internal_receive_outcome(request, id):
     except ValueError:
         return HttpResponseBadRequest("unable to decode body")
 
-    logger.info(f"Received external process outcome: {body}")
-
-    # Special case for Slack voting mechanism
-    if body["name"] == "slack.emoji-vote":
-        community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
-        community.handle_metagov_process(body)
-        return HttpResponse()
+    process_name = body["name"]
+    logger.info(f"Received {process_name} metagov process update: {body}")
 
     try:
         proposal = Proposal.objects.get(pk=id)
     except Proposal.DoesNotExist:
         return HttpResponseNotFound()
+
+    # Save the raw data on the Proposal
     proposal.governance_process_json = json.dumps(body)
+
+    # For platforms that support creating BooleanVotes to track votes
+    if process_name.startswith("slack."):
+        community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
+        community.handle_metagov_process(proposal, body)
+    elif process_name.startswith("github."):
+        community = GithubCommunity.objects.get(community__metagov_slug=body["community"])
+        community.handle_metagov_process(proposal, body)
+
     proposal.save()
     return HttpResponse()
 
