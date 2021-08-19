@@ -9,14 +9,9 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.csrf import csrf_exempt
-<<<<<<< HEAD
 from integrations.metagov.models import MetagovProcess, MetagovPlatformAction, MetagovUser
 from policyengine.models import Community, CommunityPlatform, CommunityRole
 from integrations.discord.models import DiscordCommunity
-=======
-from integrations.metagov.models import MetagovAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole, Proposal
->>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
 from integrations.slack.models import SlackCommunity
 from integrations.github.models import GithubCommunity
 
@@ -33,22 +28,8 @@ def internal_receive_outcome(request, id):
     except ValueError:
         return HttpResponseBadRequest("unable to decode body")
 
-<<<<<<< HEAD
-    logger.info(f"Received external process outcome: {body}")
-
-    # Special case for Slack voting mechanism
-    if body["name"] == "slack.emoji-vote":
-        community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
-        community.handle_metagov_process(body)
-        return HttpResponse()
-    elif body["name"] == "discord.emoji-vote":
-        community = DiscordCommunity.objects.get(community__metagov_slug=body["community"])
-        community.handle_metagov_process(body)
-        return HttpResponse()
-=======
     process_name = body["name"]
     logger.info(f"Received {process_name} metagov process update: {body}")
->>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
 
     try:
         proposal = Proposal.objects.get(pk=id)
@@ -61,6 +42,9 @@ def internal_receive_outcome(request, id):
     # For platforms that support creating BooleanVotes to track votes
     if process_name.startswith("slack."):
         community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
+        community.handle_metagov_process(proposal, body)
+    elif process_name.startswith("discord."):
+        community = DiscordCommunity.objects.get(community__metagov_slug=body["community"])
         community.handle_metagov_process(proposal, body)
     elif process_name.startswith("github."):
         community = GithubCommunity.objects.get(community__metagov_slug=body["community"])
