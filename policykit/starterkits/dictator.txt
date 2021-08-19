@@ -21,7 +21,7 @@
       "initialize": "pass",
       "check": "return FAILED",
       "notify": "pass",
-      "success": "action.execute()",
+      "success": "pass",
       "fail": "pass"
     }
   ],

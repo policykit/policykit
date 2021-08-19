@@ -35,9 +35,6 @@ def refresh_access_token(refresh_token):
 class RedditCommunity(CommunityPlatform):
     API = 'https://oauth.reddit.com/'
     platform = "reddit"
-    permissions = [
-        'reddit make post'
-    ]
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
     access_token = models.CharField('access_token', max_length=300, unique=True)
@@ -98,13 +95,12 @@ class RedditCommunity(CommunityPlatform):
         self.access_token = res['access_token']
         self.save()
 
-    def initiate_vote(self, action, policy, users=None):
+    def initiate_vote(self, proposal, users=None):
         from redditintegration.views import initiate_action_vote
-        initiate_action_vote(policy, action, users)
+        initiate_action_vote(proposal, users)
 
     def execute_platform_action(self, action, delete_policykit_post=True):
-        from policyengine.models import LogAPICall, CommunityUser
-        from policyengine.views import clean_up_proposals
+        from policyengine.models import LogAPICall
 
         logger.info(action)
 
@@ -126,7 +122,6 @@ class RedditCommunity(CommunityPlatform):
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled',
-                                  'proposal',
                                   'data',
                                   'community_post',
                                   'name'
@@ -161,16 +156,16 @@ class RedditCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                if posted_action.community_post:
-                    values = {'id': posted_action.community_post}
-                    call = 'api/remove'
-                    _ = LogAPICall.make_api_call(self, values, call)
+                for e in Proposal.filter(action=posted_action):
+                    if e.community_post:
+                        values = {'id': e.community_post}
+                        call = 'api/remove'
+                        _ = LogAPICall.make_api_call(self, values, call)
 
             # approve post
             logger.info('approve executed post')
             action.community.make_call('api/approve', {'id': res['json']['data']['name']})
 
-        clean_up_proposals(action, True)
 
 class RedditUser(CommunityUser):
     refresh_token = models.CharField('refresh_token', max_length=500, null=True)
@@ -189,10 +184,6 @@ class RedditMakePost(PlatformAction):
     kind = models.CharField('kind', max_length=30, default="self")
     name = models.CharField('name', max_length=100, null=True)
     communityaction_ptr = models.CharField('ptr', max_length=100, null=True)
-
-    action_codename = 'redditmakepost'
-    app_name = 'redditintegration'
-    action_type = "RedditMakePost"
 
     class Meta:
         permissions = (

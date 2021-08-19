@@ -38,6 +38,7 @@ class DiscordUser(CommunityUser):
 
 class DiscordCommunity(CommunityPlatform):
     platform = "discord"
+<<<<<<< HEAD
     permissions = [
         "discord post message",
         "discord post reply",
@@ -47,14 +48,22 @@ class DiscordCommunity(CommunityPlatform):
         "discord ban user",
         "discord unban user"
     ]
+=======
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
 
     team_id = models.CharField('team_id', max_length=150, unique=True)
 
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
+<<<<<<< HEAD
     def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
         DiscordUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
+=======
+    def initiate_vote(self, proposal, users=None, template=None, channel=None):
+        from integrations.discord.views import initiate_action_vote
+        initiate_action_vote(proposal, users, template, channel)
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
 
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""
@@ -111,10 +120,13 @@ class DiscordPostMessage(PlatformAction):
     # Recorded so we can later revert post if needed
     message = models.BigIntegerField()
 
+<<<<<<< HEAD
     action_codename = 'discordpostmessage'
     readable_name = "post message"
     app_name = 'discordintegration'
 
+=======
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
     class Meta:
         permissions = (('can_execute_discordpostmessage', 'Can execute discord post message'),)
 
@@ -122,9 +134,14 @@ class DiscordPostMessage(PlatformAction):
         super().revert({}, f"channels/{self.channel}/messages/{self.message}", method='DELETE')
 
 
+<<<<<<< HEAD
 class DiscordPostReply(PlatformAction):
     AUTH = 'user'
     EXECUTE_PARAMETERS = ["text", "channel", "message"]
+=======
+            self.message_id = message['id']
+            self.save()
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
 
     text = models.TextField()
     channel = models.BigIntegerField()
@@ -133,10 +150,13 @@ class DiscordPostReply(PlatformAction):
     # Recorded so we can later revert reply if needed
     reply = models.BigIntegerField()
 
+<<<<<<< HEAD
     action_codename = 'discordpostreply'
     readable_name = "post reply"
     app_name = 'discordintegration'
 
+=======
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
     class Meta:
         permissions = (('can_execute_discordpostreply', 'Can execute discord post reply'),)
 
@@ -155,10 +175,13 @@ class DiscordCreateChannel(PlatformAction):
     # Recorded so we can later revert channel creation if needed
     channel = models.BigIntegerField(blank=True)
 
+<<<<<<< HEAD
     action_codename = 'discordcreatechannel'
     readable_name = "create channel"
     app_name = 'discordintegration'
 
+=======
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
     class Meta:
         permissions = (('can_execute_discordcreatechannel', 'Can execute discord create channel'),)
 
@@ -184,12 +207,15 @@ class DiscordKickUser(PlatformAction):
     AUTH = 'user'
     EXECUTE_PARAMETERS = ["user"]
 
+<<<<<<< HEAD
     user = models.BigIntegerField()
 
     action_codename = 'discordkickuser'
     readable_name = "kick user"
     app_name = 'discordintegration'
 
+=======
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
     class Meta:
         permissions = (('can_execute_discordkickuser', 'Can execute discord kick user'),)
 
@@ -212,12 +238,15 @@ class DiscordUnbanUser(PlatformAction):
     AUTH = 'user'
     EXECUTE_PARAMETERS = ["user"]
 
+<<<<<<< HEAD
     user = models.BigIntegerField()
 
     action_codename = 'discordunbanuser'
     readable_name = "unban user"
     app_name = 'discordintegration'
 
+=======
+>>>>>>> 626a754c65d41d9677aeb8165d8a905f963645c8
     class Meta:
         permissions = (('can_execute_discordunbanuser', 'Can execute discord unban user'),)
 

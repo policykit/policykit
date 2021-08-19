@@ -1,5 +1,4 @@
 from django.conf import settings
-from actstream import action as actstream_action
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
@@ -11,9 +10,9 @@ from django.forms import modelform_factory
 from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
-from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url
+from policyengine.utils import find_action_cls, get_action_classes, construct_authorize_install_url, initialize_starterkit_inner
 from policyengine.integration_data import integration_data
-from policykit.settings import SERVER_URL, METAGOV_ENABLED
+from policykit.settings import SERVER_URL
 import integrations.metagov.api as MetagovAPI
 
 import logging
@@ -22,7 +21,6 @@ import html
 import os
 
 logger = logging.getLogger(__name__)
-db_logger = logging.getLogger("db")
 
 def homepage(request):
     return render(request, 'home.html', {})
@@ -36,7 +34,7 @@ def authorize_platform(request):
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import CommunityUser, PlatformAction
+    from policyengine.models import CommunityUser, Proposal
 
     user = get_user(request)
     user.community = user.community
@@ -108,7 +106,10 @@ def v2(request):
             }
 
     action_log = Action.objects.filter(data__community_id=user.community.id)[:20]
-    pending_actions = PlatformAction.objects.filter(community=user.community, proposal__status="proposed")
+    pending_proposals = Proposal.objects.filter(
+        policy__community=user.community,
+        status=Proposal.PROPOSED
+    ).order_by("-proposal_time")
 
     return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
@@ -119,7 +120,7 @@ def v2(request):
         'platform_policies': platform_policy_data,
         'constitution_policies': constitution_policy_data,
         'action_log': action_log,
-        'pending_actions': pending_actions
+        'pending_proposals': pending_proposals
     })
 
 def logout(request):
@@ -414,11 +415,19 @@ def documenteditor(request):
 def actions(request):
     user = get_user(request)
     app_names = [user.community.platform] # TODO: show actions for other connected platforms
-    actions = [(app_name, get_action_classes(app_name)) for app_name in app_names]
+
+    actions = {}
+    for app_name in app_names:
+        action_list = []
+        for cls in get_action_classes(app_name):
+            action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
+        if action_list:
+            actions[app_name] = action_list
+
     return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
-        'actions': actions
+        'actions': actions.items()
     })
 
 @login_required(login_url='/login')
@@ -427,7 +436,7 @@ def propose_action(request, app_name, codename):
     if not cls:
         return HttpResponseBadRequest()
 
-    from policyengine.models import PlatformActionForm
+    from policyengine.models import PlatformActionForm, Proposal
 
     ActionForm = modelform_factory(
         cls,
@@ -437,6 +446,7 @@ def propose_action(request, app_name, codename):
     )
 
     new_action = None
+    proposal = None
     if request.method == 'POST':
         form = ActionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -444,6 +454,7 @@ def propose_action(request, app_name, codename):
             new_action.initiator = request.user
             new_action.community = request.user.community
             new_action.save()
+            proposal = Proposal.objects.filter(action=new_action).first()
     else:
         form = ActionForm()
     return render(
@@ -455,160 +466,12 @@ def propose_action(request, app_name, codename):
             "form": form,
             "app_name": app_name,
             "codename": codename,
-            "action": new_action
+            "verbose_name": cls._meta.verbose_name.title(),
+            "action": new_action,
+            "proposal": proposal,
         },
     )
 
-def evaluation_logger(policy, action, level="DEBUG"):
-    """
-    Get a logging function that logs to the database. Logs are visible to the community members at /logs.
-    """
-    level_num = getattr(logging, level)
-    def log(msg):
-        message = f"[{action} ({action.pk})][{policy} ({policy.pk})] {msg}"
-        db_logger.log(level_num, message, {"community": policy.community})
-        logger.log(level_num, message)
-    return log
-
-def exec_code(code, wrapperStart, wrapperEnd, globals=None, locals=None):
-    """
-    errors = filter_code(code)
-    if len(errors) > 0:
-        logger.exception('Got exception in exec_code:')
-        raise Exception(f"Filter errors: {errors}")
-    """
-
-    lines = ['  ' + item for item in code.splitlines()]
-    code = wrapperStart + '\r\n'.join(lines) + wrapperEnd
-
-    try:
-        exec(code, globals, locals)
-    except Exception as e:
-        logger.exception('Got exception in exec_code:')
-        raise
-
-def filter_policy(policy, action, metagov=None):
-    from policyengine.models import CommunityUser
-
-    users = CommunityUser.objects.filter(community=policy.community)
-    debug = evaluation_logger(policy, action)
-    _locals = locals()
-
-    wrapper_start = "def filter(policy, action, users, debug, metagov):\r\n"
-
-    wrapper_end = "\r\nfilter_pass = filter(policy, action, users, debug, metagov)"
-
-    exec_code(policy.filter, wrapper_start, wrapper_end, None, _locals)
-
-    if _locals.get('filter_pass'):
-        return _locals['filter_pass']
-    else:
-        return False
-
-def initialize_policy(policy, action, metagov=None):
-    from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
-
-    users = CommunityUser.objects.filter(community=policy.community)
-    debug = evaluation_logger(policy, action)
-
-    _locals = locals()
-    _globals = globals()
-
-    wrapper_start = "def initialize(policy, action, users, debug, metagov):\r\n"
-
-    wrapper_end = "\r\ninitialize(policy, action, users, debug, metagov)"
-
-    exec_code(policy.initialize, wrapper_start, wrapper_end, None, _locals)
-
-def check_policy(policy, action, metagov=None):
-    from policyengine.models import Proposal, CommunityUser, BooleanVote, NumberVote
-
-    users = CommunityUser.objects.filter(community=policy.community)
-    boolean_votes = BooleanVote.objects.filter(proposal=action.proposal)
-    number_votes = NumberVote.objects.filter(proposal=action.proposal)
-    debug = evaluation_logger(policy, action)
-
-    _locals = locals()
-
-    wrapper_start = "def check(policy, action, metagov, users, boolean_votes, number_votes, debug):\r\n"
-    wrapper_start += "  PASSED = 'passed'\r\n  FAILED = 'failed'\r\n  PROPOSED = 'proposed'\r\n"
-
-    wrapper_end = "\r\npolicy_pass = check(policy, action, metagov, users, boolean_votes, number_votes, debug)"
-
-    exec_code(policy.check, wrapper_start, wrapper_end, None, _locals)
-
-    if _locals.get('policy_pass'):
-        return _locals['policy_pass']
-    else:
-        return Proposal.PROPOSED
-
-def notify_policy(policy, action, metagov=None):
-    from policyengine.models import CommunityUser
-
-    users = CommunityUser.objects.filter(community=policy.community)
-    debug = evaluation_logger(policy, action)
-    _locals = locals()
-
-    wrapper_start = "def notify(policy, action, users, debug, metagov):\r\n"
-
-    wrapper_end = "\r\nnotify(policy, action, users, debug, metagov)"
-
-    exec_code(policy.notify, wrapper_start, wrapper_end, None, _locals)
-
-def pass_policy(policy, action, metagov=None):
-    from policyengine.models import CommunityUser
-
-    users = CommunityUser.objects.filter(community=policy.community)
-    debug = evaluation_logger(policy, action)
-    _locals = locals()
-
-    wrapper_start = "def success(policy, action, users, debug, metagov):\r\n"
-
-    wrapper_end = "\r\nsuccess(policy, action, users, debug, metagov)"
-
-    exec_code(policy.success, wrapper_start, wrapper_end, None, _locals)
-
-def fail_policy(policy, action, metagov=None):
-    from policyengine.models import CommunityUser
-
-    users = CommunityUser.objects.filter(community=policy.community)
-    debug = evaluation_logger(policy, action)
-    _locals = locals()
-
-    wrapper_start = "def fail(policy, action, users, debug, metagov):\r\n"
-
-    wrapper_end = "\r\nfail(policy, action, users, debug, metagov)"
-
-    exec_code(policy.fail, wrapper_start, wrapper_end, None, _locals)
-
-# TODO(https://github.com/amyxzhang/policykit/issues/342) remove this
-def clean_up_proposals(action, executed):
-    from policyengine.models import Proposal, PlatformActionBundle
-
-    if action.is_bundled:
-        bundle = action.platformactionbundle_set.all()
-        if bundle.exists():
-            bundle = bundle[0]
-            # TO DO - remove all of this
-            if bundle.bundle_type == PlatformActionBundle.ELECTION:
-                for a in bundle.bundled_actions.all():
-                    if a != action:
-                        p = a.proposal
-                        p.status = Proposal.FAILED
-                        p.save()
-            p = bundle.proposal
-            if executed:
-                p.status = Proposal.PASSED
-            else:
-                p.status = Proposal.FAILED
-            p.save()
-
-    p = action.proposal
-    if executed:
-        p.status = Proposal.PASSED
-    else:
-        p.status = Proposal.FAILED
-    p.save()
 
 @csrf_exempt
 def initialize_starterkit(request):
@@ -616,98 +479,22 @@ def initialize_starterkit(request):
     Takes a request object containing starter-kit information.
     Initializes the community with the selected starter kit.
     """
-    from policyengine.models import Proposal, CommunityPlatform, Policy, CommunityRole, CommunityUser
+    from policyengine.models import CommunityPlatform
 
     post_data = json.loads(request.body)
+    starterkit = post_data["starterkit"]
+    community = CommunityPlatform.objects.get(pk=post_data["community_id"])
 
-    logger.debug(f'Initializing with starter kit: {post_data["starterkit"]}')
+    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    starter_kit_path = os.path.join(cur_path, f'../starterkits/{post_data["starterkit"]}.txt')
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
     f = open(starter_kit_path)
-
     kit_data = json.loads(f.read())
-
-    # TODO: Community name is not necessarily unique! Should use pk instead.
-    community = CommunityPlatform.objects.get(community_name=post_data["community_name"])
-
-    # Initialize platform policies from starter kit
-    for policy in kit_data['platform_policies']:
-        Policy.objects.create(
-            kind=Policy.PLATFORM,
-            name=policy['name'],
-            description=policy['description'],
-            filter=policy['filter'],
-            initialize=policy['initialize'],
-            check=policy['check'],
-            notify=policy['notify'],
-            success=policy['success'],
-            fail=policy['fail'],
-            community=community
-        )
-
-    # Initialize constitution policies from starter kit
-    for policy in kit_data['constitution_policies']:
-        Policy.objects.create(
-            kind=Policy.CONSTITUTION,
-            name=policy['name'],
-            description=policy['description'],
-            filter=policy['filter'],
-            initialize=policy['initialize'],
-            check=policy['check'],
-            notify=policy['notify'],
-            success=policy['success'],
-            fail=policy['fail'],
-            community=community
-        )
-
-    # Initialize roles from starter kit
-    for role in kit_data['roles']:
-        r = CommunityRole.objects.create(
-            role_name=role['name'],
-            name=f"{post_data['platform']}: {community.community_name}: {role['name']}",
-            description=role['description'],
-            community=community
-        )
-
-        if role['is_base_role']:
-            old_base_role = community.base_role
-            community.base_role = r
-            community.save()
-            old_base_role.delete()
-
-        # Add PolicyKit-related permissions
-        r.permissions.set(Permission.objects.filter(name__in=role['permissions']))
-
-        # Add platform-specific permissions
-        for perm in community.permissions:
-            if 'view' in role['permission_sets']:
-                r.permissions.add(Permission.objects.get(name=f"Can view {perm}"))
-            if 'propose' in role['permission_sets']:
-                r.permissions.add(Permission.objects.get(name=f"Can add {perm}"))
-            if 'execute' in role['permission_sets']:
-                r.permissions.add(Permission.objects.get(name=f"Can execute {perm}"))
-
-        group = None
-        if role['user_group'] == "all":
-            group = CommunityUser.objects.filter(community=community)
-        elif role['user_group'] == "admins":
-            group = CommunityUser.objects.filter(community=community, is_community_admin=True)
-        elif role['user_group'] == "nonadmins":
-            group = CommunityUser.objects.filter(community=community, is_community_admin=False)
-        elif role['user_group'] == "creator":
-            group = CommunityUser.objects.filter(community=community, access_token=post_data["creator_token"])
-
-        for user in group:
-            r.user_set.add(user)
-
-        r.save()
-
     f.close()
 
-    redirect_route = request.GET.get("redirect")
-    if redirect_route:
-        return JsonResponse({'redirect': f"{redirect_route}?success=true"})
-    return JsonResponse({'redirect': '/login?success=true'})
+    initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
+
+    return JsonResponse({"ok": True})
 
 @csrf_exempt
 def error_check(request):
@@ -946,130 +733,3 @@ def document_action_recover(request):
     action.save()
 
     return HttpResponse()
-
-def govern_action(action, is_first_evaluation: bool):
-    """
-    Govern platform and constitution actions:
-    - If the initiator has "can execute" permission, execute the action and mark it as "passed."
-    - Otherwise, try executing the relevant policies. Stop at the first policy that passes the `filter` step.
-
-    This can be run repeatedly to check proposed actions.
-    """
-    from policyengine.models import PlatformAction, PlatformActionBundle, ConstitutionAction, ConstitutionActionBundle
-
-    #if they have execute permission, skip all policies
-    if action.initiator.has_perm(action._meta.app_label + '.can_execute_' + action.action_codename):
-        action.execute()
-        action.pass_action()
-    else:
-        policies = None
-        if isinstance(action, PlatformAction) or isinstance(action, PlatformActionBundle):
-            policies = action.community.get_platform_policies().filter(is_active=True)
-        elif isinstance(action, ConstitutionAction) or isinstance(action, ConstitutionActionBundle):
-            policies = action.community.get_constitution_policies().filter(is_active=True)
-        else:
-            raise Exception("govern_action: unrecognized action")
-
-        for policy in policies:
-            # Execute the most recently updated policy that passes filter()
-            was_executed = execute_policy(policy, action, is_first_evaluation=is_first_evaluation)
-            if was_executed:
-                break
-
-
-def execute_policy(policy, action, is_first_evaluation: bool):
-    """
-    Execute policy for given action. This can be run repeatedly to check proposed actions.
-    Return 'True' if action passed the filter, 'False' otherwise.
-    """
-
-    try:
-        return _execute_policy(policy, action, is_first_evaluation)
-    except Exception as e:
-        # Log unhandled exception to the db, so policy author can view it in the UI.
-        error = evaluation_logger(policy=policy, action=action, level="ERROR")
-        error("Exception: " + str(e))
-
-        # If there was an exception, treat it as if the action didn't pass this policy's filter.
-        # This means the action will fall through to the next policy (which might be 'all actions pass' or 'all actions fail' for example)
-        # Note: there might be side-effects from a partial execution that can't be undone!
-        return False
-
-def _execute_policy(policy, action, is_first_evaluation: bool):
-    debug = evaluation_logger(policy, action)
-
-    filter_result = filter_policy(policy, action, metagov=None)
-    debug(f"Filter returned {filter_result}")
-    if not filter_result:
-        return False
-
-    from policyengine.models import Proposal, ConstitutionAction, PlatformAction
-
-    optional_args = {}
-    if METAGOV_ENABLED:
-        from integrations.metagov.library import Metagov
-
-        optional_args["metagov"] = Metagov(policy, action)
-
-    # If policy is being evaluated for the first time, initialize it
-    if is_first_evaluation:
-        debug(f"Initializing")
-        # run "initialize" block of policy
-        initialize_policy(policy, action, **optional_args)
-
-    # Run "check" block of policy
-    check_result = check_policy(policy, action, **optional_args)
-    debug(f"Check returned {check_result}")
-
-    if check_result == Proposal.PASSED:
-        # run "pass" block of policy
-        pass_policy(policy, action, **optional_args)
-        debug(f"Executed pass block of policy")
-        # mark action proposal as 'passed'
-        action.pass_action()
-        assert action.proposal.status == Proposal.PASSED
-
-        # EXECUTE the action if....
-        # it is a PlatformAction that was proposed in the PolicyKit UI
-        if issubclass(type(action), PlatformAction) and not action.community_origin:
-            action.execute()
-        # it is a constitution action
-        elif issubclass(type(action), ConstitutionAction):
-            action.execute()
-
-        if METAGOV_ENABLED:
-            # Close pending process if exists (does nothing if process was already closed)
-            optional_args["metagov"].close_process()
-            action.proposal.close_governance_process()
-
-    if check_result == Proposal.FAILED:
-        # run "fail" block of policy
-        fail_policy(policy, action, **optional_args)
-        debug(f"Executed fail block of policy")
-        # mark action proposal as 'failed'
-        action.fail_action()
-        assert action.proposal.status == Proposal.FAILED
-
-        if METAGOV_ENABLED:
-            # Close pending process if exists (does nothing if process was already closed)
-            optional_args["metagov"].close_process()
-            action.proposal.close_governance_process()
-
-    # Revert the action if necessary
-    should_revert = is_first_evaluation and \
-        check_result in [Proposal.PROPOSED, Proposal.FAILED] and \
-        issubclass(type(action), PlatformAction) and \
-        action.community_origin
-
-    if should_revert:
-        debug(f"Reverting")
-        action.revert()
-
-    # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
-    if check_result == Proposal.PROPOSED and is_first_evaluation:
-        actstream_action.send(action, verb='was proposed', community_id=action.community.id, action_codename=action.action_codename)
-        # Run "notify" block of policy
-        debug(f"Notifying")
-        notify_policy(policy, action, **optional_args)
-
-    return True

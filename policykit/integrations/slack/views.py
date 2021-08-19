@@ -113,13 +113,13 @@ def slack_install(request):
                     u.save()
 
         context = {
-            "server_url": SERVER_URL,
+            "server_url": settings.SERVER_URL,
             "starterkits": get_starterkits_info(),
-            "community_name": slack_community.community_name,
+            "community_id": slack_community.pk,
             "creator_token": user_token,
             "platform": "slack",
             # redirect to settings page or login page depending on whether it's a new community
-            "redirect": redirect_route
+            "redirect": redirect_route,
         }
         return render(request, "policyadmin/init_starterkit.html", context)
 

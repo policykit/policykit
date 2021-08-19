@@ -21,7 +21,7 @@
       "initialize": "pass",
       "check": "if action.initiator.groups.filter(name = 'Administrator').exists():\n    return PASSED\nelse:\n    return FAILED",
       "notify": "pass",
-      "success": "action.execute()",
+      "success": "pass",
       "fail": "pass"
     }
   ],

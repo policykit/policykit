@@ -19,17 +19,17 @@ class LinterTests(TestCase):
         self.assertEqual(len(errors), 0)
 
     def test_no_undefined_predefined_variables_error(self):
-        for variable in ['policy', 'action', 'users', 'debug', 'metagov']:
+        for variable in ['policy', 'action', 'discord', 'proposal', 'logger', 'metagov']:
             code = f"x = {variable}"
             errors = _error_check(code)
             self.assertEqual(len(errors), 0)
 
-        for variable in ['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED']:
+        for variable in ['something_not_defined']:
             code = f"x = {variable}"
             errors = _error_check(code)
             self.assertEqual(len(errors), 1)
 
-        for variable in ['boolean_votes', 'number_votes', 'PASSED', 'FAILED', 'PROPOSED']:
+        for variable in ['PASSED', 'FAILED', 'PROPOSED']:
             code = f"x = {variable}"
             errors = _error_check(code, 'check')
             self.assertEqual(len(errors), 0)

@@ -90,13 +90,13 @@ def discourse_listener_actions():
                 action.revert()
 
         # Manage proposals
-        proposed_actions = PlatformAction.objects.filter(
-            community=community,
-            proposal__status=Proposal.PROPOSED,
-            community_post__isnull=False
+        pending_proposals = Proposal.objects.filter(
+            status=Proposal.PROPOSED,
+            action__community=community,
+            action__community_post__isnull=False
         )
-        for proposed_action in proposed_actions:
-            id = proposed_action.community_post
+        for proposal in pending_proposals:
+            id = proposal.community_post
 
             req = urllib.request.Request(url + '/posts/' + id + '.json')
             req.add_header("User-Api-Key", api_key)
@@ -116,11 +116,11 @@ def discourse_listener_actions():
                     if u.exists():
                         u = u[0]
 
-                        bool_vote = BooleanVote.objects.filter(proposal=proposed_action.proposal, user=u)
+                        bool_vote = BooleanVote.objects.filter(proposal=proposal, user=u)
                         if bool_vote.exists():
                             vote = bool_vote[0]
                             if vote.boolean_value != val:
                                 vote.boolean_value = val
                                 vote.save()
                         else:
-                            b = BooleanVote.objects.create(proposal=proposed_action.proposal, user=u, boolean_value=val)
+                            b = BooleanVote.objects.create(proposal=proposal, user=u, boolean_value=val)

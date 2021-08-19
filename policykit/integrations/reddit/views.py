@@ -123,7 +123,7 @@ def init_community_reddit(request):
     context = {
         "server_url": SERVER_URL,
         "starterkits": get_starterkits_info(),
-        "community_name": community.community_name,
+        "community_id": community.pk,
         "creator_token": access_token,
         "platform": "reddit"
     }
@@ -135,9 +135,10 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
-def initiate_action_vote(policy, action, users, template=None):
+def initiate_action_vote(proposal, users, template=None):
     from policyengine.models import LogAPICall
-
+    policy = proposal.policy
+    action = proposal.action
     policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'
 
     if not template:
@@ -159,5 +160,5 @@ def initiate_action_vote(policy, action, users, template=None):
     logger.info(res)
 
 
-    action.community_post = res['json']['data']['name']
-    action.save()
+    proposal.community_post = res['json']['data']['name']
+    proposal.save()
