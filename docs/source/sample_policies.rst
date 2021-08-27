@@ -6,11 +6,8 @@ Sample Policies
 
 This is a library of example Platform Policies to get started.
 
-Slack Policies
-==============
-
-Vote on renaming a channel
---------------------------
+Vote on renaming a Slack channel
+--------------------------------
 
 **Filter:**
 
@@ -58,8 +55,8 @@ Vote on renaming a channel
   slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
 
 
-Don't allow posts in channel
-----------------------------
+Don't allow posts in Slack channel
+----------------------------------
 
 This could be extended to add any logic to determine who can post in a given channel.
 Posts in the channel are auto-deleted, and the user is notified about why it happened.
@@ -92,16 +89,8 @@ Posts in the channel are auto-deleted, and the user is notified about why it hap
   )
 
 
-Discourse Policies
-==================
-
-Add examples here
-
-Discord Policies
-================
-
-Message Filter
----------------------------
+Discord Message Filter
+----------------------
 
 In this tutorial, we will introduce policy creation by creating a policy that filters messages for a set of banned words.
 
@@ -138,8 +127,8 @@ All other fields can be left as their defaults; there is no need to modify them.
 
 Great job! You have created your first policy.
 
-Dice Rolling
-------------------
+Discord Dice Rolling
+--------------------
 
 This will allow the user to roll a dice by typing the following command:
      !roll d[num_faces] +[num_modifier]
@@ -206,7 +195,7 @@ where num refers to a positive non-zero integer value. This command simulates ro
   text = 'Error: Make sure you format your dice roll command correctly!'
   discord.post_message(text=text, channel = "733209360549019688")
 
-Lottery / Raffle
+Discord Lottery / Raffle
 ------------------------
 
 Allow users to vote on a "lottery" message, pick a random user as the lottery winner, and automatically notify the channel.
@@ -259,13 +248,6 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 
 **Fail:** ``pass``
 
-Metagov Policies
-================
-
-Metagov policies can be defined for any community.
-It doesn't matter whether the PolicyKit instance is installed to Slack, Discourse, Discord, or Reddit, as long as
-Metagov is enabled and the required Plugins are enabled and configured in the PolicyKit settings page.
-
 Use SourceCred to gate posts on a Discourse topic
 -------------------------------------------------
 
@@ -273,7 +255,7 @@ When a user makes a post on Discourse topic 116, look up their Cred value.
 If they don't have at least 1 Cred, delete the post, and
 send them a message explaining why.
 
-**Required Metagov Plugins**: ``sourcecred`` ``discourse``
+**Required integrations**: ``sourcecred`` ``discourse``
 
 **Filter:**
 
@@ -330,10 +312,16 @@ send them a message explaining why.
     metagov.perform_action("discourse.create-message", params)
 
 
-Vote on Open Collective expense in Open Collective
---------------------------------------------------
+Vote on Open Collective expense
+-------------------------------
 
-**Required Metagov Plugins**: ``opencollective``
+When an expense is submitted in Open Collective, start a new conversation thread
+in the Open Collective collective. Members can vote on the expense using thumbs-up
+or thumbs-down emoji reactions. After 3 days, the expense is automatically approved
+or rejected. This policy could be modified to use any other voting mechanism
+(Loomio, Slack emoji-voting, Discourse polls, etc).
+
+**Required integrations**: ``opencollective``
 
 **Filter:**
 
@@ -346,7 +334,7 @@ Vote on Open Collective expense in Open Collective
 
 .. code-block:: python
 
-    # Kick off the Metagov governance process called "opencollective.vote"
+    # Initiate governance process called "opencollective.vote"
 
     expense_url = action.event_data['url']
     description = action.event_data['description']
@@ -365,11 +353,11 @@ Vote on Open Collective expense in Open Collective
 
 .. code-block:: python
 
-    # When 60 minutes has passed, close the process and decide whether this policy has PASSED or FAILED
+    # When 3 days have passed, close the process and decide whether this policy has PASSED or FAILED
 
     import datetime
 
-    if proposal.get_time_elapsed() > datetime.timedelta(minutes=60):
+    if proposal.get_time_elapsed() > datetime.timedelta(days=3):
         result = metagov.close_process()
         yes_votes = result.outcome["votes"]["yes"]
         no_votes = result.outcome["votes"]["no"]
@@ -409,7 +397,7 @@ Add a NEAR DAO proposal
 When a new Discourse topic is created with tag ``dao-proposal``, add a new proposal to the community's NEAR DAO.
 Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_ action.
 
-**Required Metagov Plugins**: ``discourse`` ``near``
+**Required integrations**: ``discourse`` ``near``
 
 **Filter:**
 
@@ -463,7 +451,7 @@ to decide whether to accept or reject the proposal. If rejected, delete the topi
 uses the Metagov ``discourse`` plugin, which is distinct from the PolicyKit Discourse integration.
 This policy can be defined for any PolicyKit community (a Slack community, for example).
 
-**Required Metagov Plugins**: ``discourse`` ``loomio``
+**Required integrations**: ``discourse`` ``loomio``
 
 **Filter:**
 
@@ -557,7 +545,7 @@ When a Discourse user adds a wallet to their profile, start a vote on whether to
 This policy assumes that there is a custom `User Field <https://meta.discourse.org/t/how-to-create-and-configure-custom-user-fields/113192>`_ in Discourse in position "1" that holds an UpHold or GateHub wallet payment pointer.
 This policy also assumes that the Discourse server has the experimental `Metagov Web Monetization Discourse plugin <https://github.com/metagov/discourse-web-monetization>`_ installed, to generate revenue from forum content in the form of Web Monetization micropayments. All content generated on Discourse will be split equally between all wallets rev share config, which is stored in Metagov.
 
-**Required Metagov Plugins**: ``discourse``
+**Required integrations**: ``discourse``
 
 **Filter:**
 
