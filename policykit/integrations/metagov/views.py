@@ -84,8 +84,7 @@ def internal_receive_action(request):
         return HttpResponse()
 
     # For all other sources, create generic MetagovActions.
-
-    platform_community = CommunityPlatform.objects.filter(community=community).first()
+    platform_community = community.get_platform_communities().first()
     if platform_community is None:
         logger.error(f"No platforms exist for community '{community}'")
         return HttpResponse()
@@ -100,23 +99,17 @@ def internal_receive_action(request):
         username=prefixed_username, provider=initiator["provider"], community=platform_community
     )
 
-    # Give this user permission to propose any MetagovAction
-    user_group, usergroup_created = CommunityRole.objects.get_or_create(
-        role_name="Base User", name=f"Metagov: {metagov_community_slug}: Base User"
-    )
-    if usergroup_created:
-        user_group.community = platform_community
-        permission = Permission.objects.get(codename="add_metagovaction")
-        user_group.permissions.add(permission)
-        user_group.save()
-    user_group.user_set.add(metagov_user)
+    if not metagov_user.has_perm("metagov.add_metagovaction"):
+        p = Permission.objects.get(codename="add_metagovaction")
+        metagov_user.user_permissions.add(p)
 
     # Create MetagovAction
-    new_api_action = MetagovAction()
-    new_api_action.community = platform_community
-    new_api_action.initiator = metagov_user
-    new_api_action.event_type = f"{body['source']}.{body['event_type']}"
-    new_api_action.json_data = json.dumps(body["data"])
+    new_api_action = MetagovAction(
+        community=platform_community,
+        initiator=metagov_user,
+        event_type=f"{body['source']}.{body['event_type']}",
+        json_data=json.dumps(body["data"]),
+    )
 
     new_api_action.save()
     if not new_api_action.pk:

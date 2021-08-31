@@ -401,18 +401,12 @@ def oauth(request):
 
         s = DiscordCommunity.objects.filter(team_id=guild_id)
         community = None
-        user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discord: " + guild_info['name'] + ": Base User")
 
         if not s.exists():
-            parent_community = Community.objects.create(readable_name=guild_info['name'])
             community = DiscordCommunity.objects.create(
                 community_name=guild_info['name'],
-                community=parent_community,
-                team_id=guild_id,
-                base_role=user_group
+                team_id=guild_id
             )
-            user_group.community = community
-            user_group.save()
 
             # Get the list of users and create a DiscordUser object for each user
             guild_members = community.make_call(f'guilds/{guild_id}/members?limit=1000')
@@ -438,8 +432,8 @@ def oauth(request):
         context = {
             "server_url": SERVER_URL,
             "starterkits": get_starterkits_info(),
-            "community_id": community.pk,
-            "platform": "discord"
+            "community_id": community.community.pk,
+            "platform": "discord",
         }
         return render(request, "policyadmin/init_starterkit.html", context)
 

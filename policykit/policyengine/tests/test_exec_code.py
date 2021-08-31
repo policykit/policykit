@@ -1,9 +1,9 @@
-from django.contrib.auth.models import Permission
 from django.test import TestCase, override_settings
-from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
+from integrations.slack.models import SlackPinMessage
 from policyengine.engine import EvaluationContext, PolicyCodeError, exec_code_block
-from policyengine.models import Community, CommunityRole, Policy, Proposal
+from policyengine.models import Policy, Proposal
 from django_db_logger.models import EvaluationLog
+import policyengine.tests.utils as TestUtils
 
 all_actions_proposed_policy = {
     "filter": "return True",
@@ -18,20 +18,12 @@ all_actions_proposed_policy = {
 class ExecCodeTests(TestCase):
     @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
     def setUp(self):
-        user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
-        can_add = Permission.objects.get(name="Can add slack pin message")
-        user_group.permissions.add(can_add)
-        community = Community.objects.create()
-        self.slack_community = SlackCommunity.objects.create(
-            community=community,
-            team_id="TEST_TEAM_ID",
-            base_role=user_group,
-        )
-        self.user = SlackUser.objects.create(username="test", community=self.slack_community)
+        self.slack_community, self.user = TestUtils.create_slack_community_and_user()
+
         self.policy = Policy.objects.create(
             **all_actions_proposed_policy,
             kind=Policy.PLATFORM,
-            community=self.slack_community,
+            community=self.slack_community.community,
             name="policy",
         )
         self.action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
@@ -56,7 +48,7 @@ class ExecCodeTests(TestCase):
         self.assertRaises(PolicyCodeError, exec_code_block, "return variable_doesnt_exist", ctx)
         self.assertRaises(PolicyCodeError, exec_code_block, "return discord.team_id", ctx)
 
-        self.assertEqual(exec_code_block("return slack.team_id", ctx), "TEST_TEAM_ID")
+        self.assertEqual(exec_code_block("return slack.team_id", ctx), "ABC")
 
         # these shouldn't raise any exceptions
         exec_code_block("return action.id", ctx)

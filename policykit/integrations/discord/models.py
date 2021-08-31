@@ -39,14 +39,6 @@ class DiscordCommunity(CommunityPlatform):
     def post_message(self, text, channel):
         return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
 
-    def save(self, *args, **kwargs):
-        super(DiscordCommunity, self).save(*args, **kwargs)
-
-        content_types = ContentType.objects.filter(model__in=DISCORD_ACTIONS)
-        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
-        for p in perms:
-            self.base_role.permissions.add(p)
-
     def make_call(self, url, values=None, action=None, method="GET"):
         response = requests.request(
             method=method,
@@ -64,10 +56,7 @@ class DiscordCommunity(CommunityPlatform):
         return None
 
 class DiscordUser(CommunityUser):
-    def save(self, *args, **kwargs):
-        super(DiscordUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
+    pass
 
 class DiscordPostMessage(PlatformAction):
     channel_id = models.BigIntegerField()

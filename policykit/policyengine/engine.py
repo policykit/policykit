@@ -89,6 +89,17 @@ class PolicyDoesNotPassFilter(PolicyEngineError):
     pass
 
 
+def get_eligible_policies(action):
+    from policyengine.models import Policy
+    from django.db.models import Q
+
+    policy_kind = Policy.CONSTITUTION if action.is_constitutional else Policy.PLATFORM
+    active_policies = action.community.community.get_policies()
+    return active_policies.filter(
+        Q(kind=policy_kind) & (Q(action_types=None) | Q(action_types__codename=action.action_type))
+    )
+
+
 def govern_action(action):
     """
     Called the FIRST TIME that an action is evaluated.
@@ -96,30 +107,22 @@ def govern_action(action):
     - Otherwise, choose a Policy to evaluate.
     - Create a Proposal and run it.
     """
-    from policyengine.models import (
-        ConstitutionAction,
-        ConstitutionActionBundle,
-        PlatformAction,
-        PlatformActionBundle,
-        Proposal,
-    )
+    from policyengine.models import Proposal, Policy
 
     # if they have execute permission, skip all policies
     if action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}"):
         action.execute()
         # No `Proposal` is created because we don't evaluate it
     else:
-        eligible_policies = None
-        if isinstance(action, PlatformAction) or isinstance(action, PlatformActionBundle):
-            eligible_policies = action.community.get_platform_policies().filter(is_active=True)
-        elif isinstance(action, ConstitutionAction) or isinstance(action, ConstitutionActionBundle):
-            eligible_policies = action.community.get_constitution_policies().filter(is_active=True)
-        else:
-            raise Exception("govern_action: unrecognized action")
 
         existing_proposals = Proposal.objects.filter(action=action)
         if existing_proposals:
             logger.warn(f"There are already {existing_proposals.count()} proposals for action {action}")
+
+        eligible_policies = get_eligible_policies(action)
+        if not eligible_policies.exists():
+            logger.warn(f"No eligible policies for action {action} {action.action_type}")
+            return None
 
         while eligible_policies.exists():
             proposal = choose_policy(action, eligible_policies)
@@ -160,7 +163,8 @@ def choose_policy(action, policies):
 
         proposal.delete()
 
-    logger.debug(f"For action {action}, no matching policy found!")
+    logger.warn(f"No matching policy for {action}")
+    return None
 
 
 def delete_and_rerun(proposal):

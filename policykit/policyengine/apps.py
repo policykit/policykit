@@ -9,8 +9,6 @@ class policyEngineConfig(AppConfig):
         registry.register(self.get_model('PlatformAction'))
         registry.register(self.get_model('PlatformActionBundle'))
         registry.register(self.get_model('Policy'))
-        registry.register(self.get_model('ConstitutionAction'))
-        registry.register(self.get_model('ConstitutionActionBundle'))
         registry.register(self.get_model('CommunityUser'))
         registry.register(self.get_model('CommunityRole'))
         registry.register(self.get_model('BooleanVote'))

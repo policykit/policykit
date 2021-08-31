@@ -19,7 +19,7 @@
       "description": "Starter Constitution Policy: constitution actions pass if proposed by moderator",
       "filter": "return True",
       "initialize": "pass",
-      "check": "if action.initiator.groups.filter(name = 'Administrator').exists():\n    return PASSED\nelse:\n    return FAILED",
+      "check": "if action.initiator.has_role('Administrator'):\n    return PASSED\nelse:\n    return FAILED",
       "notify": "pass",
       "success": "pass",
       "fail": "pass"

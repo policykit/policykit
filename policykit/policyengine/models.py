@@ -1,14 +1,12 @@
-from django.db import models, transaction
+from django.db import models
 from actstream import action as actstream_action
-import requests
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.forms import ModelForm
 from django.conf import settings
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
-from django.core.validators import MinLengthValidator
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
 from policyengine.utils import ActionKind
@@ -19,30 +17,84 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Default values for code fields in editor
-DEFAULT_FILTER = "return True\n\n"
-DEFAULT_INITIALIZE = "pass\n\n"
-DEFAULT_CHECK = "return PASSED\n\n"
-DEFAULT_NOTIFY = "pass\n\n"
-DEFAULT_SUCCESS = "action.execute()\n\n"
-DEFAULT_FAIL = "pass\n\n"
+"""
+INIT PROCESS FOR FIRST PLATFORM
 
-def on_transaction_commit(func):
-    def inner(*args, **kwargs):
-        transaction.on_commit(lambda: func(*args, **kwargs))
-    return inner
+ - user consent to install
+    - Community created in MG
+ - create corresponding Community in PK
+    - ConstitutionCommunity created for constitutional stuff
+
+ - create SlackCommunity
+    - create SlackUsers (creates empty base_role)
+    - special token for the installing user
+
+ - user chooses StarterKit
+     - create policies
+     - create CommunityRoles (updates the existing base_role)
+     - add Permissions to each CommunityRole
+     - add users to roles (may depend on is_community_admin status)
+     
+
+INIT PROCESS FOR SECOND PLATFORM
+
+ - user consent to install
+    - Community slug passed to MG. Plugin enabled in MG.
+
+ - create SlackCommunity
+    - create SlackUsers (they all get added to the base_role on save)
+    - save special token for the installing user on SlackUser
+"""
+
 
 class Community(models.Model):
     """A Community represents a group of users. They may exist on one or more online platforms."""
-
-    readable_name = models.CharField(max_length=300, blank=True)
-    """Readable name describing the community."""
 
     metagov_slug = models.SlugField(max_length=36, unique=True, null=True, blank=True)
 
     def __str__(self):
         prefix = super().__str__()
-        return '{} {}'.format(prefix, self.readable_name or '')
+        return '{} {}'.format(prefix, self.community_name)
+
+    @property
+    def community_name(self):
+        return self.constitution_community.community_name if self.constitution_community else ''
+
+    def get_roles(self):
+        """
+        Returns a QuerySet of all roles in the community.
+        """
+        return CommunityRole.objects.filter(community=self)
+
+    def get_policies(self, is_active=True):
+        return Policy.objects.filter(community=self, is_active=is_active).order_by('-modified_at')
+
+    def get_platform_policies(self, is_active=True):
+        """
+        Returns a QuerySet of all platform policies in the community.
+        """
+        return Policy.platform_policies.filter(community=self, is_active=is_active).order_by('-modified_at')
+
+    def get_constitution_policies(self, is_active=True):
+        """
+        Returns a QuerySet of all constitution policies in the community.
+        """
+        return Policy.constitution_policies.filter(community=self, is_active=is_active).order_by('-modified_at')
+
+    def get_documents(self, is_active=True):
+        """
+        Returns a QuerySet of all documents in the community.
+        """
+        return CommunityDoc.objects.filter(community=self, is_active=is_active)
+
+    @property
+    def constitution_community(self):
+        from constitution.models import ConstitutionCommunity
+        return ConstitutionCommunity.objects.filter(community=self).first()
+
+    def get_platform_communities(self):
+        constitution_community = self.constitution_community
+        return CommunityPlatform.objects.filter(community=self).exclude(pk=constitution_community.pk)
 
     def save(self, *args, **kwargs):
         """
@@ -50,13 +102,18 @@ class Community(models.Model):
 
         :meta private:
         """
-        if settings.METAGOV_ENABLED and not self.pk and not self.metagov_slug:
+        is_new = True if not self.pk else False
+        if settings.METAGOV_ENABLED and is_new and not self.metagov_slug:
             # If this is the first save, create a corresponding community in Metagov
-            response = MetagovAPI.create_empty_metagov_community(self.readable_name)
+            response = MetagovAPI.create_empty_metagov_community()
             self.metagov_slug = response["slug"]
             logger.debug(f"Created new Metagov community '{self.metagov_slug}' Saving slug in model.")
+
         super(Community, self).save(*args, **kwargs)
 
+@receiver(pre_delete, sender=Community)
+def pre_delete_community(sender, instance, **kwargs):
+    CommunityPlatform.objects.non_polymorphic().filter(community=instance).delete()
 
 @receiver(post_delete, sender=Community)
 def post_delete_community(sender, instance, **kwargs):
@@ -73,10 +130,7 @@ class CommunityPlatform(PolymorphicModel):
     community_name = models.CharField('team_name', max_length=1000)
     """The name of the community."""
 
-    base_role = models.OneToOneField('CommunityRole', models.CASCADE, related_name='base_community')
-    """The default role which users have."""
-
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(Community, on_delete=models.CASCADE)
     """The ``Community`` that this CommunityPlatform belongs to."""
 
     def __str__(self):
@@ -95,49 +149,78 @@ class CommunityPlatform(PolymorphicModel):
         proposal
             The ``Proposal`` that is being run.
         users
-            The users who should be notified.
+        The users who should be notified.
         """
         pass
+
+    def get_platform_policies(self):
+        """
+        Returns a QuerySet of all platform policies for this ``CommunityPlatform``.
+        """
+        return Policy.platform_policies.filter(community=self.community).order_by('-modified_at')
 
     def get_roles(self):
         """
         Returns a QuerySet of all roles in the community.
         """
-        return CommunityRole.objects.filter(community=self)
+        return CommunityRole.objects.filter(community=self.community)
 
-    def get_platform_policies(self):
+    def get_users(self):
         """
-        Returns a QuerySet of all platform policies in the community.
+        Returns a QuerySet of all users in the community on this platform.
         """
-        return Policy.platform_policies.filter(community=self).order_by('-modified_at')
+        return CommunityUser.objects.filter(community=self)
 
-    def get_constitution_policies(self):
-        """
-        Returns a QuerySet of all constitution policies in the community.
-        """
-        return Policy.constitution_policies.filter(community=self).order_by('-modified_at')
 
-    def get_documents(self):
-        """
-        Returns a QuerySet of all documents in the community.
-        """
-        return CommunityDoc.objects.filter(community=self)
+    def save(self, *args, **kwargs):
+        if not self.pk and not hasattr(self, "community"):
+            # This is the first platform, so create the parent Community
+            self.community = Community.objects.create()
 
+        if not self.pk and not self.platform == "constitution":
+            from constitution.models import ConstitutionCommunity
+            ConstitutionCommunity.objects.get_or_create(
+                community=self.community,
+                defaults={'community_name': self.community_name}
+            )
+
+        super(CommunityPlatform, self).save(*args, **kwargs)
 
 class CommunityRole(Group):
     """CommunityRole"""
 
-    community = models.ForeignKey(CommunityPlatform, models.CASCADE, null=True)
+    community = models.ForeignKey(Community, models.CASCADE)
     """The community which the role belongs to."""
 
-    role_name = models.TextField('readable_name', max_length=300, null=True)
+    role_name = models.TextField('readable_name', max_length=300)
     """The readable name of the role."""
 
     description = models.TextField(null=True, blank=True, default='')
     """The readable description of the role. May be empty."""
 
+    is_base_role = models.BooleanField(default=False)
+    """Whether this is the default role in this community."""
+
     def __str__(self):
         return str(self.role_name)
+
+    def save(self, *args, **kwargs):
+
+        # Generate a unique group name
+        self.name = f"{self.community} : {self.role_name}"
+        
+        if self.is_base_role:
+            """
+            Enforce that each community only has one base role.
+            """
+            try:
+                temp = CommunityRole.objects.get(community=self.community, is_base_role=True)
+                if self != temp:
+                    raise ValidationError("Cannot add new base role to community")
+            except CommunityRole.DoesNotExist:
+                pass
+
+        super(CommunityRole, self).save(*args, **kwargs)
 
 class PolymorphicUserManager(UserManager, PolymorphicManager):
     # no-op class to get rid of warnings (issue #270)
@@ -171,32 +254,34 @@ class CommunityUser(User, PolymorphicModel):
 
     def get_roles(self):
         """
-        Returns a list containing all of the user's roles.
+        Returns a list of CommunityRoles containing all of the user's roles.
         """
         user_roles = []
-        roles = CommunityRole.objects.filter(community=self.community)
-        for r in roles:
+        for r in self.community.get_roles():
             for u in r.user_set.all():
                 if u.communityuser.username == self.username:
                     user_roles.append(r)
         return user_roles
 
-    def has_role(self, role_name):
+    def has_role(self, name):
         """
         Returns True if the user has a role with the specified role_name.
 
         Parameters
         -------
-        role_name
+        name
             The name of the role to check for.
         """
-        roles = CommunityRole.objects.filter(community=self.community, role_name=role_name)
-        if roles.exists():
-            r = roles[0]
-            for u in r.user_set.all():
-                if u.communityuser.username == self.username:
-                    return True
-        return False
+        return self.groups.filter(name=name).exists()
+
+
+    @property
+    def constitution_community(self):
+        """
+        The ConstitutionCommunity that this user belongs to.
+        """
+        from constitution.models import ConstitutionCommunity
+        return ConstitutionCommunity.objects.get(community=self.community.community)
 
     def save(self, *args, **kwargs):
         """
@@ -205,14 +290,19 @@ class CommunityUser(User, PolymorphicModel):
         :meta private:
         """
         super(CommunityUser, self).save(*args, **kwargs)
-        self.community.base_role.user_set.add(self)
+
+        community = self.community.community # parent community, not platform community.
+
+        # Add user to the base role for this Community.
+        # Use "get_or_create" because there might not be a base role yet, if this is a brand new community and a StarterKit has not been selected yet.
+        # In that case, the StarterKit will override this base_role when it gets initialized.
+        base_role,_ = CommunityRole.objects.get_or_create(community=community, is_base_role=True, defaults={"role_name": "Base Role"})
+        base_role.user_set.add(self)
 
         # If this user is an admin in the community, give them access to edit the Metagov config
         if self.is_community_admin and settings.METAGOV_ENABLED:
             from integrations.metagov.models import MetagovConfig
-            role_name = "Metagov Admin"
-            group_name = f"{self.community.platform}: {self.community.community_name}: {role_name}"
-            role,created = CommunityRole.objects.get_or_create(community=self.community, role_name=role_name, name=group_name)
+            role,created = CommunityRole.objects.get_or_create(community=community, role_name="Metagov Admin")
             if created:
                 content_type = ContentType.objects.get_for_model(MetagovConfig)
                 role.permissions.set(Permission.objects.filter(content_type=content_type))
@@ -228,7 +318,7 @@ class CommunityDoc(models.Model):
     text = models.TextField(null=True, blank=True, default = '')
     """The text within the document."""
 
-    community = models.ForeignKey(CommunityPlatform, models.CASCADE, null=True)
+    community = models.ForeignKey(Community, models.CASCADE)
     """The community which the document belongs to."""
 
     is_active = models.BooleanField(default=True)
@@ -433,9 +523,13 @@ class Proposal(models.Model):
 class BaseAction(PolymorphicModel):
     """Base Action"""
 
+    # FIXME: rename to community_platform
     community = models.ForeignKey(CommunityPlatform, models.CASCADE, verbose_name='community')
     """The ``CommunityPlatform`` in which the action occurred (or was proposed). If proposed through the PolicyKit app,
     this is the community that the proposing user was authenticated with."""
+
+        # related_name="%(app_label)s_%(class)s_related",
+        # related_query_name="%(app_label)s_%(class)ss",
 
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
     """The ``CommunityUser`` who initiated the action. May not exist if initiated by PolicyKit."""
@@ -452,7 +546,9 @@ class BaseAction(PolymorphicModel):
 
         :meta private:
         """
-        if not self.pk:
+        evaluate_action = kwargs.pop("evaluate_action", None)
+        should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
+        if should_evaluate:
             # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
             if not self.initiator or self.initiator.has_perm(can_propose_perm):
@@ -467,434 +563,50 @@ class BaseAction(PolymorphicModel):
         return self._meta.model_name
 
 
-class ConstitutionAction(BaseAction, PolymorphicModel):
-    """Constitution Action"""
-    action_kind = ActionKind.CONSTITUTION
+class TriggerAction(PolymorphicModel):
+    """Trigger Action
+    
+    subtypes:
+    -TriggerEvent (event occurred on platform or PK)
+        - Event name
+    -PolicyKitEvent (engine-event, like something passed or failed ?)
+        - PlatformAction type
+        - PlatformAction proposal state? (FAILED/PASSED) ? (or do this in Filter block)
 
 
-class ConstitutionActionBundle(BaseAction):
-    ELECTION = 'election'
-    BUNDLE = 'bundle'
-    BUNDLE_TYPE = [
-        (ELECTION, 'election'),
-        (BUNDLE, 'bundle')
-    ]
+    -webhook (some event that is NOT KNOWN TO POLICYKIT before hand! aka metagov.event_name)
+            we want to consider this an action_type, I think.
 
-    action_kind = ActionKind.CONSTITUTION
+            action_types = ["slackpostmessage", "discordpostmessage"]
+            action_types = ["policykitaddcommunitydoc"]
+            action_types = ["schedule"]
+                filter = 'action.hour = 8 and not action.is_weekend'
+                filter = 'action.day_of_month = 15'
+                filter = 'action.day_of_week = THURSDAY'
 
-    bundled_actions = models.ManyToManyField(ConstitutionAction)
-    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
+            
+            
+            action_types = ["metagovwebhook"]
+            action_types = [Webhook(event_name="loomio.stance_cast")]
 
-    def execute(self):
-        if self.bundle_type == ConstitutionActionBundle.BUNDLE:
-            for action in self.bundled_actions.all():
-                action.execute()
 
 
-class PolicykitAddCommunityDoc(ConstitutionAction):
-    name = models.TextField()
-    text = models.TextField()
 
-    def __str__(self):
-        return "Add Document: " + self.name
+            action_types = [SlackPostMessage(channel=ABCD)]
 
-    def execute(self):
-        doc, _ = CommunityDoc.objects.get_or_create(name=self.name, text=self.text)
-        doc.community = self.community
-        doc.save()
+    -Schedule (hourly, daily, weekly, monthly)
+        - cadence: hourly|weekly|daily|monthly
+        - hour:
+        - day_of_week:
+        - day_of_month:
+    """
+    # action_kind = ActionKind.TRIGGER
 
-    class Meta:
-        permissions = (
-            ('can_execute_policykitaddcommunitydoc', 'Can execute policykit add community doc'),
-        )
-
-class PolicykitChangeCommunityDoc(ConstitutionAction):
-    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-    name = models.TextField()
-    text = models.TextField()
-
-    def __str__(self):
-        return "Edit Document: " + self.name
-
-    def execute(self):
-        self.doc.name = self.name
-        self.doc.text = self.text
-        self.doc.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitchangecommunitydoc', 'Can execute policykit change community doc'),
-        )
-
-class PolicykitDeleteCommunityDoc(ConstitutionAction):
-    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
-    def __str__(self):
-        if self.doc:
-            return "Delete Document: " + self.doc.name
-        return "Delete Document: [ERROR: doc not found]"
-
-    def execute(self):
-        self.doc.is_active = False
-        self.doc.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitdeletecommunitydoc', 'Can execute policykit delete community doc'),
-        )
-
-class PolicykitRecoverCommunityDoc(ConstitutionAction):
-    doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
-    def __str__(self):
-        if self.doc:
-            return "Recover Document: " + self.doc.name
-        return "Recover Document: [ERROR: doc not found]"
-
-    def execute(self):
-        self.doc.is_active = True
-        self.doc.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitrecovercommunitydoc', 'Can execute policykit recover community doc'),
-        )
-
-class PolicykitAddRole(ConstitutionAction):
-    name = models.CharField('name', max_length=300)
-    description = models.TextField(null=True, blank=True, default='')
-    permissions = models.ManyToManyField(Permission)
-    ready = False
-
-    def __str__(self):
-        return "Add Role: " + self.name
-
-    def shouldCreate(self):
-        return self.ready
-
-    def execute(self):
-        role, _ = CommunityRole.objects.get_or_create(
-            role_name=self.name,
-            name=self.community.platform + ": " + self.community.community_name + ": " + self.name,
-            description=self.description
-        )
-        for p in self.permissions.all():
-            role.permissions.add(p)
-        role.community = self.community
-        role.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitaddrole', 'Can execute policykit add role'),
-        )
-
-class PolicykitDeleteRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
-
-    def __str__(self):
-        if self.role:
-            return "Delete Role: " + self.role.role_name
-        else:
-            return "Delete Role: [ERROR: role not found]"
-
-    def execute(self):
-        try:
-            self.role.delete()
-        except AssertionError: # Triggers if object has already been deleted
-            pass
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitdeleterole', 'Can execute policykit delete role'),
-        )
-
-class PolicykitEditRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
-    name = models.CharField('name', max_length=300)
-    description = models.TextField(null=True, blank=True, default='')
-    permissions = models.ManyToManyField(Permission)
-    ready = False
-
-    def __str__(self):
-        return "Edit Role: " + self.name
-
-    def shouldCreate(self):
-        return self.ready
-
-    def execute(self):
-        self.role.role_name = self.name
-        self.role.description = self.description
-        self.role.permissions.clear()
-        for p in self.permissions.all():
-            self.role.permissions.add(p)
-        self.role.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykiteditrole', 'Can execute policykit edit role'),
-        )
-
-class PolicykitAddUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
-    users = models.ManyToManyField(CommunityUser)
-    ready = False
-
-    def __str__(self):
-        first_user = self.users.first()
-        if self.role and first_user:
-            return "Add User: " + str(first_user) + " to Role: " + self.role.role_name
-        elif first_user is None:
-            return f"Add User: [ERROR: no users] to role {self.role.role_name}"
-        else:
-            return "Add User to Role: [ERROR: role not found]"
-
-    def shouldCreate(self):
-        return self.ready
-
-    def execute(self):
-        for u in self.users.all():
-            self.role.user_set.add(u)
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitadduserrole', 'Can execute policykit add user role'),
-        )
-
-class PolicykitRemoveUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
-    users = models.ManyToManyField(CommunityUser)
-    ready = False
-
-    def __str__(self):
-        if self.role:
-            return "Remove User: " + str(self.users.all()[0]) + " from Role: " + self.role.role_name
-        else:
-            return "Remove User from Role: [ERROR: role not found]"
-
-    def shouldCreate(self):
-        return self.ready
-
-    def execute(self):
-        for u in self.users.all():
-            self.role.user_set.remove(u)
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitremoveuserrole', 'Can execute policykit remove user role'),
-        )
-
-class EditorModel(ConstitutionAction):
-    name = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-
-    filter = models.TextField(blank=True,
-        default=DEFAULT_FILTER,
-        verbose_name="Filter"
-    )
-    initialize = models.TextField(blank=True,
-        default=DEFAULT_INITIALIZE,
-        verbose_name="Initialize"
-    )
-    check = models.TextField(blank=True,
-        default=DEFAULT_CHECK,
-        verbose_name="Check"
-    )
-    notify = models.TextField(blank=True,
-        default=DEFAULT_NOTIFY,
-        verbose_name="Notify"
-    )
-    success = models.TextField(blank=True,
-        default=DEFAULT_SUCCESS,
-        verbose_name="Pass"
-    )
-    fail = models.TextField(blank=True,
-        default=DEFAULT_FAIL,
-        verbose_name="Fail"
-    )
-
-    def save(self, *args, **kwargs):
-        if not self.name:
-            raise ValidationError("Name is required.")
-        super(EditorModel, self).save(*args, **kwargs)
-
-class PolicykitAddPlatformPolicy(EditorModel):
-
-    def __str__(self):
-        return "Add Platform Policy: " + self.name
-
-    def execute(self):
-        policy = Policy()
-        policy.kind = Policy.PLATFORM
-        policy.name = self.name
-        policy.description = self.description
-        policy.filter = self.filter
-        policy.initialize = self.initialize
-        policy.check = self.check
-        policy.notify = self.notify
-        policy.success = self.success
-        policy.fail = self.fail
-        policy.community = self.community
-        policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_addpolicykitplatformpolicy', 'Can execute policykit add platform policy'),
-        )
-
-class PolicykitAddConstitutionPolicy(EditorModel):
-
-    def __str__(self):
-        return "Add Constitution Policy: " + self.name
-
-    def execute(self):
-        policy = Policy()
-        policy.kind = Policy.CONSTITUTION
-        policy.community = self.community
-        policy.name = self.name
-        policy.description = self.description
-        policy.filter = self.filter
-        policy.initialize = self.initialize
-        policy.check = self.check
-        policy.notify = self.notify
-        policy.success = self.success
-        policy.fail = self.fail
-        policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitaddconstitutionpolicy', 'Can execute policykit add constitution policy'),
-        )
-
-class PolicykitChangePlatformPolicy(EditorModel):
-    platform_policy = models.ForeignKey('Policy', models.CASCADE)
-
-    def __str__(self):
-        return "Change Platform Policy: " + self.name
-
-    def execute(self):
-        assert self.platform_policy.kind == Policy.PLATFORM
-        self.platform_policy.name = self.name
-        self.platform_policy.description = self.description
-        self.platform_policy.filter = self.filter
-        self.platform_policy.initialize = self.initialize
-        self.platform_policy.check = self.check
-        self.platform_policy.notify = self.notify
-        self.platform_policy.success = self.success
-        self.platform_policy.fail = self.fail
-        self.platform_policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitchangeplatformpolicy', 'Can execute policykit change platform policy'),
-        )
-
-class PolicykitChangeConstitutionPolicy(EditorModel):
-    constitution_policy = models.ForeignKey('Policy', models.CASCADE)
-
-    def __str__(self):
-        return "Change Constitution Policy: " + self.name
-
-    def execute(self):
-        assert self.constitution_policy.kind == Policy.CONSTITUTION
-        self.constitution_policy.name = self.name
-        self.constitution_policy.description = self.description
-        self.constitution_policy.filter = self.filter
-        self.constitution_policy.initialize = self.initialize
-        self.constitution_policy.check = self.check
-        self.constitution_policy.notify = self.notify
-        self.constitution_policy.success = self.success
-        self.constitution_policy.fail = self.fail
-        self.constitution_policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitchangeconstitutionpolicy', 'Can execute policykit change constitution policy'),
-        )
-
-class PolicykitRemovePlatformPolicy(ConstitutionAction):
-    platform_policy = models.ForeignKey('Policy',
-                                         models.SET_NULL,
-                                         null=True)
-
-    def __str__(self):
-        if self.platform_policy:
-            return "Remove Platform Policy: " + self.platform_policy.name
-        return "Remove Platform Policy: [ERROR: platform policy not found]"
-
-    def execute(self):
-        assert self.platform_policy.kind == Policy.PLATFORM
-        self.platform_policy.is_active = False
-        self.platform_policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitremoveplatformpolicy', 'Can execute policykit remove platform policy'),
-        )
-
-class PolicykitRecoverPlatformPolicy(ConstitutionAction):
-    platform_policy = models.ForeignKey('Policy',
-                                         models.SET_NULL,
-                                         null=True)
-
-    def __str__(self):
-        if self.platform_policy:
-            return "Recover Platform Policy: " + self.platform_policy.name
-        return "Recover Platform Policy: [ERROR: platform policy not found]"
-
-    def execute(self):
-        assert self.platform_policy.kind == Policy.PLATFORM
-        self.platform_policy.is_active = True
-        self.platform_policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitrecoverplatformpolicy', 'Can execute policykit recover platform policy'),
-        )
-
-class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('Policy',
-                                            models.SET_NULL,
-                                            null=True)
-
-    def __str__(self):
-        if self.constitution_policy:
-            return "Remove Constitution Policy: " + self.constitution_policy.name
-        return "Remove Constitution Policy: [ERROR: constitution policy not found]"
-
-    def execute(self):
-        assert self.constitution_policy.kind == Policy.CONSTITUTION
-        self.constitution_policy.is_active = False
-        self.constitution_policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitremoveconstitutionpolicy', 'Can execute policykit remove constitution policy'),
-        )
-
-class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
-    constitution_policy = models.ForeignKey('Policy',
-                                            models.SET_NULL,
-                                            null=True)
-
-    def __str__(self):
-        if self.constitution_policy:
-            return "Recover Constitution Policy: " + self.constitution_policy.name
-        return "Recover Constitution Policy: [ERROR: constitution policy not found]"
-
-    def execute(self):
-        assert self.constitution_policy.kind == Policy.CONSTITUTION
-        self.constitution_policy.is_active = True
-        self.constitution_policy.save()
-
-    class Meta:
-        permissions = (
-            ('can_execute_policykitrecoverconstitutionpolicy', 'Can execute policykit recover constitution policy'),
-        )
 
 class PlatformAction(BaseAction, PolymorphicModel):
     ACTION = None
     AUTH = 'app'
-    action_kind = ActionKind.PLATFORM
+    # action_kind = ActionKind.PLATFORM
 
     community_revert = models.BooleanField(default=False)
     """True if the action has been reverted on the platform."""
@@ -919,6 +631,15 @@ class PlatformAction(BaseAction, PolymorphicModel):
         """
         self.community.execute_platform_action(self)
 
+    @property
+    def action_kind(self):
+        return ActionKind.CONSTITUTION if self.is_constitutional else ActionKind.PLATFORM
+
+    @property
+    def is_constitutional(self):
+        # logger.debug(f"action {self.action_type} is tied to {self.community.platform}")
+        return self.community.platform == "constitution"
+
 class PlatformActionBundle(BaseAction):
     ELECTION = 'election'
     BUNDLE = 'bundle'
@@ -926,7 +647,6 @@ class PlatformActionBundle(BaseAction):
         (ELECTION, 'election'),
         (BUNDLE, 'bundle')
     ]
-    action_kind = ActionKind.PLATFORM
 
     bundled_actions = models.ManyToManyField(PlatformAction)
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
@@ -936,6 +656,9 @@ class PlatformActionBundle(BaseAction):
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
 
+    @property
+    def action_kind(self):
+        return ActionKind.CONSTITUTION if self.is_constitutional else ActionKind.PLATFORM
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
@@ -944,6 +667,11 @@ class PlatformPolicyManager(models.Manager):
 class ConstitutionPolicyManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(kind=Policy.CONSTITUTION)
+
+class ActionType(models.Model):
+    """The action_type of a BaseAction"""
+
+    codename = models.CharField(max_length=30, unique=True)
 
 class Policy(models.Model):
     """Policy"""
@@ -983,11 +711,11 @@ class Policy(models.Model):
     fail = models.TextField(blank=True, default='')
     """The fail code of the policy."""
 
-    community = models.ForeignKey(CommunityPlatform,
-        models.CASCADE,
-        verbose_name='community',
-    )
+    community = models.ForeignKey(Community, models.CASCADE)
     """The community which the policy belongs to."""
+
+    action_types = models.ManyToManyField(ActionType)
+    """The action types that this policy applies to."""
 
     name = models.CharField(max_length=100)
     """The name of the policy."""
@@ -1016,11 +744,6 @@ class Policy(models.Model):
     def __str__(self):
         prefix = "PlatformPolicy: " if self.kind == self.PLATFORM else "ConstitutionPolicy: "
         return prefix + self.name
-
-    def save(self, *args, **kwargs):
-        if not self.name:
-            raise ValidationError("Name is required.")
-        super(Policy, self).save(*args, **kwargs)
 
     @property
     def is_bundled(self):

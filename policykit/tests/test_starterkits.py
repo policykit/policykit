@@ -1,16 +1,18 @@
 from django.test import TestCase, override_settings
-from policyengine.models import Community, CommunityRole, Policy
+from policyengine.models import Community, CommunityPlatform, CommunityUser, CommunityRole
+from integrations.discord.models import DiscordCommunity
+from integrations.slack.models import SlackCommunity
+from constitution.models import ConstitutionCommunity
 from policyengine.utils import initialize_starterkit_inner
 
 import os
 import json
 
+# TODO test make starterkit idempotent. change base roles and policies.
+
 
 @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
 class StarterKitTests(TestCase):
-    def setUp(self):
-        pass
-
     def test_initialize_starterkit(self):
         """Test that starter kit initializion for all kits on all platforms doesn't throw any errors"""
         cur_path = os.path.abspath(os.path.dirname(__file__))
@@ -21,30 +23,85 @@ class StarterKitTests(TestCase):
             all_kits.append(json.loads(f.read()))
             f.close()
 
-        for kit_data in all_kits:
-            for platform in ["slack", "discord", "reddit", "discourse"]:
-                print(f"Initializing kit '{kit_data['name']}' for {platform}")
-                community = self._new_platform_community(platform)
-                initialize_starterkit_inner(community, kit_data)
+        for platform in ["slack", "discord", "reddit", "discourse"]:
+            for kit_data in all_kits:
+                # print(f"Initializing kit '{kit_data['name']}' for {platform}")
+                community_platform = self._new_platform_community(platform)
+                initialize_starterkit_inner(community_platform.community, kit_data)
+                roles = community_platform.community.get_roles()
+                self.assertEqual(roles.filter(is_base_role=True).count(), 1)
 
     def _new_platform_community(self, platform):
         Community.objects.all().delete()
-        CommunityRole.objects.all().delete()
+
+        # get the CommunityPlatform class
         cls = self._get_community_cls(platform)
-        cls.objects.all().delete()
-        user_group, _ = CommunityRole.objects.get_or_create(role_name="fake role", name="fake role")
-        community = Community.objects.create()
-        return cls.objects.create(
-            community_name="my test community",
-            community=community,
+        platform_community = cls.objects.create(
+            community_name="my community",
             team_id="test",
-            base_role=user_group,
         )
 
+        # Create some users to test the roles
+        CommunityUser.objects.create(username="user1", community=platform_community)
+        CommunityUser.objects.create(username="user2", community=platform_community, is_community_admin=True)
+        return platform_community
+
     def _get_community_cls(self, platform):
-        from policyengine.models import CommunityPlatform
         from django.apps import apps
 
         for cls in apps.get_app_config(platform).get_models():
             if issubclass(cls, CommunityPlatform):
                 return cls
+
+
+@override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
+class CommunityCreationTests(TestCase):
+    def test_community_creation(self):
+        """Create Community then create CommunityPlatform"""
+        community = Community.objects.create()
+        platform_community = DiscordCommunity.objects.create(
+            community=community, community_name="my server", team_id=1234
+        )
+
+        self.assertEqual(community.community_name, "my server")
+        self.assertEqual(community.constitution_community.community_name, "my server")
+        self.assertEqual(community.get_platform_communities().count(), 1)
+        self.assertEqual(community.get_platform_communities()[0], platform_community)
+
+    def test_no_platform_community(self):
+        """Create a community with no platform, just a constitution community"""
+        constitution_community = ConstitutionCommunity.objects.create(community_name="my community")
+        community = constitution_community.community
+
+        self.assertEqual(community.community_name, "my community")
+        self.assertEqual(community.constitution_community, constitution_community)
+        self.assertEqual(community.get_platform_communities().count(), 0)
+
+    def test_no_platform_community_reverts(self):
+        """Create a community with no platform, just a constitution community"""
+        community = Community.objects.create()
+        constitution_community = ConstitutionCommunity.objects.create(
+            community_name="my community", community=community
+        )
+
+        self.assertEqual(community.community_name, "my community")
+        self.assertEqual(community.constitution_community, constitution_community)
+        self.assertEqual(community.get_platform_communities().count(), 0)
+
+    def test_secondary_community_creation(self):
+        """Community with two platforms"""
+
+        discord = DiscordCommunity.objects.create(community_name="my server", team_id=1234)
+        community = discord.community
+
+        self.assertEqual(community.community_name, "my server")
+        self.assertEqual(community.constitution_community.community_name, "my server")
+        self.assertEqual(community.get_platform_communities().count(), 1)
+        self.assertEqual(community.get_platform_communities()[0], discord)
+
+        slack = SlackCommunity.objects.create(community_name="my org", team_id="abcd", community=community)
+
+        self.assertEqual(community.get_platform_communities().count(), 2)
+        self.assertEqual(community.community_name, "my server")
+        self.assertEqual(community.constitution_community.community_name, "my server")
+        self.assertEqual(ConstitutionCommunity.objects.all().count(), 1)

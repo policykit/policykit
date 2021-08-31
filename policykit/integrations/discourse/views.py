@@ -103,18 +103,11 @@ def auth(request):
             response = redirect('/login?success=true')
             return response
         else:
-            user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discourse: " + title + ": Base User")
-
-            parent_community = Community.objects.create(readable_name=title)
             community = DiscourseCommunity.objects.create(
                 community_name=title,
-                community=parent_community,
                 team_id=url,
                 api_key=api_key,
-                base_role=user_group,
             )
-            user_group.community = community
-            user_group.save()
 
             # Get the list of users and create a DiscourseUser object for each user
             req = urllib.request.Request(url + '/admin/users/list.json')
@@ -132,7 +125,7 @@ def auth(request):
             context = {
                 "server_url": SERVER_URL,
                 "starterkits": get_starterkits_info(),
-                "community_id": community.pk,
+                "community_id": community.community.pk,
                 "platform": "discourse"
             }
             return render(request, "policyadmin/init_starterkit.html", context)
