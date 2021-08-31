@@ -96,6 +96,12 @@ class Community(models.Model):
         constitution_community = self.constitution_community
         return CommunityPlatform.objects.filter(community=self).exclude(pk=constitution_community.pk)
 
+    def get_platform_community(self, name: str):
+        for p in CommunityPlatform.objects.filter(community=self):
+            if p.platform == name:
+                return p
+        return None
+
     def save(self, *args, **kwargs):
         """
         Saves the Community. If community is new, creates it in Metagov and stores the Metagov-generated slug.
@@ -171,6 +177,9 @@ class CommunityPlatform(PolymorphicModel):
         """
         return CommunityUser.objects.filter(community=self)
 
+
+    def execute_platform_action(self):
+        pass
 
     def save(self, *args, **kwargs):
         if not self.pk and not hasattr(self, "community"):

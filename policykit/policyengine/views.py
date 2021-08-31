@@ -417,8 +417,13 @@ def propose_action(request, app_name, codename):
         form = ActionForm(request.POST, request.FILES)
         if form.is_valid():
             new_action = form.save(commit=False)
-            new_action.initiator = request.user
-            new_action.community = request.user.community
+            if request.user.community.platform == app_name:
+                # user is logged in with the same platform that this action is for
+                new_action.initiator = request.user
+                new_action.community = request.user.community
+            else:
+                # user is logged in with a different platform. no initiator.
+                new_action.community = request.user.community.community.get_platform_community(app_name)
             new_action.save()
             proposal = Proposal.objects.filter(action=new_action).first()
     else:
