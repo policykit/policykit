@@ -1,6 +1,6 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
-
+{% load dashboard_extras %}
 {% block styles %}
 <style>
   .body {
@@ -254,25 +254,28 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in users.items %}
+              {% for u in users %}
                 <tr class="sidebarItem">
                   <td>
-                    {% if value.avatar %}
+                    {% if u.avatar %}
                       <img class="sidebarPicture" src="{{value.avatar}}">
                     {% else %}
                       <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                     {% endif %}
                   </td>
-                  <td>{{value.readable_name}}</td>
+                  <td>{{u.readable_name|default_if_none:u.username}}</td>
                   <td>
-                    {% for r in value.roles %}
+                    {% with roles=u|user_roles %}
+                    {% for r in roles %}
                       {% if forloop.last %}
-                        {{r.name}}
+                        {{r}}
                       {% else %}
-                        {{r.name}},
+                        {{r}},
                       {% endif %}
                     {% endfor %}
+                    {% endwith %}
                   </td>
+                  <td>{{u.communityuser.community.platform}}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -285,17 +288,11 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in roles.items %}
+              {% for role in roles %}
                 <tr class="sidebarItem">
-                  <td>{{key}}</td>
+                  <td>{{role.role_name}}</td>
                   <td>
-                    {% if value.users|length == 1 %}
-                      {{value.users.0.username}}
-                    {% elif value.users|length == 2 %}
-                      {{value.users.0.username}} and {{value.users.1.username}}
-                    {% elif value.users|length >= 3 %}
-                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users|length|add:"-2"}} more...
-                    {% endif %}
+                    {{role|role_users_string}}
                   </td>
                 </tr>
               {% endfor %}

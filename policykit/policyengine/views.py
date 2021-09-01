@@ -22,6 +22,10 @@ import os
 
 logger = logging.getLogger(__name__)
 
+DASHBOARD_MAX_USERS = 50
+DASHBOARD_MAX_ACTIONS = 20
+
+
 def homepage(request):
     return render(request, 'home.html', {})
 
@@ -37,37 +41,13 @@ def v2(request):
     from policyengine.models import CommunityUser, Proposal
 
     user = get_user(request)
-    users = user.community.get_users()
+    # user = CommunityUser.objects.all().first()
+
     community = user.community.community
-    roles = community.get_roles()
-    docs = community.get_documents()
-    platform_policies = community.get_platform_policies()
-    constitution_policies = community.get_constitution_policies()
+    community_platforms = community.get_platform_communities()
+    users = CommunityUser.objects.filter(community__in=community_platforms)[:DASHBOARD_MAX_USERS]
+    action_log = Action.objects.filter(data__community_id__in=[cp.pk for cp in community_platforms])[:DASHBOARD_MAX_ACTIONS]
 
-    # Indexing entries by username/name allows retrieval in O(1) rather than O(n)
-    user_data = {}
-    for u in users:
-        user_data[u.username] = {
-            'readable_name': u.readable_name or u.username,
-            'roles': [],
-            'avatar': u.avatar
-        }
-
-    role_data = {}
-    for r in roles:
-        role_data[r.role_name] = {
-            'description': r.description,
-            'users': []
-        }
-        for u in r.user_set.filter(communityuser__community=user.community):
-            cu = u.communityuser
-            role_data[r.role_name]['users'].append({ 'username': cu.readable_name or cu.username })
-            user_data[cu.username]['roles'].append({ 'name': r.role_name })
-
-    from django.db.models import Q
-    action_log = Action.objects.filter(
-        Q(data__community_id=user.community.id) | Q(data__community_id=user.constitution_community.id)
-    )[:20]
     pending_proposals = Proposal.objects.filter(
         policy__community=community,
         status=Proposal.PROPOSED
@@ -76,11 +56,11 @@ def v2(request):
     return render(request, 'policyadmin/dashboard/index.html', {
         'server_url': SERVER_URL,
         'user': user,
-        'users': user_data,
-        'roles': role_data,
-        'docs': docs,
-        'platform_policies': platform_policies,
-        'constitution_policies': constitution_policies,
+        'users': users,
+        'roles': community.get_roles(),
+        'docs': community.get_documents(),
+        'platform_policies': community.get_platform_policies(),
+        'constitution_policies': community.get_constitution_policies(),
         'action_log': action_log,
         'pending_proposals': pending_proposals
     })
