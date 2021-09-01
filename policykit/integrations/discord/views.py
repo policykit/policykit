@@ -416,7 +416,7 @@ def oauth(request):
                 user, _ = DiscordUser.objects.get_or_create(
                     username=f"{member['user']['id']}:{guild_id}",
                     readable_name=member['user']['username'],
-                    avatar=f"https://cdn.discordapp.com/avatars/{member['user']['id']}/{member['user']['avatar']}.png",
+                    avatar=avatar_url(member['user']),
                     community=community,
                     is_community_admin=(member['user']['id'] == owner_id)
                 )
@@ -438,6 +438,12 @@ def oauth(request):
         return render(request, "policyadmin/init_starterkit.html", context)
 
     return redirect('/login?error=no_owned_guilds_found')
+
+
+def avatar_url(user_info):
+    if user_info.get("avatar"):
+        return f"https://cdn.discordapp.com/avatars/{user_info['id']}/{user_info['avatar']}.png"
+    return None
 
 @csrf_exempt
 def auth(request, guild_id=None, access_token=None):

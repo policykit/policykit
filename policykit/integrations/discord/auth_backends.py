@@ -27,13 +27,14 @@ class DiscordBackend(BaseBackend):
 
         discord_user = DiscordUser.objects.filter(username=f"{user_info['id']}:{guild_id}")
 
+        from integrations.discord.views import avatar_url
         if discord_user.exists():
             # update user info
             discord_user = discord_user[0]
             discord_user.password = access_token
             discord_user.community = community
             discord_user.readable_name = user_info['username']
-            discord_user.avatar = f"https://cdn.discordapp.com/avatars/{user_info['id']}/{user_info['avatar']}.png"
+            discord_user.avatar = avatar_url(user_info)
             discord_user.save()
         else:
             discord_user,_ = DiscordUser.objects.get_or_create(
@@ -41,7 +42,7 @@ class DiscordBackend(BaseBackend):
                 password = access_token,
                 community = community,
                 readable_name = user_info['username'],
-                avatar = f"https://cdn.discordapp.com/avatars/{user_info['id']}/{user_info['avatar']}.png",
+                avatar = avatar_url(user_info)
             )
         return discord_user
 

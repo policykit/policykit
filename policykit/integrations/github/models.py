@@ -53,8 +53,7 @@ class GithubCommunity(CommunityPlatform):
             assert k == "yes" or k == "no"
             reaction_bool = True if k == "yes" else False
             for u in v["users"]:
-                logger.info(u)
-                user, _ = GithubUser.objects.get_or_create(username=u, community=self)
+                user, _ = GithubUser.objects.get_or_create(username=u, readable_name=u, community=self)
                 existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
                 if existing_vote is None:
                     logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
