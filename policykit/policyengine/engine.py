@@ -107,10 +107,10 @@ def govern_action(action):
     - Otherwise, choose a Policy to evaluate.
     - Create a Proposal and run it.
     """
-    from policyengine.models import Proposal, Policy
+    from policyengine.models import Proposal
 
     # if they have execute permission, skip all policies
-    if action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}"):
+    if action.initiator and action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}"):
         action.execute()
         # No `Proposal` is created because we don't evaluate it
     else:

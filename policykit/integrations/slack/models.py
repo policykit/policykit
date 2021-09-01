@@ -85,12 +85,12 @@ class SlackCommunity(CommunityPlatform):
 
             logger.debug(f"Preparing to make request {call} which requires token type {obj.AUTH}...")
             if obj.AUTH == "user":
-                data["token"] = action.initiator.access_token
+                data["token"] = action.initiator.access_token if action.initiator else None
                 if not data["token"]:
                     # we don't have the token for the user who proposed the action, so use an admin user token instead
                     data["token"] = admin_user_token
             elif obj.AUTH == "admin_bot":
-                if action.initiator.is_community_admin:
+                if action.initiator and action.initiator.is_community_admin:
                     data["token"] = action.initiator.access_token
             elif obj.AUTH == "admin_user":
                 data["token"] = admin_user_token
