@@ -505,7 +505,7 @@ def policy_action_save(request):
     if not data["name"]:
         return HttpResponseBadRequest("Enter a name.")
     if len(data["action_types"]) < 1:
-        if action and hasattr(action, "policy", None) and action.policy.action_types.count() == 0:
+        if action and hasattr(action, "policy") and action.policy.action_types.count() == 0:
             pass # the policy already had no action types, so it's a base policy. ignore
         else:
             return HttpResponseBadRequest("Select one or more action types.")
