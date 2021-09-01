@@ -258,7 +258,7 @@
                 <tr class="sidebarItem">
                   <td>
                     {% if u.avatar %}
-                      <img class="sidebarPicture" src="{{value.avatar}}">
+                      <img class="sidebarPicture" src="{{u.avatar}}">
                     {% else %}
                       <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                     {% endif %}
@@ -275,7 +275,6 @@
                     {% endfor %}
                     {% endwith %}
                   </td>
-                  <td>{{u.communityuser.community.platform}}</td>
                 </tr>
               {% endfor %}
             </tbody>

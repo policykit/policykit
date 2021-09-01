@@ -311,7 +311,7 @@ class CommunityUser(User, PolymorphicModel):
         # If this user is an admin in the community, give them access to edit the Metagov config
         if self.is_community_admin and settings.METAGOV_ENABLED:
             from integrations.metagov.models import MetagovConfig
-            role,created = CommunityRole.objects.get_or_create(community=community, role_name="Metagov Admin")
+            role,created = CommunityRole.objects.get_or_create(community=community, role_name="Integration Admin")
             if created:
                 content_type = ContentType.objects.get_for_model(MetagovConfig)
                 role.permissions.set(Permission.objects.filter(content_type=content_type))

@@ -38,15 +38,15 @@ def authorize_platform(request):
 
 @login_required(login_url='/login')
 def v2(request):
-    from policyengine.models import CommunityUser, Proposal
+    from policyengine.models import CommunityUser, Proposal, CommunityPlatform
 
     user = get_user(request)
     # user = CommunityUser.objects.all().first()
 
     community = user.community.community
-    community_platforms = community.get_platform_communities()
-    users = CommunityUser.objects.filter(community__in=community_platforms)[:DASHBOARD_MAX_USERS]
-    action_log = Action.objects.filter(data__community_id__in=[cp.pk for cp in community_platforms])[:DASHBOARD_MAX_ACTIONS]
+    platform_communities = CommunityPlatform.objects.filter(community=community)
+    users = CommunityUser.objects.filter(community__in=platform_communities)[:DASHBOARD_MAX_USERS]
+    action_log = Action.objects.filter(data__community_id__in=[cp.pk for cp in platform_communities])[:DASHBOARD_MAX_ACTIONS]
 
     pending_proposals = Proposal.objects.filter(
         policy__community=community,
