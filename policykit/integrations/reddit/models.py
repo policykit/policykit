@@ -156,7 +156,7 @@ class RedditCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                for e in Proposal.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=posted_action):
                     if e.community_post:
                         values = {'id': e.community_post}
                         call = 'api/remove'

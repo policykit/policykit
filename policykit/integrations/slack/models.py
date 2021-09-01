@@ -113,7 +113,7 @@ class SlackCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                for e in Proposal.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=posted_action):
                     if e.community_post:
                         values = {
                             "token": admin_user_token,

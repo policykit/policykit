@@ -90,7 +90,7 @@ class DiscourseCommunity(CommunityPlatform):
                 else:
                     posted_action = action
 
-                for e in Proposal.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=posted_action):
                     if e.community_post:
                         data = {}
                         call = 'posts/{0}.json'.format(e.community_post)
