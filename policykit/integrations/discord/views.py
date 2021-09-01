@@ -22,8 +22,8 @@ def discord_login(request):
 
     user_token = request.GET.get("user_token")
     user_id = request.GET.get("user_id")
-    team_id = request.GET.get("team_id")
-    user = authenticate(request, user_token=user_token, user_id=user_id, team_id=team_id)
+    guild_id = request.GET.get("guild_id")
+    user = authenticate(request, user_token=user_token, user_id=user_id, team_id=guild_id)
     if user:
         login(request, user)
         return redirect("/main")
@@ -59,6 +59,7 @@ def discord_install(request):
     # TODO(issue): stop passing user id and token
     user_id = request.GET.get("user_id")
     user_token = request.GET.get("user_token")
+    guild_id = request.GET.get("guild_id")
 
     # Get guild info from Discord
     response = requests.post(
@@ -69,7 +70,6 @@ def discord_install(request):
     if not response.ok:
         return redirect(f"{redirect_route}?error=server_error")
     guild_info = response.json()
-    team_id = guild_info['id']
     readable_name = guild_info['name']
 
     # Set readable_name for Community
@@ -81,20 +81,20 @@ def discord_install(request):
         role_name="Base User", name="Discord: " + readable_name + ": Base User"
     )
 
-    discord_community = DiscordCommunity.objects.filter(team_id=team_id).first()
+    discord_community = DiscordCommunity.objects.filter(team_id=guild_id).first()
     if discord_community is None:
         logger.debug(f"Creating new DiscordCommunity under {community}")
         discord_community = DiscordCommunity.objects.create(
             community=community,
             community_name=readable_name,
-            team_id=team_id,
+            team_id=guild_id,
             base_role=user_group,
         )
         user_group.community = discord_community
         user_group.save()
 
         # Get the list of users and create a DiscordUser object for each user
-        guild_members = discord_community.make_call(f'guilds/{team_id}/members?limit=1000')
+        guild_members = discord_community.make_call(f'guilds/{guild_id}/members?limit=1000')
         owner_id = guild_info['owner_id']
         for member in guild_members:
             u, _ = DiscordUser.objects.get_or_create(
