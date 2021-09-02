@@ -79,9 +79,8 @@ def internal_receive_action(request):
         # Route Slack event to the correct SlackCommunity handler
         cp = SlackCommunity.objects.filter(community=community).first()
         if cp:
-            new_action = cp.handle_metagov_event(body)
-            if new_action:
-                return HttpResponse()
+            cp.handle_metagov_event(body)
+            return HttpResponse()
 
     if body.get("source") == "github":
         # Route Slack event to the correct SlackCommunity handler
