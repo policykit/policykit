@@ -16,40 +16,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-"""
-INIT PROCESS FOR FIRST PLATFORM
-
- - user consent to install
-    - Community created in MG
- - create corresponding Community in PK
-    - ConstitutionCommunity created for constitutional stuff
-
- - create SlackCommunity
-    - create SlackUsers (creates empty base_role)
-    - special token for the installing user
-
- - user chooses StarterKit
-     - create policies
-     - create CommunityRoles (updates the existing base_role)
-     - add Permissions to each CommunityRole
-     - add users to roles (may depend on is_community_admin status)
-     
-
-INIT PROCESS FOR SECOND PLATFORM
-
- - user consent to install
-    - Community slug passed to MG. Plugin enabled in MG.
-
- - create SlackCommunity
-    - create SlackUsers (they all get added to the base_role on save)
-    - save special token for the installing user on SlackUser
-"""
-
-
 class PolicyActionKind:
-    PLATFORM = "platform" #governable
-    CONSTITUTION = "constitution" #governable
-    TRIGGER = "trigger" #trigger
+    PLATFORM = "platform"
+    CONSTITUTION = "constitution"
+    TRIGGER = "trigger"
 
 
 class Community(models.Model):
@@ -563,45 +533,14 @@ class BaseAction(PolymorphicModel):
 
 
 class TriggerAction(BaseAction, PolymorphicModel):
-    """Trigger Action
-    
-    subtypes:
-    -TriggerEvent (event occurred on platform or PK)
-        - Event name
-    -PolicyKitEvent (engine-event, like something passed or failed ?)
-        - GovernableAction type
-        - GovernableAction proposal state? (FAILED/PASSED) ? (or do this in Filter block)
-
-    -webhook (some event that is NOT KNOWN TO POLICYKIT before hand! aka metagov.event_name)
-            we want to consider this an action_type, I think.
-
-            action_types = ["slackpostmessage", "discordpostmessage"]
-            action_types = ["policykitaddcommunitydoc"]
-            action_types = ["schedule"]
-                filter = 'action.hour = 8 and not action.is_weekend'
-                filter = 'action.day_of_month = 15'
-                filter = 'action.day_of_week = THURSDAY'
-            action_types = ["metagovwebhook"]
-            action_types = [Webhook(event_name="loomio.stance_cast")]
-            action_types = [SlackPostMessage(channel=ABCD)]
-
-    -Schedule (hourly, daily, weekly, monthly)
-        - cadence: hourly|weekly|daily|monthly
-        - hour:
-        - day_of_week:
-        - day_of_month:
-    """
+    """Trigger Action"""
     kind = PolicyActionKind.TRIGGER
 
     class Meta:
         abstract = True
 
-    def save(self, *args, **kwargs):
-        should_evaluate = True if not self.pk else False
-        super(TriggerAction, self).save(*args, **kwargs)
-        if should_evaluate:
-            engine.evaluate_action(self)
-
+    def evaluate(self):
+        return engine.evaluate_action(self)
 
 class GovernableAction(BaseAction, PolymorphicModel):
     """

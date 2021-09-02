@@ -77,15 +77,23 @@ def internal_receive_action(request):
 
     if body.get("source") == "slack":
         # Route Slack event to the correct SlackCommunity handler
-        slack_community = SlackCommunity.objects.filter(community=community).first()
-        if slack_community is None:
-            return HttpResponseBadRequest(f"no slack community exists for {metagov_community_slug}")
-        slack_community.handle_metagov_event(body)
-        return HttpResponse()
+        cp = SlackCommunity.objects.filter(community=community).first()
+        if cp:
+            new_action = cp.handle_metagov_event(body)
+            if new_action:
+                return HttpResponse()
 
-    # For all other sources, create generic MetagovTriggers.
-    platform_community = community.get_platform_communities().first()
-    if platform_community is None:
+    if body.get("source") == "github":
+        # Route Slack event to the correct SlackCommunity handler
+        cp = GithubCommunity.objects.filter(community=community).first()
+        if cp:
+            new_action = cp.handle_metagov_event(body)
+            if new_action:
+                return HttpResponse()
+
+    # Create generic MetagovTriggers.
+    cp = community.get_platform_communities().first()
+    if cp is None:
         logger.error(f"No platforms exist for community '{community}'")
         return HttpResponse()
 
@@ -96,24 +104,18 @@ def internal_receive_action(request):
     initiator = body["initiator"]
     prefixed_username = f"{initiator['provider']}.{initiator['user_id']}"
     metagov_user, _ = MetagovUser.objects.get_or_create(
-        username=prefixed_username, provider=initiator["provider"], community=platform_community
+        username=prefixed_username, provider=initiator["provider"], community=cp
     )
 
-    if not metagov_user.has_perm("metagov.add_metagovtrigger"):
-        p = Permission.objects.get(codename="add_metagovtrigger")
-        metagov_user.user_permissions.add(p)
-
     # Create MetagovTrigger
-    new_api_action = MetagovTrigger(
-        community=platform_community,
+    trigger_action = MetagovTrigger(
+        community=cp,
         initiator=metagov_user,
         event_type=f"{body['source']}.{body['event_type']}",
         json_data=json.dumps(body["data"]),
     )
+    proposals = trigger_action.evaluate()
 
-    new_api_action.save()
-    if not new_api_action.pk:
-        return HttpResponseServerError()
-
-    logger.info(f"Created new MetagovTrigger with pk {new_api_action.pk}")
+    logger.debug(f"trigger_action proposals: {proposals}")
+    logger.debug(f"trigger_action saved?: {trigger_action.pk is not None}")
     return HttpResponse()

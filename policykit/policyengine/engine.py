@@ -132,8 +132,13 @@ def evaluate_action(action):
     if not eligible_policies.exists():
         return None
 
+    if not action.pk:
+        # at this point we need to make sure the action is saved to the database since we'll be creating Proposals linked to it
+        action.save()
+
     # If this is a trigger action, evaluate ALL eligible policies
     if action.kind == PolicyActionKind.TRIGGER:
+        proposals = []
         for policy in eligible_policies:
             proposal = Proposal.objects.create(policy=policy, action=action, status=Proposal.PROPOSED)
             try:
@@ -141,6 +146,9 @@ def evaluate_action(action):
             except Exception as e:
                 logger.debug(f"{proposal} raised exception '{e}'")
                 proposal.delete()
+            else:
+                proposals.append(proposal)
+        return proposals
 
     # If this is a governable action, choose ONE policy to evaluate
     else:

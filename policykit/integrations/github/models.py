@@ -61,3 +61,12 @@ class GithubCommunity(CommunityPlatform):
                     logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
                     existing_vote.boolean_value = reaction_bool
                     existing_vote.save()
+
+    def handle_metagov_event(self, outer_event):
+        """
+        Receive Github Metagov Event for this community
+        """
+        logger.debug(f"GithubCommunity recieved metagov event: {outer_event['event_type']}")
+        if outer_event["initiator"].get("is_metagov_bot") == True:
+            logger.debug("Ignoring bot event")
+            return

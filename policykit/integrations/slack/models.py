@@ -137,6 +137,7 @@ class SlackCommunity(CommunityPlatform):
             new_api_action.is_bundled = False
             new_api_action.save()  # save triggers policy proposal
             logger.debug(f"GovernableAction saved: {new_api_action.pk}")
+            return new_api_action
 
     def handle_metagov_process(self, proposal, process):
         """
