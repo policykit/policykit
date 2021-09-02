@@ -175,28 +175,16 @@ def initialize_starterkit_inner(community, kit_data, creator_token=None):
             defaults={"role_name": role["name"], "description": role["description"]},
         )
 
-        # Add PolicyKit-related permissions
-        r.permissions.set(Permission.objects.filter(name__in=role["permissions"]))
+        # Add constitution permissions
+        constitution_content_types = get_action_content_types("constitution")
+        _add_permissions_to_role(r, role["constitution_permission_sets"], constitution_content_types)
 
-        # Add permissions for each GovernableAction (for all platforms, not just the enabled one)
+        # Add permissions for each platform GovernableAction (for all platforms, not just the enabled one)
         action_content_types = []
         for platform in get_platform_integrations():
             content_types = get_action_content_types(platform)
             action_content_types.extend(content_types)
-
-        if "view" in role["permission_sets"]:
-            view_perms = Permission.objects.filter(content_type__in=action_content_types, name__startswith="Can view")
-            r.permissions.add(*view_perms)
-        if "propose" in role["permission_sets"]:
-            propose_perms = Permission.objects.filter(
-                content_type__in=action_content_types, name__startswith="Can add"
-            )
-            r.permissions.add(*propose_perms)
-        if "execute" in role["permission_sets"]:
-            execute_perms = Permission.objects.filter(
-                content_type__in=action_content_types, name__startswith="Can execute"
-            )
-            r.permissions.add(*execute_perms)
+        _add_permissions_to_role(r, role["platform_permission_sets"], action_content_types)
 
         if role["user_group"] == "all":
             group = CommunityUser.objects.filter(community__community=community)
@@ -207,8 +195,25 @@ def initialize_starterkit_inner(community, kit_data, creator_token=None):
         elif role["user_group"] == "creator":
             group = CommunityUser.objects.filter(community__community=community, access_token=creator_token)
 
+        # Add PolicyKit-specific permissions
+        r.permissions.set(Permission.objects.filter(name__in=role["permissions"]))
+
         # logger.debug(f"Adding {group.count()} users to role {r.role_name}")
         for user in group:
             r.user_set.add(user)
 
         r.save()
+
+
+def _add_permissions_to_role(role, permission_sets, content_types):
+    from django.contrib.auth.models import Permission
+
+    if "view" in permission_sets:
+        view_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can view")
+        role.permissions.add(*view_perms)
+    if "propose" in permission_sets:
+        propose_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can add")
+        role.permissions.add(*propose_perms)
+    if "execute" in permission_sets:
+        execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
+        role.permissions.add(*execute_perms)

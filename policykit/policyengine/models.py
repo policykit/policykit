@@ -569,7 +569,6 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         evaluate_action = kwargs.pop("evaluate_action", None)
         should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
-        logger.debug(f"saving governable action, {should_evaluate}")
         if should_evaluate:
             # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"

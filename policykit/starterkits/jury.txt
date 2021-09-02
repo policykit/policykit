@@ -31,7 +31,11 @@
       "description": "",
       "is_base_role": true,
       "user_group": "all",
-      "permission_sets": [
+      "platform_permission_sets": [
+        "view",
+        "propose"
+      ],
+      "constitution_permission_sets": [
         "view",
         "propose"
       ],
@@ -43,24 +47,7 @@
         "Can add number vote",
         "Can change number vote",
         "Can delete number vote",
-        "Can view number vote",
-        "Can add policykit add role",
-        "Can add policykit delete role",
-        "Can add policykit edit role",
-        "Can add policykit add user role",
-        "Can add policykit remove user role",
-        "Can add policykit change platform policy",
-        "Can add policykit change constitution policy",
-        "Can add policykit remove platform policy",
-        "Can add policykit remove constitution policy",
-        "Can add policykit recover platform policy",
-        "Can add policykit recover constitution policy",
-        "Can add policykit add platform policy",
-        "Can add policykit add constitution policy",
-        "Can add policykit add community doc",
-        "Can add policykit change community doc",
-        "Can add policykit delete community doc",
-        "Can add policykit recover community doc"
+        "Can view number vote"
       ]
     }
   ]

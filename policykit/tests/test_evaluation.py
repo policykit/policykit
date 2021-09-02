@@ -26,13 +26,9 @@ class EvaluationTests(TestCase):
             initiator=initiator or self.user, community=self.slack_community, community_origin=community_origin
         )
 
-    # TODO: add tests for action_types filtering
-
     def test_can_execute(self):
         """Test that users with can_execute permissions can execute any action and mark it as 'passed'"""
         policy = Policy.objects.create(**TestUtils.ALL_ACTIONS_FAIL, kind=Policy.PLATFORM, community=self.community)
-        # a,_ = ActionType.objects.get_or_create(codename="slackpinmessage")
-        # policy.action_types.add(a)
 
         # create a test user with can_execute permissions
         can_execute = Permission.objects.get(name="Can execute slack pin message")
@@ -111,7 +107,9 @@ class EvaluationTests(TestCase):
         self.evaluate_action_helper(action, expected_did_execute=True)
 
         # action initiated by user without "can_execute" should generate a failed proposal
-        action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.constitution_community)
+        action = PolicykitAddCommunityDoc(
+            name="my other doc", initiator=self.user, community=self.constitution_community
+        )
         self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
@@ -180,6 +178,30 @@ class EvaluationTests(TestCase):
         action = self.new_slackpinmessage(community_origin=True)
         self.evaluate_action_helper(
             action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
+        )
+
+    def test_action_type_filtering(self):
+        """Policy is selected based on action_types"""
+        slackpinmessage_policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+        a = ActionType.objects.create(codename="slackpinmessage")
+        slackpinmessage_policy.action_types.add(a)
+
+        slackpostmessage_policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+        a = ActionType.objects.create(codename="slackpostmessage")
+        slackpostmessage_policy.action_types.add(a)
+
+        # new action should pass using the slackpinmessage_policy
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action, expected_policy=slackpinmessage_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
     def test_policy_exception(self):

@@ -8,8 +8,6 @@ from policyengine.utils import initialize_starterkit_inner
 import os
 import json
 
-# TODO test make starterkit idempotent. change base roles and policies.
-
 
 @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
 class StarterKitTests(TestCase):
