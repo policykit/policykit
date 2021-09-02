@@ -544,33 +544,32 @@ class TriggerAction(BaseAction, PolymorphicModel):
 
 class GovernableAction(BaseAction, PolymorphicModel):
     """
-    PLATFORM ACTION can be executed and reverted, is "governable"
-
-    Constitution actions are Platform actions
+    Governable action that can be executed and reverted. Constitution actions are governable.
     """
-    kind = PolicyActionKind.PLATFORM
+    kind = PolicyActionKind.PLATFORM # should only by overridden by constitiiution app
 
     ACTION = None
     AUTH = 'app'
     
 
     community_revert = models.BooleanField(default=False)
-    """True if the action has been reverted on the platform."""
+    """True if the action has been reverted."""
 
     community_origin = models.BooleanField(default=False)
-    """True if the action originated on the platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
+    """True if the action originated on an external platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
 
     def __str__(self):
         return self.action_type or super(GovernableAction, self).__str__()
 
     def save(self, *args, **kwargs):
         """
-        Saves the platform action. If new, evaluates against current policies.
+        Saves the governable action. If new, evaluates against current policies.
 
         :meta private:
         """
         evaluate_action = kwargs.pop("evaluate_action", None)
         should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
+        logger.debug(f"saving governable action, {should_evaluate}")
         if should_evaluate:
             # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
@@ -695,8 +694,7 @@ class Policy(models.Model):
         abstract = False
 
     def __str__(self):
-        prefix = "PlatformPolicy: " if self.kind == self.PLATFORM else "ConstitutionPolicy: "
-        return prefix + self.name
+        return f"{self.kind.capitalize()} Policy: {self.name}"
 
     @property
     def is_bundled(self):

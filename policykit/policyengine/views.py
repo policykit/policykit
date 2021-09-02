@@ -527,8 +527,6 @@ def policy_action_save(request):
             pass # the policy already had no action types, so it's a base policy. ignore
         else:
             return HttpResponseBadRequest("Select one or more action types.")
-    
-    logger.debug("saving constitution action")
 
     try:
         action.save(evaluate_action=False)
@@ -538,8 +536,7 @@ def policy_action_save(request):
 
     action_types = [ActionType.objects.get_or_create(codename=codename)[0] for codename in data["action_types"]]
     action.action_types.set(action_types)
-    logger.debug(action_types)
-    logger.debug("evaluating constitution action")
+
     try:
         action.save(evaluate_action=True)
     except Exception as e:

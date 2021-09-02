@@ -268,6 +268,7 @@ class PolicykitAddTriggerPolicy(EditorModel):
         return "Add Trigger Policy: " + self.name
 
     def execute(self):
+        logger.debug("adding trigger policy....")
         policy = Policy(kind=Policy.TRIGGER)
         self.save_to_policy(policy)
 
