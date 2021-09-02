@@ -9,8 +9,8 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.models import MetagovAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole, Proposal
+from integrations.metagov.models import MetagovTrigger, MetagovUser
+from policyengine.models import Community, Proposal
 from integrations.slack.models import SlackCommunity
 from integrations.github.models import GithubCommunity
 
@@ -83,13 +83,13 @@ def internal_receive_action(request):
         slack_community.handle_metagov_event(body)
         return HttpResponse()
 
-    # For all other sources, create generic MetagovActions.
+    # For all other sources, create generic MetagovTriggers.
     platform_community = community.get_platform_communities().first()
     if platform_community is None:
         logger.error(f"No platforms exist for community '{community}'")
         return HttpResponse()
 
-    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovActions
+    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovTriggers
 
     # Hack so MetagovUser username doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.
@@ -99,12 +99,12 @@ def internal_receive_action(request):
         username=prefixed_username, provider=initiator["provider"], community=platform_community
     )
 
-    if not metagov_user.has_perm("metagov.add_metagovaction"):
-        p = Permission.objects.get(codename="add_metagovaction")
+    if not metagov_user.has_perm("metagov.add_metagovtrigger"):
+        p = Permission.objects.get(codename="add_metagovtrigger")
         metagov_user.user_permissions.add(p)
 
-    # Create MetagovAction
-    new_api_action = MetagovAction(
+    # Create MetagovTrigger
+    new_api_action = MetagovTrigger(
         community=platform_community,
         initiator=metagov_user,
         event_type=f"{body['source']}.{body['event_type']}",
@@ -115,5 +115,5 @@ def internal_receive_action(request):
     if not new_api_action.pk:
         return HttpResponseServerError()
 
-    logger.info(f"Created new MetagovAction with pk {new_api_action.pk}")
+    logger.info(f"Created new MetagovTrigger with pk {new_api_action.pk}")
     return HttpResponse()

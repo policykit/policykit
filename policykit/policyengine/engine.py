@@ -3,8 +3,6 @@ import logging
 from actstream import action as actstream_action
 from django.conf import settings
 
-from policyengine.utils import ActionKind
-
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
 
@@ -90,40 +88,61 @@ class PolicyDoesNotPassFilter(PolicyEngineError):
 
 
 def get_eligible_policies(action):
-    from policyengine.models import Policy
     from django.db.models import Q
+    from policyengine.models import PolicyActionKind
 
-    policy_kind = Policy.CONSTITUTION if action.is_constitutional else Policy.PLATFORM
-    active_policies = action.community.community.get_policies()
-    return active_policies.filter(
-        Q(kind=policy_kind) & (Q(action_types=None) | Q(action_types__codename=action.action_type))
-    )
+    if action.kind == PolicyActionKind.TRIGGER:
+        # Trigger policies MUST match the trigger action. There is no "base policy" concept for triggers.
+        action_type_match = Q(action_types__codename=action.action_type)
+    else:
+        # Governing policies can match if they have NO action_types specified (meaning its the "base policy")
+        action_type_match = Q(action_types=None) | Q(action_types__codename=action.action_type)
+
+    eligible_policies = action.community.community.get_policies().filter(Q(kind=action.kind) & action_type_match)
+
+    logger.debug(f"{action.kind} action '{action}' found {eligible_policies.count()} eligible policies")
+    return eligible_policies
 
 
-def govern_action(action):
+def evaluate_action(action):
     """
     Called the FIRST TIME that an action is evaluated.
+
+    For governable actions:
     - If the initiator has "can execute" permission, execute the action and mark it as "passed."
     - Otherwise, choose a Policy to evaluate.
-    - Create a Proposal and run it.
+
+    For trigger actions:
+    - Evaluate against all eligible policies
     """
-    from policyengine.models import Proposal
+    from policyengine.models import Proposal, PolicyActionKind
 
-    # if they have execute permission, skip all policies
-    if action.initiator and action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}"):
-        action.execute()
-        # No `Proposal` is created because we don't evaluate it
+    # if this is a governable action and the initiator has execute permission, skip all policies
+    if (
+        action.kind != PolicyActionKind.TRIGGER
+        and action.initiator
+        and action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}")
+    ):
+        action.execute()  # No `Proposal` is created because we don't evaluate it
+        return None
+
+    eligible_policies = get_eligible_policies(action)
+    if not eligible_policies.exists():
+        logger.warn(f"No eligible policies for {action.action_type} action: {action}")
+        return None
+
+    # If this is a trigger action, evaluate ALL eligible policies
+    if action.kind == PolicyActionKind.TRIGGER:
+        for policy in eligible_policies:
+            proposal = Proposal.objects.create(policy=policy, action=action, status=Proposal.PROPOSED)
+            try:
+                evaluate_proposal(proposal, is_first_evaluation=True)
+            except Exception as e:
+                logger.debug(f"{proposal} raised exception '{e}'")
+                proposal.delete()
+
+    # If this is a governable action, choose ONE policy to evaluate
     else:
-
-        existing_proposals = Proposal.objects.filter(action=action)
-        if existing_proposals:
-            logger.warn(f"There are already {existing_proposals.count()} proposals for action {action}")
-
-        eligible_policies = get_eligible_policies(action)
-        if not eligible_policies.exists():
-            logger.warn(f"No eligible policies for action {action} {action.action_type}")
-            return None
-
         while eligible_policies.exists():
             proposal = choose_policy(action, eligible_policies)
             if not proposal:
@@ -135,7 +154,7 @@ def govern_action(action):
                 evaluate_proposal(proposal, is_first_evaluation=True)
             except Exception as e:
                 eligible_policies = eligible_policies.exclude(pk=proposal.policy.pk)
-                logger.debug(f"{proposal} raised a exception '{e}', choosing a different policy...")
+                logger.debug(f"{proposal} raised exception '{e}', choosing a different policy...")
                 proposal.delete()
                 pass
             else:
@@ -169,12 +188,12 @@ def choose_policy(action, policies):
 
 def delete_and_rerun(proposal):
     """
-    Delete the proposal and re-run govern_action for the relevant action.
+    Delete the proposal and re-run evaluate_action for the relevant action.
     Called when the proposal becomes invalid, because the policy was deleted or is no longer relevant.
     """
     action = proposal.action
     proposal.delete()
-    new_evaluation = govern_action(action)
+    new_evaluation = evaluate_action(action)
     return new_evaluation
 
 
@@ -207,7 +226,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
 
 
 def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: bool):
-    from policyengine.models import Policy, Proposal
+    from policyengine.models import Policy, Proposal, PolicyActionKind
 
     policy = context.policy
     action = context.action
@@ -235,10 +254,10 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
         # EXECUTE the action if....
         # it is a PlatformAction that was proposed in the PolicyKit UI
-        if action.action_kind == ActionKind.PLATFORM and not action.community_origin:
+        if action.kind == PolicyActionKind.PLATFORM and not action.community_origin:
             action.execute()
         # it is a constitution action
-        elif action.action_kind == ActionKind.CONSTITUTION:
+        elif action.kind == PolicyActionKind.CONSTITUTION:
             action.execute()
 
         if settings.METAGOV_ENABLED:
@@ -260,7 +279,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     should_revert = (
         is_first_evaluation
         and check_result in [Proposal.PROPOSED, Proposal.FAILED]
-        and action.action_kind == ActionKind.PLATFORM
+        and action.kind == PolicyActionKind.PLATFORM
         and action.community_origin
     )
 

@@ -10,7 +10,6 @@ from django.views.decorators.csrf import csrf_exempt
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto import Random
-from policyengine.utils import ActionKind
 import urllib.request
 import json
 import base64
@@ -139,7 +138,7 @@ def action(request):
     logger.info(json_data)
 
 def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
-    from policyengine.models import LogAPICall
+    from policyengine.models import LogAPICall, BaseAction
     policy = proposal.policy
     policy_message = "This action is governed by the following policy: " + policy.name
     if template:
@@ -159,6 +158,6 @@ def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
-    if action.action_kind == ActionKind.PLATFORM:
+    if action.kind == BaseAction.PLATFORM:
         proposal.community_post = res['id']
         proposal.save()

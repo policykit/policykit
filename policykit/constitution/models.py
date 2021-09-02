@@ -14,6 +14,7 @@ from policyengine.models import (
     PlatformAction,
     Policy,
     ActionType,
+    PolicyActionKind
 )
 
 
@@ -25,7 +26,14 @@ class ConstitutionCommunity(CommunityPlatform):
     platform = "constitution"
 
 
-class PolicykitAddCommunityDoc(PlatformAction):
+class ConstitutionAction(PlatformAction):
+    kind = PolicyActionKind.CONSTITUTION
+
+    class Meta:
+        abstract = True
+
+
+class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
 
@@ -39,7 +47,7 @@ class PolicykitAddCommunityDoc(PlatformAction):
         permissions = (("can_execute_policykitaddcommunitydoc", "Can execute policykit add community doc"),)
 
 
-class PolicykitChangeCommunityDoc(PlatformAction):
+class PolicykitChangeCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
     name = models.TextField()
     text = models.TextField()
@@ -56,7 +64,7 @@ class PolicykitChangeCommunityDoc(PlatformAction):
         permissions = (("can_execute_policykitchangecommunitydoc", "Can execute policykit change community doc"),)
 
 
-class PolicykitDeleteCommunityDoc(PlatformAction):
+class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
 
     def __str__(self):
@@ -72,7 +80,7 @@ class PolicykitDeleteCommunityDoc(PlatformAction):
         permissions = (("can_execute_policykitdeletecommunitydoc", "Can execute policykit delete community doc"),)
 
 
-class PolicykitRecoverCommunityDoc(PlatformAction):
+class PolicykitRecoverCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
 
     def __str__(self):
@@ -88,7 +96,7 @@ class PolicykitRecoverCommunityDoc(PlatformAction):
         permissions = (("can_execute_policykitrecovercommunitydoc", "Can execute policykit recover community doc"),)
 
 
-class PolicykitAddRole(PlatformAction):
+class PolicykitAddRole(ConstitutionAction):
     name = models.CharField("name", max_length=300)
     description = models.TextField(null=True, blank=True, default="")
     permissions = models.ManyToManyField(Permission)
@@ -108,7 +116,7 @@ class PolicykitAddRole(PlatformAction):
         permissions = (("can_execute_policykitaddrole", "Can execute policykit add role"),)
 
 
-class PolicykitDeleteRole(PlatformAction):
+class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
 
     def __str__(self):
@@ -127,7 +135,7 @@ class PolicykitDeleteRole(PlatformAction):
         permissions = (("can_execute_policykitdeleterole", "Can execute policykit delete role"),)
 
 
-class PolicykitEditRole(PlatformAction):
+class PolicykitEditRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     name = models.CharField("name", max_length=300)
     description = models.TextField(null=True, blank=True, default="")
@@ -148,7 +156,7 @@ class PolicykitEditRole(PlatformAction):
         permissions = (("can_execute_policykiteditrole", "Can execute policykit edit role"),)
 
 
-class PolicykitAddUserRole(PlatformAction):
+class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
@@ -169,7 +177,7 @@ class PolicykitAddUserRole(PlatformAction):
         permissions = (("can_execute_policykitadduserrole", "Can execute policykit add user role"),)
 
 
-class PolicykitRemoveUserRole(PlatformAction):
+class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.CASCADE)
     users = models.ManyToManyField(CommunityUser)
 
@@ -196,7 +204,7 @@ DEFAULT_SUCCESS = "action.execute()\n\n"
 DEFAULT_FAIL = "pass\n\n"
 
 
-class EditorModel(PlatformAction):
+class EditorModel(ConstitutionAction):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
 
@@ -255,6 +263,13 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         )
 
 
+# FIXME gig. we want to have different permissions for.
+# change governing policy
+# change governing [slack|reddit|discord] policy
+# change governing constitution policy
+# change trigger policy
+
+
 class PolicykitChangePlatformPolicy(EditorModel):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
@@ -285,7 +300,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         )
 
 
-class PolicykitRemovePlatformPolicy(PlatformAction):
+class PolicykitRemovePlatformPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
     def __str__(self):
@@ -302,7 +317,7 @@ class PolicykitRemovePlatformPolicy(PlatformAction):
         permissions = (("can_execute_policykitremoveplatformpolicy", "Can execute policykit remove platform policy"),)
 
 
-class PolicykitRecoverPlatformPolicy(PlatformAction):
+class PolicykitRecoverPlatformPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
     def __str__(self):
@@ -321,7 +336,7 @@ class PolicykitRecoverPlatformPolicy(PlatformAction):
         )
 
 
-class PolicykitRemoveConstitutionPolicy(PlatformAction):
+class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
     def __str__(self):
@@ -340,7 +355,7 @@ class PolicykitRemoveConstitutionPolicy(PlatformAction):
         )
 
 
-class PolicykitRecoverConstitutionPolicy(PlatformAction):
+class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
     def __str__(self):

@@ -1,10 +1,10 @@
 from django.conf import settings
 import logging
-from policyengine.models import PlatformActionBundle, LogAPICall
+from policyengine.models import PlatformActionBundle, LogAPICall, PolicyActionKind
 import datetime
 import json
 from django.db.models import Q
-from policyengine.utils import ActionKind, default_election_vote_message, default_boolean_vote_message
+from policyengine.utils import default_election_vote_message, default_boolean_vote_message
 from integrations.metagov.library import Metagov
 
 logger = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
     if channel is None and users is None:
         # Determine which channel to post in
         if post_type == "channel":
-            if action.action_kind == ActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
+            if action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
                 payload["channel"] = action.channel
             elif action.action_type == "platformactionbundle":
                 first_action = action.bundled_actions.all()[0]

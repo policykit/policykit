@@ -41,16 +41,16 @@ class EvaluationTests(TestCase):
 
         # action initiated by user with "can_execute" should execute, and should NOT generate an proposal
         action = self.new_slackpinmessage(initiator=user_with_can_execute)
-        self.govern_action_helper(action, expected_did_execute=True)
+        self.evaluate_action_helper(action, expected_did_execute=True)
 
         # action initiated by user without "can_execute" should not execute, and should generate an proposal and fail because of the policy
         action = self.new_slackpinmessage()
 
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
-    def govern_action_helper(self, action, expected_did_execute, expected_policy=None, expected_status=None):
+    def evaluate_action_helper(self, action, expected_did_execute, expected_policy=None, expected_status=None):
         action._test_did_execute = False
 
         def mocked_execute():
@@ -82,13 +82,13 @@ class EvaluationTests(TestCase):
 
         # engine should call "execute" for non-community actions on pass
         action = self.new_slackpinmessage()
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=first_policy, expected_did_execute=True, expected_status=Proposal.PASSED
         )
 
         # engine should not call "execute" for community actions on pass
         action = self.new_slackpinmessage(community_origin=True)
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
@@ -108,11 +108,11 @@ class EvaluationTests(TestCase):
         action = PolicykitAddCommunityDoc(
             name="my doc", initiator=user_with_can_execute, community=self.constitution_community
         )
-        self.govern_action_helper(action, expected_did_execute=True)
+        self.evaluate_action_helper(action, expected_did_execute=True)
 
         # action initiated by user without "can_execute" should generate a failed proposal
         action = PolicykitAddCommunityDoc(name="my other doc", initiator=self.user, community=self.constitution_community)
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
@@ -132,14 +132,14 @@ class EvaluationTests(TestCase):
         user = SlackUser.objects.create(username="test-user", community=self.slack_community)
         self.assertEqual(user.has_perm(f"constitution.{PROPOSE_COMMUNITY_DOC_PERM}"), False)
         action = PolicykitAddCommunityDoc(name="my doc", initiator=user, community=self.constitution_community)
-        self.govern_action_helper(action, expected_did_execute=False)
+        self.evaluate_action_helper(action, expected_did_execute=False)
 
         # action initiated by user with "can_add" should pass
         user = SlackUser.objects.create(username="second-user", community=self.slack_community)
         user.user_permissions.add(can_add)
         self.assertTrue(user.has_perm(f"constitution.{PROPOSE_COMMUNITY_DOC_PERM}"))
         action = PolicykitAddCommunityDoc(name="my other doc", initiator=user, community=self.constitution_community)
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=True, expected_status=Proposal.PASSED
         )
 
@@ -157,7 +157,7 @@ class EvaluationTests(TestCase):
 
         # new action should pass
         action = self.new_slackpinmessage(community_origin=True)
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
@@ -170,7 +170,7 @@ class EvaluationTests(TestCase):
         # new action should fail, because of most recent policy
         action = self.new_slackpinmessage(community_origin=True)
         action.revert = lambda: None
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=second_policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
@@ -178,7 +178,7 @@ class EvaluationTests(TestCase):
         first_policy.save()
         # new action should pass, "first_policy" is now most recent
         action = self.new_slackpinmessage(community_origin=True)
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
@@ -200,7 +200,7 @@ class EvaluationTests(TestCase):
         )
 
         action = self.new_slackpinmessage(community_origin=True)
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=all_pass_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
@@ -217,7 +217,7 @@ class EvaluationTests(TestCase):
 
         action = self.new_slackpinmessage(community_origin=True)
         action.revert = lambda: None
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=all_fail_policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
@@ -232,7 +232,7 @@ class EvaluationTests(TestCase):
         # Make a pending action
         action = self.new_slackpinmessage(community_origin=True)
         action.revert = lambda: None
-        self.govern_action_helper(
+        self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.PROPOSED
         )
 

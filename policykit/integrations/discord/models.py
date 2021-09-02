@@ -1,20 +1,11 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
-from django.contrib.auth.models import Permission, ContentType
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
-import json
 import logging
 
 logger = logging.getLogger(__name__)
 
-DISCORD_ACTIONS = [
-    'discordpostmessage',
-    'discorddeletemessage',
-    'discordrenamechannel',
-    'discordcreatechannel',
-    'discorddeletechannel'
-]
 
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.

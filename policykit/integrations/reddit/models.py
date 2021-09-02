@@ -1,6 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
-from django.contrib.auth.models import Permission
+from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Proposal
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
 from urllib import parse
@@ -12,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
-REDDIT_ACTIONS = ['redditmakepost']
 
 def refresh_access_token(refresh_token):
     data = parse.urlencode({

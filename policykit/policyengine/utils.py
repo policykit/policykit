@@ -8,12 +8,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
-class ActionKind:
-    PLATFORM = "platform"
-    CONSTITUTION = "constitution"
-
-
 def default_election_vote_message(policy):
     return (
         "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"

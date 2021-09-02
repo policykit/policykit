@@ -9,7 +9,6 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 import integrations.metagov.api as MetagovAPI
-from policyengine.utils import ActionKind
 from policyengine import engine
 from datetime import datetime, timezone
 import json
@@ -45,6 +44,12 @@ INIT PROCESS FOR SECOND PLATFORM
     - create SlackUsers (they all get added to the base_role on save)
     - save special token for the installing user on SlackUser
 """
+
+
+class PolicyActionKind:
+    PLATFORM = "platform" #governable
+    CONSTITUTION = "constitution" #governable
+    TRIGGER = "trigger" #trigger
 
 
 class Community(models.Model):
@@ -532,13 +537,9 @@ class Proposal(models.Model):
 class BaseAction(PolymorphicModel):
     """Base Action"""
 
-    # FIXME: rename to community_platform
     community = models.ForeignKey(CommunityPlatform, models.CASCADE, verbose_name='community')
     """The ``CommunityPlatform`` in which the action occurred (or was proposed). If proposed through the PolicyKit app,
     this is the community that the proposing user was authenticated with."""
-
-        # related_name="%(app_label)s_%(class)s_related",
-        # related_query_name="%(app_label)s_%(class)ss",
 
     initiator = models.ForeignKey(CommunityUser, models.CASCADE, blank=True, null=True)
     """The ``CommunityUser`` who initiated the action. May not exist if initiated by PolicyKit."""
@@ -546,25 +547,8 @@ class BaseAction(PolymorphicModel):
     is_bundled = models.BooleanField(default=False)
     """True if the action is part of a bundle."""
 
-    action_kind = None
-    """Kind of action. One of 'platform' or 'constitution'. Do not override."""
-
-    def save(self, *args, **kwargs):
-        """
-        Saves the action. If new, evaluates against current policies. Note: Only meant for internal use.
-
-        :meta private:
-        """
-        evaluate_action = kwargs.pop("evaluate_action", None)
-        should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
-        if should_evaluate:
-            # Runs if initiator has propose permission, OR if there is no initiator.
-            can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
-            if not self.initiator or self.initiator.has_perm(can_propose_perm):
-                super(BaseAction, self).save(*args, **kwargs)
-                engine.govern_action(self)
-
-        super(BaseAction, self).save(*args, **kwargs)
+    kind = None
+    """Kind of action. One of 'platform' or 'constitution' or 'trigger'. Do not override."""
 
     @property
     def action_type(self):
@@ -572,7 +556,7 @@ class BaseAction(PolymorphicModel):
         return self._meta.model_name
 
 
-class TriggerAction(PolymorphicModel):
+class TriggerAction(BaseAction, PolymorphicModel):
     """Trigger Action
     
     subtypes:
@@ -581,7 +565,6 @@ class TriggerAction(PolymorphicModel):
     -PolicyKitEvent (engine-event, like something passed or failed ?)
         - PlatformAction type
         - PlatformAction proposal state? (FAILED/PASSED) ? (or do this in Filter block)
-
 
     -webhook (some event that is NOT KNOWN TO POLICYKIT before hand! aka metagov.event_name)
             we want to consider this an action_type, I think.
@@ -592,15 +575,8 @@ class TriggerAction(PolymorphicModel):
                 filter = 'action.hour = 8 and not action.is_weekend'
                 filter = 'action.day_of_month = 15'
                 filter = 'action.day_of_week = THURSDAY'
-
-            
-            
             action_types = ["metagovwebhook"]
             action_types = [Webhook(event_name="loomio.stance_cast")]
-
-
-
-
             action_types = [SlackPostMessage(channel=ABCD)]
 
     -Schedule (hourly, daily, weekly, monthly)
@@ -609,13 +585,29 @@ class TriggerAction(PolymorphicModel):
         - day_of_week:
         - day_of_month:
     """
-    # action_kind = ActionKind.TRIGGER
+    kind = PolicyActionKind.TRIGGER
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        should_evaluate = True if not self.pk else False
+        super(TriggerAction, self).save(*args, **kwargs)
+        if should_evaluate:
+            engine.evaluate_action(self)
 
 
 class PlatformAction(BaseAction, PolymorphicModel):
+    """
+    PLATFORM ACTION can be executed and reverted, is "governable"
+
+    Constitution actions are Platform actions
+    """
+    kind = PolicyActionKind.PLATFORM
+
     ACTION = None
     AUTH = 'app'
-    # action_kind = ActionKind.PLATFORM
+    
 
     community_revert = models.BooleanField(default=False)
     """True if the action has been reverted on the platform."""
@@ -625,6 +617,23 @@ class PlatformAction(BaseAction, PolymorphicModel):
 
     def __str__(self):
         return self.action_type or super(PlatformAction, self).__str__()
+
+    def save(self, *args, **kwargs):
+        """
+        Saves the platform action. If new, evaluates against current policies.
+
+        :meta private:
+        """
+        evaluate_action = kwargs.pop("evaluate_action", None)
+        should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
+        if should_evaluate:
+            # Runs if initiator has propose permission, OR if there is no initiator.
+            can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
+            if not self.initiator or self.initiator.has_perm(can_propose_perm):
+                super(PlatformAction, self).save(*args, **kwargs)
+                engine.evaluate_action(self)
+
+        super(PlatformAction, self).save(*args, **kwargs)
 
     def revert(self, values, call, method=None):
         """
@@ -640,16 +649,8 @@ class PlatformAction(BaseAction, PolymorphicModel):
         """
         self.community.execute_platform_action(self)
 
-    @property
-    def action_kind(self):
-        return ActionKind.CONSTITUTION if self.is_constitutional else ActionKind.PLATFORM
 
-    @property
-    def is_constitutional(self):
-        # logger.debug(f"action {self.action_type} is tied to {self.community.platform}")
-        return self.community.platform == "constitution"
-
-class PlatformActionBundle(BaseAction):
+class PlatformActionBundle(PlatformAction):
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -657,17 +658,13 @@ class PlatformActionBundle(BaseAction):
         (BUNDLE, 'bundle')
     ]
 
-    bundled_actions = models.ManyToManyField(PlatformAction)
+    bundled_actions = models.ManyToManyField(PlatformAction, related_name="member_of_bundle")
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     def execute(self):
         if self.bundle_type == PlatformActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
-
-    @property
-    def action_kind(self):
-        return ActionKind.CONSTITUTION if self.is_constitutional else ActionKind.PLATFORM
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
@@ -687,9 +684,11 @@ class Policy(models.Model):
 
     PLATFORM = 'platform'
     CONSTITUTION = 'constitution'
+    TRIGGER = 'trigger'
     POLICY_KIND = [
         (PLATFORM, 'platform'),
-        (CONSTITUTION, 'constitution')
+        (CONSTITUTION, 'constitution'),
+        (TRIGGER, 'trigger')
     ]
 
     FILTER = 'filter'
@@ -700,7 +699,7 @@ class Policy(models.Model):
     FAIL = 'fail'
 
     kind = models.CharField(choices=POLICY_KIND, max_length=30)
-    """Kind of policy (platform or constitution)."""
+    """Kind of policy (platform, constitution, or trigger)."""
 
     filter = models.TextField(blank=True, default='')
     """The filter code of the policy."""

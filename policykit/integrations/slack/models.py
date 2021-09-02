@@ -12,8 +12,8 @@ from policyengine.models import (
     NumberVote,
     PlatformAction,
     Proposal,
+    PolicyActionKind
 )
-from policyengine.utils import ActionKind
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class SlackCommunity(CommunityPlatform):
 
         action = proposal.action
 
-        if action.action_kind == ActionKind.PLATFORM and action.action_type != "platformactionbundle":
+        if action.kind == PolicyActionKind.PLATFORM and action.action_type != "platformactionbundle":
             # Expect this process to be a boolean vote on an action.
             for (k, v) in votes.items():
                 assert k == "yes" or k == "no"

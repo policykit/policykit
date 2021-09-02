@@ -3,17 +3,16 @@ Tests that require Metagov to be running.
 Run with `INTEGRATION=1 python manage.py test`
 """
 import os
-from policyengine.models import Community, CommunityPlatform
 import unittest
 
 import integrations.metagov.api as MetagovAPI
 from django.conf import settings
 from django.test import Client, LiveServerTestCase, TestCase
 from django_db_logger.models import EvaluationLog
-from integrations.metagov.models import MetagovAction
+from integrations.metagov.models import MetagovTrigger
 from integrations.metagov.library import Metagov
 from integrations.slack.models import SlackPinMessage
-from policyengine.models import Policy, Proposal
+from policyengine.models import Policy, Proposal, ActionType
 from policyengine import engine
 import policyengine.tests.utils as TestUtils
 
@@ -186,7 +185,7 @@ return FAILED"""
 
 
 @unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
-class MetagovActionTest(TestCase):
+class MetagovTriggerTest(TestCase):
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
         self.community = self.slack_community.community
@@ -198,10 +197,9 @@ class MetagovActionTest(TestCase):
         """Test policy triggered by generic metagov event"""
         # 1) Create Policy that is triggered by a metagov action
 
-        policy = Policy(kind=Policy.PLATFORM)
+        policy = Policy(kind=Policy.TRIGGER)
         policy.community = self.community
-        policy.filter = """return action.action_type == 'metagovaction' \
-and action.event_type == 'discourse.post_created'"""
+        policy.filter = """return action.event_type == 'discourse.post_created'"""
         policy.initialize = "proposal.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
         policy.notify = "pass"
         policy.check = "return PASSED if action.event_data['category'] == 0 else FAILED"
@@ -210,6 +208,7 @@ and action.event_type == 'discourse.post_created'"""
         policy.description = "test"
         policy.name = "test policy"
         policy.save()
+        policy.action_types.add(ActionType.objects.create(codename="metagovtrigger"))
 
         event_payload = {
             "community": self.community.metagov_slug,
@@ -225,12 +224,12 @@ and action.event_type == 'discourse.post_created'"""
 
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(MetagovAction.objects.all().count(), 1)
+        self.assertEqual(MetagovTrigger.objects.all().count(), 1)
 
-        action = MetagovAction.objects.filter(event_type="discourse.post_created").first()
+        action = MetagovTrigger.objects.filter(event_type="discourse.post_created").first()
 
         # the action.community is the community that is connected to metagov
-        self.assertEqual(action.action_type, "metagovaction")
+        self.assertEqual(action.action_type, "metagovtrigger")
         self.assertEqual(action.community.platform, "slack")
         self.assertEqual(action.initiator.username, "discourse.miriam")
         self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
