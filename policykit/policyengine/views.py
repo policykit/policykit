@@ -206,6 +206,7 @@ def editor(request):
         kind = PolicyActionKind.PLATFORM
     elif type == "Trigger":
         kind = PolicyActionKind.TRIGGER
+
     # which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[kind])
 

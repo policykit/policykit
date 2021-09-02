@@ -4,6 +4,7 @@ from constitution.models import (
     PolicykitChangePlatformPolicy,
     PolicykitAddConstitutionPolicy,
     PolicykitChangeConstitutionPolicy,
+    PolicyActionKind,
 )
 import policyengine.tests.utils as TestUtils
 
@@ -97,3 +98,13 @@ class PolicyActionSaveTests(TestCase):
         policy.refresh_from_db()
         self.assertEqual(policy.name, "updated")
         self.assertEqual(policy.action_types.count(), 2)
+
+    def test_action_type_util(self):
+        from policyengine.utils import get_action_types
+
+        actions = get_action_types(self.community, [PolicyActionKind.CONSTITUTION])
+        self.assertIsNotNone(actions["constitution"])
+        actions = get_action_types(self.community, [PolicyActionKind.PLATFORM])
+        self.assertIsNotNone(actions["slack"])
+        actions = get_action_types(self.community, [PolicyActionKind.TRIGGER])
+        self.assertIsNotNone(actions["metagov"])
