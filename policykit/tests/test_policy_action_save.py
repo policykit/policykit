@@ -5,6 +5,7 @@ from constitution.models import (
     PolicykitAddConstitutionPolicy,
     PolicykitChangeConstitutionPolicy,
     PolicyActionKind,
+    PolicykitAddTriggerPolicy
 )
 import policyengine.tests.utils as TestUtils
 
@@ -98,6 +99,32 @@ class PolicyActionSaveTests(TestCase):
         policy.refresh_from_db()
         self.assertEqual(policy.name, "updated")
         self.assertEqual(policy.action_types.count(), 2)
+
+    def test_add_trigger_policy(self):
+        Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
+        )
+
+        response = self.client.post(
+            "/main/policyengine/policy_action_save",
+            data={
+                "type": "Trigger",
+                "operation": "Add",
+                **TestUtils.ALL_ACTIONS_PASS,
+                "name": "my trigger policy",
+                "action_types": ["metagovtrigger"]
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        action = PolicykitAddTriggerPolicy.objects.get(community=self.constitution_community)
+
+        # Check that proposal was created, and it passed
+        proposal = Proposal.objects.get(action=action)
+        self.assertEqual(proposal.status, Proposal.PASSED)
+
+        # Check that policy was updated
+        Policy.objects.get(name="my trigger policy", kind=Policy.TRIGGER)
 
     def test_action_type_util(self):
         from policyengine.utils import get_action_types
