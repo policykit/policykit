@@ -175,6 +175,9 @@ def initialize_starterkit_inner(community, kit_data, creator_token=None):
             defaults={"role_name": role["name"], "description": role["description"]},
         )
 
+        # Add PolicyKit-specific permissions
+        r.permissions.set(Permission.objects.filter(name__in=role["permissions"]))
+
         # Add constitution permissions
         constitution_content_types = get_action_content_types("constitution")
         _add_permissions_to_role(r, role["constitution_permission_sets"], constitution_content_types)
@@ -194,9 +197,6 @@ def initialize_starterkit_inner(community, kit_data, creator_token=None):
             group = CommunityUser.objects.filter(community__community=community, is_community_admin=False)
         elif role["user_group"] == "creator":
             group = CommunityUser.objects.filter(community__community=community, access_token=creator_token)
-
-        # Add PolicyKit-specific permissions
-        r.permissions.set(Permission.objects.filter(name__in=role["permissions"]))
 
         # logger.debug(f"Adding {group.count()} users to role {r.role_name}")
         for user in group:
