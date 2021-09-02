@@ -8,6 +8,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
 def default_election_vote_message(policy):
     return (
         "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"
@@ -46,6 +47,7 @@ def get_action_classes(app_name: str):
             actions.append(cls)
     return actions
 
+
 def get_trigger_classes(app_name: str):
     """
     Get a list of TriggerAction subclasses defined in the given app
@@ -58,20 +60,21 @@ def get_trigger_classes(app_name: str):
             actions.append(cls)
     return actions
 
-def get_action_types(community, kinds=None):
+
+def get_action_types(community, kinds):
     from policyengine.models import PolicyActionKind
-    
+
     platform_communities = list(community.get_platform_communities())
-    if kinds.includes(PolicyActionKind.CONSTITUTION):
+    if PolicyActionKind.CONSTITUTION in kinds:
         platform_communities.append(community.constitution_community)
     actions = {}
     for c in platform_communities:
         app_name = c.platform
         action_list = []
-        if kinds.includes(PolicyActionKind.PLATFORM):
+        if PolicyActionKind.PLATFORM in kinds:
             for cls in get_action_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
-        if kinds.includes(PolicyActionKind.TRIGGER):
+        if PolicyActionKind.TRIGGER in kinds:
             for cls in get_trigger_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
         if action_list:
