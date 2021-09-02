@@ -39,7 +39,7 @@ class IntegrationTests(LiveServerTestCase):
 
     def test_close_process(self):
         """Integration-test metagov process with randomness plugin. Process is closed from within the policy."""
-        # 1) Create Policy and PlatformAction
+        # 1) Create Policy and GovernableAction
         policy_code = {
             **TestUtils.ALL_ACTIONS_PASS,
             "initialize": """
@@ -85,7 +85,7 @@ return FAILED
 
     def test_outcome_endpoint(self):
         """Integration-test metagov process is updated via the outcome receiver endpoint in PolicyKit"""
-        # 1) Create Policy and PlatformAction
+        # 1) Create Policy and GovernableAction
         policy_code = {
             **TestUtils.ALL_ACTIONS_PASS,
             "initialize": """

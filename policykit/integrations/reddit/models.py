@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Proposal
+from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction, Proposal
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
 from urllib import parse
@@ -115,8 +115,8 @@ class RedditCommunity(CommunityPlatform):
                                   'community',
                                   'initiator',
                                   'communityaction_ptr',
-                                  'platformaction',
-                                  'platformactionbundle',
+                                  'governableaction',
+                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled',
@@ -148,7 +148,7 @@ class RedditCommunity(CommunityPlatform):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.platformactionbundle_set.all()
+                    bundle = action.governableactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
@@ -173,7 +173,7 @@ class RedditUser(CommunityUser):
         self.access_token = res['access_token']
         self.save()
 
-class RedditMakePost(PlatformAction):
+class RedditMakePost(GovernableAction):
     ACTION = 'api/submit'
     AUTH = 'user'
 

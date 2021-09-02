@@ -11,10 +11,10 @@ from policyengine.models import (
     CommunityPlatform,
     CommunityRole,
     CommunityUser,
-    PlatformAction,
+    GovernableAction,
     Policy,
     ActionType,
-    PolicyActionKind
+    PolicyActionKind,
 )
 
 
@@ -26,7 +26,7 @@ class ConstitutionCommunity(CommunityPlatform):
     platform = "constitution"
 
 
-class ConstitutionAction(PlatformAction):
+class ConstitutionAction(GovernableAction):
     kind = PolicyActionKind.CONSTITUTION
 
     class Meta:
@@ -263,11 +263,16 @@ class PolicykitAddConstitutionPolicy(EditorModel):
         )
 
 
-# FIXME gig. we want to have different permissions for.
-# change governing policy
-# change governing [slack|reddit|discord] policy
-# change governing constitution policy
-# change trigger policy
+class PolicykitAddTriggerPolicy(EditorModel):
+    def __str__(self):
+        return "Add Trigger Policy: " + self.name
+
+    def execute(self):
+        policy = Policy(kind=Policy.TRIGGER)
+        self.save_to_policy(policy)
+
+    class Meta:
+        permissions = (("can_execute_policykitaddtriggerpolicy", "Can execute policykit add trigger policy"),)
 
 
 class PolicykitChangePlatformPolicy(EditorModel):
@@ -300,6 +305,20 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         )
 
 
+class PolicykitChangeTriggerPolicy(EditorModel):
+    policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
+
+    def __str__(self):
+        return "Change Trigger Policy: " + self.name
+
+    def execute(self):
+        assert self.policy.kind == Policy.CONSTITUTION
+        self.save_to_policy(self.policy)
+
+    class Meta:
+        permissions = (("can_execute_policykitchangetriggerpolicy", "Can execute policykit change trigger policy"),)
+
+
 class PolicykitRemovePlatformPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
@@ -315,25 +334,6 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
 
     class Meta:
         permissions = (("can_execute_policykitremoveplatformpolicy", "Can execute policykit remove platform policy"),)
-
-
-class PolicykitRecoverPlatformPolicy(ConstitutionAction):
-    policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
-
-    def __str__(self):
-        if self.policy:
-            return "Recover Platform Policy: " + self.policy.name
-        return "Recover Platform Policy: [ERROR: platform policy not found]"
-
-    def execute(self):
-        assert self.policy.kind == Policy.PLATFORM
-        self.policy.is_active = True
-        self.policy.save()
-
-    class Meta:
-        permissions = (
-            ("can_execute_policykitrecoverplatformpolicy", "Can execute policykit recover platform policy"),
-        )
 
 
 class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
@@ -355,6 +355,42 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         )
 
 
+class PolicykitRemoveTriggerPolicy(ConstitutionAction):
+    policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
+
+    def __str__(self):
+        if self.policy:
+            return "Remove Trigger Policy: " + self.policy.name
+        return "Remove Trigger Policy: [ERROR: trigger policy not found]"
+
+    def execute(self):
+        assert self.policy.kind == Policy.CONSTITUTION
+        self.policy.is_active = False
+        self.policy.save()
+
+    class Meta:
+        permissions = (("can_execute_policykitremovetriggerpolicy", "Can execute policykit remove trigger policy"),)
+
+
+class PolicykitRecoverPlatformPolicy(ConstitutionAction):
+    policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
+
+    def __str__(self):
+        if self.policy:
+            return "Recover Platform Policy: " + self.policy.name
+        return "Recover Platform Policy: [ERROR: platform policy not found]"
+
+    def execute(self):
+        assert self.policy.kind == Policy.PLATFORM
+        self.policy.is_active = True
+        self.policy.save()
+
+    class Meta:
+        permissions = (
+            ("can_execute_policykitrecoverplatformpolicy", "Can execute policykit recover platform policy"),
+        )
+
+
 class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
@@ -372,3 +408,20 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
         permissions = (
             ("can_execute_policykitrecoverconstitutionpolicy", "Can execute policykit recover constitution policy"),
         )
+
+
+class PolicykitRecoverTriggerPolicy(ConstitutionAction):
+    policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
+
+    def __str__(self):
+        if self.policy:
+            return "Recover Trigger Policy: " + self.policy.name
+        return "Recover Trigger Policy: [ERROR: trigger policy not found]"
+
+    def execute(self):
+        assert self.policy.kind == Policy.CONSTITUTION
+        self.policy.is_active = True
+        self.policy.save()
+
+    class Meta:
+        permissions = (("can_execute_policykitrecovertriggerpolicy", "Can execute policykit recover trigger policy"),)

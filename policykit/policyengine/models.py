@@ -86,6 +86,12 @@ class Community(models.Model):
         """
         return Policy.constitution_policies.filter(community=self, is_active=is_active).order_by('-modified_at')
 
+    def get_trigger_policies(self, is_active=True):
+        """
+        Returns a QuerySet of all trigger policies in the community.
+        """
+        return Policy.objects.filter(community=self, kind=Policy.TRIGGER, is_active=is_active).order_by('-modified_at')
+
     def get_documents(self, is_active=True):
         """
         Returns a QuerySet of all documents in the community.
@@ -563,8 +569,8 @@ class TriggerAction(BaseAction, PolymorphicModel):
     -TriggerEvent (event occurred on platform or PK)
         - Event name
     -PolicyKitEvent (engine-event, like something passed or failed ?)
-        - PlatformAction type
-        - PlatformAction proposal state? (FAILED/PASSED) ? (or do this in Filter block)
+        - GovernableAction type
+        - GovernableAction proposal state? (FAILED/PASSED) ? (or do this in Filter block)
 
     -webhook (some event that is NOT KNOWN TO POLICYKIT before hand! aka metagov.event_name)
             we want to consider this an action_type, I think.
@@ -597,7 +603,7 @@ class TriggerAction(BaseAction, PolymorphicModel):
             engine.evaluate_action(self)
 
 
-class PlatformAction(BaseAction, PolymorphicModel):
+class GovernableAction(BaseAction, PolymorphicModel):
     """
     PLATFORM ACTION can be executed and reverted, is "governable"
 
@@ -616,7 +622,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
     """True if the action originated on the platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
 
     def __str__(self):
-        return self.action_type or super(PlatformAction, self).__str__()
+        return self.action_type or super(GovernableAction, self).__str__()
 
     def save(self, *args, **kwargs):
         """
@@ -630,10 +636,10 @@ class PlatformAction(BaseAction, PolymorphicModel):
             # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
             if not self.initiator or self.initiator.has_perm(can_propose_perm):
-                super(PlatformAction, self).save(*args, **kwargs)
+                super(GovernableAction, self).save(*args, **kwargs)
                 engine.evaluate_action(self)
 
-        super(PlatformAction, self).save(*args, **kwargs)
+        super(GovernableAction, self).save(*args, **kwargs)
 
     def revert(self, values, call, method=None):
         """
@@ -650,7 +656,7 @@ class PlatformAction(BaseAction, PolymorphicModel):
         self.community.execute_platform_action(self)
 
 
-class PlatformActionBundle(PlatformAction):
+class GovernableActionBundle(GovernableAction):
     ELECTION = 'election'
     BUNDLE = 'bundle'
     BUNDLE_TYPE = [
@@ -658,11 +664,11 @@ class PlatformActionBundle(PlatformAction):
         (BUNDLE, 'bundle')
     ]
 
-    bundled_actions = models.ManyToManyField(PlatformAction, related_name="member_of_bundle")
+    bundled_actions = models.ManyToManyField(GovernableAction, related_name="member_of_bundle")
     bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
 
     def execute(self):
-        if self.bundle_type == PlatformActionBundle.BUNDLE:
+        if self.bundle_type == GovernableActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
                 self.community.execute_platform_action(action)
 
@@ -806,9 +812,9 @@ class NumberVote(UserVote):
     def __str__(self):
         return str(self.user) + ' : ' + str(self.number_value)
 
-class PlatformActionForm(ModelForm):
+class GovernableActionForm(ModelForm):
     class Meta:
-        model = PlatformAction
+        model = GovernableAction
         exclude = [
             "initiator",
             "community",
@@ -818,5 +824,5 @@ class PlatformActionForm(ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
-        super(PlatformActionForm, self).__init__(*args, **kwargs)
+        super(GovernableActionForm, self).__init__(*args, **kwargs)
         self.label_suffix = ''

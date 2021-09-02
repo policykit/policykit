@@ -7,8 +7,6 @@ from policyengine.models import (
     BooleanVote,
     CommunityPlatform,
     CommunityUser,
-    LogAPICall,
-    Proposal,
 )
 from integrations.metagov.library import Metagov
 
@@ -18,6 +16,7 @@ logger = logging.getLogger(__name__)
 class GithubUser(CommunityUser):
     pass
 
+#TODO add a trigger action
 
 class GithubCommunity(CommunityPlatform):
     platform = "github"

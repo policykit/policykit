@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction
+from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
 import logging
@@ -49,7 +49,7 @@ class DiscordCommunity(CommunityPlatform):
 class DiscordUser(CommunityUser):
     pass
 
-class DiscordPostMessage(PlatformAction):
+class DiscordPostMessage(GovernableAction):
     channel_id = models.BigIntegerField()
     message_id = models.BigIntegerField()
     text = models.TextField()
@@ -72,7 +72,7 @@ class DiscordPostMessage(PlatformAction):
             self.message_id = message['id']
             self.save()
 
-class DiscordDeleteMessage(PlatformAction):
+class DiscordDeleteMessage(GovernableAction):
     channel_id = models.BigIntegerField()
     message_id = models.BigIntegerField()
     text = models.TextField(blank=True, default='')
@@ -98,7 +98,7 @@ class DiscordDeleteMessage(PlatformAction):
             # Deletes the message
             self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
-class DiscordRenameChannel(PlatformAction):
+class DiscordRenameChannel(GovernableAction):
     channel_id = models.BigIntegerField()
     name = models.TextField()
     name_old = models.TextField(blank=True, default='')
@@ -133,7 +133,7 @@ class DiscordRenameChannel(PlatformAction):
             c['channel_name'] = self.name
             c.save()
 
-class DiscordCreateChannel(PlatformAction):
+class DiscordCreateChannel(GovernableAction):
     channel_id = models.BigIntegerField(blank=True)
     name = models.TextField()
 
@@ -162,7 +162,7 @@ class DiscordCreateChannel(PlatformAction):
                 channel_name=channel['name']
             )
 
-class DiscordDeleteChannel(PlatformAction):
+class DiscordDeleteChannel(GovernableAction):
     channel_id = models.BigIntegerField()
 
     AUTH = 'user'

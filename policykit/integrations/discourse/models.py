@@ -1,5 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Proposal
+from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction, Proposal
 import urllib
 import urllib.request
 import json
@@ -61,8 +61,8 @@ class DiscourseCommunity(CommunityPlatform):
                                   'community',
                                   'initiator',
                                   'communityapi_ptr',
-                                  'platformaction',
-                                  'platformactionbundle',
+                                  'governableaction',
+                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -84,7 +84,7 @@ class DiscourseCommunity(CommunityPlatform):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.platformactionbundle_set.all()
+                    bundle = action.governableactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
@@ -103,7 +103,7 @@ class DiscourseCommunity(CommunityPlatform):
 class DiscourseUser(CommunityUser):
     pass
 
-class DiscourseCreateTopic(PlatformAction):
+class DiscourseCreateTopic(GovernableAction):
     title = models.TextField()
     raw = models.TextField()
     topic_id = models.IntegerField()
@@ -138,7 +138,7 @@ class DiscourseCreateTopic(PlatformAction):
             self.community.make_call(f"/t/{self.topic_id}/recover", method='PUT')
             self.community_revert = False
 
-class DiscourseCreatePost(PlatformAction):
+class DiscourseCreatePost(GovernableAction):
     raw = models.TextField()
     post_id = models.IntegerField()
 

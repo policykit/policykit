@@ -171,7 +171,7 @@ def handle_channel_update_event(data):
     action.name = data['name']
 
     # FIXME: User who changed channel name not passed along with CHANNEL_UPDATE
-    # event. All PlatformActions require an initiator in PolicyKit, so as a
+    # event. All GovernableActions require an initiator in PolicyKit, so as a
     # placeholder, the Discord client ID is set as the initiator.
     # However, this is not accurate and should be changed in the future
     # if and when possible.

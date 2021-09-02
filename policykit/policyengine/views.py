@@ -196,16 +196,18 @@ def editor(request):
     policy_id = request.GET.get('policy')
 
     user = get_user(request)
-    # from policyengine.models import CommunityUser
+    from policyengine.models import CommunityUser, PolicyActionKind
     # user = CommunityUser.objects.all().first()
     community = user.community.community
 
-    is_constitutional = type == "Constitution"
-    actions = Utils.get_action_types(community, include_constitution=is_constitutional)
-
-    # if this is a constituion policy, only show constitution action types
-    if is_constitutional:
-        actions = {"constitution": actions["constitution"]}
+    if type == "Constitution":
+        kind = PolicyActionKind.CONSTITUTION
+    elif type == "Platform":
+        kind = PolicyActionKind.PLATFORM
+    elif type == "Trigger":
+        kind = PolicyActionKind.TRIGGER
+    # which action types to show in the dropdown
+    actions = Utils.get_action_types(community, kinds=[kind])
 
     data = {
         'server_url': SERVER_URL,
@@ -315,6 +317,8 @@ def selectpolicy(request):
         policies = user.community.community.get_platform_policies().filter(is_active=show_active_policies)
     elif type == 'Constitution':
         policies = user.community.community.get_constitution_policies().filter(is_active=show_active_policies)
+    elif type == 'Trigger':
+        policies = user.community.community.get_trigger_policies().filter(is_active=show_active_policies)
     else:
         return HttpResponseBadRequest()
 
@@ -369,7 +373,9 @@ def documenteditor(request):
 def actions(request):
     user = get_user(request)
     community = user.community.community
-    actions = Utils.get_action_types(community)
+
+    from policyengine.models import PolicyActionKind
+    actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM])
     return render(request, 'policyadmin/dashboard/actions.html', {
         'server_url': SERVER_URL,
         'user': get_user(request),
@@ -382,11 +388,11 @@ def propose_action(request, app_name, codename):
     if not cls:
         return HttpResponseBadRequest()
 
-    from policyengine.models import PlatformActionForm, Proposal
+    from policyengine.models import GovernableActionForm, Proposal
 
     ActionForm = modelform_factory(
         cls,
-        form=PlatformActionForm,
+        form=GovernableActionForm,
         fields=getattr(cls, "EXECUTE_PARAMETERS", "__all__"),
         localized_fields="__all__"
     )
@@ -463,33 +469,44 @@ def error_check(request):
 @csrf_exempt
 def policy_action_save(request):
     from policyengine.models import Policy
-    from constitution.models import PolicykitAddConstitutionPolicy, PolicykitAddPlatformPolicy, PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy, ActionType
+    from constitution.models import (PolicykitAddConstitutionPolicy,
+        PolicykitAddTriggerPolicy, PolicykitChangeTriggerPolicy, PolicykitAddPlatformPolicy,
+        PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy, ActionType, PolicyActionKind)
 
     data = json.loads(request.body)
     user = get_user(request)
 
     action = None
     operation = data['operation']
-    if data['type'] == 'Constitution' and operation == 'Add':
-        action = PolicykitAddConstitutionPolicy()
+    kind = data['type'].lower()
+
+    if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
+        return HttpResponseNotFound()
+
+    if operation == "Add":
+        if kind == PolicyActionKind.CONSTITUTION:
+            action = PolicykitAddConstitutionPolicy()
+        elif kind == PolicyActionKind.PLATFORM:
+            action = PolicykitAddPlatformPolicy()
+        elif kind == PolicyActionKind.TRIGGER:
+            action = PolicykitAddTriggerPolicy()
         action.is_bundled = data.get('is_bundled', False)
-    elif data['type'] == 'Platform' and operation == 'Add':
-        action = PolicykitAddPlatformPolicy()
-        action.is_bundled = data.get('is_bundled', False)
-    elif data['type'] == 'Constitution' and operation == 'Change':
-        action = PolicykitChangeConstitutionPolicy()
+    
+    elif operation == "Change":
+        if kind == PolicyActionKind.CONSTITUTION:
+            action = PolicykitChangeConstitutionPolicy()
+        elif kind == PolicyActionKind.PLATFORM:
+            action = PolicykitChangePlatformPolicy()
+        elif kind == PolicyActionKind.TRIGGER:
+            action = PolicykitChangeTriggerPolicy()
+        
         try:
             action.policy = Policy.objects.get(pk=data['policy'])
         except Policy.DoesNotExist:
             return HttpResponseNotFound()
-    elif data['type'] == 'Platform' and operation == 'Change':
-        action = PolicykitChangePlatformPolicy()
-        try:
-            action.policy = Policy.objects.get(pk=data['policy'])
-        except Policy.DoesNotExist:
-            return HttpResponseNotFound()
+
     else:
-        return HttpResponseBadRequest()
+        return HttpResponseNotFound()
 
     action.community = user.constitution_community
     action.initiator = user
@@ -505,7 +522,7 @@ def policy_action_save(request):
     if not data["name"]:
         return HttpResponseBadRequest("Enter a name.")
     if len(data["action_types"]) < 1:
-        if action and hasattr(action, "policy") and action.policy.action_types.count() == 0:
+        if action and hasattr(action, "policy") and action.policy.action_types.count() == 0 and kind != PolicyActionKind.TRIGGER:
             pass # the policy already had no action types, so it's a base policy. ignore
         else:
             return HttpResponseBadRequest("Select one or more action types.")

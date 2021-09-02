@@ -111,9 +111,11 @@ def evaluate_action(action):
     For governable actions:
     - If the initiator has "can execute" permission, execute the action and mark it as "passed."
     - Otherwise, choose a Policy to evaluate.
+    - Save the Proposal for the evaluation, which will be re-evaluated from the celery task if it is pending
 
     For trigger actions:
     - Evaluate against all eligible policies
+    - Save the Proposal for each evaluation, which will be re-evaluated from the celery task if it is pending
     """
     from policyengine.models import Proposal, PolicyActionKind
 
@@ -128,7 +130,6 @@ def evaluate_action(action):
 
     eligible_policies = get_eligible_policies(action)
     if not eligible_policies.exists():
-        logger.warn(f"No eligible policies for {action.action_type} action: {action}")
         return None
 
     # If this is a trigger action, evaluate ALL eligible policies
@@ -253,7 +254,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         assert proposal.status == Proposal.PASSED
 
         # EXECUTE the action if....
-        # it is a PlatformAction that was proposed in the PolicyKit UI
+        # it is a GovernableAction that was proposed in the PolicyKit UI
         if action.kind == PolicyActionKind.PLATFORM and not action.community_origin:
             action.execute()
         # it is a constitution action

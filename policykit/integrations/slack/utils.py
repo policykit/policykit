@@ -1,6 +1,6 @@
 from django.conf import settings
 import logging
-from policyengine.models import PlatformActionBundle, LogAPICall, PolicyActionKind
+from policyengine.models import GovernableActionBundle, LogAPICall, PolicyActionKind
 import datetime
 import json
 from django.db.models import Q
@@ -127,7 +127,7 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
     action = proposal.action
     policy = proposal.policy
 
-    if action.action_type == "platformactionbundle" and action.bundle_type == PlatformActionBundle.ELECTION:
+    if action.action_type == "governableactionbundle" and action.bundle_type == GovernableActionBundle.ELECTION:
         payload["poll_type"] = "choice"
         payload["title"] = template or default_election_vote_message(policy)
         payload["options"] = [str(a) for a in action.bundled_actions.all()]
@@ -140,7 +140,7 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
         if post_type == "channel":
             if action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
                 payload["channel"] = action.channel
-            elif action.action_type == "platformactionbundle":
+            elif action.action_type == "governableactionbundle":
                 first_action = action.bundled_actions.all()[0]
                 if hasattr(first_action, "channel") and first_action.channel:
                     payload["channel"] = first_action.channel

@@ -24,39 +24,56 @@ def default_boolean_vote_message(policy):
 
 def find_action_cls(app_name: str, codename: str):
     """
-    Get the PlatformAction subclass that has the specified codename
+    Get the GovernableAction subclass that has the specified codename
     """
-    from policyengine.models import PlatformAction
+    from policyengine.models import GovernableAction
 
     for cls in apps.get_app_config(app_name).get_models():
-        if issubclass(cls, PlatformAction) and cls._meta.model_name == codename:
+        if issubclass(cls, GovernableAction) and cls._meta.model_name == codename:
             return cls
     return None
 
 
 def get_action_classes(app_name: str):
     """
-    Get a list of PlatformAction subclasses defined in the given app
+    Get a list of GovernableAction subclasses defined in the given app
     """
-    from policyengine.models import PlatformAction
+    from policyengine.models import GovernableAction
 
     actions = []
     for cls in apps.get_app_config(app_name).get_models():
-        if issubclass(cls, PlatformAction):
+        if issubclass(cls, GovernableAction):
             actions.append(cls)
     return actions
 
+def get_trigger_classes(app_name: str):
+    """
+    Get a list of TriggerAction subclasses defined in the given app
+    """
+    from policyengine.models import TriggerAction
 
-def get_action_types(community, include_constitution=False):
+    actions = []
+    for cls in apps.get_app_config(app_name).get_models():
+        if issubclass(cls, TriggerAction):
+            actions.append(cls)
+    return actions
+
+def get_action_types(community, kinds=None):
+    from policyengine.models import PolicyActionKind
+    
     platform_communities = list(community.get_platform_communities())
-    if include_constitution:
+    if kinds.includes(PolicyActionKind.CONSTITUTION):
         platform_communities.append(community.constitution_community)
     actions = {}
     for c in platform_communities:
         app_name = c.platform
         action_list = []
-        for cls in get_action_classes(app_name):
-            action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
+        if kinds.includes(PolicyActionKind.PLATFORM):
+            for cls in get_action_classes(app_name):
+                action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
+        if kinds.includes(PolicyActionKind.TRIGGER):
+            for cls in get_trigger_classes(app_name):
+                action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
         if action_list:
             actions[app_name] = action_list
     return actions
@@ -148,7 +165,7 @@ def initialize_starterkit_inner(community, kit_data, creator_token=None):
         # Add PolicyKit-related permissions
         r.permissions.set(Permission.objects.filter(name__in=role["permissions"]))
 
-        # Add permissions for each PlatformAction (for all platforms, not just the enabled one)
+        # Add permissions for each GovernableAction (for all platforms, not just the enabled one)
         action_content_types = []
         for platform in get_platform_integrations():
             content_types = get_action_content_types(platform)
