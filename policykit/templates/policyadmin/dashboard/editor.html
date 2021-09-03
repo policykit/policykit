@@ -457,6 +457,7 @@
 
           document.getElementById('name').value = decodeHtml(`${policy_data.name}`);
           document.getElementById('description').value = decodeHtml(`${policy_data.description}`);
+          $('#actionpicker').selectpicker('val', policy_data.action_types);
           editors[0].setValue(decodeHtml(`${policy_data.filter}`));
           editors[1].setValue(decodeHtml(`${policy_data.initialize}`));
           editors[2].setValue(decodeHtml(`${policy_data.check}`));
@@ -477,6 +478,7 @@
       'name': name,
       'description': document.getElementById("description").value,
       'is_bundled': false,
+      'action_types': $("#actionpicker").val(),
       'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
       'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
       'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
