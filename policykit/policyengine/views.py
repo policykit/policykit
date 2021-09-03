@@ -41,7 +41,6 @@ def v2(request):
     from policyengine.models import CommunityUser, Proposal, CommunityPlatform
 
     user = get_user(request)
-
     community = user.community.community
     users = CommunityUser.objects.filter(community__community=community)[:DASHBOARD_MAX_USERS]
 
@@ -61,6 +60,7 @@ def v2(request):
         'docs': community.get_documents(),
         'platform_policies': community.get_platform_policies(),
         'constitution_policies': community.get_constitution_policies(),
+        'trigger_policies': community.get_trigger_policies(),
         'action_log': action_log,
         'pending_proposals': pending_proposals
     })
@@ -191,21 +191,16 @@ def disable_integration(request):
 
 @login_required(login_url='/login')
 def editor(request):
-    type = request.GET.get('type', "Platform")
+    kind = request.GET.get('type', "platform").lower()
     operation = request.GET.get('operation', "Add")
     policy_id = request.GET.get('policy')
 
     user = get_user(request)
-    from policyengine.models import CommunityUser, PolicyActionKind
-    # user = CommunityUser.objects.all().first()
     community = user.community.community
 
-    if type == "Constitution":
-        kind = PolicyActionKind.CONSTITUTION
-    elif type == "Platform":
-        kind = PolicyActionKind.PLATFORM
-    elif type == "Trigger":
-        kind = PolicyActionKind.TRIGGER
+    from policyengine.models import PolicyActionKind
+    if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
+        return HttpResponseNotFound()
 
     # which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[kind])

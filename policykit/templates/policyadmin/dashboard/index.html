@@ -348,6 +348,21 @@
           </table>
         </div>
     </div>
+
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Trigger policies</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for policy in trigger_policies %}
+                <tr id="trigger_{{policy.pk}}" class="sidebarItem">
+                  <td>{{policy.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
   </div>
 </div>
 
@@ -388,7 +403,12 @@
         <textarea class="form-control description" id="description" readonly rows="6"></textarea>
       </div>
     </div>
-
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="action_types">Action Types:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control description" id="action_types" readonly rows="1"></textarea>
+      </div>
+    </div>
     <div class="form-row">
       <label class="control-label col-sm-2" for="filter">Filter:</label>
       <div class="col-sm-10">
@@ -437,6 +457,12 @@
         <button type="button" class="btn" id="download">Download policy</button>
       </div>
     </div>
+    <div class="form-row">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-10">
+        <button type="button" class="btn" id="editpolicy">Edit policy</button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -444,13 +470,17 @@
 {% block scripts %}
 <script>
   document.getElementById("download").addEventListener("click", download);
-
+  document.getElementById("editpolicy").addEventListener("click", editPolicy);
   document.getElementById("proposeAction").addEventListener("click", navActions);
 
   {% for value in platform_policies %}
+    console.log(`{{value}}`)
     document.getElementById("platform_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
+      pk: `{{value.pk}}`,
+      kind: `{{value.kind}}`,
       name: `{{value.name}}`,
       description: `{{value.description|default_if_none:""}}`,
+      action_types: `{{value|action_types|default_if_none:"All platform actions"}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -462,8 +492,27 @@
 
   {% for value in constitution_policies %}
     document.getElementById("constitution_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
+      pk: `{{value.pk}}`,
+      kind: `{{value.kind}}`,
       name: `{{value.name}}`,
       description: `{{value.description|default_if_none:""}}`,
+      action_types: `{{value|default_if_none:"All constitution actions"}}`,
+      filter: `{{value.filter}}`,
+      initialize: `{{value.initialize}}`,
+      check: `{{value.check}}`,
+      notify: `{{value.notify}}`,
+      pass: `{{value.success}}`,
+      fail: `{{value.fail}}`
+    }); });
+  {% endfor %}
+
+  {% for value in trigger_policies %}
+    document.getElementById("trigger_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
+      pk: `{{value.pk}}`,
+      kind: `{{value.kind}}`,
+      name: `{{value.name}}`,
+      description: `{{value.description|default_if_none:""}}`,
+      action_types: `{{value|default_if_none:""}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -504,8 +553,11 @@
   function showModal(type, modalData) {
     if (type == 'code') {
       document.getElementById("modal").style.display = "block";
+      $("#modal").data("pk", modalData.pk);
+      $("#modal").data("kind", modalData.kind);
       document.getElementById("name").value = decodeHtml(modalData.name);
       document.getElementById("description").value = decodeHtml(modalData.description);
+      document.getElementById("action_types").value = decodeHtml(modalData.action_types);
       document.getElementById("filter").value = decodeHtml(modalData.filter);
       document.getElementById("initialize").value = decodeHtml(modalData.initialize);
       document.getElementById("check").value = decodeHtml(modalData.check);
@@ -556,6 +608,10 @@
     document.body.appendChild(download_elem);
     download_elem.click();
     document.body.removeChild(download_elem);
+  }
+  function editPolicy() {
+    const data = $("#modal").data()
+    window.location.href = `{{server_url}}/main/editor?type=${data.kind}&operation=Change&policy=${data.pk}`;
   }
 </script>
 {% endblock %}

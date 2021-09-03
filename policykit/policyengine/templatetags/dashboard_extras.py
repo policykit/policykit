@@ -21,6 +21,20 @@ def role_users_string(value):
     num = value.user_set.count()
     users = value.user_set.all()[0:3]
     display_names = [u.communityuser.readable_name or u.username for u in users]
+    return comma_separated(display_names, num)
+
+
+@register.filter(name="action_types")
+def action_types(value):
+    """List action types on policy"""
+    if not value.action_types.exists():
+        return None
+    num = value.action_types.count()
+    display_names = value.action_types.all()[0:3].values_list("codename", flat=True)
+    return comma_separated(display_names, num)
+
+
+def comma_separated(display_names, num):
     if num == 1:
         return display_names[0]
     if num == 2:
