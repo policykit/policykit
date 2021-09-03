@@ -63,7 +63,7 @@ def discord_install(request):
 
     # Get guild info from Discord
     response = requests.post(
-        f"{settings.METAGOV_URL}/api/internal/action/discord.get-guild",
+        f"{settings.METAGOV_URL}/api/internal/action/discord.getguild",
         json={"parameters": {"guild_id": guild_id}},
         headers={"X-Metagov-Community": metagov_community_slug},
     )
