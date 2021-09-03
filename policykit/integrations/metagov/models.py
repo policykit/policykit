@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.db import models
-from policyengine.models import CommunityUser, PlatformAction
+from policyengine.models import CommunityUser, TriggerAction
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +41,9 @@ class MetagovConfig(models.Model):
         permissions = [("can_edit_metagov_config", "Can edit Metagov config")]
 
 
-class MetagovAction(PlatformAction):
+class MetagovTrigger(TriggerAction):
     """
-    This is a PlatformAction model to use as a policy trigger for events received from Metagov.
-    It does not represent a "governable" action, because `revert` and `execute` are not implemented (for now).
+    This model represents a trigger event received from Metagov.
     Data about the event is stored as a json blob in the `json_data` field.
     """
 
@@ -52,16 +51,10 @@ class MetagovAction(PlatformAction):
     event_type = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.event_type} ({self.pk})"
+        return f"Metagov Event: {self.event_type}"
 
     @property
     def event_data(self):
         if self.json_data:
             return json.loads(self.json_data)
         return None
-
-    def execute(self):
-        pass
-
-    def revert(self):
-        pass

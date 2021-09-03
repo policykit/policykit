@@ -15,7 +15,7 @@ class ModelTestCase(TestCase):
         'Can change number vote',
         'Can delete number vote',
         'Can view number vote',
-        'Can add platformactionbundle',
+        'Can add governableactionbundle',
         'Can add constitutionactionbundle',
         'Can add policykit add role',
         'Can add policykit delete role',

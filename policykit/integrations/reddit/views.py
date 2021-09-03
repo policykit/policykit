@@ -95,20 +95,14 @@ def init_community_reddit(request):
     s = RedditCommunity.objects.filter(team_id=title)
 
     community = None
-    user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Reddit: " + title + ": Base User")
 
     if not s.exists():
-        parent_community = Community.objects.create(readable_name=title)
         community = RedditCommunity.objects.create(
             community_name=title,
-            community=parent_community,
             team_id=title,
             access_token=access_token,
             refresh_token=refresh_token,
-            base_role=user_group,
-            )
-        user_group.community = community
-        user_group.save()
+        )
     else:
         community = s[0]
         community.community_name = title
@@ -123,7 +117,7 @@ def init_community_reddit(request):
     context = {
         "server_url": SERVER_URL,
         "starterkits": get_starterkits_info(),
-        "community_id": community.pk,
+        "community_id": community.community.pk,
         "creator_token": access_token,
         "platform": "reddit"
     }

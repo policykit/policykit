@@ -171,7 +171,7 @@ def handle_channel_update_event(data):
     action.name = data['name']
 
     # FIXME: User who changed channel name not passed along with CHANNEL_UPDATE
-    # event. All PlatformActions require an initiator in PolicyKit, so as a
+    # event. All GovernableActions require an initiator in PolicyKit, so as a
     # placeholder, the Discord client ID is set as the initiator.
     # However, this is not accurate and should be changed in the future
     # if and when possible.
@@ -401,18 +401,12 @@ def oauth(request):
 
         s = DiscordCommunity.objects.filter(team_id=guild_id)
         community = None
-        user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discord: " + guild_info['name'] + ": Base User")
 
         if not s.exists():
-            parent_community = Community.objects.create(readable_name=guild_info['name'])
             community = DiscordCommunity.objects.create(
                 community_name=guild_info['name'],
-                community=parent_community,
-                team_id=guild_id,
-                base_role=user_group
+                team_id=guild_id
             )
-            user_group.community = community
-            user_group.save()
 
             # Get the list of users and create a DiscordUser object for each user
             guild_members = community.make_call(f'guilds/{guild_id}/members?limit=1000')
@@ -422,7 +416,7 @@ def oauth(request):
                 user, _ = DiscordUser.objects.get_or_create(
                     username=f"{member['user']['id']}:{guild_id}",
                     readable_name=member['user']['username'],
-                    avatar=f"https://cdn.discordapp.com/avatars/{member['user']['id']}/{member['user']['avatar']}.png",
+                    avatar=avatar_url(member['user']),
                     community=community,
                     is_community_admin=(member['user']['id'] == owner_id)
                 )
@@ -438,12 +432,18 @@ def oauth(request):
         context = {
             "server_url": SERVER_URL,
             "starterkits": get_starterkits_info(),
-            "community_id": community.pk,
-            "platform": "discord"
+            "community_id": community.community.pk,
+            "platform": "discord",
         }
         return render(request, "policyadmin/init_starterkit.html", context)
 
     return redirect('/login?error=no_owned_guilds_found')
+
+
+def avatar_url(user_info):
+    if user_info.get("avatar"):
+        return f"https://cdn.discordapp.com/avatars/{user_info['id']}/{user_info['avatar']}.png"
+    return None
 
 @csrf_exempt
 def auth(request, guild_id=None, access_token=None):

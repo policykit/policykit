@@ -10,10 +10,10 @@ from policyengine.models import (
     CommunityUser,
     LogAPICall,
     NumberVote,
-    PlatformAction,
+    GovernableAction,
     Proposal,
+    PolicyActionKind
 )
-from policyengine.utils import ActionKind
 
 logger = logging.getLogger(__name__)
 
@@ -85,12 +85,12 @@ class SlackCommunity(CommunityPlatform):
 
             logger.debug(f"Preparing to make request {call} which requires token type {obj.AUTH}...")
             if obj.AUTH == "user":
-                data["token"] = action.initiator.access_token
+                data["token"] = action.initiator.access_token if action.initiator else None
                 if not data["token"]:
                     # we don't have the token for the user who proposed the action, so use an admin user token instead
                     data["token"] = admin_user_token
             elif obj.AUTH == "admin_bot":
-                if action.initiator.is_community_admin:
+                if action.initiator and action.initiator.is_community_admin:
                     data["token"] = action.initiator.access_token
             elif obj.AUTH == "admin_user":
                 data["token"] = admin_user_token
@@ -107,13 +107,13 @@ class SlackCommunity(CommunityPlatform):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.platformactionbundle_set.all()
+                    bundle = action.governableactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
                     posted_action = action
 
-                for e in Proposal.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=posted_action):
                     if e.community_post:
                         values = {
                             "token": admin_user_token,
@@ -136,7 +136,8 @@ class SlackCommunity(CommunityPlatform):
             new_api_action.community_origin = True
             new_api_action.is_bundled = False
             new_api_action.save()  # save triggers policy proposal
-            logger.debug(f"PlatformAction saved: {new_api_action.pk}")
+            logger.debug(f"GovernableAction saved: {new_api_action.pk}")
+            return new_api_action
 
     def handle_metagov_process(self, proposal, process):
         """
@@ -151,7 +152,7 @@ class SlackCommunity(CommunityPlatform):
 
         action = proposal.action
 
-        if action.action_kind == ActionKind.PLATFORM and action.action_type != "platformactionbundle":
+        if action.kind == PolicyActionKind.PLATFORM and action.action_type != "governableactionbundle":
             # Expect this process to be a boolean vote on an action.
             for (k, v) in votes.items():
                 assert k == "yes" or k == "no"
@@ -167,7 +168,7 @@ class SlackCommunity(CommunityPlatform):
                         existing_vote.boolean_value = reaction_bool
                         existing_vote.save()
 
-        elif action.action_type == "platformactionbundle":
+        elif action.action_type == "governableactionbundle":
             action_bundle = action
             # Expect this process to be a choice vote on an action bundle.
             bundled_actions = list(action_bundle.bundled_actions.all())
@@ -252,7 +253,7 @@ class SlackCommunity(CommunityPlatform):
         return LogAPICall.make_api_call(self, {"method_name": method, **cleaned}, SLACK_METHOD_ACTION)
 
 
-class SlackPostMessage(PlatformAction):
+class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel"]
@@ -275,7 +276,7 @@ class SlackPostMessage(PlatformAction):
         super().revert(values, SLACK_METHOD_ACTION)
 
 
-class SlackRenameConversation(PlatformAction):
+class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
@@ -299,7 +300,7 @@ class SlackRenameConversation(PlatformAction):
         super().revert(values, SLACK_METHOD_ACTION)
 
 
-class SlackJoinConversation(PlatformAction):
+class SlackJoinConversation(GovernableAction):
     ACTION = "conversations.invite"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "users"]
@@ -323,7 +324,7 @@ class SlackJoinConversation(PlatformAction):
             super().revert(values, SLACK_METHOD_ACTION)
 
 
-class SlackPinMessage(PlatformAction):
+class SlackPinMessage(GovernableAction):
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
@@ -338,7 +339,7 @@ class SlackPinMessage(PlatformAction):
         super().revert(values, SLACK_METHOD_ACTION)
 
 
-class SlackScheduleMessage(PlatformAction):
+class SlackScheduleMessage(GovernableAction):
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
 
@@ -350,7 +351,7 @@ class SlackScheduleMessage(PlatformAction):
         permissions = (("can_execute_slackschedulemessage", "Can execute slack schedule message"),)
 
 
-class SlackKickConversation(PlatformAction):
+class SlackKickConversation(GovernableAction):
     ACTION = "conversations.kick"
     AUTH = "user"
     EXECUTE_PARAMETERS = ["user", "channel"]

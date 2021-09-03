@@ -1,6 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
-from django.contrib.auth.models import Permission
+from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction, Proposal
 from policykit.settings import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 import urllib
 from urllib import parse
@@ -12,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 REDDIT_USER_AGENT = 'PolicyKit:v1.0 (by /u/axz1919)'
 
-REDDIT_ACTIONS = ['redditmakepost']
 
 def refresh_access_token(refresh_token):
     data = parse.urlencode({
@@ -117,8 +115,8 @@ class RedditCommunity(CommunityPlatform):
                                   'community',
                                   'initiator',
                                   'communityaction_ptr',
-                                  'platformaction',
-                                  'platformactionbundle',
+                                  'governableaction',
+                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled',
@@ -150,13 +148,13 @@ class RedditCommunity(CommunityPlatform):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.platformactionbundle_set.all()
+                    bundle = action.governableactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
                     posted_action = action
 
-                for e in Proposal.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=posted_action):
                     if e.community_post:
                         values = {'id': e.community_post}
                         call = 'api/remove'
@@ -175,7 +173,7 @@ class RedditUser(CommunityUser):
         self.access_token = res['access_token']
         self.save()
 
-class RedditMakePost(PlatformAction):
+class RedditMakePost(GovernableAction):
     ACTION = 'api/submit'
     AUTH = 'user'
 

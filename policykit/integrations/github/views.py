@@ -2,7 +2,7 @@ import logging
 import requests
 from django.conf import settings
 from django.shortcuts import redirect
-from policyengine.models import Community, CommunityRole
+from policyengine.models import Community
 from integrations.github.models import GithubCommunity
 
 logger = logging.getLogger(__name__)
@@ -51,18 +51,11 @@ def github_install(request):
         return redirect(f"{redirect_route}?success=true")
 
     logger.debug(f"Creating new GithubCommunity under {community}")
-    user_group, _ = CommunityRole.objects.get_or_create(
-        role_name="Base User", name=f"Github: {readable_name}: Base User"
-    )
+
     github_community = GithubCommunity.objects.create(
         community=community,
         community_name=readable_name,
         team_id=team_id,
-        base_role=user_group,
     )
-    user_group.community = github_community
-    user_group.save()
-
-    # starterkit for github...?
 
     return redirect(f"{redirect_route}?success=true")

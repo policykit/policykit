@@ -1,20 +1,11 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
-from django.contrib.auth.models import Permission, ContentType
+from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction
 from policykit.settings import DISCORD_BOT_TOKEN
 import requests
-import json
 import logging
 
 logger = logging.getLogger(__name__)
 
-DISCORD_ACTIONS = [
-    'discordpostmessage',
-    'discorddeletemessage',
-    'discordrenamechannel',
-    'discordcreatechannel',
-    'discorddeletechannel'
-]
 
 # Storing basic info of Discord channels to prevent repeated calls to Discord
 # gateway for channel information.
@@ -39,14 +30,6 @@ class DiscordCommunity(CommunityPlatform):
     def post_message(self, text, channel):
         return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
 
-    def save(self, *args, **kwargs):
-        super(DiscordCommunity, self).save(*args, **kwargs)
-
-        content_types = ContentType.objects.filter(model__in=DISCORD_ACTIONS)
-        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
-        for p in perms:
-            self.base_role.permissions.add(p)
-
     def make_call(self, url, values=None, action=None, method="GET"):
         response = requests.request(
             method=method,
@@ -64,12 +47,9 @@ class DiscordCommunity(CommunityPlatform):
         return None
 
 class DiscordUser(CommunityUser):
-    def save(self, *args, **kwargs):
-        super(DiscordUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
+    pass
 
-class DiscordPostMessage(PlatformAction):
+class DiscordPostMessage(GovernableAction):
     channel_id = models.BigIntegerField()
     message_id = models.BigIntegerField()
     text = models.TextField()
@@ -92,7 +72,7 @@ class DiscordPostMessage(PlatformAction):
             self.message_id = message['id']
             self.save()
 
-class DiscordDeleteMessage(PlatformAction):
+class DiscordDeleteMessage(GovernableAction):
     channel_id = models.BigIntegerField()
     message_id = models.BigIntegerField()
     text = models.TextField(blank=True, default='')
@@ -118,7 +98,7 @@ class DiscordDeleteMessage(PlatformAction):
             # Deletes the message
             self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
-class DiscordRenameChannel(PlatformAction):
+class DiscordRenameChannel(GovernableAction):
     channel_id = models.BigIntegerField()
     name = models.TextField()
     name_old = models.TextField(blank=True, default='')
@@ -153,7 +133,7 @@ class DiscordRenameChannel(PlatformAction):
             c['channel_name'] = self.name
             c.save()
 
-class DiscordCreateChannel(PlatformAction):
+class DiscordCreateChannel(GovernableAction):
     channel_id = models.BigIntegerField(blank=True)
     name = models.TextField()
 
@@ -182,7 +162,7 @@ class DiscordCreateChannel(PlatformAction):
                 channel_name=channel['name']
             )
 
-class DiscordDeleteChannel(PlatformAction):
+class DiscordDeleteChannel(GovernableAction):
     channel_id = models.BigIntegerField()
 
     AUTH = 'user'

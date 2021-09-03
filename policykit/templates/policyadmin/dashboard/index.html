@@ -1,10 +1,7 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
-
+{% load dashboard_extras %}
 {% block styles %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/theme/eclipse.min.css" />
-
 <style>
   .body {
     display: flex;
@@ -132,7 +129,7 @@
     margin: 5vh auto;
     padding: 2%;
     border: 1px solid #888;
-    width: 40vw;
+    width: 70vw;
   }
 
   .editor {
@@ -154,13 +151,7 @@
 
   .code {
     resize: none;
-  }
-
-  .CodeMirror {
-    height: auto;
-    width: 90%;
-    margin-top: 1vh;
-    margin-bottom: 1vh;
+    font-family: monospace;
   }
 
   .btn {
@@ -263,24 +254,26 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in users.items %}
+              {% for u in users %}
                 <tr class="sidebarItem">
                   <td>
-                    {% if value.avatar %}
-                      <img class="sidebarPicture" src="{{value.avatar}}">
+                    {% if u.avatar %}
+                      <img class="sidebarPicture" src="{{u.avatar}}">
                     {% else %}
                       <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                     {% endif %}
                   </td>
-                  <td>{{value.readable_name}}</td>
+                  <td>{{u.readable_name|default_if_none:u.username}}</td>
                   <td>
-                    {% for r in value.roles %}
+                    {% with roles=u|user_roles %}
+                    {% for r in roles %}
                       {% if forloop.last %}
-                        {{r.name}}
+                        {{r}}
                       {% else %}
-                        {{r.name}},
+                        {{r}},
                       {% endif %}
                     {% endfor %}
+                    {% endwith %}
                   </td>
                 </tr>
               {% endfor %}
@@ -294,17 +287,11 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in roles.items %}
+              {% for role in roles %}
                 <tr class="sidebarItem">
-                  <td>{{key}}</td>
+                  <td>{{role.role_name}}</td>
                   <td>
-                    {% if value.users|length == 1 %}
-                      {{value.users.0.username}}
-                    {% elif value.users|length == 2 %}
-                      {{value.users.0.username}} and {{value.users.1.username}}
-                    {% elif value.users|length >= 3 %}
-                      {{value.users.0.username}}, {{value.users.1.username}} and {{value.users|length|add:"-2"}} more...
-                    {% endif %}
+                    {{role|role_users_string}}
                   </td>
                 </tr>
               {% endfor %}
@@ -318,9 +305,9 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in docs.items %}
-                <tr id="document_{{key}}" class="sidebarItem">
-                  <td>{{value.name}}</td>
+              {% for doc in docs %}
+                <tr id="document_{{doc.pk}}" class="sidebarItem">
+                  <td>{{doc.name}}</td>
                 </tr>
               {% empty %}
                 <tr class="sidebarItem">
@@ -337,9 +324,9 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in platform_policies.items %}
-                <tr id="platform_{{key}}" class="sidebarItem">
-                  <td>{{value.name}}</td>
+              {% for policy in platform_policies %}
+                <tr id="platform_{{policy.pk}}" class="sidebarItem">
+                  <td>{{policy.name}}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -352,9 +339,24 @@
       <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
-              {% for key, value in constitution_policies.items %}
-                <tr id="constitution_{{key}}" class="sidebarItem">
-                  <td>{{value.name}}</td>
+              {% for policy in constitution_policies %}
+                <tr id="constitution_{{policy.pk}}" class="sidebarItem">
+                  <td>{{policy.name}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+
+    <div class="sidebarPanel">
+      <h4 class="sidebarPanelTitle">Trigger policies</h4>
+      <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for policy in trigger_policies %}
+                <tr id="trigger_{{policy.pk}}" class="sidebarItem">
+                  <td>{{policy.name}}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -401,7 +403,12 @@
         <textarea class="form-control description" id="description" readonly rows="6"></textarea>
       </div>
     </div>
-
+    <div class="form-row">
+      <label class="control-label col-sm-2" for="action_types">Action Types:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control description" id="action_types" readonly rows="1"></textarea>
+      </div>
+    </div>
     <div class="form-row">
       <label class="control-label col-sm-2" for="filter">Filter:</label>
       <div class="col-sm-10">
@@ -445,9 +452,15 @@
     </div>
 
     <div class="form-row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-11">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-10">
         <button type="button" class="btn" id="download">Download policy</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-10">
+        <button type="button" class="btn" id="editpolicy">Edit policy</button>
       </div>
     </div>
   </div>
@@ -455,19 +468,19 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/mode/python/python.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/addon/display/autorefresh.min.js"></script>
-
 <script>
   document.getElementById("download").addEventListener("click", download);
-
+  document.getElementById("editpolicy").addEventListener("click", editPolicy);
   document.getElementById("proposeAction").addEventListener("click", navActions);
 
-  {% for key, value in platform_policies.items %}
-    document.getElementById("platform_{{key}}").addEventListener("click", function(){ showModal('code', {
+  {% for value in platform_policies %}
+    console.log(`{{value}}`)
+    document.getElementById("platform_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
+      pk: `{{value.pk}}`,
+      kind: `{{value.kind}}`,
       name: `{{value.name}}`,
-      description: `{{value.description}}`,
+      description: `{{value.description|default_if_none:""}}`,
+      action_types: `{{value|action_types|default_if_none:"All platform actions"}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -477,10 +490,13 @@
     }); });
   {% endfor %}
 
-  {% for key, value in constitution_policies.items %}
-    document.getElementById("constitution_{{key}}").addEventListener("click", function(){ showModal('code', {
+  {% for value in constitution_policies %}
+    document.getElementById("constitution_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
+      pk: `{{value.pk}}`,
+      kind: `{{value.kind}}`,
       name: `{{value.name}}`,
-      description: `{{value.description}}`,
+      description: `{{value.description|default_if_none:""}}`,
+      action_types: `{{value|default_if_none:"All constitution actions"}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -490,10 +506,26 @@
     }); });
   {% endfor %}
 
-  {% for key, value in docs.items %}
-    document.getElementById("document_{{key}}").addEventListener("click", function(){ showModal('doc', {
+  {% for value in trigger_policies %}
+    document.getElementById("trigger_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
+      pk: `{{value.pk}}`,
+      kind: `{{value.kind}}`,
       name: `{{value.name}}`,
-      text: `{{value.text}}`
+      description: `{{value.description|default_if_none:""}}`,
+      action_types: `{{value|default_if_none:""}}`,
+      filter: `{{value.filter}}`,
+      initialize: `{{value.initialize}}`,
+      check: `{{value.check}}`,
+      notify: `{{value.notify}}`,
+      pass: `{{value.success}}`,
+      fail: `{{value.fail}}`
+    }); });
+  {% endfor %}
+
+  {% for doc in docs %}
+    document.getElementById("document_{{doc.pk}}").addEventListener("click", function(){ showModal('doc', {
+      name: `{{doc.name}}`,
+      text: `{{doc.text}}`
     }); });
   {% endfor %}
 
@@ -505,21 +537,6 @@
   closeButtons = document.getElementsByClassName("close");
   for (let i = 0; i < closeButtons.length; i++) {
     closeButtons[i].addEventListener("click", hideModal);
-  }
-
-  const code_ids = ["filter", "initialize", "check", "notify", "pass", "fail"]
-
-  var editors = [];
-
-  for (let i = 0; i < code_ids.length; i++) {
-    var textArea = document.getElementById(code_ids[i]);
-    editors.push(CodeMirror.fromTextArea(textArea, {
-        mode: 'python',
-        lineNumbers: true,
-        autoRefresh: true,
-        readOnly: true,
-        theme: 'eclipse'
-    }));
   }
 
   // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
@@ -536,21 +553,17 @@
   function showModal(type, modalData) {
     if (type == 'code') {
       document.getElementById("modal").style.display = "block";
+      $("#modal").data("pk", modalData.pk);
+      $("#modal").data("kind", modalData.kind);
       document.getElementById("name").value = decodeHtml(modalData.name);
       document.getElementById("description").value = decodeHtml(modalData.description);
-
-      editors[0].setValue(decodeHtml(modalData.filter));
-      setTimeout(function(){ editors[0].refresh(); }, 1);
-      editors[1].setValue(decodeHtml(modalData.initialize));
-      setTimeout(function(){ editors[1].refresh(); }, 1);
-      editors[2].setValue(decodeHtml(modalData.check));
-      setTimeout(function(){ editors[2].refresh(); }, 1);
-      editors[3].setValue(decodeHtml(modalData.notify));
-      setTimeout(function(){ editors[3].refresh(); }, 1);
-      editors[4].setValue(decodeHtml(modalData.pass));
-      setTimeout(function(){ editors[4].refresh(); }, 1);
-      editors[5].setValue(decodeHtml(modalData.fail));
-      setTimeout(function(){ editors[5].refresh(); }, 1);
+      document.getElementById("action_types").value = decodeHtml(modalData.action_types);
+      document.getElementById("filter").value = decodeHtml(modalData.filter);
+      document.getElementById("initialize").value = decodeHtml(modalData.initialize);
+      document.getElementById("check").value = decodeHtml(modalData.check);
+      document.getElementById("notify").value = decodeHtml(modalData.notify);
+      document.getElementById("pass").value = decodeHtml(modalData.pass);
+      document.getElementById("fail").value = decodeHtml(modalData.fail);
     } else if (type == 'doc') {
       document.getElementById("modal_code").style.display = "block";
       document.getElementById('doc_name').value = decodeHtml(modalData.name);
@@ -574,12 +587,12 @@
       'name': name,
       'description': document.getElementById("description").value,
       'is_bundled': false,
-      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
-      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
-      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
-      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
-      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
-      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
+      'filter': document.getElementById("filter").value,
+      'initialize': document.getElementById("initialize").value,
+      'check': document.getElementById("check").value,
+      'notify': document.getElementById("notify").value,
+      'success': document.getElementById("pass").value,
+      'fail': document.getElementById("fail").value
     };
 
     let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
@@ -595,6 +608,10 @@
     document.body.appendChild(download_elem);
     download_elem.click();
     document.body.removeChild(download_elem);
+  }
+  function editPolicy() {
+    const data = $("#modal").data()
+    window.location.href = `{{server_url}}/main/editor?type=${data.kind}&operation=Change&policy=${data.pk}`;
   }
 </script>
 {% endblock %}

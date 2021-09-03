@@ -1,7 +1,5 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, PlatformAction, Policy, Proposal, CommunityRole
-from django.contrib.auth.models import Permission, ContentType
-from policyengine.utils import get_action_content_types
+from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction, Proposal
 import urllib
 import urllib.request
 import json
@@ -9,10 +7,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DISCOURSE_ACTIONS = [
-    'discoursecreatetopic',
-    'discoursecreatepost'
-]
 
 class DiscourseCommunity(CommunityPlatform):
     platform = "discourse"
@@ -29,13 +23,6 @@ class DiscourseCommunity(CommunityPlatform):
         # sending DM, sending multi-person message, etc. Metagov Discourse supports this.
         data = {'raw': text, 'topic_id': topic_id}
         return self.make_call('/posts.json', values=data)
-
-    def save(self, *args, **kwargs):
-        super(DiscourseCommunity, self).save(*args, **kwargs)
-        content_types = get_action_content_types(self.platform)
-        perms = Permission.objects.filter(content_type__in=content_types, name__contains="can add ")
-        for p in perms:
-            self.base_role.permissions.add(p)
 
     def make_call(self, url, values=None, action=None, method=None):
         data = None
@@ -74,8 +61,8 @@ class DiscourseCommunity(CommunityPlatform):
                                   'community',
                                   'initiator',
                                   'communityapi_ptr',
-                                  'platformaction',
-                                  'platformactionbundle',
+                                  'governableaction',
+                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -97,13 +84,13 @@ class DiscourseCommunity(CommunityPlatform):
             if delete_policykit_post:
                 posted_action = None
                 if action.is_bundled:
-                    bundle = action.platformactionbundle_set.all()
+                    bundle = action.governableactionbundle_set.all()
                     if bundle.exists():
                         posted_action = bundle[0]
                 else:
                     posted_action = action
 
-                for e in Proposal.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=posted_action):
                     if e.community_post:
                         data = {}
                         call = 'posts/{0}.json'.format(e.community_post)
@@ -114,12 +101,9 @@ class DiscourseCommunity(CommunityPlatform):
                 logger.info(error_message)
 
 class DiscourseUser(CommunityUser):
-    def save(self, *args, **kwargs):
-        super(DiscourseUser, self).save(*args, **kwargs)
-        group = self.community.base_role
-        group.user_set.add(self)
+    pass
 
-class DiscourseCreateTopic(PlatformAction):
+class DiscourseCreateTopic(GovernableAction):
     title = models.TextField()
     raw = models.TextField()
     topic_id = models.IntegerField()
@@ -154,7 +138,7 @@ class DiscourseCreateTopic(PlatformAction):
             self.community.make_call(f"/t/{self.topic_id}/recover", method='PUT')
             self.community_revert = False
 
-class DiscourseCreatePost(PlatformAction):
+class DiscourseCreatePost(GovernableAction):
     raw = models.TextField()
     post_id = models.IntegerField()
 

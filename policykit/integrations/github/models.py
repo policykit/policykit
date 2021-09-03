@@ -7,8 +7,6 @@ from policyengine.models import (
     BooleanVote,
     CommunityPlatform,
     CommunityUser,
-    LogAPICall,
-    Proposal,
 )
 from integrations.metagov.library import Metagov
 
@@ -53,7 +51,7 @@ class GithubCommunity(CommunityPlatform):
             assert k == "yes" or k == "no"
             reaction_bool = True if k == "yes" else False
             for u in v["users"]:
-                user, _ = GithubUser.objects.get_or_create(username=u, community=self)
+                user, _ = GithubUser.objects.get_or_create(username=u, readable_name=u, community=self)
                 existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
                 if existing_vote is None:
                     logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
@@ -62,3 +60,12 @@ class GithubCommunity(CommunityPlatform):
                     logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
                     existing_vote.boolean_value = reaction_bool
                     existing_vote.save()
+
+    def handle_metagov_event(self, outer_event):
+        """
+        Receive Github Metagov Event for this community
+        """
+        logger.debug(f"GithubCommunity recieved metagov event: {outer_event['event_type']}")
+        if outer_event["initiator"].get("is_metagov_bot") == True:
+            logger.debug("Ignoring bot event")
+            return

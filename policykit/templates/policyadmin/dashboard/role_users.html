@@ -73,7 +73,7 @@
     <div class="col-sm-11">
       <select class="dropdownContainer" name="user" id="user">
         {% for user in users %}
-          <option value="{{user.username}}">{{user.readable_name}}</option>
+          <option value="{{user.username}}">{{user.readable_name|default_if_none:user.username}}</option>
         {% endfor %}
       </select>
     </div>

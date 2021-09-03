@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'django_db_logger',
     'actstream',
     'policyengine',
+    'constitution'
 ] + INTEGRATIONS
 
 SITE_ID = 1

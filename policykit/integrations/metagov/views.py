@@ -9,8 +9,8 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.csrf import csrf_exempt
-from integrations.metagov.models import MetagovAction, MetagovUser
-from policyengine.models import Community, CommunityPlatform, CommunityRole, Proposal
+from integrations.metagov.models import MetagovTrigger, MetagovUser
+from policyengine.models import Community, Proposal
 from integrations.slack.models import SlackCommunity
 from integrations.github.models import GithubCommunity
 
@@ -77,50 +77,46 @@ def internal_receive_action(request):
 
     if body.get("source") == "slack":
         # Route Slack event to the correct SlackCommunity handler
-        slack_community = SlackCommunity.objects.filter(community=community).first()
-        if slack_community is None:
-            return HttpResponseBadRequest(f"no slack community exists for {metagov_community_slug}")
-        slack_community.handle_metagov_event(body)
-        return HttpResponse()
+        cp = SlackCommunity.objects.filter(community=community).first()
+        if cp:
+            cp.handle_metagov_event(body)
+            return HttpResponse()
 
-    # For all other sources, create generic MetagovActions.
+    if body.get("source") == "github":
+        # Route Slack event to the correct SlackCommunity handler
+        cp = GithubCommunity.objects.filter(community=community).first()
+        if cp:
+            new_action = cp.handle_metagov_event(body)
+            if new_action:
+                return HttpResponse()
 
-    platform_community = CommunityPlatform.objects.filter(community=community).first()
-    if platform_community is None:
+    # Create generic MetagovTriggers.
+    cp = community.get_platform_communities().first()
+    if cp is None:
         logger.error(f"No platforms exist for community '{community}'")
         return HttpResponse()
 
-    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovActions
+    # Get or create a MetagovUser that's tied to the PlatformCommunity, and give them permission to propose MetagovTriggers
 
     # Hack so MetagovUser username doesn't clash with usernames from other communities (django User requires unique username).
     # TODO(#299): make the CommunityUser model unique on community+username, not just username.
     initiator = body["initiator"]
     prefixed_username = f"{initiator['provider']}.{initiator['user_id']}"
     metagov_user, _ = MetagovUser.objects.get_or_create(
-        username=prefixed_username, provider=initiator["provider"], community=platform_community
+        username=prefixed_username,
+        readable_name=initiator['user_id'],
+        provider=initiator["provider"], community=cp
     )
 
-    # Give this user permission to propose any MetagovAction
-    user_group, usergroup_created = CommunityRole.objects.get_or_create(
-        role_name="Base User", name=f"Metagov: {metagov_community_slug}: Base User"
+    # Create MetagovTrigger
+    trigger_action = MetagovTrigger(
+        community=cp,
+        initiator=metagov_user,
+        event_type=f"{body['source']}.{body['event_type']}",
+        json_data=json.dumps(body["data"]),
     )
-    if usergroup_created:
-        user_group.community = platform_community
-        permission = Permission.objects.get(codename="add_metagovaction")
-        user_group.permissions.add(permission)
-        user_group.save()
-    user_group.user_set.add(metagov_user)
+    proposals = trigger_action.evaluate()
 
-    # Create MetagovAction
-    new_api_action = MetagovAction()
-    new_api_action.community = platform_community
-    new_api_action.initiator = metagov_user
-    new_api_action.event_type = f"{body['source']}.{body['event_type']}"
-    new_api_action.json_data = json.dumps(body["data"])
-
-    new_api_action.save()
-    if not new_api_action.pk:
-        return HttpResponseServerError()
-
-    logger.info(f"Created new MetagovAction with pk {new_api_action.pk}")
+    logger.debug(f"trigger_action proposals: {proposals}")
+    logger.debug(f"trigger_action saved?: {trigger_action.pk is not None}")
     return HttpResponse()

@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 from django.conf import settings
-from policyengine.models import Proposal, PlatformAction, BooleanVote
+from policyengine.models import Proposal, GovernableAction, BooleanVote
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser, DiscourseCreateTopic
 import urllib.request
 import urllib.error

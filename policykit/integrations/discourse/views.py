@@ -10,7 +10,6 @@ from django.views.decorators.csrf import csrf_exempt
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto import Random
-from policyengine.utils import ActionKind
 import urllib.request
 import json
 import base64
@@ -103,18 +102,11 @@ def auth(request):
             response = redirect('/login?success=true')
             return response
         else:
-            user_group,_ = CommunityRole.objects.get_or_create(role_name="Base User", name="Discourse: " + title + ": Base User")
-
-            parent_community = Community.objects.create(readable_name=title)
             community = DiscourseCommunity.objects.create(
                 community_name=title,
-                community=parent_community,
                 team_id=url,
                 api_key=api_key,
-                base_role=user_group,
             )
-            user_group.community = community
-            user_group.save()
 
             # Get the list of users and create a DiscourseUser object for each user
             req = urllib.request.Request(url + '/admin/users/list.json')
@@ -132,7 +124,7 @@ def auth(request):
             context = {
                 "server_url": SERVER_URL,
                 "starterkits": get_starterkits_info(),
-                "community_id": community.pk,
+                "community_id": community.community.pk,
                 "platform": "discourse"
             }
             return render(request, "policyadmin/init_starterkit.html", context)
@@ -146,7 +138,7 @@ def action(request):
     logger.info(json_data)
 
 def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
-    from policyengine.models import LogAPICall
+    from policyengine.models import LogAPICall, BaseAction
     policy = proposal.policy
     policy_message = "This action is governed by the following policy: " + policy.name
     if template:
@@ -166,6 +158,6 @@ def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
                                   call_type=call,
                                   extra_info=json.dumps(data))
 
-    if action.action_kind == ActionKind.PLATFORM:
+    if action.kind == BaseAction.PLATFORM:
         proposal.community_post = res['id']
         proposal.save()

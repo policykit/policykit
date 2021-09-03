@@ -7,23 +7,14 @@ import unittest
 
 import integrations.metagov.api as MetagovAPI
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.test import Client, LiveServerTestCase, TestCase
 from django_db_logger.models import EvaluationLog
-from integrations.metagov.models import MetagovAction
+from integrations.metagov.models import MetagovTrigger
 from integrations.metagov.library import Metagov
-from integrations.slack.models import SlackCommunity, SlackPinMessage, SlackUser
-from policyengine.models import Community, CommunityRole, Policy, Proposal
+from integrations.slack.models import SlackPinMessage
+from policyengine.models import Policy, Proposal, ActionType
 from policyengine import engine
-
-all_actions_pass_policy = {
-    "filter": "return True",
-    "initialize": "pass",
-    "notify": "pass",
-    "check": "return PASSED",
-    "success": "pass",
-    "fail": "pass",
-}
+import policyengine.tests.utils as TestUtils
 
 
 @unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
@@ -34,17 +25,8 @@ class IntegrationTests(LiveServerTestCase):
         print(f"Setting up integration tests: PolicyKit @ {settings.SERVER_URL}, Metagov @ {settings.METAGOV_URL}")
 
         # Set up a Slack community and a user
-        user_group = CommunityRole.objects.create(role_name="fake role", name="testing role")
-        can_add = Permission.objects.get(name="Can add slack pin message")
-        user_group.permissions.add(can_add)
-        self.community = Community.objects.create()
-        self.slack_community = SlackCommunity.objects.create(
-            community_name="my test community",
-            community=self.community,
-            team_id="TMQ3PKX",
-            base_role=user_group,
-        )
-        self.user = SlackUser.objects.create(username="test", community=self.slack_community)
+        self.slack_community, self.user = TestUtils.create_slack_community_and_user()
+        self.community = self.slack_community.community
 
         # Activate a plugin to use in tests
         MetagovAPI.update_metagov_community(
@@ -53,14 +35,13 @@ class IntegrationTests(LiveServerTestCase):
         )
 
     def tearDown(self):
-        # Delete parent community to trigger deletion of Metagov Community
         self.community.delete()
 
     def test_close_process(self):
         """Integration-test metagov process with randomness plugin. Process is closed from within the policy."""
-        # 1) Create Policy and PlatformAction
+        # 1) Create Policy and GovernableAction
         policy_code = {
-            **all_actions_pass_policy,
+            **TestUtils.ALL_ACTIONS_PASS,
             "initialize": """
 metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
 """,
@@ -80,9 +61,7 @@ return FAILED
         policy = Policy(
             **policy_code,
             kind=Policy.PLATFORM,
-            community=self.slack_community,
-            description="test",
-            name="test policy",
+            community=self.community,
         )
         policy.save()
 
@@ -106,9 +85,9 @@ return FAILED
 
     def test_outcome_endpoint(self):
         """Integration-test metagov process is updated via the outcome receiver endpoint in PolicyKit"""
-        # 1) Create Policy and PlatformAction
+        # 1) Create Policy and GovernableAction
         policy_code = {
-            **all_actions_pass_policy,
+            **TestUtils.ALL_ACTIONS_PASS,
             "initialize": """
 metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
 """,
@@ -128,9 +107,7 @@ return FAILED
         policy = Policy(
             **policy_code,
             kind=Policy.PLATFORM,
-            community=self.slack_community,
-            description="test",
-            name="test policy",
+            community=self.community,
         )
         policy.save()
 
@@ -138,7 +115,7 @@ return FAILED
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
-        action.revert = lambda: None # unset revert function so we don't try to hit slack
+        action.revert = lambda: None  # unset revert function so we don't try to hit slack
 
         # 2) Save action to trigger policy execution
         action.save()
@@ -176,7 +153,7 @@ return FAILED
         """Integration-test metagov.perform_action function with randomness plugin"""
         # 1) Create Policy that performs a metagov action
         policy = Policy(kind=Policy.PLATFORM)
-        policy.community = self.slack_community
+        policy.community = self.community
         policy.filter = "return True"
         policy.initialize = "logger.debug('help!')"
         policy.check = """parameters = {"low": 4, "high": 5}
@@ -208,34 +185,22 @@ return FAILED"""
 
 
 @unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
-class MetagovActionTest(TestCase):
+class MetagovTriggerTest(TestCase):
     def setUp(self):
-        user_group = CommunityRole.objects.create(role_name="fake role 2", name="testing role 2")
-        p1 = Permission.objects.get(name="Can add slack pin message")
-        user_group.permissions.add(p1)
-        self.community = Community.objects.create()
-        self.slack_community = SlackCommunity.objects.create(
-            community_name="test community",
-            community=self.community,
-            team_id="test000",
-            base_role=user_group,
-        )
+        self.slack_community, self.user = TestUtils.create_slack_community_and_user()
+        self.community = self.slack_community.community
 
     def tearDown(self):
-        # Delete parent community to trigger deletion of Metagov Community
         self.community.delete()
 
     def test_metagov_trigger(self):
         """Test policy triggered by generic metagov event"""
         # 1) Create Policy that is triggered by a metagov action
 
-        policy = Policy(kind=Policy.PLATFORM)
-        policy.community = self.slack_community
-        policy.filter = """return action.action_type == 'metagovaction' \
-and action.event_type == 'discourse.post_created'"""
-        policy.initialize = (
-            "proposal.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
-        )
+        policy = Policy(kind=Policy.TRIGGER)
+        policy.community = self.community
+        policy.filter = """return action.event_type == 'discourse.post_created'"""
+        policy.initialize = "proposal.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
         policy.notify = "pass"
         policy.check = "return PASSED if action.event_data['category'] == 0 else FAILED"
         policy.success = "pass"
@@ -243,9 +208,10 @@ and action.event_type == 'discourse.post_created'"""
         policy.description = "test"
         policy.name = "test policy"
         policy.save()
+        policy.action_types.add(ActionType.objects.create(codename="metagovtrigger"))
 
         event_payload = {
-            "community": self.slack_community.metagov_slug,
+            "community": self.community.metagov_slug,
             "initiator": {"user_id": "miriam", "provider": "discourse"},
             "source": "discourse",
             "event_type": "post_created",
@@ -258,11 +224,12 @@ and action.event_type == 'discourse.post_created'"""
 
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(MetagovAction.objects.all().count(), 1)
+        self.assertEqual(MetagovTrigger.objects.all().count(), 1)
 
-        action = MetagovAction.objects.filter(event_type="discourse.post_created").first()
+        action = MetagovTrigger.objects.filter(event_type="discourse.post_created").first()
 
         # the action.community is the community that is connected to metagov
+        self.assertEqual(action.action_type, "metagovtrigger")
         self.assertEqual(action.community.platform, "slack")
         self.assertEqual(action.initiator.username, "discourse.miriam")
         self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
@@ -276,7 +243,7 @@ and action.event_type == 'discourse.post_created'"""
         """Test receiving a Slack event from Metagov that creates a SlackPinMessage action"""
         # 1) Create Policy that is triggered by a metagov action
         policy = Policy(kind=Policy.PLATFORM)
-        policy.community = self.slack_community
+        policy.community = self.community
         policy.filter = """return action.action_type == 'slackpinmessage'"""
         policy.initialize = "pass"
         policy.notify = "pass"

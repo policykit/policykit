@@ -6,11 +6,9 @@ class policyEngineConfig(AppConfig):
 
     def ready(self):
         from actstream import registry
-        registry.register(self.get_model('PlatformAction'))
-        registry.register(self.get_model('PlatformActionBundle'))
+        registry.register(self.get_model('GovernableAction'))
+        registry.register(self.get_model('GovernableActionBundle'))
         registry.register(self.get_model('Policy'))
-        registry.register(self.get_model('ConstitutionAction'))
-        registry.register(self.get_model('ConstitutionActionBundle'))
         registry.register(self.get_model('CommunityUser'))
         registry.register(self.get_model('CommunityRole'))
         registry.register(self.get_model('BooleanVote'))

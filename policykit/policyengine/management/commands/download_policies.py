@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
 from policyengine.models import Policy
+from django.utils.text import slugify
+
 import json
 import datetime
 from pathlib import Path
@@ -19,8 +21,8 @@ class Command(BaseCommand):
         print(f"Downloading policies to directory: {dirname}")
 
         def download(policy):
-            prefix = f"{policy.community.platform}_{policy.community.team_id}_"
-            filename = prefix + policy.name.replace(" ", "_")
+            prefix = f"{policy.community.platform}_{slugify(policy.community.team_id)}_"
+            filename = prefix + slugify(policy.name)
             self.stdout.write(self.style.SUCCESS(f"Saving: {filename}"))
             data = {
                 "name": policy.name,

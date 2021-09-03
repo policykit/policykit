@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 from integrations.slack.models import SlackCommunity, SlackUser, SLACK_METHOD_ACTION
 from integrations.slack.utils import get_slack_user_fields
-from policyengine.models import Community, CommunityRole
+from policyengine.models import Community
 from policyengine.utils import get_starterkits_info
 
 logger = logging.getLogger(__name__)
@@ -35,13 +35,7 @@ def slack_install(request):
 
     # metagov identifier for the "parent community" to install Slack to
     metagov_community_slug = request.GET.get("community")
-    is_new_community = False
-    try:
-        community = Community.objects.get(metagov_slug=metagov_community_slug)
-    except Community.DoesNotExist:
-        logger.debug(f"Community not found: {metagov_community_slug}, creating it")
-        is_new_community = True
-        community = Community.objects.create(metagov_slug=metagov_community_slug)
+    community,is_new_community = Community.objects.get_or_create(metagov_slug=metagov_community_slug)
 
     # if we're enabling an integration for an existing community, so redirect to the settings page
     redirect_route = "/login" if is_new_community else "/main/settings"
@@ -71,26 +65,14 @@ def slack_install(request):
     team_id = team["id"]
     readable_name = team["name"]
 
-    # Set readable_name for Community
-    if not community.readable_name:
-        community.readable_name = readable_name
-        community.save()
-
-    user_group, _ = CommunityRole.objects.get_or_create(
-        role_name="Base User", name="Slack: " + readable_name + ": Base User"
-    )
-
     slack_community = SlackCommunity.objects.filter(team_id=team_id).first()
     if slack_community is None:
         logger.debug(f"Creating new SlackCommunity under {community}")
         slack_community = SlackCommunity.objects.create(
             community=community,
             community_name=readable_name,
-            team_id=team_id,
-            base_role=user_group,
+            team_id=team_id
         )
-        user_group.community = slack_community
-        user_group.save()
 
         # get the list of users, create SlackUser object for each user
         logger.debug(f"Fetching user list for {slack_community}...")
@@ -112,23 +94,21 @@ def slack_install(request):
                     u.access_token = user_token
                     u.save()
 
-        context = {
-            "server_url": settings.SERVER_URL,
-            "starterkits": get_starterkits_info(),
-            "community_id": slack_community.pk,
-            "creator_token": user_token,
-            "platform": "slack",
-            # redirect to settings page or login page depending on whether it's a new community
-            "redirect": redirect_route,
-        }
-        return render(request, "policyadmin/init_starterkit.html", context)
+        if is_new_community:
+            context = {
+                "server_url": settings.SERVER_URL,
+                "starterkits": get_starterkits_info(),
+                "community_id": slack_community.community.pk,
+                "creator_token": user_token,
+            }
+            return render(request, "policyadmin/init_starterkit.html", context)
+        else:
+            return redirect(f"{redirect_route}?success=true")
 
     else:
         logger.debug("community already exists, updating name..")
         slack_community.community_name = readable_name
         slack_community.save()
-        slack_community.community.readable_name = readable_name
-        slack_community.community.save()
 
         # Store token for the user who (re)installed Slack
         if user_token and user_id:

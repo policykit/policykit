@@ -4,7 +4,6 @@
 {% block styles %}
 <link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
-<link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.js" %}">
 <link rel="stylesheet" href="{% static "codemirror/addon/hint/css-hint.js" %}">
 <link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
 
@@ -23,21 +22,33 @@
     margin-top: 0.5em;
     margin-bottom: 0.5em;
   }
+  .form-row > label.col-sm-2 {
+    text-align: right;
+    padding-right: 0.5em;
+    padding-top: 0.2em;
+  }
 
   .control-label {
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
   }
 
-  .name {
-    width: 40%;
-  }
-
   .description {
     resize: none;
-    width: 60%;
   }
 
+  .selectpicker + button.btn.dropdown-toggle,
+  .selectpicker + button.btn.dropdown-toggle.disabled {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
+
+  .selectpicker + button {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
   .code {
     resize: none;
   }
@@ -46,10 +57,9 @@
     height: auto;
     width: 100%;
     border: 1px solid #000000;
-    extraKeys: ("Ctrl-Space": "autocomplete");
   }
 
-  .btn {
+  .btn.pk-btn {
     padding: 0.5em 2vw;
     margin-right: 0.4vw;
     border: 1px solid #4451b2;
@@ -59,17 +69,17 @@
     color: #4451b2;
   }
 
-  .btn:hover {
+  .btn.pk-btn:hover {
     background-color: #4451b2;
     color: #ffffff;
   }
 
-  .btn-propose {
+  .btn.pk-btn.btn-propose {
     background-color: #4451b2;
     color: #ffffff;
   }
 
-  .btn-propose:hover {
+  .btn.pk-btn.btn-propose:hover {
     background-color: #3b4699;
     color: #ffffff;
   }
@@ -98,14 +108,17 @@
     visibility: visible;
     opacity: 1;
   }
+  #alerts {
+    margin-top: 1em;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="body">
   <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10">
       {% if operation == "Add" %}
         <h3 class="headerText">Propose a new {{type|lower}} policy</h3>
       {% elif operation == "Change" %}
@@ -115,83 +128,100 @@
   </div>
 
   <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
-      <button type="button" class="btn" id="upload">Upload policy</button>
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10">
+      <button type="button" class="pk-btn btn" id="upload">Upload policy</button>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="name">Name</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="name">Name</label>
+    <div class="col-sm-8">
       <input type="text" class="form-control name" id="name" required>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="description">Description</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="description">Description</label>
+    <div class="col-sm-8">
       <textarea class="form-control description" id="description" rows="6"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="filter">Filter</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="filter">Action Types</label>
+    <div class="col-sm-8">
+      <select id="actionpicker" class="selectpicker form-control" data-live-search="true" title="Select actions..." multiple>
+        {% for app_name, action_list in actions %}
+          <optgroup label="{{app_name|upper}}">
+            {% for model_name, verbose_name in action_list %}
+              <option value={{model_name}}>{{verbose_name}}</option>
+            {% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+      
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="control-label col-sm-2" for="filter">Filter</label>
+    <div class="col-sm-10">
       <textarea class="form-control code" id="filter" required rows="3"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="initialize">Initialize</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="initialize">Initialize</label>
+    <div class="col-sm-10">
       <textarea class="form-control code" id="initialize" required rows="3"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="check">Check</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="check">Check</label>
+    <div class="col-sm-10">
       <textarea class="form-control code" id="check" required rows="3"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="notify">Notify</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="notify">Notify</label>
+    <div class="col-sm-10">
       <textarea class="form-control code" id="notify" required rows="3"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="pass">Pass</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="pass">Pass</label>
+    <div class="col-sm-10">
       <textarea class="form-control code" id="pass" required rows="3"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-1" for="fail">Fail</label>
-    <div class="col-sm-11">
+    <label class="control-label col-sm-2" for="fail">Fail</label>
+    <div class="col-sm-10">
       <textarea class="form-control code" id="fail" required rows="3"></textarea>
     </div>
   </div>
 
   <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10">
       {% if operation == "Add" %}
-        <button type="button" class="btn btn-propose" id="propose">Propose policy</button>
+        <button type="button" class="pk-btn btn btn-propose" id="propose">Propose policy</button>
       {% elif operation == "Change" %}
-        <button type="button" class="btn btn-propose" id="propose">Propose edits</button>
+        <button type="button" class="pk-btn btn btn-propose" id="propose">Propose edits</button>
       {% endif %}
-      <button type="button" class="btn" id="download">Download policy</button>
-      <button type="button" class="btn" id="documentation">View documentation</button>
+      <button type="button" class="pk-btn btn" id="download">Download policy</button>
+      <button type="button" class="pk-btn btn" id="documentation">View documentation</button>
     </div>
   </div>
   <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="control-label col-sm-11">
+    <div class="col-sm-2"></div>
+    <div class="control-label col-sm-10">
       <div id="alerts"></div>
     </div>
   </div>
@@ -200,19 +230,25 @@
 {% endblock %}
 
 {% block scripts %}
-<script src={% static "codemirror/lib/codemirror.js" %}></script>
-<link rel="stylesheet" type="text/css" href={% static "codemirror/lib/codemirror.css" %}/>
-<script src={% static "codemirror/mode/python/python.js" %}></script>
-<script src={% static "codemirror/addon/hint/show-hint.js" %}></script>
-<link rel="stylesheet" type="text/css" href={% static "codemirror/addon/hint/show-hint.css" %}/>
-<script src={% static "codemirror/addon/hint/python-hint.js" %}></script>
-<script src={% static "codemirror/addon/display/autorefresh.js" %}></script>
+<script src="{% static "codemirror/lib/codemirror.js" %}"></script>
+<script src="{% static "codemirror/mode/python/python.js" %}"></script>
+<script src="{% static "codemirror/addon/hint/show-hint.js" %}"></script>
+<script src="{% static "codemirror/addon/hint/python-hint.js" %}"></script>
+<script src="{% static "codemirror/addon/display/autorefresh.js" %}"></script>
 
 <script>
   document.getElementById("upload").addEventListener("click", upload);
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("download").addEventListener("click", download);
   document.getElementById("documentation").addEventListener("click", documentation);
+
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
 
   function documentation() {
     window.open(`https://policykit.readthedocs.io/en/latest/index.html`, '_blank');
@@ -221,6 +257,7 @@
   function propose() {
     const name = document.getElementById("name").value;
     const description = document.getElementById("description").value;
+    const action_types = $("#actionpicker").val();
     const filter = document.getElementById("filter").nextSibling.CodeMirror.getValue();
     const initialize = document.getElementById("initialize").nextSibling.CodeMirror.getValue();
     const check = document.getElementById("check").nextSibling.CodeMirror.getValue();
@@ -239,6 +276,7 @@
         'policy': `{{policy}}`,
         'name': name,
         'description': description,
+        'action_types': action_types,
         'is_bundled': false,
         'filter': filter,
         'initialize': initialize,
@@ -251,7 +289,10 @@
       if (!response.ok) {
           response.text().then(text => {
             console.error(text)
-            msg = "Something went wrong."
+            var msg = "Something went wrong."
+            if (response.status == 400) {
+              msg = text
+            }
             $('#alerts').html(msg).css("color", "red");
           })
         } else {
@@ -260,12 +301,6 @@
     });
   }
 
-  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
-  function decodeHtml(html) {
-    var txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
 
   {% if name %}
     document.getElementById('name').value = decodeHtml(`{{name}}`)
@@ -274,6 +309,22 @@
   {% if description %}
     document.getElementById('description').value = decodeHtml(`{{description}}`)
   {% endif %}
+
+  {% if action_types is not None %}
+  const action_types = {{ action_types|safe }};
+  const operation = `{{operation}}`;
+  const type = `{{type}}`;
+  if (action_types.length > 0) {
+    $('#actionpicker').selectpicker('val', action_types);
+  } else if (operation == "Change") {
+    // disable the action picker, because the loaded policy was a base policy
+    $('#actionpicker').prop('disabled', true);
+    const title = type == "Constitution" ? "All constitution actions": "All platform actions";
+    $('#actionpicker').prop('title', title);
+    $('#actionpicker').selectpicker('refresh');
+  }
+  {% endif %}
+
 
   const DEFAULT_VALUES = {
     "filter": "return True\n\n",
@@ -406,6 +457,7 @@
 
           document.getElementById('name').value = decodeHtml(`${policy_data.name}`);
           document.getElementById('description').value = decodeHtml(`${policy_data.description}`);
+          $('#actionpicker').selectpicker('val', policy_data.action_types);
           editors[0].setValue(decodeHtml(`${policy_data.filter}`));
           editors[1].setValue(decodeHtml(`${policy_data.initialize}`));
           editors[2].setValue(decodeHtml(`${policy_data.check}`));
@@ -426,6 +478,7 @@
       'name': name,
       'description': document.getElementById("description").value,
       'is_bundled': false,
+      'action_types': $("#actionpicker").val(),
       'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
       'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
       'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
