@@ -103,7 +103,9 @@ def internal_receive_action(request):
     initiator = body["initiator"]
     prefixed_username = f"{initiator['provider']}.{initiator['user_id']}"
     metagov_user, _ = MetagovUser.objects.get_or_create(
-        username=prefixed_username, provider=initiator["provider"], community=cp
+        username=prefixed_username,
+        readable_name=initiator['user_id'],
+        provider=initiator["provider"], community=cp
     )
 
     # Create MetagovTrigger
