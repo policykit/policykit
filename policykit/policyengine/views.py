@@ -41,11 +41,11 @@ def v2(request):
     from policyengine.models import CommunityUser, Proposal, CommunityPlatform
 
     user = get_user(request)
-    # user = CommunityUser.objects.all().first()
 
     community = user.community.community
+    users = CommunityUser.objects.filter(community__community=community)[:DASHBOARD_MAX_USERS]
+
     platform_communities = CommunityPlatform.objects.filter(community=community)
-    users = CommunityUser.objects.filter(community__in=platform_communities)[:DASHBOARD_MAX_USERS]
     action_log = Action.objects.filter(data__community_id__in=[cp.pk for cp in platform_communities])[:DASHBOARD_MAX_ACTIONS]
 
     pending_proposals = Proposal.objects.filter(
@@ -262,8 +262,9 @@ def roleusers(request):
     user = get_user(request)
     operation = request.GET.get('operation')
 
-    roles = user.community.community.get_roles()
-    users = CommunityUser.objects.filter(community=user.community).order_by('readable_name', 'username')
+    community = user.community.community
+    roles = community.get_roles()
+    users = CommunityUser.objects.filter(community__community=community).order_by('readable_name', 'username')
 
     return render(request, 'policyadmin/dashboard/role_users.html', {
         'server_url': SERVER_URL,
