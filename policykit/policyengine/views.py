@@ -208,7 +208,7 @@ def editor(request):
     data = {
         'server_url': SERVER_URL,
         'user': get_user(request),
-        'type': type,
+        'type': kind.capitalize(),
         'operation': operation,
         'actions': actions.items()
     }
