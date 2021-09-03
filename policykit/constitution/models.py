@@ -200,7 +200,7 @@ DEFAULT_FILTER = "return True\n\n"
 DEFAULT_INITIALIZE = "pass\n\n"
 DEFAULT_CHECK = "return PASSED\n\n"
 DEFAULT_NOTIFY = "pass\n\n"
-DEFAULT_SUCCESS = "action.execute()\n\n"
+DEFAULT_SUCCESS = "pass\n\n"
 DEFAULT_FAIL = "pass\n\n"
 
 
@@ -283,7 +283,7 @@ class PolicykitChangePlatformPolicy(EditorModel):
         return "Change Platform Policy: " + self.name
 
     def execute(self):
-        assert self.policy.kind == Policy.PLATFORM
+        assert self.policy.kind == Policy.PLATFORM, "Expected platform policy"
         self.save_to_policy(self.policy)
 
     class Meta:
@@ -297,7 +297,7 @@ class PolicykitChangeConstitutionPolicy(EditorModel):
         return "Change Constitution Policy: " + self.name
 
     def execute(self):
-        assert self.policy.kind == Policy.CONSTITUTION
+        assert self.policy.kind == Policy.CONSTITUTION, "Expected constitution policy"
         self.save_to_policy(self.policy)
 
     class Meta:
@@ -313,7 +313,7 @@ class PolicykitChangeTriggerPolicy(EditorModel):
         return "Change Trigger Policy: " + self.name
 
     def execute(self):
-        assert self.policy.kind == Policy.CONSTITUTION
+        assert self.policy.kind == Policy.TRIGGER, "Expected trigger policy"
         self.save_to_policy(self.policy)
 
     class Meta:
@@ -329,7 +329,7 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
         return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
-        assert self.policy.kind == Policy.PLATFORM
+        assert self.policy.kind == Policy.PLATFORM, "Expected platform policy"
         self.policy.is_active = False
         self.policy.save()
 
@@ -346,7 +346,7 @@ class PolicykitRemoveConstitutionPolicy(ConstitutionAction):
         return "Remove Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
-        assert self.policy.kind == Policy.CONSTITUTION
+        assert self.policy.kind == Policy.CONSTITUTION, "Expected constitution policy"
         self.policy.is_active = False
         self.policy.save()
 
@@ -365,7 +365,7 @@ class PolicykitRemoveTriggerPolicy(ConstitutionAction):
         return "Remove Trigger Policy: [ERROR: trigger policy not found]"
 
     def execute(self):
-        assert self.policy.kind == Policy.CONSTITUTION
+        assert self.policy.kind == Policy.TRIGGER, "Expected trigger policy"
         self.policy.is_active = False
         self.policy.save()
 
@@ -382,7 +382,7 @@ class PolicykitRecoverPlatformPolicy(ConstitutionAction):
         return "Recover Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
-        assert self.policy.kind == Policy.PLATFORM
+        assert self.policy.kind == Policy.PLATFORM, "Expected platform policy"
         self.policy.is_active = True
         self.policy.save()
 
@@ -401,7 +401,7 @@ class PolicykitRecoverConstitutionPolicy(ConstitutionAction):
         return "Recover Constitution Policy: [ERROR: constitution policy not found]"
 
     def execute(self):
-        assert self.policy.kind == Policy.CONSTITUTION
+        assert self.policy.kind == Policy.CONSTITUTION, "Expected constitution policy"
         self.policy.is_active = True
         self.policy.save()
 
@@ -420,7 +420,7 @@ class PolicykitRecoverTriggerPolicy(ConstitutionAction):
         return "Recover Trigger Policy: [ERROR: trigger policy not found]"
 
     def execute(self):
-        assert self.policy.kind == Policy.CONSTITUTION
+        assert self.policy.kind == Policy.TRIGGER, "Expected trigger policy"
         self.policy.is_active = True
         self.policy.save()
 
