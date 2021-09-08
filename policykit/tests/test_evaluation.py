@@ -46,15 +46,23 @@ class EvaluationTests(TestCase):
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
 
-    def evaluate_action_helper(self, action, expected_did_execute, expected_policy=None, expected_status=None):
+    def evaluate_action_helper(
+        self, action, expected_did_execute, expected_did_revert=False, expected_policy=None, expected_status=None
+    ):
         action._test_did_execute = False
+        action._test_did_revert = False
 
         def mocked_execute():
             action._test_did_execute = True
 
+        def mocked_revert():
+            action._test_did_revert = True
+
         action.execute = mocked_execute
+        action.revert = mocked_revert
         action.save()
         self.assertEqual(action._test_did_execute, expected_did_execute)
+        self.assertEqual(action._test_did_revert, expected_did_revert)
 
         if expected_policy and expected_status:
             try:
@@ -167,9 +175,12 @@ class EvaluationTests(TestCase):
 
         # new action should fail, because of most recent policy
         action = self.new_slackpinmessage(community_origin=True)
-        action.revert = lambda: None
         self.evaluate_action_helper(
-            action, expected_policy=second_policy, expected_did_execute=False, expected_status=Proposal.FAILED
+            action,
+            expected_policy=second_policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.FAILED,
         )
 
         first_policy.description = "updated description"
@@ -238,9 +249,12 @@ class EvaluationTests(TestCase):
         exception_policy.save()
 
         action = self.new_slackpinmessage(community_origin=True)
-        action.revert = lambda: None
         self.evaluate_action_helper(
-            action, expected_policy=all_fail_policy, expected_did_execute=False, expected_status=Proposal.FAILED
+            action,
+            expected_policy=all_fail_policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.FAILED,
         )
 
     def test_consider_proposed_actions(self):
@@ -253,9 +267,12 @@ class EvaluationTests(TestCase):
 
         # Make a pending action
         action = self.new_slackpinmessage(community_origin=True)
-        action.revert = lambda: None
         self.evaluate_action_helper(
-            action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.PROPOSED
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.PROPOSED,
         )
 
         # Run the evaluator, just tests that it doesn't throw
