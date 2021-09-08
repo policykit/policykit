@@ -6,7 +6,6 @@ from django.test import TestCase, override_settings
 from integrations.slack.models import SlackPinMessage, SlackUser
 from policyengine.models import CommunityRole, Proposal, Policy, ActionType
 from constitution.models import PolicykitAddCommunityDoc, PolicykitAddRole
-from policyengine.tasks import consider_proposed_actions
 import policyengine.tests.utils as TestUtils
 
 
@@ -291,36 +290,6 @@ class EvaluationTests(TestCase):
             expected_did_revert=True,
             expected_status=Proposal.FAILED,
         )
-
-    def test_consider_proposed_actions(self):
-        """Celery-scheduled consider_proposed_actions task doesn't throw"""
-        policy = Policy.objects.create(
-            **TestUtils.ALL_ACTIONS_PROPOSED,
-            kind=Policy.PLATFORM,
-            community=self.community,
-        )
-
-        # Make a pending action
-        action = self.new_slackpinmessage(community_origin=True)
-        self.evaluate_action_helper(
-            action,
-            expected_policy=policy,
-            expected_did_execute=False,
-            expected_did_revert=True,
-            expected_status=Proposal.PROPOSED,
-        )
-
-        # Run the evaluator, just tests that it doesn't throw
-        consider_proposed_actions()
-
-        # Update the policy so the action passes now
-        policy.check = "return PASSED"
-        policy.save()
-
-        consider_proposed_actions()
-
-        eval = Proposal.objects.get(action=action, policy=policy)
-        self.assertEqual(eval.status, Proposal.PASSED)
 
     def test_async_governing_policy_proposed_passed(self):
         """Test governed action: PROPOSED->PASSED is reverted and executed"""

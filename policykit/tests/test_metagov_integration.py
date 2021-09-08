@@ -13,7 +13,7 @@ from integrations.metagov.models import MetagovTrigger
 from integrations.metagov.library import Metagov
 from integrations.slack.models import SlackPinMessage
 from policyengine.models import Policy, Proposal, ActionType
-from policyengine import engine
+from policyengine.tasks import consider_proposed_actions
 import policyengine.tests.utils as TestUtils
 
 
@@ -115,7 +115,8 @@ return FAILED
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
-        action.revert = lambda: None  # unset revert function so we don't try to hit slack
+        action.revert = lambda: None
+        action.execute = lambda: None
 
         # 2) Save action to trigger policy execution
         action.save()
@@ -137,10 +138,10 @@ return FAILED
             f"/metagov/internal/outcome/{proposal.pk}", data=payload, content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
-        proposal.refresh_from_db()  # refresh because the outcome data should have been updated
 
-        # re-run proposal
-        engine.evaluate_proposal(proposal)
+        # re-run proposal using celery task function
+        consider_proposed_actions()
+        proposal.refresh_from_db()
 
         self.assertEqual(proposal.status, Proposal.PASSED)
 
@@ -173,6 +174,8 @@ return FAILED"""
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
+        action.revert = lambda: None
+        action.execute = lambda: None
         action.save()
 
         proposal = Proposal.objects.get(action=action, policy=policy)
