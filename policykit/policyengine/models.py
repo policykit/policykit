@@ -531,6 +531,32 @@ class BaseAction(PolymorphicModel):
         """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""
         return self._meta.model_name
 
+    @property
+    def is_reversible(self):
+        if self.kind in [PolicyActionKind.TRIGGER, PolicyActionKind.CONSTITUTION]:
+            return False
+        return self.kind == PolicyActionKind.PLATFORM and self.community_origin
+
+    @property
+    def is_executable(self):
+        if self.kind == PolicyActionKind.TRIGGER:
+            # Trigger actions can never be executed
+            return False
+
+        if self.kind == PolicyActionKind.CONSTITUTION:
+            # Constitution actions can always be executed
+            return True
+
+        if self.kind == PolicyActionKind.PLATFORM and not self.community_origin:
+            # Governable platform actions proposed in the PolicyKit UI can be executed.
+            return True
+
+        if self.kind == PolicyActionKind.PLATFORM and self.community_origin and self.community_revert:
+            # Governable platform actions that originated on the platform and have previously reverted, can be executed.
+            return True
+
+        return False
+
 
 class TriggerAction(BaseAction, PolymorphicModel):
     """Trigger Action"""
@@ -572,17 +598,24 @@ class GovernableAction(BaseAction, PolymorphicModel):
         if should_evaluate:
             # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
-            if not self.initiator or self.initiator.has_perm(can_propose_perm):
+            if self.initiator and not self.initiator.has_perm(can_propose_perm):
+                if self.is_reversible:
+                    logger.debug(f"Reverting proposed action because initiator does not have permission '{can_propose_perm}'")
+                    super(GovernableAction, self).save(*args, **kwargs)
+                    self.revert()
+                    actstream_action.send(self, verb='was reverted due to lack of permissions', community_id=self.community.id, action_codename=self.action_type)
+            else:
                 super(GovernableAction, self).save(*args, **kwargs)
                 engine.evaluate_action(self)
 
         super(GovernableAction, self).save(*args, **kwargs)
 
-    def revert(self, values, call, method=None):
+    def revert(self, values=None, call=None, method=None):
         """
         Reverts the action.
         """
-        _ = LogAPICall.make_api_call(self.community, values, call, method=method)
+        if call:
+            LogAPICall.make_api_call(self.community, values or {}, call, method=method)
         self.community_revert = True
         self.save()
 

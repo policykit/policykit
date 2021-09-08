@@ -70,7 +70,7 @@ class SlackCommunity(CommunityPlatform):
             return response.json()
         return None
 
-    def execute_platform_action(self, action, delete_policykit_post=True):
+    def execute_platform_action(self, action, delete_policykit_post=False):
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -273,7 +273,7 @@ class SlackPostMessage(GovernableAction):
             "ts": self.timestamp,
             "channel": self.channel,
         }
-        super().revert(values, SLACK_METHOD_ACTION)
+        super().revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackRenameConversation(GovernableAction):
@@ -297,7 +297,7 @@ class SlackRenameConversation(GovernableAction):
             # Use the initiators access token if we have it (since they already successfully renamed)
             "token": self.initiator.access_token or self.community.__get_admin_user_token(),
         }
-        super().revert(values, SLACK_METHOD_ACTION)
+        super().revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackJoinConversation(GovernableAction):
@@ -314,14 +314,14 @@ class SlackJoinConversation(GovernableAction):
     def revert(self):
         values = {"method_name": "conversations.kick", "user": self.users, "channel": self.channel}
         try:
-            super().revert(values, SLACK_METHOD_ACTION)
+            super().revert(values=values, call=SLACK_METHOD_ACTION)
         except Exception:
             # Whether or not bot can kick is based on workspace settings
             logger.error(f"kick with bot token failed, attempting with admin token")
             values["token"] = self.community.__get_admin_user_token()
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
-            super().revert(values, SLACK_METHOD_ACTION)
+            super().revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackPinMessage(GovernableAction):
@@ -336,7 +336,7 @@ class SlackPinMessage(GovernableAction):
 
     def revert(self):
         values = {"method_name": "pins.remove", "channel": self.channel, "timestamp": self.timestamp}
-        super().revert(values, SLACK_METHOD_ACTION)
+        super().revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackScheduleMessage(GovernableAction):

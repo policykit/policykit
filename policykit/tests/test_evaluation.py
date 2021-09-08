@@ -6,7 +6,6 @@ from django.test import TestCase, override_settings
 from integrations.slack.models import SlackPinMessage, SlackUser
 from policyengine.models import CommunityRole, Proposal, Policy, ActionType
 from constitution.models import PolicykitAddCommunityDoc, PolicykitAddRole
-from policyengine.tasks import consider_proposed_actions
 import policyengine.tests.utils as TestUtils
 
 
@@ -22,9 +21,78 @@ class EvaluationTests(TestCase):
         self.constitution_community = self.community.constitution_community
 
     def new_slackpinmessage(self, initiator=None, community_origin=False):
+        """helper for creating a new platform action"""
         return SlackPinMessage(
             initiator=initiator or self.user, community=self.slack_community, community_origin=community_origin
         )
+
+    def new_policykitaddcommunitydoc(self, initiator=None):
+        """helper for creating a new constitution action"""
+        return PolicykitAddCommunityDoc(
+            name="a doc", initiator=initiator or self.user, community=self.constitution_community
+        )
+
+    def evaluate_action_helper(
+        self, action, expected_did_execute, expected_did_revert=False, expected_policy=None, expected_status=None
+    ):
+        """helper to evaluate a new action"""
+        action._test_did_execute = False
+        action._test_did_revert = False
+
+        def mocked_execute():
+            action._test_did_execute = True
+
+        def mocked_revert():
+            action.community_revert = True
+            action._test_did_revert = True
+
+        action.execute = mocked_execute
+        action.revert = mocked_revert
+        action.save()
+
+        proposal = None
+        if expected_policy and expected_status:
+            try:
+                proposal = Proposal.objects.get(action=action, policy=expected_policy)
+            except:
+                raise Exception(
+                    f"Proposal not found! Expected action '{action}' to have a proposal for policy '{expected_policy}'"
+                )
+            self.assertEqual(proposal.status, expected_status)
+        else:
+            # there shouldn't have been an proposal generated (meaning the initiator had can_execute perms)
+            self.assertEqual(Proposal.objects.filter(action=action).count(), 0)
+
+        self.assertEqual(action._test_did_execute, expected_did_execute)
+        self.assertEqual(action._test_did_revert, expected_did_revert)
+        return proposal
+
+    def evaluate_proposal_helper(
+        self, proposal, expected_did_execute, expected_did_revert=False, expected_status=None
+    ):
+        """helper to re-evaluate an existing proposal"""
+        from policyengine import engine
+
+        action = proposal.action
+        action._test_did_execute = False
+        action._test_did_revert = False
+
+        def mocked_execute():
+            action._test_did_execute = True
+
+        def mocked_revert():
+            action.community_revert = True
+            action._test_did_revert = True
+
+        action.execute = mocked_execute
+        action.revert = mocked_revert
+
+        engine.evaluate_proposal(proposal)
+
+        if expected_status:
+            self.assertEqual(proposal.status, expected_status)
+        self.assertEqual(action._test_did_execute, expected_did_execute)
+        self.assertEqual(action._test_did_revert, expected_did_revert)
 
     def test_can_execute(self):
         """Test that users with can_execute permissions can execute any action and mark it as 'passed'"""
@@ -45,28 +113,6 @@ class EvaluationTests(TestCase):
         self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
-
-    def evaluate_action_helper(self, action, expected_did_execute, expected_policy=None, expected_status=None):
-        action._test_did_execute = False
-
-        def mocked_execute():
-            action._test_did_execute = True
-
-        action.execute = mocked_execute
-        action.save()
-        self.assertEqual(action._test_did_execute, expected_did_execute)
-
-        if expected_policy and expected_status:
-            try:
-                eval = Proposal.objects.get(action=action, policy=expected_policy)
-            except:
-                raise Exception(
-                    f"Proposal not found! Expected action '{action}' to have a proposal for policy '{expected_policy}'"
-                )
-            self.assertEqual(eval.status, expected_status)
-        else:
-            # there shouldn't have been an proposal generated (meaning the initiator had can_execute perms)
-            self.assertEqual(Proposal.objects.filter(action=action).count(), 0)
 
     def test_non_community_origin_actions(self):
         """Actions that didnt originate on the community platform should executed on 'pass'"""
@@ -101,15 +147,11 @@ class EvaluationTests(TestCase):
         self.assertTrue(user_with_can_execute.has_perm(f"constitution.{EXECUTE_COMMUNITIY_DOC_PERM}"))
 
         # action initiated by user with "can_execute" should pass
-        action = PolicykitAddCommunityDoc(
-            name="my doc", initiator=user_with_can_execute, community=self.constitution_community
-        )
+        action = self.new_policykitaddcommunitydoc(initiator=user_with_can_execute)
         self.evaluate_action_helper(action, expected_did_execute=True)
 
         # action initiated by user without "can_execute" should generate a failed proposal
-        action = PolicykitAddCommunityDoc(
-            name="my other doc", initiator=self.user, community=self.constitution_community
-        )
+        action = self.new_policykitaddcommunitydoc()
         self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.FAILED
         )
@@ -126,17 +168,17 @@ class EvaluationTests(TestCase):
         base_role.permissions.remove(can_add)
         base_role.save()
 
-        # action initiated by user without "can_add" should fail
+        # action initiated by user without "can_add" should be reverted
         user = SlackUser.objects.create(username="test-user", community=self.slack_community)
         self.assertEqual(user.has_perm(f"constitution.{PROPOSE_COMMUNITY_DOC_PERM}"), False)
-        action = PolicykitAddCommunityDoc(name="my doc", initiator=user, community=self.constitution_community)
+        action = self.new_policykitaddcommunitydoc(initiator=user)
         self.evaluate_action_helper(action, expected_did_execute=False)
 
         # action initiated by user with "can_add" should pass
         user = SlackUser.objects.create(username="second-user", community=self.slack_community)
         user.user_permissions.add(can_add)
         self.assertTrue(user.has_perm(f"constitution.{PROPOSE_COMMUNITY_DOC_PERM}"))
-        action = PolicykitAddCommunityDoc(name="my other doc", initiator=user, community=self.constitution_community)
+        action = self.new_policykitaddcommunitydoc(initiator=user)
         self.evaluate_action_helper(
             action, expected_policy=policy, expected_did_execute=True, expected_status=Proposal.PASSED
         )
@@ -167,9 +209,12 @@ class EvaluationTests(TestCase):
 
         # new action should fail, because of most recent policy
         action = self.new_slackpinmessage(community_origin=True)
-        action.revert = lambda: None
         self.evaluate_action_helper(
-            action, expected_policy=second_policy, expected_did_execute=False, expected_status=Proposal.FAILED
+            action,
+            expected_policy=second_policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.FAILED,
         )
 
         first_policy.description = "updated description"
@@ -238,13 +283,76 @@ class EvaluationTests(TestCase):
         exception_policy.save()
 
         action = self.new_slackpinmessage(community_origin=True)
-        action.revert = lambda: None
         self.evaluate_action_helper(
-            action, expected_policy=all_fail_policy, expected_did_execute=False, expected_status=Proposal.FAILED
+            action,
+            expected_policy=all_fail_policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.FAILED,
         )
 
-    def test_consider_proposed_actions(self):
-        """Celery-scheduled consider_proposed_actions task works"""
+    def test_async_governing_policy_proposed_passed(self):
+        """Test governed action: PROPOSED->PASSED is reverted and executed"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PROPOSED,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+        action = self.new_slackpinmessage(community_origin=True)
+
+        # Assert that the action gets reverted
+        proposal = self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.PROPOSED,
+        )
+
+        # Update the policy so the action passes now
+        policy.check = "return PASSED"
+        policy.save()
+
+        # Assert that the action gets executed
+        self.evaluate_proposal_helper(
+            proposal,
+            expected_did_execute=True,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+    def test_async_governing_policy_proposed_failed(self):
+        """Test governed action: PROPOSED->FAILED is reverted"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PROPOSED,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+        action = self.new_slackpinmessage(community_origin=True)
+
+        # Assert that the action gets reverted
+        proposal = self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.PROPOSED,
+        )
+
+        # Update the policy so the action passes now
+        policy.check = "return FAILED"
+        policy.save()
+
+        # Assert that the action isn't doubly reverted
+        self.evaluate_proposal_helper(
+            proposal,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.FAILED,
+        )
+
+    def test_async_governing_policy_proposed_passed_communityorigin(self):
+        """Test governed action: PROPOSED->PASSED for actions that did not originate in the community"""
         policy = Policy.objects.create(
             **TestUtils.ALL_ACTIONS_PROPOSED,
             kind=Policy.PLATFORM,
@@ -252,23 +360,160 @@ class EvaluationTests(TestCase):
         )
 
         # Make a pending action
-        action = self.new_slackpinmessage(community_origin=True)
-        action.revert = lambda: None
-        self.evaluate_action_helper(
-            action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.PROPOSED
-        )
+        action = self.new_slackpinmessage(community_origin=False)
 
-        # Run the evaluator, just tests that it doesn't throw
-        consider_proposed_actions()
+        # Assert that the action does not get reverted
+        proposal = self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.PROPOSED,
+        )
 
         # Update the policy so the action passes now
         policy.check = "return PASSED"
         policy.save()
 
-        consider_proposed_actions()
+        # Assert that the action gets executed
+        self.evaluate_proposal_helper(
+            proposal,
+            expected_did_execute=True,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
 
-        eval = Proposal.objects.get(action=action, policy=policy)
-        self.assertEqual(eval.status, Proposal.PASSED)
+    def test_sync_governing_policy_platform(self):
+        """Test governed platform action that passes or fails immediately is correctly executed or reverted"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+
+        # Action that did not originate in the community should execute.
+        action = self.new_slackpinmessage(community_origin=False)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=True,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+        # Action that did originate in the community should not execute.
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+        policy.check = "return FAILED"
+        policy.save()
+
+        # Action that did not originate in the community should not revert.
+        action = self.new_slackpinmessage(community_origin=False)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.FAILED,
+        )
+
+        # Action that did originate in the community should revert.
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.FAILED,
+        )
+
+    def test_sync_governing_policy_constitution(self):
+        """Test governed constitution action that passes or fails immediately is correctly executed or reverted"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+
+        action = self.new_policykitaddcommunitydoc()
+        self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=True,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+        policy.check = "return FAILED"
+        policy.save()
+
+        action = self.new_policykitaddcommunitydoc()
+        self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.FAILED,
+        )
+
+    def test_async_governing_policy_proposed_passed_constitution(self):
+        """Test governed constitution action: PROPOSED->PASSED is executed"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PROPOSED,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+        action = self.new_policykitaddcommunitydoc()
+        proposal = self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.PROPOSED,
+        )
+
+        policy.check = "return PASSED"
+        policy.save()
+
+        self.evaluate_proposal_helper(
+            proposal,
+            expected_did_execute=True,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+    def test_async_governing_policy_proposed_failed_constitution(self):
+        """Test governed constitution action: PROPOSED->FAILED is not executed"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PROPOSED,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+        action = self.new_policykitaddcommunitydoc()
+        proposal = self.evaluate_action_helper(
+            action,
+            expected_policy=policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.PROPOSED,
+        )
+
+        policy.check = "return FAILED"
+        policy.save()
+
+        self.evaluate_proposal_helper(
+            proposal,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.FAILED,
+        )
 
     def test_add_role(self):
         """Can evaluate PolicykitAddRole using evaluate_action"""

@@ -261,12 +261,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         proposal.pass_evaluation()
         assert proposal.status == Proposal.PASSED
 
-        # EXECUTE the action if....
-        # it is a GovernableAction that was proposed in the PolicyKit UI
-        if action.kind == PolicyActionKind.PLATFORM and not action.community_origin:
-            action.execute()
-        # it is a constitution action
-        elif action.kind == PolicyActionKind.CONSTITUTION:
+        if action.is_executable:
             action.execute()
 
         if settings.METAGOV_ENABLED:
@@ -288,8 +283,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     should_revert = (
         is_first_evaluation
         and check_result in [Proposal.PROPOSED, Proposal.FAILED]
-        and action.kind == PolicyActionKind.PLATFORM
-        and action.community_origin
+        and action.is_reversible
     )
 
     if should_revert:
