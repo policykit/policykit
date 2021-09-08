@@ -274,7 +274,7 @@ def roleeditor(request):
 
     user = get_user(request)
     operation = request.GET.get('operation')
-    role_name = request.GET.get('role')
+    role_pk = request.GET.get('role')
 
     # List permissions for all CommunityPlatforms connected to this community
     platforms = [c.platform for c in CommunityPlatform.objects.filter(community=user.community.community)]
@@ -287,14 +287,12 @@ def roleeditor(request):
         'operation': operation
     }
 
-    if role_name:
-        role = CommunityRole.objects.filter(name=role_name)[0]
+    if role_pk:
+        role = CommunityRole.objects.get(pk=role_pk)
         data['role_name'] = role.role_name
-        data['name'] = role_name
+        data['name'] = role.name
         data['description'] = role.description
-        currentPermissions = []
-        for p in role.permissions.all():
-            currentPermissions.append(p.name)
+        currentPermissions = list(role.permissions.filter(name__in=permissions).values_list('name', flat=True))
         data['currentPermissions'] = currentPermissions
 
     return render(request, 'policyadmin/dashboard/role_editor.html', data)
@@ -661,7 +659,7 @@ def role_action_remove(request):
     action = PolicykitDeleteRole()
     action.community = user.constitution_community
     action.initiator = user
-    action.role = CommunityRole.objects.get(name=data['role'])
+    action.role = CommunityRole.objects.get(pk=data['role'])
     action.save()
 
     return HttpResponse()
