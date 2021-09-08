@@ -70,7 +70,7 @@ class SlackCommunity(CommunityPlatform):
             return response.json()
         return None
 
-    def execute_platform_action(self, action, delete_policykit_post=True):
+    def execute_platform_action(self, action, delete_policykit_post=False):
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
