@@ -262,10 +262,13 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         assert proposal.status == Proposal.PASSED
 
         # EXECUTE the action if....
-        # it is a GovernableAction that was proposed in the PolicyKit UI
+        # It is a GovernableAction that was proposed in the PolicyKit UI
         if action.kind == PolicyActionKind.PLATFORM and not action.community_origin:
             action.execute()
-        # it is a constitution action
+        # It is a GovernableAction that originated on the platform and was previously reverted
+        elif action.kind == PolicyActionKind.PLATFORM and action.community_origin and action.community_revert:
+            action.execute()
+        # It is a constitution action
         elif action.kind == PolicyActionKind.CONSTITUTION:
             action.execute()
 
