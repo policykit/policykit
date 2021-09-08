@@ -190,7 +190,7 @@ class RedditMakePost(GovernableAction):
 
     def revert(self):
         values = {'id': self.name}
-        super().revert(values, 'api/remove')
+        super().revert(values=values, call='api/remove')
 
     def execute(self):
         if not self.community_revert:

@@ -172,7 +172,7 @@ class EvaluationTests(TestCase):
         user = SlackUser.objects.create(username="test-user", community=self.slack_community)
         self.assertEqual(user.has_perm(f"constitution.{PROPOSE_COMMUNITY_DOC_PERM}"), False)
         action = self.new_policykitaddcommunitydoc(initiator=user)
-        self.evaluate_action_helper(action, expected_did_execute=False, expected_did_revert=True)
+        self.evaluate_action_helper(action, expected_did_execute=False)
 
         # action initiated by user with "can_add" should pass
         user = SlackUser.objects.create(username="second-user", community=self.slack_community)

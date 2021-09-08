@@ -62,7 +62,7 @@ class DiscordPostMessage(GovernableAction):
         )
 
     def revert(self):
-        super().revert({}, f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
+        super().revert(call=f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
 
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
@@ -85,7 +85,7 @@ class DiscordDeleteMessage(GovernableAction):
         )
 
     def revert(self):
-        super().revert({'content': self.text}, f"channels/{self.channel_id}/messages")
+        super().revert(values={'content': self.text}, call=f"channels/{self.channel_id}/messages")
 
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
@@ -111,7 +111,7 @@ class DiscordRenameChannel(GovernableAction):
         )
 
     def revert(self):
-        super().revert({'name': self.name_old}, f"channels/{self.channel_id}", method='PATCH')
+        super().revert(values={'name': self.name_old}, call=f"channels/{self.channel_id}", method='PATCH')
 
         # Update DiscordChannel object
         c = DiscordChannel.objects.filter(channel_id=self.channel_id)
@@ -145,7 +145,7 @@ class DiscordCreateChannel(GovernableAction):
         )
 
     def revert(self):
-        super().revert({}, f"channels/{self.channel_id}", method='DELETE')
+        super().revert(call=f"channels/{self.channel_id}", method='DELETE')
 
     def execute(self):
         # Execute action if it didn't originate in the community OR it was previously reverted
