@@ -572,7 +572,12 @@ class GovernableAction(BaseAction, PolymorphicModel):
         if should_evaluate:
             # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
-            if not self.initiator or self.initiator.has_perm(can_propose_perm):
+            if self.initiator and not self.initiator.has_perm(can_propose_perm):
+                logger.debug(f"Reverting proposed action because initiator does not have permission '{can_propose_perm}'")
+                super(GovernableAction, self).save(*args, **kwargs)
+                self.revert()
+                actstream_action.send(self, verb='was reverted due to lack of permissions', community_id=self.community.id, action_codename=self.action_type)
+            else:
                 super(GovernableAction, self).save(*args, **kwargs)
                 engine.evaluate_action(self)
 
