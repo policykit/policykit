@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.deletion import CASCADE, SET_NULL
 from actstream import action as actstream_action
 from django.contrib.auth.models import UserManager, User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -558,16 +559,6 @@ class BaseAction(PolymorphicModel):
         return False
 
 
-class TriggerAction(BaseAction, PolymorphicModel):
-    """Trigger Action"""
-    kind = PolicyActionKind.TRIGGER
-
-    class Meta:
-        abstract = True
-
-    def evaluate(self):
-        return engine.evaluate_action(self)
-
 class GovernableAction(BaseAction, PolymorphicModel):
     """
     Governable action that can be executed and reverted. Constitution actions are governable.
@@ -595,18 +586,31 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         evaluate_action = kwargs.pop("evaluate_action", None)
         should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
+
         if should_evaluate:
-            # Runs if initiator has propose permission, OR if there is no initiator.
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
-            if self.initiator and not self.initiator.has_perm(can_propose_perm):
+            can_execute_perm = f"{self._meta.app_label}.can_execute_{self.action_type}"
+
+            if self.initiator and self.initiator.has_perm(can_execute_perm):
+                self.execute()  # No `Proposal` is created because we don't evaluate it
+                ExecutedActionTriggerAction.from_action(self).evaluate()
+
+            elif self.initiator and not self.initiator.has_perm(can_propose_perm):
                 if self.is_reversible:
-                    logger.debug(f"Reverting proposed action because initiator does not have permission '{can_propose_perm}'")
+                    logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: reverting")
                     super(GovernableAction, self).save(*args, **kwargs)
                     self.revert()
                     actstream_action.send(self, verb='was reverted due to lack of permissions', community_id=self.community.id, action_codename=self.action_type)
+                else:
+                    logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: doing nothing")
+
             else:
                 super(GovernableAction, self).save(*args, **kwargs)
-                engine.evaluate_action(self)
+
+                proposal = engine.evaluate_action(self)
+                if proposal and proposal.status == Proposal.PASSED:
+                    # Evaluate a trigger for the acion being executed
+                    ExecutedActionTriggerAction.from_action(self).evaluate()
 
         super(GovernableAction, self).save(*args, **kwargs)
 
@@ -625,6 +629,32 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         self.community.execute_platform_action(self)
 
+
+class TriggerAction(BaseAction, PolymorphicModel):
+    """Trigger Action"""
+    kind = PolicyActionKind.TRIGGER
+
+    class Meta:
+        abstract = True
+
+    def evaluate(self):
+        return engine.evaluate_action(self)
+
+
+class ExecutedActionTriggerAction(TriggerAction):
+    """represent any GovernableAction as a trigger"""
+    action = models.ForeignKey(GovernableAction, on_delete=CASCADE)
+
+    @staticmethod
+    def from_action(action):
+        return ExecutedActionTriggerAction(
+            action=action,
+            community=action.community,
+            initiator=action.initiator
+        )
+
+    def __str__(self):
+        return f"Trigger: {self.action}"
 
 class GovernableActionBundle(GovernableAction):
     ELECTION = 'election'

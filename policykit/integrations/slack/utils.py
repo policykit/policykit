@@ -140,6 +140,8 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
         if post_type == "channel":
             if action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
                 payload["channel"] = action.channel
+            elif action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel"):
+                payload["channel"] = action.action.channel # action is a trigger from a governable action
             elif action.action_type == "governableactionbundle":
                 first_action = action.bundled_actions.all()[0]
                 if hasattr(first_action, "channel") and first_action.channel:

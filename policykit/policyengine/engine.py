@@ -33,12 +33,21 @@ class EvaluationContext:
     """
 
     def __init__(self, proposal):
-        self.action = proposal.action
+        from policyengine.models import ExecutedActionTriggerAction
+
+        if isinstance(proposal.action, ExecutedActionTriggerAction):
+            self.action = proposal.action.action
+        else:
+            self.action = proposal.action
+
         self.policy = proposal.policy
         self.proposal = proposal
-        self.logger = EvaluationLogAdapter(
-            db_logger, {"community": proposal.action.community.community, "proposal": proposal}
-        )
+
+        # Can't use logger in filter step because proposal isn't saved yet
+        if proposal.pk:
+            self.logger = EvaluationLogAdapter(
+                db_logger, {"community": self.action.community.community, "proposal": proposal}
+            )
 
         from policyengine.models import Community, CommunityPlatform
 
@@ -89,11 +98,14 @@ class PolicyDoesNotPassFilter(PolicyEngineError):
 
 def get_eligible_policies(action):
     from django.db.models import Q
-    from policyengine.models import PolicyActionKind
+    from policyengine.models import PolicyActionKind, ExecutedActionTriggerAction
 
     if action.kind == PolicyActionKind.TRIGGER:
         # Trigger policies MUST match the trigger action. There is no "base policy" concept for triggers.
-        action_type_match = Q(action_types__codename=action.action_type)
+        if isinstance(action, ExecutedActionTriggerAction):
+            action_type_match = Q(action_types__codename=action.action.action_type)
+        else:
+            action_type_match = Q(action_types__codename=action.action_type)
     else:
         # Governing policies can match if they have NO action_types specified (meaning its the "base policy")
         action_type_match = Q(action_types=None) | Q(action_types__codename=action.action_type)
@@ -108,10 +120,10 @@ def evaluate_action(action):
     """
     Called the FIRST TIME that an action is evaluated.
 
-    For governable actions:
-    - If the initiator has "can execute" permission, execute the action and mark it as "passed."
-    - Otherwise, choose a Policy to evaluate.
-    - Save the Proposal for the evaluation, which will be re-evaluated from the celery task if it is pending
+    For governable actions ("platform" and "constitution"):
+    - Get a list of eligible policies based on action_types. Raise an error if no policies match. There should always be a matching base policy from the starterkit.
+    - Try each policy, executing only the Filter step. The first policy that returns True from the Filter step is the policy that will govern this action.
+    - Evaluate the selected Policy. Create and save the Proposal for the evaluation, which will be re-evaluated from the celery task if it is pending
 
     For trigger actions:
     - Evaluate against all eligible policies
@@ -119,32 +131,22 @@ def evaluate_action(action):
     """
     from policyengine.models import Proposal, PolicyActionKind
 
-    # if this is a governable action and the initiator has execute permission, skip all policies
-    if (
-        action.kind != PolicyActionKind.TRIGGER
-        and action.initiator
-        and action.initiator.has_perm(f"{action._meta.app_label}.can_execute_{action.action_type}")
-    ):
-        action.execute()  # No `Proposal` is created because we don't evaluate it
-        return None
-
     eligible_policies = get_eligible_policies(action)
     if not eligible_policies.exists():
-        return None
-
-    if not action.pk:
-        # at this point we need to make sure the action is saved to the database since we'll be creating Proposals linked to it
-        action.save()
+        if action.kind != PolicyActionKind.TRIGGER:
+            raise Exception(f"no eligible policies found for governable action '{action}'")
+        else:
+            return None
 
     # If this is a trigger action, evaluate ALL eligible policies
     if action.kind == PolicyActionKind.TRIGGER:
         proposals = []
-        for policy in eligible_policies:
-            proposal = Proposal.objects.create(policy=policy, action=action, status=Proposal.PROPOSED)
+        matching_policies_proposals = create_prefiltered_proposals(action, eligible_policies, allow_multiple=True)
+        for proposal in matching_policies_proposals:
             try:
                 evaluate_proposal(proposal, is_first_evaluation=True)
             except Exception as e:
-                logger.debug(f"{proposal} raised exception '{e}'")
+                logger.debug(f"{proposal} raised exception {type(e).__name__} {e}")
                 proposal.delete()
             else:
                 proposals.append(proposal)
@@ -153,9 +155,10 @@ def evaluate_action(action):
     # If this is a governable action, choose ONE policy to evaluate
     else:
         while eligible_policies.exists():
-            proposal = choose_policy(action, eligible_policies)
+            proposal = create_prefiltered_proposals(action, eligible_policies)
             if not proposal:
                 # This means that the action didn't pass the filter for ANY policies.
+                logger.warn(f"Governable action {action} did not pass Filter for any eligible policies.")
                 return None
 
             # Run the proposal
@@ -163,36 +166,50 @@ def evaluate_action(action):
                 evaluate_proposal(proposal, is_first_evaluation=True)
             except Exception as e:
                 eligible_policies = eligible_policies.exclude(pk=proposal.policy.pk)
-                logger.debug(f"{proposal} raised exception '{e}', choosing a different policy...")
+                logger.debug(f"{proposal} raised exception {type(e).__name__} {e}, choosing a different policy...")
                 proposal.delete()
                 pass
             else:
                 return proposal
 
 
-def choose_policy(action, policies):
+def create_prefiltered_proposals(action, policies, allow_multiple=False):
+    """
+    Evaluate aciton against the Filter step in all provided policies, and return the Proposal
+    for the first Policy where the aciton passed the Filter.
+
+    If allow_multiple is true, returns a *list* of all Proposals where the action passed the filter (used for Triggers).
+    """
     from policyengine.models import Policy, Proposal
 
+    proposals = []
     for policy in policies:
-        proposal = Proposal.objects.create(policy=policy, action=action, status=Proposal.PROPOSED)
+        proposal = Proposal(policy=policy, action=action, status=Proposal.PROPOSED)
         context = EvaluationContext(proposal)
         try:
             passed_filter = exec_code_block(policy.filter, context, Policy.FILTER)
         except Exception as e:
             # Log unhandled exception to the db, so policy author can view it in the UI.
             context.logger.error(f"Exception in 'filter': {str(e)}")
-            proposal.delete()
             # If there was an exception raised in 'filter', treat it as if the action didn't pass this policy's filter.
             continue
 
         if passed_filter:
-            logger.debug(f"For action '{action}', choosing policy '{policy}'")
-            return proposal
+            # Defer saving trigger actions and proposals until we need to, so we don't bloat the database
+            if not action.pk:
+                action.save()
+            proposal.save()
+            if allow_multiple:
+                proposals.append(proposal)
+            else:
+                logger.debug(f"For action '{action}', choosing policy '{policy}'")
+                return proposal
 
-        proposal.delete()
-
-    logger.warn(f"No matching policy for {action}")
-    return None
+    if allow_multiple:
+        return proposals
+    else:
+        logger.warn(f"No matching policy for {action}")
+        return None
 
 
 def delete_and_rerun(proposal):
@@ -219,6 +236,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
         raise PolicyIsNotActive
 
     context = EvaluationContext(proposal)
+
     try:
         return evaluate_proposal_inner(context, is_first_evaluation)
     except PolicyDoesNotPassFilter:
@@ -237,11 +255,12 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
 def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: bool):
     from policyengine.models import Policy, Proposal, PolicyActionKind
 
-    policy = context.policy
-    action = context.action
     proposal = context.proposal
+    action = proposal.action
+    policy = proposal.policy
 
     if not exec_code_block(policy.filter, context, Policy.FILTER):
+        logger.debug("does not pass filter")
         raise PolicyDoesNotPassFilter
 
     # If policy is being evaluated for the first time, initialize it
@@ -281,9 +300,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     # Revert the action if necessary
     should_revert = (
-        is_first_evaluation
-        and check_result in [Proposal.PROPOSED, Proposal.FAILED]
-        and action.is_reversible
+        is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and action.is_reversible
     )
 
     if should_revert:

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def consider_proposed_actions():
     # import PK modules inside the task so we get code updates.
     from policyengine import engine
-    from policyengine.models import Proposal
+    from policyengine.models import Proposal, ExecutedActionTriggerAction
 
     pending_proposals = Proposal.objects.filter(status=Proposal.PROPOSED)
     for proposal in pending_proposals:
@@ -25,6 +25,9 @@ def consider_proposed_actions():
             logger.debug(f"New proposal: {new_proposal}")
         except Exception as e:
             logger.error(f"Error running proposal {proposal}: {e}")
+
+        if proposal.status == Proposal.PASSED:
+            ExecutedActionTriggerAction.from_action(proposal.action).evaluate()
 
     clean_up_logs()
     logger.debug("finished task")

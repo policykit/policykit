@@ -195,27 +195,18 @@ class PolicykitRemoveUserRole(ConstitutionAction):
         permissions = (("can_execute_policykitremoveuserrole", "Can execute policykit remove user role"),)
 
 
-# Default values for code fields in editor
-DEFAULT_FILTER = "return True\n\n"
-DEFAULT_INITIALIZE = "pass\n\n"
-DEFAULT_CHECK = "return PASSED\n\n"
-DEFAULT_NOTIFY = "pass\n\n"
-DEFAULT_SUCCESS = "pass\n\n"
-DEFAULT_FAIL = "pass\n\n"
-
-
 class EditorModel(ConstitutionAction):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
 
     action_types = models.ManyToManyField(ActionType)
 
-    filter = models.TextField(blank=True, default=DEFAULT_FILTER, verbose_name="Filter")
-    initialize = models.TextField(blank=True, default=DEFAULT_INITIALIZE, verbose_name="Initialize")
-    check = models.TextField(blank=True, default=DEFAULT_CHECK, verbose_name="Check")
-    notify = models.TextField(blank=True, default=DEFAULT_NOTIFY, verbose_name="Notify")
-    success = models.TextField(blank=True, default=DEFAULT_SUCCESS, verbose_name="Pass")
-    fail = models.TextField(blank=True, default=DEFAULT_FAIL, verbose_name="Fail")
+    filter = models.TextField(blank=True, verbose_name="Filter")
+    initialize = models.TextField(blank=True, verbose_name="Initialize")
+    check = models.TextField(blank=True, verbose_name="Check")
+    notify = models.TextField(blank=True, verbose_name="Notify")
+    success = models.TextField(blank=True, verbose_name="Pass")
+    fail = models.TextField(blank=True, verbose_name="Fail")
 
     class Meta:
         abstract = True

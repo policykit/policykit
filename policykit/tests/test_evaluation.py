@@ -434,6 +434,77 @@ class EvaluationTests(TestCase):
             expected_status=Proposal.FAILED,
         )
 
+    def test_governable_action_triggers(self):
+        """Test that governable actions create triggers when passed, and that trigger policy evaluates"""
+        governing_policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+        trigger_policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.TRIGGER,
+            community=self.community,
+        )
+        trigger_policy.action_types.add(ActionType.objects.create(codename="slackpinmessage"))
+
+        # 1) NOT community originated (execute is called)
+        action = self.new_slackpinmessage(community_origin=False)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=governing_policy,
+            expected_did_execute=True,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+        # trigger policy should have executed
+        proposal = Proposal.objects.get(policy=trigger_policy)
+        self.assertEqual(proposal.status, Proposal.PASSED)
+        self.assertEqual(proposal.action.action, action)
+        proposal.delete()
+
+        # 2) Community originated (execute is not called)
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=governing_policy,
+            expected_did_execute=False,
+            expected_did_revert=False,
+            expected_status=Proposal.PASSED,
+        )
+
+        # trigger policy should have executed
+        proposal = Proposal.objects.get(policy=trigger_policy)
+        self.assertEqual(proposal.status, Proposal.PASSED)
+        self.assertEqual(proposal.action.action, action)
+
+    def test_governable_action_triggers_proposed(self):
+        """Test that governable actions don't create triggers when proposed"""
+        governing_policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PROPOSED,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+        trigger_policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.TRIGGER,
+            community=self.community,
+        )
+        trigger_policy.action_types.add(ActionType.objects.create(codename="slackpinmessage"))
+
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action,
+            expected_policy=governing_policy,
+            expected_did_execute=False,
+            expected_did_revert=True,
+            expected_status=Proposal.PROPOSED,
+        )
+
+        # trigger policy not have been evaluated
+        self.assertFalse(Proposal.objects.filter(policy=trigger_policy).exists())
+
     def test_sync_governing_policy_constitution(self):
         """Test governed constitution action that passes or fails immediately is correctly executed or reverted"""
         policy = Policy.objects.create(
