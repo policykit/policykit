@@ -71,8 +71,10 @@ def get_action_types(community, kinds):
     for c in platform_communities:
         app_name = c.platform
         action_list = []
-        if PolicyActionKind.PLATFORM in kinds or (
-            PolicyActionKind.CONSTITUTION in kinds and app_name == "constitution"
+        if (
+            PolicyActionKind.PLATFORM in kinds
+            or PolicyActionKind.TRIGGER in kinds # all platformactions can be used as triggers
+            or (PolicyActionKind.CONSTITUTION in kinds and app_name == "constitution")
         ):
             for cls in get_action_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
