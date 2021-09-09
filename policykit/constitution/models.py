@@ -315,8 +315,8 @@ class PolicykitRemovePlatformPolicy(ConstitutionAction):
     policy = models.ForeignKey(Policy, models.SET_NULL, null=True)
 
     def __str__(self):
-        if self.platform_policy:
-            return "Remove Platform Policy: " + self.platform_policy.name
+        if self.policy:
+            return "Remove Platform Policy: " + self.policy.name
         return "Remove Platform Policy: [ERROR: platform policy not found]"
 
     def execute(self):
