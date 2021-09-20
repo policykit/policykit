@@ -150,9 +150,9 @@ class SlackCommunity(CommunityPlatform):
         status = process["status"]  # TODO: handle 'completed' status, which means that process was "closed"
         votes = outcome["votes"]
 
-        action = proposal.action
+        action = proposal.action # the action that triggered the vote
 
-        if action.kind == PolicyActionKind.PLATFORM and action.action_type != "governableactionbundle":
+        if action.kind == PolicyActionKind.TRIGGER or (action.kind in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION] and action.action_type != "governableactionbundle"):
             # Expect this process to be a boolean vote on an action.
             for (k, v) in votes.items():
                 assert k == "yes" or k == "no"
