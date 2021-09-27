@@ -189,6 +189,7 @@ def disable_integration(request):
     MetagovAPI.delete_plugin(name=name, id=id)
     return redirect("/main/settings")
 
+
 @login_required(login_url='/login')
 def editor(request):
     kind = request.GET.get('type', "platform").lower()
@@ -219,7 +220,9 @@ def editor(request):
         try:
             policy = Policy.objects.get(id=policy_id)
         except Policy.DoesNotExist:
-            return HttpResponseBadRequest()
+            return HttpResponseNotFound()
+        if policy.community != user.community.community:
+            return HttpResponseNotFound()
 
         data['policy'] = policy_id
         data['name'] = policy.name
@@ -499,6 +502,8 @@ def policy_action_save(request):
             action.policy = Policy.objects.get(pk=data['policy'])
         except Policy.DoesNotExist:
             return HttpResponseNotFound()
+        if action.policy.community != user.community.community:
+            return HttpResponseNotFound()
 
     else:
         return HttpResponseNotFound()
@@ -552,6 +557,9 @@ def policy_action_remove(request):
         policy = Policy.objects.get(pk=data['policy'])
     except Policy.DoesNotExist:
         return HttpResponseNotFound()
+    if policy.community != user.community.community:
+        return HttpResponseNotFound()
+
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
         action.policy = policy
@@ -580,6 +588,9 @@ def policy_action_recover(request):
         policy = Policy.objects.get(pk=data['policy'])
     except Policy.DoesNotExist:
         return HttpResponseNotFound()
+    if policy.community != user.community.community:
+        return HttpResponseNotFound()
+
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
         action.policy = policy
