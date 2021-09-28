@@ -299,7 +299,10 @@ def roleeditor(request):
     }
 
     if role_pk:
-        role = CommunityRole.objects.get(pk=role_pk, community=user.community.community)
+        try:
+            role = CommunityRole.objects.get(pk=role_pk, community=user.community.community)
+        except CommunityRole.DoesNotExist:
+            return HttpResponseNotFound()
         data['role_name'] = role.role_name
         data['name'] = role.name
         data['description'] = role.description
@@ -676,7 +679,10 @@ def role_action_remove(request):
     action = PolicykitDeleteRole()
     action.community = user.constitution_community
     action.initiator = user
-    action.role = CommunityRole.objects.get(pk=data['role'], community=user.community.community)
+    try:
+        action.role = CommunityRole.objects.get(pk=data['role'], community=user.community.community)
+    except CommunityRole.DoesNotExist:
+        return HttpResponseNotFound()
     action.save()
 
     return HttpResponse()
@@ -694,7 +700,10 @@ def document_action_save(request):
         action = PolicykitAddCommunityDoc()
     elif data['operation'] == 'Change':
         action = PolicykitChangeCommunityDoc()
-        action.doc = CommunityDoc.objects.filter(id=data['doc'])[0]
+        try:
+            action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+        except CommunityDoc.DoesNotExist:
+            return HttpResponseNotFound()
     else:
         return HttpResponseBadRequest()
 
@@ -717,7 +726,10 @@ def document_action_remove(request):
     action = PolicykitDeleteCommunityDoc()
     action.community = user.constitution_community
     action.initiator = user
-    action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+    try:
+        action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+    except CommunityDoc.DoesNotExist:
+        return HttpResponseNotFound()
     action.save()
 
     return HttpResponse()
@@ -733,7 +745,10 @@ def document_action_recover(request):
     action = PolicykitRecoverCommunityDoc()
     action.community = user.constitution_community
     action.initiator = user
-    action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+    try:
+        action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+    except CommunityDoc.DoesNotExist:
+        return HttpResponseNotFound()
     action.save()
 
     return HttpResponse()
