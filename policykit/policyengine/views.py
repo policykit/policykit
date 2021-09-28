@@ -165,7 +165,7 @@ def disable_integration(request):
     """
     # name of the plugin
     name = request.GET.get("name")
-    # id of the plugin (for disabling only)
+    # id of the plugin
     id = request.GET.get("id")
     assert id is not None and name is not None
 
@@ -185,9 +185,20 @@ def disable_integration(request):
     if name == "slack":
         return redirect("/main/settings?error=cant_delete_slack")
 
+    # Validate that this plugin ID is valid for the community that this user is logged into.
+    # Important! This prevents the user from disabling plugins for other communities.
+    plugins = MetagovAPI.get_metagov_community(community.community.metagov_slug)["plugins"]
+    plugin_found = False
+    for p in plugins:
+        if p["name"] == name and p["id"] == id:
+            plugin_found = True
+    if not plugin_found:
+        return redirect("/main/settings?error=no_such_plugin")
+
     logger.debug(f"Deleting plugin {name} {id}")
     MetagovAPI.delete_plugin(name=name, id=id)
     return redirect("/main/settings")
+
 
 @login_required(login_url='/login')
 def editor(request):
@@ -217,9 +228,9 @@ def editor(request):
         from policyengine.models import Policy
         policy = None
         try:
-            policy = Policy.objects.get(id=policy_id)
+            policy = Policy.objects.get(id=policy_id, community=user.community.community)
         except Policy.DoesNotExist:
-            return HttpResponseBadRequest()
+            return HttpResponseNotFound()
 
         data['policy'] = policy_id
         data['name'] = policy.name
@@ -288,7 +299,10 @@ def roleeditor(request):
     }
 
     if role_pk:
-        role = CommunityRole.objects.get(pk=role_pk)
+        try:
+            role = CommunityRole.objects.get(pk=role_pk, community=user.community.community)
+        except CommunityRole.DoesNotExist:
+            return HttpResponseNotFound()
         data['role_name'] = role.role_name
         data['name'] = role.name
         data['description'] = role.description
@@ -358,7 +372,11 @@ def documenteditor(request):
     }
 
     if doc_id:
-        doc = CommunityDoc.objects.filter(id=doc_id)[0]
+        try:
+            doc = CommunityDoc.objects.get(id=doc_id, community=user.community.community)
+        except CommunityDoc.DoesNotExist:
+            return HttpResponseNotFound()
+
         data['name'] = doc.name
         data['text'] = doc.text
 
@@ -496,7 +514,7 @@ def policy_action_save(request):
             action = PolicykitChangeTriggerPolicy()
         
         try:
-            action.policy = Policy.objects.get(pk=data['policy'])
+            action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
         except Policy.DoesNotExist:
             return HttpResponseNotFound()
 
@@ -549,9 +567,10 @@ def policy_action_remove(request):
 
     action = None
     try:
-        policy = Policy.objects.get(pk=data['policy'])
+        policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
     except Policy.DoesNotExist:
         return HttpResponseNotFound()
+
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
         action.policy = policy
@@ -577,9 +596,10 @@ def policy_action_recover(request):
 
     action = None
     try:
-        policy = Policy.objects.get(pk=data['policy'])
+        policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
     except Policy.DoesNotExist:
         return HttpResponseNotFound()
+
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
         action.policy = policy
@@ -659,7 +679,10 @@ def role_action_remove(request):
     action = PolicykitDeleteRole()
     action.community = user.constitution_community
     action.initiator = user
-    action.role = CommunityRole.objects.get(pk=data['role'])
+    try:
+        action.role = CommunityRole.objects.get(pk=data['role'], community=user.community.community)
+    except CommunityRole.DoesNotExist:
+        return HttpResponseNotFound()
     action.save()
 
     return HttpResponse()
@@ -677,7 +700,10 @@ def document_action_save(request):
         action = PolicykitAddCommunityDoc()
     elif data['operation'] == 'Change':
         action = PolicykitChangeCommunityDoc()
-        action.doc = CommunityDoc.objects.filter(id=data['doc'])[0]
+        try:
+            action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+        except CommunityDoc.DoesNotExist:
+            return HttpResponseNotFound()
     else:
         return HttpResponseBadRequest()
 
@@ -700,7 +726,10 @@ def document_action_remove(request):
     action = PolicykitDeleteCommunityDoc()
     action.community = user.constitution_community
     action.initiator = user
-    action.doc = CommunityDoc.objects.get(id=data['doc'])
+    try:
+        action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+    except CommunityDoc.DoesNotExist:
+        return HttpResponseNotFound()
     action.save()
 
     return HttpResponse()
@@ -716,7 +745,10 @@ def document_action_recover(request):
     action = PolicykitRecoverCommunityDoc()
     action.community = user.constitution_community
     action.initiator = user
-    action.doc = CommunityDoc.objects.get(id=data['doc'])
+    try:
+        action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
+    except CommunityDoc.DoesNotExist:
+        return HttpResponseNotFound()
     action.save()
 
     return HttpResponse()
