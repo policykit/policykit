@@ -256,15 +256,6 @@ class CommunityUser(User, PolymorphicModel):
                     return account["platform_identifier"]
         return None
 
-    def get_metagov_id(self):
-        user = MetagovAPI.find_metagov_id(
-            community=self.community.community.metagov_slug,
-            platform_type=self.community.platform,
-            community_platform_id=self.community.team_id,
-            platform_identifier=self.username
-        )
-        return user["source_ID"] if user else None
-
     def get_roles(self):
         """
         Returns a list of CommunityRoles containing all of the user's roles.
