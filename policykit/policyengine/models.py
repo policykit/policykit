@@ -243,6 +243,13 @@ class CommunityUser(User, PolymorphicModel):
     def __str__(self):
         return self.readable_name if self.readable_name else self.username
 
+    def get_metagov_id(self):
+        return MetagovAPI.find_metagov_id(
+            platform_type=self.community.platform,
+            community_platform_id=self.community.team_id,
+            platform_identifier=self.username
+        )
+
     def get_roles(self):
         """
         Returns a list of CommunityRoles containing all of the user's roles.
