@@ -45,7 +45,7 @@ def get_metagov_community(slug):
 #### IDENTITY MANAGEMENT ####
 
 
-def find_metagov_id(community, platform_type, community_platform_id, platform_identifier):
+def get_metagov_users(community, platform_type, community_platform_id, platform_identifier):
     logger.debug(f">> user lookup for {platform_identifier} on {platform_type}:{community_platform_id}")
     response = requests.get(
         f"{settings.METAGOV_URL}/api/internal/identity/get_users",
@@ -60,12 +60,9 @@ def find_metagov_id(community, platform_type, community_platform_id, platform_id
         raise Exception(response.text or "Unknown error")
     users = response.json()
     logger.debug(f">> Metagov user request returned {users}")
-    if not users:
-        return None
     if len(users) > 1:
         raise Exception("More than 1 matching user found")
-    return users[0]["source_ID"]
-
+    return None if not users else users[0]
 
 #### PLUGIN MANAGEMENT ####
 plugin_base = f"{settings.METAGOV_URL}/api/internal/plugin"

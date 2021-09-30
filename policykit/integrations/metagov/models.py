@@ -3,6 +3,7 @@ import logging
 
 from django.db import models
 from policyengine.models import CommunityUser, TriggerAction
+import integrations.metagov.api as MetagovAPI
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,13 @@ class MetagovUser(CommunityUser):
             return self.username[len(prefix) :]
         return self.username
 
+    # def get_metagov_id(self):
+    #     return MetagovAPI.find_metagov_id(
+    #         community=self.community.community.metagov_slug,
+    #         platform_type=self.provider,
+    #         #community_platform_id=self.community.team_id,
+    #         platform_identifier=self.external_username  
+    #     )
 
 class MetagovConfig(models.Model):
     """
