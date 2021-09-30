@@ -3,7 +3,6 @@ import logging
 
 from django.db import models
 from policyengine.models import CommunityUser, TriggerAction
-import integrations.metagov.api as MetagovAPI
 
 logger = logging.getLogger(__name__)
 

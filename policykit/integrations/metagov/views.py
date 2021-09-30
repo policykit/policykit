@@ -82,13 +82,13 @@ def internal_receive_action(request):
             cp.handle_metagov_event(body)
             return HttpResponse()
 
-    # if body.get("source") == "github":
-    #     # Route Slack event to the correct SlackCommunity handler
-    #     cp = GithubCommunity.objects.filter(community=community).first()
-    #     if cp:
-    #         new_action = cp.handle_metagov_event(body)
-    #         if new_action:
-    #             return HttpResponse()
+    if body.get("source") == "github":
+        # Route Slack event to the correct SlackCommunity handler
+        cp = GithubCommunity.objects.filter(community=community).first()
+        if cp:
+            new_action = cp.handle_metagov_event(body)
+            if new_action:
+                return HttpResponse()
 
     # Create generic MetagovTriggers.
     cp = community.get_platform_communities().first()
