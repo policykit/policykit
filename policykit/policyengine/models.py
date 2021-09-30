@@ -245,6 +245,7 @@ class CommunityUser(User, PolymorphicModel):
 
     def get_metagov_id(self):
         return MetagovAPI.find_metagov_id(
+            community=self.community.community.metagov_slug,
             platform_type=self.community.platform,
             community_platform_id=self.community.team_id,
             platform_identifier=self.username

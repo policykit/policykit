@@ -45,11 +45,12 @@ def get_metagov_community(slug):
 #### IDENTITY MANAGEMENT ####
 
 
-def find_metagov_id(platform_type, community_platform_id, platform_identifier):
+def find_metagov_id(community, platform_type, community_platform_id, platform_identifier):
     logger.debug(f">> user lookup for {platform_identifier} on {platform_type}:{community_platform_id}")
     response = requests.get(
-        f"{settings.METAGOV_URL}/api/internal/users",
+        f"{settings.METAGOV_URL}/api/internal/identity/get_users",
         params={
+            "community": community,
             "platform_type": platform_type,
             "community_platform_id": community_platform_id,
             "platform_identifier": platform_identifier,
