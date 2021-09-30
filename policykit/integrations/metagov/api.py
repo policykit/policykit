@@ -62,7 +62,7 @@ def find_metagov_id(platform_type, community_platform_id, platform_identifier):
     if not users:
         return None
     if len(users) > 1:
-        raise Exception
+        raise Exception("More than 1 matching user found")
     return users[0]["source_ID"]
 
 
