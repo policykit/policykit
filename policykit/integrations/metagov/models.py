@@ -23,7 +23,6 @@ class MetagovUser(CommunityUser):
             return self.username[len(prefix) :]
         return self.username
 
-
 class MetagovConfig(models.Model):
     """
     Dummy model for permissions to edit Metagov Config.
