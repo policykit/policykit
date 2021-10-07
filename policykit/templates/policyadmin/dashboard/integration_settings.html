@@ -94,13 +94,34 @@
     const schema = metadata.schemas.config
     schema.type = "object";
     schema.title = "config";
-    if (!schema.properties) {
-      schema.properties = {}
-    }
+    const {webhook_slug, ...properties} = schema.properties || {}
+    schema.properties = properties
+
+    form = []
+    Object.keys(schema.properties).forEach(k => {
+      if (properties[k].type == "array") {
+        form.push({
+          "type": "array",
+          "title": `${k} list`.toUpperCase(),
+          "description": properties[k].description,
+          "items": [{
+            "key": `${k}[]`,
+            "title": `${k} {% verbatim %} {{idx}} {% endverbatim %}`
+          }]
+        })
+      } else {
+        form.push(k)
+      }
+    })
+    form.push({
+      "type": "submit",
+      "title": "Submit"
+    })
 
     // Uses https://github.com/jsonform/jsonform
     $('form#json-editor-form').jsonForm({
       schema: schema,
+      form: form,
       validate: true,
       onSubmit: function (errors, values) {
           if (errors) {
