@@ -8,8 +8,8 @@ integration_data = {
     "loomio": {
         "readable_name": "Loomio",
         "description": "Loomio makes is easy for groups of all shapes and sizes to collaborate and make decisions across time and space. Connect to a Loomio team in order to perform Loomio polls and discussions from PolicyKit.",
-        "config_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Add Integration > API. Select all API scopes. Enter a name for the integration and save. To find the API key, navigate to 'See API Usage' for the new integration.",
-        "webhook_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Edit Integration > Webhook. Enter the Webhook URL. Select Markdown format and all event types.",
+        "config_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Add Integration > API. Select all API scopes. Enter a name for the integration and save. To find the API key, navigate to 'See API Usage' for the new integration. If you want to be able create proposals or threads in Loomio subgroups, you'll need to create and upload an API key for each subgroup.",
+        "webhook_instructions": "Log into Loomio as an administrator, and navigate to Settings > Integrations > Edit Integration > Webhook. Enter the Webhook URL. Select Markdown format and all event types. If you uploaded API keys for multiple subgroups, you'll need to add the webhook to each subgroup integration in Loomio.",
     },
     "slack": {"readable_name": "Slack", "hide_config": True},
     "sourcecred": {
