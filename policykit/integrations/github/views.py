@@ -2,8 +2,11 @@ import logging
 import requests
 from django.conf import settings
 from django.shortcuts import redirect
+from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required, permission_required
 from policyengine.models import Community
 from integrations.github.models import GithubCommunity
+import integrations.metagov.api as MetagovAPI
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +62,29 @@ def github_install(request):
     )
 
     return redirect(f"{redirect_route}?success=true")
+
+
+@login_required(login_url="/login")
+@permission_required("metagov.can_edit_metagov_config", raise_exception=True)
+def disable_integration(request):
+    id = int(request.GET.get("id"))
+    user = get_user(request)
+    community = user.community.community
+
+    github_community = community.get_platform_community(name="github")
+    if not github_community:
+        return redirect("/main/settings?error=no_such_plugin")
+
+    # Validate that this plugin ID is valid for the community that this user is logged into.
+    # Important! This prevents the user from disabling plugins for other communities.
+    plugin_conf = MetagovAPI.get_plugin_config(community.metagov_slug, "github", id)
+    if not plugin_conf:
+        return redirect("/main/settings?error=no_such_plugin")
+
+    # Delete the plugin in Metagov
+    MetagovAPI.delete_plugin(name="github", id=id)
+
+    # TODO: Delete the community model in PolicyKit?
+    # github_community.delete()
+
+    return redirect("/main/settings")
