@@ -27,6 +27,7 @@ class EvaluationContext:
         discourse (DiscourseCommunity)
         reddit (RedditCommunity)
         github (GithubCommunity)
+        opencollective (OpencollectiveCommunity)
         metagov (Metagov): Metagov library for performing enabled actions and processes.
         logger (logging.Logger): Logger that will log messages to the PolicyKit web interface.
 

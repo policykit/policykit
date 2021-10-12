@@ -3,6 +3,7 @@ import logging
 import requests
 from django.conf import settings
 import json
+import integrations.metagov.api as MetagovAPI
 
 logger = logging.getLogger(__name__)
 
@@ -82,11 +83,8 @@ class Metagov:
         Perform an action through Metagov. If the requested action belongs to a plugin that is
         not active for the current community, this will throw an exception.
         """
-        url = f"{settings.METAGOV_URL}/api/internal/action/{name}"
-        response = requests.post(url, json={"parameters": parameters}, headers=self.headers)
-        if not response.ok:
-            raise Exception(
-                f"Error performing action {name}: {response.status_code} {response.reason} {response.text}"
-            )
-        data = response.json()
-        return data
+        return MetagovAPI.perform_action(
+            community_slug=self.proposal.policy.community.metagov_slug,
+            name=name,
+            parameters=parameters
+        )

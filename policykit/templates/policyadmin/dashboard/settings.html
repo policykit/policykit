@@ -124,7 +124,12 @@
       </p>
       {% endif %}
 
-      <a href="{% url 'disable_integration' %}?id={{data.id}}&name={{name}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
+      {%if data.has_policykit_integration %}
+        <a href="/{{name}}/disable_integration?id={{data.id}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
+
+      {% else %}
+        <a href="/metagov/disable_integration?id={{data.id}}&name={{name}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
+      {% endif %}
     </div>
   </div>
   {% empty %}

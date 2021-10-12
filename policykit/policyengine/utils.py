@@ -68,6 +68,7 @@ def get_action_types(community, kinds):
     if PolicyActionKind.CONSTITUTION in kinds:
         platform_communities.append(community.constitution_community)
     actions = {}
+
     for c in platform_communities:
         app_name = c.platform
         action_list = []
@@ -78,13 +79,14 @@ def get_action_types(community, kinds):
         ):
             for cls in get_action_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
+
         if PolicyActionKind.TRIGGER in kinds:
             for cls in get_trigger_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
         if action_list:
             actions[app_name] = action_list
 
-    # special case to get trigger action from metagov app
+    # Special case to get trigger actions from metagov app
     if PolicyActionKind.TRIGGER in kinds:
         action_list = []
         for cls in get_trigger_classes("metagov"):

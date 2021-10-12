@@ -42,6 +42,14 @@ def get_metagov_community(slug):
     return response.json()
 
 
+def get_plugin_config(community_slug, name, id):
+    community = get_metagov_community(community_slug)
+    for p in community["plugins"]:
+        if p["name"] == name and p["id"] == id:
+            return p
+    return None
+
+
 #### IDENTITY MANAGEMENT ####
 
 
@@ -61,6 +69,7 @@ def get_metagov_user(community, platform_type, community_platform_id, platform_i
     if len(users) > 1:
         raise Exception("More than 1 matching user found")
     return None if not users else users[0]
+
 
 #### PLUGIN MANAGEMENT ####
 plugin_base = f"{settings.METAGOV_URL}/api/internal/plugin"
@@ -96,4 +105,15 @@ def get_plugin_metadata(plugin):
     response = requests.get(url)
     if not response.ok:
         raise Exception(response.text or "Unknown error")
+    return response.json()
+
+
+#### ACTIONS #####
+
+
+def perform_action(community_slug, name, parameters):
+    url = f"{settings.METAGOV_URL}/api/internal/action/{name}"
+    response = requests.post(url, json={"parameters": parameters}, headers={"X-Metagov-Community": community_slug})
+    if not response.ok:
+        raise Exception(f"Error performing action {name}: {response.status_code} {response.reason} {response.text}")
     return response.json()

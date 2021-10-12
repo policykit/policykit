@@ -1,9 +1,9 @@
 from django.urls import path
 
-from integrations.github import views
+from integrations.opencollective import views
 
 
 urlpatterns = [
-    path('install', views.github_install),
+    path('enable_integration', views.enable_integration),
     path('disable_integration', views.disable_integration)
 ]

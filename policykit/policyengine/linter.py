@@ -26,6 +26,7 @@ def should_keep_error_message(error_message, function_name):
         'discourse',
         'reddit',
         'github',
+        'opencollective',
         'metagov',
         'logger',
         'PASSED',

@@ -3,6 +3,8 @@ import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
+from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required, permission_required
 from integrations.slack.models import SlackCommunity, SlackUser, SLACK_METHOD_ACTION
 from integrations.slack.utils import get_slack_user_fields
 from policyengine.models import Community
@@ -35,7 +37,7 @@ def slack_install(request):
 
     # metagov identifier for the "parent community" to install Slack to
     metagov_community_slug = request.GET.get("community")
-    community,is_new_community = Community.objects.get_or_create(metagov_slug=metagov_community_slug)
+    community, is_new_community = Community.objects.get_or_create(metagov_slug=metagov_community_slug)
 
     # if we're enabling an integration for an existing community, so redirect to the settings page
     redirect_route = "/login" if is_new_community else "/main/settings"
@@ -69,9 +71,7 @@ def slack_install(request):
     if slack_community is None:
         logger.debug(f"Creating new SlackCommunity under {community}")
         slack_community = SlackCommunity.objects.create(
-            community=community,
-            community_name=readable_name,
-            team_id=team_id
+            community=community, community_name=readable_name, team_id=team_id
         )
 
         # get the list of users, create SlackUser object for each user
@@ -133,3 +133,15 @@ def slack_install(request):
                 )
 
         return redirect(f"{redirect_route}?success=true")
+
+
+@login_required(login_url="/login")
+@permission_required("metagov.can_edit_metagov_config", raise_exception=True)
+def disable_integration(request):
+    id = int(request.GET.get("id"))
+    user = get_user(request)
+    community = user.community.community
+
+    # FIXME: implement support for disabling the slack plugin. We should show a warning, as this may
+    # include deleting the SlackCommunity, uninstalling the Slack app, etc.
+    return redirect("/main/settings?error=cant_delete_slack")
