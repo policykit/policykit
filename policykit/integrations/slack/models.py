@@ -1,6 +1,6 @@
 import logging
-
 import requests
+
 from django.conf import settings
 from django.db import models
 import integrations.slack.utils as SlackUtils

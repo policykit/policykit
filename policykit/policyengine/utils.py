@@ -112,9 +112,9 @@ def construct_authorize_install_url(request, integration, community=None):
     logger.debug(f"Constructing URL to install '{integration}' to community '{community}'.")
 
     # Initiate authorization flow to install Metagov to platform.
-    # On successful completion, the Metagov Slack plugin will be enabled for the community.
+    # On successful completion, the selected Metagov plugin will be enabled for the community.
 
-    # Redirect to the plugin-specific install endpoint, which will complete the setup process (ie create the SlackCommunity)
+    # Redirect to the plugin-specific install endpoint, which will complete the setup process (ie create the SlackCommunity, DiscordCommunity, etc.)
     redirect_uri = f"{settings.SERVER_URL}/{integration}/install"
     encoded_redirect_uri = quote(redirect_uri, safe="")
 

@@ -1,7 +1,9 @@
 from django.urls import path
+
 from integrations.discord import views
 
+
 urlpatterns = [
-    path('oauth', views.oauth),
-    path('auth', views.auth)
+    path('login', views.discord_login),
+    path('install', views.discord_install)
 ]

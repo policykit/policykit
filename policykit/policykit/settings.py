@@ -30,7 +30,7 @@ SECRET_KEY = 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'dev.policykit.org']
 
 # Let environment variables override private.py, for testing
 if os.environ.get("METAGOV_URL"):
@@ -226,7 +226,7 @@ LOGGING = {
 }
 
 # Replace with "amqp://USERNAME:PASSWORD@localhost:5672/VIRTUALHOST"
-CELERY_BROKER_URL = 'amqp://'
+CELERY_BROKER_URL = 'amqp://username:password@localhost:5672/policykit-vhost'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 
