@@ -89,6 +89,6 @@ class LoomioCommunity(CommunityPlatform):
                     ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
 
                 elif existing_vote.value != vote_option:
-                    logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal}")
+                    logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
                     existing_vote.value = vote_option
                     existing_vote.save()
