@@ -460,6 +460,9 @@ class Proposal(models.Model):
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
 
+    def get_choice_votes(self):
+        return ChoiceVote.objects.filter(proposal=self)
+
     def get_yes_votes(self, users=None):
         """
         For Boolean voting. Returns the yes votes as a QuerySet. Can specify a subset of users to count votes of. If no subset is specified, then votes from all users will be counted.
@@ -814,6 +817,15 @@ class BooleanVote(UserVote):
 
     def __str__(self):
         return str(self.user) + ' : ' + str(self.boolean_value)
+
+class ChoiceVote(UserVote):
+    """ChoiceVote"""
+
+    value = models.CharField(max_length=100)
+    """The value of the vote."""
+
+    def __str__(self):
+        return str(self.user) + ' : ' + str(self.value)
 
 class NumberVote(UserVote):
     """NumberVote"""

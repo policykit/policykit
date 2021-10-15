@@ -16,6 +16,7 @@ from integrations.metagov.models import MetagovTrigger, MetagovUser
 from policyengine.models import Community, Proposal
 from integrations.slack.models import SlackCommunity
 from integrations.github.models import GithubCommunity
+from integrations.loomio.models import LoomioCommunity
 from integrations.opencollective.models import OpencollectiveCommunity
 
 logger = logging.getLogger(__name__)
@@ -43,11 +44,15 @@ def internal_receive_outcome(request, id):
     proposal.governance_process_json = json.dumps(body)
 
     # For platforms that support creating BooleanVotes to track votes
+    #FIXME use routing instead of this
     if process_name.startswith("slack."):
         community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
         community.handle_metagov_process(proposal, body)
     elif process_name.startswith("github."):
         community = GithubCommunity.objects.get(community__metagov_slug=body["community"])
+        community.handle_metagov_process(proposal, body)
+    elif process_name.startswith("loomio."):
+        community = LoomioCommunity.objects.get(community__metagov_slug=body["community"])
         community.handle_metagov_process(proposal, body)
 
     proposal.save()

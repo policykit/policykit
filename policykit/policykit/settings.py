@@ -52,6 +52,7 @@ INTEGRATIONS = [
     'integrations.discourse',
     'integrations.github',
     'integrations.opencollective',
+    'integrations.loomio',
     'integrations.metagov'
 ]
 

@@ -56,6 +56,9 @@ class SlackCommunity(CommunityPlatform):
         proposal.community_post = community_post_ts
         proposal.save()
 
+    def initiate_choice_vote(self, proposal, options, text, users=None, post_type="channel", channel=None):
+        pass #TODO implement
+
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""
         response = requests.post(
