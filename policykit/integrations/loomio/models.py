@@ -74,6 +74,9 @@ class LoomioCommunity(CommunityPlatform):
         logger.debug(f"received loomio vote update: {str(process)}")
         outcome = process["outcome"]
         votes = outcome["votes"]
+        status = process["status"]  # TODO: handle 'completed' status, which means that process was "closed"
+        if status == "completed":
+            logger.debug(">>>>>>>poll closed in loomio")
 
         for (vote_option, result) in votes.items():
             for u in result["users"]:

@@ -460,7 +460,9 @@ class Proposal(models.Model):
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
 
-    def get_choice_votes(self):
+    def get_choice_votes(self, value=None):
+        if value:
+            return ChoiceVote.objects.filter(proposal=self, value=value)
         return ChoiceVote.objects.filter(proposal=self)
 
     def get_yes_votes(self, users=None):
