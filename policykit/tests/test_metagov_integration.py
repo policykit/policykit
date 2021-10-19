@@ -75,6 +75,7 @@ return FAILED
 
         proposal = Proposal.objects.get(action=action, policy=policy)
         self.assertEqual(proposal.status, Proposal.PASSED)
+        self.assertTrue(proposal.is_vote_closed)
         self.assertEqual(proposal.data.get("reached_close"), True)
 
         # assert that the process outcome was saved
@@ -94,6 +95,7 @@ metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", 
             "check": """
 result = metagov.get_process()
 proposal.data.set('process_status', result.status)
+proposal.data.set('is_vote_closed', proposal.is_vote_closed)
 
 if result is None or result.status == "pending":
     return None #still processing
@@ -124,6 +126,8 @@ return FAILED
         proposal = Proposal.objects.get(action=action, policy=policy)
         self.assertEqual(proposal.status, Proposal.PROPOSED)
         self.assertEqual(proposal.data.get("process_status"), "pending")
+        self.assertFalse(proposal.data.get("is_vote_closed"))
+        self.assertFalse(proposal.is_vote_closed)
 
         # 2) Mimick an incoming notification from Metagov that the process has updated
         payload = {

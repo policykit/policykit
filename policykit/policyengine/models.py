@@ -446,6 +446,7 @@ class Proposal(models.Model):
     def __str__(self):
         return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
+    @property
     def is_vote_closed(self):
         """
         Returns True if the vote is closed, False if the vote is still open.
