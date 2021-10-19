@@ -446,6 +446,14 @@ class Proposal(models.Model):
     def __str__(self):
         return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
+    def is_vote_closed(self):
+        """
+        Returns True if the vote is closed, False if the vote is still open.
+        """
+        if self.governance_process_json:
+            return json.loads(self.governance_process_json)["status"] == "completed"
+        return self.status != Proposal.PROPOSED
+
     def get_time_elapsed(self):
         """
         Returns a datetime object representing the time elapsed since the first proposal.

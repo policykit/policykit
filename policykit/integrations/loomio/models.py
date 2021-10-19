@@ -21,28 +21,23 @@ class LoomioCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def initiate_vote(
-        self,
-        proposal,
-        title,
-        closing_at,
-        options,
-        details=None,
-        poll_type="proposal",
-        # details=None,
-        # specified_voters_only=None,
-        # hide_results_until_closed=None,
-        # anonymous=None,
-        # discussion_id=None,
-        # voter_can_add_options=None,
-        # recipient_audience=None,
-        # notify_on_closing_soon=None,
-        # recipient_user_ids=None,
-        # recipient_emails=None,
-        # recipient_message=None,
-        # subgroup=None,
-        **kwargs,
-    ):
+    def initiate_vote(self, proposal, title, closing_at, options, details=None, poll_type="proposal", **kwargs):
+        """
+        Start a new poll on Loomio.
+
+        Accepted keyword args:
+            subgroup,
+            specified_voters_only,
+            hide_results_until_closed,
+            anonymous,
+            discussion_id,
+            voter_can_add_options,
+            recipient_audience,
+            notify_on_closing_soon,
+            recipient_user_ids,
+            recipient_emails,
+            recipient_message
+        """
 
         if isinstance(closing_at, datetime.datetime):
             closing_at = closing_at.strftime("%Y-%m-%d")
@@ -74,9 +69,6 @@ class LoomioCommunity(CommunityPlatform):
         logger.debug(f"received loomio vote update: {str(process)}")
         outcome = process["outcome"]
         votes = outcome["votes"]
-        status = process["status"]  # TODO: handle 'completed' status, which means that process was "closed"
-        if status == "completed":
-            logger.debug(">>>>>>>poll closed in loomio")
 
         for (vote_option, result) in votes.items():
             for u in result["users"]:
