@@ -203,8 +203,8 @@ loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
 # Override for specific apps
 # loggers['integrations.reddit'] = {'handlers': ['console', 'file'], 'level': "DEBUG"}
 
-# Delete db log records from database after a certain number of hours:
-DB_LOG_EXPIRATION_HOURS = 1
+# Maximum number of log records to keep
+DB_MAX_LOGS_TO_KEEP = 300
 
 LOGGING = {
     'version': 1,

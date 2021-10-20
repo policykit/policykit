@@ -46,7 +46,6 @@ class Metagov:
         response = requests.get(self.proposal.governance_process_url)
         if not response.ok:
             raise Exception(f"Error getting process: {response.status_code} {response.reason} {response.text}")
-        logger.debug(response.text)
 
         # store the outcome data on the proposal
         self.proposal.governance_process_json = response.text

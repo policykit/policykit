@@ -118,9 +118,9 @@ class SlackCommunity(CommunityPlatform):
         """
         Receive Slack Metagov Event for this community
         """
-        logger.debug(f"SlackCommunity recieved metagov event: {outer_event['event_type']}")
+        # logger.debug(f"SlackCommunity recieved metagov event: {outer_event['event_type']}")
         if outer_event["initiator"].get("is_metagov_bot") == True:
-            logger.debug("Ignoring bot event")
+            # logger.debug("Ignoring bot event")
             return
 
         new_api_action = SlackUtils.slack_event_to_platform_action(self, outer_event)

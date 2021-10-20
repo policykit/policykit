@@ -273,7 +273,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     # Run "check" block of policy
     check_result = exec_code_block(policy.check, context, Policy.CHECK)
     check_result = sanitize_check_result(check_result)
-    context.logger.debug(f"Check returned '{check_result}'")
+    # context.logger.debug(f"Check returned '{check_result}'")
 
     if check_result == Proposal.PASSED:
         # run "pass" block of policy
