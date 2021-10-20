@@ -195,7 +195,7 @@ class SlackCommunity(CommunityPlatform):
                         existing_vote.number_value = num
                         existing_vote.save()
 
-    def post_message(self, text, users=[], post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):
+    def post_message(self, text, users=None, post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):
         """
         POST TYPES:
         mpim = multi person message

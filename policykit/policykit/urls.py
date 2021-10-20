@@ -41,6 +41,7 @@ urlpatterns = [
     path('discourse/', include('integrations.discourse.urls')),
     path('github/', include('integrations.github.urls')),
     path('opencollective/', include('integrations.opencollective.urls')),
+    path('loomio/', include('integrations.loomio.urls')),
     url(r'^$', policyviews.homepage),
     url('^activity/', include('actstream.urls')),
     # path("schema/", Schema.as_view()),

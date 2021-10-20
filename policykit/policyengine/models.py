@@ -446,6 +446,15 @@ class Proposal(models.Model):
     def __str__(self):
         return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
+    @property
+    def is_vote_closed(self):
+        """
+        Returns True if the vote is closed, False if the vote is still open.
+        """
+        if self.governance_process_json:
+            return json.loads(self.governance_process_json)["status"] == "completed"
+        return self.status != Proposal.PROPOSED
+
     def get_time_elapsed(self):
         """
         Returns a datetime object representing the time elapsed since the first proposal.
@@ -459,6 +468,11 @@ class Proposal(models.Model):
         if users:
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
+
+    def get_choice_votes(self, value=None):
+        if value:
+            return ChoiceVote.objects.filter(proposal=self, value=value)
+        return ChoiceVote.objects.filter(proposal=self)
 
     def get_yes_votes(self, users=None):
         """
@@ -814,6 +828,15 @@ class BooleanVote(UserVote):
 
     def __str__(self):
         return str(self.user) + ' : ' + str(self.boolean_value)
+
+class ChoiceVote(UserVote):
+    """ChoiceVote"""
+
+    value = models.CharField(max_length=100)
+    """The value of the vote."""
+
+    def __str__(self):
+        return str(self.user) + ' : ' + str(self.value)
 
 class NumberVote(UserVote):
     """NumberVote"""

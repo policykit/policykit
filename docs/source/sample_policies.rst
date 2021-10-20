@@ -461,7 +461,9 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
         action.event_type == "discourse.topic_created" and \
         "special-proposal" in action.event_data["tags"]
 
-**Initialize:**
+**Initialize:** ``pass``
+
+**Notify:**
 
 .. code-block:: python
 
@@ -470,17 +472,19 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
     topic_url = action.event_data["url"]
 
     import datetime
-    closing_at = (proposal.proposal_time + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+    closing_at = proposal.proposal_time + datetime.timedelta(days=3)
 
     # Kick off a vote in Loomio
-    parameters = {
-        "title": f"Vote on adding proposal '{title}'",
-        "details": f"proposed by {discourse_username} on Discourse: {topic_url}",
-        "options": ["agree", "disagree"],
-        "closing_at": closing_at
-    }
-    result = metagov.start_process("loomio.poll", parameters)
-    poll_url = result.outcome.get("poll_url")
+    loomio.initiate_vote(
+      proposal,
+      title=f"Vote on adding proposal '{title}'",
+      details=f"proposed by {discourse_username} on Discourse: {topic_url}",
+      options=["consent", "objection", "abstain"],
+      closing_at=closing_at,
+    )
+
+    # The URL of the Loomio vote is stored on the proposal.
+    poll_url = proposal.community_post
 
     # Make a post in Discourse to let people know where to vote
     params = {
@@ -489,28 +493,27 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
     }
     metagov.perform_action("discourse.create-post", params)
 
-**Notify:** ``pass``
-
 **Check:**
 
 .. code-block:: python
 
-    result = metagov.get_process()
+    consent = proposal.get_choice_votes(value="consent")
+    objection = proposal.get_choice_votes(value="objection")
+    abstain = proposal.get_choice_votes(value="abstain")
 
-    # log intermediate results. visible in PolicyKit app log page.
-    logger.info("Loomio result: " + str(result))
+    vote_count_msg = f"{consent.count()} consent, {objection.count()} object, and {abstain.count()} abstain."
 
-    if result.status == "completed":
-        agrees = result.outcome["votes"]["agree"]
-        disagrees = result.outcome["votes"]["disagree"]
-        outcome_text = f"{agrees} people agreed, and {disagrees} people disagreed."
-        proposal.data.set("outcome_text", outcome_text)
-
-        return PASSED if agrees > disagrees else FAILED
-
-    return None # pending
+    # If the vote is still open in Loomio, return PROPOSED to indicate that the decision has not yet been reached
+    if not proposal.is_vote_closed:
+      logger.debug(f"Vote still open. {vote_count_msg}")
+      return PROPOSED
 
 
+    proposal.data.set("outcome_text", vote_count_msg)
+
+    if abstain.count() < 2 and consent.count() > 5:
+      return PASSED
+    return FAILED
 
 
 **Pass:**

@@ -28,6 +28,7 @@ class EvaluationContext:
         reddit (RedditCommunity)
         github (GithubCommunity)
         opencollective (OpencollectiveCommunity)
+        loomio (LoomioCommunity)
         metagov (Metagov): Metagov library for performing enabled actions and processes.
         logger (logging.Logger): Logger that will log messages to the PolicyKit web interface.
 
