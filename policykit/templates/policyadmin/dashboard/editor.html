@@ -254,16 +254,30 @@
     window.open(`https://policykit.readthedocs.io/en/latest/index.html`, '_blank');
   }
 
+  function sanitize_text(s) {
+    // backticks break everything, so remove them before saving any code or text
+    return s.replaceAll("`","")
+  }
+
+  function get_policy_data() {
+    // Build JS object with policy data, to download or submit
+    const policy_object = {}
+    policy_object.action_types = $("#actionpicker").val();
+    policy_object.name = sanitize_text(document.getElementById("name").value);
+    policy_object.description = sanitize_text(document.getElementById("description").value);
+    policy_object.is_bundled = false
+    const code_fields = ["filter", "initialize", "check", "notify", "pass", "fail"]
+    const code_field_args = {}
+    code_fields.forEach(fieldname => {
+      const value = document.getElementById(fieldname).nextSibling.CodeMirror.getValue()
+      const key = fieldname == "pass" ? "success" : fieldname
+      policy_object[key] = sanitize_text(value)
+    })
+    return policy_object
+  }
+
   function propose() {
-    const name = document.getElementById("name").value;
-    const description = document.getElementById("description").value;
-    const action_types = $("#actionpicker").val();
-    const filter = document.getElementById("filter").nextSibling.CodeMirror.getValue();
-    const initialize = document.getElementById("initialize").nextSibling.CodeMirror.getValue();
-    const check = document.getElementById("check").nextSibling.CodeMirror.getValue();
-    const notify = document.getElementById("notify").nextSibling.CodeMirror.getValue();
-    const success = document.getElementById("pass").nextSibling.CodeMirror.getValue();
-    const fail = document.getElementById("fail").nextSibling.CodeMirror.getValue();
+    const policy_data = get_policy_data()
 
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
@@ -274,16 +288,7 @@
         'type': `{{type}}`,
         'operation': `{{operation}}`,
         'policy': `{{policy}}`,
-        'name': name,
-        'description': description,
-        'action_types': action_types,
-        'is_bundled': false,
-        'filter': filter,
-        'initialize': initialize,
-        'check': check,
-        'notify': notify,
-        'success': success,
-        'fail': fail
+        ...policy_data
       })
     }).then(response => {
       if (!response.ok) {
@@ -472,20 +477,9 @@
   }
 
   function download() {
-    const name = document.getElementById("name").value;
+    const policy_data = get_policy_data()
+    const name = policy_data.name
 
-    let policy_data = {
-      'name': name,
-      'description': document.getElementById("description").value,
-      'is_bundled': false,
-      'action_types': $("#actionpicker").val(),
-      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
-      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
-      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
-      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
-      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
-      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
-    };
 
     let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
 
