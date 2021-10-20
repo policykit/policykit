@@ -12,24 +12,11 @@ from policyengine.models import (
     NumberVote,
     GovernableAction,
     Proposal,
-    PolicyActionKind
+    ChoiceVote,
 )
 
 logger = logging.getLogger(__name__)
 
-
-NUMBERS_TEXT = {
-    "zero": 0,
-    "one": 1,
-    "two": 2,
-    "three": 3,
-    "four": 4,
-    "five": 5,
-    "six": 6,
-    "seven": 7,
-    "eight": 8,
-    "nine": 9,
-}
 
 # Name of generic Slack action in Metagov
 # See: https://metagov.policykit.org/redoc/#operation/slack.method
@@ -48,8 +35,13 @@ class SlackCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None):
-        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel)
+    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+        if post_type not in ["channel", "mpim"]:
+            raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
+        if post_type == "mpim" and not users:
+            raise Exception(f"Must pass users for 'mpim' vote")
+
+        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel, options)
         logger.debug(
             f"Saving proposal with community_post '{community_post_ts}', and process at {proposal.governance_process_url}"
         )
@@ -147,29 +139,26 @@ class SlackCommunity(CommunityPlatform):
         """
         assert process["name"] == "slack.emoji-vote"
         outcome = process["outcome"]
-        status = process["status"]  # TODO: handle 'completed' status, which means that process was "closed"
         votes = outcome["votes"]
+        is_boolean_vote = set(votes.keys()) == {"yes", "no"}
 
-        action = proposal.action # the action that triggered the vote
-
-        if action.kind == PolicyActionKind.TRIGGER or (action.kind in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION] and action.action_type != "governableactionbundle"):
-            # Expect this process to be a boolean vote on an action.
-            for (k, v) in votes.items():
-                assert k == "yes" or k == "no"
-                reaction_bool = True if k == "yes" else False
-                for u in v["users"]:
+        ### 1) Count boolean vote
+        if is_boolean_vote:
+            for (vote_option, result) in votes.items():
+                boolean_value = True if vote_option == "yes" else False
+                for u in result["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
                     existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
-                        logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
-                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=reaction_bool)
-                    elif existing_vote.boolean_value != reaction_bool:
-                        logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
-                        existing_vote.boolean_value = reaction_bool
+                        logger.debug(f"Counting boolean vote {boolean_value} by {user}")
+                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=boolean_value)
+                    elif existing_vote.boolean_value != boolean_value:
+                        logger.debug(f"Counting boolean vote {boolean_value} by {user} (vote changed)")
+                        existing_vote.boolean_value = boolean_value
                         existing_vote.save()
-
-        elif action.action_type == "governableactionbundle":
-            action_bundle = action
+        ### 2) Count number choice vote on action bundle
+        elif proposal.action.action_type == "governableactionbundle":
+            action_bundle = proposal.action
             # Expect this process to be a choice vote on an action bundle.
             bundled_actions = list(action_bundle.bundled_actions.all())
             for (k, v) in votes.items():
@@ -185,14 +174,29 @@ class SlackCommunity(CommunityPlatform):
                     existing_vote = NumberVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
                         logger.debug(
-                            f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
+                            f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
                         )
                         NumberVote.objects.create(proposal=proposal, user=user, number_value=num)
                     elif existing_vote.number_value != num:
                         logger.debug(
-                            f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
+                            f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
                         )
                         existing_vote.number_value = num
+                        existing_vote.save()
+        ### 2) Count choice vote
+        else:
+            for (vote_option, result) in votes.items():
+                for u in result["users"]:
+                    user, _ = SlackUser.objects.get_or_create(username=u, community=self)
+                    existing_vote = ChoiceVote.objects.filter(proposal=proposal, user=user).first()
+                    if existing_vote is None:
+                        logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal}")
+                        ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
+                    elif existing_vote.value != vote_option:
+                        logger.debug(
+                            f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)"
+                        )
+                        existing_vote.value = vote_option
                         existing_vote.save()
 
     def post_message(self, text, users=None, post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):

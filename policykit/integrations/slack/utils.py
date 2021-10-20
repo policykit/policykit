@@ -114,20 +114,23 @@ def slack_event_to_platform_action(community, outer_event):
     return new_api_action
 
 
-def start_emoji_vote(proposal, users=None, post_type="channel", template=None, channel=None):
+def start_emoji_vote(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
     payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{proposal.pk}"}
-    if channel is not None:
-        payload["channel"] = channel
+
     if users is not None and len(users) > 0:
         if isinstance(users[0], str):
-            payload["users"] = users
+            payload["eligible_voters"] = users
         else:
-            payload["users"] = [u.username for u in users]
+            payload["eligible_voters"] = [u.username for u in users]
 
     action = proposal.action
     policy = proposal.policy
 
-    if action.action_type == "governableactionbundle" and action.bundle_type == GovernableActionBundle.ELECTION:
+    if options:
+        payload["poll_type"] = "choice"
+        payload["title"] = template or "Please vote"
+        payload["options"] = options
+    elif action.action_type == "governableactionbundle" and action.bundle_type == GovernableActionBundle.ELECTION:
         payload["poll_type"] = "choice"
         payload["title"] = template or default_election_vote_message(policy)
         payload["options"] = [str(a) for a in action.bundled_actions.all()]
@@ -135,19 +138,21 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
         payload["poll_type"] = "boolean"
         payload["title"] = template or default_boolean_vote_message(policy)
 
-    if channel is None and users is None:
-        # Determine which channel to post in
-        if post_type == "channel":
-            if action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
-                payload["channel"] = action.channel
-            elif action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel"):
-                payload["channel"] = action.action.channel # action is a trigger from a governable action
-            elif action.action_type == "governableactionbundle":
-                first_action = action.bundled_actions.all()[0]
-                if hasattr(first_action, "channel") and first_action.channel:
-                    payload["channel"] = first_action.channel
+    if post_type == "channel":
+        if channel is not None:
+            payload["channel"] = channel
+        elif action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
+            payload["channel"] = action.channel
+        elif (
+            action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel")
+        ):
+            payload["channel"] = action.action.channel  # action is a trigger from a governable action
+        elif action.action_type == "governableactionbundle":
+            first_action = action.bundled_actions.all()[0]
+            if hasattr(first_action, "channel") and first_action.channel:
+                payload["channel"] = first_action.channel
 
-    if payload.get("channel") is None and payload.get("users") is None:
+    if post_type == "channel" and not payload.get("channel"):
         raise Exception("Failed to determine which channel to post in")
 
     # Kick off process in Metagov
