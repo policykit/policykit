@@ -48,8 +48,13 @@ class SlackCommunity(CommunityPlatform):
     def notify_action(self, *args, **kwargs):
         self.initiate_vote(*args, **kwargs)
 
-    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None):
-        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel)
+    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+        if post_type not in ["channel", "mpim"]:
+            raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
+        if post_type == "mpim" and not users:
+            raise Exception(f"Must pass users for 'mpim' vote")
+
+        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel, options)
         logger.debug(
             f"Saving proposal with community_post '{community_post_ts}', and process at {proposal.governance_process_url}"
         )
@@ -151,23 +156,23 @@ class SlackCommunity(CommunityPlatform):
         votes = outcome["votes"]
 
         action = proposal.action # the action that triggered the vote
+        is_boolean_vote = set(votes.keys()) == {"yes", "no"}
 
-        if action.kind == PolicyActionKind.TRIGGER or (action.kind in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION] and action.action_type != "governableactionbundle"):
-            # Expect this process to be a boolean vote on an action.
+        ### 1) Count boolean vote
+        if is_boolean_vote:
             for (k, v) in votes.items():
-                assert k == "yes" or k == "no"
-                reaction_bool = True if k == "yes" else False
+                boolean_value = True if k == "yes" else False
                 for u in v["users"]:
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
                     existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
-                        logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action}")
-                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=reaction_bool)
-                    elif existing_vote.boolean_value != reaction_bool:
-                        logger.debug(f"Casting boolean vote {reaction_bool} by {user} for {action} (vote changed)")
-                        existing_vote.boolean_value = reaction_bool
+                        logger.debug(f"Counting boolean vote {boolean_value} by {user}")
+                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=boolean_value)
+                    elif existing_vote.boolean_value != boolean_value:
+                        logger.debug(f"Counting boolean vote {boolean_value} by {user} (vote changed)")
+                        existing_vote.boolean_value = boolean_value
                         existing_vote.save()
-
+        ### 2) Count number choice vote on action bundle
         elif action.action_type == "governableactionbundle":
             action_bundle = action
             # Expect this process to be a choice vote on an action bundle.
@@ -194,6 +199,23 @@ class SlackCommunity(CommunityPlatform):
                         )
                         existing_vote.number_value = num
                         existing_vote.save()
+        ### 2) Count choice vote
+        else:
+            pass
+            #FIXME branch off loomio.
+            # for (k, v) in votes.items():
+            #     boolean_value = True if k == "yes" else False
+            #     for u in v["users"]:
+            #         user, _ = SlackUser.objects.get_or_create(username=u, community=self)
+            #         existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
+            #         if existing_vote is None:
+            #             logger.debug(f"Counting boolean vote {boolean_value} by {user}")
+            #             BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=boolean_value)
+            #         elif existing_vote.boolean_value != boolean_value:
+            #             logger.debug(f"Counting boolean vote {boolean_value} by {user} (vote changed)")
+            #             existing_vote.boolean_value = boolean_value
+            #             existing_vote.save()
+
 
     def post_message(self, text, users=None, post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):
         """
