@@ -174,12 +174,12 @@ class SlackCommunity(CommunityPlatform):
                     existing_vote = NumberVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
                         logger.debug(
-                            f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
+                            f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
                         )
                         NumberVote.objects.create(proposal=proposal, user=user, number_value=num)
                     elif existing_vote.number_value != num:
                         logger.debug(
-                            f"Casting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
+                            f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
                         )
                         existing_vote.number_value = num
                         existing_vote.save()
@@ -190,11 +190,11 @@ class SlackCommunity(CommunityPlatform):
                     user, _ = SlackUser.objects.get_or_create(username=u, community=self)
                     existing_vote = ChoiceVote.objects.filter(proposal=proposal, user=user).first()
                     if existing_vote is None:
-                        logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal}")
+                        logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal}")
                         ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
                     elif existing_vote.value != vote_option:
                         logger.debug(
-                            f"Casting vote for {vote_option} by {user} for proposal {proposal} (vote changed)"
+                            f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)"
                         )
                         existing_vote.value = vote_option
                         existing_vote.save()
