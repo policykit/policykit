@@ -73,13 +73,10 @@ class LoomioCommunity(CommunityPlatform):
         for (vote_option, result) in votes.items():
             for u in result["users"]:
                 user, _ = LoomioUser.objects.get_or_create(username=u, readable_name=u, community=self)
-
                 existing_vote = ChoiceVote.objects.filter(proposal=proposal, user=user).first()
-
                 if existing_vote is None:
                     logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal}")
                     ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
-
                 elif existing_vote.value != vote_option:
                     logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
                     existing_vote.value = vote_option

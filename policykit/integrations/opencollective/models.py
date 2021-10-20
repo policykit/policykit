@@ -61,7 +61,6 @@ class OpencollectiveCommunity(CommunityPlatform):
             )
             trigger_action.initiator = user
 
-        logger.debug(f">> evaluating {trigger_action}")
         trigger_action.evaluate()
         return trigger_action
 
