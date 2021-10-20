@@ -30,14 +30,14 @@ def consider_proposed_actions():
             ExecutedActionTriggerAction.from_action(proposal.action).evaluate()
 
     clean_up_logs()
-    logger.debug("finished task")
+    # logger.debug("finished task")
 
 
 def clean_up_logs():
     from django_db_logger.models import EvaluationLog
-    from policykit.settings import DB_LOG_EXPIRATION_HOURS
+    from policykit.settings import DB_MAX_LOGS_TO_KEEP
 
-    hours_ago = timezone.now() - timezone.timedelta(hours=DB_LOG_EXPIRATION_HOURS)
-    count, _ = EvaluationLog.objects.filter(create_datetime__lt=hours_ago).delete()
-    if count:
-        logger.debug(f"Deleted {count} EvaluationLogs")
+    expired_logs = EvaluationLog.objects.all().order_by('-create_datetime')[DB_MAX_LOGS_TO_KEEP:]
+    if expired_logs.exists():
+        # logger.debug(f"Deleting {expired_logs.count()} EvaluationLogs")
+        expired_logs.delete()

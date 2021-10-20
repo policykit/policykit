@@ -72,7 +72,6 @@ def internal_receive_action(request):
         body = json.loads(request.body)
     except ValueError:
         return HttpResponseBadRequest("unable to decode body")
-    logger.info(f"Received metagov action: {body}")
 
     metagov_community_slug = body.get("community")
 
@@ -84,6 +83,9 @@ def internal_receive_action(request):
 
     # Special cases for receiving events from "governable platforms" that have fully featured integrations
     event_platform = body["source"]
+
+    logger.debug(f"Received metagov action: {event_platform} {body['event_type']} for {community}")
+
     if event_platform == "slack":
         cp = SlackCommunity.objects.filter(community=community).first()
         if cp:
