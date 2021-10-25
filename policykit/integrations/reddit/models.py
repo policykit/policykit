@@ -97,7 +97,7 @@ class RedditCommunity(CommunityPlatform):
         from redditintegration.views import initiate_action_vote
         initiate_action_vote(proposal, users)
 
-    def execute_platform_action(self, action, delete_policykit_post=True):
+    def _execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall
 
         logger.info(action)

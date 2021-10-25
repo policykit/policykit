@@ -160,7 +160,7 @@ class CommunityPlatform(PolymorphicModel):
         return CommunityUser.objects.filter(community=self)
 
 
-    def execute_platform_action(self):
+    def _execute_platform_action(self):
         pass
 
     def save(self, *args, **kwargs):
@@ -654,7 +654,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         Executes the action.
         """
-        self.community.execute_platform_action(self)
+        self.community._execute_platform_action(self)
 
 
 class TriggerAction(BaseAction, PolymorphicModel):
@@ -697,7 +697,7 @@ class GovernableActionBundle(GovernableAction):
     def execute(self):
         if self.bundle_type == GovernableActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
-                self.community.execute_platform_action(action)
+                self.community._execute_platform_action(action)
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):

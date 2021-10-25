@@ -47,13 +47,13 @@ def internal_receive_outcome(request, id):
     #FIXME use routing instead of this
     if process_name.startswith("slack."):
         community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
-        community.handle_metagov_process(proposal, body)
+        community._handle_metagov_event(proposal, body)
     elif process_name.startswith("github."):
         community = GithubCommunity.objects.get(community__metagov_slug=body["community"])
-        community.handle_metagov_process(proposal, body)
+        community._handle_metagov_event(proposal, body)
     elif process_name.startswith("loomio."):
         community = LoomioCommunity.objects.get(community__metagov_slug=body["community"])
-        community.handle_metagov_process(proposal, body)
+        community._handle_metagov_event(proposal, body)
 
     proposal.save()
     return HttpResponse()
@@ -89,20 +89,20 @@ def internal_receive_action(request):
     if event_platform == "slack":
         cp = SlackCommunity.objects.filter(community=community).first()
         if cp:
-            cp.handle_metagov_event(body)
+            cp._handle_metagov_event(body)
             return HttpResponse()
 
     if event_platform == "github":
         cp = GithubCommunity.objects.filter(community=community).first()
         if cp:
-            new_action = cp.handle_metagov_event(body)
+            new_action = cp._handle_metagov_event(body)
             if new_action:
                 return HttpResponse()
 
     if event_platform == "opencollective":
         cp = OpencollectiveCommunity.objects.filter(community=community).first()
         if cp:
-            new_action = cp.handle_metagov_event(body)
+            new_action = cp._handle_metagov_event(body)
             if new_action:
                 return HttpResponse()
 

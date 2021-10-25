@@ -20,7 +20,7 @@ class OpencollectiveCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def handle_metagov_event(self, outer_event):
+    def _handle_metagov_event(self, outer_event):
         """
         Receive Opencollective Metagov Event for this community
         """
