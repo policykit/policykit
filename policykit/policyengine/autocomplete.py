@@ -75,9 +75,7 @@ def generate_evaluation_autocompletes():
             continue
         autocompletes.append(f"{PROPOSAL_VARNAME}.{f.name}")
     # add functions
-    function_hints = _get_function_hints(
-        Proposal, "policyengine", excluded_functions=["pass_evaluation", "fail_evaluation"]
-    )
+    function_hints = _get_function_hints(Proposal, "policyengine")
     autocompletes.extend([f"{PROPOSAL_VARNAME}.{h}" for h in function_hints])
 
     ### POLICY

@@ -516,7 +516,7 @@ class Proposal(models.Model):
             self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
 
-    def pass_evaluation(self):
+    def _pass_evaluation(self):
         """
         Sets the proposal to PASSED.
 
@@ -527,7 +527,7 @@ class Proposal(models.Model):
         action = self.action
         actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type)
 
-    def fail_evaluation(self):
+    def _fail_evaluation(self):
         """
         Sets the proposal to FAILED.
 
