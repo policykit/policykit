@@ -431,7 +431,7 @@
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-        editor.showHint({ hint: CodeMirror.policykitHint });
+        editor.showHint({ hint: CodeMirror.policykitHint, completeSingle: false });
     });
 
     editors[i].on('change', (cm, change) => {
