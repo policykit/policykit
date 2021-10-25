@@ -157,6 +157,7 @@ def editor(request):
     actions = Utils.get_action_types(community, kinds=[kind])
 
     # list of autocomplete strings
+    # TODO: can improve by getting autocompletes specific to the selected action(s), like 'action.channel' etc
     autocompletes = Utils.get_autocompletes(community)
 
     data = {

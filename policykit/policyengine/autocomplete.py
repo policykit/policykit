@@ -1,5 +1,5 @@
 import inspect
-from inspect import getmembers, isfunction, Parameter
+from inspect import getmembers, isfunction, Parameter, signature
 import policyengine.utils as Utils
 from django.apps import apps
 
@@ -28,29 +28,35 @@ def generate_platform_autocompletes():
         if not community_platform_classes:
             continue
         cls = community_platform_classes[0]
+        integration_autocompletes[app_name] = [f"{app_name}.{h}" for h in _get_function_hints(cls, app_name)]
 
-        autocompletes = []
-        for (n, f) in getmembers(cls, isfunction):
-            if app_name in f.__module__ and not n.startswith("_"):
-                sig = inspect.signature(f)
-                params = []
-                for param in sig.parameters.values():
-                    if param.name == "self":
-                        continue
-                    elif param.kind not in [Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
-                        continue
-                    elif param.default != Parameter.empty:
-                        # add quotes around string defaults
-                        d = f"'{param.default}'" if isinstance(param.default, str) else param.default
-                        params.append(f"{param.name}={d}")
-                    else:
-                        params.append(param.name)
-                params_string = ", ".join(params)
-                hint = f"{app_name}.{n}({params_string})"
-                autocompletes.append(hint)
-
-        integration_autocompletes[app_name] = autocompletes
     return integration_autocompletes
+
+
+def _get_function_hints(cls, module_substring, excluded_functions=None):
+    hints = []
+    for (n, f) in getmembers(cls, isfunction):
+        if not module_substring in f.__module__ or n.startswith("_") or n == "save":
+            continue
+        if excluded_functions and n in excluded_functions:
+            continue
+        sig = inspect.signature(f)
+        params = []
+        for param in sig.parameters.values():
+            if param.name == "self":
+                continue
+            elif param.kind not in [Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
+                continue
+            elif param.default != Parameter.empty:
+                # add quotes around string defaults
+                d = f"'{param.default}'" if isinstance(param.default, str) else param.default
+                params.append(f"{param.name}={d}")
+            else:
+                params.append(param.name)
+        params_string = ", ".join(params)
+        hint = f"{n}({params_string})"
+        hints.append(hint)
+    return hints
 
 
 def generate_evaluation_autocompletes():
@@ -68,6 +74,11 @@ def generate_evaluation_autocompletes():
         if f.name in ["id", "action", "policy"]:
             continue
         autocompletes.append(f"{PROPOSAL_VARNAME}.{f.name}")
+    # add functions
+    function_hints = _get_function_hints(
+        Proposal, "policyengine", excluded_functions=["pass_evaluation", "fail_evaluation"]
+    )
+    autocompletes.extend([f"{PROPOSAL_VARNAME}.{h}" for h in function_hints])
 
     ### POLICY
     fields = ["name", "description", "modified_at", "community"]
