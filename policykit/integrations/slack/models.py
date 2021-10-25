@@ -128,7 +128,7 @@ class SlackCommunity(CommunityPlatform):
             logger.debug(f"GovernableAction saved: {new_api_action.pk}")
             return new_api_action
 
-    def _handle_metagov_event(self, proposal, process):
+    def _handle_metagov_process(self, proposal, process):
         """
         Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
         This function gets called any time a slack.emoji-vote associated with

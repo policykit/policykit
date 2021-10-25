@@ -36,7 +36,7 @@ class GithubCommunity(CommunityPlatform):
         proposal.community_post = process.outcome["issue_number"]
         proposal.save()
 
-    def _handle_metagov_event(self, proposal, process):
+    def _handle_metagov_process(self, proposal, process):
         """
         Handle a change to an ongoing Metagov github vote GovernanceProcess.
         This function gets called any time a github vote associated with

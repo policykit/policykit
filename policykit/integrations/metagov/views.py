@@ -47,13 +47,13 @@ def internal_receive_outcome(request, id):
     #FIXME use routing instead of this
     if process_name.startswith("slack."):
         community = SlackCommunity.objects.get(community__metagov_slug=body["community"])
-        community._handle_metagov_event(proposal, body)
+        community._handle_metagov_process(proposal, body)
     elif process_name.startswith("github."):
         community = GithubCommunity.objects.get(community__metagov_slug=body["community"])
-        community._handle_metagov_event(proposal, body)
+        community._handle_metagov_process(proposal, body)
     elif process_name.startswith("loomio."):
         community = LoomioCommunity.objects.get(community__metagov_slug=body["community"])
-        community._handle_metagov_event(proposal, body)
+        community._handle_metagov_process(proposal, body)
 
     proposal.save()
     return HttpResponse()
