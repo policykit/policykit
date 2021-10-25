@@ -233,7 +233,6 @@
 <script src="{% static "codemirror/lib/codemirror.js" %}"></script>
 <script src="{% static "codemirror/mode/python/python.js" %}"></script>
 <script src="{% static "codemirror/addon/hint/show-hint.js" %}"></script>
-<script src="{% static "codemirror/addon/hint/python-hint.js" %}"></script>
 <script src="{% static "codemirror/addon/display/autorefresh.js" %}"></script>
 
 <script>
@@ -342,6 +341,40 @@
 
   CodeMirror.defineOption('functionName', 'filter', (cm, val) => { return; });
 
+  // Set up default Python hinter with PolicyKit hints added
+  const hintWords = {{autocompletes|safe}};
+  // Need this for intiial ctrl-space autocomplete menu
+  CodeMirror.registerHelper("hintWords", "python", hintWords);
+  // Need this for automplete while typing to work correctly with periods
+  CodeMirror.policykitHint = function (editor) {
+      // From https://stackoverflow.com/questions/19244449/codemirror-autocomplete-custom-list
+      // Find the word fragment near cursor that needs auto-complete...
+      const cursor = editor.getCursor();
+      const currentLine = editor.getLine(cursor.line);
+      let start = cursor.ch;
+      let end = start;
+      const rex=/[\w.]/; // a pattern to match any characters in our hint "words"
+      // Our hints include function calls, e.g. "slack.post_message()"
+      // so we search for word charcters (\w) and periods.
+      // First (and optional), find end of current "word" at cursor...
+      while (end < currentLine.length && rex.test(currentLine.charAt(end))) ++end;
+      // Find beginning of current "word" at cursor...
+      while (start && rex.test(currentLine.charAt(start - 1))) --start;
+      // Grab the current word, if any...
+      const curWord = start !== end && currentLine.slice(start, end);
+      // Get the default results object from the JavaScript hinter...
+      const dflt = {list: []} // pyHinter(editor);
+      // If the default hinter didn't hint, create a blank result for now...
+      const result = dflt || {list: []};
+      // Set the start/end of the replacement range...
+      result.to = CodeMirror.Pos(cursor.line, end);
+      result.from = CodeMirror.Pos(cursor.line, start);
+      // Add our custom hintWords to the list, if they start with the curWord...
+      hintWords.forEach(h => {if (h.startsWith(curWord)) result.list.push(h);});
+      result.list.sort(); // sort the final list of hints
+      return result;
+  };
+
   var editors = [];
 
   for (let i = 0; i < Object.keys(DEFAULT_VALUES).length; i++) {
@@ -398,7 +431,7 @@
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-        editor.showHint({ hint: CodeMirror.pythonHint });
+        editor.showHint({ hint: CodeMirror.policykitHint });
     });
 
     editors[i].on('change', (cm, change) => {
