@@ -47,7 +47,7 @@ class DiscourseCommunity(CommunityPlatform):
             return json.loads(resp_body)
         return None
 
-    def execute_platform_action(self, action, delete_policykit_post=True):
+    def _execute_platform_action(self, action, delete_policykit_post=True):
         from policyengine.models import LogAPICall
 
         obj = action

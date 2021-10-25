@@ -144,6 +144,8 @@ def editor(request):
     operation = request.GET.get('operation', "Add")
     policy_id = request.GET.get('policy')
 
+    # from policyengine.models import CommunityUser
+    # user = CommunityUser.objects.all()[0]
     user = get_user(request)
     community = user.community.community
 
@@ -154,12 +156,17 @@ def editor(request):
     # which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[kind])
 
+    # list of autocomplete strings
+    # TODO: can improve by getting autocompletes specific to the selected action(s), like 'action.channel' etc
+    autocompletes = Utils.get_autocompletes(community)
+
     data = {
         'server_url': SERVER_URL,
         'user': get_user(request),
         'type': kind.capitalize(),
         'operation': operation,
-        'actions': actions.items()
+        'actions': actions.items(),
+        'autocompletes': json.dumps(autocompletes)
     }
 
     if policy_id:

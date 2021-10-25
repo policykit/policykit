@@ -32,9 +32,6 @@ class SlackCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def notify_action(self, *args, **kwargs):
-        self.initiate_vote(*args, **kwargs)
-
     def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
         if post_type not in ["channel", "mpim"]:
             raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
@@ -62,7 +59,7 @@ class SlackCommunity(CommunityPlatform):
             return response.json()
         return None
 
-    def execute_platform_action(self, action, delete_policykit_post=False):
+    def _execute_platform_action(self, action, delete_policykit_post=False):
         obj = action
 
         if not obj.community_origin or (obj.community_origin and obj.community_revert):
@@ -92,7 +89,7 @@ class SlackCommunity(CommunityPlatform):
             try:
                 self.__make_generic_api_call(call, data)
             except Exception as e:
-                logger.error(f"Error making API call in execute_platform_action: {e}")
+                logger.error(f"Error making API call in _execute_platform_action: {e}")
                 raise
 
             # delete PolicyKit Post
@@ -114,7 +111,7 @@ class SlackCommunity(CommunityPlatform):
                         }
                         self.__make_generic_api_call("chat.delete", values)
 
-    def handle_metagov_event(self, outer_event):
+    def _handle_metagov_event(self, outer_event):
         """
         Receive Slack Metagov Event for this community
         """
@@ -131,7 +128,7 @@ class SlackCommunity(CommunityPlatform):
             logger.debug(f"GovernableAction saved: {new_api_action.pk}")
             return new_api_action
 
-    def handle_metagov_process(self, proposal, process):
+    def _handle_metagov_process(self, proposal, process):
         """
         Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
         This function gets called any time a slack.emoji-vote associated with

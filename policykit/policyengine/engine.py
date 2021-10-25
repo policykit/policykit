@@ -279,7 +279,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         # run "pass" block of policy
         exec_code_block(policy.success, context, Policy.SUCCESS)
         # mark proposal as 'passed'
-        proposal.pass_evaluation()
+        proposal._pass_evaluation()
         assert proposal.status == Proposal.PASSED
 
         if action.is_executable:
@@ -293,7 +293,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         # run "fail" block of policy
         exec_code_block(policy.fail, context, Policy.FAIL)
         # mark proposal as 'failed'
-        proposal.fail_evaluation()
+        proposal._fail_evaluation()
         assert proposal.status == Proposal.FAILED
 
         if settings.METAGOV_ENABLED:

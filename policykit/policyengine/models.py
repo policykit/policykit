@@ -160,7 +160,7 @@ class CommunityPlatform(PolymorphicModel):
         return CommunityUser.objects.filter(community=self)
 
 
-    def execute_platform_action(self):
+    def _execute_platform_action(self):
         pass
 
     def save(self, *args, **kwargs):
@@ -516,7 +516,7 @@ class Proposal(models.Model):
             self.data = DataStore.objects.create()
         super(Proposal, self).save(*args, **kwargs)
 
-    def pass_evaluation(self):
+    def _pass_evaluation(self):
         """
         Sets the proposal to PASSED.
 
@@ -527,7 +527,7 @@ class Proposal(models.Model):
         action = self.action
         actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type)
 
-    def fail_evaluation(self):
+    def _fail_evaluation(self):
         """
         Sets the proposal to FAILED.
 
@@ -654,7 +654,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         Executes the action.
         """
-        self.community.execute_platform_action(self)
+        self.community._execute_platform_action(self)
 
 
 class TriggerAction(BaseAction, PolymorphicModel):
@@ -697,7 +697,7 @@ class GovernableActionBundle(GovernableAction):
     def execute(self):
         if self.bundle_type == GovernableActionBundle.BUNDLE:
             for action in self.bundled_actions.all():
-                self.community.execute_platform_action(action)
+                self.community._execute_platform_action(action)
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):

@@ -96,6 +96,21 @@ def get_action_types(community, kinds):
     return actions
 
 
+def get_autocompletes(community):
+    platform_communities = list(community.get_platform_communities())
+    platform_communities_keys = [p.platform for p in platform_communities]
+    from policyengine.autocomplete import integration_autocompletes, general_autocompletes
+
+    autocompletes = general_autocompletes
+    # Add autocompletes for each platform that this community is connected to
+    for k, v in integration_autocompletes.items():
+        if k in platform_communities_keys:
+            autocompletes.extend(v)
+            autocompletes.append(k)
+
+    return autocompletes
+
+
 def get_platform_integrations():
     platform_integrations = []
     for a in apps.get_app_configs():

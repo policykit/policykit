@@ -61,7 +61,7 @@ class LoomioCommunity(CommunityPlatform):
         )
         proposal.save()
 
-    def handle_metagov_process(self, proposal, process):
+    def _handle_metagov_process(self, proposal, process):
         """
         Handle a change to an ongoing Loomio poll GovernanceProcess.
         Creates or updates ChoiceVote records.
