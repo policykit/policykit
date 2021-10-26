@@ -22,14 +22,23 @@ def default_boolean_vote_message(policy):
         + ". Vote with :thumbsup: or :thumbsdown: on this post."
     )
 
-
-def find_action_cls(app_name: str, codename: str):
+def find_action_cls(codename: str, app_name=None):
     """
     Get the GovernableAction subclass that has the specified codename
     """
     from policyengine.models import GovernableAction
 
-    for cls in apps.get_app_config(app_name).get_models():
+    if app_name:
+        all_models = list(apps.get_app_config(app_name).get_models())
+    else:
+        listoflists = [
+            list(a.get_models())
+            for a in list(apps.get_app_configs())
+            if "constitution" in a.name or "policyengine" in a.name
+        ]
+        all_models = [item for sublist in listoflists for item in sublist]
+
+    for cls in all_models:
         if issubclass(cls, GovernableAction) and cls._meta.model_name == codename:
             return cls
     return None
@@ -74,7 +83,7 @@ def get_action_types(community, kinds):
         action_list = []
         if (
             PolicyActionKind.PLATFORM in kinds
-            or PolicyActionKind.TRIGGER in kinds # all platformactions can be used as triggers
+            or PolicyActionKind.TRIGGER in kinds  # all platformactions can be used as triggers
             or (PolicyActionKind.CONSTITUTION in kinds and app_name == "constitution")
         ):
             for cls in get_action_classes(app_name):
@@ -96,18 +105,28 @@ def get_action_types(community, kinds):
     return actions
 
 
-def get_autocompletes(community):
+def get_autocompletes(community, policy=None):
+    import policyengine.autocomplete as PkAutocomplete
+
     platform_communities = list(community.get_platform_communities())
     platform_communities_keys = [p.platform for p in platform_communities]
-    from policyengine.autocomplete import integration_autocompletes, general_autocompletes
 
-    autocompletes = general_autocompletes
+    # Add general autocompletes (proposal, policy, logger, and common fields on action)
+    autocompletes = PkAutocomplete.general_autocompletes
+
     # Add autocompletes for each platform that this community is connected to
-    for k, v in integration_autocompletes.items():
+    for k, v in PkAutocomplete.integration_autocompletes.items():
         if k in platform_communities_keys:
             autocompletes.extend(v)
             autocompletes.append(k)
 
+    # Add autocompletes for the selected action(s)
+    if policy and policy.action_types.count() > 0:
+        for at in policy.action_types.all():
+            cls = find_action_cls(at.codename)
+            hints = PkAutocomplete.generate_action_autocompletes(cls)
+            autocompletes.extend(hints)
+    logger.debug(autocompletes)
     return autocompletes
 
 

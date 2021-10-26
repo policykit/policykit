@@ -149,16 +149,22 @@ def editor(request):
     user = get_user(request)
     community = user.community.community
 
-    from policyengine.models import PolicyActionKind
+    from policyengine.models import PolicyActionKind, Policy
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
         raise Http404("Policy does not exist")
+
+    policy = None
+    if policy_id:
+        try:
+            policy = Policy.objects.get(id=policy_id, community=user.community.community)
+        except Policy.DoesNotExist:
+            raise Http404("Policy does not exist")
 
     # which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[kind])
 
     # list of autocomplete strings
-    # TODO: can improve by getting autocompletes specific to the selected action(s), like 'action.channel' etc
-    autocompletes = Utils.get_autocompletes(community)
+    autocompletes = Utils.get_autocompletes(community, policy=policy)
 
     data = {
         'server_url': SERVER_URL,
@@ -169,14 +175,7 @@ def editor(request):
         'autocompletes': json.dumps(autocompletes)
     }
 
-    if policy_id:
-        from policyengine.models import Policy
-        policy = None
-        try:
-            policy = Policy.objects.get(id=policy_id, community=user.community.community)
-        except Policy.DoesNotExist:
-            raise Http404("Policy does not exist")
-
+    if policy:
         data['policy'] = policy_id
         data['name'] = policy.name
         data['description'] = policy.description
@@ -342,7 +341,7 @@ def actions(request):
 
 @login_required(login_url='/login')
 def propose_action(request, app_name, codename):
-    cls = Utils.find_action_cls(app_name, codename)
+    cls = Utils.find_action_cls(codename, app_name)
     if not cls:
         return HttpResponseBadRequest()
 

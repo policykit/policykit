@@ -560,13 +560,13 @@ class BaseAction(PolymorphicModel):
         return self._meta.model_name
 
     @property
-    def is_reversible(self):
+    def _is_reversible(self):
         if self.kind in [PolicyActionKind.TRIGGER, PolicyActionKind.CONSTITUTION]:
             return False
         return self.kind == PolicyActionKind.PLATFORM and self.community_origin
 
     @property
-    def is_executable(self):
+    def _is_executable(self):
         if self.kind == PolicyActionKind.TRIGGER:
             # Trigger actions can never be executed
             return False
@@ -623,7 +623,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
                 ExecutedActionTriggerAction.from_action(self).evaluate()
 
             elif self.initiator and not self.initiator.has_perm(can_propose_perm):
-                if self.is_reversible:
+                if self._is_reversible:
                     logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: reverting")
                     super(GovernableAction, self).save(*args, **kwargs)
                     self.revert()
