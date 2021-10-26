@@ -329,6 +329,11 @@
   }
   {% endif %}
 
+  $('#actionpicker').on('change', function(e){
+    console.log(this),
+    console.log(this.value)
+    CodeMirror.registerHelper("hintWords", "python", ["test"]);
+  });
 
   const DEFAULT_VALUES = {
     "filter": "return True\n\n",
