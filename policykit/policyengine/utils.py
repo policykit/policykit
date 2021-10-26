@@ -105,7 +105,7 @@ def get_action_types(community, kinds):
     return actions
 
 
-def get_autocompletes(community, policy=None):
+def get_autocompletes(community, action_types=None):
     import policyengine.autocomplete as PkAutocomplete
 
     platform_communities = list(community.get_platform_communities())
@@ -121,12 +121,17 @@ def get_autocompletes(community, policy=None):
             autocompletes.append(k)
 
     # Add autocompletes for the selected action(s)
-    if policy and policy.action_types.count() > 0:
-        for at in policy.action_types.all():
-            cls = find_action_cls(at.codename)
+    for codename in action_types or []:
+        cls = find_action_cls(codename)
+        logger.info(codename)
+        logger.info(cls)
+        if cls:
             hints = PkAutocomplete.generate_action_autocompletes(cls)
             autocompletes.extend(hints)
-    logger.debug(autocompletes)
+
+    # remove duplicates (for example 'action.channel' would be repeated if SlackPostMessage and SlackRenameChannel selected)
+    autocompletes = list(set(autocompletes))
+    autocompletes.sort()
     return autocompletes
 
 

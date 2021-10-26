@@ -144,8 +144,6 @@ def editor(request):
     operation = request.GET.get('operation', "Add")
     policy_id = request.GET.get('policy')
 
-    # from policyengine.models import CommunityUser
-    # user = CommunityUser.objects.all()[0]
     user = get_user(request)
     community = user.community.community
 
@@ -164,7 +162,8 @@ def editor(request):
     actions = Utils.get_action_types(community, kinds=[kind])
 
     # list of autocomplete strings
-    autocompletes = Utils.get_autocompletes(community, policy=policy)
+    action_types = [a.codename for a in policy.action_types.all()] if policy else None
+    autocompletes = Utils.get_autocompletes(community, action_types=action_types)
 
     data = {
         'server_url': SERVER_URL,
@@ -409,6 +408,16 @@ def initialize_starterkit(request):
     Utils.initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
 
     return JsonResponse({"ok": True})
+
+@login_required(login_url='/login')
+def get_autocompletes(request):
+    user = request.user
+    community = user.community.community
+    action_types = request.GET.get("action_types").split(",")
+    if not action_types or len(action_types) == 1 and not action_types[0]:
+        action_types = None
+    autocompletes = Utils.get_autocompletes(community, action_types=action_types)
+    return JsonResponse({'autocompletes': autocompletes})
 
 @csrf_exempt
 def error_check(request):
