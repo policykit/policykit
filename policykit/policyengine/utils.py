@@ -34,7 +34,7 @@ def find_action_cls(codename: str, app_name=None):
         listoflists = [
             list(a.get_models())
             for a in list(apps.get_app_configs())
-            if "constitution" in a.name or "policyengine" in a.name
+            if "constitution" in a.name or "integration" in a.name
         ]
         all_models = [item for sublist in listoflists for item in sublist]
 
