@@ -282,7 +282,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         proposal._pass_evaluation()
         assert proposal.status == Proposal.PASSED
 
-        if action.is_executable:
+        if action._is_executable:
             action.execute()
 
         if settings.METAGOV_ENABLED:
@@ -302,7 +302,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     # Revert the action if necessary
     should_revert = (
-        is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and action.is_reversible
+        is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and action._is_reversible
     )
 
     if should_revert:

@@ -1,11 +1,32 @@
 import inspect
-from inspect import getmembers, isfunction, Parameter, signature
+from inspect import getmembers, isfunction, Parameter
 import policyengine.utils as Utils
 from django.apps import apps
 
 PROPOSAL_VARNAME = "proposal"
 POLICY_VARNAME = "policy"
 ACTION_VARNAME = "action"
+
+POLICY_HINTS = ["name", "description", "modified_at", "community"]
+ACTION_HINTS = ["action_type", "initiator", "community"]
+PROPOSAL_HINTS = ["data.set(key, value)", "data.get(key)"]
+
+
+def generate_action_autocompletes(cls):
+    """
+    Generate autocompletes for model fields and properties defined on an action
+    """
+    ignored_types = ["JSONField", "OneToOneField"]
+    hints = [
+        f.name for f in cls._meta.get_fields(include_parents=False) if f.get_internal_type() not in ignored_types
+    ]
+
+    ignored_properties = ACTION_HINTS + ["pk"]  # exclude common fields
+    properties = inspect.getmembers(cls, lambda o: isinstance(o, property))
+    model_properties = [p for (p, _) in properties if not p.startswith("_") and p not in ignored_properties]
+
+    hints.extend(model_properties)
+    return [f"{ACTION_VARNAME}.{f}" for f in hints]
 
 
 def generate_platform_autocompletes():
@@ -76,15 +97,14 @@ def generate_evaluation_autocompletes():
         autocompletes.append(f"{PROPOSAL_VARNAME}.{f.name}")
     # add functions
     function_hints = _get_function_hints(Proposal, "policyengine")
+    function_hints.extend(PROPOSAL_HINTS)
     autocompletes.extend([f"{PROPOSAL_VARNAME}.{h}" for h in function_hints])
 
     ### POLICY
-    fields = ["name", "description", "modified_at", "community"]
-    autocompletes.extend([f"{POLICY_VARNAME}.{f}" for f in fields])
+    autocompletes.extend([f"{POLICY_VARNAME}.{f}" for f in POLICY_HINTS])
 
     ### ACTION
-    fields = ["action_type", "initiator", "community"]
-    autocompletes.extend([f"{ACTION_VARNAME}.{f}" for f in fields])
+    autocompletes.extend([f"{ACTION_VARNAME}.{f}" for f in ACTION_HINTS])
 
     ### LOGGER
     autocompletes.extend(["logger", "logger.debug()", "logger.info()", "logger.warn()", "logger.error()"])
