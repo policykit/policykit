@@ -112,7 +112,7 @@ def get_autocompletes(community, policy=None):
     platform_communities_keys = [p.platform for p in platform_communities]
 
     # Add general autocompletes (proposal, policy, logger, and common fields on action)
-    autocompletes = PkAutocomplete.general_autocompletes
+    autocompletes = PkAutocomplete.general_autocompletes.copy()
 
     # Add autocompletes for each platform that this community is connected to
     for k, v in PkAutocomplete.integration_autocompletes.items():
