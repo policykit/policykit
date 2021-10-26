@@ -24,9 +24,9 @@ def default_boolean_vote_message(policy):
 
 def find_action_cls(codename: str, app_name=None):
     """
-    Get the GovernableAction subclass that has the specified codename
+    Get the BaseAction subclass that has the specified codename
     """
-    from policyengine.models import GovernableAction
+    from policyengine.models import BaseAction
 
     if app_name:
         all_models = list(apps.get_app_config(app_name).get_models())
@@ -39,7 +39,7 @@ def find_action_cls(codename: str, app_name=None):
         all_models = [item for sublist in listoflists for item in sublist]
 
     for cls in all_models:
-        if issubclass(cls, GovernableAction) and cls._meta.model_name == codename:
+        if issubclass(cls, BaseAction) and cls._meta.model_name == codename:
             return cls
     return None
 
