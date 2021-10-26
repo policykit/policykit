@@ -123,8 +123,6 @@ def get_autocompletes(community, action_types=None):
     # Add autocompletes for the selected action(s)
     for codename in action_types or []:
         cls = find_action_cls(codename)
-        logger.info(codename)
-        logger.info(cls)
         if cls:
             hints = PkAutocomplete.generate_action_autocompletes(cls)
             autocompletes.extend(hints)

@@ -385,7 +385,6 @@
     fetch(`../../../main/policyengine/get_autocompletes?${params}`)
       .then(response => response.json())
       .then(data => {
-        console.log("updating hintwords")
         const autocompletes = data["autocompletes"]
         setHintWords(autocompletes)
       })
