@@ -17,7 +17,7 @@ def generate_action_autocompletes(cls):
     Generate autocompletes for model fields and properties defined on an action
     """
     ignored_types = ["JSONField", "OneToOneField"]
-    model_fields = [
+    hints = [
         f.name for f in cls._meta.get_fields(include_parents=False) if f.get_internal_type() not in ignored_types
     ]
 
@@ -25,8 +25,8 @@ def generate_action_autocompletes(cls):
     properties = inspect.getmembers(cls, lambda o: isinstance(o, property))
     model_properties = [p for (p, _) in properties if not p.startswith("_") and p not in ignored_properties]
 
-    all_hints = model_fields.extend(model_properties)
-    return [f"{ACTION_VARNAME}.{f}" for f in all_hints]
+    hints.extend(model_properties)
+    return [f"{ACTION_VARNAME}.{f}" for f in hints]
 
 
 def generate_platform_autocompletes():
