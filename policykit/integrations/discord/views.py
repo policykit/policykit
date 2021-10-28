@@ -464,9 +464,8 @@ def auth(request, guild_id=None, access_token=None):
     else:
         return redirect('/login?error=invalid_login')
 
-def initiate_action_vote(proposal, users=None, template=None, channel=None):
-    policy = proposal.policy
-    message = "This action is governed by the following policy: " + policy.name
+def initiate_action_vote(discord_community, proposal, users=None, template=None, channel=None):
+    message = "This action is governed by the following policy: " + proposal.policy.name
     if template:
         message = template
 
@@ -474,22 +473,22 @@ def initiate_action_vote(proposal, users=None, template=None, channel=None):
     # Here, we must check whether the user entered a valid channel_id. If not,
     # we check if the user entered a valid channel_name.
     channel_id = None
-    c = DiscordChannel.objects.filter(channel_id=channel)
+    c = DiscordChannel.objects.filter(guild_id=discord_community.team_id, channel_id=channel)
     if c.exists():
         channel_id = c[0].channel_id
     else:
-        c = DiscordChannel.objects.filter(guild_id=policy.community.team_id, channel_name=channel)
+        c = DiscordChannel.objects.filter(guild_id=discord_community.team_id, channel_name=channel)
         if c.exists():
             channel_id = c[0].channel_id
     if channel_id == None:
-        return
+        raise Exception("Failed to determine which channel to post in")
 
-    res = policy.community.post_message(text=message, channel=channel_id)
+    res = discord_community.post_message(text=message, channel=channel_id)
 
     proposal.community_post = res['id']
     proposal.save()
 
     time.sleep(1)
-    policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")
+    discord_community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8D/@me', method="PUT")
     time.sleep(1)
-    policy.community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8E/@me', method="PUT")
+    discord_community.make_call(f'channels/{channel_id}/messages/{res["id"]}/reactions/%F0%9F%91%8E/@me', method="PUT")
