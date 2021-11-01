@@ -22,7 +22,7 @@ class DiscordCommunity(CommunityPlatform):
 
     def initiate_vote(self, proposal, users=None, template=None, channel=None):
         from integrations.discord.views import initiate_action_vote
-        initiate_action_vote(proposal, users, template, channel)
+        initiate_action_vote(self, proposal, users, template, channel)
 
     def post_message(self, text, channel):
         return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
