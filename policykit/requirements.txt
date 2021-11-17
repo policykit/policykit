@@ -41,7 +41,7 @@ Jinja2==2.11.3
 kombu==4.6.7
 lazy-object-proxy==1.6.0
 MarkupSafe==1.1.1
--e git+https://github.com/metagov/gateway.git@try-import#egg=metagov
+-e git+https://github.com/metagov/gateway.git@try-import#egg=metagov&subdirectory=metagov
 # git+file:///Users/miriam/dev/metagov/metagov-prototype@try-import
 mccabe==0.6.1
 more-itertools==8.1.0
