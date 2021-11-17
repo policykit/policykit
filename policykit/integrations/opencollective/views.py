@@ -3,7 +3,7 @@ import json
 from django.contrib.auth import get_user
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from policyengine.metagov_app import metagov
 from integrations.opencollective.models import OpencollectiveCommunity
@@ -37,7 +37,7 @@ def enable_integration(request):
             team_id=team_id,
         )
 
-    return JsonResponse({"ok": True}, safe=False)
+    return HttpResponse()
 
 
 @login_required(login_url="/login")

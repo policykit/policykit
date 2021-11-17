@@ -1,7 +1,3 @@
-"""
-Tests that require Metagov to be running.
-Run with `INTEGRATION=1 python manage.py test`
-"""
 import os
 import unittest
 
@@ -218,9 +214,7 @@ class WebhookTriggerActionTest(TestCase):
 
         # the action.community is the community that is connected to metagov
         self.assertEqual(action.action_type, "WebhookTriggerAction")
-        # self.assertEqual(action.community.platform, "slack")
-        # self.assertEqual(action.initiator.username, "discourse.miriam")
-        # self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
+        self.assertEqual(action.community.platform, "slack")
         self.assertEqual(action.data["raw"], "post text")
 
         proposal = Proposal.objects.get(action=action, policy=policy)
@@ -259,7 +253,6 @@ class WebhookTriggerActionTest(TestCase):
 
         action = SlackPinMessage.objects.first()
         self.assertEqual(action.community.platform, "slack")
-        # self.assertEqual(action.initiator.username, "alice")
 
         proposal = Proposal.objects.get(action=action, policy=policy)
         self.assertEqual(proposal.data.get("got here"), True)

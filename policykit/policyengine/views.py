@@ -173,12 +173,9 @@ def add_integration(request):
 @permission_required("constitution.can_add_integration", raise_exception=True)
 @csrf_exempt
 def enable_integration(request, integration):
-    logger.info(f">>>>>>> default enable_integration called: {integration} <<<<")
     """
     API Endpoint to enable a Metagov plugin (called on config form submission from JS).
-    This is only used for plugins that DON'T have a corresponding PolicyKit integration.
-    For platforms with integrations (Open Collective, Github, etc) the installation
-    is handled by the integration.
+    This is the default implementation; platforms with PolicyKit integrations may override it.
     """
     user = get_user(request)
     community = user.community.community
@@ -195,12 +192,12 @@ def enable_integration(request, integration):
     cls =  apps.get_app_config(integration).get_model(f"{integration}community")
     cp,created = cls.objects.get_or_create(
         community=community,
-        team_id=team_id, #TODO use foreignkey instead of team_id.
+        team_id=team_id,
         defaults={"community_name": team_id}
     )
-    logger.debug(f"{cp} - {created}")
+    logger.debug(f"CommunityPlatform {cp} {'created' if created else 'already exists'}")
 
-    return JsonResponse({"ok": True, "team_id": plugin.community_platform_id}, safe=False)
+    return HttpResponse()
 
 
 @login_required(login_url="/login")
