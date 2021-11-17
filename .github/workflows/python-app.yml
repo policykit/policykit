@@ -48,28 +48,28 @@ jobs:
         source env/bin/activate
         pip install -r requirements.txt
         deactivate
-    - name: Checkout Metagov repository
-      uses: actions/checkout@v2
-      with:
-        repository: metagov/metagov-prototype
-        path: metagov-prototype
-    - name: Set up Metagov
-      working-directory: ./metagov-prototype/metagov
-      run: |
-        python -m venv env
-        source env/bin/activate
-        pip install -r requirements.txt
-        cd metagov
-        echo "DJANGO_SECRET_KEY=t5y0(1hpfj2%%qrys%ro$*dfb6p$h%3t2dmag=+9o%t(=l3w#9" > .env
-        echo "DEBUG=True" >> .env
-        cd ..
-        python manage.py migrate
-    - name: Run Metagov server and PolicyKit tests
-      working-directory: ./metagov-prototype/metagov
-      run: |
-        source env/bin/activate
-        python manage.py runserver 8000 &
-        sleep 10
-        cd ../../policykit
-        source env/bin/activate
-        INTEGRATION=1 PRIVATE_FILE_PATH=private_template.py METAGOV_URL=http://127.0.0.1:8000 POLICYKIT_LOG_FILE=tmp.log python manage.py test
+    # - name: Checkout Metagov repository
+    #   uses: actions/checkout@v2
+    #   with:
+    #     repository: metagov/metagov-prototype
+    #     path: metagov-prototype
+    # - name: Set up Metagov
+    #   working-directory: ./metagov-prototype/metagov
+    #   run: |
+    #     python -m venv env
+    #     source env/bin/activate
+    #     pip install -r requirements.txt
+    #     cd metagov
+    #     echo "DJANGO_SECRET_KEY=t5y0(1hpfj2%%qrys%ro$*dfb6p$h%3t2dmag=+9o%t(=l3w#9" > .env
+    #     echo "DEBUG=True" >> .env
+    #     cd ..
+    #     python manage.py migrate
+    # - name: Run Metagov server and PolicyKit tests
+    #   working-directory: ./metagov-prototype/metagov
+    #   run: |
+    #     source env/bin/activate
+    #     python manage.py runserver 8000 &
+    #     sleep 10
+    #     cd ../../policykit
+    #     source env/bin/activate
+    #     INTEGRATION=1 PRIVATE_FILE_PATH=private_template.py METAGOV_URL=http://127.0.0.1:8000 POLICYKIT_LOG_FILE=tmp.log python manage.py test

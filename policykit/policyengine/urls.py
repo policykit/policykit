@@ -15,4 +15,5 @@ urlpatterns = [
     path('document_action_save', views.document_action_save),
     path('document_action_remove', views.document_action_remove),
     path('document_action_recover', views.document_action_recover),
+    path('disable_integration', views.disable_integration),
 ]

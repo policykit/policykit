@@ -94,7 +94,7 @@
     const schema = metadata.schemas.config
     schema.type = "object";
     schema.title = "config";
-    const {webhook_slug, ...properties} = schema.properties || {}
+    const properties = schema.properties || {}
     schema.properties = properties
 
     form = []
@@ -118,12 +118,14 @@
       "title": "Submit"
     })
 
-    {%if additional_data.has_policykit_integration %}
     enable_url = `../../../{{integration}}/enable_integration`
-    {% else %}
-    enable_url = `../../../metagov/enable_integration?name={{integration}}`
-    {% endif %}
-    console.log(enable_url)
+
+    // {%if additional_data.has_policykit_integration %}
+    // enable_url = `../../../{{integration}}/enable_integration`
+    // {% else %}
+    // enable_url = `../../../main/policyengine/enable_integration?name={{integration}}`
+    // {% endif %}
+    // console.log(enable_url)
     // Uses https://github.com/jsonform/jsonform
     $('form#json-editor-form').jsonForm({
       schema: schema,

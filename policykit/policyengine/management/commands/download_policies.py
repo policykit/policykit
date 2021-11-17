@@ -21,7 +21,7 @@ class Command(BaseCommand):
         print(f"Downloading policies to directory: {dirname}")
 
         def download(policy):
-            prefix = f"{policy.community.platform}_{slugify(policy.community.team_id)}_"
+            prefix = f"{policy.community.pk}_{slugify(policy.community.community_name)}_"
             filename = prefix + slugify(policy.name)
             self.stdout.write(self.style.SUCCESS(f"Saving: {filename}"))
             data = {

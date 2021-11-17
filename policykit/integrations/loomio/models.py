@@ -1,13 +1,9 @@
-import logging
-from django.db import models
-from policyengine.models import (
-    ChoiceVote,
-    CommunityPlatform,
-    CommunityUser,
-)
-from integrations.metagov.library import Metagov
 import datetime
-from django.conf import settings
+import logging
+
+from django.db import models
+from policyengine.metagov_app import metagov
+from policyengine.models import CommunityPlatform, CommunityUser
 
 logger = logging.getLogger(__name__)
 
@@ -42,42 +38,21 @@ class LoomioCommunity(CommunityPlatform):
         if isinstance(closing_at, datetime.datetime):
             closing_at = closing_at.strftime("%Y-%m-%d")
 
-        payload = {
-            "title": title,
-            "closing_at": closing_at,
-            "poll_type": poll_type,
-            "options": options,
-            "details": details,
-            "callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{proposal.pk}",
-            **kwargs,
-        }
-
         # Kick off process in Metagov
-        metagov = Metagov(proposal)
-        process = metagov.start_process("loomio.poll", payload)
-        proposal.community_post = process.outcome["poll_url"]
-        logger.debug(
-            f"Saving proposal with community_post '{proposal.community_post}', and process at {proposal.governance_process_url}"
+        mg_community = metagov.get_community(self.community.metagov_slug)
+        plugin = mg_community.get_plugin("loomio")
+        process = plugin.start_process(
+            "poll",
+            title=title,
+            closing_at=closing_at,
+            poll_type=poll_type,
+            options=options,
+            details=details,
+            # pass on any other kwargs
+            **kwargs,
         )
+
+        proposal.governance_process = process
+        proposal.community_post = process.outcome["poll_url"]
+        logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
         proposal.save()
-
-    def _handle_metagov_process(self, proposal, process):
-        """
-        Handle a change to an ongoing Loomio poll GovernanceProcess.
-        Creates or updates ChoiceVote records.
-        """
-        logger.debug(f"received loomio vote update: {str(process)}")
-        outcome = process["outcome"]
-        votes = outcome["votes"]
-
-        for (vote_option, result) in votes.items():
-            for u in result["users"]:
-                user, _ = LoomioUser.objects.get_or_create(username=u, readable_name=u, community=self)
-                existing_vote = ChoiceVote.objects.filter(proposal=proposal, user=user).first()
-                if existing_vote is None:
-                    logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal}")
-                    ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
-                elif existing_vote.value != vote_option:
-                    logger.debug(f"Casting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
-                    existing_vote.value = vote_option
-                    existing_vote.save()

@@ -9,7 +9,6 @@ import os
 import json
 
 
-@override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
 class StarterKitTests(TestCase):
     def test_initialize_starterkit(self):
         """Test that starter kit initializion for all kits on all platforms doesn't throw any errors"""
@@ -52,7 +51,6 @@ class StarterKitTests(TestCase):
                 return cls
 
 
-@override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
 class CommunityCreationTests(TestCase):
     def test_community_creation(self):
         """Create Community then create CommunityPlatform"""

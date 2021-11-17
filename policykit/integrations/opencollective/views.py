@@ -1,31 +1,30 @@
 import logging
 import json
 from django.contrib.auth import get_user
-from django.http.response import HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
-import integrations.metagov.api as MetagovAPI
+from policyengine.metagov_app import metagov
 from integrations.opencollective.models import OpencollectiveCommunity
 
 logger = logging.getLogger(__name__)
 
 
 @login_required(login_url="/login")
-@permission_required("metagov.can_edit_metagov_config", raise_exception=True)
+@permission_required("constitution.can_add_integration", raise_exception=True)
 @csrf_exempt
 def enable_integration(request):
     user = get_user(request)
     community = user.community.community
-
     config = json.loads(request.body)
-    logger.warn(f"Making request to enable OC with config {config}")
-    res = MetagovAPI.enable_plugin(community.metagov_slug, "opencollective", config)
-    logger.debug(res)
-    team_id = res["config"]["collective_slug"]
+
+    mg_community = metagov.get_community(community.metagov_slug)
+    plugin = mg_community.enable_plugin("opencollective", config)
+    
     # here we could register the webhook_url, if Open Collective supported registering hooks via API call.
 
+    team_id = plugin.community_platform_id
     opencollective_community = OpencollectiveCommunity.objects.filter(team_id=team_id, community=community)
 
     if opencollective_community.exists():
@@ -38,11 +37,11 @@ def enable_integration(request):
             team_id=team_id,
         )
 
-    return JsonResponse(res, safe=False)
+    return JsonResponse({"ok": True}, safe=False)
 
 
 @login_required(login_url="/login")
-@permission_required("metagov.can_edit_metagov_config", raise_exception=True)
+@permission_required("constitution.can_remove_integration", raise_exception=True)
 def disable_integration(request):
     id = int(request.GET.get("id"))
     user = get_user(request)
@@ -52,14 +51,9 @@ def disable_integration(request):
     if not oc_community:
         return redirect("/main/settings?error=no_such_plugin")
 
-    # Validate that this plugin ID is valid for the community that this user is logged into.
-    # Important! This prevents the user from disabling plugins for other communities.
-    plugin_conf = MetagovAPI.get_plugin_config(community.metagov_slug, "opencollective", id)
-    if not plugin_conf:
-        return redirect("/main/settings?error=no_such_plugin")
 
-    # Delete the Open Collective plugin in Metagov
-    MetagovAPI.delete_plugin(name="opencollective", id=id)
+    mg_community = metagov.get_community(community.metagov_slug)
+    mg_community.disable_plugin("opencollective", id=id)
 
     # TODO: Delete the OpencollectiveCommunity model in PolicyKit?
     # oc_community.delete()

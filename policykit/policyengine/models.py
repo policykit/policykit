@@ -1,17 +1,19 @@
 from django.db import models
 from django.db.models.deletion import CASCADE, SET_NULL
 from actstream import action as actstream_action
-from django.contrib.auth.models import UserManager, User, Group, Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import UserManager, User, Group
 from django.forms import ModelForm
 from django.conf import settings
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from polymorphic.models import PolymorphicModel, PolymorphicManager
-import integrations.metagov.api as MetagovAPI
+from policyengine.metagov_app import metagov
 from policyengine import engine
 from datetime import datetime, timezone
+from metagov.core.models import GovernanceProcess
+import policyengine.utils as Utils
+
 import json
 import logging
 
@@ -91,11 +93,11 @@ class Community(models.Model):
         :meta private:
         """
         is_new = True if not self.pk else False
-        if settings.METAGOV_ENABLED and is_new and not self.metagov_slug:
+        if is_new and not self.metagov_slug:
             # If this is the first save, create a corresponding community in Metagov
-            response = MetagovAPI.create_empty_metagov_community()
-            self.metagov_slug = response["slug"]
-            logger.debug(f"Created new Metagov community '{self.metagov_slug}' Saving slug in model.")
+            mg_community = metagov.create_community()
+            self.metagov_slug = mg_community.slug
+            # logger.debug(f"Created new Metagov community '{self.metagov_slug}' Saving slug in model.")
 
         super(Community, self).save(*args, **kwargs)
 
@@ -105,8 +107,8 @@ def pre_delete_community(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Community)
 def post_delete_community(sender, instance, **kwargs):
-    if instance.metagov_slug and settings.METAGOV_ENABLED:
-        MetagovAPI.delete_community(instance.metagov_slug)
+    if instance.metagov_slug:
+        metagov.get_community(instance.metagov_slug).delete()
 
 
 class CommunityPlatform(PolymorphicModel):
@@ -128,6 +130,12 @@ class CommunityPlatform(PolymorphicModel):
     def metagov_slug(self):
         return self.community.metagov_slug
 
+    @property
+    def metagov_plugin(self):
+        mg_community = metagov.get_community(self.metagov_slug)
+        # TODO: catch Plugin.DoesNotExist
+        return mg_community.get_plugin(self.platform, self.team_id)
+
     def initiate_vote(self, proposal, users=None):
         """
         Initiates a vote on whether to pass the action that is currently being evaluated.
@@ -141,12 +149,14 @@ class CommunityPlatform(PolymorphicModel):
         """
         pass
 
+    #irrelevant
     def get_platform_policies(self):
         """
-        Returns a QuerySet of all platform policies for this ``CommunityPlatform``.
+        Returns a QuerySet of all platform policies for this ``Community``.
         """
         return Policy.platform_policies.filter(community=self.community).order_by('-modified_at')
 
+    #irrelevant
     def get_roles(self):
         """
         Returns a QuerySet of all roles in the community.
@@ -163,6 +173,7 @@ class CommunityPlatform(PolymorphicModel):
     def _execute_platform_action(self):
         pass
 
+    #irrelevant, do in a signal or elsewhere
     def save(self, *args, **kwargs):
         if not self.pk and not hasattr(self, "community"):
             # This is the first platform, so create the parent Community
@@ -244,14 +255,20 @@ class CommunityUser(User, PolymorphicModel):
         return self.readable_name if self.readable_name else self.username
 
     def find_linked_username(self, platform):
-        user = MetagovAPI.get_metagov_user(
-            community=self.community.community.metagov_slug,
+        mg_community = metagov.get_community(self.community.metagov_slug)
+        from metagov.core import identity
+
+        users = identity.get_users(
+            community=mg_community,
             platform_type=self.community.platform,
             community_platform_id=self.community.team_id,
             platform_identifier=self.username
         )
-        if user:
-            for account in user["linked_accounts"]:
+        logger.debug(f"Users linked to {self}: {users}")
+        if len(users) > 1:
+            raise Exception("More than 1 matching user found")
+        if len(users) == 1:
+            for account in users[0]["linked_accounts"]:
                 if account["platform_type"] == platform:
                     return account["platform_identifier"]
         return None
@@ -303,15 +320,13 @@ class CommunityUser(User, PolymorphicModel):
         base_role,_ = CommunityRole.objects.get_or_create(community=community, is_base_role=True, defaults={"role_name": "Base Role"})
         base_role.user_set.add(self)
 
-        # If this user is an admin in the community, give them access to edit the Metagov config
-        if self.is_community_admin and settings.METAGOV_ENABLED:
-            from integrations.metagov.models import MetagovConfig
-            role,created = CommunityRole.objects.get_or_create(community=community, role_name="Integration Admin")
-            if created:
-                content_type = ContentType.objects.get_for_model(MetagovConfig)
-                role.permissions.set(Permission.objects.filter(content_type=content_type))
+        # Call get_or_create integration admin on each save to ensure that it gets created, even if installer is not a community admin
+        integration_admin_role = Utils.get_or_create_integration_admin_role(community)
 
-            role.user_set.add(self)
+        # If this user is an admin in the community, give them access to add and remove integrations
+        if self.is_community_admin:
+            integration_admin_role.user_set.add(self)
+
 
 class CommunityDoc(models.Model):
     """CommunityDoc"""
@@ -437,11 +452,8 @@ class Proposal(models.Model):
     community_post = models.CharField(max_length=300, blank=True)
     """Identifier of the post that is being voted on, if any."""
 
-    governance_process_url = models.URLField(max_length=100, blank=True)
-    """Location of the Metagov GovernanceProcess that is being used to make a decision about this Proposal, if any."""
-
-    governance_process_json = models.JSONField(null=True, blank=True)
-    """Raw Metagov governance process data in JSON format."""
+    governance_process = models.ForeignKey(GovernanceProcess, on_delete=models.SET_NULL, blank=True, null=True)
+    """The Metagov GovernanceProcess that is being used to make a decision about this Proposal, if any."""
 
     def __str__(self):
         return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
@@ -451,8 +463,8 @@ class Proposal(models.Model):
         """
         Returns True if the vote is closed, False if the vote is still open.
         """
-        if self.governance_process_json:
-            return json.loads(self.governance_process_json)["status"] == "completed"
+        if self.governance_process:
+            self.governance_process.status == "completed"
         return self.status != Proposal.PROPOSED
 
     def get_time_elapsed(self):
@@ -526,6 +538,11 @@ class Proposal(models.Model):
         self.save()
         action = self.action
         actstream_action.send(action, verb='was passed', community_id=action.community.id, action_codename=action.action_type)
+        if self.governance_process:
+            try:
+                self.governance_process.proxy.close()
+            except NotImplementedError:
+                pass
 
     def _fail_evaluation(self):
         """
@@ -537,6 +554,11 @@ class Proposal(models.Model):
         self.save()
         action = self.action
         actstream_action.send(action, verb='was failed', community_id=action.community.id, action_codename=action.action_type)
+        if self.governance_process:
+            try:
+                self.governance_process.proxy.close()
+            except NotImplementedError:
+                pass
 
 class BaseAction(PolymorphicModel):
     """Base Action"""
@@ -669,7 +691,7 @@ class TriggerAction(BaseAction, PolymorphicModel):
 
 
 class ExecutedActionTriggerAction(TriggerAction):
-    """represent any GovernableAction as a trigger"""
+    """Represents a GovernableAction that has passed"""
     action = models.ForeignKey(GovernableAction, on_delete=CASCADE)
 
     @staticmethod
@@ -682,6 +704,19 @@ class ExecutedActionTriggerAction(TriggerAction):
 
     def __str__(self):
         return f"Trigger: {self.action}"
+
+
+class WebhookTriggerAction(TriggerAction):
+    """Represents a Trigger action from any webhook event.
+    Data about the event can be accessed through the event_data property."""
+    event_type = models.CharField(max_length=50, blank=True, null=True)
+    data = models.JSONField(blank=True, null=True)
+    #add platform_name "source"
+    #add platform_community_platform_id
+
+    def __str__(self):
+        return f"Trigger Event: {self.event_type}"
+
 
 class GovernableActionBundle(GovernableAction):
     ELECTION = 'election'

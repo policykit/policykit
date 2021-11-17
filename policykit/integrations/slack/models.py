@@ -1,19 +1,14 @@
 import logging
 
-import requests
-from django.conf import settings
 from django.db import models
 import integrations.slack.utils as SlackUtils
 from policyengine.models import (
-    BooleanVote,
     CommunityPlatform,
     CommunityUser,
-    LogAPICall,
-    NumberVote,
     GovernableAction,
     Proposal,
-    ChoiceVote,
 )
+from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
 
@@ -33,31 +28,17 @@ class SlackCommunity(CommunityPlatform):
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
     def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
-        if post_type not in ["channel", "mpim"]:
-            raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
-        if post_type == "mpim" and not users:
-            raise Exception(f"Must pass users for 'mpim' vote")
+        args = SlackUtils.construct_emoji_vote_params(proposal, users, post_type, template, channel, options)
 
-        community_post_ts = SlackUtils.start_emoji_vote(proposal, users, post_type, template, channel, options)
-        logger.debug(
-            f"Saving proposal with community_post '{community_post_ts}', and process at {proposal.governance_process_url}"
-        )
-        proposal.community_post = community_post_ts
+        # get plugin instance
+        plugin = metagov.get_community(self.community.metagov_slug).get_plugin("slack", self.team_id)
+        # start process
+        process = plugin.start_process("emoji-vote", **args)
+        # save reference to process on the proposal, so we can link up the signals later
+        proposal.governance_process = process
+        proposal.community_post = process.outcome["message_ts"]
+        logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
         proposal.save()
-
-    def make_call(self, method_name, values={}, action=None, method=None):
-        """Called by LogAPICall.make_api_call. Don't change the function signature."""
-        response = requests.post(
-            f"{settings.METAGOV_URL}/api/internal/action/{method_name}",
-            json={"parameters": values},
-            headers={"X-Metagov-Community": self.metagov_slug},
-        )
-        if not response.ok:
-            logger.error(f"Error making Slack request {method_name} with params {values}")
-            raise Exception(f"{response.status_code} {response.reason} {response.text}")
-        if response.content:
-            return response.json()
-        return None
 
     def _execute_platform_action(self, action, delete_policykit_post=False):
         obj = action
@@ -111,91 +92,6 @@ class SlackCommunity(CommunityPlatform):
                         }
                         self.__make_generic_api_call("chat.delete", values)
 
-    def _handle_metagov_event(self, outer_event):
-        """
-        Receive Slack Metagov Event for this community
-        """
-        # logger.debug(f"SlackCommunity recieved metagov event: {outer_event['event_type']}")
-        if outer_event["initiator"].get("is_metagov_bot") == True:
-            # logger.debug("Ignoring bot event")
-            return
-
-        new_api_action = SlackUtils.slack_event_to_platform_action(self, outer_event)
-        if new_api_action is not None:
-            new_api_action.community_origin = True
-            new_api_action.is_bundled = False
-            new_api_action.save()  # save triggers policy proposal
-            logger.debug(f"GovernableAction saved: {new_api_action.pk}")
-            return new_api_action
-
-    def _handle_metagov_process(self, proposal, process):
-        """
-        Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
-        This function gets called any time a slack.emoji-vote associated with
-        this SlackCommunity gets updated (e.g. if a vote was cast).
-        """
-        assert process["name"] == "slack.emoji-vote"
-        outcome = process["outcome"]
-        votes = outcome["votes"]
-        is_boolean_vote = set(votes.keys()) == {"yes", "no"}
-
-        ### 1) Count boolean vote
-        if is_boolean_vote:
-            for (vote_option, result) in votes.items():
-                boolean_value = True if vote_option == "yes" else False
-                for u in result["users"]:
-                    user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
-                    if existing_vote is None:
-                        logger.debug(f"Counting boolean vote {boolean_value} by {user}")
-                        BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=boolean_value)
-                    elif existing_vote.boolean_value != boolean_value:
-                        logger.debug(f"Counting boolean vote {boolean_value} by {user} (vote changed)")
-                        existing_vote.boolean_value = boolean_value
-                        existing_vote.save()
-        ### 2) Count number choice vote on action bundle
-        elif proposal.action.action_type == "governableactionbundle":
-            action_bundle = proposal.action
-            # Expect this process to be a choice vote on an action bundle.
-            bundled_actions = list(action_bundle.bundled_actions.all())
-            for (k, v) in votes.items():
-                num, voted_action = [(idx, a) for (idx, a) in enumerate(bundled_actions) if str(a) == k][0]
-
-                try:
-                    proposal = Proposal.objects.get(action=voted_action)
-                except Proposal.DoesNotExist:
-                    logger.warn(f"No policy proposal found action {voted_action} bundled in {action_bundle}. Ignoring")
-
-                for u in v["users"]:
-                    user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = NumberVote.objects.filter(proposal=proposal, user=user).first()
-                    if existing_vote is None:
-                        logger.debug(
-                            f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle}"
-                        )
-                        NumberVote.objects.create(proposal=proposal, user=user, number_value=num)
-                    elif existing_vote.number_value != num:
-                        logger.debug(
-                            f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
-                        )
-                        existing_vote.number_value = num
-                        existing_vote.save()
-        ### 2) Count choice vote
-        else:
-            for (vote_option, result) in votes.items():
-                for u in result["users"]:
-                    user, _ = SlackUser.objects.get_or_create(username=u, community=self)
-                    existing_vote = ChoiceVote.objects.filter(proposal=proposal, user=user).first()
-                    if existing_vote is None:
-                        logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal}")
-                        ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
-                    elif existing_vote.value != vote_option:
-                        logger.debug(
-                            f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)"
-                        )
-                        existing_vote.value = vote_option
-                        existing_vote.save()
-
     def post_message(self, text, users=None, post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):
         """
         POST TYPES:
@@ -215,7 +111,7 @@ class SlackCommunity(CommunityPlatform):
         if post_type == "mpim":
             # post to group message
             values["users"] = usernames
-            response = LogAPICall.make_api_call(self, values, "slack.post-message")
+            response = self.metagov_plugin.post_message(**values)
             return [response["ts"]]
 
         if post_type == "im":
@@ -223,7 +119,7 @@ class SlackCommunity(CommunityPlatform):
             posts = []
             for username in usernames:
                 values["users"] = [username]
-                response = LogAPICall.make_api_call(self, values, "slack.post-message")
+                response = self.metagov_plugin.post_message(**values)
                 posts.append(response["ts"])
             return posts
 
@@ -243,7 +139,7 @@ class SlackCommunity(CommunityPlatform):
                 values["thread_ts"] = thread_ts
                 values["reply_broadcast"] = reply_broadcast
 
-            response = LogAPICall.make_api_call(self, values, "slack.post-message")
+            response = self.metagov_plugin.post_message(**values)
             return [response["ts"]]
 
         return []
@@ -251,7 +147,13 @@ class SlackCommunity(CommunityPlatform):
     def __make_generic_api_call(self, method: str, values):
         """Make any Slack method request using Metagov action 'slack.method' """
         cleaned = {k: v for k, v in values.items() if v is not None} if values else {}
-        return LogAPICall.make_api_call(self, {"method_name": method, **cleaned}, SLACK_METHOD_ACTION)
+        return self.metagov_plugin.method(method_name=method, **cleaned)
+
+    def make_call(self, method_name, values={}, action=None, method=None):
+        """Called by LogAPICall.make_api_call. Don't change the function signature."""
+        if not values.get("method_name"):
+            raise Exception("must provide method_name in values to slack make_call")
+        return self.metagov_plugin.method(**values)
 
 
 class SlackPostMessage(GovernableAction):

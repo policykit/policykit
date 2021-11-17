@@ -56,7 +56,6 @@
     <h2>Integrations</h2>
   </div>
   <div class="col-sm-4">
-    {% if metagov_enabled %}
     <div class="dropdown show">
       <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         Add Integration
@@ -70,7 +69,6 @@
         {% endfor %}
       </div>
     </div>
-    {% endif %}
   </div>
 </div>
 
@@ -92,13 +90,6 @@
   </div>
 {% endif %}
 
-{% if not metagov_enabled %}
-  <div class="card">
-    <div class="card-body">
-      Integrations are not supported for this installation of PolicyKit.
-    </div>
-  </div>
-{% else %}
 
   {% for name, data in enabled_integrations %}
   <div class="card">
@@ -124,12 +115,7 @@
       </p>
       {% endif %}
 
-      {%if data.has_policykit_integration %}
-        <a href="/{{name}}/disable_integration?id={{data.id}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
-
-      {% else %}
-        <a href="/metagov/disable_integration?id={{data.id}}&name={{name}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
-      {% endif %}
+      <a href="/{{name}}/disable_integration?id={{data.id}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
     </div>
   </div>
   {% empty %}
@@ -140,7 +126,6 @@
   </div>
   {% endfor %}
 
-{% endif %}
 {% endblock %}
 
 {% block scripts %}

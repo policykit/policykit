@@ -2,7 +2,7 @@
 Policy proposal tests that do NOT require Metagov to be enabled
 """
 from django.contrib.auth.models import Permission
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from integrations.slack.models import SlackPinMessage, SlackUser
 from policyengine.models import CommunityRole, Proposal, Policy, ActionType
 from constitution.models import PolicykitAddCommunityDoc, PolicykitAddRole
@@ -14,7 +14,6 @@ EXECUTE_COMMUNITIY_DOC_PERM = "can_execute_policykitaddcommunitydoc"
 
 
 class EvaluationTests(TestCase):
-    @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
         self.community = self.slack_community.community
