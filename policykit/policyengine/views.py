@@ -120,7 +120,7 @@ def settings_page(request):
 
             # Only include configs if user has permission, since they may contain API Keys
             config_tuples = []
-            if user.groups.filter(name=INTEGRATION_ADMIN_ROLE_NAME).exists():
+            if user.groups.filter(communityrole__role_name=INTEGRATION_ADMIN_ROLE_NAME).exists():
                 for (k,v) in plugin.config.items():
                     readable_key = k.replace("_", " ").replace("-", " ").capitalize()
                     config_tuples.append((readable_key, v))
