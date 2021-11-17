@@ -25,6 +25,7 @@ jobs:
     - name: Install PolicyKit dependencies
       working-directory: ./policykit
       run: |
+        pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run PolicyKit unit tests
       working-directory: ./policykit
