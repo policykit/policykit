@@ -82,18 +82,21 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
+TESTING = sys.argv[1:2] == ["test"]
+default_val = "testing-value" if TESTING else None
+
 METAGOV_SETTINGS = {
     "SLACK": {
-        "CLIENT_ID": env("SLACK_CLIENT_ID"),
-        "CLIENT_SECRET": env("SLACK_CLIENT_SECRET"),
-        "SIGNING_SECRET": env("SLACK_SIGNING_SECRET"),
-        "APP_ID": env("SLACK_APP_ID"),
+        "CLIENT_ID": env("SLACK_CLIENT_ID", default=default_val),
+        "CLIENT_SECRET": env("SLACK_CLIENT_SECRET", default=default_val),
+        "SIGNING_SECRET": env("SLACK_SIGNING_SECRET", default=default_val),
+        "APP_ID": env("SLACK_APP_ID", default=default_val),
     },
     "GITHUB": {
-        "APP_NAME": env("GITHUB_APP_NAME"),
-        "APP_ID": env("GITHUB_APP_ID"),
-        "PRIVATE_KEY_PATH": env("GITHUB_PRIVATE_KEY_PATH"),
-    }
+        "APP_NAME": env("GITHUB_APP_NAME", default=default_val),
+        "APP_ID": env("GITHUB_APP_ID", default=default_val),
+        "PRIVATE_KEY_PATH": env("GITHUB_PRIVATE_KEY_PATH", default=default_val),
+    },
 }
 
 ACTSTREAM_SETTINGS = {
