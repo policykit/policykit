@@ -82,6 +82,7 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
+import sys
 TESTING = sys.argv[1:2] == ["test"]
 default_val = "testing-value" if TESTING else None
 
