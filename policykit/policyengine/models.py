@@ -293,7 +293,7 @@ class CommunityUser(User, PolymorphicModel):
         name
             The name of the role to check for.
         """
-        return self.groups.filter(name=name).exists()
+        return self.groups.filter(communityrole__role_name=name).exists()
 
 
     @property
