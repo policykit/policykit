@@ -116,7 +116,7 @@ def get_action_types(community, kinds):
     if PolicyActionKind.TRIGGER in kinds:
         cls = WebhookTriggerAction
         action_list = [(cls._meta.model_name, cls._meta.verbose_name.title())]
-        actions["generic"] = action_list
+        actions["any platform"] = action_list
     return actions
 
 

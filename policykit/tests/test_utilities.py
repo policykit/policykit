@@ -29,4 +29,4 @@ class UtilTests(TestCase):
         self.assertIsNotNone(actions["slack"])
 
         actions = Utils.get_action_types(community, [PolicyActionKind.TRIGGER])
-        self.assertIsNotNone(actions["generic"])
+        self.assertIsNotNone(actions["any platform"])
