@@ -3,7 +3,6 @@ from __future__ import absolute_import, unicode_literals
 import logging
 
 from celery import shared_task
-from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ def consider_proposed_actions():
             new_proposal = engine.delete_and_rerun(proposal)
             logger.debug(f"New proposal: {new_proposal}")
         except Exception as e:
-            logger.error(f"Error running proposal {proposal}: {e}")
+            logger.error(f"Error running proposal {proposal}: {repr(e)} {e}")
 
         if proposal.status == Proposal.PASSED:
             ExecutedActionTriggerAction.from_action(proposal.action).evaluate()
@@ -37,7 +36,7 @@ def clean_up_logs():
     from django_db_logger.models import EvaluationLog
     from policykit.settings import DB_MAX_LOGS_TO_KEEP
 
-    expired_logs = EvaluationLog.objects.all().order_by('-create_datetime')[DB_MAX_LOGS_TO_KEEP:]
+    expired_logs = EvaluationLog.objects.all().order_by("-create_datetime")[DB_MAX_LOGS_TO_KEEP:]
     if expired_logs.exists():
         # logger.debug(f"Deleting {expired_logs.count()} EvaluationLogs")
         expired_logs.delete()

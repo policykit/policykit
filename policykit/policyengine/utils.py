@@ -1,12 +1,15 @@
-from django.apps import apps
-from django.conf import settings
-import logging
-from urllib.parse import quote
-import random
-import os
 import json
+import logging
+import os
+
+from django.apps import apps
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+
 
 logger = logging.getLogger(__name__)
+
+INTEGRATION_ADMIN_ROLE_NAME = "Integration Admin"
 
 
 def default_election_vote_message(policy):
@@ -21,6 +24,20 @@ def default_boolean_vote_message(policy):
         + policy.description
         + ". Vote with :thumbsup: or :thumbsdown: on this post."
     )
+
+
+def get_or_create_integration_admin_role(community):
+    from constitution.models import PolicykitAddIntegration, PolicykitRemoveIntegration
+    from policyengine.models import CommunityRole
+
+    role, created = CommunityRole.objects.get_or_create(community=community, role_name=INTEGRATION_ADMIN_ROLE_NAME)
+    if created:
+        content_type_1 = ContentType.objects.get_for_model(PolicykitAddIntegration)
+        content_type_2 = ContentType.objects.get_for_model(PolicykitRemoveIntegration)
+        permissions = Permission.objects.filter(content_type__in=[content_type_1, content_type_2])
+        role.permissions.set(permissions)
+    return role
+
 
 def find_action_cls(codename: str, app_name=None):
     """
@@ -71,7 +88,7 @@ def get_trigger_classes(app_name: str):
 
 
 def get_action_types(community, kinds):
-    from policyengine.models import PolicyActionKind
+    from policyengine.models import PolicyActionKind, WebhookTriggerAction
 
     platform_communities = list(community.get_platform_communities())
     if PolicyActionKind.CONSTITUTION in kinds:
@@ -95,13 +112,11 @@ def get_action_types(community, kinds):
         if action_list:
             actions[app_name] = action_list
 
-    # Special case to get trigger actions from metagov app
+    # Special case to add generic trigger action
     if PolicyActionKind.TRIGGER in kinds:
-        action_list = []
-        for cls in get_trigger_classes("metagov"):
-            action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
-        if action_list:
-            actions["metagov"] = action_list
+        cls = WebhookTriggerAction
+        action_list = [(cls._meta.model_name, cls._meta.verbose_name.title())]
+        actions["any platform"] = action_list
     return actions
 
 
@@ -147,27 +162,6 @@ def get_action_content_types(app_name: str):
     return [ContentType.objects.get_for_model(cls) for cls in get_action_classes(app_name)]
 
 
-def construct_authorize_install_url(request, integration, community=None):
-    logger.debug(f"Constructing URL to install '{integration}' to community '{community}'.")
-
-    # Initiate authorization flow to install Metagov to platform.
-    # On successful completion, the Metagov Slack plugin will be enabled for the community.
-
-    # Redirect to the plugin-specific install endpoint, which will complete the setup process (ie create the SlackCommunity)
-    redirect_uri = f"{settings.SERVER_URL}/{integration}/install"
-    encoded_redirect_uri = quote(redirect_uri, safe="")
-
-    # store state in user's session so we can validate it later
-    state = "".join([str(random.randint(0, 9)) for i in range(8)])
-    request.session["community_install_state"] = state
-
-    # if not specified, metagov will create a new community and pass back the slug
-    community_slug = community.metagov_slug if community else ""
-    url = f"{settings.METAGOV_URL}/auth/{integration}/authorize?type=app&community={community_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
-    logger.debug(url)
-    return url
-
-
 def get_starterkits_info():
     """
     Get a list of all starter-kit names and descriptions.
@@ -197,8 +191,9 @@ def get_all_permissions(app_names):
 
 
 def initialize_starterkit_inner(community, kit_data, creator_token=None):
-    from policyengine.models import Policy, CommunityRole, CommunityUser
     from django.contrib.auth.models import Permission
+
+    from policyengine.models import CommunityRole, CommunityUser, Policy
 
     # Create platform policies
     for policy in kit_data["platform_policies"]:

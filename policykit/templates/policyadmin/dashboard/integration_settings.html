@@ -94,16 +94,15 @@
     const schema = metadata.schemas.config
     schema.type = "object";
     schema.title = "config";
-    const {webhook_slug, ...properties} = schema.properties || {}
-    schema.properties = properties
+    schema.properties = schema.properties || {}
 
     form = []
     Object.keys(schema.properties).forEach(k => {
-      if (properties[k].type == "array") {
+      if (schema.properties[k].type == "array") {
         form.push({
           "type": "array",
           "title": `${k} list`.toUpperCase(),
-          "description": properties[k].description,
+          "description": schema.properties[k].description,
           "items": [{
             "key": `${k}[]`,
             "title": `${k} {% verbatim %} {{idx}} {% endverbatim %}`
@@ -118,12 +117,6 @@
       "title": "Submit"
     })
 
-    {%if additional_data.has_policykit_integration %}
-    enable_url = `../../../{{integration}}/enable_integration`
-    {% else %}
-    enable_url = `../../../metagov/enable_integration?name={{integration}}`
-    {% endif %}
-    console.log(enable_url)
     // Uses https://github.com/jsonform/jsonform
     $('form#json-editor-form').jsonForm({
       schema: schema,
@@ -136,7 +129,7 @@
             return
           }
           
-          fetch(enable_url, {
+          fetch(`../../../{{integration}}/enable_integration`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -153,10 +146,7 @@
                 $('#alerts').html(msg).css("color", "red");
               })
             } else {
-              response.json().then(data => {
-                console.log(data)
-                window.location.href = "/main/settings"
-              })
+              window.location.href = "/main/settings"
             }
           })
         }

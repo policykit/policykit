@@ -1,38 +1,25 @@
-"""
-Tests that require Metagov to be running.
-Run with `INTEGRATION=1 python manage.py test`
-"""
 import os
 import unittest
 
-import integrations.metagov.api as MetagovAPI
-from django.conf import settings
-from django.test import Client, LiveServerTestCase, TestCase
-from django_db_logger.models import EvaluationLog
-from integrations.metagov.models import MetagovTrigger
-from integrations.metagov.library import Metagov
-from integrations.slack.models import SlackPinMessage
-from policyengine.models import Policy, Proposal, ActionType
-from policyengine.tasks import consider_proposed_actions
 import policyengine.tests.utils as TestUtils
+from django.test import Client, TestCase
+from django_db_logger.models import EvaluationLog
+from integrations.slack.models import SlackPinMessage
+from policyengine.metagov_app import metagov
+from policyengine.metagov_client import Metagov
+from policyengine.models import ActionType, Policy, Proposal, WebhookTriggerAction
+from policyengine.tasks import consider_proposed_actions
 
 
-@unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
-class IntegrationTests(LiveServerTestCase):
+class IntegrationTests(TestCase):
     def setUp(self):
-        # Set SERVER_URL to live server so that Metagov can hit PolicyKit outcome receiver endpoint
-        settings.SERVER_URL = self.live_server_url
-        print(f"Setting up integration tests: PolicyKit @ {settings.SERVER_URL}, Metagov @ {settings.METAGOV_URL}")
-
         # Set up a Slack community and a user
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
         self.community = self.slack_community.community
 
-        # Activate a plugin to use in tests
-        MetagovAPI.update_metagov_community(
-            community=self.slack_community,
-            plugins=list([{"name": "randomness", "config": {"default_low": 2, "default_high": 200}}]),
-        )
+        # Enable a plugin to use in tests
+        self.metagov_community = metagov.get_community(self.community.metagov_slug)
+        self.metagov_community.enable_plugin("randomness", {"default_low": 2, "default_high": 200})
 
     def tearDown(self):
         self.community.delete()
@@ -43,7 +30,7 @@ class IntegrationTests(LiveServerTestCase):
         policy_code = {
             **TestUtils.ALL_ACTIONS_PASS,
             "initialize": """
-metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
+metagov.start_process("randomness.delayed-stochastic-vote", options=["one", "two", "three"], delay=1)
 """,
             "check": """
 result = metagov.close_process()
@@ -90,7 +77,7 @@ return FAILED
         policy_code = {
             **TestUtils.ALL_ACTIONS_PASS,
             "initialize": """
-metagov.start_process("randomness.delayed-stochastic-vote", {"options": ["one", "two", "three"], "delay": 1})
+metagov.start_process("randomness.delayed-stochastic-vote", options=["one", "two", "three"], delay=1)
 """,
             "check": """
 result = metagov.get_process()
@@ -129,19 +116,9 @@ return FAILED
         self.assertFalse(proposal.data.get("is_vote_closed"))
         self.assertFalse(proposal.is_vote_closed)
 
-        # 2) Mimick an incoming notification from Metagov that the process has updated
-        payload = {
-            "name": "randomness.delayed-stochastic-vote",
-            "community": self.slack_community.metagov_slug,
-            "status": "completed",
-            "outcome": {"winner": "three"},
-        }
-
-        client = Client()
-        response = client.post(
-            f"/metagov/internal/outcome/{proposal.pk}", data=payload, content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 200)
+        # 2) Close the process, which should emit a signal for PolicyKit to handle
+        proposal.governance_process.update()
+        proposal.governance_process.proxy.close()
 
         # re-run proposal using celery task function
         consider_proposed_actions()
@@ -161,8 +138,8 @@ return FAILED
         policy.community = self.community
         policy.filter = "return True"
         policy.initialize = "logger.debug('help!')"
-        policy.check = """parameters = {"low": 4, "high": 5}
-response = metagov.perform_action('randomness.random-int', parameters)
+        policy.check = """
+response = metagov.perform_action('randomness.random-int', low=4, high=5)
 if response and response.get('value') == 4:
     return PASSED
 return FAILED"""
@@ -192,7 +169,7 @@ return FAILED"""
 
 
 @unittest.skipUnless("INTEGRATION" in os.environ, "Skipping Metagov integration tests")
-class MetagovTriggerTest(TestCase):
+class WebhookTriggerActionTest(TestCase):
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
         self.community = self.slack_community.community
@@ -207,7 +184,7 @@ class MetagovTriggerTest(TestCase):
         policy = Policy(kind=Policy.TRIGGER)
         policy.community = self.community
         policy.filter = """return action.event_type == 'discourse.post_created'"""
-        policy.initialize = "proposal.data.set('test_verify_username', action.initiator.metagovuser.external_username)"
+        policy.initialize = "pass"
         policy.notify = "pass"
         policy.check = "return PASSED if action.event_data['category'] == 0 else FAILED"
         policy.success = "pass"
@@ -215,7 +192,7 @@ class MetagovTriggerTest(TestCase):
         policy.description = "test"
         policy.name = "test policy"
         policy.save()
-        policy.action_types.add(ActionType.objects.create(codename="metagovtrigger"))
+        policy.action_types.add(ActionType.objects.create(codename="WebhookTriggerAction"))
 
         event_payload = {
             "community": self.community.metagov_slug,
@@ -231,16 +208,14 @@ class MetagovTriggerTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(MetagovTrigger.objects.all().count(), 1)
+        self.assertEqual(WebhookTriggerAction.objects.all().count(), 1)
 
-        action = MetagovTrigger.objects.filter(event_type="discourse.post_created").first()
+        action = WebhookTriggerAction.objects.filter(event_type="discourse.post_created").first()
 
         # the action.community is the community that is connected to metagov
-        self.assertEqual(action.action_type, "metagovtrigger")
+        self.assertEqual(action.action_type, "WebhookTriggerAction")
         self.assertEqual(action.community.platform, "slack")
-        self.assertEqual(action.initiator.username, "discourse.miriam")
-        self.assertEqual(action.initiator.metagovuser.external_username, "miriam")
-        self.assertEqual(action.event_data["raw"], "post text")
+        self.assertEqual(action.data["raw"], "post text")
 
         proposal = Proposal.objects.get(action=action, policy=policy)
         self.assertEqual(proposal.data.get("test_verify_username"), "miriam")
@@ -278,7 +253,6 @@ class MetagovTriggerTest(TestCase):
 
         action = SlackPinMessage.objects.first()
         self.assertEqual(action.community.platform, "slack")
-        self.assertEqual(action.initiator.username, "alice")
 
         proposal = Proposal.objects.get(action=action, policy=policy)
         self.assertEqual(proposal.data.get("got here"), True)

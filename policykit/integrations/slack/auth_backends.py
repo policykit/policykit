@@ -5,11 +5,15 @@ from django.contrib.auth.models import User
 from integrations.slack.models import SlackCommunity, SlackUser
 from integrations.slack.utils import get_slack_user_fields
 
+
 logger = logging.getLogger(__name__)
 
 
 class SlackBackend(BaseBackend):
-    def authenticate(self, request, user_token=None, user_id=None, team_id=None):
+    def authenticate(self, request):
+        user_token = request.GET.get("user_token")
+        user_id = request.GET.get("user_id")
+        team_id = request.GET.get("team_id")
         if not user_token or not team_id or not user_id:
             logger.error("Missing user token or team")
             return None
@@ -21,7 +25,7 @@ class SlackBackend(BaseBackend):
             return None
 
         # Get info about this user by hitting the Slack 'users.info' endpoint through Metagov
-        response = community.make_call("slack.method", {"method_name": "users.info", "user": user_id})
+        response = community.metagov_plugin.method(method_name="users.info", user=user_id)
         user_info = response["user"]
         user_fields = get_slack_user_fields(user_info)
         # Store the user's token. This is only necessary if we want PolicyKit to be able to make requests on their behalf later on.

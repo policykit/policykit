@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +21,10 @@ try:
     exec(open(PRIVATE_FILE_PATH).read())
 except IOError:
     raise Exception(f"Unable to open configuration file at: '{PRIVATE_FILE_PATH}'")
+
+# reading .env file which contains metagov settings
+env = environ.Env()
+environ.Env.read_env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -33,16 +38,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1']
 
 # Let environment variables override private.py, for testing
-if os.environ.get("METAGOV_URL"):
-    METAGOV_URL = os.environ.get("METAGOV_URL")
 if os.environ.get("SERVER_URL"):
     SERVER_URL = os.environ.get("SERVER_URL")
-
-try:
-    METAGOV_ENABLED = True if METAGOV_URL else False
-except NameError:
-    # "METAGOV_URL" is missing from private.py
-    METAGOV_ENABLED = False
 
 # Application definition
 INTEGRATIONS = [
@@ -53,7 +50,7 @@ INTEGRATIONS = [
     'integrations.github',
     'integrations.opencollective',
     'integrations.loomio',
-    'integrations.metagov'
+    'integrations.sourcecred',
 ]
 
 INSTALLED_APPS = [
@@ -71,11 +68,37 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_db_logger',
     'actstream',
+    'metagov.plugins.slack',
+    'metagov.plugins.opencollective',
+    'metagov.plugins.github',
+    'metagov.plugins.sourcecred',
+    'metagov.plugins.loomio',
+    'metagov.plugins.discourse',
+    'metagov.plugins.example', #for testing
+    'metagov.core',
     'policyengine',
     'constitution'
 ] + INTEGRATIONS
 
 SITE_ID = 1
+
+import sys
+TESTING = sys.argv[1:2] == ["test"]
+default_val = "testing-value" if TESTING else None
+
+METAGOV_SETTINGS = {
+    "SLACK": {
+        "CLIENT_ID": env("SLACK_CLIENT_ID", default=default_val),
+        "CLIENT_SECRET": env("SLACK_CLIENT_SECRET", default=default_val),
+        "SIGNING_SECRET": env("SLACK_SIGNING_SECRET", default=default_val),
+        "APP_ID": env("SLACK_APP_ID", default=default_val),
+    },
+    "GITHUB": {
+        "APP_NAME": env("GITHUB_APP_NAME", default=default_val),
+        "APP_ID": env("GITHUB_APP_ID", default=default_val),
+        "PRIVATE_KEY_PATH": env("GITHUB_PRIVATE_KEY_PATH", default=default_val),
+    },
+}
 
 ACTSTREAM_SETTINGS = {
     'MANAGER': 'policyengine.managers.myActionManager',
@@ -201,7 +224,7 @@ loggers["db"] = {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate"
 loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
 
 # Override for specific apps
-# loggers['integrations.reddit'] = {'handlers': ['console', 'file'], 'level': "DEBUG"}
+loggers['metagov'] = {'handlers': ['console', 'file'], 'level': "DEBUG", "propagate": False}
 
 # Maximum number of log records to keep
 DB_MAX_LOGS_TO_KEEP = 300
@@ -235,6 +258,10 @@ CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_BEAT_FREQUENCY = 60.0
 
 CELERY_BEAT_SCHEDULE = {
+ 'metagov-plugins-beat': {
+       'task': 'metagov.core.tasks.execute_plugin_tasks',
+       'schedule': CELERY_BEAT_FREQUENCY,
+    },
  'count-votes-beat': {
        'task': 'policyengine.tasks.consider_proposed_actions',
        'schedule': CELERY_BEAT_FREQUENCY,

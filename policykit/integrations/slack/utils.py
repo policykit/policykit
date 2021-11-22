@@ -1,11 +1,11 @@
-from django.conf import settings
-import logging
-from policyengine.models import GovernableActionBundle, LogAPICall, PolicyActionKind
 import datetime
 import json
+import logging
+
 from django.db.models import Q
-from policyengine.utils import default_election_vote_message, default_boolean_vote_message
-from integrations.metagov.library import Metagov
+from policyengine.metagov_app import metagov
+from policyengine.models import GovernableActionBundle, LogAPICall, PolicyActionKind
+from policyengine.utils import default_boolean_vote_message, default_election_vote_message
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +53,9 @@ def get_admin_user_token(community):
     return None
 
 
-def slack_event_to_platform_action(community, outer_event):
+def slack_event_to_platform_action(community, event_type, data, initiator):
     new_api_action = None
-    event_type = outer_event["event_type"]
-    initiator = outer_event.get("initiator").get("user_id")
+    initiator = initiator.get("user_id")
     if not initiator:
         # logger.debug(f"{event_type} event does not have an initiating user ID, skipping")
         return
@@ -68,7 +67,7 @@ def slack_event_to_platform_action(community, outer_event):
         SlackUser,
     )
 
-    event = outer_event["data"]
+    event = data
     if event_type == "message" and event.get("subtype") == "channel_name":
         if not is_policykit_action(community, event["name"], "name", SlackRenameConversation.ACTION):
             new_api_action = SlackRenameConversation(
@@ -114,8 +113,13 @@ def slack_event_to_platform_action(community, outer_event):
     return new_api_action
 
 
-def start_emoji_vote(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
-    payload = {"callback_url": f"{settings.SERVER_URL}/metagov/internal/outcome/{proposal.pk}"}
+def construct_emoji_vote_params(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+    if post_type not in ["channel", "mpim"]:
+        raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
+    if post_type == "mpim" and not users:
+        raise Exception(f"Must pass users for 'mpim' vote")
+
+    payload = {}
 
     if users is not None and len(users) > 0:
         if isinstance(users[0], str):
@@ -155,7 +159,4 @@ def start_emoji_vote(proposal, users=None, post_type="channel", template=None, c
     if post_type == "channel" and not payload.get("channel"):
         raise Exception("Failed to determine which channel to post in")
 
-    # Kick off process in Metagov
-    metagov = Metagov(proposal)
-    process = metagov.start_process("slack.emoji-vote", payload)
-    return process.outcome["message_ts"]
+    return payload

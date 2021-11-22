@@ -4,14 +4,12 @@ from constitution.models import (
     PolicykitChangePlatformPolicy,
     PolicykitAddConstitutionPolicy,
     PolicykitChangeConstitutionPolicy,
-    PolicyActionKind,
     PolicykitAddTriggerPolicy
 )
 import policyengine.tests.utils as TestUtils
 
 
 class PolicyActionSaveTests(TestCase):
-    @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
         self.community = self.slack_community.community
@@ -126,12 +124,3 @@ class PolicyActionSaveTests(TestCase):
         # Check that policy was updated
         Policy.objects.get(name="my trigger policy", kind=Policy.TRIGGER)
 
-    def test_action_type_util(self):
-        from policyengine.utils import get_action_types
-
-        actions = get_action_types(self.community, [PolicyActionKind.CONSTITUTION])
-        self.assertIsNotNone(actions["constitution"])
-        actions = get_action_types(self.community, [PolicyActionKind.PLATFORM])
-        self.assertIsNotNone(actions["slack"])
-        actions = get_action_types(self.community, [PolicyActionKind.TRIGGER])
-        self.assertIsNotNone(actions["metagov"])
