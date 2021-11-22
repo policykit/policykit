@@ -47,7 +47,7 @@ class LoomioCommunity(CommunityPlatform):
             closing_at=closing_at,
             poll_type=poll_type,
             options=options,
-            details=details,
+            details=details or title,
             # pass on any other kwargs
             **kwargs,
         )

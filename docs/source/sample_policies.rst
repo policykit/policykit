@@ -261,9 +261,8 @@ send them a message explaining why.
 
 .. code-block:: python
 
-    return action.action_type == "metagovaction" and \
-        action.event_type == "discourse.post_created" and \
-        action.event_data["topic_id"] == 116
+    return action.event_type == "discourse.post_created" and \
+        action.data["topic_id"] == 116
 
 **Initialize:**
 
@@ -278,10 +277,8 @@ send them a message explaining why.
 
 .. code-block:: python
 
-    username = action.initiator.metagovuser.external_username
-    params = {"username": username}
-    result = metagov.perform_action("sourcecred.user-cred", params)
-    user_cred = result["value"]
+    username = action.data["author"] # just an example, not actually the shape..
+    user_cred = sourcecred.get_cred(username=username)
 
     # store the user cred value so we can access it later
     proposal.data.set("cred", user_cred)
@@ -296,20 +293,20 @@ send them a message explaining why.
 .. code-block:: python
 
     # Delete the post
-    metagov.perform_action("discourse.delete-post", {"id": action.event_data["id"]})
+    metagov.perform_action("discourse.delete-post", id=action.event_data["id"])
 
     # Let the user know why
     user_cred = proposal.data.get("cred")
     required_cred = proposal.data.get("required_cred")
     post_url = action.event_data["url"]
-    discourse_username = action.initiator.metagovuser.external_username
+    username = action.data["author"]
     params = {
         "title": "PolicyKit deleted your post",
         "raw": f"The following post was deleted because you only have {user_cred} Cred, and at least {required_cred} Cred is required for posting on that topic: {post_url}",
         "is_warning": False,
-        "target_usernames": [discourse_username]
+        "target_usernames": [username]
     }
-    metagov.perform_action("discourse.create-message", params)
+    metagov.perform_action("discourse.create-message", **params)
 
 
 Vote on Open Collective expense
@@ -327,8 +324,7 @@ or rejected. This policy could be modified to use any other voting mechanism
 
 .. code-block:: python
 
-    return action.action_type == "metagovaction" and \
-        action.event_type == "opencollective.expense_created"
+    return action.event_type == "opencollective.expense_created"
 
 **Initialize:**
 
@@ -336,13 +332,13 @@ or rejected. This policy could be modified to use any other voting mechanism
 
     # Initiate governance process called "opencollective.vote"
 
-    expense_url = action.event_data['url']
-    description = action.event_data['description']
-    parameters = {
-        "title": f"Vote on expense '{description}'",
-        "details": f"Thumbs-up or thumbs-down react to vote on expense {expense_url}"
-    }
-    result = metagov.start_process("opencollective.vote", parameters)
+    expense_url = action.data['url']
+    description = action.data['description']
+    result = metagov.start_process(
+      "opencollective.vote",
+      title=f"Vote on expense '{description}'",
+      details=f"Thumbs-up or thumbs-down react to vote on expense {expense_url}"
+    )
     vote_url = result.outcome.get("vote_url")
     # [elided] optionally, message users on whatever platform to tell them to vote at vote_url
 
@@ -371,24 +367,14 @@ or rejected. This policy could be modified to use any other voting mechanism
 .. code-block:: python
 
     # Approve the expense
-
-    parameters = {
-        "expense_id": action.event_data["id"],
-        "action": "APPROVE"
-    }
-    metagov.perform_action("opencollective.process-expense", parameters)
+    opencollective.process_expense(expense_id=action.expense_id, action="APPROVE")
 
 **Fail:**
 
 .. code-block:: python
 
     # Reject the expense
-
-    parameters = {
-        "expense_id": action.event_data["id"],
-        "action": "REJECT"
-    }
-    metagov.perform_action("opencollective.process-expense", parameters)
+    opencollective.process_expense(expense_id=action.expense_id, action="REJECT")
 
 
 Add a NEAR DAO proposal
@@ -437,7 +423,7 @@ Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_
         "amount": 100000000000000
     }
 
-    result = metagov.perform_action("near.call", params)
+    result = metagov.perform_action("near.call", **params)
     logger.info(f"NEAR call: {result.get('status')}")
 
 **Fail:** ``pass``
