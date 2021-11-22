@@ -183,19 +183,17 @@ def enable_integration(request, integration):
     config = json.loads(request.body)
     logger.debug(f"Enabling {integration} with config {config} for {community}")
     plugin = metagov.get_community(community.metagov_slug).enable_plugin(integration, config)
-    logger.debug(plugin)
 
-    team_id = plugin.community_platform_id
-
-    # create the corresponding CommunityPlatform instance
+    # Create the corresponding CommunityPlatform instance
     from django.apps import apps
     cls =  apps.get_app_config(integration).get_model(f"{integration}community")
+    team_id = plugin.community_platform_id
     cp,created = cls.objects.get_or_create(
         community=community,
         team_id=team_id,
         defaults={"community_name": team_id}
     )
-    logger.debug(f"CommunityPlatform {cp} {'created' if created else 'already exists'}")
+    logger.debug(f"CommunityPlatform '{cp.platform} {cp}' {'created' if created else 'already exists'}")
 
     return HttpResponse()
 
@@ -204,7 +202,6 @@ def enable_integration(request, integration):
 @permission_required("constitution.can_remove_integration", raise_exception=True)
 @csrf_exempt
 def disable_integration(request, integration):
-    logger.info(f">>>>>>> default disable_integration called: {integration} <<<<")
     """
     API Endpoint to disable a Metagov plugin (navigated to from Settings page).
     This is only used for plugins that DON'T have a corresponding PolicyKit integration.
