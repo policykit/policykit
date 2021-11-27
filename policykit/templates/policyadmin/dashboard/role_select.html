@@ -85,20 +85,26 @@
     const role_pk = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/roleeditor?operation=${operation}&role=${role_pk}`
-    } else {
-      fetch('../../../main/policyengine/role_action_remove', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          'role': role_pk
-        })
-      }).then(response => {
-        window.location.href = "{{server_url}}/main/"
-      });
+      window.location.href = `/main/roleeditor?operation=${operation}&role=${role_pk}`
+      return
     }
+
+    // Remove role
+    fetch('../../../main/policyengine/role_action_remove', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'role': role_pk
+      })
+    }).then(response => {
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        throw Error(response.statusText);
+      }
+    });
   }
 </script>
 {% endblock %}

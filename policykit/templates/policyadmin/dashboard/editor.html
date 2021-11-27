@@ -296,8 +296,10 @@
         ...policy_data
       })
     }).then(response => {
-      if (!response.ok) {
-          response.text().then(text => {
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        response.text().then(text => {
             console.error(text)
             var msg = "Something went wrong."
             if (response.status == 400) {
@@ -305,9 +307,7 @@
             }
             $('#alerts').html(msg).css("color", "red");
           })
-        } else {
-          window.location.href = "{{server_url}}/main/";
-        }
+      }
     });
   }
 
@@ -389,7 +389,13 @@
     const actionTypes = $('#actionpicker').selectpicker('val').join(",")
     const params = new URLSearchParams({action_types: actionTypes}).toString()
     fetch(`../../../main/policyengine/get_autocompletes?${params}`)
-      .then(response => response.json())
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw Error(response.statusText);
+        }
+      })
       .then(data => {
         const autocompletes = data["autocompletes"]
         setHintWords(autocompletes)
@@ -466,7 +472,13 @@
           'function_name': cm.getOption('functionName')
         })
       })
-      .then(response => response.json())
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw Error(response.statusText);
+        }
+      })
       .then(data => {
         cm.clearGutter('warnings')
 
@@ -513,7 +525,7 @@
         let reader = new FileReader();
         reader.onload = e => {
           let policy_data = JSON.parse(e.target.result);
-          console.log(poloicy_data)
+          console.log(policy_data)
           document.getElementById('name').value = decodeHtml(`${policy_data.name}`);
           document.getElementById('description').value = decodeHtml(`${policy_data.description}`);
           $('#actionpicker').selectpicker('val', policy_data.action_types);
