@@ -293,12 +293,12 @@ send them a message explaining why.
 .. code-block:: python
 
     # Delete the post
-    metagov.perform_action("discourse.delete-post", id=action.event_data["id"])
+    metagov.perform_action("discourse.delete-post", id=action.data["id"])
 
     # Let the user know why
     user_cred = proposal.data.get("cred")
     required_cred = proposal.data.get("required_cred")
-    post_url = action.event_data["url"]
+    post_url = action.data["url"]
     username = action.data["author"]
     params = {
         "title": "PolicyKit deleted your post",
@@ -389,9 +389,8 @@ Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_
 
 .. code-block:: python
 
-    return action.action_type == "metagovaction" and \
-        action.event_type == "discourse.topic_created" and \
-        "dao-proposal" in action.event_data["tags"]
+    return action.event_type == "discourse.topic_created" and \
+        "dao-proposal" in action.data["tags"]
 
 **Initialize:** ``pass``
 
@@ -403,8 +402,8 @@ Uses the `near.call <https://metagov.policykit.org/redoc/#operation/near.call>`_
 
 .. code-block:: python
 
-    title = action.event_data["title"]
-    topic_url = action.event_data["url"]
+    title = action.data["title"]
+    topic_url = action.data["url"]
 
     # How we find the wallet ID for the Discourse user? Hard-coding the target for this example.
     discourse_username = action.initiator.metagovuser.external_username
@@ -443,9 +442,8 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
 .. code-block:: python
 
-    return action.action_type == "metagovaction" and \
-        action.event_type == "discourse.topic_created" and \
-        "special-proposal" in action.event_data["tags"]
+    return action.event_type == "discourse.topic_created" and \
+        "special-proposal" in action.data["tags"]
 
 **Initialize:** ``pass``
 
@@ -453,9 +451,9 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
 .. code-block:: python
 
-    title = action.event_data["title"]
+    title = action.data["title"]
     discourse_username = action.initiator.metagovuser.external_username
-    topic_url = action.event_data["url"]
+    topic_url = action.data["url"]
 
     import datetime
     closing_at = proposal.proposal_time + datetime.timedelta(days=3)
@@ -474,7 +472,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
     # Make a post in Discourse to let people know where to vote
     params = {
-        "topic_id": action.event_data["id"],
+        "topic_id": action.data["id"],
         "raw": f"Loomio vote started at {poll_url}",
     }
     metagov.perform_action("discourse.create-post", params)
@@ -508,7 +506,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
     text = proposal.data.get('outcome_text')
     params = {
-        "topic_id": action.event_data["id"],
+        "topic_id": action.data["id"],
         "raw": f"{text} The proposal is approved!",
     }
     metagov.perform_action("discourse.create-post", params)
@@ -519,13 +517,13 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
 
     text = proposal.data.get('outcome_text')
     params = {
-        "topic_id": action.event_data["id"],
+        "topic_id": action.data["id"],
         "raw": f"{text} The proposal is rejected. Deleting this topic."
     }
     metagov.perform_action("discourse.create-post", params)
 
     # Delete the topic
-    metagov.perform_action("discourse.delete-topic", {"id": action.event_data["id"]})
+    metagov.perform_action("discourse.delete-topic", {"id": action.data["id"]})
 
 Vote on Adding Payment Pointers to a Web Monetization Rev Share config
 ----------------------------------------------------------------------
@@ -540,14 +538,14 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
 .. code-block:: python
 
-    is_user_fields_changed = action.action_type == "metagovaction" and action.event_type == "discourse.user_fields_changed"
+    is_user_fields_changed = action.event_type == "discourse.user_fields_changed"
     if not is_user_fields_changed:
       return False
 
-    user = action.event_data["username"]
+    user = action.data["username"]
     custom_wallet_field_key = "1"
-    old_wallet = action.event_data.get("old_user_fields", {}).get(custom_wallet_field_key)
-    new_wallet = action.event_data.get("user_fields", {}).get(custom_wallet_field_key)
+    old_wallet = action.data.get("old_user_fields", {}).get(custom_wallet_field_key)
+    new_wallet = action.data.get("user_fields", {}).get(custom_wallet_field_key)
     if old_wallet == new_wallet:
       logger.info(f"no wallet change for {user}, they must have changed another field. skipping.")
       return False
@@ -563,7 +561,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
 .. code-block:: python
 
-    user = action.event_data["username"]
+    user = action.data["username"]
 
     old_wallet = proposal.data.get("old_wallet")
     new_wallet = proposal.data.get("new_wallet")
@@ -634,7 +632,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
 .. code-block:: python
 
-     user = action.event_data["username"]
+     user = action.data["username"]
      old_wallet = proposal.data.get("old_wallet")
      new_wallet = proposal.data.get("new_wallet")
 
@@ -664,7 +662,7 @@ This policy also assumes that the Discourse server has the experimental `Metagov
 
 .. code-block:: python
 
-    user = action.event_data["username"]
+    user = action.data["username"]
     old_wallet = proposal.data.get("old_wallet")
     new_wallet = proposal.data.get("new_wallet")
 
