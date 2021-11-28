@@ -6,8 +6,8 @@ from django_db_logger.models import EvaluationLog
 
 class LogTable(tables.Table):
     create_datetime = tables.DateTimeColumn(format="Y-m-d\TH:m:s")
-    action = tables.Column(verbose_name='action', accessor='action_str')
-    policy = tables.Column(verbose_name='policy', accessor='policy_str')
+    action = tables.Column(verbose_name='Action', accessor='action_str')
+    policy = tables.Column(verbose_name='Policy', accessor='policy_str')
 
     class Meta:
         model = EvaluationLog
