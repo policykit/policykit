@@ -595,15 +595,14 @@ def policy_action_remove(request):
 
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
-        action.policy = policy
     elif policy.kind == Policy.PLATFORM:
         action = PolicykitRemovePlatformPolicy()
-        action.policy = policy
     elif policy.kind == Policy.TRIGGER:
         action = PolicykitRemoveTriggerPolicy()
     else:
         return HttpResponseBadRequest()
 
+    action.policy = policy
     action.community = user.constitution_community
     action.initiator = user
     action.save()
