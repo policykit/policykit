@@ -340,11 +340,11 @@ def selectpolicy(request):
         show_active_policies = False
 
     if type == 'Platform':
-        policies = user.community.community.get_platform_policies().filter(is_active=show_active_policies)
+        policies = user.community.community.get_platform_policies(is_active=show_active_policies)
     elif type == 'Constitution':
-        policies = user.community.community.get_constitution_policies().filter(is_active=show_active_policies)
+        policies = user.community.community.get_constitution_policies(is_active=show_active_policies)
     elif type == 'Trigger':
-        policies = user.community.community.get_trigger_policies().filter(is_active=show_active_policies)
+        policies = user.community.community.get_trigger_policies(is_active=show_active_policies)
     else:
         return HttpResponseBadRequest()
 

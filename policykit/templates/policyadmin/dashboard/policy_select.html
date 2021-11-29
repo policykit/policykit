@@ -59,6 +59,8 @@
       <select class="dropdownContainer" name="policy" id="policy">
         {% for policy in policies %}
           <option value="{{policy.id}}">{{policy.name}}</option>
+        {% empty %}
+          <option disabled value="">-</option>
         {% endfor %}
       </select>
     </div>
@@ -83,6 +85,8 @@
     const operation = urlParams.get('operation');
 
     const select = document.getElementById("policy");
+    if (select.selectedIndex == -1) return;
+
     const policy = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
