@@ -136,7 +136,10 @@
             },
             body: JSON.stringify(values)
           }).then(response => {
-            if (!response.ok) {
+            if (response.ok) {
+              window.location.href = "/main/settings"
+            }
+            else {
               response.text().then(text => {
                 console.error(text)
                 msg = "Something went wrong."
@@ -145,8 +148,6 @@
                 }
                 $('#alerts').html(msg).css("color", "red");
               })
-            } else {
-              window.location.href = "/main/settings"
             }
           })
         }

@@ -182,7 +182,11 @@
         'operation': `{{operation}}`
       })
     }).then(response => {
-      window.location.href = "{{server_url}}/main/"
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        throw Error(response.statusText);
+      }
     });
   }
 </script>

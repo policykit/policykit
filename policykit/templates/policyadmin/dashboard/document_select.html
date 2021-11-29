@@ -85,26 +85,32 @@
     const doc = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/documenteditor?operation=${operation}&doc=${doc}`;
-    } else {
-      let url = "../../../main/policyengine/";
-      if (operation == "Remove") {
-        url += "document_action_remove";
-      } else {
-        url += "document_action_recover";
-      }
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          'doc': doc
-        })
-      }).then(response => {
-        window.location.href = "{{server_url}}/main/"
-      });
+      window.location.href = `/main/documenteditor?operation=${operation}&doc=${doc}`;
+      return
     }
+
+    let url = "../../../main/policyengine/";
+    if (operation == "Remove") {
+      url += "document_action_remove";
+    } else {
+      url += "document_action_recover";
+    }
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'doc': doc
+      })
+    }).then(response => {
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        throw Error(response.statusText);
+      }
+    });
   }
 </script>
 {% endblock %}

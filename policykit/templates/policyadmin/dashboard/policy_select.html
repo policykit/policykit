@@ -86,27 +86,33 @@
     const policy = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
-      window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}&policy=${policy}`;
-    } else {
-      let url = "../../../main/policyengine/";
-      if (operation == "Remove") {
-        url += "policy_action_remove";
-      } else {
-        url += "policy_action_recover";
-      }
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          'type': type,
-          'policy': policy
-        })
-      }).then(response => {
-        window.location.href = "{{server_url}}/main/"
-      });
+      window.location.href = `/main/editor?type=${type}&operation=${operation}&policy=${policy}`;
+      return
     }
+
+    let url = "../../../main/policyengine/";
+    if (operation == "Remove") {
+      url += "policy_action_remove";
+    } else {
+      url += "policy_action_recover";
+    }
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'type': type,
+        'policy': policy
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        throw Error(response.statusText);
+      }
+    });
   }
 </script>
 {% endblock %}

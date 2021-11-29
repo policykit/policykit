@@ -24,13 +24,14 @@ Getting Started
  pip install --upgrade pip
  pip install -r requirements.txt
 
-| Next, run the following command to create a file to store your API keys:
+| Next, run the following command to create a file to store your settings and secrets:
 
 ::
 
- cp private_template.py private.py
+ cp policykit
+ cp .env.example .env
 
-| PolicyKit requires a file to log to. By default, it logs to the file ``/var/log/django/debug.log``. To change this, set the ``POLICYKIT_LOG_FILE`` environment variable or edit the ``LOGGING`` object in ``settings.py`` directly.
+| To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. For local development, all you need to do is set ``DEBUG=true``.
 
 | To verify that you have set the PolicyKit server up correctly, run the following command:
 
@@ -38,7 +39,7 @@ Getting Started
 
  python manage.py runserver
 
-| To use PolicyKit, you must set up your own database. You can use the default ``sqlite`` or ``mysql`` or another database of your choice. Edit the ``DATABASES`` field in ``settings.py`` to point to the right database. Django will create the database as long as the parent directory exists.
+| By default, PolicyKit will create a sqlite3 database in the root directory. If you want to use another database, you can edit the ``DATABASES`` field in ``settings.py``.
 
 | Run the following command to create and set up the database:
 
@@ -46,17 +47,6 @@ Getting Started
 
  python manage.py migrate
 
-| Finally, you need to set up PolicyKit's governance starter kits. Run the following command to enter the shell:
-
-::
-
- python manage.py shell_plus
-
-From the shell prompt, run the following command to create the starterkits:
-
-::
-
- exec(open('scripts/starterkits.py').read())
 
 Open PolicyKit in the browser at http://localhost:8000/main
 
@@ -70,24 +60,20 @@ Running PolicyKit on a Server
 2. Follow `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_ to install Python3 and to create a virtual environment for PolicyKit.
 3. Install the requirements to the virtual environment with ``pip install -r requirements.txt``.
 4. Finish the earlier guide to setting up PolicyKit.
-5. Make the following additional changes to ``private.py``:
+5. Make the following additional changes to ``.env``:
 
-   - Set the ``SERVER_URL`` field
-   - You can leave the platform integration API keys/secrets empty for now. Follow the instructions under "Set up Integrations" to set up each integration.
-
-6. Make the following additional changes to ``policykit/settings.py``:
-
-   - Update the ``ALLOWED_HOSTS`` field to point to your host.
-
-   - Update that the database path under ``DATABASES``. Recommended: set the database path to ``/var/databases/policykit/db.sqlite3``. Make sure the directory exists.
-
-   - Set ``DEBUG`` to False
-
-   - Set ``SECRET_KEY`` to a new Django secret key. Generate a key with this command:
+   - Set the ``DJANGO_SECRET_KEY`` field. Generate a key with this command:
 
            .. code-block::
 
                    python manage.py shell -c 'from django.core.management import utils; print(utils.get_random_secret_key())'
+
+   - Set the ``SERVER_URL`` field.
+   - Set the ``ALLOWED_HOSTS`` field to point to your host.
+   - Make sure ``DEBUG`` is empty or set to false.
+   - You can leave the platform integration API keys/secrets empty for now. Follow the instructions under "Set up Integrations" to set up each integration.
+
+6. If you want to use a database other than dbsqlite3, or if you want to change the database path, update the ``DATABASES`` object in ``settings.py``.
 
 7. Next, run the following command to collect static files into a ``static/`` folder:
 
@@ -148,11 +134,6 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                                 </Files>
                         </Directory>
 
-                        # 🚨 IMPORTANT: Restrict internal endpoints to local traffic 🚨
-                        <Location /metagov/internal>
-                                Require ip YOUR-IP-ADDRESS
-                        </Location>
-
                         WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
                         WSGIProcessGroup policykit
                         WSGIScriptAlias / $POLICYKIT_REPO/policykit/policykit/wsgi.py
@@ -202,7 +183,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
 10. Load your site in the browser and navigate to ``/login``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
 
-  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you have defined in ``settings.py``).
+  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you set in  ``.env``).
 
 11. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
 
@@ -212,11 +193,6 @@ Set up Celery
 PolicyKit uses `Celery <https://docs.celeryproject.org/en/stable/index.html>`_ to run scheduled tasks.
 Follow these instructions to run a celery daemon on your Ubuntu machine using ``systemd``.
 For more information about configuration options, see the `Celery Daemonization <https://docs.celeryproject.org/en/stable/userguide/daemonizing.html>`_.
-
-.. note::
-
-        Using PolicyKit with Metagov? These configuration files are designed specifically to work with the setup where PolicyKit and Metagov are deployed together.
-        PolicyKit and Metagov will use separate celery daemons that use separate RabbitMQ virtual hosts, configured using ``CELERY_BROKER_URL``.
 
 
 Create RabbitMQ virtual host
@@ -408,17 +384,10 @@ you'll need to go through setup steps for each :doc:`integration <integrations>`
 that you want to support:
 
 
-Metagov
-"""""""
-
-1. Deploy an instance of Metagov on the same machine as PolicyKit. See `Installing Metagov <https://docs.metagov.org/en/latest/installation.html>`_ for instructions.
-2. In the ``.env`` file in Metagov, set the URL for receiving events: ``DRIVER_EVENT_RECEIVER_URL=[POLICYKIT_URL]/metagov/internal/action``
-3. To enable Metagov in PolicyKit, set the ``METAGOV_URL`` in your ``private.py`` file to point to your Metagov instance.
-4. Ensure that ``/metagov/internal`` is restricted to local traffic. Follow the Apache2 example above.
-
 Slack
 """""
 The Slack integration occurs through Metagov. Follow the setup instructions for the Metagov Slack Plugin to create a new Slack App to use with PolicyKit.
+
 
 Discord
 """""""

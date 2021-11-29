@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django_filters.views import FilterView
 from django_filters import FilterSet
 import django_tables2 as tables
@@ -7,8 +6,8 @@ from django_db_logger.models import EvaluationLog
 
 class LogTable(tables.Table):
     create_datetime = tables.DateTimeColumn(format="Y-m-d\TH:m:s")
-    action = tables.Column(accessor='action')
-    policy = tables.Column(accessor='policy')
+    action = tables.Column(verbose_name='Action', accessor='action_str')
+    policy = tables.Column(verbose_name='Policy', accessor='policy_str')
 
     class Meta:
         model = EvaluationLog

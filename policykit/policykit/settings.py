@@ -16,30 +16,24 @@ import environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-PRIVATE_FILE_PATH = os.environ.get("PRIVATE_FILE_PATH", BASE_DIR + "/private.py")
-try:
-    exec(open(PRIVATE_FILE_PATH).read())
-except IOError:
-    raise Exception(f"Unable to open configuration file at: '{PRIVATE_FILE_PATH}'")
 
-# reading .env file which contains metagov settings
-env = environ.Env()
+# Read .env file which contains settings and secrets
+env = environ.Env(
+    # set default values for environment variables
+    DEBUG=(bool, False),
+    ALLOWED_HOSTS=(list, []),
+    SERVER_URL=(str, "http://127.0.0.1:8000"),
+    LOG_FILE=(str, "debug.log"),
+
+    # DEV SECRET! override by setting DJANGO_SECRET_KEY in .env file
+    DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-')
+)
 environ.Env.read_env()
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1']
-
-# Let environment variables override private.py, for testing
-if os.environ.get("SERVER_URL"):
-    SERVER_URL = os.environ.get("SERVER_URL")
+DEBUG = env("DEBUG")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+SERVER_URL = env("SERVER_URL")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # Application definition
 INTEGRATIONS = [
@@ -84,21 +78,27 @@ SITE_ID = 1
 
 import sys
 TESTING = sys.argv[1:2] == ["test"]
-default_val = "testing-value" if TESTING else None
 
 METAGOV_SETTINGS = {
     "SLACK": {
-        "CLIENT_ID": env("SLACK_CLIENT_ID", default=default_val),
-        "CLIENT_SECRET": env("SLACK_CLIENT_SECRET", default=default_val),
-        "SIGNING_SECRET": env("SLACK_SIGNING_SECRET", default=default_val),
-        "APP_ID": env("SLACK_APP_ID", default=default_val),
+        "CLIENT_ID": env("SLACK_CLIENT_ID", default=None),
+        "CLIENT_SECRET": env("SLACK_CLIENT_SECRET", default=None),
+        "SIGNING_SECRET": env("SLACK_SIGNING_SECRET", default=None),
+        "APP_ID": env("SLACK_APP_ID", default=None),
     },
     "GITHUB": {
-        "APP_NAME": env("GITHUB_APP_NAME", default=default_val),
-        "APP_ID": env("GITHUB_APP_ID", default=default_val),
-        "PRIVATE_KEY_PATH": env("GITHUB_PRIVATE_KEY_PATH", default=default_val),
+        "APP_NAME": env("GITHUB_APP_NAME", default=None),
+        "APP_ID": env("GITHUB_APP_ID", default=None),
+        "PRIVATE_KEY_PATH": env("GITHUB_PRIVATE_KEY_PATH", default=None),
     },
 }
+
+REDDIT_CLIENT_ID = env("REDDIT_CLIENT_ID", default=None)
+REDDIT_CLIENT_SECRET = env("REDDIT_CLIENT_SECRET", default=None)
+
+DISCORD_CLIENT_ID = env("DISCORD_CLIENT_ID", default=None)
+DISCORD_CLIENT_SECRET = env("DISCORD_CLIENT_SECRET", default=None)
+DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default=None)
 
 ACTSTREAM_SETTINGS = {
     'MANAGER': 'policyengine.managers.myActionManager',
@@ -242,7 +242,7 @@ LOGGING = {
         },
         "file": {
             "class": "logging.FileHandler",
-            "filename": os.environ.get('POLICYKIT_LOG_FILE', "/var/log/django/debug.log"),
+            "filename": env("LOG_FILE"),
             "formatter": "file",
         },
         "console": {"class": "logging.StreamHandler", "formatter": "console"},

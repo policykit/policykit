@@ -18,8 +18,6 @@ import sphinx_rtd_theme
 policykit_path = os.path.abspath('../../policykit')
 sys.path.insert(0, policykit_path)
 
-os.environ.setdefault('POLICYKIT_LOG_FILE', policykit_path + '/docs.log')
-os.environ.setdefault('PRIVATE_FILE_PATH', policykit_path + '/private_template.py')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
 
 django.setup()

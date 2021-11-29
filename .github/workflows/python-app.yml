@@ -31,4 +31,4 @@ jobs:
     - name: Run PolicyKit unit tests
       working-directory: ./policykit
       run: |
-        PRIVATE_FILE_PATH=private_template.py POLICYKIT_LOG_FILE=tmp.log python manage.py test
+        python manage.py test

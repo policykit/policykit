@@ -14,7 +14,6 @@ from policyengine.linter import _error_check
 import policyengine.utils as Utils
 from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
 from policyengine.integration_data import integration_data
-from policykit.settings import SERVER_URL
 from policyengine.metagov_app import metagov, metagov_handler
 
 import logging
@@ -85,7 +84,6 @@ def v2(request):
     ).order_by("-proposal_time")
 
     return render(request, 'policyadmin/dashboard/index.html', {
-        'server_url': SERVER_URL,
         'user': user,
         'users': users,
         'roles': community.get_roles(),
@@ -103,10 +101,7 @@ def settings_page(request):
     user = get_user(request)
     community = user.community
 
-    context = {
-        'server_url': settings.SERVER_URL,
-        'user': get_user(request),
-    }
+    context = {'user': user}
 
     if community.metagov_slug:
         mg_community = metagov.get_community(community.metagov_slug)
@@ -249,7 +244,6 @@ def editor(request):
     autocompletes = Utils.get_autocompletes(community, action_types=action_types)
 
     data = {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'type': kind.capitalize(),
         'operation': operation,
@@ -281,7 +275,6 @@ def selectrole(request):
     roles = user.community.community.get_roles()
 
     return render(request, 'policyadmin/dashboard/role_select.html', {
-        'server_url': SERVER_URL,
         'user': user,
         'roles': roles,
         'operation': operation
@@ -299,7 +292,6 @@ def roleusers(request):
     users = CommunityUser.objects.filter(community__community=community).order_by('readable_name', 'username')
 
     return render(request, 'policyadmin/dashboard/role_users.html', {
-        'server_url': SERVER_URL,
         'roles': roles,
         'users': users,
         'operation': operation
@@ -318,7 +310,6 @@ def roleeditor(request):
     permissions = Utils.get_all_permissions(platforms).values_list('name', flat=True)
 
     data = {
-        'server_url': SERVER_URL,
         'user': user,
         'permissions': list(sorted(permissions)),
         'operation': operation
@@ -358,7 +349,6 @@ def selectpolicy(request):
         return HttpResponseBadRequest()
 
     return render(request, 'policyadmin/dashboard/policy_select.html', {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'policies': policies,
         'type': type,
@@ -377,7 +367,6 @@ def selectdocument(request):
     documents = user.community.community.get_documents().filter(is_active=show_active_documents)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'documents': documents,
         'operation': operation
@@ -392,7 +381,6 @@ def documenteditor(request):
     doc_id = request.GET.get('doc')
 
     data = {
-        'server_url': SERVER_URL,
         'user': user,
         'operation': operation
     }
@@ -416,7 +404,6 @@ def actions(request):
     from policyengine.models import PolicyActionKind
     actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM])
     return render(request, 'policyadmin/dashboard/actions.html', {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'actions': actions.items()
     })
@@ -457,7 +444,6 @@ def propose_action(request, app_name, codename):
         request,
         "policyadmin/dashboard/action_proposer.html",
         {
-            "server_url": SERVER_URL,
             "user": get_user(request),
             "form": form,
             "app_name": app_name,
@@ -625,7 +611,7 @@ def policy_action_remove(request):
 @csrf_exempt
 def policy_action_recover(request):
     from policyengine.models import Policy
-    from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
+    from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy, PolicykitRecoverTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -638,13 +624,14 @@ def policy_action_recover(request):
 
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
-        action.policy = policy
     elif policy.kind == Policy.PLATFORM:
         action = PolicykitRecoverPlatformPolicy()
-        action.policy = policy
+    elif policy.kind == Policy.TRIGGER:
+        action = PolicykitRecoverTriggerPolicy()
     else:
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest(f"Unrecognized policy kind: {policy.kind}")
 
+    action.policy = policy
     action.community = user.constitution_community
     action.initiator = user
     action.save()
