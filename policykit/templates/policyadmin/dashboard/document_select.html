@@ -59,6 +59,8 @@
       <select class="dropdownContainer" name="document" id="document">
         {% for document in documents %}
           <option value="{{document.id}}">{{document.name}}</option>
+        {% empty %}
+          <option disabled value="">-</option>
         {% endfor %}
       </select>
     </div>
@@ -82,6 +84,8 @@
     const operation = urlParams.get('operation');
 
     const select = document.getElementById("document");
+    if (select.selectedIndex == -1) return;
+
     const doc = select.options[select.selectedIndex].value;
 
     if (operation == "Change") {
