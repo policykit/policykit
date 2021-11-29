@@ -582,7 +582,7 @@ def policy_action_save(request):
 @csrf_exempt
 def policy_action_remove(request):
     from policyengine.models import Policy
-    from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
+    from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy, PolicykitRemoveTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -599,6 +599,8 @@ def policy_action_remove(request):
     elif policy.kind == Policy.PLATFORM:
         action = PolicykitRemovePlatformPolicy()
         action.policy = policy
+    elif policy.kind == Policy.TRIGGER:
+        action = PolicykitRemoveTriggerPolicy()
     else:
         return HttpResponseBadRequest()
 
