@@ -267,6 +267,7 @@
   function get_policy_data() {
     // Build JS object with policy data, to download or submit
     const policy_object = {}
+    policy_object.policy_kind = `{{type}}`;
     policy_object.action_types = $("#actionpicker").val();
     policy_object.name = sanitize_text(document.getElementById("name").value);
     policy_object.description = sanitize_text(document.getElementById("description").value);
@@ -547,10 +548,10 @@
     const name = policy_data.name
 
 
-    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
+    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data, null, 4));
 
     // Only allow alphanumeric characters and underscores in the filename
-    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".txt";
+    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".json";
 
     // https://stackoverflow.com/questions/45831191/generate-and-download-file-from-js
     let download_elem = document.createElement('a');
