@@ -1,96 +1,13 @@
 .. _start:
 
 
-Sample Policies
+Policy Examples
 ###############
 
 This is a library of example Platform Policies to get started.
 
 
 .. include:: generated_example_policies.inc
-
-
-Vote on renaming a Slack channel
---------------------------------
-
-**Filter:**
-
-.. code-block:: python
-
-  return action.action_type == "slackrenameconversation"
-
-**Initialize:** ``pass``
-
-**Check:**
-
-.. code-block:: python
-
-  yes_votes = proposal.get_yes_votes().count()
-  no_votes = proposal.get_no_votes().count()
-  logger.info(f"{yes_votes} for, {no_votes} against")
-  if yes_votes >= 1:
-    return PASSED
-  elif no_votes >= 1:
-    return FAILED
-
-  logger.info("No votes yet....")
-  return None
-
-**Notify:**
-
-.. code-block:: python
-
-  message = f"Should this channel be renamed to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post."
-  slack.initiate_vote(proposal, template=message)
-
-**Pass:**
-
-.. code-block:: python
-
-  text = f"Proposal to rename this channel to #{action.name} passed."
-  slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
-  action.execute()
-
-**Fail:**
-
-.. code-block:: python
-
-  text = f"Proposal to rename this channel to #{action.name} failed."
-  slack.post_message(text=text, channel=action.channel, thread_ts=action.community_post)
-
-
-Don't allow posts in Slack channel
-----------------------------------
-
-This could be extended to add any logic to determine who can post in a given channel.
-Posts in the channel are auto-deleted, and the user is notified about why it happened.
-
-**Filter:**
-
-.. code-block:: python
-
-  return action.action_type == "slackpostmessage" and action.channel == "ABC123"
-
-**Initialize:** ``pass``
-
-**Check:** ``return FAILED``
-
-**Notify:** ``pass``
-
-**Pass:** ``pass``
-
-**Fail:**
-
-.. code-block:: python
-
-  # create an ephemeral post that is only visible to the poster
-  message = f"Post was deleted because of policy '{policy.name}'"
-  slack.post_message(
-    channel=action.channel,
-    users=[action.initiator],
-    post_type="ephemeral",
-    template=message
-  )
 
 
 Discord Message Filter
@@ -252,6 +169,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 
 **Fail:** ``pass``
 
+
 Use SourceCred to gate posts on a Discourse topic
 -------------------------------------------------
 
@@ -313,8 +231,9 @@ send them a message explaining why.
     metagov.perform_action("discourse.create-message", **params)
 
 
-Vote on Open Collective expense
--------------------------------
+
+Vote on Open Collective expense in OC Conversation
+--------------------------------------------------
 
 When an expense is submitted in Open Collective, start a new conversation thread
 in the Open Collective collective. Members can vote on the expense using thumbs-up

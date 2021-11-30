@@ -1,0 +1,15 @@
+{
+    "policy_kind": "Platform",
+    "action_types": [
+        "slackpostmessage"
+    ],
+    "name": "Don't allow posts in Slack channel",
+    "description": "This could be extended to add any logic to determine who can post in a given channel.\nPosts in the channel are deleted, and the user is notified about why it happened.\n",
+    "is_bundled": false,
+    "filter": "return action.channel == \"C025LDZ76R3\"\n\n",
+    "initialize": "pass\n\n",
+    "check": "return FAILED\n\n",
+    "notify": "pass\n\n",
+    "success": "pass\n\n",
+    "fail": "# create an ephemeral post that is only visible to the poster\nmessage = f\"Post was deleted because of policy '{policy.name}'\"\nslack.post_message(\n  channel=action.channel,\n  users=[action.initiator],\n  post_type=\"ephemeral\",\n  text=message\n)"
+}
