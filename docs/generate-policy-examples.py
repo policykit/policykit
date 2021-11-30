@@ -4,9 +4,9 @@ import json
 SOURCE_DIR = "../example_policies"
 OUTPUT_FILE = "source/generated_example_policies.inc"
 LONG_TITLE_SEP = "----------------------------------------------------------------------"
+DOWNLOAD_LINK_DIR = "https://raw.githubusercontent.com/amyxzhang/policykit/master/example_policies"
 
-
-def json_to_rst(policy_data):
+def json_to_rst(policy_data, filename):
     print(f"Formatting policy: '{policy_data['name']}'")
     sections = []
     # Format name and description
@@ -15,6 +15,9 @@ def json_to_rst(policy_data):
     if policy_data.get("description"):
         sections.append(f"{policy_data['description']}\n")
 
+
+    link = f"{DOWNLOAD_LINK_DIR}/{filename}"
+    sections.append(f"`Download Policy <{link}>`_\n")
     # Format action kind (trigger, constitution, etc)
     if policy_data.get("policy_kind"):
         sections.append(f"**Policy Kind:** ``{policy_data['policy_kind']}``\n")
@@ -56,15 +59,15 @@ def main():
     for fp in json_policy_filepaths:
         with open(fp) as f:
             data = json.load(f)
-            all_policy_data.append(data)
+            all_policy_data.append((fp.name, data))
 
     # Sort policies by name so that we have a deterministic outcome
-    all_policy_data.sort(key=lambda x: x["name"], reverse=True)
+    all_policy_data.sort(key=lambda x: x[1]["name"], reverse=True)
 
     # Convert all policy data to rst strings
     all_policy_strings = []
-    for data in all_policy_data:
-        rst = json_to_rst(data)
+    for (filename, data) in all_policy_data:
+        rst = json_to_rst(data, filename)
         # print(rst)
         all_policy_strings.append(rst)
 
