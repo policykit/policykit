@@ -1,0 +1,13 @@
+{
+  "action_types": ["slackpostmessage"],
+  "policy_kind": "trigger",
+  "name": "policy to preserve",
+  "description": "",
+  "is_bundled": false,
+  "filter": "return True\n\n",
+  "initialize": "pass\n\n",
+  "check": "return PASSED\n\n",
+  "notify": "pass\n\n",
+  "success": "pass\n\n",
+  "fail": "pass\n\n"
+}

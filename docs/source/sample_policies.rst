@@ -6,6 +6,10 @@ Sample Policies
 
 This is a library of example Platform Policies to get started.
 
+
+.. include:: generated_example_policies.inc
+
+
 Vote on renaming a Slack channel
 --------------------------------
 

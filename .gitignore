@@ -1,5 +1,6 @@
 docs/build
 docs/source/debug.log
+docs/source/generated_example_policies.inc
 .DS_Store
 .env
 .vscode
