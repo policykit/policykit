@@ -7,7 +7,7 @@ Policy Examples
 This is a library of example Platform Policies to get started.
 
 
-.. include:: generated_example_policies.inc
+.. include:: generated_policy_examples.inc
 
 
 Discord Message Filter
