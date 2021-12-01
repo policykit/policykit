@@ -93,7 +93,7 @@ Metagov actions
 Platform policies have access to a ``metagov`` client that can be used to invoke Metagov ``/action`` and ``/process`` endpoints.
 Refer to the `Metagov API docs <https://metagov.policykit.org/redoc/>`_ to see which actions and processes are available to you.
 Policy authors can only use actions that are defined in plugins that are *currently enabled* in their community.
-See the :doc:`Sample Policies <../sample_policies>` for more examples.
+See the :doc:`Policy Examples <../policy_examples>` for more examples.
 
 .. code-block:: python
 
@@ -112,7 +112,7 @@ Metagov governance processes
 
 Platform policies can use the ``metagov`` client to perform asynchronous governance processes.
 Here's a partial example of a policy that uses the ``loomio.poll`` process to perform a vote.
-See the :doc:`Sample Policies <../sample_policies>` for more examples.
+See the :doc:`Policy Examples <../policy_examples>` for more examples.
 
 .. code-block:: python
 

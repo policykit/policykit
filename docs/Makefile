@@ -14,6 +14,14 @@ help:
 
 .PHONY: help Makefile
 
+# Generate the policy examples from JSON files
+generated_policy_examples.inc:
+	python generate-policy-examples.py
+
+# Override 'html' command so it always re-generates the policy examples
+html: generated_policy_examples.inc
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile

@@ -1,0 +1,13 @@
+{
+  "policy_kind": "Trigger",
+  "action_types": ["expensecreated"],
+  "name": "Vote in Loomio on OpenCollective expenses",
+  "description": "When an expense is submitted in Open Collective, start a proposal on Loomio. The vote closes when 3 days have passed. Approve or reject the OC expense based on the vote results, and post a comment on the OC expense with the vote count.",
+  "is_bundled": false,
+  "filter": "return True",
+  "initialize": "pass\n\n",
+  "check": "if not proposal.is_vote_closed:\n  # Proposal is still pending in Looomio\n  return PROPOSED\n\nconsent_count = proposal.get_choice_votes(value=\"consent\").count()\nobjection_count = proposal.get_choice_votes(value=\"objection\").count()\n\noc_action = None\noc_message = None\n\nif objection_count > 0:\n  # If 1 or more people objected, reject the expense.\n  oc_action = \"REJECT\"\n  oc_message = f\"Expense rejected. Loomio proposal had {objection_count} objection{'s' if objection_count > 1 else ''}.\"\nelif consent_count > 2:\n  # If enough people consented, approve the expense.\n  oc_action = \"APPROVE\"\n  oc_message = f\"Expense approved. {consent_count} members consented on Loomio.\"\nelse:\n  # If nobody objected, but not enough people consented, leave the expense open.\n  oc_message = f\"Consensus was not reached on Loomio. {consent_count} members consented and {objection_count} members objected.\"\n\n\n# Process the expense (if applicable)\nif oc_action:\n  opencollective.process_expense(action=oc_action, expense_id=action.expense_id)\n\n# Comment on the expense\nopencollective.post_message(text=oc_message, expense_id=action.expense_id)\n\nreturn PASSED\n",
+  "notify": "import datetime\nclosing_at = proposal.proposal_time + datetime.timedelta(days=3)\n\n# Start vote on Loomio\nloomio.initiate_vote(\n  proposal,\n  title=f\"Expense '{action.description}'\",\n  poll_type=\"proposal\",\n  details=f\"Submitted on Open Collective: {action.url}\",\n  options=[\"consent\", \"objection\"],\n  closing_at=closing_at,\n)\n\nloomio_poll_url = proposal.community_post\nlogger.debug(f\"Vote started at {loomio_poll_url}\")\n\n\n# Record start of vote on Open Collective\nlink = f\"<a href='{loomio_poll_url}'>on Loomio</a>\"\ntext = f\"Thank you for submitting a request! A vote has been started {link}.\"\nopencollective.post_message(text=text, expense_id=action.expense_id)\n\n",
+  "success": "pass",
+  "fail": "pass"
+}
