@@ -66,3 +66,8 @@ autodoc_default_options = {
     'member-order': 'bysource',
     'exclude-members': 'DoesNotExist, MultipleObjectsReturned'
 }
+
+def setup(app):
+    print("....")
+    import subprocess
+    subprocess.call(['python', '../generate-policy-examples.py'])

@@ -4,7 +4,7 @@
 Policy Examples
 ###############
 
-This is a library of example Platform Policies to get started.
+This is a library of example policies to get started.
 
 
 .. include:: generated_policy_examples.inc
