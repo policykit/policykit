@@ -269,7 +269,7 @@ Use the ``filter`` block to choose which event type your policy is triggered by.
 
     return action.event_type == 'opencollective.expense_created'
 
-Performing Metagov actions
+Performing actions
 """"""""""""""""""""""""""
 
 Platform policies have access to a ``metagov`` client that can be used to perform actions that are defined on a Metagov Plugin.
@@ -287,7 +287,7 @@ Policy authors can only use actions that are defined in Plugins that are current
         return FAILED
 
 
-Performing Metagov governance processes
+Performing governance processes
 """""""""""""""""""""""""""""""""""""""
 
 Platform policies can use the ``metagov`` client to perform asynchronous governance processes.
