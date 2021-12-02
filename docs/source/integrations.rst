@@ -9,40 +9,33 @@ Integrations
 In order to install PolicyKit to a community, there must be an **authentication mechanism**, such as OAuth, for at least one admin or mod account to give access to PolicyKit so that it may govern a broad set of actions, including privileged ones.
 In addition, each platform integration supports **one or more** of these capabilities:
 
-* **Actions** are API requests to perform some action or to retrieve some data from a platform. Most integrations will support **sending messages to users** on the platform. Some platforms don't require authentication (like SourceCred), others require API keys to be uploaded (Loomio, Open Collective) and others need to be authenticated via an OAuth flow (Slack, GitHub).
-
-    Example:
-    ``slack.post_message(text="hello world", channel="ABC123")``, ``opencollective.process_expense(expense_id=123, action="REJECT")``, ``sourcecred.get_cred(username="user123")``
-
-* **Trigger Actions** are platform events that can be used as policy triggers. Typically these are received via webhooks, so they may require registering a PolicyKit webhook URL for your community on the external platform. For platforms that don't support webhooks, some integrations have a polling mechanism to fetch recent changes and create "trigger actions" from new events.
-
-    Example: ``expensecreated``, ``slackrenameconverstion``
-
-* **Governable Actions** are a PolicyKit construct that combines "actions" and "trigger actions." A Governable Action can be reverted and re-executed, which allows PolicyKit to "govern" that capability on the platform. Policies that govern platform actions are called **Platform Policies** (see :doc:`Policy Examples <../policy_examples>` for examples). This capability may require an admin account to give access to PolicyKit so that it may govern a broad set of actions, including privileged ones. All Governable Actions can also be used as triggers for Trigger Policies. 
-    
-    Example: ``slackrenameconverstaion``
-
+* **Actions** are API requests to perform some action on a platform, such as sending a message to users. Some platforms don't require authentication (like SourceCred), others require API keys to be uploaded (Loomio, Open Collective) and others need to be authenticated via an OAuth flow (Slack, GitHub).
+* **Trigger Actions** are platform events that can be used as policy triggers. Typically these are received via webhooks, so they may require registering a PolicyKit webhook URL for your community on the external platform. For platforms that don't support webhooks, some integrations have a polling mechanism to fetch data periodically and create triggers from new events.
+* **Governable Actions** are a PolicyKit construct that combines "actions" and "trigger actions." A Governable Action can be reverted and re-executed, which allows PolicyKit to "govern" that capability on the platform. Policies that govern platform actions are called **Platform Policies** (see :doc:`Policy Examples <../policy_examples>`). This capability may require an admin account to give access to PolicyKit so that it may govern a broad set of actions, including privileged ones. All Governable Actions can also be used as triggers for Trigger Policies. 
 * **Voting** is the ability to perform a vote on an external platform and capture the result.
 
-    Example:
-    ``loomio.initiate_vote(proposal, title="please vote", closing_at=closing_at_dt, options=["consent", "objection", "abstain"])``
+
+..
+   commented-out examples
+    Example: ``slack.post_message(text="hello world", channel="ABC123")``, ``opencollective.process_expense(expense_id=123, action="REJECT")``, ``sourcecred.get_cred(username="user123")``
+
+    Example: ``expensecreated``, ``slackrenameconverstion``
+  
+    Example: ``slackrenameconverstaion``
+    
+    Example: ``loomio.initiate_vote(proposal, title="please vote", closing_at=closing_at_dt, options=["consent", "objection", "abstain"])``
 
 
-See below for an overview of the capabilities supported by each platform integration.
 
-How to Enable Integrations
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Once you have installed PolicyKit to one platform, you can enable additional integrations on the Settings page.
+Only users with the ``Integration Admin`` role are able to add and remove integrations.
 
-The thing you sign in with is first.
-Then settings page you can add more.
-"Integration Admin" role
+.. note::
 
-Configure Metagov by navigating to "Settings" in the PolicyKit web interface.
-Only the users with role ``Metagov Admin`` are permitted to view and edit the Metagov configuration.
-Use the editor to enable/disable plugins and to configure them.
+  Some integrations require one-time setup process by a PolicyKit server admin. If you deploying your own instance of PolicyKit, see :doc:`Installation and Getting Started <gettingstarted>` for instructions. Platforms like Slack and Discord require an initial setup process to create bots/apps and store their Client IDs and secrets on the PolicyKit server.
 
-Some integrations require one-time admin setup by a PolicyKit server admin. See :doc:`Installation and Getting Started <gettingstarted>` for setup instructions.
 
+Here is an overview of the capabilities supported by each platform integration:
 
 Slack
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -260,13 +253,15 @@ On the login page, select "Sign in with Discourse". This will display a screen a
 Metagov (experimental)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PolicyKit integrates with `Metagov <http://docs.metagov.org/>`_ to support policies that use of the `Metagov API <https://metagov.policykit.org/redoc/>`_ to use and govern a range of external platforms and governance tools such as Slack, Loomio, and SourceCred.
+PolicyKit uses `Metagov <http://docs.metagov.org/>`_ to integrate with and and govern a range of external platforms.
+PolicyKit exposes some generic tools to interact with any available Metagov plugins.
+These are experimental and typically would only be used if you are developing a new Metagov Plugin that doesn't yet have a PolicyKit integration.
 
-Metagov events as policy triggers
+Webhook Trigger Action
 """""""""""""""""""""""""""""""""
 
-Platform policies can be "triggered" by events that are emitted by `Metagov listener <https://docs.metagov.org/en/latest/plugin_tutorial.html#listener>`_.
-Select the ``Webhook Trigger Action`` action type, and use the ``filter`` block to choose which event type your policy is triggered by.
+All events received from Metagov generate a generic trigger action. To write a policy triggered by this generic action, select ``Webhook Trigger Action`` in the action types dropdown.
+Use the ``filter`` block to choose which event type your policy is triggered by. The event type is stored at ``action.event_type``, and any additional data is stored as a dict at ``action.data``.
 
 .. code-block:: python
 
@@ -274,16 +269,11 @@ Select the ``Webhook Trigger Action`` action type, and use the ``filter`` block 
 
     return action.event_type == 'opencollective.expense_created'
 
-    # special properties on webhook trigger action:
-    action.data                                # dict: data about the event
-
-Metagov actions
+Performing Metagov actions
 """"""""""""""""""""""""""
 
-Platform policies have access to a ``metagov`` client that can be used to invoke Metagov ``/action`` and ``/process`` endpoints.
-Refer to the `Metagov API docs <https://metagov.policykit.org/redoc/>`_ to see which actions and processes are available to you.
-Policy authors can only use actions that are defined in plugins that are *currently enabled* in their community.
-See the :doc:`Policy Examples <../policy_examples>` for more examples.
+Platform policies have access to a ``metagov`` client that can be used to perform actions that are defined on a Metagov Plugin.
+Policy authors can only use actions that are defined in Plugins that are currently enabled in their community.
 
 .. code-block:: python
 
@@ -297,12 +287,11 @@ See the :doc:`Policy Examples <../policy_examples>` for more examples.
         return FAILED
 
 
-Metagov governance processes
-""""""""""""""""""""""""""""
+Performing Metagov governance processes
+"""""""""""""""""""""""""""""""""""""""
 
 Platform policies can use the ``metagov`` client to perform asynchronous governance processes.
 Here's a partial example of a policy that uses the ``loomio.poll`` process to perform a vote.
-See the :doc:`Policy Examples <../policy_examples>` for more examples.
 
 .. code-block:: python
 
