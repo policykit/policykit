@@ -1,0 +1,15 @@
+{
+    "policy_kind": "Platform",
+    "action_types": [
+        "discoursecreatetopic"
+    ],
+    "name": "Minimum SourceCred value required for creating Discourse Topic",
+    "description": "Only users with at least 300 cred can create new topics in a certain Discourse category. If a user does not pass the threshold, the topic gets deleted (aka the 'governed action' is reverted).",
+    "is_bundled": false,
+    "filter": "return action.category == 8\n\n",
+    "initialize": "pass\n\n",
+    "check": "\nvalue = sourcecred.get_cred(username=action.initiator.username)\nreturn PASSED if value > 300 else FAILED\n\n",
+    "notify": "pass\n\n",
+    "success": "pass\n\n",
+    "fail": "pass\n\n"
+}
