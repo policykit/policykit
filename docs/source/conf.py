@@ -68,6 +68,5 @@ autodoc_default_options = {
 }
 
 def setup(app):
-    print("....")
     import subprocess
     subprocess.call(['python', '../generate-policy-examples.py'])
