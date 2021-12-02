@@ -36,7 +36,10 @@ def clean_up_logs():
     from django_db_logger.models import EvaluationLog
     from policykit.settings import DB_MAX_LOGS_TO_KEEP
 
-    expired_logs = EvaluationLog.objects.all().order_by("-create_datetime")[DB_MAX_LOGS_TO_KEEP:]
+    expired_logs = EvaluationLog.objects.filter(
+        pk__in=EvaluationLog.objects.all().order_by("-create_datetime").values_list("pk")[DB_MAX_LOGS_TO_KEEP:]
+    )
+
     if expired_logs.exists():
         # logger.debug(f"Deleting {expired_logs.count()} EvaluationLogs")
         expired_logs.delete()

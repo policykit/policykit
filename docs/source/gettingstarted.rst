@@ -376,6 +376,48 @@ Troubleshooting
 
 If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/policykit_beat.log``.
 
+
+Interactive Django Shell
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The interactive Django shell can be useful when developing and debugging PolicyKit.
+Access the Django shell with ``python manage.py shell_plus``.
+Some useful shell commands for development:
+
+.. code-block:: bash
+
+        # List all communities
+        Community.objects.all()
+
+        # List CommunityPlatforms for a specific community
+        community = Community.objects.first()
+        CommunityPlatform.objects.filter(community=community)
+
+        # Get all pending proposals
+        Proposal.objects.filter(status="proposed")
+
+        # Manually run the policy checking task that is executed on a schedule by Celery
+        from policyengine.tasks import consider_proposed_actions
+        consider_proposed_actions()
+
+        ###### Advanced Commands for debugging Metagov ######
+
+        # Access the Metagov Community model
+        from metagov.core.models import Community as MetagovCommunity
+        MetagovCommunity.objects.all()
+        MetagovCommunity.objects.get(slug=community.metagov_slug)
+
+        # Access the Metagov Plugin models (1:1 with CommunityPlatform)
+        Plugin.objects.all()
+        Slack.objects.all()
+        Plugin.objects.filter(community__slug=community.metagov_slug)
+
+        # Get pending Metagov GovernanceProcesses
+        GovernanceProcess.objects.filter(status='pending')
+        GovernanceProcess.objects.filter(plugin__community=metagov_community)
+        SlackEmojiVote.objects.filter(status='pending', plugin__community__slug="my-slug")
+
+
 Set up Integrations
 ^^^^^^^^^^^^^^^^^^^
 
