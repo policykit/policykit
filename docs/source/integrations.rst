@@ -3,10 +3,11 @@
 Integrations
 ====================================
 
-| PolicyKit is an application that sits on its own server. However, it would be prohibitive if users of a social platform needed to go to PolicyKit for every governance task, such as proposing an action or voting on a proposal. In addition, as PolicyKit needs to enforce policies, it must have a way of stopping and allowing actions that are carried out on the platform itself, since the platform already has an existing governance that PolicyKit must supersede. These are defined in platform integration libraries that can be developed for any platform to connect with PolicyKit. Once a single developer has created an integration using a platform's web API, any community on that platform can use PolicyKit.
+| PolicyKit is an application that sits on its own server. However, it would be prohibitive if users of a social platform needed to go to PolicyKit for every governance task, such as proposing an action or voting on a proposal. In addition, as PolicyKit needs to enforce policies, it must have a way of stopping and allowing actions that are carried out on the platform itself, since the platform already has an existing governance that PolicyKit must supersede. These capabilities are defined in platform integration libraries that can be developed for any platform to connect with PolicyKit. Once a single developer has created an integration using a platform's web API, any community on that platform can use PolicyKit.
 
 
-Each platform integration supports **one or more** of these capabilities:
+In order to install PolicyKit to a community, there must be an **authentication mechanism**, such as OAuth, for at least one admin or mod account to give access to PolicyKit so that it may govern a broad set of actions, including privileged ones.
+In addition, each platform integration supports **one or more** of these capabilities:
 
 * **Actions** are API requests to perform some action or to retrieve some data from a platform. Most integrations will support **sending messages to users** on the platform. Some platforms don't require authentication (like SourceCred), others require API keys to be uploaded (Loomio, Open Collective) and others need to be authenticated via an OAuth flow (Slack, GitHub).
 
