@@ -28,6 +28,7 @@ def should_keep_error_message(error_message, function_name):
         'github',
         'opencollective',
         'loomio',
+        'sourcecred',
         'metagov',
         'logger',
         'PASSED',
