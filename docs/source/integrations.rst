@@ -208,7 +208,26 @@ The authentication mechanism for the Discord Integration is **OAuth**. The insta
 Discourse
 ~~~~~~~~~
 
-This is a connector for `Discourse <https://www.discourse.org/>`_ that lets you write policies that govern Discourse communities.
+The authentication mechanism for the Discourse Integration is **OAuth**. This integration requires a Discourse admin to do some setup steps in Discourse before PolicyKit can be installed.
+
+.. list-table:: 
+   :widths: 25 5 70
+   :header-rows: 0
+
+   * - Actions
+     - ✅
+     - Write policies that create posts and topics on Discourse.
+   * - Trigger Actions
+     - ✅
+     - Write Trigger Policies that are triggered by events that occurred on Discourse (e.g. "when a user posts a new topic in a certain category, do something)
+   * - Governable Actions
+     - ✅
+     - Write Platform Policies that govern Discourse actions (e.g. "only users with X amount of Cred can post on this Discourse topic")
+   * - Voting
+     - ❌
+     - 
+
+
 
 Setting up your Discourse community
 """""""""""""""""""""""""""""""""""
