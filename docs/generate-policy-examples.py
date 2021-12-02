@@ -1,10 +1,12 @@
 import pathlib
 import json
 
-SOURCE_DIR = "../policy_examples"
-OUTPUT_FILE = "source/generated_policy_examples.inc"
+
+SOURCE_DIR = pathlib.Path(__file__).parent / "../policy_examples"
+OUTPUT_FILE = pathlib.Path(__file__).parent / "source/generated_policy_examples.inc"
 LONG_TITLE_SEP = "----------------------------------------------------------------------"
 DOWNLOAD_LINK_DIR = "https://raw.githubusercontent.com/amyxzhang/policykit/master/policy_examples"
+
 
 def json_to_rst(policy_data, filename):
     print(f"Formatting policy: '{policy_data['name']}'")
@@ -14,7 +16,6 @@ def json_to_rst(policy_data, filename):
     sections.append(f"{LONG_TITLE_SEP}\n")
     if policy_data.get("description"):
         sections.append(f"{policy_data['description']}\n")
-
 
     link = f"{DOWNLOAD_LINK_DIR}/{filename}"
     sections.append(f"`Download Policy <{link}>`_\n")
@@ -48,9 +49,8 @@ def json_to_rst(policy_data, filename):
 
 
 def main():
-    fn = pathlib.Path(__file__).parent / SOURCE_DIR
     json_policy_filepaths = []
-    for x in fn.iterdir():
+    for x in SOURCE_DIR.iterdir():
         if x.suffix == ".json":
             json_policy_filepaths.append(x)
 
