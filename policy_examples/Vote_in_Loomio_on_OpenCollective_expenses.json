@@ -1,7 +1,7 @@
 {
   "policy_kind": "Trigger",
   "action_types": ["expensecreated"],
-  "name": "Vote in Loomio on OpenCollective expenses",
+  "name": "Vote on OpenCollective expenses in Loomio",
   "description": "When an expense is submitted in Open Collective, start a proposal on Loomio. The vote closes when 3 days have passed. Approve or reject the OC expense based on the vote results, and post a comment on the OC expense with the vote count.",
   "is_bundled": false,
   "filter": "return True",
