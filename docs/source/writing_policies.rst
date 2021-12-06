@@ -18,7 +18,7 @@ See :doc:`Policy Examples <policy_examples>` for example policies that can be do
 Action Types
 """"""""""""""
 
-This function specifies the scope of the policy.
+This field specifies the scope of the policy.
 For Platform Policies and Constitution Policies, the action type indicates which action type the policy governs.
 For Trigger Policies, the action type indicates which action types trigger the policy to evaluate. When a Policy is evaluated against an Action, a ``Proposal`` record is created to store any data relevant to the policy evaluation.
 
