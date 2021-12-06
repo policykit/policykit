@@ -38,7 +38,8 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
-    "sphinx.ext.napoleon"
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,9 +61,11 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['../_static', '../_static/datamodel.html']
 html_css_files = ['css/custom.css']
-
+# html_additional_pages = {
+#     'datamodel': '../_static/html/datamodel.html',
+# }
 autodoc_default_options = {
     'member-order': 'bysource',
     'exclude-members': 'DoesNotExist, MultipleObjectsReturned'

@@ -12,7 +12,8 @@ Welcome to the Docs for PolicyKit!
    :caption: GETTING STARTED
 
    gettingstarted
-   policy_model
+   design_overview
+   writing_policies
    integrations
    policy_examples
 
