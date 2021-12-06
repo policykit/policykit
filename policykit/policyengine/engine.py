@@ -28,6 +28,7 @@ class EvaluationContext:
         github (GithubCommunity)
         opencollective (OpencollectiveCommunity)
         loomio (LoomioCommunity)
+        sourcecred (SourcecredCommunity)
         metagov (Metagov): Metagov library for performing enabled actions and processes.
         logger (logging.Logger): Logger that will log messages to the PolicyKit web interface.
 
