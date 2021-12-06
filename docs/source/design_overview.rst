@@ -35,7 +35,7 @@ This diagram does not include the policy evaluation checker task, which periodic
 .. raw:: html
 
     <div style="width: 640px; height: 480px; margin: 10px; position: relative;">
-        <iframe allowfullscreen frameborder="0" style="width:640px; height:480px" src="https://lucid.app/documents/embeddedchart/4d388a65-b276-4ef1-8cd1-6e15f70b385f" id="mjryeno_xeyU">
+        <iframe allowfullscreen frameborder="0" style="width:640px; height:480px" src="https://lucid.app/documents/embeddedchart/81b83e2d-890b-4e63-be47-638f9b98d582" id="y.tyq_4oL77u">
         </iframe>
     </div>
 
