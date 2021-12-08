@@ -415,7 +415,11 @@ def oauth(request):
             )
 
             # Get the list of users and create a DiscordUser object for each user
-            guild_members = community.make_call(f'guilds/{guild_id}/members?limit=1000')
+            try:
+                guild_members = community.make_call(f'guilds/{guild_id}/members?limit=1000')
+            except Exception:
+                community.delete()
+                return redirect('/login?error=access_denied')
 
             owner_id = guild_info['owner_id']
             for member in guild_members:
