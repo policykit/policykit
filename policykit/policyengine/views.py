@@ -525,7 +525,7 @@ def policy_action_save(request):
             action = PolicykitAddPlatformPolicy()
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitAddTriggerPolicy()
-        action.is_bundled = data.get('is_bundled', False)
+        # action.is_bundled = data.get('is_bundled', False)
     
     elif operation == "Change":
         if kind == PolicyActionKind.CONSTITUTION:

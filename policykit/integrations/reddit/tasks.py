@@ -62,7 +62,6 @@ def reddit_listener_actions():
 
         for action in actions:
             action.community_origin = True
-            action.is_bundled = False
             action.save() # save triggers policy proposal
 
         # Manage proposals

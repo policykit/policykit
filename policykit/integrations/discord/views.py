@@ -263,7 +263,6 @@ def handle_event(name, data):
 
         if action:
             action.community_origin = True
-            action.is_bundled = False
             action.save()
 
             # While consider_proposed_actions will execute every Celery beat,

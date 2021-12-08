@@ -36,7 +36,6 @@ def slack_event_receiver(sender, instance, event_type, data, initiator, **kwargs
     new_api_action = SlackUtils.slack_event_to_platform_action(slack_community, event_type, data, initiator)
     if new_api_action is not None:
         new_api_action.community_origin = True
-        new_api_action.is_bundled = False
         new_api_action.save()  # save triggers policy proposal
         logger.debug(f"GovernableAction saved: {new_api_action.pk}")
 
