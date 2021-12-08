@@ -135,6 +135,9 @@ def handle_message_create_event(data):
 
         return action
 
+"""
+# Commented out because broken, see https://github.com/amyxzhang/policykit/issues/433
+
 def handle_message_delete_event(data):
     channel = DiscordChannel.objects.filter(channel_id=data['channel_id'])[0]
     guild_id = channel.guild_id
@@ -159,13 +162,13 @@ def handle_message_delete_event(data):
     logger.info(f'Message deleted in channel {channel.channel_name}: {message["content"]}')
 
     return action
+"""
 
 def handle_channel_update_event(data):
     guild_id = data['guild_id']
     community = DiscordCommunity.objects.filter(team_id=guild_id)[0]
 
     action = DiscordRenameChannel()
-    # FIXME: name_old is not stored, so the action cannot be reverted.
     action.community = community
     action.channel_id = data['id']
     action.name = data['name']
@@ -183,6 +186,9 @@ def handle_channel_update_event(data):
 
     channel = DiscordChannel.objects.filter(channel_id=data['id'])[0]
     logger.info(f'Channel {channel.channel_name} renamed to {action.name}')
+
+    # Store old name on action, in case we need to revert it
+    action.name_old = channel.channel_name
 
     # Update DiscordChannel object
     channel.channel_name = action.name
