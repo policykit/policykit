@@ -23,23 +23,25 @@ def get_slack_user_fields(user_info):
     }
 
 
-def is_policykit_action(community, test_a, test_b, api_name):
+def is_policykit_action(community, value_to_match, key_to_match, api_name):
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
 
     logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus).filter(
         Q(call_type=api_name) | Q(call_type="slack.method")
     )
+    # logger.debug(f">is_policykit_action: {logs.count()} possible matches for {api_name} with key '{key_to_match}' equal to '{value_to_match}'")
+    # logger.debug(f"{list(logs.values_list('extra_info', flat=True))}")
     if logs.exists():
         # logger.debug(f"Made {logs.count()} calls to {api_name} in the last 2 seconds")
         for log in logs:
             j_info = json.loads(log.extra_info)
-            # logger.debug(j_info)
             if log.call_type == "slack.method" and j_info.get("method_name") != api_name:
                 # if this was a generic API call, the method_name must match the provided api_name
                 continue
-            if test_a == j_info[test_b]:
+            if value_to_match == j_info[key_to_match]:
+                # logger.debug(f">found matching log {log.pk}")
                 return True
-
+    # logger.debug(f">no match")
     return False
 
 

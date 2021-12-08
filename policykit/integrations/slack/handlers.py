@@ -54,6 +54,10 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
         # Proposal not saved yet, ignore
         return
 
+    if proposal.status in [Proposal.PASSED, Proposal.FAILED]:
+        logger.debug(f"Ignoring signal from {instance}, proposal {proposal.pk} has been completed")
+        return
+
     logger.debug(f"Received vote update from {instance} - {instance.plugin.community_platform_id}")
     # logger.debug(outcome)
 
