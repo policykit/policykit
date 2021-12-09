@@ -15,7 +15,6 @@ urlpatterns = [
             'server_url': urllib.parse.quote(settings.SERVER_URL, safe=''),
             'metagov_server_url': settings.METAGOV_URL,
             'reddit_client_id': settings.REDDIT_CLIENT_ID,
-            'discord_client_id': settings.DISCORD_CLIENT_ID,
         }
     )),
     path('authorize-platform', policyviews.authorize_platform),

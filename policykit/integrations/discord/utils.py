@@ -5,16 +5,19 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+def avatar_url(user_info):
+    if not user_info['avatar']:
+        return None
+    return f"https://cdn.discordapp.com/avatars/{user_info['id']}/{user_info['avatar']}.png"
 
-def get_discord_user_fields(user_id):
+def get_discord_user_fields(user_info):
     """
     Get DiscordUser fields from Discord user_id
     https://discordpy.readthedocs.io/en/latest/api.html#id7
     """
     return {
-        "username": user_info["id"],
-        "readable_name": user_info["name"],
-        "avatar": f"https://cdn.discordapp.com/avatars/{user_info['id']}/{user_info['avatar']}.png",
+        "readable_name": user_info["username"],
+        "avatar": avatar_url(user_info),
     }
 
 def should_create_action(message, type=None):

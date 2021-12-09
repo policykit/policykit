@@ -51,18 +51,15 @@ class DiscordCommunity(CommunityPlatform):
         #     LogAPICall.make_api_call(self, values, "discord.post-message")
         return self.make_call(f"channels/{channel}/messages", values={"content": text}, method="POST")
 
-    def make_call(self, url, values=None, action=None, method="GET"):
-        #FIXME
-        response = requests.request(
-            method=method, url=self.API + url, json=values, headers={"Authorization": "Bot %s" % DISCORD_BOT_TOKEN}
+    def make_call(self, method_name, values={}, action=None, method=None):
+        """Called by LogAPICall.make_api_call. Don't change the function signature."""
+        response = requests.post(
+            f"{settings.METAGOV_URL}/api/internal/action/{method_name}",
+            json={"parameters": values},
+            headers={"X-Metagov-Community": self.metagov_slug},
         )
-        # response = requests.post(
-        #     f"{settings.METAGOV_URL}/api/internal/action/{method_name}",
-        #     json={"parameters": values},
-        #     headers={"X-Metagov-Community": self.metagov_slug},
-        # )
         if not response.ok:
-            logger.error(f"Error making Discord request {url} with params {values}")
+            logger.error(f"Error making Discord request {method_name} with params {values}")
             raise Exception(f"{response.status_code} {response.reason} {response.text}")
         if response.content:
             return response.json()

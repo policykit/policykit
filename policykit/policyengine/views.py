@@ -182,6 +182,7 @@ def disable_integration(request):
 
     # Temporary: disallow disabling the plugins that have a corresponding PlatformCommunity.
     # We would need to delete the SlackCommunity as well, which we should show a warning for!
+    # FIXME need to handle deletion
     if name == "slack":
         return redirect("/main/settings?error=cant_delete_slack")
 
