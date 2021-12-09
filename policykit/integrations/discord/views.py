@@ -9,6 +9,7 @@ from integrations.discord.models import DiscordCommunity, DiscordUser
 from integrations.discord.utils import get_discord_user_fields
 from policyengine.models import Community, CommunityRole
 from policyengine.utils import get_starterkits_info
+from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
 
@@ -251,11 +252,6 @@ def discord_install(request):
 
     # if we're enabling an integration for an existing community, so redirect to the settings page
     redirect_route = "/login" if is_new_community else "/main/settings"
-
-    expected_state = request.session.get("community_install_state")
-    if expected_state is None or request.GET.get("state") is None or (not request.GET.get("state") == expected_state):
-        logger.error(f"expected {expected_state}")
-        return redirect(f"{redirect_route}?error=bad_state")
 
     if request.GET.get("error"):
         return redirect(f"{redirect_route}?error={request.GET.get('error')}")
