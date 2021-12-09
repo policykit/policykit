@@ -3,6 +3,7 @@ import logging
 from django.db import models
 import integrations.slack.utils as SlackUtils
 from policyengine.models import (
+    LogAPICall,
     CommunityPlatform,
     CommunityUser,
     GovernableAction,
@@ -147,7 +148,10 @@ class SlackCommunity(CommunityPlatform):
     def __make_generic_api_call(self, method: str, values):
         """Make any Slack method request using Metagov action 'slack.method' """
         cleaned = {k: v for k, v in values.items() if v is not None} if values else {}
-        return self.metagov_plugin.method(method_name=method, **cleaned)
+
+        # Use LogAPICall so the API call is recorded in the database. This gets used by the `is_policykit_action` helper to determine,
+        # in the next few seconds when we receive an event, that this call was initiated by PolicyKIt- NOT a user- so we shouldn't govern it.
+        return LogAPICall.make_api_call(self, values={"method_name": method, **cleaned}, call=method)
 
     def make_call(self, method_name, values={}, action=None, method=None):
         """Called by LogAPICall.make_api_call. Don't change the function signature."""

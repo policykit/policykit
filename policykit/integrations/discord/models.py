@@ -69,6 +69,8 @@ class DiscordPostMessage(GovernableAction):
             self.message_id = message['id']
             self.save()
 
+"""
+# Commented out because broken, see https://github.com/amyxzhang/policykit/issues/433
 class DiscordDeleteMessage(GovernableAction):
     channel_id = models.BigIntegerField()
     message_id = models.BigIntegerField()
@@ -94,6 +96,7 @@ class DiscordDeleteMessage(GovernableAction):
 
             # Deletes the message
             self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
+"""
 
 class DiscordRenameChannel(GovernableAction):
     channel_id = models.BigIntegerField()
