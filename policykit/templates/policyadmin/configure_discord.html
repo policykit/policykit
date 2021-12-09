@@ -26,6 +26,8 @@
       <option value="{{ guild_id }}">{{ guild_name }}</option>
     {% endfor %}
   </select>
+  <input type="hidden" name="access_token" value="{{ access_token }}">
+  <input type="hidden" name="user_id" value="{{ user_id }}">
   <input type="submit" value="Continue">
 </form>
 

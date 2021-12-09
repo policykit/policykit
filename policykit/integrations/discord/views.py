@@ -45,8 +45,9 @@ def discord_login(request):
         # If user has more than one PK-integrated Discord guild, bring user to screen to select which guild's dashboard to login to
         request.session['user_id'] = 'user_id'
         request.session['user_token'] = 'user_token'
+        request.session.modified = True
         return render(
-            request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds}
+            request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds, "user_token": user_token, "user_id": user_id}
         )
 
     # Note: this is not always an accurate error message.
@@ -61,9 +62,9 @@ def login_selected_guild(request):
     guild_id = request.POST['guild_id']
     if not guild_id:
         return redirect('/login?error=guild_id_missing')
-
-    user_id = request.session.get('user_id')
-    user_token = request.session.get('user_token')
+    logger.debug(request.session.items())
+    user_id = request.session.get('user_id') or request.POST["user_id"]
+    user_token = request.session.get('user_token') or request.POST["user_token"]
     if not user_token or user_id:
         return redirect('/login?error=user_info_missing')
 
