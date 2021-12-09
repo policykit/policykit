@@ -37,50 +37,8 @@ class DiscordCommunity(CommunityPlatform):
         DiscordUtils.start_emoji_vote(proposal, users, post_type, template, channel)
 
     def post_message(self, text, channel):
+        return self.metagov_plugin.post_message(text=text, channel=channel)
 
-        # if channel is None and post_type == "channel":
-        #     raise Exception(f"channel required for post type '{post_type}'")
-
-        # values = {"text": text}
-
-        # if post_type == "channel":
-        #     values["channel"] = channel
-        #     LogAPICall.make_api_call(self, values, "discord.post-message")
-        return self.make_call(f"channels/{channel}/messages", values={"content": text}, method="POST")
-
-    def make_call(self, method_name, values={}, action=None, method=None):
-        """Called by LogAPICall.make_api_call. Don't change the function signature."""
-        response = requests.post(
-            f"{settings.METAGOV_URL}/api/internal/action/{method_name}",
-            json={"parameters": values},
-            headers={"X-Metagov-Community": self.metagov_slug},
-        )
-        if not response.ok:
-            logger.error(f"Error making Discord request {method_name} with params {values}")
-            raise Exception(f"{response.status_code} {response.reason} {response.text}")
-        if response.content:
-            return response.json()
-        return None
-
-    def handle_metagov_event(self, outer_event):
-        """
-        Receive Discord Metagov Event for this community
-        """
-        logger.debug(f"DiscordCommunity recieved metagov event: {outer_event['event_type']}")
-        if outer_event["initiator"].get("is_metagov_bot") == True:
-            logger.debug("Ignoring bot event")
-            return
-
-        new_api_action = DiscordUtils.discord_event_to_platform_action(self, outer_event)
-        if new_api_action is not None:
-            new_api_action.community_origin = True
-            new_api_action.is_bundled = False
-            new_api_action.save()  # save triggers policy evaluation
-            logger.debug(f"PlatformAction saved: {new_api_action.pk}")
-
-    def handle_metagov_process(self, process):
-        # TODO: Implement this function
-        pass
 
 
 class DiscordUser(CommunityUser):

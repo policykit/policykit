@@ -10,7 +10,6 @@ from integrations.discord.utils import get_discord_user_fields
 from policyengine.models import Community, CommunityRole
 from policyengine.utils import get_starterkits_info
 from policyengine.metagov_app import metagov
-from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger(__name__)
 

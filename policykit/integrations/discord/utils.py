@@ -53,13 +53,13 @@ def should_create_action(message, type=None):
         return False
     return True
 
-def discord_event_to_platform_action(community, outer_event):
+def discord_event_to_action(community, event_type, data, initiator):
     new_api_action = None
-    event_type = outer_event["event_type"]
-    initiator = outer_event.get("initiator").get("user_id")
+    initiator = initiator.get("user_id")
     if not initiator:
+        logger.debug("no initiator, skipping")
         return
-    event = outer_event["data"]
+    event = data
 
     from integrations.discord.models import (
         DiscordPostMessage,
