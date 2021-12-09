@@ -84,7 +84,6 @@ def discourse_listener_actions():
         logger.info(f"{len(actions)} actions created")
         for action in actions:
             action.community_origin = True
-            action.is_bundled = False
             action.save()
             if action.community_revert:
                 action.revert()

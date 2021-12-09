@@ -12,9 +12,10 @@ Welcome to the Docs for PolicyKit!
    :caption: GETTING STARTED
 
    gettingstarted
-   policy_model
+   design_overview
+   writing_policies
    integrations
-   sample_policies
+   policy_examples
 
 .. toctree::
    :maxdepth: 3

@@ -147,6 +147,7 @@
       <h3 class="communityName">{{user.community.community_name}}</h3>
     </div>
 
+    {% if user.is_authenticated %}
     <div class="profileContainer dropdown" id="profile">
       <a href="#" class="profileName dropdown-toggle" data-toggle="dropdown">Hi, {{user.readable_name}}</a>
       <div class="dropdown-menu dropdownMenu">
@@ -158,6 +159,7 @@
         <a href="{% url 'logout' %}" class="dropdown-item dropdownItem">Log out</a>
       </div>
     </div>
+    {% endif %}
   </div>
 
   <div class="content">

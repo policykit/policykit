@@ -84,6 +84,6 @@ def discord_event_to_platform_action(community, outer_event):
 
     return new_api_action
 
-def start_emoji_vote(policy, action, users=None, post_type="channel", template=None, channel=None):
+def start_emoji_vote(proposal, users=None, post_type="channel", template=None, channel=None):
     # TODO: Implement this function
     pass

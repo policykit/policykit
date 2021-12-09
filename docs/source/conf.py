@@ -18,8 +18,6 @@ import sphinx_rtd_theme
 policykit_path = os.path.abspath('../../policykit')
 sys.path.insert(0, policykit_path)
 
-os.environ.setdefault('POLICYKIT_LOG_FILE', policykit_path + '/docs.log')
-os.environ.setdefault('PRIVATE_FILE_PATH', policykit_path + '/private_template.py')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
 
 django.setup()
@@ -40,7 +38,8 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
-    "sphinx.ext.napoleon"
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -62,9 +61,14 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['../_static']
+html_css_files = ['css/custom.css']
 
 autodoc_default_options = {
     'member-order': 'bysource',
     'exclude-members': 'DoesNotExist, MultipleObjectsReturned'
 }
+
+def setup(app):
+    import subprocess
+    subprocess.call(['python', '../generate-policy-examples.py'])

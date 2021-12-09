@@ -236,35 +236,35 @@
   document.getElementById("recoverDocument").addEventListener("click", function(){ navDocumentSelect('Recover'); });
 
   function proposeGovernableActionLink(app_name, action_type) {
-    window.location.href = `{{server_url}}/main/actions/${app_name}/${action_type}`
+    window.location.href = `/main/actions/${app_name}/${action_type}`
   }
 
   function navEditor(type, operation) {
-    window.location.href = `{{server_url}}/main/editor?type=${type}&operation=${operation}`
+    window.location.href = `/main/editor?type=${type}&operation=${operation}`
   }
 
   function navPolicySelect(type, operation) {
-    window.location.href = `{{server_url}}/main/selectpolicy?type=${type}&operation=${operation}`;
+    window.location.href = `/main/selectpolicy?type=${type}&operation=${operation}`;
   }
 
   function navRoleAdd() {
-    window.location.href = `{{server_url}}/main/roleeditor?operation=Add`;
+    window.location.href = `/main/roleeditor?operation=Add`;
   }
 
   function navRoleSelect(operation) {
-    window.location.href = `{{server_url}}/main/selectrole?operation=${operation}`;
+    window.location.href = `/main/selectrole?operation=${operation}`;
   }
 
   function navRoleUsers(operation) {
-    window.location.href = `{{server_url}}/main/roleusers?operation=${operation}`;
+    window.location.href = `/main/roleusers?operation=${operation}`;
   }
 
   function navDocumentAdd() {
-    window.location.href = `{{server_url}}/main/documenteditor?operation=Add`;
+    window.location.href = `/main/documenteditor?operation=Add`;
   }
 
   function navDocumentSelect(operation) {
-    window.location.href = `{{server_url}}/main/selectdocument?operation=${operation}`;
+    window.location.href = `/main/selectdocument?operation=${operation}`;
   }
 </script>
 {% endblock %}

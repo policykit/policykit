@@ -1,0 +1,13 @@
+{
+    "policy_kind": "Constitution",
+    "action_types": [],
+    "name": "All Constitution Actions need 1 approval in Slack",
+    "description": "All constitution actions trigger a Slack vote. In order to pass, the proposal must get at least 1 approval within 3 hours. If the proposal gets any downvotes, it fails.",
+    "is_bundled": false,
+    "filter": "return True",
+    "initialize": "pass",
+    "check": "if proposal.get_yes_votes().count() > 0:\n  return PASSED\n\nif proposal.get_no_votes().count() > 0:\n  return FAILED\n\nimport datetime\nif proposal.get_time_elapsed() > datetime.timedelta(hours=3):\n  logger.debug(f\"Failing proposed constitution change, no approvals in 3 hours\")\n  return FAILED\n\nreturn PROPOSED",
+    "notify": "message = f\"'{action}' proposed by {action.initiator.readable_name}\"\ngovernance_channel = \"C0001\"\nslack.initiate_vote(proposal, template=message, channel=governance_channel)",
+    "success": "message = f\"Constitutional change accepted!\"\ngovernance_channel = \"C0001\"\nslack.post_message(text=message, channel=governance_channel, thread_ts=proposal.community_post)",
+    "fail": "message = f\"Constitutional change rejected.\"\ngovernance_channel = \"C0001\"\nslack.post_message(text=message, channel=governance_channel, thread_ts=proposal.community_post)"
+}

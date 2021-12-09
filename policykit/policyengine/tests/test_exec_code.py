@@ -16,7 +16,6 @@ all_actions_proposed_policy = {
 
 
 class ExecCodeTests(TestCase):
-    @override_settings(METAGOV_ENABLED=False, METAGOV_URL="")
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
 

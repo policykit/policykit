@@ -11,6 +11,17 @@ logger = logging.getLogger(__name__)
 
 class DiscordBackend(BaseBackend):
     def authenticate(self, request, user_token=None, user_id=None, team_id=None):
+
+        # user_token = request.GET.get("user_token")
+        # user_id = request.GET.get("user_id")
+        # guilds = request.GET.getlist("guild[]")
+        # # list of (id, name) tuples
+        # guilds = [tuple(x.split(":", 1)) for x in guilds]
+        # logger.debug(f"user belongs to guilds: {guilds}")
+        # if not guilds:
+        #     logger.error("PolicyKit is not installed to any of this users guilds.")
+        #     return None
+        
         if not user_token or not team_id or not user_id:
             logger.error("Missing user_token or team")
             return None

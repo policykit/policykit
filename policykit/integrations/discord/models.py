@@ -33,11 +33,8 @@ class DiscordCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def notify_action(self, *args, **kwargs):
-        self.initiate_vote(*args, **kwargs)
-
-    def initiate_vote(self, action, policy, users=None, post_type="channel", template=None, channel=None):
-        DiscordUtils.start_emoji_vote(policy, action, users, post_type, template, channel)
+    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None):
+        DiscordUtils.start_emoji_vote(proposal, users, post_type, template, channel)
 
     def post_message(self, text, channel):
 
@@ -114,16 +111,6 @@ class DiscordPostReply(GovernableAction):
     text = models.TextField()
     channel = models.BigIntegerField()
     message = models.BigIntegerField()
-
-    # Recorded so we can later revert reply if needed
-    reply = models.BigIntegerField()
-
-    class Meta:
-        permissions = (("can_execute_discordpostreply", "Can execute discord post reply"),)
-
-    def revert(self):
-        super().revert(call=f"channels/{self.channel}/messages/{self.reply}", method="DELETE")
-
 
 class DiscordCreateChannel(GovernableAction):
     AUTH = "user"

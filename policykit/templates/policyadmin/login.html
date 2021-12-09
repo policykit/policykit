@@ -42,23 +42,22 @@
   Successfully added PolicyKit!
 {% endif %}
 
-{% if metagov_server_url %}
 <P>
   <b>Connect PolicyKit to Slack</b>
   <BR>
   You must be an admin of the Slack to add PolicyKit to your workspace.<BR>
   <P>
-    <a href="/authorize-platform?platform=slack">
+    <a href="/authorize_platform?platform=slack&type=app">
       Install PolicyKit to Slack
     </a>
   </P>
   <P>
-    <a href="{{metagov_server_url}}/auth/slack/authorize?type=user&redirect_uri={{server_url}}%2Fslack%2Flogin">
+    <a href="/authorize_platform?platform=slack&type=user">
       Sign in with Slack
     </a>
   </P>
 </P>
-{% endif %}
+
 <BR>
 
 <P>

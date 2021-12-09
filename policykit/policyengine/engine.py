@@ -1,7 +1,6 @@
 import logging
 
 from actstream import action as actstream_action
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -27,6 +26,9 @@ class EvaluationContext:
         discourse (DiscourseCommunity)
         reddit (RedditCommunity)
         github (GithubCommunity)
+        opencollective (OpencollectiveCommunity)
+        loomio (LoomioCommunity)
+        sourcecred (SourcecredCommunity)
         metagov (Metagov): Metagov library for performing enabled actions and processes.
         logger (logging.Logger): Logger that will log messages to the PolicyKit web interface.
 
@@ -34,6 +36,7 @@ class EvaluationContext:
 
     def __init__(self, proposal):
         from policyengine.models import ExecutedActionTriggerAction
+        from policyengine.metagov_client import Metagov
 
         if isinstance(proposal.action, ExecutedActionTriggerAction):
             self.action = proposal.action.action
@@ -57,10 +60,7 @@ class EvaluationContext:
         for comm in CommunityPlatform.objects.filter(community=parent_community):
             setattr(self, comm.platform, comm)
 
-        if settings.METAGOV_ENABLED:
-            from integrations.metagov.library import Metagov
-
-            self.metagov = Metagov(proposal)
+        self.metagov = Metagov(proposal)
 
 
 class PolicyEngineError(Exception):
@@ -244,16 +244,16 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
         raise
     except PolicyCodeError as e:
         # Log policy code exception to the db, so policy author can view it in the UI.
-        context.logger.error(f"Exception raised in '{e.step}' block: {e.message}")
+        context.logger.error(f"Exception raised in '{e.step}' block: {repr(e)} {e}")
         raise
     except Exception as e:
         # Log unhandled exception to the db, so policy author can view it in the UI.
-        context.logger.error("Unhandled exception: " + str(e))
+        context.logger.error(f"Unhandled exception: {repr(e)} {e}")
         raise
 
 
 def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: bool):
-    from policyengine.models import Policy, Proposal, PolicyActionKind
+    from policyengine.models import Policy, Proposal
 
     proposal = context.proposal
     action = proposal.action
@@ -271,36 +271,28 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     # Run "check" block of policy
     check_result = exec_code_block(policy.check, context, Policy.CHECK)
     check_result = sanitize_check_result(check_result)
-    context.logger.debug(f"Check returned '{check_result}'")
+    # context.logger.debug(f"Check returned '{check_result}'")
 
     if check_result == Proposal.PASSED:
         # run "pass" block of policy
         exec_code_block(policy.success, context, Policy.SUCCESS)
         # mark proposal as 'passed'
-        proposal.pass_evaluation()
+        proposal._pass_evaluation()
         assert proposal.status == Proposal.PASSED
 
-        if action.is_executable:
+        if action._is_executable:
             action.execute()
-
-        if settings.METAGOV_ENABLED:
-            # Close pending process if exists (does nothing if process was already closed)
-            context.metagov.close_process()
 
     if check_result == Proposal.FAILED:
         # run "fail" block of policy
         exec_code_block(policy.fail, context, Policy.FAIL)
         # mark proposal as 'failed'
-        proposal.fail_evaluation()
+        proposal._fail_evaluation()
         assert proposal.status == Proposal.FAILED
-
-        if settings.METAGOV_ENABLED:
-            # Close pending process if exists (does nothing if process was already closed)
-            context.metagov.close_process()
 
     # Revert the action if necessary
     should_revert = (
-        is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and action.is_reversible
+        is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and action._is_reversible
     )
 
     if should_revert:

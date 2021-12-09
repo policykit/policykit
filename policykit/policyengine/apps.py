@@ -5,6 +5,7 @@ class policyEngineConfig(AppConfig):
     name = 'policyengine'
 
     def ready(self):
+        import policyengine.handlers
         from actstream import registry
         registry.register(self.get_model('GovernableAction'))
         registry.register(self.get_model('GovernableActionBundle'))

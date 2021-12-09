@@ -1,12 +1,15 @@
-from django.apps import apps
-from django.conf import settings
-import logging
-from urllib.parse import quote
-import random
-import os
 import json
+import logging
+import os
+
+from django.apps import apps
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+
 
 logger = logging.getLogger(__name__)
+
+INTEGRATION_ADMIN_ROLE_NAME = "Integration Admin"
 
 
 def default_election_vote_message(policy):
@@ -23,14 +26,37 @@ def default_boolean_vote_message(policy):
     )
 
 
-def find_action_cls(app_name: str, codename: str):
-    """
-    Get the GovernableAction subclass that has the specified codename
-    """
-    from policyengine.models import GovernableAction
+def get_or_create_integration_admin_role(community):
+    from constitution.models import PolicykitAddIntegration, PolicykitRemoveIntegration
+    from policyengine.models import CommunityRole
 
-    for cls in apps.get_app_config(app_name).get_models():
-        if issubclass(cls, GovernableAction) and cls._meta.model_name == codename:
+    role, created = CommunityRole.objects.get_or_create(community=community, role_name=INTEGRATION_ADMIN_ROLE_NAME)
+    if created:
+        content_type_1 = ContentType.objects.get_for_model(PolicykitAddIntegration)
+        content_type_2 = ContentType.objects.get_for_model(PolicykitRemoveIntegration)
+        permissions = Permission.objects.filter(content_type__in=[content_type_1, content_type_2])
+        role.permissions.set(permissions)
+    return role
+
+
+def find_action_cls(codename: str, app_name=None):
+    """
+    Get the BaseAction subclass that has the specified codename
+    """
+    from policyengine.models import BaseAction
+
+    if app_name:
+        all_models = list(apps.get_app_config(app_name).get_models())
+    else:
+        listoflists = [
+            list(a.get_models())
+            for a in list(apps.get_app_configs())
+            if "constitution" in a.name or "integration" in a.name
+        ]
+        all_models = [item for sublist in listoflists for item in sublist]
+
+    for cls in all_models:
+        if issubclass(cls, BaseAction) and cls._meta.model_name == codename:
             return cls
     return None
 
@@ -62,36 +88,64 @@ def get_trigger_classes(app_name: str):
 
 
 def get_action_types(community, kinds):
-    from policyengine.models import PolicyActionKind
+    from policyengine.models import PolicyActionKind, WebhookTriggerAction
 
     platform_communities = list(community.get_platform_communities())
     if PolicyActionKind.CONSTITUTION in kinds:
         platform_communities.append(community.constitution_community)
     actions = {}
+
     for c in platform_communities:
         app_name = c.platform
         action_list = []
         if (
             PolicyActionKind.PLATFORM in kinds
-            or PolicyActionKind.TRIGGER in kinds # all platformactions can be used as triggers
+            or PolicyActionKind.TRIGGER in kinds  # all platformactions can be used as triggers
             or (PolicyActionKind.CONSTITUTION in kinds and app_name == "constitution")
         ):
             for cls in get_action_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
+
         if PolicyActionKind.TRIGGER in kinds:
             for cls in get_trigger_classes(app_name):
                 action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
         if action_list:
             actions[app_name] = action_list
 
-    # special case to get trigger action from metagov app
+    # Special case to add generic trigger action
     if PolicyActionKind.TRIGGER in kinds:
-        action_list = []
-        for cls in get_trigger_classes("metagov"):
-            action_list.append((cls._meta.model_name, cls._meta.verbose_name.title()))
-        if action_list:
-            actions["metagov"] = action_list
+        cls = WebhookTriggerAction
+        action_list = [(cls._meta.model_name, cls._meta.verbose_name.title())]
+        actions["any platform"] = action_list
     return actions
+
+
+def get_autocompletes(community, action_types=None):
+    import policyengine.autocomplete as PkAutocomplete
+
+    platform_communities = list(community.get_platform_communities())
+    platform_communities_keys = [p.platform for p in platform_communities]
+
+    # Add general autocompletes (proposal, policy, logger, and common fields on action)
+    autocompletes = PkAutocomplete.general_autocompletes.copy()
+
+    # Add autocompletes for each platform that this community is connected to
+    for k, v in PkAutocomplete.integration_autocompletes.items():
+        if k in platform_communities_keys:
+            autocompletes.extend(v)
+            autocompletes.append(k)
+
+    # Add autocompletes for the selected action(s)
+    for codename in action_types or []:
+        cls = find_action_cls(codename)
+        if cls:
+            hints = PkAutocomplete.generate_action_autocompletes(cls)
+            autocompletes.extend(hints)
+
+    # remove duplicates (for example 'action.channel' would be repeated if SlackPostMessage and SlackRenameChannel selected)
+    autocompletes = list(set(autocompletes))
+    autocompletes.sort()
+    return autocompletes
 
 
 def get_platform_integrations():
@@ -106,27 +160,6 @@ def get_action_content_types(app_name: str):
     from django.contrib.contenttypes.models import ContentType
 
     return [ContentType.objects.get_for_model(cls) for cls in get_action_classes(app_name)]
-
-
-def construct_authorize_install_url(request, integration, community=None):
-    logger.debug(f"Constructing URL to install '{integration}' to community '{community}'.")
-
-    # Initiate authorization flow to install Metagov to platform.
-    # On successful completion, the selected Metagov plugin will be enabled for the community.
-
-    # Redirect to the plugin-specific install endpoint, which will complete the setup process (ie create the SlackCommunity, DiscordCommunity, etc.)
-    redirect_uri = f"{settings.SERVER_URL}/{integration}/install"
-    encoded_redirect_uri = quote(redirect_uri, safe="")
-
-    # store state in user's session so we can validate it later
-    state = "".join([str(random.randint(0, 9)) for i in range(8)])
-    request.session["community_install_state"] = state
-
-    # if not specified, metagov will create a new community and pass back the slug
-    community_slug = community.metagov_slug if community else ""
-    url = f"{settings.METAGOV_URL}/auth/{integration}/authorize?type=app&community={community_slug}&redirect_uri={encoded_redirect_uri}&state={state}"
-    logger.debug(url)
-    return url
 
 
 def get_starterkits_info():
@@ -158,8 +191,9 @@ def get_all_permissions(app_names):
 
 
 def initialize_starterkit_inner(community, kit_data, creator_token=None):
-    from policyengine.models import Policy, CommunityRole, CommunityUser
     from django.contrib.auth.models import Permission
+
+    from policyengine.models import CommunityRole, CommunityUser, Policy
 
     # Create platform policies
     for policy in kit_data["platform_policies"]:

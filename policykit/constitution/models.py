@@ -33,6 +33,42 @@ class ConstitutionAction(GovernableAction):
         abstract = True
 
 
+class PolicykitAddIntegration(models.Model):
+    """
+    Dummy model for permission to add integrations.
+    TODO: make this into an executable/governable ConstitutionAction
+    """
+
+    class Meta:
+        # No database table creation or deletion  \
+        # operations will be performed for this model.
+        managed = False
+
+        # disable "add", "change", "delete"
+        # and "view" default permissions
+        default_permissions = ()
+
+        permissions = [("can_add_integration", "Can add platform integration")]
+
+
+class PolicykitRemoveIntegration(models.Model):
+    """
+    Dummy model for permission to add integrations.
+    TODO: make this into an executable/governable ConstitutionAction
+    """
+
+    class Meta:
+        # No database table creation or deletion  \
+        # operations will be performed for this model.
+        managed = False
+
+        # disable "add", "change", "delete"
+        # and "view" default permissions
+        default_permissions = ()
+
+        permissions = [("can_remove_integration", "Can remove platform integration")]
+
+
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()

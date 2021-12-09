@@ -474,7 +474,6 @@
   document.getElementById("proposeAction").addEventListener("click", navActions);
 
   {% for value in platform_policies %}
-    console.log(`{{value}}`)
     document.getElementById("platform_{{value.pk}}").addEventListener("click", function(){ showModal('code', {
       pk: `{{value.pk}}`,
       kind: `{{value.kind}}`,
@@ -547,7 +546,7 @@
   }
 
   function navActions() {
-    window.location.href = "{{server_url}}/main/actions/"
+    window.location.href = "/main/actions/"
   }
 
   function showModal(type, modalData) {
@@ -611,7 +610,7 @@
   }
   function editPolicy() {
     const data = $("#modal").data()
-    window.location.href = `{{server_url}}/main/editor?type=${data.kind}&operation=Change&policy=${data.pk}`;
+    window.location.href = `/main/editor?type=${data.kind}&operation=Change&policy=${data.pk}`;
   }
 </script>
 {% endblock %}

@@ -1,0 +1,13 @@
+{
+    "policy_kind": "Constitution",
+    "action_types": [],
+    "name": "All Constitution Actions Pass and get posted in Slack",
+    "description": "All constitution actions pass automatically and get posted to a governance channel in Slack. Constitution actions are changes to policies, roles, and documents.",
+    "is_bundled": false,
+    "filter": "return True",
+    "initialize": "pass",
+    "check": "return PASSED",
+    "notify": "pass",
+    "success": "message = f\"Constitution change '{action}' proposed by {action.initiator.readable_name} passed.\"\ngovernance_channel = \"C000111\"\nslack.post_message(text=message, channel=governance_channel)",
+    "fail": "pass"
+}

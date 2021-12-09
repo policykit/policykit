@@ -1,6 +1,5 @@
 alabaster==0.7.12
 amqp==2.5.2
-anyjson==0.3.3
 appdirs==1.4.4
 appnope==0.1.0
 asgiref==3.3.4
@@ -19,6 +18,7 @@ Django==3.2.2
 django-activity-stream==0.10.0
 django-celery-beat==2.2.0
 django-celery-results==2.0.1
+django-environ==0.4.5
 django-extensions==3.1.3
 django-filter==2.4.0
 django-grappelli==2.15.1
@@ -27,6 +27,7 @@ django-polymorphic==3.0.0
 django-schema-graph==1.2.0
 django-tables2==2.3.4
 django-timezone-field==4.1.2
+djangorestframework==3.12.4
 docutils==0.16
 gevent==20.6.2
 greenlet==0.4.17
@@ -38,10 +39,13 @@ ipython-genutils==0.2.0
 isort==5.8.0
 jedi==0.15.2
 Jinja2==2.11.3
+jsonpickle==2.0.0
+jsonschema==3.2.0
 kombu==4.6.7
 lazy-object-proxy==1.6.0
 MarkupSafe==1.1.1
 mccabe==0.6.1
+-e git+https://github.com/metagov/gateway.git#egg=metagov&subdirectory=metagov
 more-itertools==8.1.0
 mypy-extensions==0.4.3
 packaging==20.9
@@ -55,8 +59,10 @@ ptyprocess==0.6.0
 pycodestyle==2.7.0
 pycryptodome==3.10.1
 Pygments==2.5.2
+PyJWT==2.3.0
 pylint==2.8.2
 pyparsing==2.4.7
+pyrsistent==0.18.0
 python-crontab==2.4.0
 python-dateutil==2.8.1
 pytz==2019.3

@@ -149,7 +149,13 @@
   </div>
 
   <div class="form-row">
-    <label class="control-label col-sm-2" for="filter">Action Types</label>
+    <label class="control-label col-sm-2" for="filter">
+      {% if type == "Trigger" %}
+      Trigger Events
+      {% else %}
+      Action Types
+      {% endif %}
+    </label>
     <div class="col-sm-8">
       <select id="actionpicker" class="selectpicker form-control" data-live-search="true" title="Select actions..." multiple>
         {% for app_name, action_list in actions %}
@@ -233,7 +239,6 @@
 <script src="{% static "codemirror/lib/codemirror.js" %}"></script>
 <script src="{% static "codemirror/mode/python/python.js" %}"></script>
 <script src="{% static "codemirror/addon/hint/show-hint.js" %}"></script>
-<script src="{% static "codemirror/addon/hint/python-hint.js" %}"></script>
 <script src="{% static "codemirror/addon/display/autorefresh.js" %}"></script>
 
 <script>
@@ -254,16 +259,31 @@
     window.open(`https://policykit.readthedocs.io/en/latest/index.html`, '_blank');
   }
 
+  function sanitize_text(s) {
+    // backticks break everything, so remove them before saving any code or text
+    return s.replaceAll("`","")
+  }
+
+  function get_policy_data() {
+    // Build JS object with policy data, to download or submit
+    const policy_object = {}
+    policy_object.policy_kind = `{{type}}`;
+    policy_object.action_types = $("#actionpicker").val();
+    policy_object.name = sanitize_text(document.getElementById("name").value);
+    policy_object.description = sanitize_text(document.getElementById("description").value);
+    policy_object.is_bundled = false
+    const code_fields = ["filter", "initialize", "check", "notify", "pass", "fail"]
+    const code_field_args = {}
+    code_fields.forEach(fieldname => {
+      const value = document.getElementById(fieldname).nextSibling.CodeMirror.getValue()
+      const key = fieldname == "pass" ? "success" : fieldname
+      policy_object[key] = sanitize_text(value)
+    })
+    return policy_object
+  }
+
   function propose() {
-    const name = document.getElementById("name").value;
-    const description = document.getElementById("description").value;
-    const action_types = $("#actionpicker").val();
-    const filter = document.getElementById("filter").nextSibling.CodeMirror.getValue();
-    const initialize = document.getElementById("initialize").nextSibling.CodeMirror.getValue();
-    const check = document.getElementById("check").nextSibling.CodeMirror.getValue();
-    const notify = document.getElementById("notify").nextSibling.CodeMirror.getValue();
-    const success = document.getElementById("pass").nextSibling.CodeMirror.getValue();
-    const fail = document.getElementById("fail").nextSibling.CodeMirror.getValue();
+    const policy_data = get_policy_data()
 
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
@@ -274,20 +294,13 @@
         'type': `{{type}}`,
         'operation': `{{operation}}`,
         'policy': `{{policy}}`,
-        'name': name,
-        'description': description,
-        'action_types': action_types,
-        'is_bundled': false,
-        'filter': filter,
-        'initialize': initialize,
-        'check': check,
-        'notify': notify,
-        'success': success,
-        'fail': fail
+        ...policy_data
       })
     }).then(response => {
-      if (!response.ok) {
-          response.text().then(text => {
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        response.text().then(text => {
             console.error(text)
             var msg = "Something went wrong."
             if (response.status == 400) {
@@ -295,9 +308,7 @@
             }
             $('#alerts').html(msg).css("color", "red");
           })
-        } else {
-          window.location.href = "{{server_url}}/main/";
-        }
+      }
     });
   }
 
@@ -325,7 +336,6 @@
   }
   {% endif %}
 
-
   const DEFAULT_VALUES = {
     "filter": "return True\n\n",
     "initialize": "pass\n\n",
@@ -336,6 +346,62 @@
   };
 
   CodeMirror.defineOption('functionName', 'filter', (cm, val) => { return; });
+
+  function setHintWords(hintWords) {
+    // Need this for intiial ctrl-space autocomplete menu
+    CodeMirror.registerHelper("hintWords", "python", hintWords);
+    // Need this for automplete while typing to work correctly with periods
+    CodeMirror.policykitHint = function (editor) {
+        // From https://stackoverflow.com/questions/19244449/codemirror-autocomplete-custom-list
+        // Find the word fragment near cursor that needs auto-complete...
+        const cursor = editor.getCursor();
+        const currentLine = editor.getLine(cursor.line);
+        let start = cursor.ch;
+        let end = start;
+        const rex=/[\w.]/; // a pattern to match any characters in our hint "words"
+        // Our hints include function calls, e.g. "slack.post_message()"
+        // so we search for word charcters (\w) and periods.
+        // First (and optional), find end of current "word" at cursor...
+        while (end < currentLine.length && rex.test(currentLine.charAt(end))) ++end;
+        // Find beginning of current "word" at cursor...
+        while (start && rex.test(currentLine.charAt(start - 1))) --start;
+        // Grab the current word, if any...
+        const curWord = start !== end && currentLine.slice(start, end);
+        // Get the default results object from the JavaScript hinter...
+        const dflt = {list: []} // pyHinter(editor);
+        // If the default hinter didn't hint, create a blank result for now...
+        const result = dflt || {list: []};
+        // Set the start/end of the replacement range...
+        result.to = CodeMirror.Pos(cursor.line, end);
+        result.from = CodeMirror.Pos(cursor.line, start);
+        // Add our custom hintWords to the list, if they start with the curWord...
+        hintWords.forEach(h => {if (h.startsWith(curWord)) result.list.push(h);});
+        result.list.sort(); // sort the final list of hints
+        return result;
+    };
+  }
+
+  // Set up default Python hinter with PolicyKit hints added
+  const initialHintWords = {{autocompletes|safe}};
+  setHintWords(initialHintWords)
+
+  // When user changes action type selection, update the hintwords
+  $('#actionpicker').on('change', function(e){
+    const actionTypes = $('#actionpicker').selectpicker('val').join(",")
+    const params = new URLSearchParams({action_types: actionTypes}).toString()
+    fetch(`../../../main/policyengine/get_autocompletes?${params}`)
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw Error(response.statusText);
+        }
+      })
+      .then(data => {
+        const autocompletes = data["autocompletes"]
+        setHintWords(autocompletes)
+      })
+  });
 
   var editors = [];
 
@@ -393,7 +459,7 @@
         if (input.text[0] === ';' || input.text[0] === ' ' || input.text[0] === ":") {
             return;
         }
-        editor.showHint({ hint: CodeMirror.pythonHint });
+        editor.showHint({ hint: CodeMirror.policykitHint, completeSingle: false });
     });
 
     editors[i].on('change', (cm, change) => {
@@ -407,7 +473,13 @@
           'function_name': cm.getOption('functionName')
         })
       })
-      .then(response => response.json())
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw Error(response.statusText);
+        }
+      })
       .then(data => {
         cm.clearGutter('warnings')
 
@@ -454,7 +526,7 @@
         let reader = new FileReader();
         reader.onload = e => {
           let policy_data = JSON.parse(e.target.result);
-
+          console.log(policy_data)
           document.getElementById('name').value = decodeHtml(`${policy_data.name}`);
           document.getElementById('description').value = decodeHtml(`${policy_data.description}`);
           $('#actionpicker').selectpicker('val', policy_data.action_types);
@@ -472,25 +544,14 @@
   }
 
   function download() {
-    const name = document.getElementById("name").value;
+    const policy_data = get_policy_data()
+    const name = policy_data.name
 
-    let policy_data = {
-      'name': name,
-      'description': document.getElementById("description").value,
-      'is_bundled': false,
-      'action_types': $("#actionpicker").val(),
-      'filter': document.getElementById("filter").nextSibling.CodeMirror.getValue(),
-      'initialize': document.getElementById("initialize").nextSibling.CodeMirror.getValue(),
-      'check': document.getElementById("check").nextSibling.CodeMirror.getValue(),
-      'notify': document.getElementById("notify").nextSibling.CodeMirror.getValue(),
-      'success': document.getElementById("pass").nextSibling.CodeMirror.getValue(),
-      'fail': document.getElementById("fail").nextSibling.CodeMirror.getValue()
-    };
 
-    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data));
+    let policy_data_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(policy_data, null, 4));
 
     // Only allow alphanumeric characters and underscores in the filename
-    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".txt";
+    let filename = name.replace(/[^0-9a-zA-Z]/g, "_") + ".json";
 
     // https://stackoverflow.com/questions/45831191/generate-and-download-file-from-js
     let download_elem = document.createElement('a');

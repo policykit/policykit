@@ -1,9 +1,10 @@
 from django.conf import settings
-from django.contrib.auth import get_user
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, get_user
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Permission
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.http.response import HttpResponseForbidden, HttpResponseNotFound, HttpResponseServerError
+from django.http.response import HttpResponseServerError
+from django.http import Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.forms import modelform_factory
@@ -11,9 +12,9 @@ from actstream.models import Action
 from policyengine.filter import filter_code
 from policyengine.linter import _error_check
 import policyengine.utils as Utils
+from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
 from policyengine.integration_data import integration_data
-from policykit.settings import SERVER_URL
-import integrations.metagov.api as MetagovAPI
+from policyengine.metagov_app import metagov, metagov_handler
 
 import logging
 import json
@@ -30,11 +31,41 @@ def homepage(request):
     return render(request, 'home.html', {})
 
 def authorize_platform(request):
+    """
+    Authorize endpoint for installing & logging into Metagov-backed platforms
+    """
     platform = request.GET.get('platform')
-    if not platform or platform not in ["slack", "discord"]:
-        return HttpResponseBadRequest()
-    url = Utils.construct_authorize_install_url(request, integration=platform)
-    return HttpResponseRedirect(url)
+    req_type = request.GET.get('type', 'app')
+
+    # User logins redirect to `/authenticate_user` endpoint for django authentication.
+    # App installs redirect to `/<platform>/install` endpoint for install completion (e.g. creating the SlackCommunity).
+    redirect_uri = f"{settings.SERVER_URL}/authenticate_user" if req_type == "user" else f"{settings.SERVER_URL}/{platform}/install"
+
+    # This returns a redirect to the platform's oauth server (e.g.  https://slack.com/oauth/v2/authorize)
+    # which will prompt the user to confirm. After that, it will navigate to the specified redirect_uri.
+    return metagov_handler.handle_oauth_authorize(
+        request,
+        plugin_name=platform,
+        redirect_uri=redirect_uri,
+        type=req_type
+    )
+
+
+def authenticate_user(request):
+    # Django chooses which auth backend to use
+    user = authenticate(request)
+    if user:
+        login(request, user)
+        return redirect("/main")
+
+    # TODO: better error messages
+    return redirect("/login?error=login_failed")
+
+
+def logout(request):
+    from django.contrib.auth import logout
+    logout(request)
+    return redirect('/login')
 
 @login_required(login_url='/login')
 def v2(request):
@@ -53,7 +84,6 @@ def v2(request):
     ).order_by("-proposal_time")
 
     return render(request, 'policyadmin/dashboard/index.html', {
-        'server_url': SERVER_URL,
         'user': user,
         'users': users,
         'roles': community.get_roles(),
@@ -65,46 +95,37 @@ def v2(request):
         'pending_proposals': pending_proposals
     })
 
-def logout(request):
-    from django.contrib.auth import logout
-    logout(request)
-    return redirect('/login')
 
 @login_required(login_url='/login')
 def settings_page(request):
     user = get_user(request)
     community = user.community
 
-    context = {
-        'metagov_enabled': settings.METAGOV_ENABLED,
-        'server_url': settings.SERVER_URL,
-        'user': get_user(request),
-    }
+    context = {'user': user}
 
     if community.metagov_slug:
-        result = MetagovAPI.get_metagov_community(community.metagov_slug)
-        context['metagov_server_url'] = settings.METAGOV_URL
+        mg_community = metagov.get_community(community.metagov_slug)
         context['metagov_community_slug'] = community.metagov_slug
         enabled_integrations = {}
-        for plugin in result["plugins"]:
-            integration = plugin["name"]
+        for plugin in mg_community.plugins.all():
+            integration = plugin.name
             if integration not in integration_data.keys():
                 logger.warn(f"unsupported integration {integration} is enabled for community {community}")
                 continue
 
-            # Only include configs if user has privileged metagov config role, since they may contain API Keys
+            # Only include configs if user has permission, since they may contain API Keys
             config_tuples = []
-            if user.has_perm("metagov.can_edit_metagov_config"):
-                config = plugin["config"]
-                for (k,v) in config.items():
+            if user.has_role(INTEGRATION_ADMIN_ROLE_NAME):
+                for (k,v) in plugin.config.items():
                     readable_key = k.replace("_", " ").replace("-", " ").capitalize()
                     config_tuples.append((readable_key, v))
-            data = {
-                **plugin,
-                **integration_data[integration],
-                "config": config_tuples
-            }
-            enabled_integrations[integration] = data
+
+            # Add additional data about the integration, like description and webhook URL
+            additional_data = integration_data[integration]
+            if additional_data.get("webhook_instructions"):
+                additional_data["webhook_url"] = f"{settings.SERVER_URL}/api/hooks/{plugin.name}/{plugin.community.slug}"
+            
+            enabled_integrations[integration] = {**plugin.serialize(), **additional_data, "config": config_tuples}
 
         disabled_integrations = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
 
@@ -122,11 +143,17 @@ def add_integration(request):
     integration = request.GET.get("integration")
     user = get_user(request)
     community = user.community
-    metadata = MetagovAPI.get_plugin_metadata(integration)
+
+    metadata = metagov.get_plugin_metadata(integration)
 
     if metadata["auth_type"] == "oauth":
-        url = Utils.construct_authorize_install_url(request, integration=integration, community=community)
-        return HttpResponseRedirect(url)
+        return metagov_handler.handle_oauth_authorize(
+            request,
+            plugin_name=integration,
+            redirect_uri=f"{settings.SERVER_URL}/{integration}/install",
+            community_slug=community.metagov_slug,
+        )
+
 
     context = {
         "integration": integration,
@@ -138,66 +165,54 @@ def add_integration(request):
 
 
 @login_required(login_url="/login")
+@permission_required("constitution.can_add_integration", raise_exception=True)
 @csrf_exempt
-def enable_integration(request):
+def enable_integration(request, integration):
     """
-    API Endpoint to enable a Metagov plugin (called on config form submission from JS)
+    API Endpoint to enable a Metagov plugin (called on config form submission from JS).
+    This is the default implementation; platforms with PolicyKit integrations may override it.
     """
-    name = request.GET.get("name") # name of the plugin
     user = get_user(request)
-    community = user.community
+    community = user.community.community
 
-    if not user.has_perm("metagov.can_edit_metagov_config"):
-        return HttpResponseForbidden()
-
-    assert name is not None
     config = json.loads(request.body)
-    logger.warn(f"Making request to enable {name} with config {config}")
-    res = MetagovAPI.enable_plugin(community.metagov_slug, name, config)
-    logger.debug(res)
-    return JsonResponse(res, safe=False)
+    logger.debug(f"Enabling {integration} with config {config} for {community}")
+    plugin = metagov.get_community(community.metagov_slug).enable_plugin(integration, config)
+
+    # Create the corresponding CommunityPlatform instance
+    from django.apps import apps
+    cls =  apps.get_app_config(integration).get_model(f"{integration}community")
+    team_id = plugin.community_platform_id
+    cp,created = cls.objects.get_or_create(
+        community=community,
+        team_id=team_id,
+        defaults={"community_name": team_id}
+    )
+    logger.debug(f"CommunityPlatform '{cp.platform} {cp}' {'created' if created else 'already exists'}")
+
+    return HttpResponse()
+
 
 @login_required(login_url="/login")
+@permission_required("constitution.can_remove_integration", raise_exception=True)
 @csrf_exempt
-def disable_integration(request):
+def disable_integration(request, integration):
     """
-    API Endpoint to disable a Metagov plugin (navigated to from Settings page)
+    API Endpoint to disable a Metagov plugin (navigated to from Settings page).
+    This is only used for plugins that DON'T have a corresponding PolicyKit integration.
+    For platforms with integrations (Open Collective, Github, etc) the installation
+    is handled by the integration.
     """
-    # name of the plugin
-    name = request.GET.get("name")
-    # id of the plugin
-    id = request.GET.get("id")
-    assert id is not None and name is not None
-
+    id = int(request.GET.get("id")) # id of the plugin
     user = get_user(request)
-    community = user.community
+    community = user.community.community
+    logger.debug(f"Deleting plugin {integration} {id} for community {community}")
+    metagov.get_community(community.metagov_slug).disable_plugin(integration, id=id)
 
-    if not user.has_perm("metagov.can_edit_metagov_config"):
-        logger.error(f"User {user} does not have permission to disable plugin.")
-        return redirect("/main/settings?error=insufficient_permissions")
+    community_platform = community.get_platform_community(name=integration)
+    if community_platform:
+        community_platform.delete()
 
-    # hack: disallow disabling the plugin if the user is logged in with it
-    if community.platform == name:
-        return redirect("/main/settings?error=cant_delete_current_platform")
-
-    # Temporary: disallow disabling the plugins that have a corresponding PlatformCommunity.
-    # We would need to delete the SlackCommunity as well, which we should show a warning for!
-    # FIXME need to handle deletion
-    if name == "slack":
-        return redirect("/main/settings?error=cant_delete_slack")
-
-    # Validate that this plugin ID is valid for the community that this user is logged into.
-    # Important! This prevents the user from disabling plugins for other communities.
-    plugins = MetagovAPI.get_metagov_community(community.community.metagov_slug)["plugins"]
-    plugin_found = False
-    for p in plugins:
-        if p["name"] == name and p["id"] == id:
-            plugin_found = True
-    if not plugin_found:
-        return redirect("/main/settings?error=no_such_plugin")
-
-    logger.debug(f"Deleting plugin {name} {id}")
-    MetagovAPI.delete_plugin(name=name, id=id)
     return redirect("/main/settings")
 
 
@@ -210,29 +225,33 @@ def editor(request):
     user = get_user(request)
     community = user.community.community
 
-    from policyengine.models import PolicyActionKind
+    from policyengine.models import PolicyActionKind, Policy
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
-        return HttpResponseNotFound()
+        raise Http404("Policy does not exist")
+
+    policy = None
+    if policy_id:
+        try:
+            policy = Policy.objects.get(id=policy_id, community=user.community.community)
+        except Policy.DoesNotExist:
+            raise Http404("Policy does not exist")
 
     # which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[kind])
 
+    # list of autocomplete strings
+    action_types = [a.codename for a in policy.action_types.all()] if policy else None
+    autocompletes = Utils.get_autocompletes(community, action_types=action_types)
+
     data = {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'type': kind.capitalize(),
         'operation': operation,
-        'actions': actions.items()
+        'actions': actions.items(),
+        'autocompletes': json.dumps(autocompletes)
     }
 
-    if policy_id:
-        from policyengine.models import Policy
-        policy = None
-        try:
-            policy = Policy.objects.get(id=policy_id, community=user.community.community)
-        except Policy.DoesNotExist:
-            return HttpResponseNotFound()
-
+    if policy:
         data['policy'] = policy_id
         data['name'] = policy.name
         data['description'] = policy.description
@@ -256,7 +275,6 @@ def selectrole(request):
     roles = user.community.community.get_roles()
 
     return render(request, 'policyadmin/dashboard/role_select.html', {
-        'server_url': SERVER_URL,
         'user': user,
         'roles': roles,
         'operation': operation
@@ -274,7 +292,6 @@ def roleusers(request):
     users = CommunityUser.objects.filter(community__community=community).order_by('readable_name', 'username')
 
     return render(request, 'policyadmin/dashboard/role_users.html', {
-        'server_url': SERVER_URL,
         'roles': roles,
         'users': users,
         'operation': operation
@@ -293,7 +310,6 @@ def roleeditor(request):
     permissions = Utils.get_all_permissions(platforms).values_list('name', flat=True)
 
     data = {
-        'server_url': SERVER_URL,
         'user': user,
         'permissions': list(sorted(permissions)),
         'operation': operation
@@ -303,7 +319,7 @@ def roleeditor(request):
         try:
             role = CommunityRole.objects.get(pk=role_pk, community=user.community.community)
         except CommunityRole.DoesNotExist:
-            return HttpResponseNotFound()
+            raise Http404("Role does not exist")
         data['role_name'] = role.role_name
         data['name'] = role.name
         data['description'] = role.description
@@ -324,16 +340,15 @@ def selectpolicy(request):
         show_active_policies = False
 
     if type == 'Platform':
-        policies = user.community.community.get_platform_policies().filter(is_active=show_active_policies)
+        policies = user.community.community.get_platform_policies(is_active=show_active_policies)
     elif type == 'Constitution':
-        policies = user.community.community.get_constitution_policies().filter(is_active=show_active_policies)
+        policies = user.community.community.get_constitution_policies(is_active=show_active_policies)
     elif type == 'Trigger':
-        policies = user.community.community.get_trigger_policies().filter(is_active=show_active_policies)
+        policies = user.community.community.get_trigger_policies(is_active=show_active_policies)
     else:
         return HttpResponseBadRequest()
 
     return render(request, 'policyadmin/dashboard/policy_select.html', {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'policies': policies,
         'type': type,
@@ -352,7 +367,6 @@ def selectdocument(request):
     documents = user.community.community.get_documents().filter(is_active=show_active_documents)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'documents': documents,
         'operation': operation
@@ -367,7 +381,6 @@ def documenteditor(request):
     doc_id = request.GET.get('doc')
 
     data = {
-        'server_url': SERVER_URL,
         'user': user,
         'operation': operation
     }
@@ -376,7 +389,7 @@ def documenteditor(request):
         try:
             doc = CommunityDoc.objects.get(id=doc_id, community=user.community.community)
         except CommunityDoc.DoesNotExist:
-            return HttpResponseNotFound()
+            raise Http404("Document does not exist")
 
         data['name'] = doc.name
         data['text'] = doc.text
@@ -391,14 +404,13 @@ def actions(request):
     from policyengine.models import PolicyActionKind
     actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM])
     return render(request, 'policyadmin/dashboard/actions.html', {
-        'server_url': SERVER_URL,
         'user': get_user(request),
         'actions': actions.items()
     })
 
 @login_required(login_url='/login')
 def propose_action(request, app_name, codename):
-    cls = Utils.find_action_cls(app_name, codename)
+    cls = Utils.find_action_cls(codename, app_name)
     if not cls:
         return HttpResponseBadRequest()
 
@@ -432,7 +444,6 @@ def propose_action(request, app_name, codename):
         request,
         "policyadmin/dashboard/action_proposer.html",
         {
-            "server_url": SERVER_URL,
             "user": get_user(request),
             "form": form,
             "app_name": app_name,
@@ -467,6 +478,16 @@ def initialize_starterkit(request):
 
     return JsonResponse({"ok": True})
 
+@login_required(login_url='/login')
+def get_autocompletes(request):
+    user = request.user
+    community = user.community.community
+    action_types = request.GET.get("action_types").split(",")
+    if not action_types or len(action_types) == 1 and not action_types[0]:
+        action_types = None
+    autocompletes = Utils.get_autocompletes(community, action_types=action_types)
+    return JsonResponse({'autocompletes': autocompletes})
+
 @csrf_exempt
 def error_check(request):
     """
@@ -495,7 +516,7 @@ def policy_action_save(request):
     kind = data['type'].lower()
 
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
-        return HttpResponseNotFound()
+        raise Http404("Policy does not exist")
 
     if operation == "Add":
         if kind == PolicyActionKind.CONSTITUTION:
@@ -504,7 +525,7 @@ def policy_action_save(request):
             action = PolicykitAddPlatformPolicy()
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitAddTriggerPolicy()
-        action.is_bundled = data.get('is_bundled', False)
+        # action.is_bundled = data.get('is_bundled', False)
     
     elif operation == "Change":
         if kind == PolicyActionKind.CONSTITUTION:
@@ -517,10 +538,10 @@ def policy_action_save(request):
         try:
             action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
         except Policy.DoesNotExist:
-            return HttpResponseNotFound()
+            raise Http404("Policy does not exist")
 
     else:
-        return HttpResponseNotFound()
+        raise Http404("Policy does not exist")
 
     action.community = user.constitution_community
     action.initiator = user
@@ -561,7 +582,7 @@ def policy_action_save(request):
 @csrf_exempt
 def policy_action_remove(request):
     from policyengine.models import Policy
-    from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy
+    from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy, PolicykitRemoveTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -570,17 +591,18 @@ def policy_action_remove(request):
     try:
         policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
     except Policy.DoesNotExist:
-        return HttpResponseNotFound()
+        raise Http404("Policy does not exist")
 
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRemoveConstitutionPolicy()
-        action.policy = policy
     elif policy.kind == Policy.PLATFORM:
         action = PolicykitRemovePlatformPolicy()
-        action.policy = policy
+    elif policy.kind == Policy.TRIGGER:
+        action = PolicykitRemoveTriggerPolicy()
     else:
         return HttpResponseBadRequest()
 
+    action.policy = policy
     action.community = user.constitution_community
     action.initiator = user
     action.save()
@@ -590,7 +612,7 @@ def policy_action_remove(request):
 @csrf_exempt
 def policy_action_recover(request):
     from policyengine.models import Policy
-    from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy
+    from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy, PolicykitRecoverTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -599,17 +621,18 @@ def policy_action_recover(request):
     try:
         policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
     except Policy.DoesNotExist:
-        return HttpResponseNotFound()
+        raise Http404("Policy does not exist")
 
     if policy.kind == Policy.CONSTITUTION:
         action = PolicykitRecoverConstitutionPolicy()
-        action.policy = policy
     elif policy.kind == Policy.PLATFORM:
         action = PolicykitRecoverPlatformPolicy()
-        action.policy = policy
+    elif policy.kind == Policy.TRIGGER:
+        action = PolicykitRecoverTriggerPolicy()
     else:
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest(f"Unrecognized policy kind: {policy.kind}")
 
+    action.policy = policy
     action.community = user.constitution_community
     action.initiator = user
     action.save()
@@ -683,7 +706,7 @@ def role_action_remove(request):
     try:
         action.role = CommunityRole.objects.get(pk=data['role'], community=user.community.community)
     except CommunityRole.DoesNotExist:
-        return HttpResponseNotFound()
+        raise Http404("Role does not exist")
     action.save()
 
     return HttpResponse()
@@ -704,7 +727,7 @@ def document_action_save(request):
         try:
             action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
         except CommunityDoc.DoesNotExist:
-            return HttpResponseNotFound()
+            raise Http404("Document does not exist")
     else:
         return HttpResponseBadRequest()
 
@@ -730,7 +753,7 @@ def document_action_remove(request):
     try:
         action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
     except CommunityDoc.DoesNotExist:
-        return HttpResponseNotFound()
+        raise Http404("Document does not exist")
     action.save()
 
     return HttpResponse()
@@ -749,7 +772,7 @@ def document_action_recover(request):
     try:
         action.doc = CommunityDoc.objects.get(id=data['doc'], community=user.community.community)
     except CommunityDoc.DoesNotExist:
-        return HttpResponseNotFound()
+        raise Http404("Document does not exist")
     action.save()
 
     return HttpResponse()

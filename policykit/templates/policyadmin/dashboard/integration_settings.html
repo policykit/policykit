@@ -94,16 +94,15 @@
     const schema = metadata.schemas.config
     schema.type = "object";
     schema.title = "config";
-    const {webhook_slug, ...properties} = schema.properties || {}
-    schema.properties = properties
+    schema.properties = schema.properties || {}
 
     form = []
     Object.keys(schema.properties).forEach(k => {
-      if (properties[k].type == "array") {
+      if (schema.properties[k].type == "array") {
         form.push({
           "type": "array",
           "title": `${k} list`.toUpperCase(),
-          "description": properties[k].description,
+          "description": schema.properties[k].description,
           "items": [{
             "key": `${k}[]`,
             "title": `${k} {% verbatim %} {{idx}} {% endverbatim %}`
@@ -129,27 +128,25 @@
             $('#alerts').html('An error occurred').css("color", "red");
             return
           }
-          url = `../../../api/integrations/enable?name={{integration}}`
-          fetch(url, {
+          
+          fetch(`../../../{{integration}}/enable_integration`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(values)
           }).then(response => {
-            if (!response.ok) {
+            if (response.ok) {
+              window.location.href = "/main/settings"
+            }
+            else {
               response.text().then(text => {
                 console.error(text)
                 msg = "Something went wrong."
                 if (response.status == 403) {
-                  msg = "You do not have permission to delete integrations."
+                  msg = "You do not have permission to enable integrations."
                 }
                 $('#alerts').html(msg).css("color", "red");
-              })
-            } else {
-              response.json().then(data => {
-                console.log(data)
-                window.location.href = "/main/settings"
               })
             }
           })
