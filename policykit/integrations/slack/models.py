@@ -1,4 +1,5 @@
 import logging
+
 from django.db import models
 import integrations.slack.utils as SlackUtils
 from policyengine.models import (
