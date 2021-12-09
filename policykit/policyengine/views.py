@@ -36,10 +36,12 @@ def authorize_platform(request):
     """
     platform = request.GET.get('platform')
     req_type = request.GET.get('type', 'app')
+    redirect_uri = request.GET.get('redirect_uri')
 
     # User logins redirect to `/authenticate_user` endpoint for django authentication.
     # App installs redirect to `/<platform>/install` endpoint for install completion (e.g. creating the SlackCommunity).
-    redirect_uri = f"{settings.SERVER_URL}/authenticate_user" if req_type == "user" else f"{settings.SERVER_URL}/{platform}/install"
+    if redirect_uri is None:
+        redirect_uri = f"{settings.SERVER_URL}/authenticate_user" if req_type == "user" else f"{settings.SERVER_URL}/{platform}/install"
 
     # This returns a redirect to the platform's oauth server (e.g.  https://slack.com/oauth/v2/authorize)
     # which will prompt the user to confirm. After that, it will navigate to the specified redirect_uri.
