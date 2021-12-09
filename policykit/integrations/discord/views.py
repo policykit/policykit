@@ -46,7 +46,7 @@ def discord_login(request):
         request.session['user_id'] = 'user_id'
         request.session['user_token'] = 'user_token'
         return render(
-            request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds, "access_token": user_token}
+            request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds}
         )
 
     # Note: this is not always an accurate error message.
