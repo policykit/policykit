@@ -10,6 +10,7 @@ from integrations.discord.utils import get_discord_user_fields
 from policyengine.models import Community, CommunityRole
 from policyengine.utils import get_starterkits_info
 from policyengine.metagov_app import metagov
+from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -41,14 +42,37 @@ def discord_login(request):
             login(request, user)
             return redirect("/main")
     else:
-        # FIXME test
         # If user has more than one PK-integrated Discord guild, bring user to screen to select which guild's dashboard to login to
+        request.session['user_id'] = 'user_id'
+        request.session['user_token'] = 'user_token'
         return render(
             request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds, "access_token": user_token}
         )
 
     # Note: this is not always an accurate error message.
     return redirect("/login?error=policykit_not_yet_installed_to_that_community")
+
+
+def login_selected_guild(request):
+    """
+    This view only gets hit after user completes the configure_discord.html form.
+    This only applies for users that have multiple guilds set up with PolicyKit.
+    """
+    guild_id = request.POST['guild_id']
+    if not guild_id:
+        return redirect('/login?error=guild_id_missing')
+
+    user_id = request.session.get('user_id')
+    user_token = request.session.get('user_token')
+    if not user_token or user_id:
+        return redirect('/login?error=user_info_missing')
+
+    user = authenticate(request, team_id=guild_id, user_id=user_id, user_token=user_token)
+    if user:
+        login(request, user)
+        return redirect('/main')
+    else:
+        return redirect('/login?error=invalid_login')
 
 # def handle_channel_update_event(data):
 #     guild_id = data['guild_id']
