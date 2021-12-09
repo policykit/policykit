@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'metagov.plugins.github',
     'metagov.plugins.sourcecred',
     'metagov.plugins.loomio',
+    'metagov.plugins.discord',
     'metagov.plugins.discourse',
     'metagov.plugins.example', #for testing
     'metagov.core',
