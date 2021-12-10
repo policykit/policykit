@@ -392,7 +392,7 @@ def selectdocument(request):
     if operation == 'Recover':
         show_active_documents = False
 
-    documents = user.community.community.get_documents().filter(is_active=show_active_documents)
+    documents = user.community.community.get_documents(is_active=show_active_documents)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
         'user': get_user(request),
