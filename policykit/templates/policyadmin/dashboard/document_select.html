@@ -69,6 +69,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
+      {% csrf_token %}
       <button type="button" class="btn" id="submit">{{operation}} document</button>
     </div>
   </div>
