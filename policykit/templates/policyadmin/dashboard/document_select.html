@@ -100,11 +100,13 @@
     } else {
       url += "document_action_recover";
     }
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'doc': doc
