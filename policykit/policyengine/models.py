@@ -1,21 +1,21 @@
-from django.db import models
-from django.db.models.deletion import CASCADE, SET_NULL
-from actstream import action as actstream_action
-from django.contrib.auth.models import UserManager, User, Group
-from django.forms import ModelForm
-from django.conf import settings
-from django.db.models.signals import post_delete, pre_delete
-from django.dispatch import receiver
-from django.core.exceptions import ValidationError
-from polymorphic.models import PolymorphicModel, PolymorphicManager
-from policyengine.metagov_app import metagov
-from policyengine import engine
-from datetime import datetime, timezone
-from metagov.core.models import GovernanceProcess
-import policyengine.utils as Utils
-
 import json
 import logging
+from datetime import datetime, timezone
+
+from actstream import action as actstream_action
+from django.contrib.auth.models import Group, User, UserManager
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models.deletion import CASCADE
+from django.db.models.signals import post_delete, pre_delete
+from django.dispatch import receiver
+from django.forms import ModelForm
+from metagov.core.models import GovernanceProcess
+from polymorphic.models import PolymorphicManager, PolymorphicModel
+
+import policyengine.utils as Utils
+from policyengine import engine
+from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
 
@@ -407,19 +407,32 @@ class DataStore(models.Model):
         return True
 
 class LogAPICall(models.Model):
+    """
+    Stores a record of an API call being made, and calls on the CommunityPlatform to make the API call.
+    The purpose of storing this is so that we can match them with incoming events to see if the event
+    originated from a PolicyKit call.
+
+    For example, say PolicyKit made a Slack post on behalf of a user. A moment later, we can an event notification
+    from Slack about that new post. We look back at recent LogAPICalls to see if the post was made by us. If it
+    was, we ignore the event.
+    """
     community = models.ForeignKey(CommunityPlatform, models.CASCADE)
     proposal_time = models.DateTimeField(auto_now_add=True)
     call_type = models.CharField('call_type', max_length=300)
+    # JSON blob of the request payload, which is used for matching the incoming event with recent requests.
     extra_info = models.TextField()
+
+    def __str__(self):
+        return f"LogAPICall {self.call_type} ({self.pk})"
 
     @classmethod
     def make_api_call(cls, community, values, call, action=None, method=None):
-        _ = LogAPICall.objects.create(community=community,
-                                      call_type=call,
-                                      extra_info=json.dumps(values)
-                                      )
-        res = community.make_call(call, values=values, action=action, method=method)
-        return res
+        LogAPICall.objects.create(
+            community=community,
+            call_type=call,
+            extra_info=json.dumps(values)
+        )
+        return community.make_call(call, values=values, action=action, method=method)
 
 class Proposal(models.Model):
     """The Proposal model represents the evaluation of a particular policy for a particular action.

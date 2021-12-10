@@ -1,25 +1,25 @@
+import html
+import json
+import logging
+import os
+
+from actstream.models import Action
 from django.conf import settings
-from django.contrib.auth import authenticate, login, get_user
+from django.contrib.auth import authenticate, get_user, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Permission
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.http.response import HttpResponseServerError
-from django.http import Http404
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, redirect
 from django.forms import modelform_factory
-from actstream.models import Action
-from policyengine.filter import filter_code
-from policyengine.linter import _error_check
-import policyengine.utils as Utils
-from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
-from policyengine.integration_data import integration_data
-from policyengine.metagov_app import metagov, metagov_handler
+from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
+                         JsonResponse)
+from django.http.response import HttpResponseServerError
+from django.shortcuts import redirect, render
 
-import logging
-import json
-import html
-import os
+import policyengine.utils as Utils
+from policyengine.filter import filter_code
+from policyengine.integration_data import integration_data
+from policyengine.linter import _error_check
+from policyengine.metagov_app import metagov, metagov_handler
+from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -28,18 +28,22 @@ DASHBOARD_MAX_ACTIONS = 20
 
 
 def homepage(request):
+    """PolicyKit splash page"""
     return render(request, 'home.html', {})
 
 def authorize_platform(request):
     """
-    Authorize endpoint for installing & logging into Metagov-backed platforms
+    Authorize endpoint for installing & logging into Metagov-backed platforms.
+    The "type" parameter indicates whether it is a user login or an installation.
     """
     platform = request.GET.get('platform')
     req_type = request.GET.get('type', 'app')
+    redirect_uri = request.GET.get('redirect_uri')
 
-    # User logins redirect to `/authenticate_user` endpoint for django authentication.
-    # App installs redirect to `/<platform>/install` endpoint for install completion (e.g. creating the SlackCommunity).
-    redirect_uri = f"{settings.SERVER_URL}/authenticate_user" if req_type == "user" else f"{settings.SERVER_URL}/{platform}/install"
+    # By default, user login redirects to `/authenticate_user` endpoint for django authentication.
+    # By default, app installtion redirects to `/<platform>/install` endpoint for install completion (e.g. creating the SlackCommunity).
+    if redirect_uri is None:
+        redirect_uri = f"{settings.SERVER_URL}/authenticate_user" if req_type == "user" else f"{settings.SERVER_URL}/{platform}/install"
 
     # This returns a redirect to the platform's oauth server (e.g.  https://slack.com/oauth/v2/authorize)
     # which will prompt the user to confirm. After that, it will navigate to the specified redirect_uri.
@@ -50,9 +54,11 @@ def authorize_platform(request):
         type=req_type
     )
 
-
 def authenticate_user(request):
-    # Django chooses which auth backend to use
+    """
+    Django authentication endpoint. This gets invoked after the platform oauth flow has successfully completed.
+    """
+    # Django chooses which auth backend to use (SlackBackend, DiscordBackend, etc)
     user = authenticate(request)
     if user:
         login(request, user)
@@ -61,23 +67,43 @@ def authenticate_user(request):
     # TODO: better error messages
     return redirect("/login?error=login_failed")
 
-
 def logout(request):
     from django.contrib.auth import logout
     logout(request)
     return redirect('/login')
 
-@login_required(login_url='/login')
-def v2(request):
-    from policyengine.models import CommunityUser, Proposal, CommunityPlatform
+def initialize_starterkit(request):
+    """Set up starterkit policies and roles for a new community. Gets called from init_startkit form submission"""
+    from policyengine.models import Community
 
+    post_data = json.loads(request.body)
+    starterkit = post_data["starterkit"]
+    community = Community.objects.get(pk=post_data["community_id"])
+
+    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
+    f = open(starter_kit_path)
+    kit_data = json.loads(f.read())
+    f.close()
+
+    Utils.initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
+
+    return JsonResponse({"ok": True})
+
+@login_required
+def dashboard(request):
+    from policyengine.models import CommunityPlatform, CommunityUser, Proposal
     user = get_user(request)
     community = user.community.community
+    # List all CommunityUsers across all platforms connected to this community
     users = CommunityUser.objects.filter(community__community=community)[:DASHBOARD_MAX_USERS]
 
+    # List recent actions across all CommunityPlatforms connected to this community
     platform_communities = CommunityPlatform.objects.filter(community=community)
     action_log = Action.objects.filter(data__community_id__in=[cp.pk for cp in platform_communities])[:DASHBOARD_MAX_ACTIONS]
 
+    # List pending proposals for all Policies connected to this community
     pending_proposals = Proposal.objects.filter(
         policy__community=community,
         status=Proposal.PROPOSED
@@ -96,18 +122,24 @@ def v2(request):
     })
 
 
-@login_required(login_url='/login')
+@login_required
 def settings_page(request):
+    """
+    Settings page for enabling/disabling platform integrations.
+    """
     user = get_user(request)
     community = user.community
 
-    context = {'user': user}
+    context = {
+        "user": user,
+        "enabled_integrations": [],
+        "disabled_integrations": []
+    }
 
     if community.metagov_slug:
-        mg_community = metagov.get_community(community.metagov_slug)
-        context['metagov_community_slug'] = community.metagov_slug
         enabled_integrations = {}
-        for plugin in mg_community.plugins.all():
+        # Iterate through all Metagov Plugins enabled for this community
+        for plugin in metagov.get_community(community.metagov_slug).plugins.all():
             integration = plugin.name
             if integration not in integration_data.keys():
                 logger.warn(f"unsupported integration {integration} is enabled for community {community}")
@@ -127,15 +159,13 @@ def settings_page(request):
             
             enabled_integrations[integration] = {**plugin.serialize(), **additional_data, "config": config_tuples}
 
-        disabled_integrations = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
 
         context["enabled_integrations"] = enabled_integrations.items()
-        context["disabled_integrations"] = disabled_integrations
+        context["disabled_integrations"] = [(k, v) for (k,v) in integration_data.items() if k not in enabled_integrations.keys()]
 
     return render(request, 'policyadmin/dashboard/settings.html', context)
 
-@login_required(login_url="/login")
-@csrf_exempt
+@login_required
 def add_integration(request):
     """
     This view renders a form for enabling an integration, OR initiates an oauth install flow.
@@ -161,15 +191,14 @@ def add_integration(request):
         "metadata_string": json.dumps(metadata),
         "additional_data": integration_data[integration]
     }
-    return render(request, 'policyadmin/dashboard/integration_settings.html', context)
+    return render(request, 'policyadmin/dashboard/enable_integration_form.html', context)
 
 
-@login_required(login_url="/login")
+@login_required
 @permission_required("constitution.can_add_integration", raise_exception=True)
-@csrf_exempt
 def enable_integration(request, integration):
     """
-    API Endpoint to enable a Metagov plugin (called on config form submission from JS).
+    API Endpoint to enable a Metagov Plugin. This gets called on config form submission from JS.
     This is the default implementation; platforms with PolicyKit integrations may override it.
     """
     user = get_user(request)
@@ -182,33 +211,32 @@ def enable_integration(request, integration):
     # Create the corresponding CommunityPlatform instance
     from django.apps import apps
     cls =  apps.get_app_config(integration).get_model(f"{integration}community")
-    team_id = plugin.community_platform_id
     cp,created = cls.objects.get_or_create(
         community=community,
-        team_id=team_id,
-        defaults={"community_name": team_id}
+        team_id=plugin.community_platform_id,
+        defaults={"community_name": plugin.community_platform_id}
     )
     logger.debug(f"CommunityPlatform '{cp.platform} {cp}' {'created' if created else 'already exists'}")
 
     return HttpResponse()
 
 
-@login_required(login_url="/login")
+@login_required
 @permission_required("constitution.can_remove_integration", raise_exception=True)
-@csrf_exempt
 def disable_integration(request, integration):
     """
     API Endpoint to disable a Metagov plugin (navigated to from Settings page).
-    This is only used for plugins that DON'T have a corresponding PolicyKit integration.
-    For platforms with integrations (Open Collective, Github, etc) the installation
-    is handled by the integration.
+    This is the default implementation; platforms with PolicyKit integrations may override it.
     """
     id = int(request.GET.get("id")) # id of the plugin
     user = get_user(request)
     community = user.community.community
     logger.debug(f"Deleting plugin {integration} {id} for community {community}")
+
+    # Delete the Metagov Plugin
     metagov.get_community(community.metagov_slug).disable_plugin(integration, id=id)
 
+    # Delete the PlatformCommunity
     community_platform = community.get_platform_community(name=integration)
     if community_platform:
         community_platform.delete()
@@ -216,7 +244,7 @@ def disable_integration(request, integration):
     return redirect("/main/settings")
 
 
-@login_required(login_url='/login')
+@login_required
 def editor(request):
     kind = request.GET.get('type', "platform").lower()
     operation = request.GET.get('operation', "Add")
@@ -225,7 +253,7 @@ def editor(request):
     user = get_user(request)
     community = user.community.community
 
-    from policyengine.models import PolicyActionKind, Policy
+    from policyengine.models import Policy, PolicyActionKind
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
         raise Http404("Policy does not exist")
 
@@ -265,7 +293,7 @@ def editor(request):
 
     return render(request, 'policyadmin/dashboard/editor.html', data)
 
-@login_required(login_url='/login')
+@login_required
 def selectrole(request):
     from policyengine.models import CommunityRole
 
@@ -280,7 +308,7 @@ def selectrole(request):
         'operation': operation
     })
 
-@login_required(login_url='/login')
+@login_required
 def roleusers(request):
     from policyengine.models import CommunityRole, CommunityUser
 
@@ -297,9 +325,9 @@ def roleusers(request):
         'operation': operation
     })
 
-@login_required(login_url='/login')
+@login_required
 def roleeditor(request):
-    from policyengine.models import CommunityRole, CommunityPlatform
+    from policyengine.models import CommunityPlatform, CommunityRole
 
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -328,7 +356,7 @@ def roleeditor(request):
 
     return render(request, 'policyadmin/dashboard/role_editor.html', data)
 
-@login_required(login_url='/login')
+@login_required
 def selectpolicy(request):
     user = get_user(request)
     policies = None
@@ -355,7 +383,7 @@ def selectpolicy(request):
         'operation': operation
     })
 
-@login_required(login_url='/login')
+@login_required
 def selectdocument(request):
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -364,7 +392,7 @@ def selectdocument(request):
     if operation == 'Recover':
         show_active_documents = False
 
-    documents = user.community.community.get_documents().filter(is_active=show_active_documents)
+    documents = user.community.community.get_documents(is_active=show_active_documents)
 
     return render(request, 'policyadmin/dashboard/document_select.html', {
         'user': get_user(request),
@@ -372,7 +400,7 @@ def selectdocument(request):
         'operation': operation
     })
 
-@login_required(login_url='/login')
+@login_required
 def documenteditor(request):
     from policyengine.models import CommunityDoc
 
@@ -396,7 +424,7 @@ def documenteditor(request):
 
     return render(request, 'policyadmin/dashboard/document_editor.html', data)
 
-@login_required(login_url='/login')
+@login_required
 def actions(request):
     user = get_user(request)
     community = user.community.community
@@ -408,7 +436,7 @@ def actions(request):
         'actions': actions.items()
     })
 
-@login_required(login_url='/login')
+@login_required
 def propose_action(request, app_name, codename):
     cls = Utils.find_action_cls(codename, app_name)
     if not cls:
@@ -454,31 +482,7 @@ def propose_action(request, app_name, codename):
         },
     )
 
-
-@csrf_exempt
-def initialize_starterkit(request):
-    """
-    Takes a request object containing starter-kit information.
-    Initializes the community with the selected starter kit.
-    """
-    from policyengine.models import Community
-
-    post_data = json.loads(request.body)
-    starterkit = post_data["starterkit"]
-    community = Community.objects.get(pk=post_data["community_id"])
-
-    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
-    cur_path = os.path.abspath(os.path.dirname(__file__))
-    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
-    f = open(starter_kit_path)
-    kit_data = json.loads(f.read())
-    f.close()
-
-    Utils.initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
-
-    return JsonResponse({"ok": True})
-
-@login_required(login_url='/login')
+@login_required
 def get_autocompletes(request):
     user = request.user
     community = user.community.community
@@ -488,7 +492,7 @@ def get_autocompletes(request):
     autocompletes = Utils.get_autocompletes(community, action_types=action_types)
     return JsonResponse({'autocompletes': autocompletes})
 
-@csrf_exempt
+@login_required
 def error_check(request):
     """
     Takes a request object containing Python code data. Calls _error_check(code)
@@ -501,12 +505,17 @@ def error_check(request):
     errors = _error_check(code, function_name)
     return JsonResponse({'errors': errors})
 
-@csrf_exempt
+@login_required
 def policy_action_save(request):
+    from constitution.models import (ActionType, PolicyActionKind,
+                                     PolicykitAddConstitutionPolicy,
+                                     PolicykitAddPlatformPolicy,
+                                     PolicykitAddTriggerPolicy,
+                                     PolicykitChangeConstitutionPolicy,
+                                     PolicykitChangePlatformPolicy,
+                                     PolicykitChangeTriggerPolicy)
+
     from policyengine.models import Policy
-    from constitution.models import (PolicykitAddConstitutionPolicy,
-        PolicykitAddTriggerPolicy, PolicykitChangeTriggerPolicy, PolicykitAddPlatformPolicy,
-        PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy, ActionType, PolicyActionKind)
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -579,10 +588,13 @@ def policy_action_save(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def policy_action_remove(request):
+    from constitution.models import (PolicykitRemoveConstitutionPolicy,
+                                     PolicykitRemovePlatformPolicy,
+                                     PolicykitRemoveTriggerPolicy)
+
     from policyengine.models import Policy
-    from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy, PolicykitRemoveTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -609,10 +621,13 @@ def policy_action_remove(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def policy_action_recover(request):
+    from constitution.models import (PolicykitRecoverConstitutionPolicy,
+                                     PolicykitRecoverPlatformPolicy,
+                                     PolicykitRecoverTriggerPolicy)
+
     from policyengine.models import Policy
-    from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy, PolicykitRecoverTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -639,11 +654,11 @@ def policy_action_recover(request):
 
     return HttpResponse()
 
-
-@csrf_exempt
+@login_required
 def role_action_save(request):
-    from policyengine.models import CommunityRole
     from constitution.models import PolicykitAddRole, PolicykitEditRole
+
+    from policyengine.models import CommunityRole
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -667,10 +682,12 @@ def role_action_save(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def role_action_users(request):
+    from constitution.models import (PolicykitAddUserRole,
+                                     PolicykitRemoveUserRole)
+
     from policyengine.models import CommunityRole, CommunityUser
-    from constitution.models import PolicykitAddUserRole, PolicykitRemoveUserRole
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -692,10 +709,11 @@ def role_action_users(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def role_action_remove(request):
-    from policyengine.models import CommunityRole
     from constitution.models import PolicykitDeleteRole
+
+    from policyengine.models import CommunityRole
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -711,10 +729,12 @@ def role_action_remove(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def document_action_save(request):
+    from constitution.models import (PolicykitAddCommunityDoc,
+                                     PolicykitChangeCommunityDoc)
+
     from policyengine.models import CommunityDoc
-    from constitution.models import PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -739,10 +759,11 @@ def document_action_save(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def document_action_remove(request):
-    from policyengine.models import CommunityDoc
     from constitution.models import PolicykitDeleteCommunityDoc
+
+    from policyengine.models import CommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -758,10 +779,11 @@ def document_action_remove(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def document_action_recover(request):
-    from policyengine.models import CommunityDoc
     from constitution.models import PolicykitRecoverCommunityDoc
+
+    from policyengine.models import CommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)

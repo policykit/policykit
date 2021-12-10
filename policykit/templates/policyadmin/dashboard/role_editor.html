@@ -121,6 +121,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
+      {% csrf_token %}
       {% if operation == "Add" %}
         <button type="button" class="btn" id="submit">Propose role</button>
       {% elif operation == "Change" %}
@@ -165,6 +166,8 @@
     }
   }
 
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
   function submit() {
     const name = document.getElementById('name').value;
     const description = document.getElementById('description').value;
@@ -172,7 +175,8 @@
     fetch('../../../main/policyengine/role_action_save', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'name': `{{name}}`,

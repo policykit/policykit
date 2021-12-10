@@ -69,6 +69,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
+      {% csrf_token %}
       <button type="button" class="btn" id="submit">{{operation}} policy</button>
     </div>
   </div>
@@ -100,10 +101,12 @@
     } else {
       url += "policy_action_recover";
     }
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'type': type,
