@@ -216,6 +216,7 @@
   <div class="form-row">
     <div class="col-sm-2"></div>
     <div class="col-sm-10">
+      {% csrf_token %}
       {% if operation == "Add" %}
         <button type="button" class="pk-btn btn btn-propose" id="propose">Propose policy</button>
       {% elif operation == "Change" %}
@@ -246,6 +247,8 @@
   document.getElementById("propose").addEventListener("click", propose);
   document.getElementById("download").addEventListener("click", download);
   document.getElementById("documentation").addEventListener("click", documentation);
+
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
   // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
   function decodeHtml(html) {
@@ -288,7 +291,8 @@
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'type': `{{type}}`,
@@ -466,7 +470,8 @@
       fetch('../../../main/policyengine/error_check', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({
           'code': cm.getValue(),

@@ -77,6 +77,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
+      {% csrf_token %}
       {% if operation == "Add" %}
         <button type="button" class="btn" id="propose">Propose document</button>
       {% elif operation == "Change" %}
@@ -114,10 +115,13 @@
     const name = document.getElementById("name").value
     const text = document.getElementById("text").value
 
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
     fetch('../../../main/policyengine/document_action_save', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'operation': operation,

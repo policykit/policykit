@@ -79,6 +79,7 @@
 {% block scripts %}
 <script>
   document.getElementById("submit").addEventListener("click", submit);
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function submit() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -100,7 +101,6 @@
     } else {
       url += "document_action_recover";
     }
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     fetch(url, {
       method: 'POST',

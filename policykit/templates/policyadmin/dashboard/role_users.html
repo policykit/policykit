@@ -82,6 +82,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
+      {% csrf_token %}
       {% if operation == "Add" %}
         <button type="button" class="btn" id="submit">Grant role</button>
       {% elif operation == "Remove" %}
@@ -95,6 +96,7 @@
 {% block scripts %}
 <script>
   document.getElementById('submit').addEventListener("click", submit);
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function submit() {
     const selectUser = document.getElementById("user");
@@ -106,7 +108,8 @@
     fetch('../../../main/policyengine/role_action_users', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'role': role,
