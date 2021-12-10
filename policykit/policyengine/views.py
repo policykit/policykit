@@ -149,7 +149,6 @@ def settings_page(request):
     return render(request, 'policyadmin/dashboard/settings.html', context)
 
 @login_required
-@csrf_exempt
 def add_integration(request):
     """
     This view renders a form for enabling an integration, OR initiates an oauth install flow.
@@ -180,7 +179,6 @@ def add_integration(request):
 
 @login_required
 @permission_required("constitution.can_add_integration", raise_exception=True)
-@csrf_exempt
 def enable_integration(request, integration):
     """
     API Endpoint to enable a Metagov Plugin. This gets called on config form submission from JS.
@@ -208,7 +206,6 @@ def enable_integration(request, integration):
 
 @login_required
 @permission_required("constitution.can_remove_integration", raise_exception=True)
-@csrf_exempt
 def disable_integration(request, integration):
     """
     API Endpoint to disable a Metagov plugin (navigated to from Settings page).
@@ -468,7 +465,7 @@ def propose_action(request, app_name, codename):
         },
     )
 
-
+#FIXME: @login_required?
 @csrf_exempt
 def initialize_starterkit(request):
     """
@@ -502,7 +499,7 @@ def get_autocompletes(request):
     autocompletes = Utils.get_autocompletes(community, action_types=action_types)
     return JsonResponse({'autocompletes': autocompletes})
 
-@csrf_exempt
+@login_required
 def error_check(request):
     """
     Takes a request object containing Python code data. Calls _error_check(code)
@@ -515,7 +512,7 @@ def error_check(request):
     errors = _error_check(code, function_name)
     return JsonResponse({'errors': errors})
 
-@csrf_exempt
+@login_required
 def policy_action_save(request):
     from policyengine.models import Policy
     from constitution.models import (PolicykitAddConstitutionPolicy,
@@ -593,7 +590,7 @@ def policy_action_save(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def policy_action_remove(request):
     from policyengine.models import Policy
     from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy, PolicykitRemoveTriggerPolicy
@@ -623,7 +620,7 @@ def policy_action_remove(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def policy_action_recover(request):
     from policyengine.models import Policy
     from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy, PolicykitRecoverTriggerPolicy
@@ -653,8 +650,7 @@ def policy_action_recover(request):
 
     return HttpResponse()
 
-
-@csrf_exempt
+@login_required
 def role_action_save(request):
     from policyengine.models import CommunityRole
     from constitution.models import PolicykitAddRole, PolicykitEditRole
@@ -681,7 +677,7 @@ def role_action_save(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def role_action_users(request):
     from policyengine.models import CommunityRole, CommunityUser
     from constitution.models import PolicykitAddUserRole, PolicykitRemoveUserRole
@@ -706,7 +702,7 @@ def role_action_users(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def role_action_remove(request):
     from policyengine.models import CommunityRole
     from constitution.models import PolicykitDeleteRole
@@ -725,7 +721,7 @@ def role_action_remove(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def document_action_save(request):
     from policyengine.models import CommunityDoc
     from constitution.models import PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
@@ -753,7 +749,7 @@ def document_action_save(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def document_action_remove(request):
     from policyengine.models import CommunityDoc
     from constitution.models import PolicykitDeleteCommunityDoc
@@ -772,7 +768,7 @@ def document_action_remove(request):
 
     return HttpResponse()
 
-@csrf_exempt
+@login_required
 def document_action_recover(request):
     from policyengine.models import CommunityDoc
     from constitution.models import PolicykitRecoverCommunityDoc
