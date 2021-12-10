@@ -74,6 +74,25 @@ def logout(request):
     logout(request)
     return redirect('/login')
 
+def initialize_starterkit(request):
+    """Set up starterkit policies and roles for a new community. Gets called from init_startkit form submission"""
+    from policyengine.models import Community
+
+    post_data = json.loads(request.body)
+    starterkit = post_data["starterkit"]
+    community = Community.objects.get(pk=post_data["community_id"])
+
+    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
+    f = open(starter_kit_path)
+    kit_data = json.loads(f.read())
+    f.close()
+
+    Utils.initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
+
+    return JsonResponse({"ok": True})
+
 @login_required
 def dashboard(request):
     from policyengine.models import CommunityUser, Proposal, CommunityPlatform
@@ -464,30 +483,6 @@ def propose_action(request, app_name, codename):
             "proposal": proposal,
         },
     )
-
-#FIXME: @login_required?
-@csrf_exempt
-def initialize_starterkit(request):
-    """
-    Takes a request object containing starter-kit information.
-    Initializes the community with the selected starter kit.
-    """
-    from policyengine.models import Community
-
-    post_data = json.loads(request.body)
-    starterkit = post_data["starterkit"]
-    community = Community.objects.get(pk=post_data["community_id"])
-
-    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
-    cur_path = os.path.abspath(os.path.dirname(__file__))
-    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
-    f = open(starter_kit_path)
-    kit_data = json.loads(f.read())
-    f.close()
-
-    Utils.initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
-
-    return JsonResponse({"ok": True})
 
 @login_required
 def get_autocompletes(request):
