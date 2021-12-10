@@ -1,25 +1,25 @@
+import html
+import json
+import logging
+import os
+
+from actstream.models import Action
 from django.conf import settings
-from django.contrib.auth import authenticate, login, get_user
+from django.contrib.auth import authenticate, get_user, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Permission
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.http.response import HttpResponseServerError
-from django.http import Http404
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, redirect
 from django.forms import modelform_factory
-from actstream.models import Action
-from policyengine.filter import filter_code
-from policyengine.linter import _error_check
-import policyengine.utils as Utils
-from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
-from policyengine.integration_data import integration_data
-from policyengine.metagov_app import metagov, metagov_handler
+from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
+                         JsonResponse)
+from django.http.response import HttpResponseServerError
+from django.shortcuts import redirect, render
 
-import logging
-import json
-import html
-import os
+import policyengine.utils as Utils
+from policyengine.filter import filter_code
+from policyengine.integration_data import integration_data
+from policyengine.linter import _error_check
+from policyengine.metagov_app import metagov, metagov_handler
+from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,6 @@ def authorize_platform(request):
         type=req_type
     )
 
-
 def authenticate_user(request):
     """
     Django authentication endpoint. This gets invoked after the platform oauth flow has successfully completed.
@@ -67,7 +66,6 @@ def authenticate_user(request):
 
     # TODO: better error messages
     return redirect("/login?error=login_failed")
-
 
 def logout(request):
     from django.contrib.auth import logout
@@ -95,7 +93,7 @@ def initialize_starterkit(request):
 
 @login_required
 def dashboard(request):
-    from policyengine.models import CommunityUser, Proposal, CommunityPlatform
+    from policyengine.models import CommunityPlatform, CommunityUser, Proposal
     user = get_user(request)
     community = user.community.community
     # List all CommunityUsers across all platforms connected to this community
@@ -255,7 +253,7 @@ def editor(request):
     user = get_user(request)
     community = user.community.community
 
-    from policyengine.models import PolicyActionKind, Policy
+    from policyengine.models import Policy, PolicyActionKind
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
         raise Http404("Policy does not exist")
 
@@ -329,7 +327,7 @@ def roleusers(request):
 
 @login_required
 def roleeditor(request):
-    from policyengine.models import CommunityRole, CommunityPlatform
+    from policyengine.models import CommunityPlatform, CommunityRole
 
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -509,10 +507,15 @@ def error_check(request):
 
 @login_required
 def policy_action_save(request):
+    from constitution.models import (ActionType, PolicyActionKind,
+                                     PolicykitAddConstitutionPolicy,
+                                     PolicykitAddPlatformPolicy,
+                                     PolicykitAddTriggerPolicy,
+                                     PolicykitChangeConstitutionPolicy,
+                                     PolicykitChangePlatformPolicy,
+                                     PolicykitChangeTriggerPolicy)
+
     from policyengine.models import Policy
-    from constitution.models import (PolicykitAddConstitutionPolicy,
-        PolicykitAddTriggerPolicy, PolicykitChangeTriggerPolicy, PolicykitAddPlatformPolicy,
-        PolicykitChangeConstitutionPolicy, PolicykitChangePlatformPolicy, ActionType, PolicyActionKind)
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -587,8 +590,11 @@ def policy_action_save(request):
 
 @login_required
 def policy_action_remove(request):
+    from constitution.models import (PolicykitRemoveConstitutionPolicy,
+                                     PolicykitRemovePlatformPolicy,
+                                     PolicykitRemoveTriggerPolicy)
+
     from policyengine.models import Policy
-    from constitution.models import PolicykitRemoveConstitutionPolicy, PolicykitRemovePlatformPolicy, PolicykitRemoveTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -617,8 +623,11 @@ def policy_action_remove(request):
 
 @login_required
 def policy_action_recover(request):
+    from constitution.models import (PolicykitRecoverConstitutionPolicy,
+                                     PolicykitRecoverPlatformPolicy,
+                                     PolicykitRecoverTriggerPolicy)
+
     from policyengine.models import Policy
-    from constitution.models import PolicykitRecoverConstitutionPolicy, PolicykitRecoverPlatformPolicy, PolicykitRecoverTriggerPolicy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -647,8 +656,9 @@ def policy_action_recover(request):
 
 @login_required
 def role_action_save(request):
-    from policyengine.models import CommunityRole
     from constitution.models import PolicykitAddRole, PolicykitEditRole
+
+    from policyengine.models import CommunityRole
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -674,8 +684,10 @@ def role_action_save(request):
 
 @login_required
 def role_action_users(request):
+    from constitution.models import (PolicykitAddUserRole,
+                                     PolicykitRemoveUserRole)
+
     from policyengine.models import CommunityRole, CommunityUser
-    from constitution.models import PolicykitAddUserRole, PolicykitRemoveUserRole
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -699,8 +711,9 @@ def role_action_users(request):
 
 @login_required
 def role_action_remove(request):
-    from policyengine.models import CommunityRole
     from constitution.models import PolicykitDeleteRole
+
+    from policyengine.models import CommunityRole
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -718,8 +731,10 @@ def role_action_remove(request):
 
 @login_required
 def document_action_save(request):
+    from constitution.models import (PolicykitAddCommunityDoc,
+                                     PolicykitChangeCommunityDoc)
+
     from policyengine.models import CommunityDoc
-    from constitution.models import PolicykitAddCommunityDoc, PolicykitChangeCommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -746,8 +761,9 @@ def document_action_save(request):
 
 @login_required
 def document_action_remove(request):
-    from policyengine.models import CommunityDoc
     from constitution.models import PolicykitDeleteCommunityDoc
+
+    from policyengine.models import CommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -765,8 +781,9 @@ def document_action_remove(request):
 
 @login_required
 def document_action_recover(request):
-    from policyengine.models import CommunityDoc
     from constitution.models import PolicykitRecoverCommunityDoc
+
+    from policyengine.models import CommunityDoc
 
     data = json.loads(request.body)
     user = get_user(request)
