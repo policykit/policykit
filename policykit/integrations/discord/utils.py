@@ -48,14 +48,8 @@ def construct_emoji_vote_params(proposal, users=None, post_type="channel", templ
 
     if channel is not None:
         payload["channel"] = channel
-    elif action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
+    elif hasattr(action, "channel") and action.channel:
         payload["channel"] = action.channel
-    elif action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel"):
-        payload["channel"] = action.action.channel  # action is a trigger from a governable action
-    elif action.action_type == "governableactionbundle":
-        first_action = action.bundled_actions.all()[0]
-        if hasattr(first_action, "channel") and first_action.channel:
-            payload["channel"] = first_action.channel
 
     if post_type == "channel" and not payload.get("channel"):
         raise Exception("Failed to determine which channel to post in")
