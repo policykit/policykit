@@ -1,7 +1,6 @@
 from django.db import models
 from policyengine.models import CommunityPlatform, CommunityUser, TriggerAction
 import logging
-import requests
 
 from django.db import models
 import integrations.discord.utils as DiscordUtils
@@ -34,7 +33,7 @@ class DiscordCommunity(CommunityPlatform):
         # get plugin instance
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("discord", self.team_id)
         # start process
-        process = plugin.start_process("emoji-vote", **args)
+        process = plugin.start_process("vote", **args)
         # save reference to process on the proposal, so we can link up the signals later
         proposal.governance_process = process
         proposal.community_post = process.outcome["message_id"]
@@ -62,6 +61,7 @@ class DiscordCommunity(CommunityPlatform):
     def _get_or_create_user(self, user_id):
         unique_username = f"{user_id}:{self.team_id}"
         return DiscordUser.options.get_or_create(username=unique_username, community=self)
+
 
 class DiscordSlashCommand(TriggerAction):
     """
