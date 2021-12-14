@@ -105,4 +105,58 @@ def discord_event_receiver(sender, instance, event_type, data, initiator, **kwar
 
 @receiver(governance_process_updated, sender=DiscordVote)
 def discord_vote_updated_receiver(sender, instance, status, outcome, errors, **kwargs):
-    logger.debug(f">>> got discord vote event {outcome}")
+    """
+    Handle a change to an ongoing Metagov discord.vote GovernanceProcess.
+    This function gets called any time a discord.vote gets updated (e.g. if a vote was cast).
+    """
+    try:
+        proposal = Proposal.objects.get(governance_process=instance)
+    except Proposal.DoesNotExist:
+        # Proposal not saved yet, ignore
+        return
+
+    if proposal.status in [Proposal.PASSED, Proposal.FAILED]:
+        logger.debug(f"Ignoring signal from {instance}, proposal {proposal.pk} has been completed")
+        return
+
+    logger.debug(f"Received vote update from {instance} - {instance.plugin.community_platform_id}")
+    logger.debug(outcome)
+
+    try:
+        discord_community = DiscordCommunity.objects.get(
+            team_id=instance.plugin.community_platform_id, community__metagov_slug=instance.plugin.community.slug
+        )
+    except DiscordCommunity.DoesNotExist:
+        logger.warn(f"No DiscordCommunity matches {instance}")
+        return
+
+    votes = outcome["votes"]
+    is_boolean_vote = set(votes.keys()) == {"yes", "no"}
+
+    ### 1) Count boolean vote
+    if is_boolean_vote:
+        for (vote_option, result) in votes.items():
+            boolean_value = True if vote_option == "yes" else False
+            for u in result["users"]:
+                user, _ = discord_community._get_or_create_user(user_id=u)
+                existing_vote = BooleanVote.objects.filter(proposal=proposal, user=user).first()
+                if existing_vote is None:
+                    logger.debug(f"Counting boolean vote {boolean_value} by {user}")
+                    BooleanVote.objects.create(proposal=proposal, user=user, boolean_value=boolean_value)
+                elif existing_vote.boolean_value != boolean_value:
+                    logger.debug(f"Counting boolean vote {boolean_value} by {user} (vote changed)")
+                    existing_vote.boolean_value = boolean_value
+                    existing_vote.save()
+    ### 2) Count choice vote
+    else:
+        for (vote_option, result) in votes.items():
+            for u in result["users"]:
+                user, _ = discord_community._get_or_create_user(user_id=u)
+                existing_vote = ChoiceVote.objects.filter(proposal=proposal, user=user).first()
+                if existing_vote is None:
+                    logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal}")
+                    ChoiceVote.objects.create(proposal=proposal, user=user, value=vote_option)
+                elif existing_vote.value != vote_option:
+                    logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
+                    existing_vote.value = vote_option
+                    existing_vote.save()

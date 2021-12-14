@@ -44,8 +44,7 @@ def slack_event_receiver(sender, instance, event_type, data, initiator, **kwargs
 def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwargs):
     """
     Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
-    This function gets called any time a slack.emoji-vote associated with
-    this SlackCommunity gets updated (e.g. if a vote was cast).
+    This function gets called any time a slack.emoji-vote gets updated (e.g. if a vote was cast).
     """
 
     try:
@@ -111,7 +110,7 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
                     )
                     existing_vote.number_value = num
                     existing_vote.save()
-    ### 2) Count choice vote
+    ### 3) Count choice vote
     else:
         for (vote_option, result) in votes.items():
             for u in result["users"]:
