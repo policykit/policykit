@@ -3,7 +3,7 @@ import logging
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 from integrations.discord.models import DiscordCommunity, DiscordUser
-from integrations.discord.utils import get_discord_user_fields
+import integrations.discord.utils as DiscordUtils
 import requests
 
 logger = logging.getLogger(__name__)
@@ -39,18 +39,15 @@ class DiscordBackend(BaseBackend):
         )
         user_data = resp.json()
         logger.debug(user_data)
-        user_fields = get_discord_user_fields(user_data)
+
+        user_fields = DiscordUtils.get_discord_user_fields(user_data)
         logger.debug(user_fields)
         # Store the user's token. This is only necessary if we want PolicyKit to be able to make requests on their behalf later on.
         user_fields["password"] = user_token
         user_fields["access_token"] = user_token
 
-        # FIXME
-        unique_username = f"{user_data['id']}:{team_id}"
-
-        discord_user, created = DiscordUser.objects.update_or_create(
-            username=unique_username,
-            community=discord_community,
+        discord_user, created = discord_community._update_or_create_user(
+            user_id=user_data['id'],
             defaults=user_fields,
         )
         logger.debug(f"{'Created' if created else 'Updated'} Discord user {discord_user}")

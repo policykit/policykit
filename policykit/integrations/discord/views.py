@@ -4,10 +4,13 @@ import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
-from django.views.decorators.csrf import csrf_exempt
-from integrations.discord.models import DiscordCommunity, DiscordUser
-from integrations.discord.utils import get_discord_user_fields
-from policyengine.models import Community, CommunityRole
+from integrations.discord.models import (
+    DiscordCommunity,
+    DISCORD_SLASH_COMMAND_NAME,
+    DISCORD_SLASH_COMMAND_OPTION,
+    DISCORD_SLASH_COMMAND_DESCRIPTION,
+)
+from policyengine.models import Community
 from policyengine.utils import get_starterkits_info
 from policyengine.metagov_app import metagov
 
@@ -42,11 +45,9 @@ def discord_login(request):
             return redirect("/main")
     else:
         # If user has more than one PK-integrated Discord guild, bring user to screen to select which guild's dashboard to login to
-        request.session['user_id'] = user_id
-        request.session['user_token'] = user_token
-        return render(
-            request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds}
-        )
+        request.session["user_id"] = user_id
+        request.session["user_token"] = user_token
+        return render(request, "policyadmin/configure_discord.html", {"integrated_guilds": guilds})
 
     # Note: this is not always an accurate error message.
     return redirect("/login?error=policykit_not_yet_installed_to_that_community")
@@ -57,21 +58,22 @@ def login_selected_guild(request):
     This view only gets hit after user completes the configure_discord.html form.
     This only applies for users that have multiple guilds set up with PolicyKit.
     """
-    guild_id = request.POST['guild_id']
+    guild_id = request.POST["guild_id"]
     if not guild_id:
-        return redirect('/login?error=guild_id_missing')
+        return redirect("/login?error=guild_id_missing")
 
-    user_id = request.session.get('user_id')
-    user_token = request.session.get('user_token')
+    user_id = request.session.get("user_id")
+    user_token = request.session.get("user_token")
     if not user_token or not user_id:
-        return redirect('/login?error=user_info_missing')
+        return redirect("/login?error=user_info_missing")
 
     user = authenticate(request, team_id=guild_id, user_id=user_id, user_token=user_token)
     if user:
         login(request, user)
-        return redirect('/main')
+        return redirect("/main")
     else:
-        return redirect('/login?error=invalid_login')
+        return redirect("/login?error=invalid_login")
+
 
 # def handle_channel_update_event(data):
 #     guild_id = data['guild_id']
@@ -260,9 +262,6 @@ def login_selected_guild(request):
 #     connect_gateway()
 
 
-
-
-
 def discord_install(request):
     """
     Gets called after the oauth install flow is completed. This is the redirect_uri that was passed to the oauth flow.
@@ -289,7 +288,15 @@ def discord_install(request):
     mg_community = metagov.get_community(community.metagov_slug)
     discord_plugin = mg_community.get_plugin("discord", guild_id)
     guild_info = discord_plugin.get_guild()
+    logger.debug(f"Found Metagov Plugin {discord_plugin} with guild info: {guild_info}")
     guild_name = guild_info["name"]
+
+    # Register/update the default PolicyKit guild command
+    discord_plugin.register_guild_command(
+        DISCORD_SLASH_COMMAND_NAME,
+        description=DISCORD_SLASH_COMMAND_DESCRIPTION,
+        options=[{"name": DISCORD_SLASH_COMMAND_OPTION, "description": "Command", "type": 3, "required": True}],
+    )
 
     discord_community = DiscordCommunity.objects.filter(team_id=guild_id).first()
     if discord_community is None:
@@ -336,27 +343,15 @@ def discord_install(request):
 
         # Store token for the user who (re)installed Discord
         if user_token and user_id:
-            # FIXME user id needs to be combined with guild..
-            pass
-            """
-            installer = DiscordUser.objects.filter(community=discord_community, username=user_id).first()
-            if installer is not None:
-                logger.debug(f"Storing access_token for installing user ({user_id})")
-                installer.is_community_admin = True
-                installer.access_token = user_token
-                installer.save()
-            else:
-                logger.debug(f"User '{user_id}' is re-installing but no DiscordUser exists for them, creating one..")
-                user = discord_community.make_call("discord.get_user", {"user_id": user_id})
-                user_fields = get_discord_user_fields(user)
-                user_fields["is_community_admin"] = True
-                user_fields["access_token"] = user_token
-                DiscordUser.objects.update_or_create(
-                    community=discord_community,
-                    username=user_id,
-                    defaults=user_fields,
-                )
-            """
+            installer, created = discord_community._update_or_create_user({"id": user_id})
+            installer.is_community_admin = True
+            installer.access_token = user_token
+            installer.save()
+
+            if created:
+                logger.debug(f"Installer user '{user_id}' is a new user, fetching user details...")
+                user_data = discord_community.make_call("discord.get_user", {"user_id": user_id})
+                discord_community._update_or_create_user(user_data)
 
         return redirect(f"{redirect_route}?success=true")
 

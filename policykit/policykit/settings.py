@@ -103,10 +103,6 @@ METAGOV_SETTINGS = {
 REDDIT_CLIENT_ID = env("REDDIT_CLIENT_ID", default=None)
 REDDIT_CLIENT_SECRET = env("REDDIT_CLIENT_SECRET", default=None)
 
-DISCORD_CLIENT_ID = env("DISCORD_CLIENT_ID", default=None)
-DISCORD_CLIENT_SECRET = env("DISCORD_CLIENT_SECRET", default=None)
-DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default=None)
-
 ACTSTREAM_SETTINGS = {
     'MANAGER': 'policyengine.managers.myActionManager',
     'FETCH_RELATIONS': True,
