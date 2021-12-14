@@ -18,7 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 def discord_login(request):
-    """redirect after metagov has gotten the discord user token"""
+    """
+    This view gets hit after the user has logged in with Discord successfully.
+    We need a special view for Discord (rather then the default policyengine 'authenticate_user' view) because we need to look up which of the users Guilds to log into.
+    If the user belongs to multiple Guilds that use PolicyKit, redirect them to a screen to select which guild to log in with.
+    """
     logger.debug(f"discord_login: {request.GET}")
 
     if request.GET.get("error"):
@@ -33,7 +37,8 @@ def discord_login(request):
 
     if not guilds:
         return redirect("/login?error=no_policykit_integrated_guilds_found")
-    elif len(guilds) == 1:
+
+    if len(guilds) == 1:
         user = authenticate(
             request,
             team_id=guilds[0][0],

@@ -12,16 +12,6 @@ logger = logging.getLogger(__name__)
 class DiscordBackend(BaseBackend):
     def authenticate(self, request, user_token=None, user_id=None, team_id=None):
 
-        # user_token = request.GET.get("user_token")
-        # user_id = request.GET.get("user_id")
-        # guilds = request.GET.getlist("guild[]")
-        # # list of (id, name) tuples
-        # guilds = [tuple(x.split(":", 1)) for x in guilds]
-        # logger.debug(f"user belongs to guilds: {guilds}")
-        # if not guilds:
-        #     logger.error("PolicyKit is not installed to any of this users guilds.")
-        #     return None
-        
         if not user_token or not team_id or not user_id:
             logger.error("Missing user_token or team")
             return None
@@ -32,24 +22,20 @@ class DiscordBackend(BaseBackend):
             logger.error(f"No DiscordCommunity found for {team_id}")
             return None
 
-        # Get info about this user. Can make request directly to Discord since we have the token.
+        # Get info about this user. We can make request directly to Discord since we have the user token.
         resp = requests.get(
             f"https://discord.com/api/users/@me",
             headers={"Authorization": f"Bearer {user_token}"},
         )
         user_data = resp.json()
-        logger.debug(user_data)
+        logger.debug(f"Logging in user: {user_data}")
+        discord_user, created = discord_community._update_or_create_user(user_data)
 
-        user_fields = DiscordUtils.get_discord_user_fields(user_data)
-        logger.debug(user_fields)
         # Store the user's token. This is only necessary if we want PolicyKit to be able to make requests on their behalf later on.
-        user_fields["password"] = user_token
-        user_fields["access_token"] = user_token
+        discord_user.password = user_token
+        discord_user.access_token = user_token
+        discord_user.save()
 
-        discord_user, created = discord_community._update_or_create_user(
-            user_id=user_data['id'],
-            defaults=user_fields,
-        )
         logger.debug(f"{'Created' if created else 'Updated'} Discord user {discord_user}")
         return discord_user
 
