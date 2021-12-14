@@ -44,7 +44,7 @@ class DiscordCommunity(CommunityPlatform):
         unique_username = f"{user_id}:{self.team_id}"
         user_fields = DiscordUtils.get_discord_user_fields(user_data)
         defaults = {k: v for k, v in user_fields.items() if v is not None}
-        return DiscordUser.update_or_create(username=unique_username, community=self, defaults=defaults)
+        return DiscordUser.objects.update_or_create(username=unique_username, community=self, defaults=defaults)
 
 
 class DiscordSlashCommand(TriggerAction):
