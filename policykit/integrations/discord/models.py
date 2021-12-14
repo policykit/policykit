@@ -60,7 +60,7 @@ class DiscordCommunity(CommunityPlatform):
 
     def _get_or_create_user(self, user_id):
         unique_username = f"{user_id}:{self.team_id}"
-        return DiscordUser.options.get_or_create(username=unique_username, community=self)
+        return DiscordUser.objects.get_or_create(username=unique_username, community=self)
 
 
 class DiscordSlashCommand(TriggerAction):
