@@ -316,6 +316,9 @@ def discord_install(request):
         guild_members = discord_plugin.method(route=f"guilds/{guild_id}/members?limit=1000")
         owner_id = guild_info["owner_id"]
         for member in guild_members:
+            if member["user"]["bot"]:
+                continue
+
             member_user_id = member["user"]["id"]
             u, _ = discord_community._update_or_create_user(member["user"])
 
