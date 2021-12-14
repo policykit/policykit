@@ -313,24 +313,26 @@ def discord_install(request):
         )
 
         # Get the list of users and create a DiscordUser object for each user
-        """
-        guild_members = discord_community.make_call(f'guilds/{guild_id}/members?limit=1000')
-        owner_id = guild_info['owner_id']
+        guild_members = discord_plugin.method(route=f"guilds/{guild_id}/members?limit=1000")
+        owner_id = guild_info["owner_id"]
         for member in guild_members:
-            u, _ = DiscordUser.objects.get_or_create(
-                username=member['user']['id'],
-                readable_name=member['user']['username'],
-                avatar=f"https://cdn.discordapp.com/avatars/{member['user']['id']}/{member['user']['avatar']}.png",
-                community=discord_community,
-            )
-            if user_token and user_id and member['user']['id'] == user_id:
+            member_user_id = member["user"]["id"]
+            u, _ = discord_community._update_or_create_user(member["user"])
+
+            # If this user is the user that's installing discord, mark them as an admin and store their token
+            if user_token and user_id and member_user_id == user_id:
                 logger.debug(f"Storing access_token for installing user ({user_id})")
                 u.is_community_admin = True
                 u.access_token = user_token
                 u.save()
-        """
+
+            # Make guild owner and admin by default
+            if member_user_id == owner_id:
+                u.is_community_admin = True
+                u.save()
 
         if is_new_community:
+            # if this is an entirely new parent community, select starter kit
             context = {
                 "server_url": settings.SERVER_URL,
                 "starterkits": get_starterkits_info(),
@@ -339,6 +341,7 @@ def discord_install(request):
             }
             return render(request, "policyadmin/init_starterkit.html", context)
         else:
+            # discord is being added to an existing community that already has other platforms and starter policies
             return redirect(f"{redirect_route}?success=true")
 
     else:
