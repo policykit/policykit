@@ -27,31 +27,31 @@ def construct_emoji_vote_params(proposal, users=None, post_type="channel", templ
     if post_type == "mpim" and not users:
         raise Exception(f"Must pass users for 'mpim' vote")
 
-    payload = {}
+    params = {}
 
     if users is not None and len(users) > 0:
         if isinstance(users[0], str):
-            payload["eligible_voters"] = users
+            params["eligible_voters"] = users
         else:
-            payload["eligible_voters"] = [u.username for u in users]
+            params["eligible_voters"] = [u.username for u in users]
 
     action = proposal.action
     policy = proposal.policy
 
     if options:
-        payload["poll_type"] = "choice"
-        payload["title"] = template or "Please vote"
-        payload["options"] = options
+        params["poll_type"] = "choice"
+        params["title"] = template or "Please vote"
+        params["options"] = options
     else:
-        payload["poll_type"] = "boolean"
-        payload["title"] = template or default_boolean_vote_message(policy)
+        params["poll_type"] = "boolean"
+        params["title"] = template or default_boolean_vote_message(policy)
 
     if channel is not None:
-        payload["channel"] = channel
+        params["channel"] = int(channel)
     elif hasattr(action, "channel") and action.channel:
-        payload["channel"] = action.channel
+        params["channel"] = action.channel
 
-    if post_type == "channel" and not payload.get("channel"):
+    if post_type == "channel" and not params.get("channel"):
         raise Exception("Failed to determine which channel to post in")
 
-    return payload
+    return params
