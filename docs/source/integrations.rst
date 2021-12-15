@@ -189,13 +189,13 @@ The authentication mechanism for the Discord Integration is **OAuth**. The insta
      - Write policies that perform actions on Discord, such as posting messages.
    * - Trigger Actions
      - ✅
-     - Write Trigger Policies that are triggered by events that occurred on Discord (e.g. "when a user posts a message in a certain channel, do something)
+     - The only supported trigger action currently is DiscordSlashCommand. (e.g. "when a user invokes the policykit bot with "/policykit whatever", do something)
    * - Governable Actions
-     - ✅
-     - Write Platform Policies that govern Discord actions (e.g. "only users with X role can post in this Discord channel")
+     - ❌
+     - 
    * - Voting
      - ✅
-     - Write policies that perform boolean voting in a Discord channel.
+     - Write policies that perform boolean- or single-choice voting in a Discord channel.
 
 
 
