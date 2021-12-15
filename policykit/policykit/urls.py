@@ -34,7 +34,7 @@ urlpatterns = [
     path('authenticate_user/', policyviews.authenticate_user),
     path('auth/<str:plugin_name>/callback', plugin_auth_callback),
     path('logout/', policyviews.logout, name="logout"),
-    path('main/', policyviews.v2),
+    path('main/', policyviews.dashboard),
     path('main/editor/', policyviews.editor),
     path('main/selectrole/', policyviews.selectrole),
     path('main/roleusers/', policyviews.roleusers),

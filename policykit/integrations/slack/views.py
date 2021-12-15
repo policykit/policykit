@@ -111,7 +111,7 @@ def slack_install(request):
         return redirect(f"{redirect_route}?success=true")
 
 
-@login_required(login_url="/login")
+@login_required
 @permission_required("constitution.can_remove_integration", raise_exception=True)
 def disable_integration(request):
     id = int(request.GET.get("id"))

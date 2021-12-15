@@ -34,6 +34,7 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SERVER_URL = env("SERVER_URL")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
+LOGIN_URL = "/login"
 
 # Application definition
 INTEGRATIONS = [

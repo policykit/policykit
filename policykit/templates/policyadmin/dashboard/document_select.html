@@ -69,6 +69,7 @@
   <div class="form-row">
     <div class="col-sm-1"></div>
     <div class="col-sm-11">
+      {% csrf_token %}
       <button type="button" class="btn" id="submit">{{operation}} document</button>
     </div>
   </div>
@@ -78,6 +79,7 @@
 {% block scripts %}
 <script>
   document.getElementById("submit").addEventListener("click", submit);
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function submit() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -103,7 +105,8 @@
     fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
       },
       body: JSON.stringify({
         'doc': doc

@@ -1,7 +1,5 @@
 import logging
 
-import json
-
 logger = logging.getLogger(__name__)
 
 from policyengine.metagov_app import metagov
