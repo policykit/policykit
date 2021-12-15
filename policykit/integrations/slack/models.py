@@ -29,7 +29,7 @@ class SlackCommunity(CommunityPlatform):
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
     def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
-        args = SlackUtils.construct_emoji_vote_params(proposal, users, post_type, template, channel, options)
+        args = SlackUtils.construct_vote_params(proposal, users, post_type, template, channel, options)
 
         # get plugin instance
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("slack", self.team_id)

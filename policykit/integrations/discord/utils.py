@@ -21,7 +21,7 @@ def get_discord_user_fields(user_info):
     }
 
 
-def construct_emoji_vote_params(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+def construct_vote_params(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
     if post_type not in ["channel"]:
         raise Exception(f"Unsupported post type {post_type}")
     if post_type == "mpim" and not users:

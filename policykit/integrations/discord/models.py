@@ -28,7 +28,7 @@ class DiscordCommunity(CommunityPlatform):
 
     def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
         # construct args
-        args = DiscordUtils.construct_emoji_vote_params(proposal, users, post_type, template, channel, options)
+        args = DiscordUtils.construct_vote_params(proposal, users, post_type, template, channel, options)
         logger.debug(args)
         # get plugin instance
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("discord", self.team_id)
