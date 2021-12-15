@@ -40,11 +40,18 @@ class DiscordCommunity(CommunityPlatform):
         logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
         proposal.save()
 
-    def post_message(self, text, channel):
+    def post_message(self, text, channel, message_id=None):
         """
         Post a message in a Discord channel.
         """
-        return self.metagov_plugin.post_message(text=text, channel=channel)
+        optional_args = {}
+        if message_id:
+            optional_args["message_reference"] = {
+                "message_id": message_id,
+                "guild_id": self.team_id,
+                "fail_if_not_exists": False,
+            }
+        return self.metagov_plugin.post_message(text=text, channel=channel, **optional_args)
 
     def _update_or_create_user(self, user_data):
         """
