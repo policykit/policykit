@@ -41,6 +41,9 @@ class DiscordCommunity(CommunityPlatform):
         proposal.save()
 
     def post_message(self, text, channel):
+        """
+        Post a message in a Discord channel.
+        """
         return self.metagov_plugin.post_message(text=text, channel=channel)
 
     def _update_or_create_user(self, user_data):
@@ -73,3 +76,7 @@ class DiscordSlashCommand(TriggerAction):
     channel = models.BigIntegerField()
     value = models.TextField()
     interaction_token = models.CharField(max_length=300)
+
+    def respond(self, text: str, **kwargs):
+        # TODO implement responding to slash command using interaction token
+        pass

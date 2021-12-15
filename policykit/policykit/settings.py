@@ -97,6 +97,7 @@ METAGOV_SETTINGS = {
         "CLIENT_SECRET": env("DISCORD_CLIENT_SECRET", default=None),
         "BOT_TOKEN": env("DISCORD_BOT_TOKEN", default=None),
         "PUBLIC_KEY": env("DISCORD_PUBLIC_KEY", default=None),
+        "PERMISSIONS": env("DISCORD_PERMISSIONS", default=397821540358),
     }
 }
 
