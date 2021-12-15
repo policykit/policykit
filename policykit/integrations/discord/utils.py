@@ -44,7 +44,7 @@ def construct_emoji_vote_params(proposal, users=None, post_type="channel", templ
         params["options"] = options
     else:
         params["poll_type"] = "boolean"
-        params["title"] = template or default_boolean_vote_message(policy)
+        params["title"] = template or "Please vote"
 
     if channel is not None:
         params["channel"] = int(channel)

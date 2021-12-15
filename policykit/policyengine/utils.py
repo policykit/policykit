@@ -13,17 +13,11 @@ INTEGRATION_ADMIN_ROLE_NAME = "Integration Admin"
 
 
 def default_election_vote_message(policy):
-    return (
-        "This action is governed by the following policy: " + policy.description + ". Decide between options below:\n"
-    )
+    return "This action is governed by the following policy: " + policy.name + ". Decide between options below:\n"
 
 
 def default_boolean_vote_message(policy):
-    return (
-        "This action is governed by the following policy: "
-        + policy.description
-        + ". Vote with :thumbsup: or :thumbsdown: on this post."
-    )
+    return f"This action is governed by the following policy: {policy.name}"
 
 
 def get_or_create_integration_admin_role(community):
