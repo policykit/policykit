@@ -19,9 +19,6 @@ from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
 
-def NON_POLYMORPHIC_CASCADE(collector, field, sub_objs, using):
-    # https://github.com/django-polymorphic/django-polymorphic/issues/160
-    return models.CASCADE(collector, field, sub_objs.non_polymorphic(), using)
 
 class PolicyActionKind:
     PLATFORM = "platform"
