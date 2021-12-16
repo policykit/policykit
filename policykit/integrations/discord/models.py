@@ -1,178 +1,89 @@
 from django.db import models
-from policyengine.models import CommunityPlatform, CommunityUser, GovernableAction
-from policykit.settings import DISCORD_BOT_TOKEN
-import requests
+from policyengine.models import CommunityPlatform, CommunityUser, TriggerAction
 import logging
+
+from django.db import models
+import integrations.discord.utils as DiscordUtils
+from policyengine.models import (
+    CommunityPlatform,
+    CommunityUser,
+)
+from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
 
+DISCORD_SLASH_COMMAND_NAME = "policykit"
+DISCORD_SLASH_COMMAND_DESCRIPTION = "Send a command to PolicyKit"
+DISCORD_SLASH_COMMAND_OPTION = "command"
 
-# Storing basic info of Discord channels to prevent repeated calls to Discord
-# gateway for channel information.
-class DiscordChannel(models.Model):
-    guild_id = models.BigIntegerField()
-    channel_id = models.BigIntegerField()
-    channel_name = models.TextField()
-
-class DiscordCommunity(CommunityPlatform):
-    API = 'https://discordapp.com/api/'
-    platform = "discord"
-
-    team_id = models.CharField('team_id', max_length=150, unique=True)
-
-    def initiate_vote(self, proposal, users=None, template=None, channel=None):
-        from integrations.discord.views import initiate_action_vote
-        initiate_action_vote(self, proposal, users, template, channel)
-
-    def post_message(self, text, channel):
-        return self.make_call(f'channels/{channel}/messages', values={'content': text}, method="POST")
-
-    def make_call(self, url, values=None, action=None, method="GET"):
-        response = requests.request(
-            method=method,
-            url=self.API + url,
-            json=values,
-            headers={'Authorization': 'Bot %s' % DISCORD_BOT_TOKEN}
-        )
-        logger.debug(f"Made request to {response.request.method} {response.request.url} with body {response.request.body}")
-
-        if not response.ok:
-            logger.error(f"{response.status_code} {response.reason} {response.text}")
-            raise Exception(f"{response.status_code} {response.reason} {response.text}")
-        if response.content:
-            return response.json()
-        return None
 
 class DiscordUser(CommunityUser):
     pass
 
-class DiscordPostMessage(GovernableAction):
-    channel_id = models.BigIntegerField()
-    message_id = models.BigIntegerField()
-    text = models.TextField()
 
-    AUTH = 'user'
+class DiscordCommunity(CommunityPlatform):
+    platform = "discord"
 
-    class Meta:
-        permissions = (
-            ('can_execute_discordpostmessage', 'Can execute discord post message'),
-        )
+    team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def revert(self):
-        super().revert(call=f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
+    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+        # construct args
+        args = DiscordUtils.construct_vote_params(proposal, users, post_type, template, channel, options)
+        logger.debug(args)
+        # get plugin instance
+        plugin = metagov.get_community(self.community.metagov_slug).get_plugin("discord", self.team_id)
+        # start process
+        process = plugin.start_process("vote", **args)
+        # save reference to process on the proposal, so we can link up the signals later
+        proposal.governance_process = process
+        proposal.community_post = process.outcome["message_id"]
+        logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
+        proposal.save()
 
-    def execute(self):
-        # Execute action if it didn't originate in the community OR it was previously reverted
-        if not self.community_origin or (self.community_origin and self.community_revert):
-            message = self.community.post_message(text=self.text, channel=self.channel_id)
+    def post_message(self, text, channel, message_id=None):
+        """
+        Post a message in a Discord channel.
+        """
+        optional_args = {}
+        if message_id:
+            optional_args["message_reference"] = {
+                "message_id": message_id,
+                "guild_id": self.team_id,
+                "fail_if_not_exists": False,
+            }
+        return self.metagov_plugin.post_message(text=text, channel=channel, **optional_args)
 
-            self.message_id = message['id']
-            self.save()
+    def _update_or_create_user(self, user_data):
+        """
+        Helper for creating/updating DiscordUsers. The 'username' field must be unique for Django,
+        so it is a string concatenation of the user id and the guild id.
 
-"""
-# Commented out because broken, see https://github.com/amyxzhang/policykit/issues/433
-class DiscordDeleteMessage(GovernableAction):
-    channel_id = models.BigIntegerField()
-    message_id = models.BigIntegerField()
-    text = models.TextField(blank=True, default='')
+        user_data is a User object https://discord.com/developers/docs/resources/user#user-object
 
-    AUTH = 'user'
+        https://discord.com/developers/docs/resources/guild#guild-member-object
+        """
+        user_id = user_data["id"]
+        unique_username = f"{user_id}:{self.team_id}"
+        user_fields = DiscordUtils.get_discord_user_fields(user_data)
+        defaults = {k: v for k, v in user_fields.items() if v is not None}
+        return DiscordUser.objects.update_or_create(username=unique_username, community=self, defaults=defaults)
 
-    class Meta:
-        permissions = (
-            ('can_execute_discorddeletemessage', 'Can execute discord delete message'),
-        )
+    def _get_or_create_user(self, user_id):
+        unique_username = f"{user_id}:{self.team_id}"
+        return DiscordUser.objects.get_or_create(username=unique_username, community=self)
 
-    def revert(self):
-        super().revert(values={'content': self.text}, call=f"channels/{self.channel_id}/messages")
 
-    def execute(self):
-        # Execute action if it didn't originate in the community OR it was previously reverted
-        if not self.community_origin or (self.community_origin and self.community_revert):
-            # Gets the channel message and stores the text (in case of revert)
-            message = self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}")
-            self.text = message['content']
-            self.save()
+class DiscordSlashCommand(TriggerAction):
+    """
+    Command invoked with `/policykit command: "some string value"`
 
-            # Deletes the message
-            self.community.make_call(f"channels/{self.channel_id}/messages/{self.message_id}", method='DELETE')
-"""
+    This is a generic slash command to trigger a policy from Discord.
+    """
 
-class DiscordRenameChannel(GovernableAction):
-    channel_id = models.BigIntegerField()
-    name = models.TextField()
-    name_old = models.TextField(blank=True, default='')
+    channel = models.BigIntegerField()
+    value = models.TextField()
+    interaction_token = models.CharField(max_length=300)
 
-    AUTH = 'user'
-
-    class Meta:
-        permissions = (
-            ('can_execute_discordrenamechannel', 'Can execute discord rename channel'),
-        )
-
-    def revert(self):
-        super().revert(values={'name': self.name_old}, call=f"channels/{self.channel_id}", method='PATCH')
-
-        # Update DiscordChannel object
-        c = DiscordChannel.objects.filter(channel_id=self.channel_id)
-        c['channel_name'] = self.name_old
-        c.save()
-
-    def execute(self):
-        # Execute action if it didn't originate in the community OR it was previously reverted
-        if not self.community_origin or (self.community_origin and self.community_revert):
-            # Retrieve and store old channel name so we can revert the action if necessary
-            channel = self.community.make_call(f"channels/{self.channel_id}")
-            self.name_old = channel['name']
-
-            # Update the channel name to the new name
-            self.community.make_call(f"channels/{self.channel_id}", {'name': self.name}, method='PATCH')
-
-            # Update DiscordChannel object
-            c = DiscordChannel.objects.filter(channel_id=self.channel_id)
-            c['channel_name'] = self.name
-            c.save()
-
-class DiscordCreateChannel(GovernableAction):
-    channel_id = models.BigIntegerField(blank=True)
-    name = models.TextField()
-
-    AUTH = 'user'
-
-    class Meta:
-        permissions = (
-            ('can_execute_discordcreatechannel', 'Can execute discord create channel'),
-        )
-
-    def revert(self):
-        super().revert(call=f"channels/{self.channel_id}", method='DELETE')
-
-    def execute(self):
-        # Execute action if it didn't originate in the community OR it was previously reverted
-        if not self.community_origin or (self.community_origin and self.community_revert):
-            guild_id = self.community.team_id
-            channel = self.community.make_call(f"guilds/{guild_id}/channels", {'name': self.name}, method="POST")
-            self.channel_id = channel['id']
-            self.save()
-
-            # Create a new DiscordChannel object
-            DiscordChannel.objects.get_or_create(
-                guild_id=guild_id,
-                channel_id=self.channel_id,
-                channel_name=channel['name']
-            )
-
-class DiscordDeleteChannel(GovernableAction):
-    channel_id = models.BigIntegerField()
-
-    AUTH = 'user'
-
-    class Meta:
-        permissions = (
-            ('can_execute_discorddeletechannel', 'Can execute discord delete channel'),
-        )
-
-    def execute(self):
-        # Execute action if it didn't originate in the community
-        if not self.community_origin:
-            self.community.make_call(f"channels/{self.channel_id}", method='DELETE')
+    def respond(self, text: str, **kwargs):
+        # TODO implement responding to slash command using interaction token
+        pass

@@ -28,7 +28,6 @@ urlpatterns = [
         extra_context={
             'server_url': urllib.parse.quote(settings.SERVER_URL, safe=''),
             'reddit_client_id': settings.REDDIT_CLIENT_ID,
-            'discord_client_id': settings.DISCORD_CLIENT_ID,
         }
     )),
     path('authorize_platform/', policyviews.authorize_platform),

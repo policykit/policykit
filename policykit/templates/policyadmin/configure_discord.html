@@ -18,14 +18,14 @@
 
 <P><b>Which Discord guild's dashboard would you like to sign in to?</b><BR></P>
 
-<form action="/discord/auth" method="post">
+<form action="/discord/login_selected_guild" method="post">
+  {% csrf_token %}
   <label for="guilds">Choose a Guild:</label>
   <select name="guild_id">
     {% for guild_id, guild_name in integrated_guilds %}
       <option value="{{ guild_id }}">{{ guild_name }}</option>
     {% endfor %}
   </select>
-  <input type="hidden" name="access_token" value="{{ access_token }}">
   <input type="submit" value="Continue">
 </form>
 

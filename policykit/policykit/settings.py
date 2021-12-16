@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'metagov.plugins.github',
     'metagov.plugins.sourcecred',
     'metagov.plugins.loomio',
+    'metagov.plugins.discord',
     'metagov.plugins.discourse',
     'metagov.plugins.example', #for testing
     'metagov.core',
@@ -92,14 +93,17 @@ METAGOV_SETTINGS = {
         "APP_ID": env("GITHUB_APP_ID", default=None),
         "PRIVATE_KEY_PATH": env("GITHUB_PRIVATE_KEY_PATH", default=None),
     },
+    "DISCORD": {
+        "CLIENT_ID": env("DISCORD_CLIENT_ID", default=None),
+        "CLIENT_SECRET": env("DISCORD_CLIENT_SECRET", default=None),
+        "BOT_TOKEN": env("DISCORD_BOT_TOKEN", default=None),
+        "PUBLIC_KEY": env("DISCORD_PUBLIC_KEY", default=None),
+        "PERMISSIONS": env("DISCORD_PERMISSIONS", default=397821540358),
+    }
 }
 
 REDDIT_CLIENT_ID = env("REDDIT_CLIENT_ID", default=None)
 REDDIT_CLIENT_SECRET = env("REDDIT_CLIENT_SECRET", default=None)
-
-DISCORD_CLIENT_ID = env("DISCORD_CLIENT_ID", default=None)
-DISCORD_CLIENT_SECRET = env("DISCORD_CLIENT_SECRET", default=None)
-DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default=None)
 
 ACTSTREAM_SETTINGS = {
     'MANAGER': 'policyengine.managers.myActionManager',

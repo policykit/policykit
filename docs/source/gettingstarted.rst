@@ -141,7 +141,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                 </VirtualHost>
         </IfModule>
 
-4. Test your config with ``apache2ctl configtest``. You should get a "Syntax OK" as a response. 
+4. Test your config with ``apache2ctl configtest``. You should get a "Syntax OK" as a response.
 
 5. Enable your site:
 
@@ -433,22 +433,7 @@ The Slack integration occurs through Metagov. Follow the setup instructions for 
 
 Discord
 """""""
-
-1. Go to https://discord.com/developers/applications
-2. Click "New Application" to create your PolicyKit application
-3. Under OAuth2, add the redirect URL ``[POLICYKIT_URL]/discord/oauth``
-4. Add a new Bot and enable these options:
-
-    - Public Bot
-    - Requires OAuth2 Code Grant
-    - Presence Intent
-    - Server Members Intent
-
-5. Copy the bot token into ``DISCORD_BOT_TOKEN`` in ``private.py`` file on your PolicyKit server.
-6. On the OAuth2 page, get the Client ID and Client Secret and copy them into ``private.py``.
-7. Reload apache2: ``systemctl reload apache2``
-8. To test it out, open ``[POLICYKIT_URL]/main`` and click "Install PolicyKit to Discord."
-9. Now, you should be able to use "Sign in with Discord" to access the PolicyKit dashboard for the community you just installed PolicyKit to.
+The Discord integration occurs through Metagov. Follow the setup instructions for the Metagov Discord Plugin to create a new Discord App to use with PolicyKit.
 
 Discourse
 """""""""

@@ -115,50 +115,50 @@ def slack_event_to_platform_action(community, event_type, data, initiator):
     return new_api_action
 
 
-def construct_emoji_vote_params(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+def construct_vote_params(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
     if post_type not in ["channel", "mpim"]:
         raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
     if post_type == "mpim" and not users:
         raise Exception(f"Must pass users for 'mpim' vote")
 
-    payload = {}
+    params = {}
 
     if users is not None and len(users) > 0:
         if isinstance(users[0], str):
-            payload["eligible_voters"] = users
+            params["eligible_voters"] = users
         else:
-            payload["eligible_voters"] = [u.username for u in users]
+            params["eligible_voters"] = [u.username for u in users]
 
     action = proposal.action
     policy = proposal.policy
 
     if options:
-        payload["poll_type"] = "choice"
-        payload["title"] = template or "Please vote"
-        payload["options"] = options
+        params["poll_type"] = "choice"
+        params["title"] = template or "Please vote"
+        params["options"] = options
     elif action.action_type == "governableactionbundle" and action.bundle_type == GovernableActionBundle.ELECTION:
-        payload["poll_type"] = "choice"
-        payload["title"] = template or default_election_vote_message(policy)
-        payload["options"] = [str(a) for a in action.bundled_actions.all()]
+        params["poll_type"] = "choice"
+        params["title"] = template or default_election_vote_message(policy)
+        params["options"] = [str(a) for a in action.bundled_actions.all()]
     else:
-        payload["poll_type"] = "boolean"
-        payload["title"] = template or default_boolean_vote_message(policy)
+        params["poll_type"] = "boolean"
+        params["title"] = template or default_boolean_vote_message(policy)
 
     if post_type == "channel":
         if channel is not None:
-            payload["channel"] = channel
+            params["channel"] = channel
         elif action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
-            payload["channel"] = action.channel
+            params["channel"] = action.channel
         elif (
             action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel")
         ):
-            payload["channel"] = action.action.channel  # action is a trigger from a governable action
+            params["channel"] = action.action.channel  # action is a trigger from a governable action
         elif action.action_type == "governableactionbundle":
             first_action = action.bundled_actions.all()[0]
             if hasattr(first_action, "channel") and first_action.channel:
-                payload["channel"] = first_action.channel
+                params["channel"] = first_action.channel
 
-    if post_type == "channel" and not payload.get("channel"):
+    if post_type == "channel" and not params.get("channel"):
         raise Exception("Failed to determine which channel to post in")
 
-    return payload
+    return params

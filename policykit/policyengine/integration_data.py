@@ -30,4 +30,5 @@ integration_data = {
     # },
     # "near": {"readable_name": "NEAR", "description": "Make calls to a NEAR smart contracts from PolicyKit policies."},
     "github": {"readable_name": "GitHub", "has_policykit_integration": True},
+    "discord": {"readable_name": "Discord", "hide_config": True},
 }

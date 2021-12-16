@@ -1,0 +1,15 @@
+{
+    "policy_kind": "Trigger",
+    "action_types": [
+        "discordslashcommand"
+    ],
+    "name": "Discord ping",
+    "description": "Testing policy that responds to a slash command invocation in Discord.",
+    "is_bundled": false,
+    "filter": "return action.value == \"ping\"",
+    "initialize": "discord.post_message(\"pong\", action.channel)\n\n",
+    "check": "return PASSED\n\n",
+    "notify": "pass\n\n",
+    "success": "pass\n\n",
+    "fail": "pass\n\n"
+}
