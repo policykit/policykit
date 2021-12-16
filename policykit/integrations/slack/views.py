@@ -1,12 +1,11 @@
 import logging
-from django.conf import settings
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required, permission_required
 from integrations.slack.models import SlackCommunity, SlackUser
 from integrations.slack.utils import get_slack_user_fields
 from policyengine.models import Community
-from policyengine.utils import get_starterkits_info
+from policyengine.utils import render_starterkit_view
 from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
@@ -71,13 +70,7 @@ def slack_install(request):
                     u.save()
 
         if is_new_community:
-            context = {
-                "server_url": settings.SERVER_URL,
-                "starterkits": get_starterkits_info(),
-                "community_id": slack_community.community.pk,
-                "creator_token": user_token,
-            }
-            return render(request, "policyadmin/init_starterkit.html", context)
+            return render_starterkit_view(request, slack_community.community.pk, creator_username=user_id)
         else:
             return redirect(f"{redirect_route}?success=true")
 

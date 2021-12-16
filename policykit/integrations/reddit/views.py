@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 from integrations.reddit.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
-from policyengine.utils import get_starterkits_info
+from policyengine.utils import render_starterkit_view
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from urllib import parse
@@ -114,14 +114,7 @@ def init_community_reddit(request):
         response = redirect('/login?success=true')
         return response
 
-    context = {
-        "server_url": SERVER_URL,
-        "starterkits": get_starterkits_info(),
-        "community_id": community.community.pk,
-        "creator_token": access_token,
-        "platform": "reddit"
-    }
-    return render(request, "policyadmin/init_starterkit.html", context)
+    return render_starterkit_view(request, community.community.pk)
 
 @csrf_exempt
 def action(request):

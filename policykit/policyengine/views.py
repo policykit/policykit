@@ -73,23 +73,35 @@ def logout(request):
     return redirect('/login')
 
 def initialize_starterkit(request):
-    """Set up starterkit policies and roles for a new community. Gets called from init_startkit form submission"""
+    """
+    Set up starterkit policies and roles for a new community. Gets called when a user selects a starterkit on the init_startkit page
+    """
     from policyengine.models import Community
 
-    post_data = json.loads(request.body)
-    starterkit = post_data["starterkit"]
-    community = Community.objects.get(pk=post_data["community_id"])
+    starterkit_id = request.GET.get("kit")
+    community_id = request.session["starterkit_init_community_id"]
+    creator_username = request.session["starterkit_init_creator_username"]
+    if not community_id:
+        raise Http404
+    del request.session["starterkit_init_community_id"]
+    del request.session["starterkit_init_creator_username"]
 
-    logger.debug(f'Initializing community {community} with starter kit {starterkit}...')
+    community = Community.objects.get(pk=community_id)
+
+    logger.debug(f'Initializing community {community} with starter kit {starterkit_id}...')
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit}.txt')
+    starter_kit_path = os.path.join(cur_path, f'../starterkits/{starterkit_id}.json')
     f = open(starter_kit_path)
     kit_data = json.loads(f.read())
     f.close()
 
-    Utils.initialize_starterkit_inner(community, kit_data, creator_token=post_data.get("creator_token"))
+    try:
+        Utils.initialize_starterkit_inner(community, kit_data, creator_username=creator_username)
+    except Exception as e:
+        logger.error(f"Initializing kit {starterkit_id} raised exception {type(e).__name__} {e}")
+        return redirect("/login?error=starterkit_init_failed")    
 
-    return JsonResponse({"ok": True})
+    return redirect("/login?success=true")
 
 @login_required
 def dashboard(request):

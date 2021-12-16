@@ -19,7 +19,7 @@
       "description": "Only actions proposed by dictator pass",
       "filter": "return True",
       "initialize": "pass",
-      "check": "return FAILED",
+      "check": "return PASSED if action.initiator.has_role('Dictator') else FAILED",
       "notify": "pass",
       "success": "pass",
       "fail": "pass"
@@ -28,7 +28,7 @@
   "roles": [
     {
       "name": "Base User",
-      "description": "",
+      "description": "Has ability to propose actions",
       "is_base_role": true,
       "user_group": "all",
       "platform_permission_sets": [
@@ -36,7 +36,8 @@
         "propose"
       ],
       "constitution_permission_sets": [
-        "view"
+        "view",
+        "propose"
       ],
       "permissions": [
         "Can view boolean vote",
@@ -45,18 +46,16 @@
     },
     {
       "name": "Dictator",
-      "description": "Has ability to propose and execute actions",
+      "description": "Has ability to propose actions",
       "is_base_role": false,
       "user_group": "creator",
       "platform_permission_sets": [
         "view",
-        "propose",
-        "execute"
+        "propose"
       ],
       "constitution_permission_sets": [
         "view",
-        "propose",
-        "execute"
+        "propose"
       ],
       "permissions": [
         "Can add boolean vote",

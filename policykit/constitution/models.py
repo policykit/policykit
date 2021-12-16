@@ -193,7 +193,7 @@ class PolicykitEditRole(ConstitutionAction):
 
 
 class PolicykitAddUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
+    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     users = models.ManyToManyField(CommunityUser)
 
     def __str__(self):
@@ -214,7 +214,7 @@ class PolicykitAddUserRole(ConstitutionAction):
 
 
 class PolicykitRemoveUserRole(ConstitutionAction):
-    role = models.ForeignKey(CommunityRole, models.CASCADE)
+    role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     users = models.ManyToManyField(CommunityUser)
 
     def __str__(self):

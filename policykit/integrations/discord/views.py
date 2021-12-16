@@ -11,7 +11,7 @@ from integrations.discord.models import (
     DISCORD_SLASH_COMMAND_DESCRIPTION,
 )
 from policyengine.models import Community
-from policyengine.utils import get_starterkits_info
+from policyengine.utils import render_starterkit_view
 from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
@@ -128,6 +128,7 @@ def discord_install(request):
         # Get the list of users and create a DiscordUser object for each user
         guild_members = discord_plugin.method(route=f"guilds/{guild_id}/members?limit=1000")
         owner_id = guild_info["owner_id"]
+        creator_user = None
         for member in guild_members:
             if member["user"].get("bot"):
                 continue
@@ -141,6 +142,7 @@ def discord_install(request):
                 u.is_community_admin = True
                 u.access_token = user_token
                 u.save()
+                creator_user = u
 
             # Make guild owner and admin by default
             if member_user_id == owner_id:
@@ -149,13 +151,7 @@ def discord_install(request):
 
         if is_new_community:
             # if this is an entirely new parent community, select starter kit
-            context = {
-                "server_url": settings.SERVER_URL,
-                "starterkits": get_starterkits_info(),
-                "community_id": discord_community.community.pk,
-                "creator_token": user_token,
-            }
-            return render(request, "policyadmin/init_starterkit.html", context)
+            return render_starterkit_view(request, discord_community.community.pk, creator_username=creator_user.username if creator_user else None)
         else:
             # discord is being added to an existing community that already has other platforms and starter policies
             return redirect(f"{redirect_route}?success=true")

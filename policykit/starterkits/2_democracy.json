@@ -1,10 +1,11 @@
 {
-  "name": "Moderators",
-  "description": "Mimics a basic Moderator and User structure.",
+  "name": "Democracy",
+  "description": "A specified population of users votes in order to pass constitution actions.",
+  "disabled": true,
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
-      "description": "Starter Platform Policy: all platform actions pass automatically",
+      "description": "All platform actions pass automatically",
       "filter": "return True",
       "initialize": "pass",
       "check": "return PASSED",
@@ -15,12 +16,12 @@
   ],
   "constitution_policies": [
     {
-      "name": "Moderators: All Constitution Actions from Moderators Pass",
-      "description": "Starter Constitution Policy: constitution actions pass if proposed by moderator",
+      "name": "Constitution Actions Voted In",
+      "description": "All constitution actions must be approved by voters",
       "filter": "return True",
       "initialize": "pass",
-      "check": "if action.initiator.has_role('Administrator'):\n    return PASSED\nelse:\n    return FAILED",
-      "notify": "pass",
+      "check": "import math\n\nimport datetime\n\nvoter_users = ${PLATFORM}.get_users(role_names=['Voter'])\nyes_votes = proposal.get_yes_votes(users=voter_users)\nif len(yes_votes) >= math.ceil(voter_users.count()/2):\n    return PASSED\nelif proposal.get_time_elapsed() > datetime.timedelta(days=1):\n    return FAILED",
+      "notify": "voter_users = ${PLATFORM}.get_users(role_names=['Voter'])\n${PLATFORM}.initiate_vote(proposal, users=voter_users, template='Please vote')",
       "success": "pass",
       "fail": "pass"
     }
@@ -32,19 +33,27 @@
       "is_base_role": true,
       "user_group": "nonadmins",
       "platform_permission_sets": [
-        "view"
+        "view",
+        "propose"
       ],
       "constitution_permission_sets": [
-        "view"
+        "view",
+        "propose"
       ],
       "permissions": [
+        "Can add boolean vote",
+        "Can change boolean vote",
+        "Can delete boolean vote",
         "Can view boolean vote",
+        "Can add number vote",
+        "Can change number vote",
+        "Can delete number vote",
         "Can view number vote"
       ]
     },
     {
-      "name": "Moderator",
-      "description": "Has ability to propose actions",
+      "name": "Voter",
+      "description": "Has ability to vote",
       "is_base_role": false,
       "user_group": "admins",
       "platform_permission_sets": [

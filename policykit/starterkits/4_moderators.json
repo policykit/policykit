@@ -1,10 +1,10 @@
 {
-  "name": "Democracy",
-  "description": "A specified population of users votes in order to pass constitution actions.",
+  "name": "Moderators",
+  "description": "Mimics a basic Moderator and User structure.",
   "platform_policies": [
     {
       "name": "All Platform Actions Pass",
-      "description": "All platform actions pass automatically",
+      "description": "Starter Platform Policy: all platform actions pass automatically",
       "filter": "return True",
       "initialize": "pass",
       "check": "return PASSED",
@@ -15,12 +15,12 @@
   ],
   "constitution_policies": [
     {
-      "name": "Constitution Actions Voted In",
-      "description": "All constitution actions must be approved by voters",
-      "filter": "if not action.initiator.has_role('Moderator'):\n    return True\nelse:\n    return False",
+      "name": "Moderators: All Constitution Actions from Moderators Pass",
+      "description": "Starter Constitution Policy: constitution actions pass if proposed by moderator",
+      "filter": "return True",
       "initialize": "pass",
-      "check": "import math\n\nvoter_users = action.community.get_users().filter(groups__name__in=['Democracy: Voter'])\nyes_votes = proposal.get_yes_votes(users=voter_users)\nif len(yes_votes) >= math.ceil(voter_users.count()/2):\n    return PASSED\nelif proposal.get_time_elapsed() > datetime.timedelta(days=1):\n    return FAILED",
-      "notify": "voter_users = action.community.get_users().filter(groups__name__in=['Democracy: Voter'])\naction.community.initiate_vote(proposal, users=voter_users, template='Please vote')",
+      "check": "return PASSED if action.initiator.has_role('Moderator') else FAILED",
+      "notify": "pass",
       "success": "pass",
       "fail": "pass"
     }
@@ -28,9 +28,9 @@
   "roles": [
     {
       "name": "Base User",
-      "description": "",
+      "description": "Has ability to propose actions",
       "is_base_role": true,
-      "user_group": "nonadmins",
+      "user_group": "all",
       "platform_permission_sets": [
         "view",
         "propose"
@@ -51,8 +51,8 @@
       ]
     },
     {
-      "name": "Voter",
-      "description": "Has ability to vote",
+      "name": "Moderator",
+      "description": "Has ability to propose actions",
       "is_base_role": false,
       "user_group": "admins",
       "platform_permission_sets": [

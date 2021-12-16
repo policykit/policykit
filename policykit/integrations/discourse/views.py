@@ -4,7 +4,7 @@ from policykit.settings import SERVER_URL
 from integrations.discourse.models import DiscourseCommunity, DiscourseUser
 from integrations.discourse.utils import get_discourse_user_fields
 from policyengine.models import *
-from policyengine.utils import get_starterkits_info
+from policyengine.utils import render_starterkit_view
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from Crypto.PublicKey import RSA
@@ -121,13 +121,7 @@ def auth(request):
                     defaults=user_fields,
                 )
 
-            context = {
-                "server_url": SERVER_URL,
-                "starterkits": get_starterkits_info(),
-                "community_id": community.community.pk,
-                "platform": "discourse"
-            }
-            return render(request, "policyadmin/init_starterkit.html", context)
+            return render_starterkit_view(request, community.community.pk)
 
     return redirect('/login?error=no_community_found')
 
