@@ -17,9 +17,7 @@ def generate_action_autocompletes(cls):
     Generate autocompletes for model fields and properties defined on an action
     """
     ignored_types = ["JSONField", "OneToOneField"]
-    hints = [
-        f.name for f in cls._meta.get_fields(include_parents=False) if f.get_internal_type() not in ignored_types
-    ]
+    hints = [f.name for f in cls._meta.get_fields(include_parents=False) if f.get_internal_type() not in ignored_types]
 
     ignored_properties = ACTION_HINTS + ["pk"]  # exclude common fields
     properties = inspect.getmembers(cls, lambda o: isinstance(o, property))
@@ -83,6 +81,8 @@ def _get_function_hints(cls, module_substring, excluded_functions=None):
 def generate_evaluation_autocompletes():
     """
     Generate autocomplete strings for proposal, policy, action, and logger
+    Returns a list of hints:
+        ["proposal", "proposal.status", "logger", "logger.debug()", ...]
     """
     autocompletes = []
 
@@ -108,6 +108,12 @@ def generate_evaluation_autocompletes():
 
     ### LOGGER
     autocompletes.extend(["logger", "logger.debug()", "logger.info()", "logger.warn()", "logger.error()"])
+
+    ### METAGOV CLIENT
+    from policyengine.metagov_client import Metagov
+
+    autocompletes.extend([f"metagov.{h}" for h in _get_function_hints(Metagov, "metagov")])
+
     return autocompletes
 
 
