@@ -3,7 +3,7 @@ from policyengine.models import Community, CommunityPlatform, CommunityUser, Com
 from integrations.discord.models import DiscordCommunity
 from integrations.slack.models import SlackCommunity
 from constitution.models import ConstitutionCommunity
-from policyengine.utils import initialize_starterkit_inner
+import policyengine.utils as Utils
 
 import os
 import json
@@ -12,10 +12,11 @@ import json
 class StarterKitTests(TestCase):
     def test_initialize_starterkit(self):
         """Test that starter kit initializion for all kits on all platforms doesn't throw any errors"""
+        starterkits_info = Utils.get_starterkits_info()
         cur_path = os.path.abspath(os.path.dirname(__file__))
         all_kits = []
-        for k in ["testing", "democracy", "jury", "dictator", "moderators"]:
-            starter_kit_path = os.path.join(cur_path, f"../starterkits/{k}.txt")
+        for k in starterkits_info:
+            starter_kit_path = os.path.join(cur_path, f"../starterkits/{k['id']}.json")
             f = open(starter_kit_path)
             all_kits.append(json.loads(f.read()))
             f.close()
@@ -24,7 +25,7 @@ class StarterKitTests(TestCase):
             for kit_data in all_kits:
                 # print(f"Initializing kit '{kit_data['name']}' for {platform}")
                 community_platform = self._new_platform_community(platform)
-                initialize_starterkit_inner(community_platform.community, kit_data)
+                Utils.initialize_starterkit_inner(community_platform.community, kit_data, creator_username="xyz")
                 roles = community_platform.community.get_roles()
                 self.assertEqual(roles.filter(is_base_role=True).count(), 1)
 

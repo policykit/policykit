@@ -155,6 +155,13 @@ def get_action_content_types(app_name: str):
 
     return [ContentType.objects.get_for_model(cls) for cls in get_action_classes(app_name)]
 
+def render_starterkit_view(request, community_id, creator_username):
+    from django.shortcuts import render
+    request.session["starterkit_init_community_id"] = community_id
+    request.session["starterkit_init_creator_username"] = creator_username
+
+    context = {"starterkits": get_starterkits_info()}
+    return render(request, "policyadmin/init_starterkit.html", context)
 
 def get_starterkits_info():
     """
@@ -163,11 +170,17 @@ def get_starterkits_info():
     starterkits = []
     cur_path = os.path.abspath(os.path.dirname(__file__))
     dir_path = os.path.join(cur_path, f"../starterkits")
-    for kit_file in os.listdir(dir_path):
+    for kit_file in sorted(os.listdir(dir_path)):
         kit_path = os.path.join(dir_path, kit_file)
         f = open(kit_path)
         data = json.loads(f.read())
-        starterkits.append({"name": data["name"], "description": data["description"]})
+        if data.get("disabled"):
+            continue
+        starterkits.append({
+            "id": kit_file.replace(".json", ""),
+            "name": data["name"],
+            "description": data["description"]
+        })
     return starterkits
 
 
@@ -184,17 +197,25 @@ def get_all_permissions(app_names):
     )
 
 
-def initialize_starterkit_inner(community, kit_data, creator_token=None):
+def _fill_templated_policy(policy_data, platform):
+    return {k: v.replace("${PLATFORM}", platform) for k,v in policy_data.items()}
+
+def initialize_starterkit_inner(community, kit_data, creator_username=None):
     from django.contrib.auth.models import Permission
 
     from policyengine.models import CommunityRole, CommunityUser, Policy
 
+    # Some policies have templated ${PLATFORM} that need to be filled in with the platform string (eg "slack")
+    initial_platform = community.get_platform_communities()[0].platform
+
     # Create platform policies
-    for policy in kit_data["platform_policies"]:
+    for templated_policy in kit_data["platform_policies"]:
+        policy = _fill_templated_policy(templated_policy, initial_platform)
         Policy.objects.create(**policy, kind=Policy.PLATFORM, community=community)
 
     # Create constitution policies
-    for policy in kit_data["constitution_policies"]:
+    for templated_policy in kit_data["constitution_policies"]:
+        policy = _fill_templated_policy(templated_policy, initial_platform)
         Policy.objects.create(**policy, kind=Policy.CONSTITUTION, community=community)
 
     # Create roles
@@ -226,7 +247,9 @@ def initialize_starterkit_inner(community, kit_data, creator_token=None):
         elif role["user_group"] == "nonadmins":
             group = CommunityUser.objects.filter(community__community=community, is_community_admin=False)
         elif role["user_group"] == "creator":
-            group = CommunityUser.objects.filter(community__community=community, access_token=creator_token)
+            if not creator_username:
+                raise Exception(f"can't initialize kit {kit_data['name']} without the username of the creator")
+            group = CommunityUser.objects.filter(username=creator_username)
 
         # logger.debug(f"Adding {group.count()} users to role {r.role_name}")
         for user in group:

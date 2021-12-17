@@ -19,6 +19,7 @@ from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
 
+
 class PolicyActionKind:
     PLATFORM = "platform"
     CONSTITUTION = "constitution"
@@ -133,7 +134,6 @@ class CommunityPlatform(PolymorphicModel):
     @property
     def metagov_plugin(self):
         mg_community = metagov.get_community(self.metagov_slug)
-        # TODO: catch Plugin.DoesNotExist
         return mg_community.get_plugin(self.platform, self.team_id)
 
     def initiate_vote(self, proposal, users=None):
@@ -149,31 +149,28 @@ class CommunityPlatform(PolymorphicModel):
         """
         pass
 
-    #irrelevant
-    def get_platform_policies(self):
-        """
-        Returns a QuerySet of all platform policies for this ``Community``.
-        """
-        return Policy.platform_policies.filter(community=self.community).order_by('-modified_at')
-
-    #irrelevant
     def get_roles(self):
         """
         Returns a QuerySet of all roles in the community.
         """
-        return CommunityRole.objects.filter(community=self.community)
+        return self.community.get_roles()
 
-    def get_users(self):
+    def get_users(self, role_names=None):
         """
         Returns a QuerySet of all users in the community on this platform.
         """
+        if role_names:
+            # Not efficient, we are doing two queries in order to filter by 'role_name'
+            # because it is a field on CommunityRole, but not on Group.
+            roles = self.community.get_roles().filter(role_name__in=role_names)
+            return CommunityUser.objects.filter(community=self, groups__in=roles).distinct()
+
         return CommunityUser.objects.filter(community=self)
 
 
     def _execute_platform_action(self):
         pass
 
-    #irrelevant, do in a signal or elsewhere
     def save(self, *args, **kwargs):
         if not self.pk and not hasattr(self, "community"):
             # This is the first platform, so create the parent Community
