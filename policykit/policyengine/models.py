@@ -462,8 +462,8 @@ class Proposal(models.Model):
     data = models.OneToOneField(DataStore, models.CASCADE, null=True, blank=True)
     """Datastore for persisting any additional data related to the proposal."""
 
-    community_post = models.CharField(max_length=300, blank=True)
-    """Identifier of the post that is being voted on, if any."""
+    vote_post_id = models.CharField(max_length=300, blank=True)
+    """Platform identifier of the voting post, if any."""
 
     governance_process = models.ForeignKey(GovernanceProcess, on_delete=models.SET_NULL, blank=True, null=True)
     """The Metagov GovernanceProcess that is being used to make a decision about this Proposal, if any."""

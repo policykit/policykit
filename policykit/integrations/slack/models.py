@@ -37,8 +37,8 @@ class SlackCommunity(CommunityPlatform):
         process = plugin.start_process("emoji-vote", **args)
         # save reference to process on the proposal, so we can link up the signals later
         proposal.governance_process = process
-        proposal.community_post = process.outcome["message_ts"]
-        logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
+        proposal.vote_post_id = process.outcome["message_ts"]
+        logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
         proposal.save()
 
     def _execute_platform_action(self, action, delete_policykit_post=False):
@@ -85,10 +85,10 @@ class SlackCommunity(CommunityPlatform):
                     posted_action = action
 
                 for e in Proposal.objects.filter(action=posted_action):
-                    if e.community_post:
+                    if e.vote_post_id:
                         values = {
                             "token": admin_user_token,
-                            "ts": e.community_post,
+                            "ts": e.vote_post_id,
                             "channel": obj.channel,
                         }
                         self.__make_generic_api_call("chat.delete", values)

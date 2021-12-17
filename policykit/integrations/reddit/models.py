@@ -121,7 +121,7 @@ class RedditCommunity(CommunityPlatform):
                                   'community_origin',
                                   'is_bundled',
                                   'data',
-                                  'community_post',
+                                  'vote_post_id',
                                   'name'
                                   ]:
                     obj_fields.append(f.name)
@@ -155,8 +155,8 @@ class RedditCommunity(CommunityPlatform):
                     posted_action = action
 
                 for e in Proposal.objects.filter(action=posted_action):
-                    if e.community_post:
-                        values = {'id': e.community_post}
+                    if e.vote_post_id:
+                        values = {'id': e.vote_post_id}
                         call = 'api/remove'
                         _ = LogAPICall.make_api_call(self, values, call)
 

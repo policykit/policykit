@@ -51,8 +51,5 @@ class LoomioCommunity(CommunityPlatform):
             # pass on any other kwargs
             **kwargs,
         )
-
         proposal.governance_process = process
-        proposal.community_post = process.outcome["poll_url"]
-        logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
         proposal.save()
