@@ -472,6 +472,15 @@ class Proposal(models.Model):
         return f"Proposal {self.pk}: {self.action} : {self.policy or 'POLICY_DELETED'} ({self.status})"
 
     @property
+    def vote_url(self):
+        """
+        The URL of the vote associated with this policy evaluation, if any.
+        """
+        if self.governance_process:
+            self.governance_process.url
+        return None
+
+    @property
     def is_vote_closed(self):
         """
         Returns True if the vote is closed, False if the vote is still open.
