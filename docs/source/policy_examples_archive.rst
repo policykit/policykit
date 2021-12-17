@@ -222,7 +222,7 @@ This policy can be defined for any PolicyKit community (a Slack community, for e
     )
 
     # The URL of the Loomio vote is stored on the proposal.
-    poll_url = proposal.community_post
+    poll_url = proposal.vote_url
 
     # Make a post in Discourse to let people know where to vote
     params = {
