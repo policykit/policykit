@@ -147,5 +147,5 @@ def initiate_action_vote(proposal, users, template=None):
     logger.info(res)
 
 
-    proposal.community_post = res['json']['data']['name']
+    proposal.vote_post_id = res['json']['data']['name']
     proposal.save()

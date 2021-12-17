@@ -11,8 +11,8 @@ import json
 logger = logging.getLogger(__name__)
 
 def is_policykit_action(community, name, call_type, test_a, test_b):
-    community_post = Proposal.objects.filter(community_post=name, action__community=community)
-    if community_post.exists():
+    vote_post_id = Proposal.objects.filter(vote_post_id=name, action__community=community)
+    if vote_post_id.exists():
         logger.info('approve PolicyKit post')
         community.make_call('api/approve', {'id': name})
         return True
@@ -68,10 +68,10 @@ def reddit_listener_actions():
         pending_proposals = Proposal.objects.filter(
             status=Proposal.PROPOSED,
             action__community=community,
-            community_post__isnull=False
+            vote_post_id__isnull=False
         )
         for proposal in pending_proposals:
-            id = proposal.community_post.split('_')[1]
+            id = proposal.vote_post_id.split('_')[1]
 
             call = 'r/policykit/comments/' + id + '.json'
             res = community.make_call(call)

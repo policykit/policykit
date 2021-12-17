@@ -36,8 +36,8 @@ class DiscordCommunity(CommunityPlatform):
         process = plugin.start_process("vote", **args)
         # save reference to process on the proposal, so we can link up the signals later
         proposal.governance_process = process
-        proposal.community_post = process.outcome["message_id"]
-        logger.debug(f"Saving proposal with community_post '{proposal.community_post}'")
+        proposal.vote_post_id = process.outcome["message_id"]
+        logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
         proposal.save()
 
     def post_message(self, text, channel, message_id=None):

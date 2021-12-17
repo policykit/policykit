@@ -92,10 +92,10 @@ def discourse_listener_actions():
         pending_proposals = Proposal.objects.filter(
             status=Proposal.PROPOSED,
             action__community=community,
-            action__community_post__isnull=False
+            action__vote_post_id__isnull=False
         )
         for proposal in pending_proposals:
-            id = proposal.community_post
+            id = proposal.vote_post_id
 
             req = urllib.request.Request(url + '/posts/' + id + '.json')
             req.add_header("User-Api-Key", api_key)

@@ -31,8 +31,6 @@ class Metagov:
         plugin = community.get_plugin(plugin_name)
         process = plugin.start_process(process_name, **kwargs)
 
-        # TODO set community_post to URL!
-
         # store reference to process on the proposal
         self.proposal.governance_process = process
         self.proposal.save()

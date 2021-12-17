@@ -153,5 +153,5 @@ def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
                                   extra_info=json.dumps(data))
 
     if action.kind == BaseAction.PLATFORM:
-        proposal.community_post = res['id']
+        proposal.vote_post_id = res['id']
         proposal.save()

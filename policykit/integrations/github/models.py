@@ -22,7 +22,7 @@ class GithubCommunity(CommunityPlatform):
         # Kick off process in Metagov
         process = self.metagov_plugin.start_process("issue-react-vote", repo_name=repo_name, question=question)
 
-        # Save the issue number as "community post" so policy author can access it?
         proposal.governance_process = process
-        proposal.community_post = process.outcome["issue_number"]
+        # Save the issue number as "vote_post_id" so policy author can access it easily
+        proposal.vote_post_id = process.outcome["issue_number"]
         proposal.save()

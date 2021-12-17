@@ -91,9 +91,9 @@ class DiscourseCommunity(CommunityPlatform):
                     posted_action = action
 
                 for e in Proposal.objects.filter(action=posted_action):
-                    if e.community_post:
+                    if e.vote_post_id:
                         data = {}
-                        call = 'posts/{0}.json'.format(e.community_post)
+                        call = 'posts/{0}.json'.format(e.vote_post_id)
                         _ = LogAPICall.make_api_call(self, data, call)
 
             if not res['ok']:
