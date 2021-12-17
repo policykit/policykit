@@ -45,7 +45,7 @@ kombu==4.6.7
 lazy-object-proxy==1.6.0
 MarkupSafe==1.1.1
 mccabe==0.6.1
--e git+https://github.com/metagov/gateway.git@gov-process-url#egg=metagov&subdirectory=metagov
+-e git+https://github.com/metagov/gateway.git#egg=metagov&subdirectory=metagov
 more-itertools==8.1.0
 mypy-extensions==0.4.3
 packaging==20.9
