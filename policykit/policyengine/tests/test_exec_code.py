@@ -1,9 +1,10 @@
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from integrations.slack.models import SlackPinMessage
 from policyengine.engine import EvaluationContext, PolicyCodeError, exec_code_block
 from policyengine.models import Policy, Proposal
 from django_db_logger.models import EvaluationLog
 import policyengine.tests.utils as TestUtils
+from policyengine.safe_exec_code import execute_user_code
 
 all_actions_proposed_policy = {
     "filter": "return True",
@@ -13,6 +14,40 @@ all_actions_proposed_policy = {
     "success": "pass",
     "fail": "pass",
 }
+
+
+class SafeExecCodeTests(TestCase):
+    def test_execute_safe(self):
+        """
+        Test that permitted modules work in safe execution environment, and args and kwargs work.
+        """
+        example = """
+def test(x, name="alice"):
+    random.randint(0, 10)
+    datetime.datetime.now()
+    datetime.timedelta(days=10)
+    datetime.MAXYEAR
+    json.dumps({"foo": "bar"})
+    base64.b64encode(b"testing")
+    itertools.count(10)
+    math.ceil(1.2)
+    "hello world".replace(" ", "_")
+    return name + " is " + str(x*x)
+"""
+        self.assertEqual(execute_user_code(example, "test", 5), "alice is 25")
+
+    def test_execute_unsafe(self):
+        """
+        Test that import is restricted
+        """
+        example = """
+import sys
+def test(x, name="alice"):
+    return name + " is " + str(x*x)
+"""
+        with self.assertRaises(SyntaxError) as cm:
+            execute_user_code(example, "test", 5)
+        self.assertTrue("Import statements are not allowed" in str(cm.exception))
 
 
 class ExecCodeTests(TestCase):
@@ -53,8 +88,8 @@ class ExecCodeTests(TestCase):
         exec_code_block("return action.id", ctx)
         exec_code_block("return policy.id", ctx)
         exec_code_block("return proposal.proposal_time", ctx)
-        exec_code_block("import datetime", ctx)
-        self.assertEqual(exec_code_block("import math\r\nreturn math.ceil(0.9)", ctx), 1)
+        exec_code_block("return datetime.datetime.now()", ctx)
+        self.assertEqual(exec_code_block("return math.ceil(0.9)", ctx), 1)
 
     def test_logger(self):
         """Test evaluation logger"""
