@@ -84,8 +84,8 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
         return restricted_locals["result"]
 
     except SyntaxError as e:
-        # Do whaever you want if the user has code that does not compile
+        # Code that does not compile
         raise
     except Exception as e:
-        # The code did something that is not allowed. Add some nasty punishment to the user here.
+        # The code did something that is not allowed
         raise

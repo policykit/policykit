@@ -6,15 +6,6 @@ from django_db_logger.models import EvaluationLog
 import policyengine.tests.utils as TestUtils
 from policyengine.safe_exec_code import execute_user_code
 
-all_actions_proposed_policy = {
-    "filter": "return True",
-    "initialize": "pass",
-    "notify": "pass",
-    "check": "return PROPOSED",
-    "success": "pass",
-    "fail": "pass",
-}
-
 
 class SafeExecCodeTests(TestCase):
     def test_execute_safe(self):
@@ -55,10 +46,9 @@ class ExecCodeTests(TestCase):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
 
         self.policy = Policy.objects.create(
-            **all_actions_proposed_policy,
+            **TestUtils.ALL_ACTIONS_PROPOSED,
             kind=Policy.PLATFORM,
             community=self.slack_community.community,
-            name="policy",
         )
         self.action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
         self.action.revert = lambda: None
@@ -81,6 +71,7 @@ class ExecCodeTests(TestCase):
 
         self.assertRaises(PolicyCodeError, exec_code_block, "return variable_doesnt_exist", ctx)
         self.assertRaises(PolicyCodeError, exec_code_block, "return discord.team_id", ctx)
+        self.assertRaises(PolicyCodeError, exec_code_block, "import os", ctx)
 
         self.assertEqual(exec_code_block("return slack.team_id", ctx), "ABC")
 
@@ -88,6 +79,7 @@ class ExecCodeTests(TestCase):
         exec_code_block("return action.id", ctx)
         exec_code_block("return policy.id", ctx)
         exec_code_block("return proposal.proposal_time", ctx)
+        exec_code_block("return proposal.vote_url", ctx)
         exec_code_block("return datetime.datetime.now()", ctx)
         self.assertEqual(exec_code_block("return math.ceil(0.9)", ctx), 1)
 
