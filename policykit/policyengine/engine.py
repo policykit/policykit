@@ -1,6 +1,7 @@
 import logging
 
 from actstream import action as actstream_action
+from policyengine.safe_exec_code import execute_user_code
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -129,7 +130,7 @@ def evaluate_action(action):
     - Evaluate against all eligible policies
     - Save the Proposal for each evaluation, which will be re-evaluated from the celery task if it is pending
     """
-    from policyengine.models import Proposal, PolicyActionKind
+    from policyengine.models import PolicyActionKind
 
     eligible_policies = get_eligible_policies(action)
     if not eligible_policies.exists():
@@ -312,29 +313,21 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
 
 def exec_code_block(code_string: str, context: EvaluationContext, step_name="unknown"):
-    wrapper_start = "def func():\r\n"
+    """
+    Execute a policy step with all the available context. Uses restricted safe execution
+    to limit available modules.
+    """
+    # Each item on the EvaluationContext gets passed to the funciton as a keyword argument
+    args = ", ".join(context.__dict__.keys())
+    wrapper_start = f"def {step_name}({args}):\r\n"
     lines = ["  " + item for item in code_string.splitlines()]
-    wrapper_end = "\r\nresult = func()"
-    code = wrapper_start + "\r\n".join(lines) + wrapper_end
+    code = wrapper_start + "\r\n".join(lines)
 
     try:
-        return exec_code(code, context)
+        return execute_user_code(code, step_name, **context.__dict__)
     except Exception as e:
         logger.exception(f"Got exception in exec_code {step_name} step:")
         raise PolicyCodeError(step=step_name, message=str(e))
-
-
-def exec_code(code, context: EvaluationContext):
-    PASSED, FAILED, PROPOSED = "passed", "failed", "proposed"
-    _locals = locals().copy()
-    # Add all attributes on EvaluationContext to scope
-    _locals.update(context.__dict__)
-    # Remove some variables from scope
-    _locals.pop("code")
-    _locals.pop("context")
-
-    exec(code, _locals, _locals)
-    return _locals.get("result")
 
 
 def sanitize_check_result(res):

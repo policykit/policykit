@@ -2,6 +2,22 @@ from pylint.lint import Run
 from pylint.reporters.text import TextReporter
 import tempfile
 import os
+import policyengine.utils as Utils
+from policyengine.safe_exec_code import BUILTINS, STATIC_GLOBAL_VARIABLES
+
+
+defined_variables = (
+    [
+        "proposal",
+        "policy",
+        "action",
+        "metagov",
+        "logger",
+    ]
+    + list(BUILTINS.keys())
+    + list(STATIC_GLOBAL_VARIABLES.keys())
+    + Utils.get_platform_integrations() # not all of these are necessarily defined
+)
 
 def should_keep_error_message(error_message, function_name):
     """
@@ -17,25 +33,7 @@ def should_keep_error_message(error_message, function_name):
 
     # Don't return lines which say that a pre-defined local variable in
     # our wrapper function is undefined.
-    local_variables = [
-        'proposal',
-        'policy',
-        'action',
-        'slack',
-        'discord',
-        'discourse',
-        'reddit',
-        'github',
-        'opencollective',
-        'loomio',
-        'sourcecred',
-        'metagov',
-        'logger',
-        'PASSED',
-        'FAILED',
-        'PROPOSED'
-    ]
-    for variable in local_variables:
+    for variable in defined_variables:
         if error_message.find(f"E0602: Undefined variable '{variable}' (undefined-variable)") != -1:
             return False
 

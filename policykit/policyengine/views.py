@@ -15,7 +15,6 @@ from django.http.response import HttpResponseServerError
 from django.shortcuts import redirect, render
 
 import policyengine.utils as Utils
-from policyengine.filter import filter_code
 from policyengine.integration_data import integration_data
 from policyengine.linter import _error_check
 from policyengine.metagov_app import metagov, metagov_handler
