@@ -16,8 +16,8 @@ class GithubCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def initiate_vote(self, proposal, repo_name, template=None):
-        question = template or default_boolean_vote_message(proposal.policy)
+    def initiate_vote(self, proposal, repo_name, text=None):
+        question = text or default_boolean_vote_message(proposal.policy)
 
         # Kick off process in Metagov
         process = self.metagov_plugin.start_process("issue-react-vote", repo_name=repo_name, question=question)

@@ -102,16 +102,6 @@ class Community(models.Model):
 
         super(Community, self).save(*args, **kwargs)
 
-@receiver(pre_delete, sender=Community)
-def pre_delete_community(sender, instance, **kwargs):
-    CommunityPlatform.objects.non_polymorphic().filter(community=instance).delete()
-
-@receiver(post_delete, sender=Community)
-def post_delete_community(sender, instance, **kwargs):
-    if instance.metagov_slug:
-        metagov.get_community(instance.metagov_slug).delete()
-
-
 class CommunityPlatform(PolymorphicModel):
     """A CommunityPlatform represents a group of users on a single platform."""
 
@@ -915,3 +905,36 @@ class GovernableActionForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(GovernableActionForm, self).__init__(*args, **kwargs)
         self.label_suffix = ''
+
+
+##### Pre-delete and post-delete signal receivers
+
+@receiver(pre_delete, sender=Community)
+def pre_delete_community(sender, instance, **kwargs):
+    # Before deleting a Community, use non_polymorphic to delete all related CommunityPlatforms.
+    # This is necessary to delete without hitting some db relation bug that comes up.
+    CommunityPlatform.objects.non_polymorphic().filter(community=instance).delete()
+
+
+@receiver(pre_delete, sender=CommunityPlatform)
+def pre_delete_community_platform(sender, instance, **kwargs):
+    # Before deleting a CommunityPlatform, use non_polymorphic to delete all related actions.
+    # This is necessary to delete without hitting some db relation bug that comes up.
+    GovernableAction.objects.non_polymorphic().filter(community=instance).delete()
+
+@receiver(post_delete, sender=Community)
+def post_delete_community(sender, instance, **kwargs):
+    # After deleting a Community, delete it in Metagov too.
+    if instance.metagov_slug:
+        metagov.get_community(instance.metagov_slug).delete()
+
+@receiver(post_delete, sender=CommunityPlatform)
+def post_delete_community_platform(sender, instance, **kwargs):
+    # After deleting a CommunityPlatform, delete the Metagov Plugin associated with it (if any)
+    try:
+        plugin = instance.metagov_plugin
+    except Exception:
+        # Some CommunityPlatforms don't have associated metagov plugins, ignore
+        return
+
+    plugin.delete()

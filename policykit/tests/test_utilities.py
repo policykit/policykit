@@ -18,6 +18,11 @@ class UtilTests(TestCase):
     def test_autocomplete(self):
         self.assertTrue("action.channel" in PkAutocomplete.generate_action_autocompletes(SlackPostMessage))
 
+        slack_autocompletes = PkAutocomplete.integration_autocompletes["slack"]
+        vote_autocomplete = [s for s in slack_autocompletes if "initiate_vote" in s][0]
+        # test that "proposal" is not included in vote params, because of shim
+        self.assertFalse("proposal" in vote_autocomplete)
+
     def test_action_type_util(self):
         slack_community, user = TestUtils.create_slack_community_and_user()
         community = slack_community.community

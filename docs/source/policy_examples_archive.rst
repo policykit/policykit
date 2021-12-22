@@ -567,7 +567,7 @@ Allow users to vote on a "lottery" message, pick a random user as the lottery wi
 .. code-block:: python
 
   message = proposal.data.get('message')
-  discord.initiate_vote(proposal, template=message, channel = "733209360549019688")
+  discord.initiate_vote(text=message, channel = "733209360549019688")
 
 **Check:**
 

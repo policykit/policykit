@@ -9,7 +9,7 @@
     "filter": "VOTE_TRIGGER_PREFIX = \"vote\"\n\nreturn action.value.startswith(VOTE_TRIGGER_PREFIX)\n\n",
     "initialize": "pass\n\n",
     "check": "VOTE_DURATION_MINUTES = 5\n\nif proposal.get_time_elapsed() < datetime.timedelta(minutes=VOTE_DURATION_MINUTES):\n  logger.debug(\"waiting for 5 minutes to elapse...\")\n  return PROPOSED\n\nmsg = None\nif proposal.get_yes_votes().count() >= 1:\n\tmsg = \"vote passed!\"\nelif proposal.get_no_votes().count() >= 1:\n\tmsg = \"vote failed!\"\nelse:\n\tmsg = \"not enough votes to make a decision\"\n\ndiscord.post_message(text=msg, channel=action.channel, message_id=proposal.vote_post_id)\n\nreturn PASSED\n\n",
-    "notify": "VOTE_TRIGGER_PREFIX = \"vote\"\nVOTE_DURATION_MINUTES = 5\n\nvote_text = action.value[len(VOTE_TRIGGER_PREFIX):].strip()\nvote_text += f\" Vote closes in {VOTE_DURATION_MINUTES} minutes.\"\n\ndiscord.initiate_vote(\n  proposal,\n  template=vote_text,\n  post_type='channel',\n  channel=action.channel\n)",
+    "notify": "VOTE_TRIGGER_PREFIX = \"vote\"\nVOTE_DURATION_MINUTES = 5\n\nvote_text = action.value[len(VOTE_TRIGGER_PREFIX):].strip()\nvote_text += f\" Vote closes in {VOTE_DURATION_MINUTES} minutes.\"\n\ndiscord.initiate_vote(text=vote_text)",
     "success": "pass\n\n",
     "fail": "pass\n\n"
 }

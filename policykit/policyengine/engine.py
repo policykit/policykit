@@ -1,6 +1,9 @@
+import inspect
 import logging
 
 from actstream import action as actstream_action
+
+import policyengine.utils as Utils
 from policyengine.safe_exec_code import execute_user_code
 
 logger = logging.getLogger(__name__)
@@ -36,8 +39,8 @@ class EvaluationContext:
     """
 
     def __init__(self, proposal):
-        from policyengine.models import ExecutedActionTriggerAction
         from policyengine.metagov_client import Metagov
+        from policyengine.models import ExecutedActionTriggerAction
 
         if isinstance(proposal.action, ExecutedActionTriggerAction):
             self.action = proposal.action.action
@@ -57,8 +60,11 @@ class EvaluationContext:
 
         parent_community: Community = self.action.community.community
 
-        # Make all CommunityPlatforms available in the evaluation context
         for comm in CommunityPlatform.objects.filter(community=parent_community):
+            for function_name in Utils.SHIMMED_PROPOSAL_FUNCTIONS:
+                _shim_proposal_function(comm, proposal, function_name)
+            # Make the CommunityPlatforms available in the evaluation context,
+            # so policy author can access them as vars like "slack" and "opencollective"
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
@@ -99,7 +105,8 @@ class PolicyDoesNotPassFilter(PolicyEngineError):
 
 def get_eligible_policies(action):
     from django.db.models import Q
-    from policyengine.models import PolicyActionKind, ExecutedActionTriggerAction
+
+    from policyengine.models import ExecutedActionTriggerAction, PolicyActionKind
 
     if action.kind == PolicyActionKind.TRIGGER:
         # Trigger policies MUST match the trigger action. There is no "base policy" concept for triggers.
@@ -336,3 +343,42 @@ def sanitize_check_result(res):
     if res in [Proposal.PROPOSED, Proposal.PASSED, Proposal.FAILED]:
         return res
     return Proposal.PROPOSED
+
+
+def _shim_proposal_function(community_platform, proposal, function_name):
+    """
+    Shim functions that receive the proposal as the first argument.
+    This makes it so the policy author doesn't need to pass the proposal themselves.
+
+    For example, instead of:
+    'slack.initiate_vote(proposal, text="please vote")'
+
+    The policy author can write:
+    'slack.initiate_vote(text="please vote")'
+    """
+    from policyengine.models import Proposal
+
+    # skip if this community doesn't have this function defined
+    if not hasattr(community_platform, function_name):
+        return
+
+    # store the original function that we will shim
+    old_function = getattr(community_platform, function_name)
+
+    # skip if this function doesn't expect 'parameter' as the first arg
+    function_parameters = list(inspect.signature(old_function).parameters.values())
+    if not len(function_parameters) > 1 and function_parameters[1].name == "proposal":
+        return
+
+    # create a shim function that passes the proposal
+    def shim_function(*args, **kwargs):
+        # If proposal was passed in by the policy author, remove it
+        if len(args) > 0 and isinstance(args[0], Proposal):
+            args = args[1:]
+        if kwargs.get("proposal"):
+            del kwargs["proposal"]
+
+        old_function(proposal, *args, **kwargs)
+
+    # set the new function on the community platform object
+    setattr(community_platform, function_name, shim_function)

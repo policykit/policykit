@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 
 INTEGRATION_ADMIN_ROLE_NAME = "Integration Admin"
 
+# These functions get automatically passed "proposal" as the first argument,
+# without the policy author needing to pass it manually.
+SHIMMED_PROPOSAL_FUNCTIONS = ["initiate_vote", "post_message"]
 
 def default_election_vote_message(policy):
     return "This action is governed by the following policy: " + policy.name + ". Decide between options below:\n"

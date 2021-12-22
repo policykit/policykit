@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from policykit.settings import SERVER_URL, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 from integrations.reddit.models import RedditCommunity, RedditUser, REDDIT_USER_AGENT
 from policyengine.models import *
-from policyengine.utils import render_starterkit_view
+from policyengine.utils import render_starterkit_view, default_boolean_vote_message
 from django.contrib.auth import login, authenticate
 from django.views.decorators.csrf import csrf_exempt
 from urllib import parse
@@ -122,16 +122,11 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
-def initiate_action_vote(proposal, users, template=None):
+def initiate_action_vote(proposal, users, text=None):
     from policyengine.models import LogAPICall
     policy = proposal.policy
     action = proposal.action
-    policy_message_default = "This action is governed by the following policy: " + policy.description + '. Vote by replying +1 or -1 to this post.'
-
-    if not template:
-        policy_message = policy_message_default
-    else:
-        policy_message = template
+    policy_message = text or default_boolean_vote_message(proposal.policy)
 
     values = {
               'ad': False,

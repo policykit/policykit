@@ -23,7 +23,7 @@ In addition, each platform integration supports **one or more** of these capabil
   
     Example: ``slackrenameconverstaion``
     
-    Example: ``loomio.initiate_vote(proposal, title="please vote", closing_at=closing_at_dt, options=["consent", "objection", "abstain"])``
+    Example: ``loomio.initiate_vote(title="please vote", closing_at=closing_at_dt, options=["consent", "objection", "abstain"])``
 
 
 

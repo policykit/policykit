@@ -26,9 +26,9 @@ class DiscordCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+    def initiate_vote(self, proposal, users=None, post_type="channel", text=None, channel=None, options=None):
         # construct args
-        args = DiscordUtils.construct_vote_params(proposal, users, post_type, template, channel, options)
+        args = DiscordUtils.construct_vote_params(proposal, users, post_type, text, channel, options)
         logger.debug(args)
         # get plugin instance
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("discord", self.team_id)
@@ -40,10 +40,13 @@ class DiscordCommunity(CommunityPlatform):
         logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
         proposal.save()
 
-    def post_message(self, text, channel, message_id=None):
+    def post_message(self, proposal, text, channel=None, message_id=None):
         """
         Post a message in a Discord channel.
         """
+        channel = channel or DiscordUtils.infer_channel(proposal)
+        if not channel:
+            raise Exception("Failed to determine which channel to post in")
         optional_args = {}
         if message_id:
             optional_args["message_reference"] = {
@@ -51,7 +54,7 @@ class DiscordCommunity(CommunityPlatform):
                 "guild_id": self.team_id,
                 "fail_if_not_exists": False,
             }
-        return self.metagov_plugin.post_message(text=text, channel=channel, **optional_args)
+        return self.metagov_plugin.post_message(text=text, channel=int(channel), **optional_args)
 
     def _update_or_create_user(self, user_data):
         """
