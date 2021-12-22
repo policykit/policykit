@@ -19,7 +19,7 @@ BUILTINS = {
     "datetime": datetime,
     "base64": base64,
     "itertools": itertools,
-    "json": json
+    "json": json,
 }
 
 STATIC_GLOBAL_VARIABLES = {
@@ -64,6 +64,7 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
             "__builtins__": BUILTINS,
             "_getitem_": default_guarded_getitem,
             "_getattr_": getattr,
+            "_inplacevar_": lambda op, val, expr: val + expr,  # permit +=
             # to access args and kwargs
             "_apply_": _apply,
             **STATIC_GLOBAL_VARIABLES,
