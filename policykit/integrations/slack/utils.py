@@ -115,7 +115,23 @@ def slack_event_to_platform_action(community, event_type, data, initiator):
     return new_api_action
 
 
-def construct_vote_params(proposal, users=None, post_type="channel", template=None, channel=None, options=None):
+def infer_channel(proposal):
+    """
+    If this proposal was initiated by an action on slack, get the channel where it occurred
+    """
+    action = proposal.action
+    if not action.community.platform == "slack":
+        # the action occurred off slack, so we can't guess the channel
+        return None
+    if hasattr(action, "channel") and action.channel:
+        return action.channel
+    if action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel"):
+        # action is a trigger from a governable action
+        return action.action.channel
+    return None
+
+
+def construct_vote_params(proposal, users=None, post_type="channel", text=None, channel=None, options=None):
     if post_type not in ["channel", "mpim"]:
         raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
     if post_type == "mpim" and not users:
@@ -134,31 +150,20 @@ def construct_vote_params(proposal, users=None, post_type="channel", template=No
 
     if options:
         params["poll_type"] = "choice"
-        params["title"] = template or "Please vote"
+        params["title"] = text or "Please vote"
         params["options"] = options
     elif action.action_type == "governableactionbundle" and action.bundle_type == GovernableActionBundle.ELECTION:
         params["poll_type"] = "choice"
-        params["title"] = template or default_election_vote_message(policy)
+        params["title"] = text or default_election_vote_message(policy)
         params["options"] = [str(a) for a in action.bundled_actions.all()]
     else:
         params["poll_type"] = "boolean"
-        params["title"] = template or default_boolean_vote_message(policy)
+        params["title"] = text or default_boolean_vote_message(policy)
 
     if post_type == "channel":
-        if channel is not None:
-            params["channel"] = channel
-        elif action.kind == PolicyActionKind.PLATFORM and hasattr(action, "channel") and action.channel:
-            params["channel"] = action.channel
-        elif (
-            action.kind == PolicyActionKind.TRIGGER and hasattr(action, "action") and hasattr(action.action, "channel")
-        ):
-            params["channel"] = action.action.channel  # action is a trigger from a governable action
-        elif action.action_type == "governableactionbundle":
-            first_action = action.bundled_actions.all()[0]
-            if hasattr(first_action, "channel") and first_action.channel:
-                params["channel"] = first_action.channel
+        params["channel"] = channel or infer_channel(proposal)
 
-    if post_type == "channel" and not params.get("channel"):
-        raise Exception("Failed to determine which channel to post in")
+        if not params["channel"]:
+            raise Exception("Failed to determine which channel to post in")
 
     return params

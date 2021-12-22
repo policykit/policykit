@@ -9,7 +9,7 @@
     "filter": "return True\n\n",
     "initialize": "pass\n\n",
     "check": "yes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= 1:\n  return PASSED\nelif no_votes >= 1:\n  return FAILED\n\nlogger.debug(\"No votes yet....\")\nreturn PROPOSED\n",
-    "notify": "message = f\"Should this channel be renamed to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post.\"\nslack.initiate_vote(proposal, template=message)",
+    "notify": "message = f\"Should this channel be renamed to #{action.name}? Vote with :thumbsup: or :thumbsdown: on this post.\"\nslack.initiate_vote(text=message)",
     "success": "text = f\"Proposal to rename this channel to #{action.name} passed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)",
     "fail": "text = f\"Proposal to rename this channel to #{action.name} failed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)"
 }

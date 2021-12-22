@@ -28,8 +28,8 @@ class SlackCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def initiate_vote(self, proposal, users=None, post_type="channel", template=None, channel=None, options=None):
-        args = SlackUtils.construct_vote_params(proposal, users, post_type, template, channel, options)
+    def initiate_vote(self, proposal, users=None, post_type="channel", text=None, channel=None, options=None):
+        args = SlackUtils.construct_vote_params(proposal, users, post_type, text, channel, options)
 
         # get plugin instance
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("slack", self.team_id)
@@ -93,7 +93,9 @@ class SlackCommunity(CommunityPlatform):
                         }
                         self.__make_generic_api_call("chat.delete", values)
 
-    def post_message(self, text, users=None, post_type="channel", channel=None, thread_ts=None, reply_broadcast=False):
+    def post_message(
+        self, proposal, text, users=None, post_type="channel", channel=None, thread_ts=None, reply_broadcast=False
+    ):
         """
         POST TYPES:
         mpim = multi person message
@@ -104,6 +106,8 @@ class SlackCommunity(CommunityPlatform):
         usernames = [user.username for user in users or []]
         if len(usernames) == 0 and post_type in ["mpim", "im", "ephemeral"]:
             raise Exception(f"user(s) required for post type '{post_type}'")
+
+        channel = channel or SlackUtils.infer_channel(proposal)
         if channel is None and post_type in ["channel", "ephemeral"]:
             raise Exception(f"channel required for post type '{post_type}'")
 

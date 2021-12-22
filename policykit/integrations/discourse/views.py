@@ -131,12 +131,12 @@ def action(request):
     logger.info('RECEIVED ACTION')
     logger.info(json_data)
 
-def initiate_action_vote(proposal, users=None, template=None, topic_id=None):
+def initiate_action_vote(proposal, users=None, text=None, topic_id=None):
     from policyengine.models import LogAPICall, BaseAction
     policy = proposal.policy
     policy_message = "This action is governed by the following policy: " + policy.name
-    if template:
-        policy_message = template
+    if text:
+        policy_message = text
 
     data = {
         'raw': policy_message,

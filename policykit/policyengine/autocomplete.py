@@ -9,7 +9,7 @@ ACTION_VARNAME = "action"
 
 POLICY_HINTS = ["name", "description", "modified_at", "community"]
 ACTION_HINTS = ["action_type", "initiator", "community"]
-PROPOSAL_HINTS = ["data.set(key, value)", "data.get(key)"]
+PROPOSAL_HINTS = ["vote_url", "data.set(key, value)", "data.get(key)"]
 
 
 def generate_action_autocompletes(cls):
@@ -63,6 +63,8 @@ def _get_function_hints(cls, module_substring, excluded_functions=None):
         params = []
         for param in sig.parameters.values():
             if param.name == "self":
+                continue
+            elif n in Utils.SHIMMED_PROPOSAL_FUNCTIONS and param.name == "proposal":
                 continue
             elif param.kind not in [Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
                 continue
