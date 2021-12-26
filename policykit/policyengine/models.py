@@ -124,7 +124,8 @@ class CommunityPlatform(PolymorphicModel):
     @property
     def metagov_plugin(self):
         mg_community = metagov.get_community(self.metagov_slug)
-        return mg_community.get_plugin(self.platform, self.team_id)
+        team_id = getattr(self, "team_id", None)
+        return mg_community.get_plugin(self.platform, community_platform_id=team_id)
 
     def initiate_vote(self, proposal, users=None):
         """
