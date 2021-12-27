@@ -1,6 +1,7 @@
 from RestrictedPython import safe_builtins, utility_builtins, compile_restricted
 from RestrictedPython import RestrictingNodeTransformer
 from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
+from RestrictedPython.Guards import safer_getattr, guarded_unpack_sequence, guarded_iter_unpack_sequence
 
 
 # permitted modules
@@ -36,6 +37,17 @@ class OwnRestrictingNodeTransformer(RestrictingNodeTransformer):
     visit_ImportFrom = visit_Import
 
 
+def _hook_writable(obj):
+    """Only allow writing to lists and dicts."""
+    # if obj.__class__.__name__ == "MY_CLASS_NAME":
+    #     return obj
+    if isinstance(obj, dict):
+        return obj
+    if isinstance(obj, list):
+        return obj
+    raise SyntaxError("Restricted, Cannot write outside restricted defined class/objects")
+
+
 def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
     """
     Execute user code in restricted env using RestrictedPython
@@ -64,8 +76,11 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
             "__builtins__": BUILTINS,
             "_getitem_": default_guarded_getitem,
             "_getiter_": default_guarded_getiter,
-            "_getattr_": getattr,
+            "_unpack_sequence_": guarded_unpack_sequence,
+            "_iter_unpack_sequence_": guarded_iter_unpack_sequence,
+            "_getattr_": safer_getattr,
             "_inplacevar_": lambda op, val, expr: val + expr,  # permit +=
+            "_write_": _hook_writable,
             # to access args and kwargs
             "_apply_": _apply,
             **STATIC_GLOBAL_VARIABLES,
