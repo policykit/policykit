@@ -1,6 +1,6 @@
 from RestrictedPython import safe_builtins, utility_builtins, compile_restricted
 from RestrictedPython import RestrictingNodeTransformer
-from RestrictedPython.Eval import default_guarded_getitem
+from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
 
 
 # permitted modules
@@ -63,6 +63,7 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
         restricted_globals = {
             "__builtins__": BUILTINS,
             "_getitem_": default_guarded_getitem,
+            "_getiter_": default_guarded_getiter,
             "_getattr_": getattr,
             "_inplacevar_": lambda op, val, expr: val + expr,  # permit +=
             # to access args and kwargs
