@@ -1,5 +1,7 @@
 import inspect
 import logging
+import sys
+import traceback
 
 from actstream import action as actstream_action
 
@@ -252,7 +254,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
         raise
     except PolicyCodeError as e:
         # Log policy code exception to the db, so policy author can view it in the UI.
-        context.logger.error(f"Exception raised in '{e.step}' block: {repr(e)} {e}")
+        context.logger.error(str(e))
         raise
     except Exception as e:
         # Log unhandled exception to the db, so policy author can view it in the UI.
@@ -332,9 +334,23 @@ def exec_code_block(code_string: str, context: EvaluationContext, step_name="unk
 
     try:
         return execute_user_code(code, step_name, **context.__dict__)
-    except Exception as e:
-        logger.exception(f"Got exception in exec_code {step_name} step:")
-        raise PolicyCodeError(step=step_name, message=str(e))
+    except SyntaxError as err:
+        error_class = err.__class__.__name__
+        detail = err.args[0]
+        line_number = err.lineno
+    except Exception as err:
+        error_class = err.__class__.__name__
+        detail = err.args[0]
+        _, _, tb = sys.exc_info()
+        line_number = traceback.extract_tb(tb)[-1][1]
+    else:
+        return
+    if line_number is None:
+        raise PolicyCodeError(step=step_name, message="%s in %s: %s" % (error_class, step_name, detail))
+    else:
+        raise PolicyCodeError(
+            step=step_name, message="%s at line %d of %s: %s" % (error_class, line_number - 1, step_name, detail)
+        )
 
 
 def sanitize_check_result(res):

@@ -25,7 +25,18 @@ class SafeExecCodeTests(TestCase):
         example = """
 def test(x, inst, name="alice"):
     random.randint(0, 10)
-    datetime.datetime.now()
+
+    # datetime module
+    today = datetime.datetime.now()
+    today.strftime('%Y-%m-%d')
+    num_days = 5
+    closing_at = (today + datetime.timedelta(days=num_days)).strftime('%Y-%m-%d')
+
+    # time module
+    datetime.time(hour=12, minute=34, second=56, microsecond=123456).isoformat(timespec='minutes')
+    dt = datetime.time(hour=12, minute=34, second=56, microsecond=0)
+    dt.isoformat(timespec='microseconds')
+
     # can access public attributes on class
     inst.public_attr
     inst.value
@@ -121,6 +132,17 @@ class ExecCodeTests(TestCase):
         exec_code_block("return proposal.vote_url", ctx)
         exec_code_block("return datetime.datetime.now()", ctx)
         self.assertEqual(exec_code_block("return math.ceil(0.9)", ctx), 1)
+
+    def test_syntax_errors(self):
+        """syntax errors and other errors show correct line numbers"""
+        ctx = EvaluationContext(self.proposal)
+        with self.assertRaises(PolicyCodeError) as cm:
+            exec_code_block("return variable_doesnt_exist", ctx)
+        self.assertTrue("NameError at line 1" in str(cm.exception))
+
+        with self.assertRaises(PolicyCodeError) as cm:
+            exec_code_block("foo = 10\nimport something\nreturn True", ctx)
+        self.assertTrue("SyntaxError at line 2" in str(cm.exception))
 
     def test_logger(self):
         """Test evaluation logger"""
