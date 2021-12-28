@@ -99,6 +99,9 @@ METAGOV_SETTINGS = {
         "BOT_TOKEN": env("DISCORD_BOT_TOKEN", default=None),
         "PUBLIC_KEY": env("DISCORD_PUBLIC_KEY", default=None),
         "PERMISSIONS": env("DISCORD_PERMISSIONS", default=397821540358),
+    },
+    "OPENCOLLECTIVE": {
+        "USE_STAGING": env("OPENCOLLECTIVE_USE_STAGING", default=False)
     }
 }
 

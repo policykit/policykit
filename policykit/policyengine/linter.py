@@ -3,7 +3,7 @@ from pylint.reporters.text import TextReporter
 import tempfile
 import os
 import policyengine.utils as Utils
-from policyengine.safe_exec_code import BUILTINS, STATIC_GLOBAL_VARIABLES
+from policyengine.safe_exec_code import policykit_builtins, STATIC_GLOBAL_VARIABLES
 
 
 defined_variables = (
@@ -14,7 +14,7 @@ defined_variables = (
         "metagov",
         "logger",
     ]
-    + list(BUILTINS.keys())
+    + list(policykit_builtins.keys())
     + list(STATIC_GLOBAL_VARIABLES.keys())
     + Utils.get_platform_integrations() # not all of these are necessarily defined
 )

@@ -1,6 +1,7 @@
 from RestrictedPython import safe_builtins, utility_builtins, compile_restricted
 from RestrictedPython import RestrictingNodeTransformer
-from RestrictedPython.Eval import default_guarded_getitem
+from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
+from RestrictedPython.Guards import safer_getattr, guarded_unpack_sequence, guarded_iter_unpack_sequence
 
 
 # permitted modules
@@ -9,13 +10,12 @@ import base64
 import itertools
 import json
 
-
-BUILTINS = {
+policykit_builtins = {
     # see: https://restrictedpython.readthedocs.io/en/latest/usage/policy.html#predefined-builtins
     **safe_builtins,
-    # access to standard modules like math, random, string and set.
+    # standard modules like math, random, string and set.
     **utility_builtins,
-    # other permitted modules
+    # other modules that are permitted in policies, like datetime and json
     "datetime": datetime,
     "base64": base64,
     "itertools": itertools,
@@ -31,9 +31,30 @@ STATIC_GLOBAL_VARIABLES = {
 
 class OwnRestrictingNodeTransformer(RestrictingNodeTransformer):
     def visit_Import(self, node):
-        self.error(node, "Import statements are not allowed.")
+        raise SyntaxError("Import statements are not allowed.", ("<user_code>", node.lineno, node.col_offset, ""))
 
     visit_ImportFrom = visit_Import
+
+
+def _hook_writable(obj):
+    """Only allow writing to lists and dicts."""
+    # if obj.__class__.__name__ == "MY_CLASS_NAME":
+    #     return obj
+    if isinstance(obj, dict):
+        return obj
+    if isinstance(obj, list):
+        return obj
+    raise SyntaxError("Restricted, Cannot write outside restricted defined class/objects")
+
+
+def _guarded_import(mname, globals=None, locals=None, fromlist=None, level=None):
+    """
+    Special case to allow builting import for time module. For some reason this is invoked from datetime.strftime()
+    Fixes https://github.com/amyxzhang/policykit/issues/534
+    """
+    if mname == "time":
+        return __import__(mname, globals or {}, locals or {}, fromlist or ())
+    raise SyntaxError(f"Restricted, cannot import '{mname}'")
 
 
 def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
@@ -61,10 +82,18 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
         }
 
         restricted_globals = {
-            "__builtins__": BUILTINS,
+            "__builtins__": {
+                **policykit_builtins,
+                # special case guard to fix strftime bug
+                "__import__": _guarded_import,
+            },
             "_getitem_": default_guarded_getitem,
-            "_getattr_": getattr,
+            "_getiter_": default_guarded_getiter,
+            "_unpack_sequence_": guarded_unpack_sequence,
+            "_iter_unpack_sequence_": guarded_iter_unpack_sequence,
+            "_getattr_": safer_getattr,
             "_inplacevar_": lambda op, val, expr: val + expr,  # permit +=
+            "_write_": _hook_writable,
             # to access args and kwargs
             "_apply_": _apply,
             **STATIC_GLOBAL_VARIABLES,
