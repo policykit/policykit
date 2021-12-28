@@ -21,15 +21,10 @@
   .control-label {
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
+    padding-top: 0.2em;
   }
 
-  .dropdownContainer {
-    width: 20%;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.2em;
-  }
-
-  .btn {
+  .btn#submit {
     padding: 0.5em 2vw;
     font-family: 'Nunito', sans-serif;
     font-size: 1.2em;
@@ -37,9 +32,13 @@
     color: #ffffff;
   }
 
-  .btn:hover {
+  .btn#submit:hover {
     background-color: #3b4699;
     color: #ffffff;
+  }
+
+  button.btn.dropdown-toggle {
+      border: 1px solid black;
   }
 </style>
 {% endblock %}
@@ -59,8 +58,8 @@
 
   <div class="form-row">
     <label class="control-label col-sm-1" for="role">Role</label>
-    <div class="col-sm-11">
-      <select class="dropdownContainer" name="role" id="role">
+    <div class="col-sm-8">
+      <select id="rolepicker" class="selectpicker form-control" title="Select role...">
         {% for role in roles %}
           <option value="{{role.name}}">{{role.role_name}}</option>
         {% endfor %}
@@ -70,10 +69,14 @@
 
   <div class="form-row">
     <label class="control-label col-sm-1" for="user">User</label>
-    <div class="col-sm-11">
-      <select class="dropdownContainer" name="user" id="user">
-        {% for user in users %}
-          <option value="{{user.username}}">{{user.readable_name|default_if_none:user.username}}</option>
+    <div class="col-sm-8">
+      <select id="userpicker" class="selectpicker form-control" data-live-search="true" title="Select user...">
+        {% for app_name, user_list in users %}
+          <optgroup label="{{app_name|upper}}">
+            {% for user in user_list %}
+              <option value="{{user.username}}">{{user.readable_name|default_if_none:user.username}}</option>
+            {% endfor %}
+          </optgroup>
         {% endfor %}
       </select>
     </div>
@@ -99,11 +102,9 @@
   const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function submit() {
-    const selectUser = document.getElementById("user");
-    const user = selectUser.options[selectUser.selectedIndex].value;
 
-    const selectRole = document.getElementById("role");
-    const role = selectRole.options[selectRole.selectedIndex].value;
+    const user = $("#userpicker").val();
+    const role = $("#rolepicker").val();
 
     fetch('../../../main/policyengine/role_action_users', {
       method: 'POST',
