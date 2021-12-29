@@ -586,6 +586,9 @@ class BaseAction(PolymorphicModel):
     kind = None
     """Kind of action. One of 'platform' or 'constitution' or 'trigger'. Do not override."""
 
+    def __str__(self):
+        return f"{self._meta.verbose_name.title()} ({self.pk})"
+
     @property
     def action_type(self):
         """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""
@@ -633,9 +636,6 @@ class GovernableAction(BaseAction, PolymorphicModel):
 
     community_origin = models.BooleanField(default=False)
     """True if the action originated on an external platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
-
-    def __str__(self):
-        return f"{self._meta.verbose_name.title()} ({self.pk})"
 
     def save(self, *args, **kwargs):
         """
@@ -713,7 +713,7 @@ class ExecutedActionTriggerAction(TriggerAction):
         )
 
     def __str__(self):
-        return f"Trigger: {self.action}"
+        return f"Trigger: {self.action._meta.verbose_name.title()} ({self.pk})"
 
 
 class WebhookTriggerAction(TriggerAction):

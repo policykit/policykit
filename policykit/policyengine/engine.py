@@ -275,7 +275,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     # If policy is being evaluated for the first time, initialize it
     if is_first_evaluation:
-        context.logger.debug(f"Starting first evaluation for Proposal {proposal.pk}")
+        context.logger.debug(f"Evaluating {proposal}")
         # run "initialize" block of policy
         exec_code_block(policy.initialize, context, Policy.INITIALIZE)
 
@@ -285,7 +285,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     if is_first_evaluation or check_result != Proposal.PROPOSED:
         # log the check result for first evaluation, or if the proposal is newly completed
-        context.logger.debug(f"Proposal {proposal.pk} check returned '{check_result}'")
+        context.logger.debug(f"Proposal {proposal.pk} check returned '{check_result.upper()}'")
 
     if check_result == Proposal.PASSED:
         # run "pass" block of policy
