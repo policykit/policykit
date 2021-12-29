@@ -105,7 +105,7 @@ return FAILED
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
-        action.revert = lambda: None
+        action._revert = lambda: None
         action.execute = lambda: None
 
         # 2) Save action to trigger policy execution
@@ -156,7 +156,7 @@ return FAILED"""
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
-        action.revert = lambda: None
+        action._revert = lambda: None
         action.execute = lambda: None
         action.save()
 

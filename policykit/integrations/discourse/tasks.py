@@ -86,7 +86,7 @@ def discourse_listener_actions():
             action.community_origin = True
             action.save()
             if action.community_revert:
-                action.revert()
+                action._revert()
 
         # Manage proposals
         pending_proposals = Proposal.objects.filter(

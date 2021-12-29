@@ -179,9 +179,9 @@ class RedditMakePost(GovernableAction):
             ('can_execute_redditmakepost', 'Can execute reddit make post'),
         )
 
-    def revert(self):
+    def _revert(self):
         values = {'id': self.name}
-        super().revert(values=values, call='api/remove')
+        super()._revert(values=values, call='api/remove')
 
     def execute(self):
         if not self.community_revert:

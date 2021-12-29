@@ -105,7 +105,7 @@ class ExecPolicyCodeTests(TestCase):
             community=self.slack_community.community,
         )
         self.action = SlackPinMessage(initiator=self.user, community=self.slack_community, community_origin=True)
-        self.action.revert = lambda: None
+        self.action._revert = lambda: None
         self.action.execute = lambda: None
         self.action.save()
         self.proposal = Proposal.objects.create(action=self.action, policy=self.policy)

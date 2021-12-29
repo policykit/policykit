@@ -307,7 +307,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     if should_revert:
         context.logger.debug(f"Reverting action")
-        action.revert()
+        action._revert()
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
     if check_result == Proposal.PROPOSED and is_first_evaluation:

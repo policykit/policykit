@@ -658,7 +658,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
                 if self._is_reversible:
                     logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: reverting")
                     super(GovernableAction, self).save(*args, **kwargs)
-                    self.revert()
+                    self._revert()
                     actstream_action.send(self, verb='was reverted due to lack of permissions', community_id=self.community.id, action_codename=self.action_type)
                 else:
                     logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: doing nothing")
@@ -673,7 +673,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
 
         super(GovernableAction, self).save(*args, **kwargs)
 
-    def revert(self, values=None, call=None, method=None):
+    def _revert(self, values=None, call=None, method=None):
         """
         Reverts the action.
         """

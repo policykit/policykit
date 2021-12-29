@@ -168,7 +168,7 @@ class SlackPostMessage(GovernableAction):
     class Meta:
         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
 
-    def revert(self):
+    def _revert(self):
         admin_user_token = SlackUtils.get_admin_user_token(self.community)
         values = {
             "method_name": "chat.delete",
@@ -176,7 +176,7 @@ class SlackPostMessage(GovernableAction):
             "ts": self.timestamp,
             "channel": self.channel,
         }
-        super().revert(values=values, call=SLACK_METHOD_ACTION)
+        super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackRenameConversation(GovernableAction):
@@ -191,7 +191,7 @@ class SlackRenameConversation(GovernableAction):
     class Meta:
         permissions = (("can_execute_slackrenameconversation", "Can execute slack rename conversation"),)
 
-    def revert(self):
+    def _revert(self):
         # Slack docs: "only the user that originally created a channel or an admin may rename it"
         values = {
             "method_name": SlackRenameConversation.ACTION,
@@ -200,7 +200,7 @@ class SlackRenameConversation(GovernableAction):
             # Use the initiators access token if we have it (since they already successfully renamed)
             "token": self.initiator.access_token or self.community.__get_admin_user_token(),
         }
-        super().revert(values=values, call=SLACK_METHOD_ACTION)
+        super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackJoinConversation(GovernableAction):
@@ -214,17 +214,17 @@ class SlackJoinConversation(GovernableAction):
     class Meta:
         permissions = (("can_execute_slackjoinconversation", "Can execute slack join conversation"),)
 
-    def revert(self):
+    def _revert(self):
         values = {"method_name": "conversations.kick", "user": self.users, "channel": self.channel}
         try:
-            super().revert(values=values, call=SLACK_METHOD_ACTION)
+            super()._revert(values=values, call=SLACK_METHOD_ACTION)
         except Exception:
             # Whether or not bot can kick is based on workspace settings
             logger.error(f"kick with bot token failed, attempting with admin token")
             values["token"] = self.community.__get_admin_user_token()
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
-            super().revert(values=values, call=SLACK_METHOD_ACTION)
+            super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackPinMessage(GovernableAction):
@@ -237,9 +237,9 @@ class SlackPinMessage(GovernableAction):
     class Meta:
         permissions = (("can_execute_slackpinmessage", "Can execute slack pin message"),)
 
-    def revert(self):
+    def _revert(self):
         values = {"method_name": "pins.remove", "channel": self.channel, "timestamp": self.timestamp}
-        super().revert(values=values, call=SLACK_METHOD_ACTION)
+        super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
 
 class SlackScheduleMessage(GovernableAction):

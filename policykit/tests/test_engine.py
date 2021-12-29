@@ -47,7 +47,7 @@ class EvaluationTests(TestCase):
             action._test_did_revert = True
 
         action.execute = mocked_execute
-        action.revert = mocked_revert
+        action._revert = mocked_revert
         action.save()
 
         proposal = None
@@ -85,7 +85,7 @@ class EvaluationTests(TestCase):
             action._test_did_revert = True
 
         action.execute = mocked_execute
-        action.revert = mocked_revert
+        action._revert = mocked_revert
 
         engine.evaluate_proposal(proposal)
 

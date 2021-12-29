@@ -108,10 +108,10 @@ class DiscourseCreateTopic(GovernableAction):
             ('can_execute_discoursecreatetopic', 'Can execute discourse create topic'),
         )
 
-    def revert(self):
+    def _revert(self):
         values = {}
         call = f"/t/{self.topic_id}.json"
-        super().revert(values=values, call=call, method='DELETE')
+        super()._revert(values=values, call=call, method='DELETE')
 
     def execute(self):
         # Execute action if it didnt originate in the community
@@ -141,10 +141,10 @@ class DiscourseCreatePost(GovernableAction):
             ('can_execute_discoursecreatepost', 'Can execute discourse create post'),
         )
 
-    def revert(self):
+    def _revert(self):
         values = {}
         call = f"/posts/{self.post_id}.json"
-        super().revert(value=values, call=call, method='DELETE')
+        super()._revert(value=values, call=call, method='DELETE')
 
     def execute(self):
         # only execute the action if it didnt originate in the community, OR if it was previously reverted
