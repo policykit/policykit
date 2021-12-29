@@ -725,7 +725,7 @@ class WebhookTriggerAction(TriggerAction):
     #add platform_community_platform_id
 
     def __str__(self):
-        return f"Trigger: {self.event_type}"
+        return f"Trigger: {self.event_type} ({self.pk})"
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
