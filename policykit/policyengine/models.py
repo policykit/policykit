@@ -465,7 +465,7 @@ class Proposal(models.Model):
         The URL of the vote associated with this policy evaluation, if any.
         """
         if self.governance_process:
-            self.governance_process.url
+            return self.governance_process.url
         return None
 
     @property
@@ -474,7 +474,7 @@ class Proposal(models.Model):
         Returns True if the vote is closed, False if the vote is still open.
         """
         if self.governance_process:
-            self.governance_process.status == "completed"
+            return self.governance_process.status == "completed"
         return self.status != Proposal.PROPOSED
 
     def get_time_elapsed(self):
