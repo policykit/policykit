@@ -400,8 +400,8 @@ Some useful shell commands for development:
         Proposal.objects.filter(status="proposed")
 
         # Manually run the policy checking task that is executed on a schedule by Celery
-        from policyengine.tasks import consider_proposed_actions
-        consider_proposed_actions()
+        from policyengine.tasks import evaluate_pending_proposals
+        evaluate_pending_proposals()
 
         ###### Advanced Commands for debugging Metagov ######
 

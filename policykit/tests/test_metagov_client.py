@@ -7,7 +7,7 @@ from integrations.slack.models import SlackPinMessage
 from policyengine.metagov_app import metagov
 from policyengine.metagov_client import Metagov
 from policyengine.models import ActionType, Policy, Proposal, WebhookTriggerAction
-from policyengine.tasks import consider_proposed_actions
+from policyengine.tasks import evaluate_pending_proposals
 
 import tests.utils as TestUtils
 
@@ -122,7 +122,7 @@ return FAILED
         proposal.governance_process.proxy.close()
 
         # re-run proposal using celery task function
-        consider_proposed_actions()
+        evaluate_pending_proposals()
         proposal.refresh_from_db()
 
         self.assertEqual(proposal.status, Proposal.PASSED)
