@@ -76,15 +76,7 @@ class SlackCommunity(CommunityPlatform):
 
             # delete PolicyKit Post
             if delete_policykit_post:
-                posted_action = None
-                if action.is_bundled:
-                    bundle = action.governableactionbundle_set.all()
-                    if bundle.exists():
-                        posted_action = bundle[0]
-                else:
-                    posted_action = action
-
-                for e in Proposal.objects.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=action):
                     if e.vote_post_id:
                         values = {
                             "token": admin_user_token,

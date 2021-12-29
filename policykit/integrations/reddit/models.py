@@ -116,7 +116,6 @@ class RedditCommunity(CommunityPlatform):
                                   'initiator',
                                   'communityaction_ptr',
                                   'governableaction',
-                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled',
@@ -146,15 +145,7 @@ class RedditCommunity(CommunityPlatform):
             # delete PolicyKit Post
             logger.info('delete policykit post')
             if delete_policykit_post:
-                posted_action = None
-                if action.is_bundled:
-                    bundle = action.governableactionbundle_set.all()
-                    if bundle.exists():
-                        posted_action = bundle[0]
-                else:
-                    posted_action = action
-
-                for e in Proposal.objects.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=action):
                     if e.vote_post_id:
                         values = {'id': e.vote_post_id}
                         call = 'api/remove'

@@ -71,7 +71,7 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
     votes = outcome["votes"]
     is_boolean_vote = set(votes.keys()) == {"yes", "no"}
 
-    ### 1) Count boolean vote
+    ### Count boolean vote
     if is_boolean_vote:
         for (vote_option, result) in votes.items():
             boolean_value = True if vote_option == "yes" else False
@@ -85,32 +85,7 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
                     logger.debug(f"Counting boolean vote {boolean_value} by {user} (vote changed)")
                     existing_vote.boolean_value = boolean_value
                     existing_vote.save()
-    ### 2) Count number choice vote on action bundle
-    elif proposal.action.action_type == "governableactionbundle":
-        action_bundle = proposal.action
-        # Expect this process to be a choice vote on an action bundle.
-        bundled_actions = list(action_bundle.bundled_actions.all())
-        for (k, v) in votes.items():
-            num, voted_action = [(idx, a) for (idx, a) in enumerate(bundled_actions) if str(a) == k][0]
-
-            try:
-                proposal = Proposal.objects.get(action=voted_action)
-            except Proposal.DoesNotExist:
-                logger.warn(f"No policy proposal found action {voted_action} bundled in {action_bundle}. Ignoring")
-
-            for u in v["users"]:
-                user, _ = SlackUser.objects.get_or_create(username=u, community=slack_community)
-                existing_vote = NumberVote.objects.filter(proposal=proposal, user=user).first()
-                if existing_vote is None:
-                    logger.debug(f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle}")
-                    NumberVote.objects.create(proposal=proposal, user=user, number_value=num)
-                elif existing_vote.number_value != num:
-                    logger.debug(
-                        f"Counting number vote {num} by {user} for {voted_action} in bundle {action_bundle} (vote changed)"
-                    )
-                    existing_vote.number_value = num
-                    existing_vote.save()
-    ### 3) Count choice vote
+    ### Count choice vote
     else:
         for (vote_option, result) in votes.items():
             for u in result["users"]:

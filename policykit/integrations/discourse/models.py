@@ -62,7 +62,6 @@ class DiscourseCommunity(CommunityPlatform):
                                   'initiator',
                                   'communityapi_ptr',
                                   'governableaction',
-                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -82,15 +81,7 @@ class DiscourseCommunity(CommunityPlatform):
             res = LogAPICall.make_api_call(self, data, call)
 
             if delete_policykit_post:
-                posted_action = None
-                if action.is_bundled:
-                    bundle = action.governableactionbundle_set.all()
-                    if bundle.exists():
-                        posted_action = bundle[0]
-                else:
-                    posted_action = action
-
-                for e in Proposal.objects.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=action):
                     if e.vote_post_id:
                         data = {}
                         call = 'posts/{0}.json'.format(e.vote_post_id)

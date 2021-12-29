@@ -8,7 +8,6 @@ class policyEngineConfig(AppConfig):
         import policyengine.handlers
         from actstream import registry
         registry.register(self.get_model('GovernableAction'))
-        registry.register(self.get_model('GovernableActionBundle'))
         registry.register(self.get_model('Policy'))
         registry.register(self.get_model('CommunityUser'))
         registry.register(self.get_model('CommunityRole'))

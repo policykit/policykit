@@ -727,23 +727,6 @@ class WebhookTriggerAction(TriggerAction):
     def __str__(self):
         return f"Trigger Event: {self.event_type}"
 
-
-class GovernableActionBundle(GovernableAction):
-    ELECTION = 'election'
-    BUNDLE = 'bundle'
-    BUNDLE_TYPE = [
-        (ELECTION, 'election'),
-        (BUNDLE, 'bundle')
-    ]
-
-    bundled_actions = models.ManyToManyField(GovernableAction, related_name="member_of_bundle")
-    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
-
-    def execute(self):
-        if self.bundle_type == GovernableActionBundle.BUNDLE:
-            for action in self.bundled_actions.all():
-                self.community._execute_platform_action(action)
-
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(kind=Policy.PLATFORM)

@@ -3,8 +3,7 @@ import json
 import logging
 
 from django.db.models import Q
-from policyengine.metagov_app import metagov
-from policyengine.models import GovernableActionBundle, LogAPICall, PolicyActionKind
+from policyengine.models import LogAPICall, PolicyActionKind
 from policyengine.utils import default_boolean_vote_message, default_election_vote_message
 
 logger = logging.getLogger(__name__)
@@ -152,10 +151,6 @@ def construct_vote_params(proposal, users=None, post_type="channel", text=None, 
         params["poll_type"] = "choice"
         params["title"] = text or "Please vote"
         params["options"] = options
-    elif action.action_type == "governableactionbundle" and action.bundle_type == GovernableActionBundle.ELECTION:
-        params["poll_type"] = "choice"
-        params["title"] = text or default_election_vote_message(policy)
-        params["options"] = [str(a) for a in action.bundled_actions.all()]
     else:
         params["poll_type"] = "boolean"
         params["title"] = text or default_boolean_vote_message(policy)
