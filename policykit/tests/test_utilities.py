@@ -5,7 +5,7 @@ from integrations.slack.models import SlackPostMessage
 from constitution.models import PolicykitAddCommunityDoc
 from integrations.opencollective.models import ExpenseApproved
 import policyengine.autocomplete as PkAutocomplete
-import policyengine.tests.utils as TestUtils
+import tests.utils as TestUtils
 
 
 class UtilTests(TestCase):

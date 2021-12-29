@@ -3,7 +3,7 @@ from integrations.slack.models import SlackPinMessage
 from policyengine.engine import EvaluationContext, PolicyCodeError, exec_code_block
 from policyengine.models import Policy, Proposal
 from django_db_logger.models import EvaluationLog
-import policyengine.tests.utils as TestUtils
+import tests.utils as TestUtils
 from policyengine.safe_exec_code import execute_user_code
 
 
@@ -17,11 +17,13 @@ class MyClass:
         return "bar"
 
 
-class SafeExecCodeTests(TestCase):
+class SafeExecPolicyCodeTests(TestCase):
+    """
+    Test the safe_exec_code module
+    """
+
     def test_execute_safe(self):
-        """
-        Test that permitted modules work in safe execution environment, and args and kwargs work.
-        """
+        """Test that permitted modules work in safe execution environment, and args and kwargs work."""
         example = """
 def test(x, inst, name="alice"):
     random.randint(0, 10)
@@ -56,9 +58,7 @@ def test(x, inst, name="alice"):
         self.assertEqual(execute_user_code(example, "test", 5, MyClass()), "alice is 25")
 
     def test_execute_unsafe(self):
-        """
-        Test that import is restricted
-        """
+        """Test that import is restricted"""
         example = """
 import sys
 def test(x, name="alice"):
@@ -91,7 +91,11 @@ def test(inst):
         self.assertTrue("Restricted" in str(cm.exception))
 
 
-class ExecCodeTests(TestCase):
+class ExecPolicyCodeTests(TestCase):
+    """
+    Test the exec_code_block function for executing policy steps
+    """
+
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
 
