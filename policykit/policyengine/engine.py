@@ -270,18 +270,22 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     policy = proposal.policy
 
     if not exec_code_block(policy.filter, context, Policy.FILTER):
-        logger.debug("does not pass filter")
+        # logger.debug("does not pass filter")
         raise PolicyDoesNotPassFilter
 
     # If policy is being evaluated for the first time, initialize it
     if is_first_evaluation:
+        context.logger.debug(f"Starting first evaluation for Proposal {proposal.pk}")
         # run "initialize" block of policy
         exec_code_block(policy.initialize, context, Policy.INITIALIZE)
 
     # Run "check" block of policy
     check_result = exec_code_block(policy.check, context, Policy.CHECK)
     check_result = sanitize_check_result(check_result)
-    # context.logger.debug(f"Check returned '{check_result}'")
+
+    if is_first_evaluation or check_result != Proposal.PROPOSED:
+        # log the check result for first evaluation, or if the proposal is newly completed
+        context.logger.debug(f"Proposal {proposal.pk} check returned '{check_result}'")
 
     if check_result == Proposal.PASSED:
         # run "pass" block of policy
@@ -315,7 +319,6 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
             action, verb="was proposed", community_id=action.community.id, action_codename=action.action_type
         )
         # Run "notify" block of policy
-        context.logger.debug(f"Notifying")
         exec_code_block(policy.notify, context, Policy.NOTIFY)
 
     return True

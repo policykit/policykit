@@ -635,7 +635,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
     """True if the action originated on an external platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
 
     def __str__(self):
-        return self.action_type or super(GovernableAction, self).__str__()
+        return f"{self._meta.verbose_name.title()} ({self.pk})"
 
     def save(self, *args, **kwargs):
         """
@@ -718,14 +718,14 @@ class ExecutedActionTriggerAction(TriggerAction):
 
 class WebhookTriggerAction(TriggerAction):
     """Represents a Trigger action from any webhook event.
-    Data about the event can be accessed through the event_data property."""
+    Data about the event can be accessed through the data property."""
     event_type = models.CharField(max_length=50, blank=True, null=True)
     data = models.JSONField(blank=True, null=True)
     #add platform_name "source"
     #add platform_community_platform_id
 
     def __str__(self):
-        return f"Trigger Event: {self.event_type}"
+        return f"Trigger: {self.event_type}"
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
