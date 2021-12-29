@@ -28,7 +28,7 @@ Local Development
 
 ::
 
- cp policykit
+ cd policykit
  cp .env.example .env
 
 | To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. For local development, all you need to do is set ``DEBUG=true``.
