@@ -5,8 +5,8 @@ Installation and Getting Started
 
 | On this page, we will take you through the process of setting up PolicyKit, both for local development and on an Ubuntu server.
 
-Getting Started
----------------
+Local Development
+-----------------
 
 | PolicyKit requires Python 3. Before you install, we recommend that you activate a Python 3+ virtual environment.
 
@@ -48,7 +48,10 @@ Getting Started
  python manage.py migrate
 
 
-Open PolicyKit in the browser at http://localhost:8000/main
+Open PolicyKit in the browser at http://localhost:8000/main. At this point, you won't be able to log in because PolicyKit currently only supports sign-in via external auth providers (Slack, Discord, Reddit, and Discourse).
+There is an open issue to support logging in without any third-party platform: `#514 <https://github.com/amyxzhang/policykit/issues/514>`_.
+
+To log in to PolicyKit, you'll need to install it on a dev server and set up at least 1 of the auth-enabled integrations.
 
 
 Running PolicyKit on a Server
@@ -174,7 +177,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
           systemctl reload apache2
 
 
-9.  Give the Apache2 user access to the database directory and the logging directory (update paths as needed):
+9.  Give the Apache2 user access to the database directory (if using sqlite) and the logging directory (update paths as needed):
 
         .. code-block:: shell
 
@@ -250,7 +253,7 @@ For example, if your Django logs are in ``/var/log/django`` and your database is
         sudo chgrp -R www-and-celery /var/log/django
         sudo chmod -R 775 /var/log/django
 
-        # give the group read-write access to database
+        # give the group read-write access to database (if using sqlite)
         sudo chgrp -R www-and-celery /var/databases
         sudo chmod -R 775 /var/databases
 
@@ -447,3 +450,20 @@ Reddit
 1. Create a new app at https://www.reddit.com/prefs/apps
 2. Set the ``REDDIT_CLIENT_SECRET`` in ``private.py``.
 3. Reload apache2: ``systemctl reload apache2``
+
+Developing the Metagov Gateway
+------------------------------
+
+If you're making changes to the `Metagov Gateway <https://docs.metagov.org/>`_ and want to test those changes in PolicyKit, you have two options:
+
+   1. Push your changes to a branch or fork, and update ``requirements.txt`` in PolicyKit to point to it:
+
+     .. code-block:: bash
+
+        -e git+https://github.com/metagov/gateway.git@<your-dev-branch>#egg=metagov&subdirectory=metagov
+
+   2. Use pip "editable" installs to point to your local Metagov Gateway codebase:
+
+     .. code-block:: bash
+
+        pip install -e /path/to/gateway/repo/metagov
