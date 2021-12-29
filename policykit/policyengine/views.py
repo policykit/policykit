@@ -16,7 +16,7 @@ from django.shortcuts import redirect, render
 
 import policyengine.utils as Utils
 from policyengine.integration_data import integration_data
-from policyengine.linter import _error_check
+from policyengine.linter import _lint_check
 from policyengine.metagov_app import metagov, metagov_handler
 from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
 
@@ -508,14 +508,14 @@ def get_autocompletes(request):
 @login_required
 def error_check(request):
     """
-    Takes a request object containing Python code data. Calls _error_check(code)
+    Takes a request object containing Python code data. Calls _lint_check(code)
     to check provided Python code for errors.
     Returns a JSON response containing the output and errors from linting.
     """
     data = json.loads(request.body)
     code = data['code']
     function_name = data['function_name']
-    errors = _error_check(code, function_name)
+    errors = _lint_check(code, function_name)
     return JsonResponse({'errors': errors})
 
 @login_required

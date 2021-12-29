@@ -1,7 +1,6 @@
 import os
 import unittest
 
-import policyengine.tests.utils as TestUtils
 from django.test import Client, TestCase
 from django_db_logger.models import EvaluationLog
 from integrations.slack.models import SlackPinMessage
@@ -10,8 +9,10 @@ from policyengine.metagov_client import Metagov
 from policyengine.models import ActionType, Policy, Proposal, WebhookTriggerAction
 from policyengine.tasks import consider_proposed_actions
 
+import tests.utils as TestUtils
 
-class IntegrationTests(TestCase):
+
+class MetagovTests(TestCase):
     def setUp(self):
         # Set up a Slack community and a user
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
@@ -104,7 +105,7 @@ return FAILED
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
-        action.revert = lambda: None
+        action._revert = lambda: None
         action.execute = lambda: None
 
         # 2) Save action to trigger policy execution
@@ -155,7 +156,7 @@ return FAILED"""
         action.initiator = self.user
         action.community = self.slack_community
         action.community_origin = True
-        action.revert = lambda: None
+        action._revert = lambda: None
         action.execute = lambda: None
         action.save()
 

@@ -9,7 +9,7 @@ import os
 import json
 
 
-class StarterKitTests(TestCase):
+class InitStarterKitTests(TestCase):
     def test_initialize_starterkit(self):
         """Test that starter kit initializion for all kits on all platforms doesn't throw any errors"""
         starterkits_info = Utils.get_starterkits_info()

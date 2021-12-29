@@ -42,7 +42,7 @@ def should_keep_error_message(error_message, function_name):
 class PylintOutput:
     """
     Used internally to write output / error messages to a list
-    from the TextReporter object in _error_check(code).
+    from the TextReporter object in _lint_check(code).
     """
     def __init__(self):
         self.output = []
@@ -53,7 +53,7 @@ class PylintOutput:
     def read(self):
         return self.output
 
-def _error_check(code, function_name = 'filter'):
+def _lint_check(code, function_name = 'filter'):
     """
     Checks provided Python code for errors. Syntax errors are checked for with
     Pylint. Returns a list of errors from linting.

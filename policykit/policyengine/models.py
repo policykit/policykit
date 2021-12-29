@@ -658,7 +658,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
                 if self._is_reversible:
                     logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: reverting")
                     super(GovernableAction, self).save(*args, **kwargs)
-                    self.revert()
+                    self._revert()
                     actstream_action.send(self, verb='was reverted due to lack of permissions', community_id=self.community.id, action_codename=self.action_type)
                 else:
                     logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: doing nothing")
@@ -673,7 +673,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
 
         super(GovernableAction, self).save(*args, **kwargs)
 
-    def revert(self, values=None, call=None, method=None):
+    def _revert(self, values=None, call=None, method=None):
         """
         Reverts the action.
         """
@@ -726,23 +726,6 @@ class WebhookTriggerAction(TriggerAction):
 
     def __str__(self):
         return f"Trigger Event: {self.event_type}"
-
-
-class GovernableActionBundle(GovernableAction):
-    ELECTION = 'election'
-    BUNDLE = 'bundle'
-    BUNDLE_TYPE = [
-        (ELECTION, 'election'),
-        (BUNDLE, 'bundle')
-    ]
-
-    bundled_actions = models.ManyToManyField(GovernableAction, related_name="member_of_bundle")
-    bundle_type = models.CharField(choices=BUNDLE_TYPE, max_length=10)
-
-    def execute(self):
-        if self.bundle_type == GovernableActionBundle.BUNDLE:
-            for action in self.bundled_actions.all():
-                self.community._execute_platform_action(action)
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):

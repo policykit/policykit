@@ -1,15 +1,20 @@
-from django.test import TestCase, override_settings
-from policyengine.models import Proposal, Policy
 from constitution.models import (
-    PolicykitChangePlatformPolicy,
     PolicykitAddConstitutionPolicy,
+    PolicykitAddTriggerPolicy,
     PolicykitChangeConstitutionPolicy,
-    PolicykitAddTriggerPolicy
+    PolicykitChangePlatformPolicy,
 )
-import policyengine.tests.utils as TestUtils
+from django.test import TestCase
+from policyengine.models import Policy, Proposal
+
+import tests.utils as TestUtils
 
 
 class PolicyActionSaveTests(TestCase):
+    """
+    Test the policy_action_save view
+    """
+
     def setUp(self):
         self.slack_community, self.user = TestUtils.create_slack_community_and_user()
         self.community = self.slack_community.community
@@ -99,9 +104,7 @@ class PolicyActionSaveTests(TestCase):
         self.assertEqual(policy.action_types.count(), 2)
 
     def test_add_trigger_policy(self):
-        Policy.objects.create(
-            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
-        )
+        Policy.objects.create(**TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community)
 
         response = self.client.post(
             "/main/policyengine/policy_action_save",
@@ -110,7 +113,7 @@ class PolicyActionSaveTests(TestCase):
                 "operation": "Add",
                 **TestUtils.ALL_ACTIONS_PASS,
                 "name": "my trigger policy",
-                "action_types": ["metagovtrigger"]
+                "action_types": ["metagovtrigger"],
             },
             content_type="application/json",
         )
@@ -123,4 +126,3 @@ class PolicyActionSaveTests(TestCase):
 
         # Check that policy was updated
         Policy.objects.get(name="my trigger policy", kind=Policy.TRIGGER)
-

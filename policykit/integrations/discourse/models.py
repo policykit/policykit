@@ -62,7 +62,6 @@ class DiscourseCommunity(CommunityPlatform):
                                   'initiator',
                                   'communityapi_ptr',
                                   'governableaction',
-                                  'governableactionbundle',
                                   'community_revert',
                                   'community_origin',
                                   'is_bundled'
@@ -82,15 +81,7 @@ class DiscourseCommunity(CommunityPlatform):
             res = LogAPICall.make_api_call(self, data, call)
 
             if delete_policykit_post:
-                posted_action = None
-                if action.is_bundled:
-                    bundle = action.governableactionbundle_set.all()
-                    if bundle.exists():
-                        posted_action = bundle[0]
-                else:
-                    posted_action = action
-
-                for e in Proposal.objects.filter(action=posted_action):
+                for e in Proposal.objects.filter(action=action):
                     if e.vote_post_id:
                         data = {}
                         call = 'posts/{0}.json'.format(e.vote_post_id)
@@ -117,10 +108,10 @@ class DiscourseCreateTopic(GovernableAction):
             ('can_execute_discoursecreatetopic', 'Can execute discourse create topic'),
         )
 
-    def revert(self):
+    def _revert(self):
         values = {}
         call = f"/t/{self.topic_id}.json"
-        super().revert(values=values, call=call, method='DELETE')
+        super()._revert(values=values, call=call, method='DELETE')
 
     def execute(self):
         # Execute action if it didnt originate in the community
@@ -150,10 +141,10 @@ class DiscourseCreatePost(GovernableAction):
             ('can_execute_discoursecreatepost', 'Can execute discourse create post'),
         )
 
-    def revert(self):
+    def _revert(self):
         values = {}
         call = f"/posts/{self.post_id}.json"
-        super().revert(value=values, call=call, method='DELETE')
+        super()._revert(value=values, call=call, method='DELETE')
 
     def execute(self):
         # only execute the action if it didnt originate in the community, OR if it was previously reverted
