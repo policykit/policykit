@@ -266,20 +266,24 @@ CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_BEAT_FREQUENCY = 60.0
 
 CELERY_BEAT_SCHEDULE = {
- 'metagov-plugins-beat': {
-       'task': 'metagov.core.tasks.execute_plugin_tasks',
-       'schedule': CELERY_BEAT_FREQUENCY,
+    # Evaluate pending policy evaluations every minute
+    "evaluate-pending-proposals-beat": {
+        "task": "policyengine.tasks.evaluate_pending_proposals",
+        "schedule": CELERY_BEAT_FREQUENCY,
     },
- 'count-votes-beat': {
-       'task': 'policyengine.tasks.consider_proposed_actions',
-       'schedule': CELERY_BEAT_FREQUENCY,
+    # Poll reddit for updates
+    "reddit-listener-beat": {
+        "task": "integrations.reddit.tasks.reddit_listener_actions",
+        "schedule": CELERY_BEAT_FREQUENCY,
     },
- 'reddit-listener-beat': {
-       'task': 'integrations.reddit.tasks.reddit_listener_actions',
-       'schedule': CELERY_BEAT_FREQUENCY,
+    # Poll discourse for updates
+    "discourse-listener-beat": {
+        "task": "integrations.discourse.tasks.discourse_listener_actions",
+        "schedule": CELERY_BEAT_FREQUENCY,
     },
- 'discourse-listener-beat': {
-       'task': 'integrations.discourse.tasks.discourse_listener_actions',
-       'schedule': CELERY_BEAT_FREQUENCY,
-    }
+    # Metagov task for polling external platforms
+    "metagov-plugins-beat": {
+        "task": "metagov.core.tasks.execute_plugin_tasks",
+        "schedule": CELERY_BEAT_FREQUENCY,
+    },
 }
