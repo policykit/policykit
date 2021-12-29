@@ -465,7 +465,7 @@ class Proposal(models.Model):
         The URL of the vote associated with this policy evaluation, if any.
         """
         if self.governance_process:
-            self.governance_process.url
+            return self.governance_process.url
         return None
 
     @property
@@ -474,7 +474,7 @@ class Proposal(models.Model):
         Returns True if the vote is closed, False if the vote is still open.
         """
         if self.governance_process:
-            self.governance_process.status == "completed"
+            return self.governance_process.status == "completed"
         return self.status != Proposal.PROPOSED
 
     def get_time_elapsed(self):
@@ -586,6 +586,9 @@ class BaseAction(PolymorphicModel):
     kind = None
     """Kind of action. One of 'platform' or 'constitution' or 'trigger'. Do not override."""
 
+    def __str__(self):
+        return f"{self._meta.verbose_name.title()} ({self.pk})"
+
     @property
     def action_type(self):
         """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""
@@ -633,9 +636,6 @@ class GovernableAction(BaseAction, PolymorphicModel):
 
     community_origin = models.BooleanField(default=False)
     """True if the action originated on an external platform. False if the action originated in PolicyKit, either from a Policy or being proposed in the PolicyKit web interface."""
-
-    def __str__(self):
-        return self.action_type or super(GovernableAction, self).__str__()
 
     def save(self, *args, **kwargs):
         """
@@ -713,19 +713,19 @@ class ExecutedActionTriggerAction(TriggerAction):
         )
 
     def __str__(self):
-        return f"Trigger: {self.action}"
+        return f"Trigger: {self.action._meta.verbose_name.title()} ({self.pk})"
 
 
 class WebhookTriggerAction(TriggerAction):
     """Represents a Trigger action from any webhook event.
-    Data about the event can be accessed through the event_data property."""
+    Data about the event can be accessed through the data property."""
     event_type = models.CharField(max_length=50, blank=True, null=True)
     data = models.JSONField(blank=True, null=True)
     #add platform_name "source"
     #add platform_community_platform_id
 
     def __str__(self):
-        return f"Trigger Event: {self.event_type}"
+        return f"Trigger: {self.event_type} ({self.pk})"
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):

@@ -8,10 +8,13 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def consider_proposed_actions():
+def evaluate_pending_proposals():
+    """
+    Iterates through all pending Proposals and re-evaluates them.
+    """
     # import PK modules inside the task so we get code updates.
     from policyengine import engine
-    from policyengine.models import Proposal, ExecutedActionTriggerAction
+    from policyengine.models import Proposal, ExecutedActionTriggerAction, GovernableAction
 
     pending_proposals = Proposal.objects.filter(status=Proposal.PROPOSED)
     for proposal in pending_proposals:
@@ -25,7 +28,9 @@ def consider_proposed_actions():
         except Exception as e:
             logger.error(f"Error running proposal {proposal}: {repr(e)} {e}")
 
-        if proposal.status == Proposal.PASSED:
+        # If the engine just PASSED a GovernableAction, generate a new Trigger for the newly executed action.
+        # This lets us use GovernableActions as triggers for trigger policies.
+        if proposal.status == Proposal.PASSED and isinstance(proposal.action, GovernableAction):
             ExecutedActionTriggerAction.from_action(proposal.action).evaluate()
 
     clean_up_logs()
