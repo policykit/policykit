@@ -198,25 +198,6 @@ Follow these instructions to run a celery daemon on your Ubuntu machine using ``
 For more information about configuration options, see the `Celery Daemonization <https://docs.celeryproject.org/en/stable/userguide/daemonizing.html>`_.
 
 
-Create RabbitMQ virtual host
-""""""""""""""""""""""""""""
-
-Install RabbitMQ and create a virtual host:
-
-.. code-block:: shell
-
-    sudo apt-get install rabbitmq-server
-
-    sudo rabbitmqctl add_user 'username' 'password'
-    sudo rabbitmqctl add_vhost 'policykit-vhost'
-    sudo rabbitmqctl set_permissions -p 'policykit-vhost' 'username' '.*' '.*' '.*'
-
-In ``policykit/settings.py``, set the ``CELERY_BROKER_URL`` as follows, substituting values for your RabbitMQ username, password, and virtual host:
-
-.. code-block:: python
-
-    CELERY_BROKER_URL = "amqp://USERNAME:PASSWORD@localhost:5672/CUSTOMVIRTUALHOST"
-
 Create celery user
 """"""""""""""""""
 
@@ -263,7 +244,7 @@ Create Celery configuration files
 
 Next, you'll need to create three Celery configuration files for PolicyKit:
 
-``/etc/conf.d/celery-policykit``
+``/etc/conf.d/celery``
 """"""""""""""""""""""""""""""""
 
 .. code-block:: bash
@@ -294,7 +275,7 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
         CELERYBEAT_LOG_FILE="/var/log/celery/policykit_beat.log"
 
 
-``/etc/systemd/system/celery-policykit.service``
+``/etc/systemd/system/celery.service``
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash
@@ -307,7 +288,7 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
         Type=forking
         User=celery
         Group=celery
-        EnvironmentFile=/etc/conf.d/celery-policykit
+        EnvironmentFile=/etc/conf.d/celery
         WorkingDirectory=$POLICYKIT_REPO/policykit
         ExecStart=/bin/sh -c '${CELERY_BIN} multi start ${CELERYD_NODES} \
         -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
@@ -322,7 +303,7 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
         WantedBy=multi-user.target
 
 
-``/etc/systemd/system/celerybeat-policykit.service``
+``/etc/systemd/system/celerybeat.service``
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash
@@ -335,12 +316,12 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
         Type=simple
         User=celery
         Group=celery
-        EnvironmentFile=/etc/conf.d/celery-policykit
+        EnvironmentFile=/etc/conf.d/celery
         WorkingDirectory=$POLICYKIT_REPO/policykit
         ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP}  \
         beat --pidfile=${CELERYBEAT_PID_FILE} \
         --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} \
-        --schedule=/var/run/celery/celerybeat-policykit-schedule'
+        --schedule=/var/run/celery/celerybeat-schedule'
 
         [Install]
         WantedBy=multi-user.target
@@ -357,14 +338,14 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
 ::
 
  sudo service rabbitmq-server start
- sudo systemctl start celery-policykit celerybeat-policykit
+ sudo systemctl start celery celerybeat
 
 | Verify that there are no errors with celery and celerybeat by running these commands:
 
 ::
 
- sudo systemctl status celery-policykit
- sudo systemctl status celerybeat-policykit
+ sudo systemctl status celery
+ sudo systemctl status celerybeat
 
 Troubleshooting
 """""""""""""""
@@ -374,7 +355,7 @@ Troubleshooting
 ::
 
  celery -A policykit worker -l info --uid celery
- celery -A policykit beat -l info --uid celery --schedule=/var/run/celery/celerybeat-policykit-schedule
+ celery -A policykit beat -l info --uid celery --schedule=/var/run/celery/celerybeat-schedule
 
 
 If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/policykit_beat.log``.

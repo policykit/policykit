@@ -258,8 +258,7 @@ LOGGING = {
     'loggers': loggers
 }
 
-# Replace with "amqp://USERNAME:PASSWORD@localhost:5672/VIRTUALHOST"
-CELERY_BROKER_URL = 'amqp://'
+
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 
