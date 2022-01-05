@@ -18,16 +18,18 @@ def evaluate_pending_proposals():
 
     pending_proposals = Proposal.objects.filter(status=Proposal.PROPOSED)
     for proposal in pending_proposals:
-        logger.debug(f"Evaluating proposal '{proposal}'")
+        community_name = proposal.action.community.community_name
+        logger.debug(f"{community_name} - Evaluating proposal '{proposal}'")
         try:
             engine.evaluate_proposal(proposal)
         except (engine.PolicyDoesNotExist, engine.PolicyIsNotActive, engine.PolicyDoesNotPassFilter) as e:
-            logger.warn(f"ERROR {type(e).__name__} deleting proposal: {proposal}")
+            logger.warn(f"{community_name} - ERROR - {type(e).__name__} deleting proposal: {proposal}")
             new_proposal = engine.delete_and_rerun(proposal)
-            logger.debug(f"New proposal: {new_proposal}")
+            logger.debug(f"{community_name} - New proposal: {new_proposal}")
         except Exception as e:
-            logger.error(f"Error running proposal {proposal}: {repr(e)} {e}")
-
+            logger.error(f"{community_name} - Error running proposal {proposal}: {repr(e)} {e}")
+            
+            
         # If the engine just PASSED a GovernableAction, generate a new Trigger for the newly executed action.
         # This lets us use GovernableActions as triggers for trigger policies.
         if proposal.status == Proposal.PASSED and isinstance(proposal.action, GovernableAction):
