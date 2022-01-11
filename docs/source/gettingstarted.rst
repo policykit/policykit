@@ -28,7 +28,7 @@ Local Development
 
 ::
 
- cp policykit
+ cd policykit
  cp .env.example .env
 
 | To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. For local development, all you need to do is set ``DEBUG=true``.
@@ -271,8 +271,8 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
         CELERYD_LOG_LEVEL="INFO"
 
         # you may wish to add these options for Celery Beat
-        CELERYBEAT_PID_FILE="/var/run/celery/policykit_beat.pid"
-        CELERYBEAT_LOG_FILE="/var/log/celery/policykit_beat.log"
+        CELERYBEAT_PID_FILE="/var/run/celery/beat.pid"
+        CELERYBEAT_LOG_FILE="/var/log/celery/beat.log"
 
 
 ``/etc/systemd/system/celery.service``
@@ -358,7 +358,7 @@ Troubleshooting
  celery -A policykit beat -l info --uid celery --schedule=/var/run/celery/celerybeat-schedule
 
 
-If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/policykit_beat.log``.
+If celerybeat experiences errors starting up, check the logs at ``/var/log/celery/beat.log``.
 
 
 Interactive Django Shell

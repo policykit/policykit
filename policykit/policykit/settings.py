@@ -237,7 +237,7 @@ loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
 loggers['metagov'] = {'handlers': ['console', 'file'], 'level': "DEBUG", "propagate": False}
 
 # Maximum number of log records to keep
-DB_MAX_LOGS_TO_KEEP = 400
+DB_MAX_LOGS_TO_KEEP = 5000
 
 LOGGING = {
     'version': 1,
