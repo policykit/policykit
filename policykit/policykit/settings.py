@@ -155,12 +155,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    },
-
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'policykit',
+        'USER': 'policykituser',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': ''
+    }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -235,7 +237,7 @@ loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
 loggers['metagov'] = {'handlers': ['console', 'file'], 'level': "DEBUG", "propagate": False}
 
 # Maximum number of log records to keep
-DB_MAX_LOGS_TO_KEEP = 300
+DB_MAX_LOGS_TO_KEEP = 400
 
 LOGGING = {
     'version': 1,
