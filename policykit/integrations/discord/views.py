@@ -126,7 +126,16 @@ def discord_install(request):
         )
 
         # Get the list of users and create a DiscordUser object for each user
-        guild_members = discord_plugin.method(route=f"guilds/{guild_id}/members?limit=1000")
+        done_downloading = False
+        guild_members = []
+        limit = 1000
+        after = "0"
+        # Get the list of users and create a DiscordUser object for each user
+        while not done_downloading:
+            result = discord_plugin.method(route=f'guilds/{guild_id}/members?after={after}&limit={limit}')
+            guild_members = guild_members + result
+            after = guild_members[-1]['user']['id']
+            done_downloading = len(result) < limit
         owner_id = guild_info["owner_id"]
         creator_user = None
         for member in guild_members:
