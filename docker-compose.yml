@@ -1,0 +1,74 @@
+version: '3.7'
+
+services:
+  policykit_app:
+    container_name: policykit
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "python3 metagov/manage.py makemigrations &&
+      python3 metagov/manage.py migrate &&
+      python3 metagov/manage.py collectstatic &&
+      python3 metagov/manage.py runserver 0.0.0.0:8000"
+    environment:
+      - "POSTGRES_DB=metagov"
+      - "RABBITMQ_USER=admin"
+      - "POSTGRES_HOST=database"
+      - "POSTGRES_USER=postgres"
+      - "RABBITMQ_PASSWORD=mypass"
+      - "RABBITMQ_HOST=rabbitmq_server"
+      - "POSTGRES_PASSWORD=supersecretpassword"
+    expose:
+      - 8000
+    ports:
+      - "8081:8000"
+    depends_on:
+      - database
+      - rabbitmq_server
+    networks:
+      - metagov_network
+
+  database:
+    container_name: postgresql
+    image: postgres:alpine
+    restart: always
+    environment:
+      - "POSTGRES_DB=metagov"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=supersecretpassword"
+    ports:
+      - "5432:5432"
+    networks:
+      - metagov_network
+    volumes:
+      - metagov-storage:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - "./policykit/webserver:/etc/nginx/conf.d"
+    networks:
+      - metagov_network
+
+  rabbitmq_server:
+    container_name: rabbitmq
+    image: rabbitmq:3.9.13-management
+    environment:
+      - "RABBITMQ_DEFAULT_USER=admin"
+      - "RABBITMQ_DEFAULT_PASS=mypass"
+    ports:
+      - 5672:5672
+    networks:
+      - metagov_network
+
+volumes:
+  metagov-storage:
+
+networks:
+  metagov_network:
+    driver: bridge
