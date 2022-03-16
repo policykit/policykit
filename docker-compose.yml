@@ -51,7 +51,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - "./policykit/webserver:/etc/nginx/conf.d"
+      - "./policykit/docker_data/nginx:/etc/nginx/conf.d"
     networks:
       - metagov_network
 
@@ -63,6 +63,62 @@ services:
       - "RABBITMQ_DEFAULT_PASS=mypass"
     ports:
       - 5672:5672
+    networks:
+      - metagov_network
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    restart: always
+    pid: "host"
+    ports:
+      - "9100:9100"
+    networks:
+      - metagov_network
+
+  cadvisor:
+    image: 'google/cadvisor:latest'
+    container_name: cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk:/dev/disk/:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - metagov_network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: "prometheus"
+    volumes:
+      - "./policykit/docker_data/prometheus:/prometheus"
+      - "./policykit/docker_data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    user: "1000"
+    restart: always
+    command:
+      --web.enable-lifecycle
+      --storage.tsdb.retention.time=7d
+      --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - metagov_network
+
+  grafana:
+    image: grafana/grafana
+    container_name: "grafana"
+    user: root
+    volumes:
+      - "./policykit/docker_data/grafana:/var/lib/grafana"
+    environment:
+      - "GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-polystat-panel,novatec-sdg-panel,macropower-analytics-panel"
+    ports:
+      - "3000:3000"
+    restart: always
     networks:
       - metagov_network
 
