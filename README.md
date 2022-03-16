@@ -28,5 +28,12 @@ docker-compose up --build -d --force-recreate
 6. Grafana: This is used to monitor the server this app is deployed on
 7. Node Exporter: This is used as an agent to export server metrics to prometheus
 
-Note: The only required containers for this deployemnt is Policykit, Database, and Rabbitmq, rest all can be removed if
+
+## Important Notes before installing:
+1. The only required containers for this deployemnt is Policykit, Database, and Rabbitmq, rest all can be removed if
 not needed, they are just for monitoring
+2. It's recommended to use with docker to avoid making changes to the code but if one needs to deploy this without
+doker, here are the changes to make:
+   1. Create an external postgres database or just comment the postgres lines from settings.py and uncomment
+   sqlite to get going
+   2. Make sure to remove the broker keyword from policykit celery.py if docker is not used
