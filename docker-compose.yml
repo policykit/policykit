@@ -95,7 +95,8 @@ services:
     image: prom/prometheus
     container_name: "prometheus"
     volumes:
-      - "./policykit/docker_data/prometheus:/prometheus"
+      - metagov-storage:/prometheus-data
+      - metagov-storage:/prometheus
       - "./policykit/docker_data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
@@ -103,7 +104,7 @@ services:
     restart: always
     command:
       --web.enable-lifecycle
-      --storage.tsdb.retention.time=7d
+      --storage.tsdb.retention.time=15d
       --config.file=/etc/prometheus/prometheus.yml
     networks:
       - metagov_network
@@ -113,12 +114,42 @@ services:
     container_name: "grafana"
     user: root
     volumes:
-      - "./policykit/docker_data/grafana:/var/lib/grafana"
+      - metagov-storage:/var/lib/grafana
     environment:
       - "GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-polystat-panel,novatec-sdg-panel,macropower-analytics-panel"
     ports:
       - "3000:3000"
     restart: always
+    networks:
+      - metagov_network
+
+  promtail:
+    image: grafana/promtail:2.4.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - "./policykit/docker_data/promtail:/etc/promtail"
+    ports:
+      - "1514:1514"
+    restart: always
+    command:
+      -config.expand-env=true
+      -config.file=/etc/promtail/promtail-config.yml
+    environment:
+      - ENV=development
+      - HOSTNAME=${hostname}
+      - APPLICATION=policykit
+    networks:
+      - metagov_network
+
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    container_name: nginx_exporter
+    restart: always
+    command:
+      -nginx.scrape-uri=http://nginx:80/stub_status
+    ports:
+      - "9113:9113"
     networks:
       - metagov_network
 
