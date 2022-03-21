@@ -42,7 +42,7 @@ services:
     networks:
       - metagov_network
     volumes:
-      - metagov-storage:/var/lib/postgresql/data
+      - policykit-database:/var/lib/postgresql/data
 
   nginx:
     image: nginx
@@ -55,6 +55,17 @@ services:
     networks:
       - metagov_network
 
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    container_name: nginx_exporter
+    restart: always
+    command:
+      -nginx.scrape-uri=http://nginx:80/stub_status
+    ports:
+      - "9113:9113"
+    networks:
+      - metagov_network
+
   rabbitmq_server:
     container_name: rabbitmq
     image: rabbitmq:3.9.13-management
@@ -62,7 +73,7 @@ services:
       - "RABBITMQ_DEFAULT_USER=admin"
       - "RABBITMQ_DEFAULT_PASS=mypass"
     ports:
-      - 5672:5672
+      - "5672:5672"
     networks:
       - metagov_network
 
@@ -95,12 +106,11 @@ services:
     image: prom/prometheus
     container_name: "prometheus"
     volumes:
-      - metagov-storage:/prometheus-data
-      - metagov-storage:/prometheus
+      - policykit-prometheus:/prometheus
       - "./policykit/docker_data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
-    user: "1000"
+    user: root
     restart: always
     command:
       --web.enable-lifecycle
@@ -114,7 +124,7 @@ services:
     container_name: "grafana"
     user: root
     volumes:
-      - metagov-storage:/var/lib/grafana
+      - policykit-grafana:/var/lib/grafana
     environment:
       - "GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-polystat-panel,novatec-sdg-panel,macropower-analytics-panel"
     ports:
@@ -142,19 +152,22 @@ services:
     networks:
       - metagov_network
 
-  nginx_exporter:
-    image: nginx/nginx-prometheus-exporter:0.10.0
-    container_name: nginx_exporter
-    restart: always
-    command:
-      -nginx.scrape-uri=http://nginx:80/stub_status
+  loki:
+    image: grafana/loki:2.4.0
+    container_name: loki
+    volumes:
+      - "./policykit/docker_data/loki:/etc/loki"
     ports:
-      - "9113:9113"
+      - "3100:3100"
+    restart: always
+    command: -config.file=/etc/loki/loki-config.yml
     networks:
       - metagov_network
 
 volumes:
-  metagov-storage:
+  policykit-grafana:
+  policykit-database:
+  policykit-prometheus:
 
 networks:
   metagov_network:
