@@ -16,6 +16,7 @@ services:
       - "RABBITMQ_USER=admin"
       - "POSTGRES_HOST=database"
       - "POSTGRES_USER=postgres"
+      - "POSTGRES_DB_CHECK=true"
       - "RABBITMQ_PASSWORD=mypass"
       - "RABBITMQ_HOST=rabbitmq_server"
       - "POSTGRES_PASSWORD=supersecretpassword"
@@ -50,6 +51,7 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "8080:8080
     volumes:
       - "./policykit/docker_data/nginx:/etc/nginx/conf.d"
     networks:
@@ -60,7 +62,7 @@ services:
     container_name: nginx_exporter
     restart: always
     command:
-      -nginx.scrape-uri=http://nginx:80/stub_status
+      -nginx.scrape-uri=http://nginx:8080/stub_status
     ports:
       - "9113:9113"
     networks:
@@ -139,16 +141,13 @@ services:
     volumes:
       - /var/log:/var/log
       - "./policykit/docker_data/promtail:/etc/promtail"
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     ports:
       - "1514:1514"
     restart: always
     command:
       -config.expand-env=true
       -config.file=/etc/promtail/promtail-config.yml
-    environment:
-      - ENV=development
-      - HOSTNAME=${hostname}
-      - APPLICATION=policykit
     networks:
       - metagov_network
 

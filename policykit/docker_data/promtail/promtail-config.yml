@@ -15,41 +15,38 @@ scrape_configs:
           - localhost
         labels:
           job: nginx
-          node: worker
-          instance: '${HOSTNAME}'
-          application: policykit
-          environment: development
           __path__: /var/log/nginx/*log
-  - job_name: supervisor
+
+  - job_name: containers
     static_configs:
       - targets:
           - localhost
         labels:
-          node: worker
-          job: supervisor
-          instance: '${HOSTNAME}'
-          application: policykit
-          environment: development
-          __path__: /var/log/supervisor/*log
-  - job_name: varlogs
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: varlogs
-          node: worker
-          instance: '${HOSTNAME}'
-          application: policykit
-          __path__: /var/log/*log
-          environment: development
-  - job_name: docker
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*log
+
     pipeline_stages:
-      - docker: { }
-    static_configs:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+      - json:
+          expressions:
+            tag:
+          source: attrs
+      - regex:
+          expression: (?P<image_name>(?:[^|]*[^|])).(?P<container_name>(?:[^|]*[^|])).(?P<image_id>(?:[^|]*[^|])).(?P<container_id>(?:[^|]*[^|]))
+          source: tag
+      - timestamp:
+          format: RFC3339Nano
+          source: time
       - labels:
-          job: docker
-          node: worker
-          instance: '${HOSTNAME}'
-          application: policykit
-          environment: development
-          __path__: /var/lib/docker/containers/*/*-json.log
+          tag:
+          stream:
+          image_name:
+          container_name:
+          image_id:
+          container_id:
+      - output:
+          source: output

@@ -14,6 +14,7 @@ scrape_configs:
     static_configs:
       - targets:
           - node_exporter:9100
+          - nginx_exporter:9113
 
   - job_name: policykit-docker-exporter
     metrics_path: /metrics
