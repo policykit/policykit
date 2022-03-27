@@ -54,6 +54,7 @@ services:
       - "443:443"
       - "8082:8082"
     volumes:
+      - nginx_logs:/var/log/nginx
       - ./policykit/docker_data/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./policykit/docker_data/nginx/test.policykit.com.crt:/etc/ssl/certs/test.policykit.com.crt:ro
       - ./policykit/docker_data/nginx/test.policykit.com.key:/etc/ssl/private/test.policykit.com.key:ro
@@ -167,6 +168,7 @@ services:
       - metagov_network
 
 volumes:
+  nginx_logs:
   policykit-grafana:
   policykit-database:
   policykit-prometheus:
