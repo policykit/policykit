@@ -15,6 +15,9 @@ chardet==3.0.4
 click==7.1.2
 decorator==4.4.1
 Django==3.2.2
+ python-http-client==3.3.4
+sendgrid==6.9.3
+starkbank-ecdsa==2.0.3
 django-activity-stream==0.10.0
 django-celery-beat==2.2.0
 django-celery-results==2.0.1

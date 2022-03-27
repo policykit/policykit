@@ -102,6 +102,9 @@ METAGOV_SETTINGS = {
     },
     "OPENCOLLECTIVE": {
         "USE_STAGING": env("OPENCOLLECTIVE_USE_STAGING", default=False)
+    },
+    "SENDGRID": {
+        "API_KEY": env("SENDGRID_API_KEY", default=None)
     }
 }
 
