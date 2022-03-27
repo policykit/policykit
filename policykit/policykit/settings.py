@@ -46,6 +46,7 @@ INTEGRATIONS = [
     'integrations.opencollective',
     'integrations.loomio',
     'integrations.sourcecred',
+    'integrations.sendgrid',
 ]
 
 INSTALLED_APPS = [
