@@ -11,7 +11,7 @@ SENDGRID_API_KEY = sendgrid_settings["API_KEY"]
 logger = logging.getLogger(__name__)
 
 
-class OpencollectiveCommunity(CommunityPlatform):
+class SendgridCommunity(CommunityPlatform):
     platform = "sendgrid"
 
     @staticmethod
