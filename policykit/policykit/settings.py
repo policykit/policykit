@@ -153,7 +153,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-if os.getenv("POSTGRES_DB_CHECK"):
+if os.getenv("DOCKER_ENV_CHECK"):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

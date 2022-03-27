@@ -6,11 +6,17 @@ from celery import Celery
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
 
-app = Celery('policykit',
-             broker=f'amqp://{os.getenv("RABBITMQ_USER")}:{os.getenv("RABBITMQ_PASSWORD")}@{os.getenv("RABBITMQ_HOST")}:5672',
-             include=['policyengine.tasks',
-                      'integrations.reddit.tasks',
-                      'integrations.discourse.tasks'])
+if os.getenv("DOCKER_ENV_CHECK"):
+    app = Celery('policykit',
+                 broker=f'amqp://{os.getenv("RABBITMQ_USER")}:{os.getenv("RABBITMQ_PASSWORD")}@{os.getenv("RABBITMQ_HOST")}:5672',
+                 include=['policyengine.tasks',
+                          'integrations.reddit.tasks',
+                          'integrations.discourse.tasks'])
+else:
+    app = Celery('policykit',
+                 include=['policyengine.tasks',
+                          'integrations.reddit.tasks',
+                          'integrations.discourse.tasks'])
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

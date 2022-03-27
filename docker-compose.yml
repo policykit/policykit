@@ -14,9 +14,9 @@ services:
     environment:
       - "POSTGRES_DB=metagov"
       - "RABBITMQ_USER=admin"
+      - "DOCKER_ENV_CHECK=true"
       - "POSTGRES_HOST=database"
       - "POSTGRES_USER=postgres"
-      - "POSTGRES_DB_CHECK=true"
       - "RABBITMQ_PASSWORD=mypass"
       - "RABBITMQ_HOST=rabbitmq_server"
       - "POSTGRES_PASSWORD=supersecretpassword"
@@ -51,7 +51,7 @@ services:
     restart: always
     ports:
       - "80:80"
-      - "8080:8080
+      - "8080:8080"
     volumes:
       - "./policykit/docker_data/nginx:/etc/nginx/conf.d"
     networks:
