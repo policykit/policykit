@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-         label 'ubuntu'
-    }
+    agent any
 
     environment {
         service="policykiy"
