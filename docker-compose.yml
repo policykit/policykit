@@ -189,7 +189,9 @@ services:
       - monitoring
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: policykit/docker_data/jenkins/Dockerfile
+      dockerfile: .
     container_name: jenkins
     privileged: true
     restart: always

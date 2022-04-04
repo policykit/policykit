@@ -1,12 +1,54 @@
 pipeline {
-    agent any
+    agent {
+         label 'ubuntu'
+    }
 
     environment {
         service="policykiy"
     }
 
     stages {
-        stage('clean workspace') {
+        stage('Build Application') {
+            steps {
+                script {
+                    sh """
+                    docker-compose build
+                    """
+                }
+            }
+        }
+
+        stage('Running Unit Test Cases') {
+            steps {
+                script {
+                    sh """
+                    echo "Unit test cases"
+                    """
+                }
+            }
+        }
+
+        stage('Push container to Artifactory') {
+            steps {
+                script {
+                    sh """
+                    echo "Pushing containers to artifactory"
+                    """
+                }
+            }
+        }
+
+        stage('Delete Docker Containers from Host') {
+            steps {
+                script {
+                    sh """
+                    echo "Deleting docker images"
+                    """
+                }
+            }
+        }
+
+        stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
