@@ -6,6 +6,16 @@ pipeline {
     }
 
     stages {
+        stage('Test') {
+            steps {
+                script {
+                    sh """
+                    echo "Creating a new stage"
+                    """
+                }
+            }
+        }
+
         stage('Build Application') {
             steps {
                 script {
