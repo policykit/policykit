@@ -190,7 +190,7 @@ services:
 
   jenkins:
     build:
-      context: policykit/docker_data/jenkins/Dockerfile
+      context: policykit/docker_data/jenkins/
       dockerfile: .
     container_name: jenkins
     privileged: true
