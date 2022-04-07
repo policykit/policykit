@@ -2,11 +2,12 @@ version: '3.7'
 
 services:
   policykit_app:
-    container_name: policykit
     restart: always
     build:
       context: .
       dockerfile: Dockerfile
+    deploy:
+      replicas: 2
     command: bash -c "python3 metagov/manage.py makemigrations &&
       python3 metagov/manage.py migrate &&
       python3 metagov/manage.py collectstatic &&
@@ -20,10 +21,8 @@ services:
       - "RABBITMQ_PASSWORD=mypass"
       - "RABBITMQ_HOST=rabbitmq_server"
       - "POSTGRES_PASSWORD=supersecretpassword"
-    expose:
-      - 8000
     ports:
-      - "8084:8000"
+      - "8000"
     depends_on:
       - database
       - rabbitmq_server
@@ -69,11 +68,15 @@ services:
       - "RABBITMQ_DEFAULT_PASS=mypass"
     ports:
       - "5672:5672"
+      - "15673:15672"
+    volumes:
+      - policykit-rabbitmq:/var/lib/rabbitmq/
     networks:
       - monitoring
 
 volumes:
   policykit-database:
+  policykit-rabbitmq:
   policykit-nginx-logs:
 
 networks:
