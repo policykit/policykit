@@ -4,3 +4,6 @@ docs/source/generated_policy_examples.inc
 .DS_Store
 .env
 .vscode
+.idea/
+policykit/docker_data/grafana/*
+policykit/docker_data/prometheus/data

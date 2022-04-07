@@ -1,0 +1,217 @@
+version: '3.7'
+
+services:
+  policykit_app:
+    container_name: policykit
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "python3 metagov/manage.py makemigrations &&
+      python3 metagov/manage.py migrate &&
+      python3 metagov/manage.py collectstatic &&
+      python3 metagov/manage.py runserver 0.0.0.0:8000"
+    environment:
+      - "POSTGRES_DB=metagov"
+      - "RABBITMQ_USER=admin"
+      - "DOCKER_ENV_CHECK=true"
+      - "POSTGRES_HOST=database"
+      - "POSTGRES_USER=postgres"
+      - "RABBITMQ_PASSWORD=mypass"
+      - "RABBITMQ_HOST=rabbitmq_server"
+      - "POSTGRES_PASSWORD=supersecretpassword"
+    expose:
+      - 8000
+    ports:
+      - "8084:8000"
+    depends_on:
+      - database
+      - rabbitmq_server
+    networks:
+      - monitoring
+
+  database:
+    container_name: postgresql
+    image: postgres:alpine
+    restart: always
+    environment:
+      - "POSTGRES_DB=metagov"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=supersecretpassword"
+    ports:
+      - "5432:5432"
+    networks:
+      - monitoring
+    volumes:
+      - policykit-database:/var/lib/postgresql/data:rw
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8082:8082"
+    volumes:
+      - policykit-nginx-logs:/var/log/nginx
+      - ./policykit/docker_data/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./policykit/docker_data/nginx/privatekey.pem:/etc/nginx/ssl/privkey.pem:ro
+      - ./policykit/docker_data/nginx/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+    networks:
+      - monitoring
+
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    container_name: nginx_exporter
+    restart: always
+    command:
+      -nginx.scrape-uri=http://nginx:8082/stub_status
+    ports:
+      - "9113:9113"
+    networks:
+      - monitoring
+
+  rabbitmq_server:
+    container_name: rabbitmq
+    image: rabbitmq:3.9.13-management
+    environment:
+      - "RABBITMQ_DEFAULT_USER=admin"
+      - "RABBITMQ_DEFAULT_PASS=mypass"
+    ports:
+      - "5672:5672"
+    networks:
+      - monitoring
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    restart: always
+    pid: "host"
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  cadvisor:
+    image: 'google/cadvisor:latest'
+    container_name: cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /sys:/sys:ro
+      - /var/run:/var/run:ro
+      - /dev/disk:/dev/disk/:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus
+    container_name: "prometheus"
+    volumes:
+      - policykit-prometheus:/prometheus
+      - ./policykit/docker_data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    user: root
+    restart: always
+    command:
+      --web.enable-lifecycle
+      --storage.tsdb.retention.time=15d
+      --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    container_name: "grafana"
+    user: root
+    volumes:
+      - policykit-grafana:/var/lib/grafana
+    environment:
+      - "GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-polystat-panel,novatec-sdg-panel,macropower-analytics-panel"
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:2.4.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - ./policykit/docker_data/promtail:/etc/promtail:rw
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    ports:
+      - "1514:1514"
+    restart: always
+    command:
+      -config.expand-env=true
+      -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:2.4.0
+    container_name: loki
+    volumes:
+      - ./policykit/docker_data/loki:/etc/loki:rw
+    ports:
+      - "3100:3100"
+    restart: always
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - monitoring
+
+  fortio:
+    image: fortio/fortio
+    container_name: fortio
+    restart: always
+    ports:
+      - "8083:8080"
+      - "8079:8079"
+    networks:
+      - monitoring
+
+  uptime_kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:1
+    restart: always
+    volumes:
+      - policykit-uptime-kuma:/app/data
+    ports:
+      - "3001:3001"
+    networks:
+      - monitoring
+
+  jenkins:
+    build:
+      context: policykit/docker_data/jenkins/
+      dockerfile: Dockerfile
+    container_name: jenkins
+    privileged: true
+    restart: always
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    volumes:
+      - /usr/bin/docker:/usr/bin/docker
+      - policykit-jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - monitoring
+
+volumes:
+  policykit-grafana:
+  policykit-jenkins:
+  policykit-database:
+  policykit-nginx-logs:
+  policykit-prometheus:
+  policykit-uptime-kuma:
+
+networks:
+  monitoring:
