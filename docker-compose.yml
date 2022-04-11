@@ -2,12 +2,9 @@ version: '3.7'
 
 services:
   policykit_app:
+    image: metagovpolicykit/policykit:${policykit_tag}
+    container_name: policykit
     restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
-    deploy:
-      replicas: 2
     command: bash -c "python3 metagov/manage.py makemigrations &&
       python3 metagov/manage.py migrate &&
       python3 metagov/manage.py collectstatic &&
@@ -74,7 +71,26 @@ services:
     networks:
       - monitoring
 
+  jenkins:
+    build:
+      context: policykit/docker_data/jenkins/
+      dockerfile: Dockerfile
+    container_name: jenkins
+    privileged: true
+    restart: always
+    ports:
+      - "2375:2375"
+      - "8081:8080"
+      - "50000:50000"
+    volumes:
+      - /usr/bin/docker:/usr/bin/docker
+      -  policykit-jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - monitoring
+
 volumes:
+  policykit-jenkins:
   policykit-database:
   policykit-rabbitmq:
   policykit-nginx-logs:
