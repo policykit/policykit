@@ -37,3 +37,27 @@ doker, here are the changes to make:
    1. Create an external postgres database or just comment the postgres lines from settings.py and uncomment
    sqlite to get going
    2. Make sure to remove the broker keyword from policykit celery.py if docker is not used
+
+## List of env var:
+1. Reddit:
+   - REDDIT_CLIENT_ID
+   - REDDIT_CLIENT_SECRET
+
+2. Discord:
+   - DISCORD_CLIENT_ID
+   - DISCORD_BOT_TOKEN
+   - DISCORD_CLIENT_SECRET
+
+3. Slack:
+   - SLACK_APP_ID
+   - SLACK_CLIENT_ID
+   - SLACK_CLIENT_SECRET
+   - SLACK_SIGNING_SECRET
+
+4. Github:
+   - GITHUB_APP_ID
+   - GITHUB_APP_NAME
+   - GITHUB_PRIVATE_KEY_PATH
+
+5. 
+   - SENDGRID_API_KEY

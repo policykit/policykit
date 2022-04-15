@@ -23,6 +23,8 @@ services:
     depends_on:
       - database
       - rabbitmq_server
+    env_file:
+      - .env
     networks:
       - monitoring
 
