@@ -4,3 +4,4 @@ docs/source/generated_policy_examples.inc
 .DS_Store
 .env
 .vscode
+.github
