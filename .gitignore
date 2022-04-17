@@ -5,3 +5,4 @@ docs/source/generated_policy_examples.inc
 .env
 .vscode
 .github
+.idea
