@@ -3,6 +3,7 @@ pipeline {
 
     stages {
         stage("Testing PR") {
+            when { anyOf { branch 'master' } }
             steps {
                 script {
                     sh """
