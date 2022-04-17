@@ -7,6 +7,7 @@ pipeline {
                 script {
                     sh """
                     echo "Testing Phase!!!"
+                    ls
                     """
                 }
             }
