@@ -5,6 +5,8 @@ services:
     image: metagovpolicykit/policykit:${policykit_tag}
     container_name: policykit
     restart: always
+    deploy:
+      replicas: 1
     command: bash -c "python3 metagov/manage.py makemigrations &&
       python3 metagov/manage.py migrate &&
       python3 metagov/manage.py collectstatic &&
@@ -18,7 +20,7 @@ services:
       - "RABBITMQ_PASSWORD=mypass"
       - "RABBITMQ_HOST=rabbitmq_server"
       - "POSTGRES_PASSWORD=supersecretpassword"
-    ports:
+    expose:
       - "8000"
     depends_on:
       - database
@@ -88,6 +90,48 @@ services:
       - /usr/bin/docker:/usr/bin/docker
       -  policykit-jenkins:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:2.4.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - ./policykit/docker_data/promtail:/etc/promtail:rw
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    ports:
+      - "1514:1514"
+    restart: always
+    command:
+      -config.expand-env=true
+      -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:2.4.0
+    container_name: loki
+    volumes:
+      - ./policykit/docker_data/loki:/etc/loki:rw
+    ports:
+      - "3100:3100"
+    restart: always
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    container_name: "grafana"
+    user: root
+    volumes:
+      - policykit-grafana:/var/lib/grafana
+    environment:
+      - "GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-polystat-panel,novatec-sdg-panel,macropower-analytics-panel"
+    ports:
+      - "3000:3000"
+    restart: always
     networks:
       - monitoring
 
