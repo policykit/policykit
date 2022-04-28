@@ -136,6 +136,7 @@ services:
       - monitoring
 
 volumes:
+  policykit-grafana:
   policykit-jenkins:
   policykit-database:
   policykit-rabbitmq:

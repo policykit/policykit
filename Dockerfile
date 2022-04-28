@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:20.04
 
 ENV SERVER_URL=
 ENV SLACK_APP_ID=
@@ -15,7 +15,7 @@ ENV REDDIT_CLIENT_SECRET=
 ENV DISCORD_CLIENT_SECRET=
 ENV GITHUB_PRIVATE_KEY_PATH=
 
-WORKDIR metagov
+WORKDIR application
 
 RUN apt update && apt upgrade -y
 
@@ -25,8 +25,8 @@ RUN apt install git -y
 
 RUN echo "DJANGO_SECRET_KEY=$(python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')" >> .env
 
-COPY policykit metagov
+COPY policykit application
 
-RUN pip3 install --no-cache-dir -r metagov/requirements.txt
+RUN pip3 install --no-cache-dir -r application/requirements.txt
 
-RUN bash metagov/celery_script.sh
+RUN bash application/celery_script.sh
