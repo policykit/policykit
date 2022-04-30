@@ -9,7 +9,6 @@ x-logging:
 services:
   policykit_app:
     image: metagovpolicykit/policykit:${policykit_tag}
-    container_name: policykit
     restart: always
     deploy:
       replicas: 1
@@ -116,8 +115,8 @@ services:
     container_name: promtail
     volumes:
       - /var/log:/var/log:ro
-      - /var/lib/docker/:/var/lib/docker/:ro
       - ./policykit/docker_data/promtail:/etc/promtail:rw
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     ports:
       - "1514:1514"
     restart: always
@@ -216,7 +215,7 @@ services:
     container_name: alertmanager
     restart: always
     ports:
-      - "9093"
+      - "9093:9093"
     volumes:
       - policykit-alertmanager:/data
       - ./policykit/docker_data/alertmanager/alertmanager.yml:/config/alertmanager.yml

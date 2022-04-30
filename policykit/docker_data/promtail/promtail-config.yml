@@ -38,3 +38,4 @@ scrape_configs:
           container_name:
       - output:
           source: output
+      -match:
