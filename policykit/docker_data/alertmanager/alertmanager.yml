@@ -1,0 +1,13 @@
+global:
+  resolve_timeout: 1m
+  slack_api_url: 'https://hooks.slack.com/services/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'
+
+route:
+    receiver: 'slack'
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+    - channel: '#staging-service-monitoring'
+      send_resolved: true
+      icon_url: https://avatars3.githubusercontent.com/u/3380462

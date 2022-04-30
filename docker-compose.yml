@@ -1,5 +1,11 @@
 version: '3.7'
 
+x-logging:
+  &default-logging
+  driver: "json-file"
+  options:
+    tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
 services:
   policykit_app:
     image: metagovpolicykit/policykit:${policykit_tag}
@@ -29,6 +35,9 @@ services:
       - .env
     networks:
       - monitoring
+    logging: *default-logging
+    labels:
+      org.label-schema.group: "monitoring"
 
   database:
     container_name: postgresql
@@ -44,6 +53,9 @@ services:
       - monitoring
     volumes:
       - policykit-database:/var/lib/postgresql/data:rw
+    logging: *default-logging
+    labels:
+      org.label-schema.group: "monitoring"
 
   nginx:
     image: nginx
@@ -52,7 +64,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8082:8082"
     volumes:
       - policykit-nginx-logs:/var/log/nginx
       - ./policykit/docker_data/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -60,6 +71,9 @@ services:
       - ./policykit/docker_data/nginx/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
     networks:
       - monitoring
+    logging: *default-logging
+    labels:
+      org.label-schema.group: "monitoring"
 
   rabbitmq_server:
     container_name: rabbitmq
@@ -74,13 +88,15 @@ services:
       - policykit-rabbitmq:/var/lib/rabbitmq/
     networks:
       - monitoring
+    logging: *default-logging
+    labels:
+      org.label-schema.group: "monitoring"
 
   jenkins:
-    build:
-      context: policykit/docker_data/jenkins/
-      dockerfile: Dockerfile
+    image: jenkins/jenkins:lts
     container_name: jenkins
     privileged: true
+    user: root
     restart: always
     ports:
       - "2375:2375"
@@ -88,18 +104,20 @@ services:
       - "50000:50000"
     volumes:
       - /usr/bin/docker:/usr/bin/docker
-      -  policykit-jenkins:/var/jenkins_home
+      - policykit-jenkins:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
 
   promtail:
     image: grafana/promtail:2.4.0
     container_name: promtail
     volumes:
       - /var/log:/var/log:ro
+      - /var/lib/docker/:/var/lib/docker/:ro
       - ./policykit/docker_data/promtail:/etc/promtail:rw
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     ports:
       - "1514:1514"
     restart: always
@@ -108,6 +126,8 @@ services:
       -config.file=/etc/promtail/promtail-config.yml
     networks:
       - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
 
   loki:
     image: grafana/loki:2.4.0
@@ -120,6 +140,8 @@ services:
     command: -config.file=/etc/loki/loki-config.yml
     networks:
       - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
 
   grafana:
     image: grafana/grafana
@@ -127,6 +149,8 @@ services:
     user: root
     volumes:
       - policykit-grafana:/var/lib/grafana
+      - ./policykit/docker_data/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./policykit/docker_data/grafana/datasources:/etc/grafana/provisioning/datasources
     environment:
       - "GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-polystat-panel,novatec-sdg-panel,macropower-analytics-panel"
     ports:
@@ -134,13 +158,82 @@ services:
     restart: always
     networks:
       - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
+
+  prometheus:
+    image: prom/prometheus
+    container_name: "prometheus"
+    volumes:
+      - policykit-prometheus:/prometheus:rw
+      - ./policykit/docker_data/prometheus/rules.yml:/etc/prometheus/rules.yml
+      - ./policykit/docker_data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    user: root
+    restart: always
+    expose:
+      - "9090"
+    command:
+      --web.enable-lifecycle
+      --storage.tsdb.retention.time=7d
+      --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
+
+  cadvisor:
+    image: 'google/cadvisor:latest'
+    container_name: cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /sys:/sys:ro
+      - /cgroup:/cgroup:ro
+      - /var/run:/var/run:ro
+      - /dev/disk:/dev/disk/:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - "8080"
+    networks:
+      - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    restart: always
+    pid: "host"
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
+
+  alertmanager:
+    image: prom/alertmanager:v0.23.0
+    container_name: alertmanager
+    restart: always
+    ports:
+      - "9093"
+    volumes:
+      - policykit-alertmanager:/data
+      - ./policykit/docker_data/alertmanager/alertmanager.yml:/config/alertmanager.yml
+    command: --config.file=/config/alertmanager.yml --log.level=debug
+    networks:
+      - monitoring
+    labels:
+      org.label-schema.group: "monitoring"
 
 volumes:
   policykit-grafana:
   policykit-jenkins:
   policykit-database:
   policykit-rabbitmq:
+  policykit-prometheus:
   policykit-nginx-logs:
+  policykit-alertmanager:
 
 networks:
   monitoring:
