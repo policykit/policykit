@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        current_branch=GIT_BRANCH.replace("origin/", "")
+    }
+
     stages {
         stage("Creating Virtual Environment") {
             steps {
@@ -49,6 +53,12 @@ pipeline {
         }
 
         stage("Push Image to Dockerhub") {
+            when {
+                expression {
+                    env.current_branch == "master"
+                }
+            }
+
             steps {
                 script {
                     sh """
@@ -62,6 +72,12 @@ pipeline {
         }
 
         stage("Deploy Image to Prodcution"){
+            when {
+                expression {
+                    env.current_branch == "master"
+                }
+            }
+
             steps {
                 script {
                     sh """
