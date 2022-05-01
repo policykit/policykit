@@ -105,6 +105,7 @@ services:
       - /usr/bin/docker:/usr/bin/docker
       - policykit-jenkins:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /home/ubuntu/policykit:/home/ubuntu/policykit
     networks:
       - monitoring
     labels:
