@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage("Build Docker Image"){
+        stage("Build Docker Image") {
             steps {
                 script {
                     """
@@ -48,20 +48,7 @@ pipeline {
             }
         }
 
-        stage("Push Image to Dockerhub"){
-            steps {
-                script {
-                    """
-                    docker login --username metagovpolicykit --password 993250da-52ef-4757-9b41-162d779b0a90
-
-                    echo "Publishing image to dockerhub..."
-                    docker push metagovpolicykit/policykit:${BUILD_NUMBER}
-                    """
-                }
-            }
-        }
-
-        stage("Push Image to Dockerhub"){
+        stage("Push Image to Dockerhub") {
             steps {
                 script {
                     """
