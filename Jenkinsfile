@@ -52,7 +52,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    docker login --username metagovpolicykit --password ${env.dockerhub-password}
+                    docker login --username metagovpolicykit --password "${params.dockerhub_password}"
 
                     echo "Publishing image to dockerhub..."
                     docker push metagovpolicykit/policykit:${BUILD_NUMBER}
@@ -69,7 +69,6 @@ pipeline {
                     docker-compose stop policykit_app
                     docker-compose rm --force policykit_app
                     policykit_tag=${BUILD_NUMBER} docker-compose up -d --force-recreate --no-deps policykit_app
-                    docker system prune --all --force
                     """
                 }
             }

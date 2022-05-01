@@ -12,10 +12,10 @@ services:
     restart: always
     deploy:
       replicas: 1
-    command: bash -c "python3 metagov/manage.py makemigrations &&
-      python3 metagov/manage.py migrate &&
-      python3 metagov/manage.py collectstatic &&
-      python3 metagov/manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python3 application/manage.py makemigrations &&
+      python3 application/manage.py migrate &&
+      python3 application/manage.py collectstatic --noinput &&
+      python3 application/manage.py runserver 0.0.0.0:8000"
     environment:
       - "POSTGRES_DB=metagov"
       - "RABBITMQ_USER=admin"
@@ -92,7 +92,9 @@ services:
       org.label-schema.group: "monitoring"
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: policykit/docker_data/jenkins
+      dockerfile: Dockerfile
     container_name: jenkins
     privileged: true
     user: root
