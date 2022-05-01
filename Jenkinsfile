@@ -41,7 +41,7 @@ pipeline {
         stage("Build Docker Image") {
             steps {
                 script {
-                    """
+                    sh """
                     docker build --no-cache -t metagovpolicykit/policykit:${BUILD_NUMBER} .
                     """
                 }
@@ -51,8 +51,8 @@ pipeline {
         stage("Push Image to Dockerhub") {
             steps {
                 script {
-                    """
-                    docker login --username metagovpolicykit --password 993250da-52ef-4757-9b41-162d779b0a90
+                    sh """
+                    docker login --username metagovpolicykit --password ${env.dockerhub-password}
 
                     echo "Publishing image to dockerhub..."
                     docker push metagovpolicykit/policykit:${BUILD_NUMBER}
@@ -64,7 +64,7 @@ pipeline {
         stage("Deploy Image to Prodcution"){
             steps {
                 script {
-                    """
+                    sh """
                     cd /home/ubuntu/policykit
                     docker-compose stop policykit_app
                     docker-compose rm --force policykit_app
@@ -78,7 +78,7 @@ pipeline {
         stage("Docker Cleanup"){
             steps {
                 script {
-                    """
+                    sh """
                     docker system prune --all --force
                     """
                 }
