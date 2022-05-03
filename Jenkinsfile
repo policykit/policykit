@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        working_directory="${WORKSPACE}/policykit"
         current_branch=GIT_BRANCH.replace("origin/", "")
     }
 
@@ -22,9 +23,9 @@ pipeline {
                 script {
                     sh """
                     . venv/bin/activate
-                    cd policykit
-                    pip install -U pip setuptools
-                    pip install -r requirements.txt
+                    cd "${env.working_directory}"
+                    pip3 install -U pip setuptools
+                    pip3 install -r requirements.txt
                     """
                 }
             }
@@ -35,8 +36,8 @@ pipeline {
                 script {
                     sh """
                     . venv/bin/activate
-                    cd policykit
-                    python manage.py test
+                    cd "${env.working_directory}"
+                    python3 manage.py test
                     """
                 }
             }
@@ -103,6 +104,7 @@ pipeline {
 
      post {
         always {
+            cleanWs()
             script {
                 owner_repo = GIT_URL.replaceAll("https://github.com/", "").replaceAll(".git", "")
 

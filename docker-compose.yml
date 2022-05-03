@@ -135,7 +135,8 @@ services:
     image: grafana/loki:2.4.0
     container_name: loki
     volumes:
-      - ./policykit/docker_data/loki:/etc/loki:rw
+      - policykit-loki:/data/loki:rw
+      - ./policykit/docker_data/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
     ports:
       - "3100:3100"
     restart: always
@@ -229,6 +230,7 @@ services:
       org.label-schema.group: "monitoring"
 
 volumes:
+  policykit-loki:
   policykit-grafana:
   policykit-jenkins:
   policykit-database:
