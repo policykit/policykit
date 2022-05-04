@@ -56,7 +56,7 @@ pipeline {
         stage("Push Image to Dockerhub") {
             when {
                 expression {
-                    env.current_branch == "master"
+                    env.current_branch == "master" || params.deploy_to_prod == "true"
                 }
             }
 
@@ -75,7 +75,7 @@ pipeline {
         stage("Deploy Image to Prodcution"){
             when {
                 expression {
-                    env.current_branch == "master"
+                    env.current_branch == "master" || params.deploy_to_prod == "true"
                 }
             }
 
