@@ -5,5 +5,4 @@ docs/source/generated_policy_examples.inc
 .env
 .vscode
 .idea/
-policykit/docker_data/grafana/*
 policykit/docker_data/prometheus/data
