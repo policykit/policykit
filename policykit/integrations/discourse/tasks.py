@@ -92,7 +92,7 @@ def discourse_listener_actions():
         pending_proposals = Proposal.objects.filter(
             status=Proposal.PROPOSED,
             action__community=community,
-            action__vote_post_id__isnull=False
+            vote_post_id__isnull=False
         )
         for proposal in pending_proposals:
             id = proposal.vote_post_id
