@@ -10,6 +10,7 @@ from django.db.models.deletion import CASCADE
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 from django.forms import ModelForm
+from django.template import Context, Template
 from metagov.core.models import GovernanceProcess
 from polymorphic.models import PolymorphicManager, PolymorphicModel
 
@@ -744,6 +745,86 @@ class ActionType(models.Model):
 
     codename = models.CharField(max_length=30, unique=True)
 
+
+class PolicyTemplate(models.Model):
+    """PolicyTemplate"""
+
+    PLATFORM = 'platform'
+    CONSTITUTION = 'constitution'
+    TRIGGER = 'trigger'
+    POLICY_KIND = [
+        (PLATFORM, 'platform'),
+        (CONSTITUTION, 'constitution'),
+        (TRIGGER, 'trigger')
+    ]
+    FILTER = 'filter'
+    INITIALIZE = 'initialize'
+    CHECK = 'check'
+    NOTIFY = 'notify'
+    SUCCESS = 'success'
+    FAIL = 'fail'
+
+    def variables_default():
+        return [
+            {
+                "prompt": "Minimum yes votes to pass",
+                "type": "number",
+                "name": "yes_votes_min",
+                "default_value": 1
+            },
+            {
+                "prompt": "Minimum no votes to fail",
+                "type": "number",
+                "name": "no_votes_min",
+                "default_value": 1
+            }
+        ]
+
+    template_kind = models.CharField(choices=POLICY_KIND, max_length=30)
+    """Kind of policy (platform, constitution, or trigger)."""
+
+    template_filter = models.TextField(blank=True, default='')
+    """The filter code of the policy."""
+
+    template_initialize = models.TextField(blank=True, default='')
+    """The initialize code of the policy."""
+
+    template_check = models.TextField(blank=True, default='')
+    """The check code of the policy."""
+
+    template_notify = models.TextField(blank=True, default='')
+    """The notify code of the policy."""
+
+    template_success = models.TextField(blank=True, default='')
+    """The pass code of the policy."""
+
+    template_fail = models.TextField(blank=True, default='')
+    """The fail code of the policy."""
+
+    template_action_types = models.ManyToManyField(ActionType)
+    """The action types that this policy applies to."""
+
+    template_name = models.CharField(max_length=100)
+    """The name of the policy."""
+
+    template_description = models.TextField(null=True, blank=True)
+    """The description of the policy. May be empty."""
+
+    name = models.CharField(max_length=100)
+    """The name of the policy template."""
+
+    description = models.TextField(null=True, blank=True)
+    """The description of the policy template. May be empty."""
+
+    is_active = models.BooleanField(default=True)
+    """True if the policy template is active. Default is True."""
+
+    modified_at = models.DateTimeField(auto_now=True)
+    """Datetime object representing the last time the policy was modified."""
+
+    template_variables = models.JSONField("TemplateVariables", default=variables_default)
+
+
 class Policy(models.Model):
     """Policy"""
 
@@ -799,6 +880,9 @@ class Policy(models.Model):
     is_active = models.BooleanField(default=True)
     """True if the policy is active. Default is True."""
 
+    source_template = models.ForeignKey(PolicyTemplate, models.SET_NULL, null=True)
+    """The PolicyTemplate this policy was generated from. May be empty."""
+
     modified_at = models.DateTimeField(auto_now=True)
     """Datetime object representing the last time the policy was modified."""
 
@@ -821,6 +905,65 @@ class Policy(models.Model):
     def is_bundled(self):
         """True if the policy is part of a bundle"""
         return self.member_of_bundle.count() > 0
+
+
+class PolicyTemplateData(models.Model):
+    """PolicyTemplateData"""
+
+    def values_default():
+        return {
+            "yes_votes_min": 2,
+            "no_votes_min": 2
+        }
+
+    template=models.ForeignKey(PolicyTemplate, models.CASCADE)
+    """The PolicyTemplate this data is related to."""
+
+    values=models.JSONField("PolicyTemplateValues", default=values_default)
+    """Values used to generate a policy."""
+
+    policy = models.OneToOneField(Policy, models.CASCADE, null=True)
+    """The Policy this data generated. Will be blank before a policy is generated."""
+
+    def populate_template_values(self, str):
+        """Render a django template with stored values"""
+
+        # Create a django template from a string
+        template = Template(str)
+
+        # Create a template context from stored values
+        context = Context(self.values)
+
+        # Return rendered template string
+        return template.render(context)
+
+    def update_policy(self, community):
+        """Generate a new Policy instance or update an existing one with new values."""
+
+        # Prepare policy fields from related PolicyTemplate
+        policy_data = {
+            "community": community,
+            "kind": self.template.template_kind,
+            "filter": self.populate_template_values(self.template.template_filter),
+            "initialize": self.populate_template_values(self.template.template_initialize),
+            "check": self.populate_template_values(self.template.template_check),
+            "notify": self.populate_template_values(self.template.template_notify),
+            "success": self.populate_template_values(self.template.template_success),
+            "fail": self.populate_template_values(self.template.template_fail),
+            "name": self.template.template_name,
+            "description": self.template.template_description,
+            "source_template": self.template
+        }
+
+        # Create a new policy from template fields or update an existing one
+        policy, created = Policy.objects.update_or_create(pk=self.policy, defaults=policy_data)
+
+        # Set action types m2m relationship using the template field
+        policy.action_types.set(self.template.template_action_types.all())
+
+        # Set a foreign key to policy for a newly created policy object
+        if (created):
+            self.policy = policy
 
 
 class UserVote(models.Model):
