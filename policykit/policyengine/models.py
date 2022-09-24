@@ -911,10 +911,7 @@ class PolicyTemplateData(models.Model):
     """PolicyTemplateData"""
 
     def values_default():
-        return {
-            "yes_votes_min": 2,
-            "no_votes_min": 2
-        }
+        return {}
 
     template=models.ForeignKey(PolicyTemplate, models.CASCADE)
     """The PolicyTemplate this data is related to."""
