@@ -304,6 +304,57 @@ def editor(request):
 
     return render(request, 'policyadmin/dashboard/editor.html', data)
 
+# @login_required
+def nocode_template_list(request):
+    from policyengine.models import PolicyTemplate
+
+    # List all policy templates
+    policy_templates = PolicyTemplate.objects.filter(is_active=True).order_by("name")
+
+    return render(request, 'policyadmin/nocode/index.html', {
+        'policy_templates': policy_templates
+    })
+
+# @login_required
+def nocode_template_generator(request, id):
+    from policyengine.models import Community, PolicyTemplate
+
+    user = get_user(request)
+
+    # community = user.community.community
+    community = Community.objects.all().reverse()[0]
+
+    policy_template = None
+
+    if id:
+        try:
+            policy_template = PolicyTemplate.objects.get(id=id)
+        except PolicyTemplate.DoesNotExist:
+            raise Http404("Policy template does not exist")
+
+    return render(request, 'policyadmin/nocode/nocode_generator.html', {
+        'community': community,
+        'policy_template': policy_template,
+        'user': user
+    })
+
+# @login_required
+def nocode_policy_editor(request, id):
+    from policyengine.models import Community, PolicyTemplate
+
+    user = get_user(request)
+
+    # community = user.community.community
+    community = Community.objects.all().reverse()[0]
+
+    policy_template = PolicyTemplate.objects.get(id=id)
+
+    return render(request, 'policyadmin/nocode/nocode_policy_editor.html', {
+        'community': community,
+        'policy_template': policy_template,
+        'user': user
+    })
+
 @login_required
 def selectrole(request):
     from policyengine.models import CommunityRole

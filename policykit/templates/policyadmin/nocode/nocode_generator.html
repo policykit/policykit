@@ -1,0 +1,154 @@
+{% extends "./nocode_base.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static "codemirror/lib/codemirror.css" %}">
+<link rel="stylesheet" href="{% static "codemirror/addon/hint/show-hint.css" %}">
+<link rel="stylesheet" href="{% static "codemirror/addon/hint/css-hint.js" %}">
+<link rel="stylesheet" href="{% static "codemirror/theme/eclipse.css" %}">
+
+<style>
+  .body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .headerText {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2em;
+  }
+
+  .form-row {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+  .form-row > label.col-sm-2 {
+    text-align: right;
+    padding-right: 0.5em;
+    padding-top: 0.2em;
+  }
+
+  .form-row .helpText {
+    font-size: 9px;
+  }
+
+  .control-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+  }
+
+  .description {
+    resize: none;
+  }
+
+  .selectpicker + button.btn.dropdown-toggle,
+  .selectpicker + button.btn.dropdown-toggle.disabled {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
+
+  .selectpicker + button {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
+  .code {
+    resize: none;
+  }
+
+  .CodeMirror {
+    height: auto;
+    width: 100%;
+    border: 1px solid #000000;
+  }
+
+  .btn.pk-btn {
+    padding: 0.5em 2vw;
+    margin-right: 0.4vw;
+    border: 1px solid #4451b2;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2em;
+    background-color: #ffffff;
+    color: #4451b2;
+  }
+
+  .btn.pk-btn:hover {
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn.pk-btn.btn-propose {
+    background-color: #4451b2;
+    color: #ffffff;
+  }
+
+  .btn.pk-btn.btn-propose:hover {
+    background-color: #3b4699;
+    color: #ffffff;
+  }
+
+  .marker {
+    position: relative;
+    color: #ff0000;
+    width: 10px !important;
+    margin-left: 4px;
+  }
+
+  .marker .tooltip {
+    visibility: hidden;
+    width: 400px;
+    background-color: #f5f5b5;
+    color: #000000;
+    border: 1px solid #000000;
+    padding: 2px;
+    position: absolute;
+    z-index: 1;
+    bottom: 110%;
+    opacity: 0;
+  }
+
+  .marker:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  #alerts {
+    margin-top: 1em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="body">
+  <div class="form-row">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10">
+      <h3 class="headerText">{{ policy_template.name|title}}</h3>
+    </div>
+  </div>
+
+  {% for variable in policy_template.template_variables %}
+  <div class="form-row">
+    <label class="control-label col-sm-2" for="{{ variable.name }}">{{ variable.name }}</label>
+    <div class="col-sm-8">
+      <input type="text" class="form-control {{ variable.name }}" id="{{ variable.name }}" required value={{ variable.default_value }}>
+      <p class="helpText">{{ variable.prompt }}</p>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="form-row">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10">
+      {% csrf_token %}
+      <button type="button" class="pk-btn btn btn-generate" id="generate">Generate policy</button>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="col-sm-2"></div>
+    <div class="control-label col-sm-10">
+      <div id="alerts"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

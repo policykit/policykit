@@ -48,7 +48,9 @@ urlpatterns = [
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
-    path('nocode/editor/', policyviews.editor),
+    path('nocode/templates/', policyviews.nocode_template_list),
+    path('nocode/templates/<int:id>/generate', policyviews.nocode_template_generator, name='policy-template-generator'),
+    path('nocode/policy/<int:id>/edit', policyviews.nocode_policy_editor, name='nocode-policy-editor'),
     path('admin/', admin.site.urls),
 
     # custom enable/disable views for integrations that use OAuth

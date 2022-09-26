@@ -824,6 +824,10 @@ class PolicyTemplate(models.Model):
 
     template_variables = models.JSONField("TemplateVariables", default=variables_default)
 
+    def generate_policy(self, community, defaults = {}):
+        obj = PolicyTemplateData.objects.create(template=self, values=defaults)
+        obj.update_policy(community)
+
 
 class Policy(models.Model):
     """Policy"""
