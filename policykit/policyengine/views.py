@@ -2,6 +2,7 @@ import html
 import json
 import logging
 import os
+from re import template
 
 from actstream.models import Action
 from django.conf import settings
@@ -98,7 +99,7 @@ def initialize_starterkit(request):
         Utils.initialize_starterkit_inner(community, kit_data, creator_username=creator_username)
     except Exception as e:
         logger.error(f"Initializing kit {starterkit_id} raised exception {type(e).__name__} {e}")
-        return redirect("/login?error=starterkit_init_failed")    
+        return redirect("/login?error=starterkit_init_failed")
 
     return redirect("/login?success=true")
 
@@ -131,7 +132,6 @@ def dashboard(request):
         'action_log': action_log,
         'pending_proposals': pending_proposals
     })
-
 
 @login_required
 def settings_page(request):
@@ -167,7 +167,7 @@ def settings_page(request):
             additional_data = integration_data[integration]
             if additional_data.get("webhook_instructions"):
                 additional_data["webhook_url"] = f"{settings.SERVER_URL}/api/hooks/{plugin.name}/{plugin.community.slug}"
-            
+
             enabled_integrations[integration] = {**plugin.serialize(), **additional_data, "config": config_tuples}
 
 
@@ -304,6 +304,7 @@ def editor(request):
 
     return render(request, 'policyadmin/dashboard/editor.html', data)
 
+# TODO:oz - login required
 # @login_required
 def nocode_template_list(request):
     from policyengine.models import PolicyTemplate
@@ -315,45 +316,59 @@ def nocode_template_list(request):
         'policy_templates': policy_templates
     })
 
+
+# TODO:oz - login required
 # @login_required
-def nocode_template_generator(request, id):
+def nocode_editor(request):
     from policyengine.models import Community, PolicyTemplate
 
-    user = get_user(request)
+    # Policy template id may be passed explicitly via url
+    policy_template_id = request.GET.get('policy_template')
 
-    # community = user.community.community
-    community = Community.objects.all().reverse()[0]
-
+    # TODO:oz - How should a default template be determined?
+    # Get a policy template from either a url param or the newest one
     policy_template = None
 
-    if id:
+    if policy_template_id:
         try:
-            policy_template = PolicyTemplate.objects.get(id=id)
+            policy_template = PolicyTemplate.objects.get(id=policy_template_id)
         except PolicyTemplate.DoesNotExist:
             raise Http404("Policy template does not exist")
+    else:
+        policy_template = PolicyTemplate.objects.all().reverse()[0]
 
-    return render(request, 'policyadmin/nocode/nocode_generator.html', {
-        'community': community,
-        'policy_template': policy_template,
-        'user': user
-    })
-
-# @login_required
-def nocode_policy_editor(request, id):
-    from policyengine.models import Community, PolicyTemplate
-
-    user = get_user(request)
-
+    # TODO:oz - get community from user
+    # user = get_user(request)
     # community = user.community.community
     community = Community.objects.all().reverse()[0]
 
-    policy_template = PolicyTemplate.objects.get(id=id)
+    # Find an existing policy that was generated from the template for the current community
+    policy = policy_template.policy_set.filter(community=community).last()
 
-    return render(request, 'policyadmin/nocode/nocode_policy_editor.html', {
+    # Set the form operation mode based on whether a generated policy was found
+    default_operation = None
+
+    if policy:
+        default_operation = 'Change'
+    else:
+        default_operation = 'Add'
+
+    # Let the form operation mode be explicitly passed via the url if needed
+    operation = request.GET.get('operation', default_operation)
+
+    # Change operation is not possible if a policy is not found
+    if operation == 'Change' and not policy:
+        raise Http404("Policy does not exist")
+
+    data = {
         'community': community,
-        'policy_template': policy_template,
-        'user': user
-    })
+        'operation': operation,
+        'policy': policy,
+        'policy_template': policy_template
+    }
+
+    return render(request, 'policyadmin/nocode/nocode_editor.html', data)
+
 
 @login_required
 def selectrole(request):
@@ -599,7 +614,7 @@ def policy_action_save(request):
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitAddTriggerPolicy()
         # action.is_bundled = data.get('is_bundled', False)
-    
+
     elif operation == "Change":
         if kind == PolicyActionKind.CONSTITUTION:
             action = PolicykitChangeConstitutionPolicy()
@@ -607,7 +622,7 @@ def policy_action_save(request):
             action = PolicykitChangePlatformPolicy()
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitChangeTriggerPolicy()
-        
+
         try:
             action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
         except Policy.DoesNotExist:
@@ -651,6 +666,7 @@ def policy_action_save(request):
         return HttpResponseServerError()
 
     return HttpResponse()
+
 
 @login_required
 def policy_action_remove(request):
@@ -717,6 +733,61 @@ def policy_action_recover(request):
     action.save()
 
     return HttpResponse()
+
+# TODO:oz - login required
+# @login_required
+def policytemplate_action_add(request, template_id):
+    from policyengine.models import Community, PolicyTemplate
+
+    # retrieve PolicyTemplate object based on url parameter
+    policy_template = None
+
+    if template_id:
+        try:
+            policy_template = PolicyTemplate.objects.get(id=template_id)
+        except PolicyTemplate.DoesNotExist:
+            raise Http404("Policy template does not exist")
+
+    # PolicyTemplateData will be populated from form data
+    data = json.loads(request.body)
+
+    # TODO:oz - get community from user
+    # user = get_user(request)
+    # community = user.community.community
+    community = Community.objects.all().reverse()[0]
+
+    # Generate new policy from template and data
+    policy = policy_template.generate_policy(community, data)
+
+    return HttpResponse(json.dumps({ 'id': policy.pk }), content_type="application/json")
+
+# TODO:oz - login required
+# @login_required
+def policytemplate_action_change(request, policy_id):
+    from policyengine.models import Policy
+
+    # retrieve policy object based on url parameter
+    policy = None
+
+    if policy_id:
+        try:
+            policy = Policy.objects.get(id=policy_id)
+        except Policy.DoesNotExist:
+            raise Http404("Policy does not exist")
+
+    # Parse data from form
+    data = json.loads(request.body)
+
+    # Update related policytemplatedata with form values
+    policy.policytemplatedata.values = data
+
+    policy.policytemplatedata.save()
+
+    # Policy fields will be updated via related PolicyTemplateData
+    policy.policytemplatedata.update_policy(policy.community)
+
+    return HttpResponse(json.dumps({ 'id': policy.pk }), content_type="application/json")
+
 
 @login_required
 def role_action_save(request):
@@ -860,5 +931,78 @@ def document_action_recover(request):
     except CommunityDoc.DoesNotExist:
         raise Http404("Document does not exist")
     action.save()
+
+    return HttpResponse()
+
+# TODO:oz - login required
+# @login_required
+def policytemplate_action_generate(request):
+    from constitution.models import ActionType
+
+    from policyengine.models import Policy, PolicyTemplate, PolicyTemplateData
+
+    data = json.loads(request.body)
+    user = get_user(request)
+
+    action = None
+
+    if operation == "Add":
+        if kind == PolicyActionKind.CONSTITUTION:
+            action = PolicykitAddConstitutionPolicy()
+        elif kind == PolicyActionKind.PLATFORM:
+            action = PolicykitAddPlatformPolicy()
+        elif kind == PolicyActionKind.TRIGGER:
+            action = PolicykitAddTriggerPolicy()
+        # action.is_bundled = data.get('is_bundled', False)
+
+    elif operation == "Change":
+        if kind == PolicyActionKind.CONSTITUTION:
+            action = PolicykitChangeConstitutionPolicy()
+        elif kind == PolicyActionKind.PLATFORM:
+            action = PolicykitChangePlatformPolicy()
+        elif kind == PolicyActionKind.TRIGGER:
+            action = PolicykitChangeTriggerPolicy()
+
+        try:
+            action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
+        except Policy.DoesNotExist:
+            raise Http404("Policy does not exist")
+
+    else:
+        raise Http404("Policy does not exist")
+
+    action.community = user.constitution_community
+    action.initiator = user
+    action.name = data['name']
+    action.description = data.get('description', None)
+    action.filter = data['filter']
+    action.initialize = data['initialize']
+    action.check = data['check']
+    action.notify = data['notify']
+    action.success = data['success']
+    action.fail = data['fail']
+
+    if not data["name"]:
+        return HttpResponseBadRequest("Enter a name.")
+    if len(data["action_types"]) < 1:
+        if action and hasattr(action, "policy") and action.policy.action_types.count() == 0 and kind != PolicyActionKind.TRIGGER:
+            pass # the policy already had no action types, so it's a base policy. ignore
+        else:
+            return HttpResponseBadRequest("Select one or more action types.")
+
+    try:
+        action.save(evaluate_action=False)
+    except Exception as e:
+        logger.error(f"Error saving policy: {e}")
+        return HttpResponseServerError()
+
+    action_types = [ActionType.objects.get_or_create(codename=codename)[0] for codename in data["action_types"]]
+    action.action_types.set(action_types)
+
+    try:
+        action.save(evaluate_action=True)
+    except Exception as e:
+        logger.error(f"Error evaluating policy: {e}")
+        return HttpResponseServerError()
 
     return HttpResponse()

@@ -9,6 +9,8 @@ urlpatterns = [
     path('policy_action_save', views.policy_action_save),
     path('policy_action_remove', views.policy_action_remove),
     path('policy_action_recover', views.policy_action_recover),
+    path('policytemplate_action_add/<int:template_id>', views.policytemplate_action_add),
+    path('policytemplate_action_change/<int:policy_id>', views.policytemplate_action_change),
     path('role_action_save', views.role_action_save),
     path('role_action_remove', views.role_action_remove),
     path('role_action_users', views.role_action_users),

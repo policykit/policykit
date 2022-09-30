@@ -1,6 +1,7 @@
 {% extends "./nocode_base.html" %}
 {% load static %}
 {% load dashboard_extras %}
+{% load nocode_extras %}
 {% block styles %}
 <style>
   .body {
@@ -50,7 +51,7 @@
             {% for template in policy_templates %}
               <tr class="sidebarItem">
                 <td>
-                  <a href="{% url 'policy-template-generator' id=template.id %}">
+                  <a href="{% url 'nocode-editor' %}?template_id={{ template.id }}">
                     {{template.name|capfirst}}
                   </a>
                 </td>

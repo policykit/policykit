@@ -770,12 +770,14 @@ class PolicyTemplate(models.Model):
                 "prompt": "Minimum yes votes to pass",
                 "type": "number",
                 "name": "yes_votes_min",
+                "label": "Minimum yes votes",
                 "default_value": 1
             },
             {
                 "prompt": "Minimum no votes to fail",
                 "type": "number",
                 "name": "no_votes_min",
+                "label": "Minimum no votes",
                 "default_value": 1
             }
         ]
@@ -826,7 +828,7 @@ class PolicyTemplate(models.Model):
 
     def generate_policy(self, community, defaults = {}):
         obj = PolicyTemplateData.objects.create(template=self, values=defaults)
-        obj.update_policy(community)
+        return obj.update_policy(community)
 
 
 class Policy(models.Model):
@@ -956,8 +958,13 @@ class PolicyTemplateData(models.Model):
             "source_template": self.template
         }
 
+        policy_id = None
+
+        if self.policy:
+            policy_id = self.policy.pk
+
         # Create a new policy from template fields or update an existing one
-        policy, created = Policy.objects.update_or_create(pk=self.policy, defaults=policy_data)
+        policy, created = Policy.objects.update_or_create(pk=policy_id, defaults=policy_data)
 
         # Set action types m2m relationship using the template field
         policy.action_types.set(self.template.template_action_types.all())
@@ -965,6 +972,9 @@ class PolicyTemplateData(models.Model):
         # Set a foreign key to policy for a newly created policy object
         if (created):
             self.policy = policy
+            self.save()
+
+        return policy
 
 
 class UserVote(models.Model):
