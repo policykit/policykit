@@ -5,6 +5,7 @@ from django.apps import apps
 
 PROPOSAL_VARNAME = "proposal"
 POLICY_VARNAME = "policy"
+VARIABLES_VARNAME = "variables"
 ACTION_VARNAME = "action"
 
 POLICY_HINTS = ["name", "description", "modified_at", "community"]
@@ -25,6 +26,13 @@ def generate_action_autocompletes(cls):
 
     hints.extend(model_properties)
     return [f"{ACTION_VARNAME}.{f}" for f in hints]
+
+
+def generate_variable_autocompletes(variable):
+    """
+    Generate autocompletes for variables defined on a policy
+    """
+    return [f"{VARIABLES_VARNAME}.{variable['name']}"]
 
 
 def generate_platform_autocompletes():

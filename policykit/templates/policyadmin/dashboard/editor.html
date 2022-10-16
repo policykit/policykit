@@ -170,6 +170,13 @@
   </div>
 
   <div class="form-row">
+    <label class="control-label col-sm-2" for="variables">Policy Variables</label>
+    <div class="col-sm-10">
+      <textarea class="form-control code" id="variables" required rows="3"></textarea>
+    </div>
+  </div>
+
+  <div class="form-row">
     <label class="control-label col-sm-2" for="filter">Filter</label>
     <div class="col-sm-10">
       <textarea class="form-control code" id="filter" required rows="3"></textarea>
@@ -321,6 +328,11 @@
 
   {% if description %}
     document.getElementById('description').value = decodeHtml(`{{description}}`)
+  {% endif %}
+
+  {% if variables %}
+    const policy_variables = decodeHtml(`{{variables}}`);
+    document.getElementById('variables').value = policy_variables
   {% endif %}
 
   {% if action_types is not None %}

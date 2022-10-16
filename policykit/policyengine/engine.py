@@ -37,7 +37,7 @@ class EvaluationContext:
         sourcecred (SourcecredCommunity)
         metagov (Metagov): Metagov library for performing enabled actions and processes.
         logger (logging.Logger): Logger that will log messages to the PolicyKit web interface.
-
+        variables (Policy.variables): Dict with policy variables keys and values
     """
 
     def __init__(self, proposal):
@@ -50,6 +50,7 @@ class EvaluationContext:
             self.action = proposal.action
 
         self.policy = proposal.policy
+        self.variables = {}
         self.proposal = proposal
 
         # Can't use logger in filter step because proposal isn't saved yet
@@ -71,6 +72,8 @@ class EvaluationContext:
 
         self.metagov = Metagov(proposal)
 
+        # Make policy variables available in the evaluation context
+        setattr(self, "variables", { v['name'] : v['value'] for v in self.policy.variables or []})
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""

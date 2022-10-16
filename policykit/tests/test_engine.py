@@ -225,6 +225,38 @@ class EvaluationTests(TestCase):
             action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
+    def test_policy_variable_evaluation(self):
+        """Policy variables are evaluated correctly"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community,
+            variables=[
+            {
+                "prompt": "Minimum yes votes to pass",
+                "type": "number",
+                "name": "yes_votes_min",
+                "label": "Minimum yes votes",
+                "default_value": 1,
+                "value": 2
+            },
+            {
+                "prompt": "Minimum no votes to fail",
+                "type": "number",
+                "name": "no_votes_min",
+                "label": "Minimum no votes",
+                "default_value": 1,
+                "value": 2
+            }
+        ]
+        )
+
+        # new action should pass
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.PASSED
+        )
+
     def test_action_type_filtering(self):
         """Policy is selected based on action_types"""
         slackpinmessage_policy = Policy.objects.create(

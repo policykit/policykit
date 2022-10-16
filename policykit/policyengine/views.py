@@ -98,7 +98,7 @@ def initialize_starterkit(request):
         Utils.initialize_starterkit_inner(community, kit_data, creator_username=creator_username)
     except Exception as e:
         logger.error(f"Initializing kit {starterkit_id} raised exception {type(e).__name__} {e}")
-        return redirect("/login?error=starterkit_init_failed")    
+        return redirect("/login?error=starterkit_init_failed")
 
     return redirect("/login?success=true")
 
@@ -167,7 +167,7 @@ def settings_page(request):
             additional_data = integration_data[integration]
             if additional_data.get("webhook_instructions"):
                 additional_data["webhook_url"] = f"{settings.SERVER_URL}/api/hooks/{plugin.name}/{plugin.community.slug}"
-            
+
             enabled_integrations[integration] = {**plugin.serialize(), **additional_data, "config": config_tuples}
 
 
@@ -255,14 +255,18 @@ def disable_integration(request, integration):
     return redirect("/main/settings")
 
 
-@login_required
+# @login_required
 def editor(request):
     kind = request.GET.get('type', "platform").lower()
     operation = request.GET.get('operation', "Add")
     policy_id = request.GET.get('policy')
 
     user = get_user(request)
-    community = user.community.community
+
+    # TODO:oz reverse this so community is user's community
+    # community = user.community.community
+    from policyengine.models import Community
+    community = Community.objects.all().reverse()[0]
 
     from policyengine.models import Policy, PolicyActionKind
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
@@ -271,7 +275,7 @@ def editor(request):
     policy = None
     if policy_id:
         try:
-            policy = Policy.objects.get(id=policy_id, community=user.community.community)
+            policy = Policy.objects.get(id=policy_id, community=community)
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
@@ -280,7 +284,7 @@ def editor(request):
 
     # list of autocomplete strings
     action_types = [a.codename for a in policy.action_types.all()] if policy else None
-    autocompletes = Utils.get_autocompletes(community, action_types=action_types)
+    autocompletes = Utils.get_autocompletes(community, action_types=action_types, policy=policy)
 
     data = {
         'user': get_user(request),
@@ -294,6 +298,7 @@ def editor(request):
         data['policy'] = policy_id
         data['name'] = policy.name
         data['description'] = policy.description
+        data['variables'] = policy.variables
         data['filter'] = policy.filter
         data['initialize'] = policy.initialize
         data['check'] = policy.check
@@ -505,7 +510,8 @@ def get_autocompletes(request):
     autocompletes = Utils.get_autocompletes(community, action_types=action_types)
     return JsonResponse({'autocompletes': autocompletes})
 
-@login_required
+# TODO:oz restore login check
+# @login_required
 def error_check(request):
     """
     Takes a request object containing Python code data. Calls _lint_check(code)
@@ -548,7 +554,7 @@ def policy_action_save(request):
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitAddTriggerPolicy()
         # action.is_bundled = data.get('is_bundled', False)
-    
+
     elif operation == "Change":
         if kind == PolicyActionKind.CONSTITUTION:
             action = PolicykitChangeConstitutionPolicy()
@@ -556,7 +562,7 @@ def policy_action_save(request):
             action = PolicykitChangePlatformPolicy()
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitChangeTriggerPolicy()
-        
+
         try:
             action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
         except Policy.DoesNotExist:
