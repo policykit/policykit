@@ -127,7 +127,7 @@ def get_autocompletes(community, action_types=None, policy=None):
     autocompletes = PkAutocomplete.general_autocompletes.copy()
 
     # Add autocompletes for policy's variable
-    for variable in policy.variables or []:
+    for variable in policy.variables.all() or []:
         variable_hint = PkAutocomplete.generate_variable_autocompletes(variable)
         autocompletes.extend(variable_hint)
 

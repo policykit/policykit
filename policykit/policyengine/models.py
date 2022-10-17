@@ -744,6 +744,37 @@ class ActionType(models.Model):
 
     codename = models.CharField(max_length=30, unique=True)
 
+
+class PolicyVariable(models.Model):
+    """Policy Variable"""
+
+    NUMBER = 'number'
+    STRING = 'string'
+
+    POLICY_VARIABLE_TYPE = [
+        (NUMBER, 'number'),
+        (STRING, 'string')
+    ]
+
+    name = models.TextField(blank=False)
+    """The name of the variable."""
+
+    label = models.TextField(blank=False)
+    """The label used in public facing forms."""
+
+    default_value = models.TextField(blank=False)
+    """The deafult value assigned to the variable."""
+
+    value = models.TextField(blank=True)
+    """The value assigned to the variable."""
+
+    prompt = models.TextField(blank=True)
+    """Help text used in public facing forms."""
+
+    type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
+    """Help text used in public facing forms."""
+
+
 class Policy(models.Model):
     """Policy"""
 
@@ -809,8 +840,8 @@ class Policy(models.Model):
     is_template = models.BooleanField(default=False)
     """True if the policy should be regarded as a template. Default is False."""
 
-    variables = models.JSONField("PolicyVariables", null=True)
-    """Definitions for variables used in the scope of the policy."""
+    variables = models.ManyToManyField(PolicyVariable, blank=True, related_name="variables")
+    """Variables used in the scope of the policy."""
 
     # Managers
     objects = models.Manager()

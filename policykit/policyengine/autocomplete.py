@@ -32,7 +32,7 @@ def generate_variable_autocompletes(variable):
     """
     Generate autocompletes for variables defined on a policy
     """
-    return [f"{VARIABLES_VARNAME}.{variable['name']}"]
+    return [f"{VARIABLES_VARNAME}.{variable.name}"]
 
 
 def generate_platform_autocompletes():

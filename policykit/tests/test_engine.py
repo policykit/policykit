@@ -2,7 +2,7 @@ from constitution.models import PolicykitAddCommunityDoc, PolicykitAddRole
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 from integrations.slack.models import SlackPinMessage, SlackUser
-from policyengine.models import ActionType, CommunityRole, Policy, Proposal
+from policyengine.models import ActionType, CommunityRole, Policy, PolicyVariable, Proposal
 
 import tests.utils as TestUtils
 
@@ -230,26 +230,13 @@ class EvaluationTests(TestCase):
         policy = Policy.objects.create(
             **TestUtils.ALL_ACTIONS_PASS,
             kind=Policy.PLATFORM,
-            community=self.community,
-            variables=[
-            {
-                "prompt": "Minimum yes votes to pass",
-                "type": "number",
-                "name": "yes_votes_min",
-                "label": "Minimum yes votes",
-                "default_value": 1,
-                "value": 2
-            },
-            {
-                "prompt": "Minimum no votes to fail",
-                "type": "number",
-                "name": "no_votes_min",
-                "label": "Minimum no votes",
-                "default_value": 1,
-                "value": 2
-            }
-        ]
+            community=self.community
         )
+
+        variable_01 = PolicyVariable.objects.create(prompt="Minimum yes votes to pass", type="number", name="yes_votes_min", label="Minimum yes votes", default_value=1, value=2)
+        variable_02 = PolicyVariable.objects.create(prompt="Minimum no votes to fail", type="number", name="no_votes_min", label="Minimum no votes", default_value=1, value=2)
+
+        policy.variables.set([ variable_01, variable_02 ])
 
         # new action should pass
         action = self.new_slackpinmessage(community_origin=True)

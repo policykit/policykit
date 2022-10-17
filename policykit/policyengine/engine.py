@@ -73,7 +73,7 @@ class EvaluationContext:
         self.metagov = Metagov(proposal)
 
         # Make policy variables available in the evaluation context
-        setattr(self, "variables", { v['name'] : v['value'] for v in self.policy.variables or []})
+        setattr(self, "variables", { v.name : v.value for v in self.policy.variables.all() or []})
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
