@@ -111,6 +111,12 @@
   #alerts {
     margin-top: 1em;
   }
+
+  .policy-variable-form {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 0 2em;
+  }
 </style>
 {% endblock %}
 
@@ -159,11 +165,11 @@
     <div class="col-sm-8">
       <select id="actionpicker" class="selectpicker form-control" data-live-search="true" title="Select actions..." multiple>
         {% for app_name, action_list in actions %}
-          <optgroup label="{{app_name|upper}}">
-            {% for model_name, verbose_name in action_list %}
-              <option value={{model_name}}>{{verbose_name}}</option>
-            {% endfor %}
-          </optgroup>
+        <optgroup label="{{app_name|upper}}">
+          {% for model_name, verbose_name in action_list %}
+          <option value={{model_name}}>{{verbose_name}}</option>
+          {% endfor %}
+        </optgroup>
         {% endfor %}
       </select>
     </div>
@@ -172,7 +178,15 @@
   <div class="form-row">
     <label class="control-label col-sm-2" for="variables">Policy Variables</label>
     <div class="col-sm-10">
-      <textarea class="form-control code" id="variables" required rows="3"></textarea>
+      {% for variable in variables %}
+      <div class="policy-variable-form">
+        <label class="control-label variable-label" for="variables[{{ variable.id }}][{{ variable.name }}]">{{ variable.label }}</label>
+        <input class="form-control variable-input" type="text" name="variables[{{ variable.id }}][{{ variable.name }}]" data-id="{{ variable.id }}" value="{{ variable.value }}">
+        <p class="variable-prompt">
+          {{ variable.prompt }}
+        </p>
+      </div>
+      {% endfor %}
     </div>
   </div>
 
@@ -287,11 +301,20 @@
       const key = fieldname == "pass" ? "success" : fieldname
       policy_object[key] = sanitize_text(value)
     })
+
     return policy_object
+  }
+  function get_policy_variable_data() {
+    // Select all input elements for policy variable fields
+    const variable_input_elements = document.querySelectorAll('.policy-variable-form input')
+
+    // Build JS object with variable data in the form of { id: value, id: value }
+    return Array.from(variable_input_elements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {})
   }
 
   function propose() {
     const policy_data = get_policy_data()
+    const variable_data = get_policy_variable_data()
 
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
@@ -303,6 +326,7 @@
         'type': `{{type}}`,
         'operation': `{{operation}}`,
         'policy': `{{policy}}`,
+        variables: variable_data,
         ...policy_data
       })
     }).then(response => {
@@ -328,11 +352,6 @@
 
   {% if description %}
     document.getElementById('description').value = decodeHtml(`{{description}}`)
-  {% endif %}
-
-  {% if variables %}
-    const policy_variables = decodeHtml(`{{variables}}`);
-    document.getElementById('variables').value = policy_variables
   {% endif %}
 
   {% if action_types is not None %}

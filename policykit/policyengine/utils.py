@@ -127,9 +127,10 @@ def get_autocompletes(community, action_types=None, policy=None):
     autocompletes = PkAutocomplete.general_autocompletes.copy()
 
     # Add autocompletes for policy's variable
-    for variable in policy.variables.all() or []:
-        variable_hint = PkAutocomplete.generate_variable_autocompletes(variable)
-        autocompletes.extend(variable_hint)
+    if policy:
+        for variable in policy.variables.all() or []:
+            variable_hint = PkAutocomplete.generate_variable_autocompletes(variable)
+            autocompletes.extend(variable_hint)
 
     # Add autocompletes for each platform that this community is connected to
     for k, v in PkAutocomplete.integration_autocompletes.items():
