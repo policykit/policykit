@@ -259,6 +259,7 @@ def disable_integration(request, integration):
 def editor(request):
     kind = request.GET.get('type', "platform").lower()
     operation = request.GET.get('operation', "Add")
+    variable_operation = request.GET.get('variables', "View")
     policy_id = request.GET.get('policy')
 
     user = get_user(request)
@@ -290,6 +291,7 @@ def editor(request):
         'user': get_user(request),
         'type': kind.capitalize(),
         'operation': operation,
+        'variable_operation': variable_operation,
         'actions': actions.items(),
         'autocompletes': json.dumps(autocompletes)
     }
