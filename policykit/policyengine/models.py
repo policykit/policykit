@@ -815,7 +815,7 @@ class Policy(models.Model):
     fail = models.TextField(blank=True, default='')
     """The fail code of the policy."""
 
-    community = models.ForeignKey(Community, models.CASCADE, null=True)
+    community = models.ForeignKey(Community, models.CASCADE)
     """The community which the policy belongs to."""
 
     action_types = models.ManyToManyField(ActionType)
@@ -836,9 +836,6 @@ class Policy(models.Model):
     # TODO(https://github.com/amyxzhang/policykit/issues/341) add back support for policy bundles
     bundled_policies = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="member_of_bundle")
     """Policies bundled inside this policy."""
-
-    is_template = models.BooleanField(default=False)
-    """True if the policy should be regarded as a template. Default is False."""
 
     variables = models.ManyToManyField(PolicyVariable, blank=True, related_name="variables")
     """Variables used in the scope of the policy."""

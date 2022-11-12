@@ -13,17 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='policy',
-            name='is_template',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='policy',
             name='variables',
             field=models.JSONField(null=True, verbose_name='PolicyVariables'),
-        ),
-        migrations.AlterField(
-            model_name='policy',
-            name='community',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='policyengine.community'),
         ),
     ]
