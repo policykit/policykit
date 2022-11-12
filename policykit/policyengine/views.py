@@ -255,18 +255,14 @@ def disable_integration(request, integration):
     return redirect("/main/settings")
 
 
-# @login_required
+@login_required
 def editor(request):
     kind = request.GET.get('type', "platform").lower()
     operation = request.GET.get('operation', "Add")
     policy_id = request.GET.get('policy')
 
     user = get_user(request)
-
-    # TODO:oz reverse this so community is user's community
-    # community = user.community.community
-    from policyengine.models import Community
-    community = Community.objects.all().reverse()[0]
+    community = user.community.community
 
     from policyengine.models import Policy, PolicyActionKind
     if kind not in [PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION, PolicyActionKind.TRIGGER]:
@@ -511,8 +507,7 @@ def get_autocompletes(request):
     autocompletes = Utils.get_autocompletes(community, action_types=action_types)
     return JsonResponse({'autocompletes': autocompletes})
 
-# TODO:oz restore login check
-# @login_required
+@login_required
 def error_check(request):
     """
     Takes a request object containing Python code data. Calls _lint_check(code)
