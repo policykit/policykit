@@ -596,6 +596,12 @@ def policy_action_save(request):
 
     if "variables" in data:
         variables = [PolicyVariable.objects.get_or_create(pk=id)[0] for id in data["variables"].keys()]
+
+        for variable in variables:
+            # update variable's value based on form data, which is keyed by id
+            variable.value = data["variables"][f"{variables[0].pk}"]
+            variable.save()
+
         action.variables.set(variables)
 
     try:
