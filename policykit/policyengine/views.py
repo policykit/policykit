@@ -535,7 +535,7 @@ def policy_action_save(request):
                                      PolicykitChangePlatformPolicy,
                                      PolicykitChangeTriggerPolicy)
 
-    from policyengine.models import Policy
+    from policyengine.models import Policy, PolicyVariable
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -599,6 +599,10 @@ def policy_action_save(request):
 
     action_types = [ActionType.objects.get_or_create(codename=codename)[0] for codename in data["action_types"]]
     action.action_types.set(action_types)
+
+    if "variables" in data:
+        variables = [PolicyVariable.objects.get_or_create(pk=id)[0] for id in data["variables"].keys()]
+        action.variables.set(variables)
 
     try:
         action.save(evaluate_action=True)

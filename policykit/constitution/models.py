@@ -15,6 +15,7 @@ from policyengine.models import (
     Policy,
     ActionType,
     PolicyActionKind,
+    PolicyVariable
 )
 
 
@@ -236,6 +237,7 @@ class EditorModel(ConstitutionAction):
     description = models.TextField(null=True, blank=True)
 
     action_types = models.ManyToManyField(ActionType)
+    variables = models.ManyToManyField(PolicyVariable)
 
     filter = models.TextField(blank=True, verbose_name="Filter")
     initialize = models.TextField(blank=True, verbose_name="Initialize")
@@ -262,6 +264,7 @@ class EditorModel(ConstitutionAction):
         policy.fail = self.fail
         policy.save()
         policy.action_types.set(self.action_types.all())
+        policy.variables.set(self.variables.all())
 
 
 class PolicykitAddPlatformPolicy(EditorModel):
