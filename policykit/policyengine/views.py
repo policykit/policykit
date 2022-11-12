@@ -294,7 +294,6 @@ def editor(request):
         data['policy'] = policy_id
         data['name'] = policy.name
         data['description'] = policy.description
-        data['variables'] = policy.variables or []
         data['filter'] = policy.filter
         data['initialize'] = policy.initialize
         data['check'] = policy.check
@@ -302,7 +301,7 @@ def editor(request):
         data['success'] = policy.success
         data['fail'] = policy.fail
         data['action_types'] = list(policy.action_types.all().values_list('codename', flat=True))
-        data['variables'] = policy.variables.all
+        data['variables'] = policy.variables.all()
 
     return render(request, 'policyadmin/dashboard/editor.html', data)
 
