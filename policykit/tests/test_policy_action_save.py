@@ -146,6 +146,39 @@ class PolicyActionSaveTests(TestCase):
         self.assertEqual(policy.variables.count(), 1)
         self.assertEqual(policy.variables.all()[0].value, "10")
 
+    def test_required_policy_variable(self):
+        variable = PolicyVariable.objects.create(
+            name='yes_votes_min',
+            label='Minimum yes votes',
+            default_value=1,
+            is_required=True,
+            value=2,
+            type='number',
+            prompt='Minimum yes votes to pass'
+        )
+
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
+        )
+
+        policy.variables.add(variable)
+
+        response = self.client.post(
+            "/main/policyengine/policy_action_save",
+            data={
+                "type": "Constitution",
+                "operation": "Change",
+                **TestUtils.ALL_ACTIONS_FAIL,
+                "name": "updated",
+                "action_types": ["policykitaddcommunitydoc", "policykitchangecommunitydoc"],
+                "variables": { variable.pk: "" },
+                "policy": policy.pk,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b'Variable value is required')
+
     def test_add_trigger_policy(self):
         Policy.objects.create(**TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community)
 

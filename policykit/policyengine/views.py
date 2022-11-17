@@ -600,7 +600,12 @@ def policy_action_save(request):
         for variable in variables:
             # update variable's value based on form data, which is keyed by id
             variable.value = data["variables"][f"{variables[0].pk}"]
-            variable.save()
+
+            try:
+                variable.clean()
+                variable.save()
+            except Exception as e:
+                return HttpResponseBadRequest(e)
 
         action.variables.set(variables)
 

@@ -227,7 +227,7 @@
       {% for variable in variables %}
       <div class="policy-variable-form">
         <label class="control-label variable-label" for="variables[{{ variable.id }}][{{ variable.name }}]">{{ variable.label }}</label>
-        <input class="form-control variable-input" type="text" name="variables[{{ variable.id }}][{{ variable.name }}]" data-id="{{ variable.id }}" value="{{ variable.value }}" />
+        <input class="form-control variable-input" type="text" name="variables[{{ variable.id }}][{{ variable.name }}]" data-id="{{ variable.id }}" value="{{ variable.value }}" {% if variable.is_required %}required{% endif %}/>
         <p class="variable-prompt">
           {{ variable.prompt }}
         </p>

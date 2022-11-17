@@ -744,7 +744,6 @@ class ActionType(models.Model):
 
     codename = models.CharField(max_length=30, unique=True)
 
-
 class PolicyVariable(models.Model):
     """Policy Variable"""
 
@@ -765,6 +764,9 @@ class PolicyVariable(models.Model):
     default_value = models.TextField(blank=False)
     """The deafult value assigned to the variable."""
 
+    is_required = models.BooleanField(default=False)
+    """Whether a value for this policy variable is required."""
+
     value = models.TextField(blank=True)
     """The value assigned to the variable."""
 
@@ -774,6 +776,9 @@ class PolicyVariable(models.Model):
     type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
     """Help text used in public facing forms."""
 
+    def clean(self):
+        if self.is_required and not self.value:
+            raise ValidationError('Variable value is required')
 
 class Policy(models.Model):
     """Policy"""
