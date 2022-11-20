@@ -235,10 +235,8 @@ class PolicykitRemoveUserRole(ConstitutionAction):
 class EditorModel(ConstitutionAction):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-
     action_types = models.ManyToManyField(ActionType)
-    variables = models.ManyToManyField(PolicyVariable)
-
+    variables = models.JSONField(null=True, blank=True)
     filter = models.TextField(blank=True, verbose_name="Filter")
     initialize = models.TextField(blank=True, verbose_name="Initialize")
     check = models.TextField(blank=True, verbose_name="Check")
@@ -248,6 +246,25 @@ class EditorModel(ConstitutionAction):
 
     class Meta:
         abstract = True
+
+    def get_existing_policy_variables(self):
+        if self.variables:
+            return [PolicyVariable.objects.get(pk=id) for id in self.variables.keys()]
+        else:
+            return []
+
+    def parse_policy_variables(self, validate=True, save=False):
+        existing_variables = self.get_existing_policy_variables()
+
+        for variable in existing_variables:
+            # update variable's value based on variables JSON data, which is keyed by id
+            variable.value = self.variables[f"{variable.pk}"]
+
+            if validate:
+                variable.clean()
+
+            if save:
+                variable.save()
 
     def save_to_policy(self, policy):
         """
@@ -264,7 +281,7 @@ class EditorModel(ConstitutionAction):
         policy.fail = self.fail
         policy.save()
         policy.action_types.set(self.action_types.all())
-        policy.variables.set(self.variables.all())
+        self.parse_policy_variables(save=True)
 
 
 class PolicykitAddPlatformPolicy(EditorModel):

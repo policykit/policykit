@@ -595,20 +595,12 @@ def policy_action_save(request):
     action.action_types.set(action_types)
 
     if "variables" in data:
-        variables = [PolicyVariable.objects.get(pk=id) for id in data["variables"].keys()]
+        action.variables = data["variables"]
 
-        for variable in variables:
-            # update variable's value based on form data, which is keyed by id
-            variable.value = data["variables"][f"{variables[0].pk}"]
-
-            try:
-                variable.clean()
-                variable.save()
-            except Exception as e:
-                # the exception here is the ValidationError from PolicyVariable's clean method
-                return HttpResponseBadRequest(e)
-
-        action.variables.set(variables)
+        try:
+            action.parse_policy_variables(validate=True, save=False)
+        except Exception as e:
+            return HttpResponseBadRequest(e)
 
     try:
         action.save(evaluate_action=True)
