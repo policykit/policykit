@@ -776,6 +776,9 @@ class PolicyVariable(models.Model):
     type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
     """Help text used in public facing forms."""
 
+    policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
+    """Variables used in the scope of the policy."""
+
     def clean(self):
         if self.is_required and not self.value:
             raise ValidationError('Variable value is required')
@@ -841,9 +844,6 @@ class Policy(models.Model):
     # TODO(https://github.com/amyxzhang/policykit/issues/341) add back support for policy bundles
     bundled_policies = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="member_of_bundle")
     """Policies bundled inside this policy."""
-
-    variables = models.ManyToManyField(PolicyVariable, blank=True, related_name="variables")
-    """Variables used in the scope of the policy."""
 
     # Managers
     objects = models.Manager()

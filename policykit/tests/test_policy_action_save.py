@@ -104,20 +104,19 @@ class PolicyActionSaveTests(TestCase):
         self.assertEqual(policy.action_types.count(), 2)
 
     def test_change_constitution_policy(self):
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
+        )
+
         variable = PolicyVariable.objects.create(
             name='yes_votes_min',
             label='Minimum yes votes',
             default_value=1,
             value=2,
             type='number',
-            prompt='Minimum yes votes to pass'
+            prompt='Minimum yes votes to pass',
+            policy=policy
         )
-
-        policy = Policy.objects.create(
-            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
-        )
-
-        policy.variables.add(variable)
 
         response = self.client.post(
             "/main/policyengine/policy_action_save",
@@ -147,6 +146,10 @@ class PolicyActionSaveTests(TestCase):
         self.assertEqual(policy.variables.all()[0].value, "10")
 
     def test_required_policy_variable(self):
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
+        )
+
         variable = PolicyVariable.objects.create(
             name='yes_votes_min',
             label='Minimum yes votes',
@@ -154,14 +157,9 @@ class PolicyActionSaveTests(TestCase):
             is_required=True,
             value=2,
             type='number',
-            prompt='Minimum yes votes to pass'
+            prompt='Minimum yes votes to pass',
+            policy=policy
         )
-
-        policy = Policy.objects.create(
-            **TestUtils.ALL_ACTIONS_PASS, kind=Policy.CONSTITUTION, community=self.community
-        )
-
-        policy.variables.add(variable)
 
         response = self.client.post(
             "/main/policyengine/policy_action_save",

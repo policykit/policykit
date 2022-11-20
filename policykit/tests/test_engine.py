@@ -233,10 +233,8 @@ class EvaluationTests(TestCase):
             community=self.community
         )
 
-        variable_01 = PolicyVariable.objects.create(prompt="Minimum yes votes to pass", type="number", name="yes_votes_min", label="Minimum yes votes", default_value=1, value=2)
-        variable_02 = PolicyVariable.objects.create(prompt="Minimum no votes to fail", type="number", name="no_votes_min", label="Minimum no votes", default_value=1, value=2)
-
-        policy.variables.set([ variable_01, variable_02 ])
+        PolicyVariable.objects.create(policy=policy, prompt="Minimum yes votes to pass", type="number", name="yes_votes_min", label="Minimum yes votes", default_value=1, value=2)
+        PolicyVariable.objects.create(policy=policy, prompt="Minimum no votes to fail", type="number", name="no_votes_min", label="Minimum no votes", default_value=1, value=2)
 
         # new action should pass
         action = self.new_slackpinmessage(community_origin=True)
