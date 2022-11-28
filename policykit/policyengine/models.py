@@ -774,7 +774,7 @@ class PolicyVariable(models.Model):
     """Help text used in public facing forms."""
 
     type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
-    """Help text used in public facing forms."""
+    """Variable type, which should correlate to form ui element."""
 
     policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
     """Variables used in the scope of the policy."""

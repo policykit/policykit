@@ -249,7 +249,8 @@ class EditorModel(ConstitutionAction):
 
     def get_existing_policy_variables(self):
         if self.variables:
-            return [PolicyVariable.objects.get(pk=id) for id in self.variables.keys()]
+            vars = [PolicyVariable.objects.filter(pk=id).first() for id in self.variables.keys()]
+            return [var for var in vars if var is not None]
         else:
             return []
 
