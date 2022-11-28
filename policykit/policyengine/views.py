@@ -107,6 +107,7 @@ def dashboard(request):
     from policyengine.models import CommunityPlatform, CommunityUser, Proposal
     user = get_user(request)
     community = user.community.community
+
     # List all CommunityUsers across all platforms connected to this community
     users = CommunityUser.objects.filter(community__community=community)[:DASHBOARD_MAX_USERS]
 
@@ -253,7 +254,6 @@ def disable_integration(request, integration):
         community_platform.delete()
 
     return redirect("/main/settings")
-
 
 @login_required
 def editor(request):
