@@ -117,7 +117,7 @@ def get_action_types(community, kinds):
     return actions
 
 
-def get_autocompletes(community, action_types=None):
+def get_autocompletes(community, action_types=None, policy=None):
     import policyengine.autocomplete as PkAutocomplete
 
     platform_communities = list(community.get_platform_communities())
@@ -125,6 +125,12 @@ def get_autocompletes(community, action_types=None):
 
     # Add general autocompletes (proposal, policy, logger, and common fields on action)
     autocompletes = PkAutocomplete.general_autocompletes.copy()
+
+    # Add autocompletes for policy's variable
+    if policy:
+        for variable in policy.variables.all() or []:
+            variable_hint = PkAutocomplete.generate_variable_autocompletes(variable)
+            autocompletes.extend(variable_hint)
 
     # Add autocompletes for each platform that this community is connected to
     for k, v in PkAutocomplete.integration_autocompletes.items():

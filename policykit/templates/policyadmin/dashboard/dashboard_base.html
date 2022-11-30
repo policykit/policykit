@@ -189,8 +189,10 @@
 
   <script>
     document.getElementById("brand").addEventListener("click", navHome);
-    document.getElementById("profile").addEventListener("mouseover", showDropdown);
-    document.getElementById("profile").addEventListener("mouseout", hideDropdown);
+
+    let profileElement = document.getElementById("profile");
+    profileElement && profileElement.addEventListener("mouseover", showDropdown);
+    profileElement && profileElement.addEventListener("mouseout", hideDropdown);
 
     function navHome() {
       window.location.href = "{{server_url}}/main/"

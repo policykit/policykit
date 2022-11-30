@@ -409,6 +409,12 @@
         <textarea class="form-control description" id="action_types" readonly rows="1"></textarea>
       </div>
     </div>
+    <div class="form-row" id="variables-field-container">
+      <label class="control-label col-sm-2" for="variables">Variables:</label>
+      <div class="col-sm-10">
+        <textarea class="form-control description" id="variables" readonly rows="1"></textarea>
+      </div>
+    </div>
     <div class="form-row">
       <label class="control-label col-sm-2" for="filter">Filter:</label>
       <div class="col-sm-10">
@@ -480,6 +486,7 @@
       name: `{{value.name}}`,
       description: `{{value.description|default_if_none:""}}`,
       action_types: `{{value|action_types|default_if_none:"All platform actions"}}`,
+      variables: `{{value|variables|default_if_none:""}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -496,6 +503,7 @@
       name: `{{value.name}}`,
       description: `{{value.description|default_if_none:""}}`,
       action_types: `{{value|default_if_none:"All constitution actions"}}`,
+      variables: `{{value|variables|default_if_none:""}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -512,6 +520,7 @@
       name: `{{value.name}}`,
       description: `{{value.description|default_if_none:""}}`,
       action_types: `{{value|default_if_none:""}}`,
+      variables: `{{value|variables|default_if_none:""}}`,
       filter: `{{value.filter}}`,
       initialize: `{{value.initialize}}`,
       check: `{{value.check}}`,
@@ -563,6 +572,14 @@
       document.getElementById("notify").value = decodeHtml(modalData.notify);
       document.getElementById("pass").value = decodeHtml(modalData.pass);
       document.getElementById("fail").value = decodeHtml(modalData.fail);
+
+      if (modalData.variables) {
+        document.getElementById("variables-field-container").style.display = 'flex';
+        document.getElementById("variables").value = decodeHtml(modalData.variables);
+      } else {
+        document.getElementById("variables-field-container").style.display = 'none';
+      }
+
     } else if (type == 'doc') {
       document.getElementById("modal_code").style.display = "block";
       document.getElementById('doc_name').value = decodeHtml(modalData.name);

@@ -108,8 +108,41 @@
     visibility: visible;
     opacity: 1;
   }
+
   #alerts {
     margin-top: 1em;
+  }
+
+  .policy-variable-form {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 0 2em;
+    align-items: first baseline;
+  }
+
+  .variables-edit-button {
+    padding: 0;
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    color: #4451b2;
+    font-size: 0.8em;
+  }
+
+  .variable-label {
+    margin: 0;
+  }
+
+  .variable-input {
+    display: none;
+  }
+
+  .variable-forms--edit .variable-input {
+    display: block;
+  }
+
+  .variable-prompt {
+    flex-basis: 100%;
   }
 </style>
 {% endblock %}
@@ -159,15 +192,34 @@
     <div class="col-sm-8">
       <select id="actionpicker" class="selectpicker form-control" data-live-search="true" title="Select actions..." multiple>
         {% for app_name, action_list in actions %}
-          <optgroup label="{{app_name|upper}}">
-            {% for model_name, verbose_name in action_list %}
-              <option value={{model_name}}>{{verbose_name}}</option>
-            {% endfor %}
-          </optgroup>
+        <optgroup label="{{app_name|upper}}">
+          {% for model_name, verbose_name in action_list %}
+          <option value={{model_name}}>{{verbose_name}}</option>
+          {% endfor %}
+        </optgroup>
         {% endfor %}
       </select>
     </div>
   </div>
+
+  {% if variables %}
+  <div class="form-row">
+    <label class="control-label col-sm-2" for="variables">
+      Policy Variables
+    </label>
+    <div class="col-sm-10 variable-forms variable-forms--edit">
+      {% for variable in variables %}
+      <div class="policy-variable-form">
+        <label class="control-label variable-label" for="variables[{{ variable.id }}][{{ variable.name }}]">{{ variable.label }}</label>
+        <input class="form-control variable-input" type="text" name="variables[{{ variable.id }}][{{ variable.name }}]" data-id="{{ variable.id }}" value="{{ variable.value }}" {% if variable.is_required %}required{% endif %}/>
+        <p class="variable-prompt">
+          {{ variable.prompt }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <div class="form-row">
     <label class="control-label col-sm-2" for="filter">Filter</label>
@@ -231,7 +283,6 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -280,11 +331,20 @@
       const key = fieldname == "pass" ? "success" : fieldname
       policy_object[key] = sanitize_text(value)
     })
+
     return policy_object
+  }
+  function get_policy_variable_data() {
+    // Select all input elements for policy variable fields
+    const variable_input_elements = document.querySelectorAll('.policy-variable-form input')
+
+    // Build JS object with variable data in the form of { id: value, id: value }
+    return Array.from(variable_input_elements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {})
   }
 
   function propose() {
     const policy_data = get_policy_data()
+    const variable_data = get_policy_variable_data()
 
     fetch('../../../main/policyengine/policy_action_save', {
       method: 'POST',
@@ -296,6 +356,7 @@
         'type': `{{type}}`,
         'operation': `{{operation}}`,
         'policy': `{{policy}}`,
+        variables: variable_data,
         ...policy_data
       })
     }).then(response => {
