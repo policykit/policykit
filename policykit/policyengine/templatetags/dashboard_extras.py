@@ -34,6 +34,16 @@ def action_types(value):
     return comma_separated(display_names, num)
 
 
+@register.filter(name="variables")
+def variables(value):
+    """List variables on policy"""
+    if not value.variables.exists():
+        return None
+    num = value.variables.count()
+    display_variables = [f"{variable['name']}:{variable['value']}" for variable in value.variables.all().values()]
+    return comma_separated(display_variables, num)
+
+
 def comma_separated(display_names, num):
     if num == 1:
         return display_names[0]

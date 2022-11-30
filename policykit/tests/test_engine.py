@@ -2,7 +2,7 @@ from constitution.models import PolicykitAddCommunityDoc, PolicykitAddRole
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 from integrations.slack.models import SlackPinMessage, SlackUser
-from policyengine.models import ActionType, CommunityRole, Policy, Proposal
+from policyengine.models import ActionType, CommunityRole, Policy, PolicyVariable, Proposal
 
 import tests.utils as TestUtils
 
@@ -223,6 +223,23 @@ class EvaluationTests(TestCase):
         action = self.new_slackpinmessage(community_origin=True)
         self.evaluate_action_helper(
             action, expected_policy=first_policy, expected_did_execute=False, expected_status=Proposal.PASSED
+        )
+
+    def test_policy_variable_evaluation(self):
+        """Policy variables are evaluated correctly"""
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community
+        )
+
+        PolicyVariable.objects.create(policy=policy, prompt="Minimum yes votes to pass", type="number", name="yes_votes_min", label="Minimum yes votes", default_value=1, value=2)
+        PolicyVariable.objects.create(policy=policy, prompt="Minimum no votes to fail", type="number", name="no_votes_min", label="Minimum no votes", default_value=1, value=2)
+
+        # new action should pass
+        action = self.new_slackpinmessage(community_origin=True)
+        self.evaluate_action_helper(
+            action, expected_policy=policy, expected_did_execute=False, expected_status=Proposal.PASSED
         )
 
     def test_action_type_filtering(self):

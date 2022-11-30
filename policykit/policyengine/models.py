@@ -744,6 +744,45 @@ class ActionType(models.Model):
 
     codename = models.CharField(max_length=30, unique=True)
 
+class PolicyVariable(models.Model):
+    """Policy Variable"""
+
+    NUMBER = 'number'
+    STRING = 'string'
+
+    POLICY_VARIABLE_TYPE = [
+        (NUMBER, 'number'),
+        (STRING, 'string')
+    ]
+
+    name = models.CharField(blank=False, max_length=100)
+    """The name of the variable."""
+
+    label = models.CharField(blank=False, max_length=100)
+    """The label used in public facing forms."""
+
+    default_value = models.CharField(blank=False, max_length=100)
+    """The deafult value assigned to the variable."""
+
+    is_required = models.BooleanField(default=False)
+    """Whether a value for this policy variable is required."""
+
+    value = models.CharField(blank=True, max_length=100)
+    """The value assigned to the variable."""
+
+    prompt = models.CharField(blank=True, max_length=255)
+    """Help text used in public facing forms."""
+
+    type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
+    """Variable type, which should correlate to form ui element."""
+
+    policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
+    """Variables used in the scope of the policy."""
+
+    def clean(self):
+        if self.is_required and not self.value:
+            raise ValidationError('Variable value is required')
+
 class Policy(models.Model):
     """Policy"""
 

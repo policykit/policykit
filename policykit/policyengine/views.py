@@ -98,7 +98,7 @@ def initialize_starterkit(request):
         Utils.initialize_starterkit_inner(community, kit_data, creator_username=creator_username)
     except Exception as e:
         logger.error(f"Initializing kit {starterkit_id} raised exception {type(e).__name__} {e}")
-        return redirect("/login?error=starterkit_init_failed")    
+        return redirect("/login?error=starterkit_init_failed")
 
     return redirect("/login?success=true")
 
@@ -107,6 +107,7 @@ def dashboard(request):
     from policyengine.models import CommunityPlatform, CommunityUser, Proposal
     user = get_user(request)
     community = user.community.community
+
     # List all CommunityUsers across all platforms connected to this community
     users = CommunityUser.objects.filter(community__community=community)[:DASHBOARD_MAX_USERS]
 
@@ -167,7 +168,7 @@ def settings_page(request):
             additional_data = integration_data[integration]
             if additional_data.get("webhook_instructions"):
                 additional_data["webhook_url"] = f"{settings.SERVER_URL}/api/hooks/{plugin.name}/{plugin.community.slug}"
-            
+
             enabled_integrations[integration] = {**plugin.serialize(), **additional_data, "config": config_tuples}
 
 
@@ -254,7 +255,6 @@ def disable_integration(request, integration):
 
     return redirect("/main/settings")
 
-
 @login_required
 def editor(request):
     kind = request.GET.get('type', "platform").lower()
@@ -271,7 +271,7 @@ def editor(request):
     policy = None
     if policy_id:
         try:
-            policy = Policy.objects.get(id=policy_id, community=user.community.community)
+            policy = Policy.objects.get(id=policy_id, community=community)
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
@@ -280,7 +280,7 @@ def editor(request):
 
     # list of autocomplete strings
     action_types = [a.codename for a in policy.action_types.all()] if policy else None
-    autocompletes = Utils.get_autocompletes(community, action_types=action_types)
+    autocompletes = Utils.get_autocompletes(community, action_types=action_types, policy=policy)
 
     data = {
         'user': get_user(request),
@@ -301,6 +301,7 @@ def editor(request):
         data['success'] = policy.success
         data['fail'] = policy.fail
         data['action_types'] = list(policy.action_types.all().values_list('codename', flat=True))
+        data['variables'] = policy.variables.all()
 
     return render(request, 'policyadmin/dashboard/editor.html', data)
 
@@ -528,7 +529,7 @@ def policy_action_save(request):
                                      PolicykitChangePlatformPolicy,
                                      PolicykitChangeTriggerPolicy)
 
-    from policyengine.models import Policy
+    from policyengine.models import Policy, PolicyVariable
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -548,7 +549,7 @@ def policy_action_save(request):
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitAddTriggerPolicy()
         # action.is_bundled = data.get('is_bundled', False)
-    
+
     elif operation == "Change":
         if kind == PolicyActionKind.CONSTITUTION:
             action = PolicykitChangeConstitutionPolicy()
@@ -556,7 +557,7 @@ def policy_action_save(request):
             action = PolicykitChangePlatformPolicy()
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitChangeTriggerPolicy()
-        
+
         try:
             action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
         except Policy.DoesNotExist:
@@ -592,6 +593,14 @@ def policy_action_save(request):
 
     action_types = [ActionType.objects.get_or_create(codename=codename)[0] for codename in data["action_types"]]
     action.action_types.set(action_types)
+
+    if "variables" in data:
+        action.variables = data["variables"]
+
+        try:
+            action.parse_policy_variables(validate=True, save=False)
+        except Exception as e:
+            return HttpResponseBadRequest(e)
 
     try:
         action.save(evaluate_action=True)
