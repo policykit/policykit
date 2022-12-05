@@ -861,6 +861,40 @@ class Policy(models.Model):
         """True if the policy is part of a bundle"""
         return self.member_of_bundle.count() > 0
 
+    def copy(self, community = None):
+        """Make a copy of the policy object and assign to a new community"""
+        if not community:
+            raise Exception("Community object must be passed")
+
+        from copy import deepcopy
+
+        # Make a copy of the whole objet
+        new_policy = deepcopy(self)
+
+        # Generate a new id
+        new_policy.pk = None
+
+        # Assign copy to another community
+        new_policy.community = community
+
+        new_policy.save()
+
+        # Copy ActionType relationships
+        new_policy.action_types.set(self.action_types.all())
+
+        # Remove existing Policy Variable relationships
+        new_policy.variables.set([])
+
+        # Make copies of related PolicyVariables
+        for variable in self.variables.all():
+            new_variable = deepcopy(variable)
+            new_variable.pk = None
+            new_variable.policy = new_policy
+            new_variable.value = variable.default_value
+            new_variable.save()
+
+        return new_policy
+
 
 class UserVote(models.Model):
     """UserVote"""
