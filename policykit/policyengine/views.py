@@ -558,13 +558,16 @@ def policy_action_save(request):
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitChangeTriggerPolicy()
 
+        community = user.community.community
+
         try:
-            action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
+            action.policy = Policy.objects.get(pk=data['policy'], community=community)
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
     else:
         raise Http404("Policy does not exist")
+
 
     action.community = user.constitution_community
     action.initiator = user
@@ -820,3 +823,45 @@ def document_action_recover(request):
     action.save()
 
     return HttpResponse()
+
+def embed_opencollective(request):
+    from policyengine.models import Policy
+
+    # Policy id is passed via the URL
+    policy_source_id = request.GET.get("source")
+
+    # Get policy object
+    if policy_source_id:
+        try:
+            policy_source = Policy.objects.get(id=policy_source_id)
+        except Policy.DoesNotExist:
+            raise Http404("Policy does not exist")
+
+    # Variables without a default value or value are set in the first step of the flow
+    initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
+
+    # Variables are ordered with initial variables first
+    all_variables = policy_source.variables.order_by("default_value")
+
+    return render(request, "embed/opencollective.html", {
+        "template": policy_source,
+        "initial_variables": initial_variables,
+        "all_variables": all_variables
+    })
+
+def embed_opencollective_setup (request):
+    data = json.loads(request.body)
+
+    # TODO:oz onboarding flow: starterkit, community, user, etc
+
+    from policyengine.models import Policy
+
+    # Get source policy object
+    try:
+        policy_source = Policy.objects.get(pk=data['template'])
+    except Policy.DoesNotExist:
+        raise Http404("Policy does not exist")
+
+    # Make a copy of the policy
+
+    return JsonResponse({ "template": policy_source.id })

@@ -48,6 +48,8 @@ urlpatterns = [
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
+    path('embed/opencollective/', policyviews.embed_opencollective),
+    path('embed/opencollective/setup', policyviews.embed_opencollective_setup),
     path('admin/', admin.site.urls),
 
     # custom enable/disable views for integrations that use OAuth
