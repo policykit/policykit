@@ -81,3 +81,12 @@ class ClonePolicyTests(TestCase):
 
         # Check that new policy is not a template
         self.assertFalse(new_policy.is_template)
+    def test_copy_policy_with_variable_data(self):
+        variable_value = "5"
+        variable_data = { self.policy_variable_source.pk : variable_value }
+
+        new_policy = self.policy_source.copy(community=self.community_target, variable_data=variable_data)
+
+        # Check that policy variable has a value set from variable_data
+        new_variable = new_policy.variables.all()[0]
+        self.assertEqual(new_variable.value, variable_value)

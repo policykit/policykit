@@ -893,12 +893,23 @@ class Policy(models.Model):
         # Remove existing Policy Variable relationships
         new_policy.variables.set([])
 
+        # Cast keys in variable_data to integars
+        variable_data = { int(k): v for k,v in variable_data.items() }
+
         # Make copies of related PolicyVariables
         for variable in self.variables.all():
             new_variable = deepcopy(variable)
             new_variable.pk = None
             new_variable.policy = new_policy
-            new_variable.value = variable.default_value
+
+            # variable_data is an object in shape of { [pk] : [value] }
+            if variable.pk in variable_data:
+                # Set the value of the new variable based on variable_data
+                new_variable.value = variable_data[variable.pk]
+            else:
+                # Set the value of the new variable based on the original variable's default_value
+                new_variable.value = variable.default_value
+
             new_variable.save()
 
         return new_policy
