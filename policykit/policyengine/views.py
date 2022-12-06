@@ -824,7 +824,7 @@ def document_action_recover(request):
 
     return HttpResponse()
 
-def embed_opencollective(request):
+def embed_opencollective_initial(request):
     from policyengine.models import Policy
 
     # Policy id is passed via the URL
@@ -843,25 +843,70 @@ def embed_opencollective(request):
     # Variables are ordered with initial variables first
     all_variables = policy_source.variables.order_by("default_value")
 
-    return render(request, "embed/opencollective.html", {
-        "template": policy_source,
+    return render(request, "embed/opencollective_initial.html", {
+        "policy": policy_source,
         "initial_variables": initial_variables,
         "all_variables": all_variables
     })
 
-def embed_opencollective_setup (request):
-    data = json.loads(request.body)
-
-    # TODO:oz onboarding flow: starterkit, community, user, etc
+def policy_from_request (request):
+    policy_id = request.GET.get('policy')
 
     from policyengine.models import Policy
 
     # Get source policy object
     try:
-        policy_source = Policy.objects.get(pk=data['template'])
+        return Policy.objects.get(pk=policy_id)
     except Policy.DoesNotExist:
         raise Http404("Policy does not exist")
 
-    # Make a copy of the policy
+def embed_opencollective_setup (request):
+    # TODO:oz onboarding flow: starterkit, community, user, etc
 
-    return JsonResponse({ "template": policy_source.id })
+    # TODO:oz revert this
+    from integrations.slack.models import SlackUser
+    user = SlackUser.objects.last()
+    community = user.community.community
+
+    # Make a copy of the policy
+    data = json.loads(request.body)
+    policy_source = policy_from_request(request)
+    new_policy = policy_source.copy(community=community, variable_data=data["variables"])
+
+    return JsonResponse({ "policy": new_policy.id })
+
+def embed_opencollective_summary (request):
+    policy = policy_from_request(request)
+
+    variables = policy.variables.all()
+
+    return render(request, "embed/opencollective_summary.html", {
+        "policy": policy,
+        "all_variables": variables
+    })
+
+def embed_opencollective_update (request):
+    policy = policy_from_request(request)
+
+    # Update policy variables
+    data = json.loads(request.body)
+    policy.update_variables(data["variables"])
+
+    return JsonResponse({ "policy": policy.id })
+
+def embed_opencollective_edit (request):
+    policy = policy_from_request(request)
+
+    variables = policy.variables.all()
+
+    return render(request, "embed/opencollective_edit.html", {
+        "policy": policy,
+        "all_variables": variables
+    })
+
+def embed_opencollective_success (request):
+    policy = policy_from_request(request)
+
+    return render(request, "embed/opencollective_success.html", {
+        "policy": policy
+    })

@@ -870,6 +870,21 @@ class Policy(models.Model):
 
         super(Policy, self).save(*args, **kwargs)
 
+    def update_variables(self, variable_data = {}):
+        """Update related variables based on dict"""
+
+        # Cast keys in variable_data to integars
+        variable_data = { int(k): v for k,v in variable_data.items() }
+
+        # Make copies of related PolicyVariables
+        for variable in self.variables.all():
+            # variable_data is an object in shape of { [pk] : [value] }
+            if variable.pk in variable_data:
+                # Set the value of the new variable based on variable_data
+                variable.value = variable_data[variable.pk]
+
+            variable.save()
+
     def copy_as_template(self):
         """Make a copy of the policy object and designate it as a template"""
 
