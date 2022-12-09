@@ -830,6 +830,8 @@ def embed_opencollective_initial(request):
     # Policy id is passed via the URL
     policy_source_id = request.GET.get("source")
 
+    policy_source = None
+
     # Get policy object
     if policy_source_id:
         try:
