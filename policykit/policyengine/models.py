@@ -885,7 +885,7 @@ class Policy(models.Model):
 
             variable.save()
 
-    def copy_as_template(self):
+    def copy_as_template(self, variable_data = {}):
         """Make a copy of the policy object and designate it as a template"""
 
         from copy import deepcopy
@@ -929,7 +929,7 @@ class Policy(models.Model):
 
         return new_policy
 
-    def copy_to_community(self, community = None):
+    def copy_to_community(self, community = None, variable_data = {}):
         """Make a copy of the policy object and assign to a new community"""
 
         if not self.is_template:
@@ -939,7 +939,7 @@ class Policy(models.Model):
             raise Exception("Community object must be passed")
 
         # Generate a copy of the policy
-        new_policy = self.copy_as_template()
+        new_policy = self.copy_as_template(variable_data)
 
         # Designate policy as not-a-template
         new_policy.is_template = False

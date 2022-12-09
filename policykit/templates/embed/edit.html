@@ -1,4 +1,4 @@
-{% extends "./opencollective_base.html" %}
+{% extends "./base.html" %}
 {% load static %}
 
 {% block step %}
@@ -48,7 +48,7 @@
     const response = await submit('update', data)
 
     // Validate
-    // TODO:oz
+    // TODO
 
     // Display summary step
     redirect('summary', { policy: '{{ policy.id }}'})

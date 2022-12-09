@@ -1,4 +1,4 @@
-{% extends "./opencollective_base.html" %}
+{% extends "./base.html" %}
 {% load static %}
 
 {% block step %}
@@ -36,7 +36,7 @@
 {% block step_scripts %}
 <script>
   const handleSetupCancel = () => {
-    // TODO:oz
+    // TODO
   }
 
   const handleSetupContinue = async () => {
@@ -47,7 +47,7 @@
     const response = await submit('setup', data)
 
     // Validate
-    // TODO:oz
+    // TODO
 
     // Display summary step
     redirect('summary', { policy: response.policy })

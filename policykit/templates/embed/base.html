@@ -183,10 +183,10 @@
   const redirect = (pageKey, urlParams = {}) => {
     // URLs for the different step pages
     const pages = {
-      setup: '/embed/opencollective',
-      summary: '/embed/opencollective/summary',
-      edit: '/embed/opencollective/edit',
-      success: '/embed/opencollective/success'
+      setup: '/embed',
+      summary: '/embed/summary',
+      edit: '/embed/edit',
+      success: '/embed/success'
     }
 
     if (!pages[pageKey]) return
@@ -215,7 +215,7 @@
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
 
     try {
-      const response = await fetch(`../../../embed/opencollective/${url}?policy={{ policy.id }}`, {
+      const response = await fetch(`../../../embed/${url}?policy={{ policy.id }}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

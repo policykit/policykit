@@ -85,7 +85,7 @@ class ClonePolicyTests(TestCase):
         variable_value = "5"
         variable_data = { self.policy_variable_source.pk : variable_value }
 
-        new_policy = self.policy_source.copy(community=self.community_target, variable_data=variable_data)
+        new_policy = self.policy_source.copy_to_community(community=self.community_target, variable_data=variable_data)
 
         # Check that policy variable has a value set from variable_data
         new_variable = new_policy.variables.all()[0]

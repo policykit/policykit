@@ -824,35 +824,8 @@ def document_action_recover(request):
 
     return HttpResponse()
 
-def embed_opencollective_initial(request):
-    from policyengine.models import Policy
-
-    # Policy id is passed via the URL
-    policy_source_id = request.GET.get("source")
-
-    policy_source = None
-
-    # Get policy object
-    if policy_source_id:
-        try:
-            policy_source = Policy.objects.get(id=policy_source_id)
-        except Policy.DoesNotExist:
-            raise Http404("Policy does not exist")
-
-    # Variables without a default value or value are set in the first step of the flow
-    initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
-
-    # Variables are ordered with initial variables first
-    all_variables = policy_source.variables.order_by("default_value")
-
-    return render(request, "embed/opencollective_initial.html", {
-        "policy": policy_source,
-        "initial_variables": initial_variables,
-        "all_variables": all_variables
-    })
-
-def policy_from_request (request):
-    policy_id = request.GET.get('policy')
+def policy_from_request (request, key_name = 'policy'):
+    policy_id = request.GET.get(key_name)
 
     from policyengine.models import Policy
 
@@ -862,10 +835,26 @@ def policy_from_request (request):
     except Policy.DoesNotExist:
         raise Http404("Policy does not exist")
 
-def embed_opencollective_setup (request):
-    # TODO:oz onboarding flow: starterkit, community, user, etc
+def embed_initial(request):
+    # Get source policy based on id passed via the URL
+    policy_source = policy_from_request(request, key_name="source")
 
-    # TODO:oz revert this
+    # Variables without a default value or value are set in the first step of the flow
+    initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
+
+    # Variables are ordered with initial variables first
+    all_variables = policy_source.variables.order_by("default_value")
+
+    return render(request, "embed/initial.html", {
+        "policy": policy_source,
+        "initial_variables": initial_variables,
+        "all_variables": all_variables
+    })
+
+def embed_setup (request):
+    # TODO onboarding flow: starterkit, community, user, etc
+
+    # TODO revert this
     from integrations.slack.models import SlackUser
     user = SlackUser.objects.last()
     community = user.community.community
@@ -873,21 +862,21 @@ def embed_opencollective_setup (request):
     # Make a copy of the policy
     data = json.loads(request.body)
     policy_source = policy_from_request(request)
-    new_policy = policy_source.copy(community=community, variable_data=data["variables"])
+    new_policy = policy_source.copy_to_community(community=community, variable_data=data["variables"])
 
     return JsonResponse({ "policy": new_policy.id })
 
-def embed_opencollective_summary (request):
+def embed_summary (request):
     policy = policy_from_request(request)
 
     variables = policy.variables.all()
 
-    return render(request, "embed/opencollective_summary.html", {
+    return render(request, "embed/summary.html", {
         "policy": policy,
         "all_variables": variables
     })
 
-def embed_opencollective_update (request):
+def embed_update (request):
     policy = policy_from_request(request)
 
     # Update policy variables
@@ -896,19 +885,19 @@ def embed_opencollective_update (request):
 
     return JsonResponse({ "policy": policy.id })
 
-def embed_opencollective_edit (request):
+def embed_edit (request):
     policy = policy_from_request(request)
 
     variables = policy.variables.all()
 
-    return render(request, "embed/opencollective_edit.html", {
+    return render(request, "embed/edit.html", {
         "policy": policy,
         "all_variables": variables
     })
 
-def embed_opencollective_success (request):
+def embed_success (request):
     policy = policy_from_request(request)
 
-    return render(request, "embed/opencollective_success.html", {
+    return render(request, "embed/success.html", {
         "policy": policy
     })
