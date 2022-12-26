@@ -31,6 +31,12 @@ Local Development
  cd policykit
  cp .env.example .env
 
+| Navigate up a directory 
+
+::
+
+ cd ..
+
 | To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. For local development, all you need to do is set ``DEBUG=true``.
 
 | To verify that you have set the PolicyKit server up correctly, run the following command:
@@ -41,17 +47,18 @@ Local Development
 
 | By default, PolicyKit will create a sqlite3 database in the root directory. If you want to use another database, you can edit the ``DATABASES`` field in ``settings.py``.
 
+| Exit the server with control-c
+
 | Run the following command to create and set up the database:
 
 ::
 
  python manage.py migrate
 
-
-Open PolicyKit in the browser at http://localhost:8000/main. At this point, you won't be able to log in because PolicyKit currently only supports sign-in via external auth providers (Slack, Discord, Reddit, and Discourse).
+| Open PolicyKit in the browser at http://localhost:8000/main. At this point, you won't be able to log in because PolicyKit currently only supports sign-in via external auth providers (Slack, Discord, Reddit, and Discourse).
 There is an open issue to support logging in without any third-party platform: `#514 <https://github.com/amyxzhang/policykit/issues/514>`_.
 
-To log in to PolicyKit, you'll need to install it on a dev server and set up at least 1 of the auth-enabled integrations.
+| To log in to PolicyKit, you'll need to install it on a dev server and set up at least 1 of the auth-enabled integrations.
 
 
 Running PolicyKit on a Server
@@ -61,8 +68,25 @@ Running PolicyKit on a Server
 
 1. Add PolicyKit to the server by uploading the codebase or using ``git clone``.
 2. Follow `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_ to install Python3 and to create a virtual environment for PolicyKit.
+   - Creating a virtual invironment:
+         
+           .. code-block::
+
+                    mkdirv venv
+                    cd venv
+                    python3 -m venv .venv
+                    source .venv/bin/activate
+                    
 3. Install the requirements to the virtual environment with ``pip install -r requirements.txt``.
-4. Finish the earlier guide to setting up PolicyKit.
+   - Navigate to /policykit/policykit:
+         
+           .. code-block::
+
+                    cd ../policykit/poliykit
+                    pip install --upgrade pip
+                    pip install -r requirement.txt
+                    
+4. Finish the earlier guide to setting up PolicyKit, starting from "Next, run the following commands to create a file to store your settings and secrets"
 5. Make the following additional changes to ``.env``:
 
    - Set the ``DJANGO_SECRET_KEY`` field. Generate a key with this command:
