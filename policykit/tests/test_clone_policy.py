@@ -15,7 +15,7 @@ class ClonePolicyTests(TestCase):
         self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
 
         # Create a policy to use as a source
-        self.policy_source = Policy.objects.create(**TestUtils.ALL_ACTIONS_PASS, kind=Policy.TRIGGER, community=self.community_source)
+        self.policy_source = Policy.objects.create(**TestUtils.ALL_ACTIONS_PASS, kind=Policy.TRIGGER, community=self.community_source, is_template=True)
 
         # Add an action type to source policy
         self.action_type = ActionType.objects.get_or_create(codename="slackpostmessage")[0]
@@ -28,19 +28,14 @@ class ClonePolicyTests(TestCase):
         self.slack_community_source, user2 = TestUtils.create_slack_community_and_user(team_id="target", username="user2")
         self.community_target = self.slack_community_source.community
 
-    def test_no_community_raises_exception(self):
-        # Check that an exception is raied when copy() is used without a community parameter
-        with self.assertRaisesRegexp(Exception, "Community object must be passed"):
-            self.policy_source.copy()
-
-    def test_copy_policy(self):
-        new_policy = self.policy_source.copy(self.community_target)
+    def test_copy_policy_as_template(self):
+        new_policy = self.policy_source.copy_as_template()
 
         # Check that policy copy was created
         self.assertNotEqual(new_policy.pk, self.policy_source.pk)
 
-        # Check that policy copy is related the target community
-        self.assertEqual(new_policy.community, self.community_target)
+        # Check that new policy is a template
+        self.assertTrue(new_policy.is_template)
 
         # Check that policy copy has the same values as original
         for fieldname in [ "kind", "filter", "initialize", "check", "notify", "success", "fail", "name", "description", "is_active" ]:
@@ -65,3 +60,24 @@ class ClonePolicyTests(TestCase):
 
         # Check that policy variable value is set to the default value
         self.assertEqual(new_variable.value, self.policy_variable_source.default_value)
+
+    def test_no_community_raises_exception(self):
+        # Check that an exception is raied when copy_to_community() is used without a community parameter
+        with self.assertRaisesRegexp(Exception, "Community object must be passed"):
+            self.policy_source.copy_to_community()
+
+    def test_not_template_policy_raises_exception(self):
+        # Check that an exception is raied when copy_to_community() is used on a policy that is not designated as a template
+        self.policy_source.is_template = False
+
+        with self.assertRaisesRegexp(Exception, "Policy is not a template"):
+            self.policy_source.copy_to_community(community=self.community_target)
+
+    def test_copy_policy_to_community(self):
+        new_policy = self.policy_source.copy_to_community(self.community_target)
+
+        # Check that policy copy is related the target community
+        self.assertEqual(new_policy.community, self.community_target)
+
+        # Check that new policy is not a template
+        self.assertFalse(new_policy.is_template)

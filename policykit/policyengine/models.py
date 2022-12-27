@@ -823,7 +823,7 @@ class Policy(models.Model):
     fail = models.TextField(blank=True, default='')
     """The fail code of the policy."""
 
-    community = models.ForeignKey(Community, models.CASCADE)
+    community = models.ForeignKey(Community, models.CASCADE, null=True)
     """The community which the policy belongs to."""
 
     action_types = models.ManyToManyField(ActionType)
@@ -837,6 +837,9 @@ class Policy(models.Model):
 
     is_active = models.BooleanField(default=True)
     """True if the policy is active. Default is True."""
+
+    is_template = models.BooleanField(default=False)
+    """True if the policy can be used as a template for other policies. Default is False."""
 
     modified_at = models.DateTimeField(auto_now=True)
     """Datetime object representing the last time the policy was modified."""
@@ -861,22 +864,27 @@ class Policy(models.Model):
         """True if the policy is part of a bundle"""
         return self.member_of_bundle.count() > 0
 
-    def copy(self, community = None):
-        """Make a copy of the policy object and assign to a new community"""
-        if not community:
-            raise Exception("Community object must be passed")
+    def save(self, *args, **kwargs):
+        if not self.is_template and self.community is None:
+            raise ValidationError('Non template policies must have a community')
+
+        super(Policy, self).save(*args, **kwargs)
+
+    def copy_as_template(self):
+        """Make a copy of the policy object and designate it as a template"""
 
         from copy import deepcopy
 
-        # Make a copy of the whole objet
+        # Make a copy of the whole object
         new_policy = deepcopy(self)
 
         # Generate a new id
         new_policy.pk = None
 
-        # Assign copy to another community
-        new_policy.community = community
+        # Treat new policy as a template as to not requiring a community relationship yet
+        new_policy.is_template = True
 
+        # Save new policy
         new_policy.save()
 
         # Copy ActionType relationships
@@ -895,6 +903,28 @@ class Policy(models.Model):
 
         return new_policy
 
+    def copy_to_community(self, community = None):
+        """Make a copy of the policy object and assign to a new community"""
+
+        if not self.is_template:
+            raise Exception("Policy is not a template")
+
+        if not community:
+            raise Exception("Community object must be passed")
+
+        # Generate a copy of the policy
+        new_policy = self.copy_as_template()
+
+        # Designate policy as not-a-template
+        new_policy.is_template = False
+
+        # Assign copy to another community
+        new_policy.community = community
+
+        # Save
+        new_policy.save()
+
+        return new_policy
 
 class UserVote(models.Model):
     """UserVote"""
