@@ -101,7 +101,9 @@ METAGOV_SETTINGS = {
         "PERMISSIONS": env("DISCORD_PERMISSIONS", default=397821540358),
     },
     "OPENCOLLECTIVE": {
-        "USE_STAGING": env("OPENCOLLECTIVE_USE_STAGING", default=False)
+        "USE_STAGING": env("OPENCOLLECTIVE_USE_STAGING", default=False),
+        "CLIENT_ID": env("OPENCOLLECTIVE_CLIENT_ID", default=None),
+        "CLIENT_SECRET": env("OPENCOLLECTIVE_CLIENT_SECRET", default=None),
     }
 }
 
