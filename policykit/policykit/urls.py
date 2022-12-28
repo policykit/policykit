@@ -56,6 +56,7 @@ urlpatterns = [
     path('discord/', include('integrations.discord.urls')),
     path('discourse/', include('integrations.discourse.urls')),
     path('github/', include('integrations.github.urls')),
+    path('opencollective/', include('integrations.opencollective.urls')),
 
     # default enable/disable views
     path('<slug:integration>/enable_integration', policyviews.enable_integration),
