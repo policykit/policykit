@@ -30,7 +30,7 @@ def opencollective_install(request):
     redirect_route = "/login" if is_new_community else "/main/settings"
 
     if request.GET.get("error"):
-        params = urllib.urlencode({
+        params = urllib.parse.urlencode({
             'error': request.GET.get("error"),
             'error_description': request.GET.get('error_description')
         })
