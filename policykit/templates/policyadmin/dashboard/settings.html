@@ -78,6 +78,8 @@
       Failed to add Slack integration. PolicyKit is already installed to the selected workspace, but for a different PolicyKit community. Contact a PolicyKit administrator for support.
     {% elif request.GET.error == 'slack_installer_is_not_admin' %}
       Failed to add Slack integration. Only Slack workspace admins are permitted to install PolicyKit.
+    {% elif request.GET.error_description %}
+      {{ request.GET.error_description }}
     {% else %}
       Error: {{ request.GET.error }}
     {% endif %}

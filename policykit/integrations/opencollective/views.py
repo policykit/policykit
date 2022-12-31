@@ -1,5 +1,6 @@
 import logging
 import requests
+import urllib
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -29,7 +30,11 @@ def opencollective_install(request):
     redirect_route = "/login" if is_new_community else "/main/settings"
 
     if request.GET.get("error"):
-        return redirect(f"{redirect_route}?error={request.GET.get('error')}")
+        params = urllib.urlencode({
+            'error': request.GET.get("error"),
+            'error_description': request.GET.get('error_description')
+        })
+        return redirect(f"{redirect_route}?{params}")
 
     mg_community = metagov.get_community(community.metagov_slug)
     oc_plugin = mg_community.get_plugin("opencollective", collective)
@@ -44,14 +49,14 @@ def opencollective_install(request):
             team_id=collective,
         )
 
-        if is_new_community:
-            # if this is an entirely new parent community, select starter kit
-            return render_starterkit_view(
-                request, oc_community.community.pk, creator_username=creator_user.username if creator_user else None
-            )
-        else:
-            # discord is being added to an existing community that already has other platforms and starter policies
-            return redirect(f"{redirect_route}?success=true")
+        # if is_new_community:
+        #     # if this is an entirely new parent community, select starter kit
+        #     return render_starterkit_view(
+        #         request, oc_community.community.pk, creator_username=creator_user.username if creator_user else None
+        #     )
+        # else:
+        # discord is being added to an existing community that already has other platforms and starter policies
+        return redirect(f"{redirect_route}?success=true")
 
     else:
         logger.debug("OC community already exists")

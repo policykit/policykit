@@ -32,6 +32,8 @@
       PolicyKit is already installed to your Discord guild! Sign in with Discord to continue.
     {% elif request.GET.error == 'discord_installer_is_not_admin' %}
       Installation failed! Only Discord guild owners are permitted to install PolicyKit.
+    {% elif request.GET.error_description %}
+      {{ request.GET.error_description }}
     {% else %}
       Error: {{ request.GET.error }}
     {% endif %}
