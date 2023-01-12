@@ -100,23 +100,24 @@ Your terminal prompt should change to look something like this ``(policykit_venv
                    cd policykit
                    cp .env.example .env
  
-5. Make the following additional changes to ``.env``:
+5. Generate a secret key for Django using this command:
 
-   - Set the ``DJANGO_SECRET_KEY`` field. Generate a key in the previous directory with this command:
+.. code-block::
 
-           .. code-block::
+ python manage.py shell -c 'from django.core.management import utils; print(utils.get_random_secret_key())'
 
-                   python manage.py shell -c 'from django.core.management import utils; print(utils.get_random_secret_key())'
+6. Make the following additional changes to ``.env``:
 
+   - Set the ``DJANGO_SECRET_KEY`` field. Add the key that was generated in the last step
    - Set the ``SERVER_URL`` field.
    - Set the ``ALLOWED_HOSTS`` field to point to your host.
    - Make sure ``DEBUG`` is empty or set to false.
    - Be sure to uncomment these fields by removing the ``#`` at the start of a line.
    - You can leave the platform integration API keys/secrets empty for now. Follow the instructions under "Set up Integrations" to set up each integration.
 
-6. If you want to use a database other than dbsqlite3, or if you want to change the database path, update the ``DATABASES`` object in ``settings.py``.
+7. If you want to use a database other than dbsqlite3, or if you want to change the database path, update the ``DATABASES`` object in ``settings.py``.
 
-7. To verify that you have set the PolicyKit server up correctly, run the following command:
+8. To verify that you have set the PolicyKit server up correctly, run the following command:
 
 ::
 
@@ -128,13 +129,13 @@ If you want to see the server in development mode, refer to the previous section
 
 Exit the server with control-c
 
-8. Run the following command to create and set up the database:
+9. Run the following command to create and set up the database:
 
 ::
 
 python manage.py migrate
 
-9. Next, run the following command to collect static files into a ``static/`` folder:
+10. Next, run the following command to collect static files into a ``static/`` folder:
 
 ::
 
@@ -165,7 +166,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
 2. Create a new apache2 config file:
 
-   .. code-block:: shell
+.. code-block:: shell
 
         cd /etc/apache2/sites-available
         # replace SERVER_NAME (ie policykit.mysite.com.conf)
@@ -174,7 +175,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 3. Edit the config file to look like this:
 
 
-   .. code-block:: aconf
+.. code-block:: aconf
 
         <IfModule mod_ssl.c>
                 <VirtualHost _default_:443>
@@ -207,7 +208,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
 5. Enable your site:
 
-        .. code-block:: shell
+.. code-block:: shell
 
                 # activate your config
                 a2ensite /etc/apache2/sites-available/$SERVER_NAME.conf
@@ -217,35 +218,35 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
 6. Get an SSL certificate and set it up to auto-renew using LetsEncrypt:
 
-    .. code-block:: shell
+.. code-block:: shell
 
         sudo apt install certbot python3-certbot-apache
         sudo certbot --apache
 
 7. Add the certificates to your ``$SERVER_NAME.conf`` file (certbot may auto-inject this code at the bottom of your .conf):
 
-    .. code-block:: aconf
+.. code-block:: aconf
 
         SSLCertificateFile /etc/letsencrypt/live/$SERVER_NAME/fullchain.pem
         SSLCertificateKeyFile /etc/letsencrypt/live/$SERVER_NAME/privkey.pem
 
 8. Reload the config:
 
-     .. code-block:: shell
+.. code-block:: shell
 
           systemctl reload apache2
 
 
 9. Change the permission so the group owner of the database and the logging files can read and write. If using sqlite, the database is called db.sqlite3, and the logging file is called debug.log (update paths as needed based on personal setup, you may need to make the following directories if you want to follow this file system architecture):
 
-        .. code-block:: shell
+.. code-block:: shell
 
                 sudo chmod 664 /var/log/django/policykit/policykit/debug.log
                 sudo chmod 664 /var/databases/policykit/policykik/db.sqlite3
 
 10. Give the Apache2 user access to the database directory (if using sqlite) and the logging directory (update paths as needed based on personal setup):
 
-        .. code-block:: shell
+.. code-block:: shell
 
                 sudo chown -R www-data:www-data /var/django/policykit/policykit
                 sudo chown -R www-data:www-data /var/databases/policykit/policykit
@@ -298,18 +299,26 @@ For example, if your Django logs are in ``/var/log/django`` and your database is
         sudo usermod -a -G www-and-celery www-data
 
         # give the group read-write access to logs
-        sudo chgrp -R www-and-celery /var/log/django
-        sudo chmod -R 775 /var/log/django
+        sudo chgrp -R www-and-celery /var/log/django/policykit
+        sudo chmod -R 775 /var/log/django/policykit
 
         # give the group read-write access to database (if using sqlite)
-        sudo chgrp -R www-and-celery /var/databases
-        sudo chmod -R 775 /var/databases
+        sudo chgrp -R www-and-celery /var/databases/policykit
+        sudo chmod -R 775 /var/databases/policykit
 
 
 Create Celery configuration files
 """""""""""""""""""""""""""""""""
 
-Next, you'll need to create three Celery configuration files for PolicyKit (remember to change variables such as ``$POLICYKIT_ENV`` to their relative or absolute path in your OS):
+Next, you'll need to create three Celery configuration files for PolicyKit 
+
+.. note::
+
+        Remember to substitute the variabls with an absolute path:
+        
+        ``$POLICYKIT_ENV`` is the path to your policykit virtual environment. (``/policykit_venv``)
+        
+        ``$POLICYKIT_REPO`` is the path to your policykit repository root. (``/policykit``)
 
 ``/etc/conf.d/celery``
 """"""""""""""""""""""""""""""""
@@ -497,7 +506,7 @@ that you want to support:
 
 Slack
 """""
-The Slack integration occurs through Metagov. Follow the setup instructions for the Metagov Slack Plugin to create a new Slack App to use with PolicyKit.
+The Slack integration is facilitated through the Metagov plugin. Follow the setup instructions for the :doc:`Metagov Slack Plugin <integration:header>` to create a new Slack App to use with PolicyKit.
 
 
 Discord
