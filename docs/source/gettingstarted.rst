@@ -3,93 +3,106 @@
 Installation and Getting Started
 ====================================
 
-| On this page, we will take you through the process of setting up PolicyKit, both for local development and on an Ubuntu server.
+On this page, we will take you through the process of setting up PolicyKit, both for local development and on an Ubuntu server.
 
 Local Development
 -----------------
 
-| PolicyKit requires Python 3. Before you install, we recommend that you activate a Python 3+ virtual environment.
+PolicyKit requires Python 3. Before you install, we recommend that you activate a Python 3+ virtual environment.
 
-| To begin, clone the `PolicyKit GitHub repository <https://github.com/amyxzhang/policykit>`_ (or your fork) and navigate to the python project root:
+To begin, clone the `PolicyKit GitHub repository <https://github.com/amyxzhang/policykit>`_ (or your fork) and navigate to the python project root:
 
 ::
 
  git clone https://github.com/amyxzhang/policykit.git
  cd policykit/policykit
 
-| From here, run the following commands to install PolicyKit's dependencies:
+From here, run the following commands to install PolicyKit's dependencies:
 
 ::
 
  pip install --upgrade pip
  pip install -r requirements.txt
 
-| Next, run the following command to create a file to store your settings and secrets:
+Next, run the following command to create a file to store your settings and secrets:
 
 ::
 
  cd policykit
  cp .env.example .env
 
-| Navigate up a directory 
+To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. For local development, all you need to do is set ``DEBUG=true``.
+
+Navigate up a directory 
 
 ::
 
  cd ..
 
-| To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. For local development, all you need to do is set ``DEBUG=true``.
-
-| To verify that you have set the PolicyKit server up correctly, run the following command:
+To verify that you have set the PolicyKit server up correctly, run the following command:
 
 ::
 
  python manage.py runserver
 
-| By default, PolicyKit will create a sqlite3 database in the root directory. If you want to use another database, you can edit the ``DATABASES`` field in ``settings.py``.
+By default, PolicyKit will create a sqlite3 database in the root directory. If you want to use another database, you can edit the ``DATABASES`` field in ``settings.py``.
 
-| Exit the server with control-c
+Exit the server with control-c
 
-| Run the following command to create and set up the database:
+Run the following command to create and set up the database:
 
 ::
 
  python manage.py migrate
 
-| Open PolicyKit in the browser at http://localhost:8000/main. At this point, you won't be able to log in because PolicyKit currently only supports sign-in via external auth providers (Slack, Discord, Reddit, and Discourse).
+Open PolicyKit in the browser at http://localhost:8000/main. At this point, you won't be able to log in because PolicyKit currently only supports sign-in via external auth providers (Slack, Discord, Reddit, and Discourse).
 There is an open issue to support logging in without any third-party platform: `#514 <https://github.com/amyxzhang/policykit/issues/514>`_.
 
-| To log in to PolicyKit, you'll need to install it on a dev server and set up at least 1 of the auth-enabled integrations.
+To log in to PolicyKit, you'll need to install it on a dev server and set up at least 1 of the auth-enabled integrations.
 
 
 Running PolicyKit on a Server
 -----------------------------
 
-| Thus far, we have been run in Ubuntu 18.04 and Ubuntu 20.04, and the below instructions should work for both.
+Thus far, we have run Policykit in Ubuntu 18.04 and Ubuntu 20.04. The instructions below should work for both.
 
-1. Add PolicyKit to the server by uploading the codebase or using ``git clone``.
+1. Add PolicyKit to the server by uploading the codebase or using ``git clone`` in ``/var/www/policykit`` or similar.
+
+           .. code-block::
+
+                    git clone <repo>
+                    cd <repo>
+
 2. Follow `this guide <https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server>`_ to install Python3 and to create a virtual environment for PolicyKit.
    - Creating a virtual invironment:
          
            .. code-block::
 
-                    mkdirv venv
-                    cd venv
-                    python3 -m venv .venv
-                    source .venv/bin/activate
-                    
+                    sudo apt install python3-pip python3-venv
+                    python3 -m venv policykit_venv
+                    source policykit_venv/bin/activate
+
+Your terminal prompt should change to look something like this ``(policykit_venv)user@host:~/myproject$``.
+
 3. Install the requirements to the virtual environment with ``pip install -r requirements.txt``.
    - Navigate to /policykit/policykit:
          
            .. code-block::
 
-                    cd ../policykit/poliykit
+                    cd policykit
                     pip install --upgrade pip
-                    pip install -r requirement.txt
-                    
-4. Finish the earlier guide to setting up PolicyKit, starting from "Next, run the following commands to create a file to store your settings and secrets"
+                    pip install -r requirements.txt
+
+4. Next, run the following command to create a file to store your settings and secrets:
+           
+           .. code-block::
+                   
+                   cd policykit
+                   cp .env.example .env
+ 
 5. Make the following additional changes to ``.env``:
 
-   - Set the ``DJANGO_SECRET_KEY`` field. Generate a key with this command:
+   - Set the ``DJANGO_SECRET_KEY`` field. Generate a key in the previous directory with this command:
 
            .. code-block::
 
@@ -98,15 +111,34 @@ Running PolicyKit on a Server
    - Set the ``SERVER_URL`` field.
    - Set the ``ALLOWED_HOSTS`` field to point to your host.
    - Make sure ``DEBUG`` is empty or set to false.
+   - Be sure to uncomment these fields by removing the ``#`` at the start of a line.
    - You can leave the platform integration API keys/secrets empty for now. Follow the instructions under "Set up Integrations" to set up each integration.
 
 6. If you want to use a database other than dbsqlite3, or if you want to change the database path, update the ``DATABASES`` object in ``settings.py``.
 
-7. Next, run the following command to collect static files into a ``static/`` folder:
+7. To verify that you have set the PolicyKit server up correctly, run the following command:
 
 ::
 
- python manage.py collectstatic
+python manage.py runserver
+
+By default, this command will make PolicyKit create a sqlite3 database in the base directory where manage.py is stored. If you want to use another database, or stor the database in another location, you can edit the ``DATABASES`` field in ``settings.py``.
+
+If you want to see the server in development mode, refer to the previous section.
+
+Exit the server with control-c
+
+8. Run the following command to create and set up the database:
+
+::
+
+python manage.py migrate
+
+9. Next, run the following command to collect static files into a ``static/`` folder:
+
+::
+
+python manage.py collectstatic
 
 
 Deploy with Apache web server
@@ -117,11 +149,11 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 
 .. note::
 
-        In the remaining examples, make sure to substitute the following values:
+        In the remaining examples, make sure to substitute the following values used in the Apache config files with an absolute path:
 
         ``$POLICYKIT_REPO`` is the path to your policykit repository root. (``/policykit``)
 
-        ``$POLICYKIT_ENV`` is the path to your policykit virtual environment. (``/environments/policykit_env``)
+        ``$POLICYKIT_ENV`` is the path to your policykit virtual environment. (``/policykit_venv``)
 
         ``$SERVER_NAME`` is  your server name. (``policykit.mysite.com``)
 
@@ -149,7 +181,9 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                         ServerName $SERVER_NAME
                         ServerAdmin webmaster@localhost
                         Alias /static $POLICYKIT_REPO/policykit/static
-
+                        DocumentRoot $POLICYKIT_REPO
+                        
+                        # Grant access to the static site 
                         <Directory $POLICYKIT_REPO/policykit/static>
                                 Require all granted
                         </Directory>
@@ -160,7 +194,8 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                                         Require all granted
                                 </Files>
                         </Directory>
-
+                        
+                        # Setup the WSGI Daemon
                         WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
                         WSGIProcessGroup policykit
                         WSGIScriptAlias / $POLICYKIT_REPO/policykit/policykit/wsgi.py
@@ -177,8 +212,8 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                 # activate your config
                 a2ensite /etc/apache2/sites-available/$SERVER_NAME.conf
 
-                # disable the default config
-                sudo a2dissite 000-default-le-ssl.conf
+                # disable the default ssl config
+                sudo a2dissite default-ssl.conf
 
 6. Get an SSL certificate and set it up to auto-renew using LetsEncrypt:
 
@@ -187,7 +222,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
         sudo apt install certbot python3-certbot-apache
         sudo certbot --apache
 
-7. Add the certificates to your ``$SERVER_NAME.conf`` file:
+7. Add the certificates to your ``$SERVER_NAME.conf`` file (certbot may auto-inject this code at the bottom of your .conf):
 
     .. code-block:: aconf
 
@@ -201,16 +236,24 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
           systemctl reload apache2
 
 
-9.  Give the Apache2 user access to the database directory (if using sqlite) and the logging directory (update paths as needed):
+9. Change the permission so the group owner of the database and the logging files can read and write. If using sqlite, the database is called db.sqlite3, and the logging file is called debug.log (update paths as needed based on personal setup, you may need to make the following directories if you want to follow this file system architecture):
 
         .. code-block:: shell
 
-                sudo chown -R www-data:www-data /var/log/django
-                sudo chown -R www-data:www-data /var/databases/policykit
+                sudo chmod 664 /var/log/django/policykit/policykit/debug.log
+                sudo chmod 664 /var/databases/policykit/policykik/db.sqlite3
+
+10. Give the Apache2 user access to the database directory (if using sqlite) and the logging directory (update paths as needed based on personal setup):
+
+        .. code-block:: shell
+
+                sudo chown -R www-data:www-data /var/django/policykit/policykit
+                sudo chown -R www-data:www-data /var/databases/policykit/policykit
+                
 
 10. Load your site in the browser and navigate to ``/login``. You should see a site titled "Django adminstration" with options to connect to Slack, Reddit, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary client IDs and client in ``private.py``. Follow the setup instructions for each integration in :doc:`Integrations <../integrations>`.
 
-  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/debug.log`` (or whatever logging path you set in  ``.env``).
+  Check for errors at ``/var/log/apache2/error.log`` and ``/var/www/policykit/policykit/debug.log`` (or whatever logging path you set in  ``.env``). 
 
 11. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
 
@@ -266,7 +309,7 @@ For example, if your Django logs are in ``/var/log/django`` and your database is
 Create Celery configuration files
 """""""""""""""""""""""""""""""""
 
-Next, you'll need to create three Celery configuration files for PolicyKit:
+Next, you'll need to create three Celery configuration files for PolicyKit (remember to change variables such as ``$POLICYKIT_ENV`` to their relative or absolute path in your OS):
 
 ``/etc/conf.d/celery``
 """"""""""""""""""""""""""""""""
@@ -357,11 +400,29 @@ Next, you'll need to create three Celery configuration files for PolicyKit:
 
  sudo systemctl daemon-reload
 
-| Finally, run the following commands to start the celery daemon:
+| Next, install and setup a message broker RabbitMQ 
 
 ::
 
+ sudo apt-get install erlang rabbitmq-server
+
+| Then enable and start the RabbitMQ service:
+
+:: 
+
+ sudo systemctl enable rabbitmq-server
  sudo service rabbitmq-server start
+
+| Check the status to make sure everything is running smoothly:
+
+::
+
+ systemctl status rabbitmq-server
+
+| Finally, run the following commands to start the celery daemon:
+
+::
+ 
  sudo systemctl start celery celerybeat
 
 | Verify that there are no errors with celery and celerybeat by running these commands:
