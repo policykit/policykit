@@ -500,18 +500,148 @@ Set up Integrations
 ^^^^^^^^^^^^^^^^^^^
 
 Before your instance of PolicyKit can be installed onto external platforms,
-you'll need to go through setup steps for each :doc:`integration <integrations>`
-that you want to support:
+you'll need to go through setup steps for each integration
+that you want to support.
+
+See the :doc:`integration<integrations>` page for a list of PolicyKit capabilities supported by each platform integration.
 
 
 Slack
 """""
-The Slack integration is facilitated through the Metagov plugin. Follow the setup instructions for the :doc:`Metagov Slack Plugin <integration:header>` to create a new Slack App to use with PolicyKit.
+The Slack integration is facilitated through the Metagov plugin. 
 
+Slack requires an initial setup process to create bots/apps that allow the developer to store Slack Client IDs and secrets on the PolicyKit server.
+
+Begin by creating a new app.
+
+Creating a New App
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Visit api.slack.com/apps and click the Create New App button, and then select the ``From scratch`` option.
+
+Give your app a name and pick a workspace to develop your app in.
+
+You must be the admin of the workspace add a new app. If you are not an admin of any current workspaces you can create a new workspace. 
+
+Under Basic Information, expand the Add features and functionality section. We will work our waythrough each subsection detailing how to configure your application.
+
+Incoming Webhooks
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Activate the toggle from off to on in this section. 
+
+Interactive Components
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Activate the toggle from off to on in this section. 
+
+Enter the following URL in the Request URL box (changing $SERVER_NAME for the server url you setup above): ``https://$SERVER_NAME/api/hooks/slack
+
+Slash Commands
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+No changes needed.
+
+Event Subscriptions
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Activate the toggle from off to on in this section. 
+
+Enter the following URL in the Request URL box (changing $SERVER_NAME for the server url you setup above): ``https://$SERVER_NAME/api/hooks/slack
+
+Bots
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Activate the toggle from off to on for Always Show My Bot as Online. 
+
+Permissions
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Enter the following URL in the Redirected URLs bot in the Redirect URLs section (changing $SERVER_NAME for the server url you setup above): ``https://$SERVER_NAME/auth/slack/callback
+
+We recommend adding the following scopes to your app:
+
+Bot Token Scopes
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+- app_mentions:read
+- channels:history
+- channels:join
+- channels:manage
+- channels:read
+- chat:write
+- chat:write.customize
+- chat:write.public
+- commands
+- dnd:read
+- emoji:read
+- files:read
+- groups:read
+- groups:write
+- im:history
+- im:read
+- im:write
+- incoming-webhook
+- links:read
+- links:write
+- mpim:history
+- mpim:read
+- mpim:write
+- pins:read
+- pins:write
+- reactions:read
+- reactions:write
+- team:read
+- usergroups:read
+- usergroups:write
+- users.profile:read
+- users:read
+- users:read.email
+- users:write
+
+User Token Scopes
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+- chat:write
+- reactions:read
+
+Install Your App
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+After defining scopes you are able to install your app to your Slack workspace to test it and generate API tokens. 
+
+Go back the Basic Information page and expand the Install your App section. Then click Install to Workspace.
+
+Setting Your .env
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Under the Basic Information section are your app credentials, including the ``App ID``, ``Client ID``, ``Client Secret``, and ``Signing Secret``.
+
+Add these values to your ``.env`` in ``$POLICY_REPO/policykit/policykit/.env``
+
+Reload the Apache server
+
+::
+ systemctl reload apache2
+
+Connecting PolicyKit to Your Slack App
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You can now visit your policykit login page $SERVER_NAME/login and Install Policykit to Slack. 
+
+You will be prompted to authorize the the app to access your workspace.
+
+After authorizing, you will be presented with three options for governance systems to start with:
+
+- Testing
+- Dictator
+- Moderators
+
+for more information on how to manage policies in PolicyKit see :doc:`Design Overview<design_overview>` and :doc:`Writing Policies<writing_policis>`
 
 Discord
 """""""
-The Discord integration occurs through Metagov. Follow the setup instructions for the Metagov Discord Plugin to create a new Discord App to use with PolicyKit.
+The Discord integration occurs through Metagov. Instructions for how to setup the plugin for Metagov Discord to be written. 
 
 Discourse
 """""""""
