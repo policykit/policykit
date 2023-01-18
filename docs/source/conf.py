@@ -25,7 +25,7 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = 'PolicyKit'
-copyright = '2021, PolicyKit'
+copyright = '2023, PolicyKit'
 author = 'PolicyKit'
 
 
