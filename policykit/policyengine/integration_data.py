@@ -5,7 +5,7 @@ integration_data = {
         "hide_config": True,
         # "description": "Open Collective enables groups to quickly set up a collective, raise funds, and manage them transparently. Connect to an existing Open Collective collective in order to govern expenses from PolicyKit.",
         # "config_instructions": "Create an Open Collective user that has admin privileges on the collective. When logged in as the user, select 'Applications' in the top right menu. Generate a new API key and enter it here. PolicyKit will perform actions on Open Collective on behalf of this user.",
-        # "webhook_instructions": "Register the webhook URL in Open Collective under the Collective > Settings > Webhooks > Add Another Webhook. Make sure the webhook is registered for the entire collective, not for a user account.",
+        "webhook_instructions": "Register the webhook URL in Open Collective under the Collective > Settings > Webhooks > Add Another Webhook. Make sure the webhook is registered for the entire collective, not for a user account.",
     },
     "loomio": {
         "readable_name": "Loomio",
