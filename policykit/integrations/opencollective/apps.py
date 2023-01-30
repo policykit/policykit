@@ -6,3 +6,6 @@ class OpencollectiveIntegrationConfig(AppConfig):
 
     def ready(self):
         import integrations.opencollective.handlers
+
+        from actstream import registry
+        registry.register(self.get_model('OpencollectiveUser'))

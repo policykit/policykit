@@ -219,7 +219,7 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     users = models.ManyToManyField(CommunityUser)
 
     def __str__(self):
-        if self.role:
+        if self.role and self.users.all().count() > 0:
             return "Remove User: " + str(self.users.all()[0]) + " from Role: " + self.role.role_name
         else:
             return "Remove User from Role: [ERROR: role not found]"
