@@ -185,6 +185,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = ['integrations.discourse.auth_backends.DiscourseBackend',
                            'integrations.discord.auth_backends.DiscordBackend',
+                           'integrations.opencollective.auth_backends.OpencollectiveBackend',
                            'integrations.reddit.auth_backends.RedditBackend',
                            'integrations.slack.auth_backends.SlackBackend',
                            'django.contrib.auth.backends.ModelBackend']

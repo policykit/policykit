@@ -932,8 +932,10 @@ class Policy(models.Model):
     def copy_to_community(self, community = None, variable_data = {}):
         """Make a copy of the policy object and assign to a new community"""
 
-        if not self.is_template:
-            raise Exception("Policy is not a template")
+
+        # TODO NMV Feb 1: revert this after a UI is added to make Template Policies
+        # if not self.is_template:
+        #     raise Exception("Policy is not a template")
 
         if not community:
             raise Exception("Community object must be passed")

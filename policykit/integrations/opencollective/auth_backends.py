@@ -2,14 +2,14 @@ import logging
 
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
-from integrations.opencollective.models import OpenCollectiveCommunity, OpencollectiveUser
+from integrations.opencollective.models import OpencollectiveCommunity, OpencollectiveUser
 
 import requests
 
 logger = logging.getLogger(__name__)
 
 
-class DiscordBackend(BaseBackend):
+class OpencollectiveBackend(BaseBackend):
     def authenticate(self, request, user_token=None, user_id=None, team_id=None):
 
         
@@ -18,9 +18,9 @@ class DiscordBackend(BaseBackend):
         #     return None
 
         try:
-            oc_community = OpenCollectiveCommunity.objects.get(team_id=team_id)
-        except OpenCollectiveCommunity.DoesNotExist:
-            logger.error(f"No OpenCollectiveCommunity found for {team_id}")
+            oc_community = OpencollectiveCommunity.objects.get(team_id=team_id)
+        except OpencollectiveCommunity.DoesNotExist:
+            logger.error(f"No OpencollectiveCommunity found for {team_id}")
             return None
 
         # FIXME
