@@ -1,0 +1,27 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="policy_setup">
+  <h2 class="heading-2">
+    Select a template to start customizing your new policy
+  </h2>
+
+  <h3>
+    Current templates available:
+  </h3>
+  <ol>
+    <li>
+      Vote on Expenses with Minimum Yes Votes and Maximum No Votes:
+      <a href="/embed?name=yes_no_starter">Click</a> 
+    </li>
+
+    <li>
+      Send a ping from Slack to PolicyKit and get a custom response
+      <a href="/embed?name=ping_pong_starter">Click</a> 
+    </li>
+      
+
+  </ol>
+</section>
+{% endblock %}

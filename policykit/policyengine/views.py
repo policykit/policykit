@@ -824,7 +824,7 @@ def document_action_recover(request):
 
     return HttpResponse()
 
-def policy_from_request (request, key_name = 'policy'):
+def policy_from_request(request, key_name = 'policy'):
     policy_id = request.GET.get(key_name)
 
     from policyengine.models import Policy
@@ -835,9 +835,81 @@ def policy_from_request (request, key_name = 'policy'):
     except Policy.DoesNotExist:
         raise Http404("Policy does not exist")
 
+def get_policy_by_name(request, key_name = "name"):
+    """
+    Get policy by name.
+    Logic to populate some starter/template policies for 
+    the no-code flow is hard-coded here for now.
+    #TODO This could be moved to json files, etc. later on.
+    """
+    from policyengine.models import Policy, PolicyVariable, ActionType
+    name = request.GET.get(key_name)
+    # Get source policy object
+    try:
+        return Policy.objects.get(name=name)
+    except Policy.DoesNotExist:
+        if name == "yes_no_starter":
+            desc = """
+            Posts OpenCollective expenses to Slack channel to be voted on. 
+            You can set a minimum number of yes votes and maximum number of no votes needed to pass.
+            After a three hour voting window, expense will be approved if enough yes votes and few enough no votes were cast.
+            Once the vote is resolved, posts to both Slack thread and the OpenCollective expense thread with vote results. Restricts voting on OpenCollective expenses to eligible voters.
+            """
+            policy = Policy.objects.create(
+                kind="trigger",
+                name="yes_no_starter",
+                filter="return True",
+                initialize="pass", check="if not proposal.vote_post_id:\n  return None #the vote hasn't started yet\n\n# Check the status of the vote and evaluate a closing condition.\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\n#logger.debug(f\"{yes_votes} for, {no_votes} against\")\n\ntime_elapsed = proposal.get_time_elapsed()\n\n# we never close a vote before three hours\nif time_elapsed < datetime.timedelta(hours=3):\n  return None  \n\n# if there are three or more votes for, and one or less against, it passes\nif yes_votes >= 2 and no_votes <= 1:\n  return PASSED\n\n# if there's more than one vote against, and less than three yes votes, it fails\nif no_votes > 0:\n  return FAILED\n\n# if it's been three days, and there are any yeses and no nos, pass, otherwise fail\nif time_elapsed > datetime.timedelta(days=3):\n  logger.info(\"Ending based on time\")\n  reached_threshold = yes_votes > 0 and no_votes == 0\n  return PASSED if reached_threshold else FAILED\n\nreturn PROPOSED # still pending",
+                notify="# Start a vote on Slack. Only 2 users are eligible to vote.\ndiscussion_channel = \"C0177HZTXXX\"\n\neligible_voters = [\"UABC123\", \"UABC999\"]  # Slack member IDs for Alice and Bob\nmessage = f\"Vote on whether to approve <{action.url}|this request> for funds: {action.description}\"\nslack.initiate_vote(text=message, channel=discussion_channel, users=eligible_voters)\n\n# Start a discussion thread on the voting message\nslack.post_message(text=\"Discuss here! :meow-wave:\", channel=discussion_channel, thread_ts=proposal.vote_post_id)\n\n# Add a comment to the expense on Open Collective with a link to the Slack vote\nlink = f\"<a href='{proposal.vote_url}'>on Slack</a>\"\ntext = f\"Thank you for submitting a request! A vote has been started {link}.\"\nopencollective.post_message(text=text, expense_id=action.expense_id)\n",
+                success="# approve the expense\nopencollective.process_expense(action=\"APPROVE\", expense_id=action.expense_id)\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nmessage = f\"Expense approved. The vote passed with {yes_votes} for and {no_votes} against.\"\n\n# comment on the expense\nopencollective.post_message(text=message, expense_id=action.expense_id)\n\n# update the Slack thread\ndiscussion_channel = \"C0177HZTXXX\"\nslack.post_message(text=message, channel=discussion_channel, thread_ts=proposal.vote_post_id)\n",
+                fail="# reject the expense\nopencollective.process_expense(action=\"REJECT\", expense_id=action.expense_id)\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nmessage = f\"Expense rejected. The vote failed with {yes_votes} for and {no_votes} against.\"\n\n# comment on the expense\nopencollective.post_message(text=message, expense_id=action.expense_id)\n\n# update the Slack thread\ndiscussion_channel = \"C0177HZTXXX\"\nslack.post_message(text=message, channel=discussion_channel, thread_ts=proposal.vote_post_id)\n",
+                is_template=True,
+                description=desc
+            )
+            action_type, created = ActionType.objects.get_or_create(codename="expensecreated")
+            policy.action_types.add(action_type)
+
+            PolicyVariable.objects.create(
+                name="yes_votes", label="Yes Votes Needed", default_value=1, is_required=True,
+                prompt="Number of yes votes needed", type="number", policy=policy)
+            PolicyVariable.objects.create(
+                name="no_votes", label="No Votes Needed", default_value=1, is_required=True,
+                prompt="Number of no votes needed", type="number", policy=policy)
+        
+        elif name == "ping_pong_starter":
+            desc = """
+            Test out the Policy Starter GUI by editing a message to send to your Slack channel
+            """
+            policy = Policy.objects.create(
+                kind="trigger",
+                name="ping_pong_starter",
+                filter='return action.text == "ping"',
+                initialize='slack.post_message(variables["pong_message"])', 
+                check='return PASSED',
+                notify='pass',
+                fail='pass',
+                is_template=True,
+                description=desc
+            )
+            action_type, created = ActionType.objects.get_or_create(codename="slackpostmessage")
+            policy.action_types.add(action_type)
+
+            PolicyVariable.objects.create(
+                name="pong_message", label="What to say in response to ping", default_value="pong", is_required=True,
+                prompt="What to say in response to ping", type="string", policy=policy)
+
+        return(policy)
+
+def embed_select_template(request):
+    """
+    Select a template for no-code policy editing
+    """
+    return render(request, "embed/select_template.html")
+
 def embed_initial(request):
     # Get source policy based on id passed via the URL
-    policy_source = policy_from_request(request, key_name="source")
+    policy_source = get_policy_by_name(request, key_name="name")
+    # policy_source = policy_from_request(request, key_name="source")
 
     # Variables without a default value or value are set in the first step of the flow
     initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
@@ -851,22 +923,34 @@ def embed_initial(request):
         "all_variables": all_variables
     })
 
-def embed_setup (request):
-    # TODO onboarding flow: starterkit, community, user, etc
+def embed_setup(request):
+    """
+    Part of the no-code policy editing flow. This view is
+    hit when the user clicks "Continue" from initial.html (embed_initial view)
 
-    # TODO revert this
-    from integrations.slack.models import SlackUser
-    user = SlackUser.objects.last()
+    This gets the current user and community, then makes a copy of the "starter" template policy
+    and adds it the user's community
+
+    The _starter substring is removed from the policy name.
+    
+    Returns JSON with the the copied policy's id.
+    """
+    user = get_user(request)
     community = user.community.community
 
     # Make a copy of the policy
     data = json.loads(request.body)
     policy_source = policy_from_request(request)
     new_policy = policy_source.copy_to_community(community=community, variable_data=data["variables"])
+    new_policy.name = new_policy.name.replace('_starter', '_edited')
+    new_policy.save()
 
     return JsonResponse({ "policy": new_policy.id })
 
-def embed_summary (request):
+def embed_summary(request):
+    """
+    Show sthe summary page with info about the edited policy.
+    """
     policy = policy_from_request(request)
 
     variables = policy.variables.all()
@@ -876,7 +960,11 @@ def embed_summary (request):
         "all_variables": variables
     })
 
-def embed_update (request):
+def embed_update(request):
+    """
+    Updates the PolicyVariable objects associated with
+    the policy being edited in the no-code flow.
+    """
     policy = policy_from_request(request)
 
     # Update policy variables
@@ -885,9 +973,12 @@ def embed_update (request):
 
     return JsonResponse({ "policy": policy.id })
 
-def embed_edit (request):
+def embed_edit(request):
+    """
+    Shows the page for editing PolicyVariable objects
+    associated with the policy being edited in the no-code flow.
+    """
     policy = policy_from_request(request)
-
     variables = policy.variables.all()
 
     return render(request, "embed/edit.html", {
@@ -895,9 +986,9 @@ def embed_edit (request):
         "all_variables": variables
     })
 
-def embed_success (request):
+def embed_success(request):
+    """Shows success page when no-code editing is finished."""
     policy = policy_from_request(request)
-
     return render(request, "embed/success.html", {
         "policy": policy
     })
