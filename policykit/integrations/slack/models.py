@@ -155,6 +155,9 @@ class SlackCommunity(CommunityPlatform):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
 
+    def get_conversations(self):
+        return self.__make_generic_api_call("conversations.list")
+
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
