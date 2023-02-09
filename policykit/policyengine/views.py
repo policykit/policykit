@@ -915,7 +915,10 @@ def embed_populate_templates(request):
 
 def embed_select_template(request):
     """
-    Select a template for no-code policy editing
+    Select a template for the embedded / no-code policy editing flow
+
+    DB must be populated with `is_template=True` Policies. If not, hit
+    the populate_templates endpoint to populate.
     """
     from policyengine.models import Policy
     template_policies = Policy.objects.filter(is_template=True)
@@ -934,12 +937,26 @@ def embed_initial(request):
     # Variables without a default value or value are set in the first step of the flow
     initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
 
+    var_options = {}
+    for var in initial_variables:
+        if 'channel' in var.name: # TODO make this more speciifc
+            var_options[var.name] = []
+            from integrations.slack import SlackCommunity
+            slack_community = SlackCommunity.objects.filter(community_id=community.id)
+            for channel in slack_community.get_conversations()['channels']:
+                if channel['is_channel']: # get only the "channels" (as opposed to group, im, mpim, private)
+                    var_options[var.name].append(
+                        {'name': channel['name'], 'channle_id': channel['id']}
+                    )
+
+
     # Variables are ordered with initial variables first
     all_variables = policy_source.variables.order_by("default_value")
 
     return render(request, "embed/initial.html", {
         "policy": policy_source,
         "initial_variables": initial_variables,
+        "var_options": var_options,
         "all_variables": all_variables
     })
 

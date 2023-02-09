@@ -156,7 +156,7 @@ class SlackCommunity(CommunityPlatform):
         return self.metagov_plugin.method(**values)
 
     def get_conversations(self):
-        return self.__make_generic_api_call("conversations.list")
+        return self.__make_generic_api_call("conversations.list", {})
 
 
 class SlackPostMessage(GovernableAction):
