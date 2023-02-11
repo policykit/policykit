@@ -7,20 +7,16 @@
     Select a template to start customizing a policy
   </h2>
 
-  <h3 class="heading-3">
-    Current templates available:
-  </h3>
 
   {% for template_policy in template_policies %}
     <div>
       <div class="template">
-        <div>{{template_policy.name}}</div>
-
-      <div><a href="/embed?source={{template_policy.id}}">Select this template</a> </div>
+        <h3>{{template_policy.name}} (<a href="/embed?source={{template_policy.id}}">Select</a>)</h3>
       <p class="text-small">
         {{ template_policy.description }}
       </p>
     </div>
+    <br>
     {% endfor %}
 
 </section>

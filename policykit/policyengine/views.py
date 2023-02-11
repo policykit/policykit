@@ -913,6 +913,21 @@ def embed_populate_templates(request):
 
 
 
+def get_channel_options(community_id):
+    """
+    Get channel ids and names from Slack
+    """
+    channel_options = []
+    from integrations.slack.models import SlackCommunity
+
+    slack_community = SlackCommunity.objects.get(community_id=community_id)
+    for channel in slack_community.get_conversations()['channels']:
+        if channel['is_channel']: # get only the "channels" (as opposed to group, im, mpim, private)
+            channel_options.append(
+                {'name': channel['name'], 'channel_id': channel['id']}
+            )
+    return channel_options
+
 def embed_select_template(request):
     """
     Select a template for the embedded / no-code policy editing flow
@@ -931,24 +946,19 @@ def embed_initial(request):
     # Get source policy based on id passed via the URL
     user = get_user(request)
     community = user.community.community
-    # TODO get all Slack channels to make this much nicer
     policy_source = policy_from_request(request, key_name="source")
 
     # Variables without a default value or value are set in the first step of the flow
     initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
 
-    var_options = {}
-    for var in initial_variables:
-        if 'channel' in var.name: # TODO make this more speciifc
-            var_options[var.name] = []
-            from integrations.slack import SlackCommunity
-            slack_community = SlackCommunity.objects.filter(community_id=community.id)
-            for channel in slack_community.get_conversations()['channels']:
-                if channel['is_channel']: # get only the "channels" (as opposed to group, im, mpim, private)
-                    var_options[var.name].append(
-                        {'name': channel['name'], 'channle_id': channel['id']}
-                    )
-
+    # later this could be abstrated as a "var_options"
+    # dict if there are more types of variables that need options
+    # collected with special API calls.
+    
+    channel_options = []
+    # only get channel names from Slack API if needed
+    if any(['channel' in x.name for x in initial_variables]):
+        channel_options = get_channel_options(community.id)
 
     # Variables are ordered with initial variables first
     all_variables = policy_source.variables.order_by("default_value")
@@ -956,7 +966,7 @@ def embed_initial(request):
     return render(request, "embed/initial.html", {
         "policy": policy_source,
         "initial_variables": initial_variables,
-        "var_options": var_options,
+        "channel_options": channel_options,
         "all_variables": all_variables
     })
 
@@ -1016,11 +1026,19 @@ def embed_edit(request):
     associated with the policy being edited in the no-code flow.
     """
     policy = policy_from_request(request)
+    user = get_user(request)
+    community = user.community.community
     variables = policy.variables.all()
+
+    channel_options = []
+    # only get channel names from Slack API if needed
+    if any(['channel' in x.name for x in variables]):
+        channel_options = get_channel_options(community.id)
 
     return render(request, "embed/edit.html", {
         "policy": policy,
-        "all_variables": variables
+        "all_variables": variables,
+        "channel_options": channel_options
     })
 
 def embed_success(request):
