@@ -3,15 +3,16 @@
 
 {% block step %}
 <section class="step active" id="policy_setup">
-  <h2 class="heading-2">
+  <h3 class="heading-3">
     Select a template to start customizing a policy
-  </h2>
+  </h3>
+  <br>
 
 
   {% for template_policy in template_policies %}
     <div>
       <div class="template">
-        <h3>{{template_policy.name}} (<a href="/embed?source={{template_policy.id}}">Select</a>)</h3>
+        <a href="/embed?source={{template_policy.id}}"> {{template_policy.name}} </a>
       <p class="text-small">
         {{ template_policy.description }}
       </p>

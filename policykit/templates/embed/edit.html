@@ -17,7 +17,12 @@
         {% if "channel" in variable.name %}
         <select class="variable-input text-small" name="variables[{{ variable.id }}]" data-id="{{ variable.id }}">
             {% for option in channel_options %}
-            <option value="{{ option.channel_id }}">{{ option.name }}</option>
+              {% if variable.value == option.channel_id %}
+              <option value="{{ option.channel_id }}" selected>{{ option.name }}</option>
+              {% else %}
+              <option value="{{ option.channel_id }}">{{ option.name }}</option>
+              {% endif %}
+
             {% endfor %}
         </select>
         {% else %}
