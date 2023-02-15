@@ -889,7 +889,7 @@ def embed_populate_templates(request):
         initialize='pass', 
         check='yes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= 1:\n  return PASSED\nelif no_votes >= 1:\n  return FAILED\n\nlogger.debug(\"No votes yet....\")\nreturn PROPOSED',
         notify='message = f\"Start a yes-no vote for nothing. Vote with :thumbsup: or :thumbsdown: on this post.\"\nslack.initiate_vote(text=message, users=[\"U04NQLP9CEB\"])',
-        success='text = f\"Proposal passed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)'
+        success='text = f\"Proposal passed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)',
         fail='text = f\"Proposal failed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)\n',
         is_template=True,
         description=desc
