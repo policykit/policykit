@@ -45,13 +45,11 @@ def find_action_cls(codename: str, app_name=None):
     if app_name:
         all_models = list(apps.get_app_config(app_name).get_models())
     else:
-        logger.debug(f"apps.get_app_configs(): {apps.get_app_configs()}")
         listoflists = [
             list(a.get_models())
             for a in list(apps.get_app_configs())
             if "constitution" in a.name or "integration" in a.name
         ]
-        logger.debug(f"listsoflists: {listoflists}")
         all_models = [item for sublist in listoflists for item in sublist]
 
     for cls in all_models:
