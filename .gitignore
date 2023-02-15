@@ -7,4 +7,4 @@ docs/source/generated_policy_examples.inc
 .github
 .idea
 src
-policykit/policykit_venv/
+policykit_venv/
