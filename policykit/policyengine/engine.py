@@ -145,6 +145,7 @@ def evaluate_action(action):
     from policyengine.models import PolicyActionKind
 
     eligible_policies = get_eligible_policies(action)
+    logger.debug(f"evaluate actions {action}")
     if not eligible_policies.exists():
         if action.kind != PolicyActionKind.TRIGGER:
             raise Exception(f"no eligible policies found for governable action '{action}'")
@@ -154,9 +155,11 @@ def evaluate_action(action):
     # If this is a trigger action, evaluate ALL eligible policies
     if action.kind == PolicyActionKind.TRIGGER:
         proposals = []
+        logger.debug(f"create prefiltered proposals")
         matching_policies_proposals = create_prefiltered_proposals(action, eligible_policies, allow_multiple=True)
         for proposal in matching_policies_proposals:
             try:
+                logger.debug(f"start evaluation proposals {proposal}")
                 evaluate_proposal(proposal, is_first_evaluation=True)
             except Exception as e:
                 logger.debug(f"{proposal} raised exception {type(e).__name__} {e}")
