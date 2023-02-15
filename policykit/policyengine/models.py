@@ -656,6 +656,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
             if self.initiator and self.initiator.has_perm(can_execute_perm):
                 self.execute()  # No `Proposal` is created because we don't evaluate it
                 super(GovernableAction, self).save(*args, **kwargs)
+                logger.debug("logging ExecutedActionTriggerAction", self)
                 ExecutedActionTriggerAction.from_action(self).evaluate()
 
             elif self.initiator and not self.initiator.has_perm(can_propose_perm):
