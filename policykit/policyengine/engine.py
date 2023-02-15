@@ -203,6 +203,7 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
         proposal = Proposal(policy=policy, action=action, status=Proposal.PROPOSED)
         context = EvaluationContext(proposal)
         try:
+            logger.debug(f"exec filter code block for {policy}")
             passed_filter = exec_code_block(policy.filter, context, Policy.FILTER)
         except Exception as e:
             # Log unhandled exception to the db, so policy author can view it in the UI.
@@ -216,12 +217,14 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
                 action.save()
             proposal.save()
             if allow_multiple:
+                logger.debug(f"add new proposals for {proposal}")
                 proposals.append(proposal)
             else:
                 logger.debug(f"For action '{action}', choosing policy '{policy}'")
                 return proposal
 
     if allow_multiple:
+        logger.debug(f"returned proposals")
         return proposals
     else:
         logger.warn(f"No matching policy for {action}")
