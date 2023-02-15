@@ -878,6 +878,31 @@ def embed_populate_templates(request):
             name="pong_message", label="What to say in response to ping", default_value="pong", is_required=True,
             prompt="What to say in response to ping", type="string", policy=policy)
 
+    
+    desc = """
+        For voting: design your own vote logic
+    """
+    policy, created = Policy.objects.get_or_create(
+        kind="trigger",
+        name="Vote Examples",
+        filter='return action.text.startswith(variables["vote_command"])',
+        initialize='pass', 
+        check='yes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= 1:\n  return PASSED\nelif no_votes >= 1:\n  return FAILED\n\nlogger.debug(\"No votes yet....\")\nreturn PROPOSED',
+        notify='message = f\"Start a yes-no vote for nothing. Vote with :thumbsup: or :thumbsdown: on this post.\"\nslack.initiate_vote(text=message, users=[\"U04NQLP9CEB\"])',
+        success='text = f\"Proposal passed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)'
+        fail='text = f\"Proposal failed.\"\nslack.post_message(text=text, channel=action.channel, thread_ts=proposal.vote_post_id)\n',
+        is_template=True,
+        description=desc
+    )
+    if created:
+        action_type, _ = ActionType.objects.get_or_create(codename="slackpostmessage")
+        policy.action_types.add(action_type)
+
+        PolicyVariable.objects.create(
+            name="vote_command", label="What messages trigger the vote", default_value="vote", is_required=True,
+            prompt="What Slack messages trigger the vote", type="string", policy=policy)
+        
+
     return embed_select_template(request)
 
 def embed_initial(request):
