@@ -886,8 +886,8 @@ def embed_populate_templates(request):
         kind="trigger",
         name="Vote Examples v2",
         filter='return action.text.startswith("vote")',
-        initialize='if not variables[\"channel\"]:\n  variables[\"channel\"] = action.channel\nif variables[\"users\"]:\n  variables[\"users\"] = variables[\"users\"].split(\",\")\n', 
-        check='if not proposal.vote_post_id:\n  return None\n\nif variables[\"duration\"]:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=variables[\"duration\"]):\n    return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables[\"minimum_yes_required\"]:\n  return PASSED\nelif no_votes > variables[\"maximum_no_allowed\"]:\n  return FAILED\n\nreturn PROPOSED',
+        initialize='if not variables[\"channel\"]:\n  variables[\"channel\"] = action.channel\nif variables[\"users\"]:\n  variables[\"users\"] = variables[\"users\"].split(\",\")', 
+        check='if not proposal.vote_post_id:\n  return None\n\nif variables[\"duration\"] > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=variables[\"duration\"]):\n    return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables[\"minimum_yes_required\"]:\n  return PASSED\nelif no_votes >= variables[\"maximum_no_allowed\"]:\n  return FAILED\n\nreturn PROPOSED',
         notify='slack.initiate_vote(text=variables[\"vote_message\"], channel=variables[\"channel\"], users=variables[\"users\"])',
         success='slack.post_message(text=variables[\"success_message\"], channel=variables[\"channel\"], thread_ts=proposal.vote_post_id)',
         fail='slack.post_message(text=variables[\"failure_message\"], channel=variables[\"channel\"], thread_ts=proposal.vote_post_id)\n',
@@ -899,19 +899,19 @@ def embed_populate_templates(request):
         policy.action_types.add(action_type)
 
         PolicyVariable.objects.create(
-            name="duration", label="when the vote is closed (in minutes)", default_value=None, is_required=True,
+            name="duration", label="when the vote is closed (in minutes)", default_value=0, is_required=True,
             prompt="when the vote is closed (in minutes); an empty value represents that the vote is closed as long as the success or failure is reached", 
             type="number", policy=policy
         )
 
         PolicyVariable.objects.create(
-            name="channel", label="Which channel should we post the vote", default_value=None, is_required=True,
+            name="channel", label="Which channel should we post the vote", default_value="", is_required=True,
             prompt="Which channel should we post the vote; an empty value represents that the vote is cast in the channel where the command is posted", 
             type="string", policy=policy
         )
 
         PolicyVariable.objects.create(
-            name="users", label="Who should be eligible to vote", default_value=None, is_required=True,
+            name="users", label="Who should be eligible to vote", default_value="", is_required=True,
             prompt="Who should be eligible to vote: an empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas", 
             type="string", policy=policy
         )
