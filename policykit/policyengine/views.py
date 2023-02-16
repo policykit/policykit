@@ -929,21 +929,21 @@ def embed_populate_templates(request):
         )
 
         PolicyVariable.objects.create(
-            name="vote_messages", label="Message to be posed in the channel when the vote starts", 
+            name="vote_message", label="Message to be posed in the channel when the vote starts", 
             default_value="Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.", is_required=True,
             prompt="Message to be posed in the channel when the vote starts", 
             type="string", policy=policy
         )
 
         PolicyVariable.objects.create(
-            name="success_messages", label="Message to be posed in the channel when the vote passes", 
+            name="success_message", label="Message to be posed in the channel when the vote passes", 
             default_value="Proposal to vote passed", is_required=True,
             prompt="Message to be posed in the channel when the vote passes", 
             type="string", policy=policy
         )
         
         PolicyVariable.objects.create(
-            name="failure_messages", label="Message to be posed in the channel when the vote fails", 
+            name="failure_message", label="Message to be posed in the channel when the vote fails", 
             default_value="Proposal to vote failed", is_required=True,
             prompt="Message to be posed in the channel when the vote fails", 
             type="string", policy=policy
