@@ -1,7 +1,32 @@
 
+class PolicyFactory():
+    def createTemplatePolicy(kind, name, filter, procedure):
+        from policyengine.models import Policy, PolicyVariable, ActionType
+
+        procedure_code = procedure.createTemplatePolicy()
+        filter_code = filter.createFilterCode()
+        policy, created = Policy.objects.get_or_create(
+            kind=kind,
+            name=name,
+            is_template=True,
+            **filter_code
+            **procedure_code,
+        )
+
+        if created:
+            action_type, _ = ActionType.objects.get_or_create(codename=filter.codename)
+            policy.action_types.add(action_type)
+            procedure.createModuleVariables(policy)
+            filter.createModuleVariables(policy)
+
+
+
 
 class VoteModule():
-    def createModuleVariables(policy):
+    def __init__(self):
+        super().__init__()
+        
+    def createModuleVariables(self, policy):
         from policyengine.models import PolicyVariable
         PolicyVariable.objects.create(
             name="duration", label="when the vote is closed (in minutes)", default_value=0, is_required=True,
@@ -54,18 +79,63 @@ class VoteModule():
             type="string", policy=policy
         )
 
-    def createTemplatePolicies():
-        policyDict = dict()
-        policyDict["description"]="Voting templates: design your own vote logic"
+    def createTemplatePolicy(self):
+        policy_args = dict()
+        policy_args["description"]="Voting templates: design your own vote logic"
+        
+        # note that we do not specify filter code blocks here
+        policy_args["initialize"]='if not variables[\"channel\"]:\n  variables[\"channel\"] = action.channel\nif variables[\"users\"]:\n  variables[\"users\"] = variables[\"users\"].split(\",\")\nvariables[\"duration\"] = int(variables[\"duration\"])\nvariables[\"minimum_yes_required\"] = int(variables[\"minimum_yes_required\"])\nvariables[\"maximum_no_allowed\"] = int(variables[\"maximum_no_allowed\"])'
+        policy_args["check"]='if not proposal.vote_post_id:\n  return None\n\nif variables[\"duration\"] > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=variables[\"duration\"]):\n    return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables[\"minimum_yes_required\"]:\n  return PASSED\nelif no_votes >= variables[\"maximum_no_allowed\"]:\n  return FAILED\n\nreturn PROPOSED'
+        policy_args["notify"]='slack.initiate_vote(text=variables[\"vote_message\"], channel=variables[\"channel\"], users=variables[\"users\"])'
+        
+        policy_args["success"]='slack.post_message(text=variables[\"success_message\"], channel=variables[\"channel\"], thread_ts=proposal.vote_post_id)'
+        policy_args["fail"]='slack.post_message(text=variables[\"failure_message\"], channel=variables[\"channel\"], thread_ts=proposal.vote_post_id)\n'
+        
+        return policy_args
 
-        policyDict["filter"] = 'return action.text.startswith("vote")';
-        
-        policyDict["initialize"]='if not variables[\"channel\"]:\n  variables[\"channel\"] = action.channel\nif variables[\"users\"]:\n  variables[\"users\"] = variables[\"users\"].split(\",\")\nvariables[\"duration\"] = int(variables[\"duration\"])\nvariables[\"minimum_yes_required\"] = int(variables[\"minimum_yes_required\"])\nvariables[\"maximum_no_allowed\"] = int(variables[\"maximum_no_allowed\"])', 
-        policyDict["check"]='if not proposal.vote_post_id:\n  return None\n\nif variables[\"duration\"] > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=variables[\"duration\"]):\n    return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables[\"minimum_yes_required\"]:\n  return PASSED\nelif no_votes >= variables[\"maximum_no_allowed\"]:\n  return FAILED\n\nreturn PROPOSED',
-        policyDict["notify"]='slack.initiate_vote(text=variables[\"vote_message\"], channel=variables[\"channel\"], users=variables[\"users\"])',
-        
-        policyDict["success"]='slack.post_message(text=variables[\"success_message\"], channel=variables[\"channel\"], thread_ts=proposal.vote_post_id)',
-        policyDict["fail"]='slack.post_message(text=variables[\"failure_message\"], channel=variables[\"channel\"], thread_ts=proposal.vote_post_id)\n',
-        
+class SlackPostMessageModule():
+    codename = "slackpostmessage"
+    cond2codes = {
+            "text": {
+                "startswith": "return action.text.startswith(variables['filter_value'])",
+                "endswith": "return action.text.endswith(variables['filter_value'])",
+                "contains": "return variables['filter_value'] in action.text"
+            }, 
+            "channel": {}
+        }
 
-        return policyDict
+    def __init__(self, field, condition):
+        """
+        Parameters
+        -------
+        field: str
+            the specified field for this action, possible values are "text", "channel"
+
+        condition: str
+            for the field which condition is specified, possible values are "startswith", "endswith", "contains"
+        """
+
+        self.field = field
+        self.condition = condition
+
+    @property
+    def codename(self):
+        return SlackPostMessageModule.codename
+
+    def createFilterCode(self):
+        """
+        Returns the filter code block associated with this action.
+        """
+
+        cond, value = self.condition
+        if self.field in SlackPostMessageModule.cond2codes and cond in SlackPostMessageModule.cond2codes[self.field]:
+            filter_template = SlackPostMessageModule.cond2codes[self.field][cond]
+            return filter_template
+    
+    def createModuleVariables(self, policy):
+        from policyengine.models import PolicyVariable
+        PolicyVariable.objects.create(
+            name="filter_value", label="which text we would like apply to the condition", default_value="", is_required=True,
+            prompt="which text we would like apply to the condition", 
+            type="string", policy=policy
+        )

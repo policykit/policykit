@@ -19,6 +19,7 @@ from policyengine.integration_data import integration_data
 from policyengine.linter import _lint_check
 from policyengine.metagov_app import metagov, metagov_handler
 from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
+from policyengine.module import PolicyFactory
 import policyengine.module as modules
 
 logger = logging.getLogger(__name__)
@@ -879,16 +880,14 @@ def embed_populate_templates(request):
             name="pong_message", label="What to say in response to ping", default_value="pong", is_required=True,
             prompt="What to say in response to ping", type="string", policy=policy)
 
-    policy, created = Policy.objects.get_or_create(
-        kind="trigger",
-        name="Vote Examples v2",
-        is_template=True,
-        **modules.VoteModule.createTemplatePolicies()
+
+    procedure = modules.VoteModule()
+    filter = modules.SlackPostMessageModule("text", "startswith")
+    PolicyFactory.createTemplatePolicy(kind="trigger", 
+            name="Vote Examples in modules", 
+            filter=filter, 
+            procedure=procedure
     )
-    if created:
-        action_type, _ = ActionType.objects.get_or_create(codename="slackpostmessage")
-        policy.action_types.add(action_type)
-        modules.VoteModule.createModuleVariables(policy)
 
     return embed_select_template(request)
 
