@@ -9,7 +9,7 @@ class PolicyFactory():
             kind=kind,
             name=name,
             is_template=True,
-            **filter_code
+            **filter_code,
             **procedure_code,
         )
 
