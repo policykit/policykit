@@ -911,7 +911,7 @@ def embed_initial(request):
 def embed_delete_templates(request):
     from policyengine.models import Policy
     Policy.objects.filter(is_template=True).delete()
-    return HttpResponse()
+    return HttpResponse("Delete templates successfully!")
 
 
 def embed_setup (request):
