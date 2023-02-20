@@ -25,7 +25,7 @@ class PolicyFactory():
 class VoteModule():
     def __init__(self):
         super().__init__()
-        
+
     def createModuleVariables(self, policy):
         from policyengine.models import PolicyVariable
         PolicyVariable.objects.create(
@@ -104,7 +104,7 @@ class SlackPostMessageModule():
             "channel": {}
         }
 
-    def __init__(self, field, condition):
+    def __init__(self, field, filter_type):
         """
         Parameters
         -------
@@ -116,7 +116,7 @@ class SlackPostMessageModule():
         """
 
         self.field = field
-        self.condition = condition
+        self.filter_type = filter_type
 
     @property
     def codename(self):
@@ -127,9 +127,8 @@ class SlackPostMessageModule():
         Returns the filter code block associated with this action.
         """
 
-        cond, value = self.condition
-        if self.field in SlackPostMessageModule.cond2codes and cond in SlackPostMessageModule.cond2codes[self.field]:
-            filter_template = SlackPostMessageModule.cond2codes[self.field][cond]
+        if self.field in SlackPostMessageModule.cond2codes and self.filter_type in SlackPostMessageModule.cond2codes[self.field]:
+            filter_template = SlackPostMessageModule.cond2codes[self.field][self.filter_type]
             return filter_template
     
     def createModuleVariables(self, policy):
