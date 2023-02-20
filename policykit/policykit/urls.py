@@ -50,6 +50,7 @@ urlpatterns = [
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
     
     path('embed/populate_templates', policyviews.embed_populate_templates),
+    path('embed/delete_templates', policyviews.embed_delete_templates),
     path('embed/select_template', policyviews.embed_select_template),
     path('embed/', policyviews.embed_initial),
     path('embed/setup', policyviews.embed_setup),
