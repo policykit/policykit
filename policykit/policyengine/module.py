@@ -129,7 +129,7 @@ class SlackPostMessageModule():
 
         if self.field in SlackPostMessageModule.cond2codes and self.filter_type in SlackPostMessageModule.cond2codes[self.field]:
             filter_template = SlackPostMessageModule.cond2codes[self.field][self.filter_type]
-            return filter_template
+            return {"filter": filter_template}
     
     def createModuleVariables(self, policy):
         from policyengine.models import PolicyVariable
