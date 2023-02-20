@@ -879,8 +879,6 @@ def embed_populate_templates(request):
             name="pong_message", label="What to say in response to ping", default_value="pong", is_required=True,
             prompt="What to say in response to ping", type="string", policy=policy)
 
-    
-
     policy, created = Policy.objects.get_or_create(
         kind="trigger",
         name="Vote Examples v2",
@@ -909,6 +907,12 @@ def embed_initial(request):
         "initial_variables": initial_variables,
         "all_variables": all_variables
     })
+
+def embed_delete_templates(request):
+    from policyengine.models import Policy
+    Policy.objects.filter(is_template=True).delete()
+    return HttpResponse()
+
 
 def embed_setup (request):
     # TODO onboarding flow: starterkit, community, user, etc
