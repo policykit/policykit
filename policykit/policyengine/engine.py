@@ -272,7 +272,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
 
 
 def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: bool):
-    from policyengine.models import Policy, Proposal
+    from policyengine.models import Policy, Proposal, PolicyActionKind
 
     proposal = context.proposal
     action = proposal.action
@@ -313,7 +313,10 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     # Revert the action if necessary
     should_revert = (
-        is_first_evaluation and check_result in [Proposal.PROPOSED, Proposal.FAILED] and action._is_reversible
+        is_first_evaluation 
+            and check_result in [Proposal.PROPOSED, Proposal.FAILED] 
+            and action._is_reversible 
+            and action.kind != PolicyActionKind.TRIGGER
     )
 
     if should_revert:
