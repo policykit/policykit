@@ -301,9 +301,6 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         proposal._pass_evaluation()
         assert proposal.status == Proposal.PASSED
 
-        if action._is_executable:
-            action.execute()
-
     if check_result == Proposal.FAILED:
         # run "fail" block of policy
         exec_code_block(policy.fail, context, Policy.FAIL)
@@ -322,6 +319,16 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     if should_revert:
         context.logger.debug(f"Reverting action")
         action._revert()
+
+    should_execute = (
+        check_result  == Proposal.PASSED 
+            or action.kind == PolicyActionKind.TRIGGER
+            and action._is_executable
+    )
+
+    if should_execute:
+        context.logger.debug(f"Executing action")
+        action.execute()
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
     if check_result == Proposal.PROPOSED and is_first_evaluation:
