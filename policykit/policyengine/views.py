@@ -835,16 +835,13 @@ def policy_from_request(request, key_name = 'policy'):
 def get_policy_by_name(request, key_name = "name"):
     """
     Get policy by name.
-    Logic to populate some starter/template policies for 
-    the no-code flow is hard-coded here for now.
-    #TODO This could be moved to json files, etc. later on.
     """
     from policyengine.models import Policy
     name = request.GET.get(key_name)
     try:
         return Policy.objects.get(name=name)
     except Policy.DoesNotExist:
-        return(policy)
+        return(None)
 
 def embed_populate_templates(request):
     """
@@ -855,9 +852,9 @@ def embed_populate_templates(request):
 
     desc = """
     Posts OpenCollective expenses to Slack channel to be voted on. 
-    You can set a minimum number of yes votes and maximum number of no votes needed to pass.
+    You set: minimum number of yes votes, maximum number of no votes, eligible voters.
     After a three hour voting window, expense will be approved if enough yes votes and few enough no votes were cast.
-    Once the vote is resolved, posts to both Slack thread and the OpenCollective expense thread with vote results. Restricts voting on OpenCollective expenses to eligible voters.
+    Once the vote is resolved, posts to both Slack thread and the OpenCollective expense thread with vote results.
     """
     policy, created = Policy.objects.get_or_create(
         kind="trigger",
@@ -883,7 +880,7 @@ def embed_populate_templates(request):
             prompt="If this number of NO votes is hit, the expense is rejected", type="number", policy=policy)
         PolicyVariable.objects.create(
             name="slack_channel_id", label="Slack Channel ID", default_value="", is_required=True,
-            prompt="Which Slach Channel to use?", type="string", policy=policy)
+            prompt="Which Slack Channel to use?", type="string", policy=policy)
         
     
     desc = """
@@ -892,7 +889,7 @@ def embed_populate_templates(request):
     """
     policy, created = Policy.objects.get_or_create(
         kind="trigger",
-        name="Ping-Pong Test Examples",
+        name="Say 'ping', Get a 'pong' Back Test Example",
         filter='return action.text == "ping"',
         initialize='slack.post_message(variables["pong_message"])', 
         check='return PASSED',
