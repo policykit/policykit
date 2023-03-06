@@ -60,6 +60,9 @@ urlpatterns = [
     path('embed/success', policyviews.embed_success),
     path('admin/', admin.site.urls),
 
+    # author no-code policies
+    path('no-code/policytype', policyviews.embed_select_template),
+    path('embed/', policyviews.embed_initial),
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),

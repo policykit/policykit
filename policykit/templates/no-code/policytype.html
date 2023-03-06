@@ -1,0 +1,29 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="choose_policy_type">
+  <h4 class="heading-4">
+    Are you trying to govern some actions?
+  </h4>
+  <div class="btn-group" id>
+    <button id="govern-policy">Yes</button>
+    <button id="trigger-policy">No, I would like to set up a trigger</button>
+  </div>
+</section>
+{% endblock %}
+
+{% step_scripts %}
+<script>
+    const goCreateGovernPolicy = () => {
+        redirect('custom-action', {trigger: false})
+    }
+
+    const goCreateTriggerPolicy = () => {
+        redirect('custom-action', {trigger: true})
+    }
+
+    document.getElementById("govern-policy").addEventListener("click", goCreateGovernPolicy);
+    document.getElementById("trigger-policy").addEventListener("click", goCreateTriggerPolicy);
+</script>
+{% endblock %}

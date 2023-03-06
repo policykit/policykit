@@ -963,3 +963,20 @@ def embed_success (request):
     return render(request, "embed/success.html", {
         "policy": policy
     })
+
+
+def embed_select_template(request):
+    """
+    Select a template for the embedded / no-code policy editing flow
+    DB must be populated with `is_template=True` Policies. If not, hit
+    the populate_templates endpoint to populate.
+    """
+    from policyengine.models import Policy
+    template_policies = Policy.objects.filter(is_template=True)
+
+    return render(request, "embed/select_template.html", {
+        'template_policies': template_policies
+    })
+
+def choose_policy_type(request):
+    return render(request, "no-code/policytype.html")

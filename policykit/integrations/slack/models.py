@@ -282,8 +282,6 @@ class SlackKickConversation(GovernableAction):
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
 
 
-class SlackVotingProcedure(Procedure):
+class SlackProcedure(Procedure):
 
-
-    def generate_codes(self):
-        return super().generate_codes()
+    pass
