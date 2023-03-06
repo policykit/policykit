@@ -195,45 +195,45 @@
   }
 
   // Get an object with variable data from a step section
-  const getVariableDataInStep = stepId => {
-    // Select all input elements in step element
-    const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input')
+//   const getVariableDataInStep = stepId => {
+//     // Select all input elements in step element
+//     const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input')
 
-    // Build JS object with variable data in the form of { id: value, id: value }
-    return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {})
-  }
+//     // Build JS object with variable data in the form of { id: value, id: value }
+//     return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {})
+//   }
 
-  // Save variable data
-  const submit = async (url, variableData) => {
-    // Django generated csrf token
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+//   // Save variable data
+//   const submit = async (url, variableData) => {
+//     // Django generated csrf token
+//     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
 
-    try {
-      const response = await fetch(`../../../embed/${url}?policy={{ policy.id }}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({
-          policy: '{{policy.id}}',
-          variables: variableData
-        })
-      })
+//     try {
+//       const response = await fetch(`../../../embed/${url}?policy={{ policy.id }}`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'X-CSRFToken': csrftoken
+//         },
+//         body: JSON.stringify({
+//           policy: '{{policy.id}}',
+//           variables: variableData
+//         })
+//       })
 
-      if (!response.ok) {
-        const text = await response.text()
+//       if (!response.ok) {
+//         const text = await response.text()
 
-        console.error(text)
-      }
+//         console.error(text)
+//       }
 
-      const json = await response.json()
+//       const json = await response.json()
 
-      return json
-    } catch (e) {
-      console.log(e)
-    }
-  }
+//       return json
+//     } catch (e) {
+//       console.log(e)
+//     }
+//   }
 </script>
 {% endblock %}
 
