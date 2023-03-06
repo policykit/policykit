@@ -11,7 +11,6 @@ from policyengine.models import (
     Procedure
 )
 from policyengine.metagov_app import metagov
-from policyengine.module import VotingProcedure
 
 
 logger = logging.getLogger(__name__)
