@@ -284,4 +284,4 @@ class SlackKickConversation(GovernableAction):
 
 class SlackProcedure(Procedure):
 
-    pass
+    platform = "user"
