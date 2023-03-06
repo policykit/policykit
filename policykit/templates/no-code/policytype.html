@@ -13,7 +13,7 @@
 </section>
 {% endblock %}
 
-{% step_scripts %}
+{% block step_scripts %}
 <script>
     const goCreateGovernPolicy = () => {
         redirect('custom-action', {trigger: false})
