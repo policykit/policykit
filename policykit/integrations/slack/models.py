@@ -8,6 +8,7 @@ from policyengine.models import (
     CommunityUser,
     GovernableAction,
     Proposal,
+    Procedure
 )
 from policyengine.metagov_app import metagov
 from policyengine.module import VotingProcedure
@@ -29,6 +30,7 @@ class SlackCommunity(CommunityPlatform):
     platform = "slack"
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
+
 
     def initiate_vote(self, proposal, users=None, post_type="channel", text=None, channel=None, options=None):
         args = SlackUtils.construct_vote_params(proposal, users, post_type, text, channel, options)
@@ -181,6 +183,11 @@ class SlackPostMessage(GovernableAction):
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
+    def execution_codes(**kwargs):
+        message = kwargs.get("message", None)
+        channel = kwargs.get("channel", None)
+        thread =  kwargs.get("thread", None)
+        return f"slack.post_message(text={message} channel={channel}, thread_ts={thread}"
 
 class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
@@ -274,14 +281,9 @@ class SlackKickConversation(GovernableAction):
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
 
-class SlackVotingProcedure(VotingProcedure):
-    channel = models.CharField("channel", max_length=150, null=False)
-    ''' where we post the voting message '''
+
+class SlackVotingProcedure(Procedure):
+
 
     def generate_codes(self):
-        codes = super().generate_codes()
-        codes["initialize"] = "pass"
-        codes["notify"] = f'slack.initiate_vote(text={self.vote_message}, channel={self.channel}, users={self.users})'
-        # codes["success"] = f'slack.post_message(text={self.success_message}, channel={self.channel}, thread_ts=proposal.vote_post_id)'
-        # codes["fail"]=f'slack.post_message(text={self.failure_message}, channel={self.channel}, thread_ts=proposal.vote_post_id)\n'
-        return codes
+        return super().generate_codes()
