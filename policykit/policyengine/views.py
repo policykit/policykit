@@ -901,3 +901,6 @@ def embed_success (request):
     return render(request, "embed/success.html", {
         "policy": policy
     })
+
+def choose_policy_type(request):
+    return render(request, "no-code/policytype.html")
