@@ -279,3 +279,10 @@ def _add_permissions_to_role(role, permission_sets, content_types):
     if "execute" in permission_sets:
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
+
+def get_filter_parameters(app_name, action_codename):
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "FILTER_PARAMETERS"):
+        return action_model.FILTER_PARAMETERS
+    else:
+        return []

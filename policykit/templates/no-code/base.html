@@ -42,12 +42,14 @@
   h3,
   .heading-3 {
     font-size: 27.65px;
+    text-align: center;
   }
 
   h4,
   .heading-4 {
     font-size: 23.04px;
     line-height: 28px;
+    text-align: center;
   }
 
   h5,
@@ -75,82 +77,7 @@
     margin: 0 0 32px;
   }
 
-  .variables {
-    margin: 0 0 24px;
-  }
 
-  .variable {
-    margin: 0 0 24px;
-  }
-
-  .variable-values {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    margin: 0 0 4px;
-  }
-
-  .variable-label {
-    margin: 0 0 4px 0;
-  }
-
-  #policy_summary .variable-values {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    line-height: 1;
-  }
-
-  #policy_summary .variable-label {
-    margin: 0;
-  }
-
-  .variable-input {
-    padding: 8px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
-  }
-
-  .variable-value {
-    font-weight: 500;
-  }
-
-  .variable-prompt {
-    color: #666;
-    margin: 0;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-  }
-
-  .button {
-    border: none;
-    padding: 12px;
-    cursor: pointer;
-    border-radius: 16px;
-  }
-
-  .secondary {
-    background: transparent;
-    border: 1px solid #bbb;
-    margin: 0 0 16px;
-  }
-
-  .secondary:hover {
-    background: #eee;
-  }
-
-  .primary {
-    background: #444;
-    color: #fff;
-  }
-
-  .primary:hover {
-    background: #000;
-  }
 </style>
 {% endblock %}
 
@@ -167,6 +94,7 @@
   // ids for UI sections
   const stepElementIds = {
     policytype: 'choose_policy_type',
+    custom_action: 'design_custom_action',
   }
 
   // Reference of class names defined here to avoid repetition
@@ -181,6 +109,7 @@
     // URLs for the different step pages
     const pages = {
       policytype: '/no-code/policytype',
+      custom_action: '/no-code/custom_action',
     }
 
     if (!pages[pageKey]) return
@@ -192,6 +121,34 @@
       : ''
 
     window.location.href = `${pages[pageKey]}${searchParams}`
+  }
+
+  const submit = async (url, submitData) => {
+    // Django generated csrf token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(submitData)
+      })
+
+      if (!response.ok) {
+        const text = await response.text()
+
+        console.error(text)
+      }
+
+      const json = await response.json()
+
+      return json
+    } catch (e) {
+      console.log(e)
+    }
   }
 
 </script>
