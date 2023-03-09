@@ -902,5 +902,25 @@ def embed_success (request):
         "policy": policy
     })
 
+@login_required
 def choose_policy_type(request):
     return render(request, "no-code/policytype.html")
+
+@login_required
+def design_custom_action(request):
+    from policyengine.models import Policy, PolicyActionKind
+    trigger = request.GET.get("trigger", "false")
+    user = get_user(request)
+    community = user.community.community
+    # which action types to show in the dropdown
+    actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
+
+    filter_parameters = {}
+    for app_name, action_list in actions.items():
+        for action_code, _ in action_list:
+            filter_parameters[action_code] = Utils.get_filter_parameters(app_name, action_code)
+    return render(request, "no-code/custom_action.html", {
+        "trigger": trigger,
+        "actions": actions,
+        "filter_parameters": json.dumps(filter_parameters),
+    })

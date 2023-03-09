@@ -16,11 +16,11 @@
 {% block step_scripts %}
 <script>
     const goCreateGovernPolicy = () => {
-        redirect('custom-action', {trigger: false})
+        redirect('custom_action', {trigger: "false"})
     }
 
     const goCreateTriggerPolicy = () => {
-        redirect('custom-action', {trigger: true})
+        redirect('custom_action', {trigger: "true"})
     }
 
     document.getElementById("govern-policy").addEventListener("click", goCreateGovernPolicy);
