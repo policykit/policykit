@@ -914,8 +914,8 @@ def design_custom_action(request):
     community = user.community.community
     # which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
-
     filter_parameters = {}
+
     for app_name, action_list in actions.items():
         for action_code, _ in action_list:
             filter_parameters[action_code] = Utils.get_filter_parameters(app_name, action_code)
@@ -924,3 +924,33 @@ def design_custom_action(request):
         "actions": actions,
         "filter_parameters": json.dumps(filter_parameters),
     })
+
+def create_custom_action(request):
+    '''
+        request.body: A Json object in the shape of 
+            {
+                trigger: "true"/"false",
+                action_type: "slackpostmessage",
+                data: relevant specs for this action
+            }
+
+        we create a new CustomAction instance here based on this information and 
+        return the id of this new CustomAction.
+    '''
+    from policyengine.models import CustomAction, ActionType
+    logger.debug("at creating custom action")
+    data = json.loads(request.body)
+    action_type = data.get("action_type", None)
+    if action_type:
+        action_type = ActionType.objects.filter(codename=action_type).first()
+        is_trigger = data.get("trigger", "false") == "true"
+        custom_action = CustomAction.objects.create(
+            action_type=action_type,
+            is_trigger=is_trigger,
+        )
+        custom_action.filter = custom_action.generate_filter(data.get("data", {}))
+        custom_action.save()
+        logger.debug(f"generated filters {custom_action.filter}; primary key: {custom_action.pk}")
+        return JsonResponse({"custom_action_id": custom_action.pk, "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
