@@ -1066,7 +1066,11 @@ class CustomAction(models.Model):
         If false, then we can recover the values from the filters in the following function.
     """
         
-    
+    is_trigger = models.BooleanField(default=False)
+    """
+        whether this action should be treated as triggers or governable actions
+    """
+
     def recover_specs(self):
         '''
         In the UI, we will first filter out all ActionFilter instances where the filter_name is not blank and 
@@ -1078,8 +1082,25 @@ class CustomAction(models.Model):
     def generate_filter(self, specs):
         '''
         help generate the filters based on the specifications users make in the frontend
+
+        specs: a dict from the filter parameters of this action to possible values 
+                    that could be a list of values or just one value
         '''
-        pass
+        filter_codes = []
+        for attr, spec in specs.items():
+            '''
+                currently it is only a simple version we don't consider a lot of details. 
+                For instance, some fields are actually integers and we need to convert the specs to a list of integers;
+                    we should also validate the input; and the frontend may also use some advanced way to specify some fields,
+                    we should be able to extract this list of specs from it 
+
+            '''
+            spec = spec.strip() # remove leading or trailing space
+            if len(spec) > 0: # if it is not empty specs
+                spec = spec.split(",")
+                filter_codes.append(f"(action.{attr} in {spec})")
+        filter_codes = " and ". join(filter_codes)
+        return f"return {filter_codes}"
     
     @property
     def permissions(self):
@@ -1146,14 +1167,7 @@ class Procedure(models.Model):
 
 class Execution(models.Model):
     
-    action = models.ForeignKey(GovernableAction, on_delete=models.SET_NULL)
-
-    # policy = models.ForeignKey(Policy, on_delete=models.SET_NULL, null=False)
-    # """
-    #     The policy that this ActionFilter is used to create. 
-    #     ForeignKey: one policy can have many executions
-    #     SET_NULL: If the policy is deleted, we still want to keep the user-authored polices, and therefore the execution
-    # """
+    action = models.ForeignKey(GovernableAction, on_delete=models.SET_NULL, null=True)
 
     def generate_codes(self):
         # each Governable Action implement a method that returns the execution codes.

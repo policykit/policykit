@@ -136,7 +136,7 @@
         
         spec_group.replaceChildren();
         filter_parameters.forEach(item => {
-            console.log("now write the parameter " + item);
+            // console.log("now write the parameter " + item);
             var text = document.createElement('div');
             text.classList.add('variable-values');
             text.id = item;
@@ -148,7 +148,6 @@
 
     const getVariableDataInStep = stepId => {
         // Select all input elements in step element
-        console.log("now get variable data for this step " + stepId);
         const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input');
 
         // Build JS object with variable data in the form of { id: value, id: value }
@@ -157,12 +156,17 @@
 
     const goCreateProcedure = async () => {
         const data = getVariableDataInStep(stepElementIds.custom_action);
+        const now_actiontype = document.getElementById("actionpicker").value;
         console.log("now filled in data: " + JSON.stringify(data));
 
-        const response = await submit('update', {
-
-        });
-
+        const submitData = {
+                            trigger: "{{trigger}}",
+                            action_type: now_actiontype,
+                            data: data,
+                        }
+        console.log("submit data " + JSON.stringify(submitData));
+        const response = await submit('create_custom_action', submitData);
+        console.log("after creating custom action, " + JSON.stringify(response))
         redirect('create_procedure', {});
     }
 
