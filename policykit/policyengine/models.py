@@ -26,7 +26,6 @@ class PolicyActionKind:
     CONSTITUTION = "constitution"
     TRIGGER = "trigger"
 
-
 class Community(models.Model):
     """A Community represents a group of users. They may exist on one or more online platforms."""
 
@@ -316,7 +315,6 @@ class CommunityUser(User, PolymorphicModel):
         if self.is_community_admin:
             integration_admin_role.user_set.add(self)
 
-
 class CommunityDoc(models.Model):
     """CommunityDoc"""
 
@@ -334,7 +332,6 @@ class CommunityDoc(models.Model):
 
     def __str__(self):
         return str(self.name)
-
 
 class DataStore(models.Model):
     """DataStore used for persisting serializable data on a Proposal."""
@@ -1078,7 +1075,21 @@ class CustomAction(models.Model):
         Therefore, we should also be able to recover from the filter function the specified values for this action type
         '''
         pass
-
+    
+    def get_action_kind(self):
+        '''
+            get the corresponding policy kind: PLATFORM, CONSTITUTION or TRIGGER
+        '''
+        if self.is_trigger:
+            return Policy.TRIGGER
+        else:
+            action_class = Utils.find_action_cls(self.action_type.codename)
+            app_label = action_class._meta.app_label
+            if app_label == "constitution":
+                return Policy.CONSTITUTION
+            else:
+                return Policy.PLATFORM
+            
     def generate_filter(self, specs):
         '''
         help generate the filters based on the specifications users make in the frontend
@@ -1140,7 +1151,7 @@ class Procedure(models.Model):
     name = models.TextField(blank=True, default='')
     """the name of the procedure if exists"""
 
-    initial_code = models.TextField(blank=True, default='')
+    initialize_code = models.TextField(blank=True, default='')
 
     notify_code = models.TextField(blank=True, default='')
 
@@ -1150,20 +1161,13 @@ class Procedure(models.Model):
         
     def parse_variables_dict(self):
         return json.loads(self.variables_dict)
-    
-    def generate_codes(self):
-        """
-            Generate codes for intialize, check, notify, success, and fail based on procedure variables defined in each subclass
-        """
+        
+    def create_policy_variables(self, policy):
         variables = self.parse_variables_dict()
-        for variable in variables:
-            PolicyVariable.objects.create(**variable)
-
-        return {
-            "initial": self.initial_code,
-            "notify": self.notify_code,
-            "check": self.check_code,
-        }
+        for name, variable in variables.items():
+            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            new_variable.save()
+        
 
 class Execution(models.Model):
     

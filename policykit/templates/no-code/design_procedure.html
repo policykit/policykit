@@ -1,0 +1,86 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="design_procedure">
+    
+    <h4 class="heading-4 instruction">What kind of governing procedure do you want to use?</h4>
+    <div class="action-picker-group">
+        <label for="actionpicker">Procedure Templates</label>
+        <div>
+            <select id="actionpicker" name="actionpicker" class="selectpicker">
+                <option value="none" selected disabled hidden>Select an Option</option>
+                    {% for index, name in procedute_templates %}
+                        <option value={{index}}>{{name}}</option>
+                    {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="template-details">
+        <h4 class="heading-4 instruction" id="template-name"></h4>
+        <div id="template-variables">
+
+        </div>
+    </div>
+    <div class="actions">
+        <button class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const showTemplateDetails = () => {
+        var cur_index = parseInt(document.getElementById("actionpicker").value);
+        console.log("now template index is: " + cur_index);
+        var template_dict = JSON.parse('{{template_details | safe}}');
+        var cur_detail = template_dict.find(dict => dict.pk == cur_index)
+        document.getElementById("template-name").innerHTML = cur_detail["name"];
+        
+        var variables_div = document.getElementById('template-variables');
+        var docstyle = variables_div.style.display;
+        if (docstyle == 'none') variables_div.style.display = '';
+        
+        variables_div.replaceChildren();
+        for(var key in cur_detail["variables_dict"]){
+            // console.log("now write the parameter " + item);
+            item = cur_detail["variables_dict"][key];
+            var text = document.createElement('div');
+            text.classList.add('variable');
+            text.id = item;
+            text.innerHTML = `
+                <div class='variable-values'>
+                    <label class='variable-label' for='${item.name}'>${item.label}</label>
+                    <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                </div>
+                <p class='variable-prompt text-small'>${item.prompt}</p>`;
+                variables_div.appendChild(text);
+        }
+    }
+
+    const goCreateExecution= async () => {
+        const data = getVariableDataInStep(stepElementIds.procedure);
+        const template_index = parseInt(document.getElementById("actionpicker").value);
+        console.log("now filled in data: " + JSON.stringify(data));
+
+        const submit_data = {
+                            custom_action_id: parseInt("{{custom_action_id}}"),
+                            template_index: template_index,
+                            data: data,
+                        }
+        console.log("submit data " + JSON.stringify(submit_data));
+        const response = await submit('create_procedure', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            redirect('execution', {policy_id: response["policy_id"], trigger: "{{trigger}}"});
+        }
+    }
+    document.getElementById("actionpicker").addEventListener("change", showTemplateDetails);
+    document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateExecution);
+</script>
+{% endblock %}

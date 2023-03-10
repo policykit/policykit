@@ -1,87 +1,12 @@
 {% extends "./base.html" %}
 {% load static %}
 
-{% block styles %}
-<style>
-    .action-picker-descript {
-        text-align: center;
-    }
-    .action-picker-group {
-        display: flex;
-        justify-content: center;
-        line-height: 50px;
-    }
-
-    #action-specs-group {
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-    }
-
-    .variables {
-        margin: 0 0 24px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .variable-values {
-        margin: 5px 0 4px 0;
-        justify-content: center;
-        align-items: center;
-
-    }
-
-    .variable-label {
-        margin: 2px 6px 4px 2px;
-    }
-
-    .variable-input {
-        padding: 8px;
-        border: 1px solid #bbb;
-        border-radius: 4px;
-    }
-
-    .actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .button {
-        border: none;
-        padding: 12px;
-        cursor: pointer;
-        border-radius: 16px;
-    }
-
-    .secondary {
-        background: transparent;
-        border: 1px solid #bbb;
-        margin: 0 10px 0 0;
-    }
-
-    .secondary:hover {
-        background: #eee;
-    }
-
-    .primary {
-        background: #444;
-        color: #fff;
-    }
-
-    .primary:hover {
-        background: #000;
-    }
-
-</style>
-{% endblock %}
-
 {% block step %}
 <section class="step active" id="design_custom_action">
     {% if trigger == "false" %}
-    <h4 class="heading-4 action-picker-descript">What action are you trying to govern?</h4>
+    <h4 class="heading-4 instruction">What action are you trying to govern?</h4>
     {% else %}
-    <h4 class="heading-4 action-picker-descript">What action are you trying trigger based off?</h4>
+    <h4 class="heading-4 instruction">What action are you trying trigger based off?</h4>
     {% endif %}
 
 
@@ -107,7 +32,7 @@
         </div>
     </div>
     <div>
-        <h4 class="heading-4 action-picker-descript">Which filters you would like to apply to this action?</h4>
+        <h4 class="heading-4 instruction">Which filters you would like to apply to this action?</h4>
         <div id="action-specs-group" class="variables"></div>
     </div>
     <div class="actions">
@@ -146,28 +71,26 @@
         });
     }
 
-    const getVariableDataInStep = stepId => {
-        // Select all input elements in step element
-        const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input');
-
-        // Build JS object with variable data in the form of { id: value, id: value }
-        return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {});
-    }
 
     const goCreateProcedure = async () => {
         const data = getVariableDataInStep(stepElementIds.custom_action);
         const now_actiontype = document.getElementById("actionpicker").value;
         console.log("now filled in data: " + JSON.stringify(data));
 
-        const submitData = {
-                            trigger: "{{trigger}}",
+        const is_trigger = "{{trigger}}"
+        const submit_data = {
+                            trigger: is_trigger,
                             action_type: now_actiontype,
                             data: data,
                         }
-        console.log("submit data " + JSON.stringify(submitData));
-        const response = await submit('create_custom_action', submitData);
+        console.log("submit data " + JSON.stringify(submit_data));
+        const response = await submit('create_custom_action', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))
-        redirect('create_procedure', {});
+        if(response["status"] == "success"){
+            if(is_trigger == "false"){
+                redirect('procedure', {custom_action_id: response["custom_action_id"], trigger: is_trigger});
+            }
+        }
     }
 
     document.getElementById("actionpicker").addEventListener("change", showFilterParameters);

@@ -59,7 +59,9 @@ urlpatterns = [
     path('no-code/policytype', policyviews.choose_policy_type),
     path('no-code/custom_action', policyviews.design_custom_action),
     path('no-code/create_custom_action', policyviews.create_custom_action),
-
+    path('no-code/design_procedure', policyviews.design_procedure),
+    path('no-code/create_procedure', policyviews.create_procedure),
+    
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),
     path('reddit/', include('integrations.reddit.urls')),
