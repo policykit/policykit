@@ -77,6 +77,82 @@
     margin: 0 0 32px;
   }
 
+  .instruction {
+        text-align: center;
+    }
+
+  .action-picker-group {
+      display: flex;
+      justify-content: center;
+      line-height: 50px;
+  }
+
+  #action-specs-group {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+  }
+
+  .variables {
+        margin: 0 0 24px;
+        justify-content: center;
+        align-items: center;
+    }
+
+  .variable-values {
+      margin: 5px 0 4px 0;
+      justify-content: center;
+      align-items: center;
+
+  }
+
+  .variable-label {
+      margin: 2px 6px 4px 2px;
+  }
+
+  .variable-prompt {
+      font-size: 10px;
+      color: #bbb;
+  }
+
+  .variable-input {
+      padding: 8px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+  }
+
+  .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+  }
+
+  .button {
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 16px;
+  }
+
+  .secondary {
+      background: transparent;
+      border: 1px solid #bbb;
+      margin: 0 10px 0 0;
+  }
+
+  .secondary:hover {
+      background: #eee;
+  }
+
+  .primary {
+      background: #444;
+      color: #fff;
+  }
+
+  .primary:hover {
+      background: #000;
+  }
+
 
 </style>
 {% endblock %}
@@ -95,6 +171,7 @@
   const stepElementIds = {
     policytype: 'choose_policy_type',
     custom_action: 'design_custom_action',
+    procedure: 'design_procedure',
   }
 
   // Reference of class names defined here to avoid repetition
@@ -104,12 +181,21 @@
     secondary: 'secondary'
   }
 
+  const getVariableDataInStep = stepId => {
+        // Select all input elements in step element
+        const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input');
+
+        // Build JS object with variable data in the form of { id: value, id: value }
+        return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {});
+  }
+
   // Redirect to another step page
   const redirect = (pageKey, urlParams = {}) => {
     // URLs for the different step pages
     const pages = {
       policytype: '/no-code/policytype',
       custom_action: '/no-code/custom_action',
+      procedure: '/no-code/design_procedure',
     }
 
     if (!pages[pageKey]) return

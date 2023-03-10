@@ -954,3 +954,60 @@ def create_custom_action(request):
         return JsonResponse({"custom_action_id": custom_action.pk, "status": "success"})
     else:
         return JsonResponse({"status": "fail"})
+
+@login_required  
+def design_procedure(request):
+        from policyengine.models import Procedure
+        from policyengine.module import PolicyTemplateFactory
+        
+        PolicyTemplateFactory.create_builtin_procedure_templates()
+
+        procedure_templates = Procedure.objects.all()
+        procedure_templates_list = []
+        template_details = []
+        for template in procedure_templates:
+            procedure_templates_list.append((template.pk, template.name))
+            template_details.append({
+                "name": template.name, 
+                "pk": template.pk, 
+                "variables_dict": template.parse_variables_dict()
+            })
+            # we need to further escape the codes for each template if we would like to pass them to the front end.
+            # namely, replace \" with \\\" and \n with \\n
+        
+        trigger = request.GET.get("trigger", "false")
+        custom_action_id = request.GET.get("custom_action_id")
+        return render(request, "no-code/design_procedure.html", {
+            "procedute_templates": procedure_templates_list,
+            "template_details": json.dumps(template_details),
+            "trigger": trigger,
+            "custom_action_id": custom_action_id,
+        })
+
+@login_required  
+def create_procedure(request):
+    from policyengine.models import Procedure, CustomAction, Policy
+    user = get_user(request)
+
+    data = json.loads(request.body)
+    template_index = data.get("template_index", None)
+    custom_action_id = data.get("custom_action_id", None)
+    if template_index and custom_action_id:
+        custom_action = CustomAction.objects.filter(pk=custom_action_id).first()
+        policy_kind = custom_action.get_action_kind()
+        procedure_template = Procedure.objects.filter(pk=template_index).first()
+        new_policy = Policy.objects.create(
+                kind=policy_kind,
+                filter=custom_action.filter, 
+                initialize=procedure_template.initialize_code,
+                check=procedure_template.check_code,
+                notify=procedure_template.notify_code,
+                community=user.community.community,
+            )
+        new_policy.action_types.add(custom_action.action_type)
+        procedure_template.create_policy_variables(new_policy)
+        new_policy.save()
+
+        return JsonResponse({"policy_id": new_policy.pk, "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
