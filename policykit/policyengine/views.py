@@ -558,13 +558,16 @@ def policy_action_save(request):
         elif kind == PolicyActionKind.TRIGGER:
             action = PolicykitChangeTriggerPolicy()
 
+        community = user.community.community
+
         try:
-            action.policy = Policy.objects.get(pk=data['policy'], community=user.community.community)
+            action.policy = Policy.objects.get(pk=data['policy'], community=community)
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
     else:
         raise Http404("Policy does not exist")
+
 
     action.community = user.constitution_community
     action.initiator = user
@@ -820,3 +823,81 @@ def document_action_recover(request):
     action.save()
 
     return HttpResponse()
+
+def policy_from_request (request, key_name = 'policy'):
+    policy_id = request.GET.get(key_name)
+
+    from policyengine.models import Policy
+
+    # Get source policy object
+    try:
+        return Policy.objects.get(pk=policy_id)
+    except Policy.DoesNotExist:
+        raise Http404("Policy does not exist")
+
+def embed_initial(request):
+    # Get source policy based on id passed via the URL
+    policy_source = policy_from_request(request, key_name="source")
+
+    # Variables without a default value or value are set in the first step of the flow
+    initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
+
+    # Variables are ordered with initial variables first
+    all_variables = policy_source.variables.order_by("default_value")
+
+    return render(request, "embed/initial.html", {
+        "policy": policy_source,
+        "initial_variables": initial_variables,
+        "all_variables": all_variables
+    })
+
+def embed_setup (request):
+    # TODO onboarding flow: starterkit, community, user, etc
+
+    # TODO revert this
+    from integrations.slack.models import SlackUser
+    user = SlackUser.objects.last()
+    community = user.community.community
+
+    # Make a copy of the policy
+    data = json.loads(request.body)
+    policy_source = policy_from_request(request)
+    new_policy = policy_source.copy_to_community(community=community, variable_data=data["variables"])
+
+    return JsonResponse({ "policy": new_policy.id })
+
+def embed_summary (request):
+    policy = policy_from_request(request)
+
+    variables = policy.variables.all()
+
+    return render(request, "embed/summary.html", {
+        "policy": policy,
+        "all_variables": variables
+    })
+
+def embed_update (request):
+    policy = policy_from_request(request)
+
+    # Update policy variables
+    data = json.loads(request.body)
+    policy.update_variables(data["variables"])
+
+    return JsonResponse({ "policy": policy.id })
+
+def embed_edit (request):
+    policy = policy_from_request(request)
+
+    variables = policy.variables.all()
+
+    return render(request, "embed/edit.html", {
+        "policy": policy,
+        "all_variables": variables
+    })
+
+def embed_success (request):
+    policy = policy_from_request(request)
+
+    return render(request, "embed/success.html", {
+        "policy": policy
+    })

@@ -48,6 +48,12 @@ urlpatterns = [
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
+    path('embed/', policyviews.embed_initial),
+    path('embed/setup', policyviews.embed_setup),
+    path('embed/summary', policyviews.embed_summary),
+    path('embed/update', policyviews.embed_update),
+    path('embed/edit', policyviews.embed_edit),
+    path('embed/success', policyviews.embed_success),
     path('admin/', admin.site.urls),
 
     # custom enable/disable views for integrations that use OAuth
@@ -56,6 +62,7 @@ urlpatterns = [
     path('discord/', include('integrations.discord.urls')),
     path('discourse/', include('integrations.discourse.urls')),
     path('github/', include('integrations.github.urls')),
+    path('opencollective/', include('integrations.opencollective.urls')),
 
     # default enable/disable views
     path('<slug:integration>/enable_integration', policyviews.enable_integration),

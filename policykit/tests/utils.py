@@ -32,9 +32,9 @@ def create_no_platform_community():
     print("it worked!")
 
 
-def create_slack_community_and_user():
+def create_slack_community_and_user(team_id = "ABC", username="user1"):
     # create initial community
-    slack_community = SlackCommunity.objects.create(community_name="slack test community", team_id="ABC")
+    slack_community = SlackCommunity.objects.create(community_name="slack test community", team_id=team_id)
 
     # create a base role with permission to propose any action
     user_group = CommunityRole.objects.create(
@@ -44,7 +44,7 @@ def create_slack_community_and_user():
     user_group.permissions.add(*propose_perms)
 
     # create a user
-    user = SlackUser.objects.create(username="user1", community=slack_community)
+    user = SlackUser.objects.create(username=username, community=slack_community)
 
     return slack_community, user
 
