@@ -912,19 +912,32 @@ def design_custom_action(request):
     trigger = request.GET.get("trigger", "false")
     user = get_user(request)
     community = user.community.community
-    # which action types to show in the dropdown
+    
+    # calculate which action types to show in the dropdown
     actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
     filter_parameters = {}
-
+    new_actions = {}
+    
     for app_name, action_list in actions.items():
+        new_action_list = []
         for action_code, _ in action_list:
-            filter_parameters[action_code] = Utils.get_filter_parameters(app_name, action_code)
+            parameter = Utils.get_filter_parameters(app_name, action_code)
+            # only show actions that have filter parameters
+            if parameter:
+                filter_parameters[action_code] = parameter
+                new_action_list.append((action_code, _))
+        # only allow apps that have actions with filter parameters
+        if new_action_list:
+            new_actions[app_name] = new_action_list
+                
+
     return render(request, "no-code/custom_action.html", {
         "trigger": trigger,
-        "actions": actions,
+        "actions": new_actions,
         "filter_parameters": json.dumps(filter_parameters),
     })
 
+@login_required
 def create_custom_action(request):
     '''
         request.body: A Json object in the shape of 
@@ -937,11 +950,13 @@ def create_custom_action(request):
         we create a new CustomAction instance here based on this information and 
         return the id of this new CustomAction.
     '''
-    from policyengine.models import CustomAction, ActionType
-    logger.debug("at creating custom action")
+    from policyengine.models import CustomAction, ActionType, Policy, PolicyActionKind
+
+
     data = json.loads(request.body)
     action_type = data.get("action_type", None)
     if action_type:
+        # create a new CustomAction instance
         action_type = ActionType.objects.filter(codename=action_type).first()
         is_trigger = data.get("trigger", "false") == "true"
         custom_action = CustomAction.objects.create(
@@ -950,8 +965,27 @@ def create_custom_action(request):
         )
         custom_action.filter = custom_action.generate_filter(data.get("data", {}))
         custom_action.save()
-        logger.debug(f"generated filters {custom_action.filter}; primary key: {custom_action.pk}")
-        return JsonResponse({"custom_action_id": custom_action.pk, "status": "success"})
+
+        # create a new Policy instance
+        policy_kind = custom_action.get_action_kind()
+        community = get_user(request).community.community
+        # if we add the ForeignKey to the CustomAction, we should set the ForeignKey here
+        new_policy = Policy.objects.create(
+                kind=policy_kind,
+                filter=custom_action.filter, 
+                community=community
+            )
+        new_policy.action_types.add(custom_action.action_type)
+
+        # for a trigger policy, we set the initialize, check, and notify to PASS by default
+        if is_trigger:
+            new_policy.initialize = "PASS"
+            new_policy.check = "PASS"
+            new_policy.notify= "PASS"
+
+        new_policy.save()
+        logger.debug(f"generated filters {custom_action.filter}; custom_action key: {custom_action.pk}, policy key: {new_policy.pk}")
+        return JsonResponse({"policy_id": new_policy.pk, "status": "success"})
     else:
         return JsonResponse({"status": "fail"})
 
@@ -976,38 +1010,154 @@ def design_procedure(request):
             # namely, replace \" with \\\" and \n with \\n
         
         trigger = request.GET.get("trigger", "false")
-        custom_action_id = request.GET.get("custom_action_id")
+        policy_id = request.GET.get("policy_id")
         return render(request, "no-code/design_procedure.html", {
             "procedute_templates": procedure_templates_list,
             "template_details": json.dumps(template_details),
             "trigger": trigger,
-            "custom_action_id": custom_action_id,
+            "policy_id": policy_id
         })
 
 @login_required  
 def create_procedure(request):
-    from policyengine.models import Procedure, CustomAction, Policy
+    '''
+        request.body: A Json object in the shape of
+            {  
+                "template_index": an integer, which represents the selectedprimary key of the procedure template;
+                "policy_id": an integer, which represents the primary key of the policy that we are creating
+            }
+        We revised the initialize/check/notify code blocks of the previously created policy instance 
+        based on the selected procedure template; create corresponding policy variables
+        Finally we return the id of the new policy instance.
+    '''
+    from policyengine.models import Procedure, Policy
     user = get_user(request)
 
     data = json.loads(request.body)
     template_index = data.get("template_index", None)
-    custom_action_id = data.get("custom_action_id", None)
-    if template_index and custom_action_id:
-        custom_action = CustomAction.objects.filter(pk=custom_action_id).first()
-        policy_kind = custom_action.get_action_kind()
+    policy_id = data.get("policy_id", None)
+    if template_index and policy_id:
         procedure_template = Procedure.objects.filter(pk=template_index).first()
-        new_policy = Policy.objects.create(
-                kind=policy_kind,
-                filter=custom_action.filter, 
-                initialize=procedure_template.initialize_code,
-                check=procedure_template.check_code,
-                notify=procedure_template.notify_code,
-                community=user.community.community,
-            )
-        new_policy.action_types.add(custom_action.action_type)
+        new_policy = Policy.objects.filter(pk=policy_id).first()
+        new_policy.initialize = procedure_template.initialize_code
+        new_policy.check = procedure_template.check_code
+        new_policy.notify = procedure_template.notify_code
         procedure_template.create_policy_variables(new_policy)
         new_policy.save()
+        return JsonResponse({"status": "success", "policy_id": new_policy.pk})
+    else:
+        return JsonResponse({"status": "fail"})
 
-        return JsonResponse({"policy_id": new_policy.pk, "status": "success"})
+@login_required
+def design_execution(request):
+    from policyengine.models import Policy, PolicyActionKind
+
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id", None)
+    exec_kind = request.GET.get("exec_kind", None)
+    if policy_id:
+        user = get_user(request)
+        community = user.community.community
+        # which action types to show in the dropdown
+        actions = Utils.get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
+
+        # extract actions that we support as execution
+        executable_actions = dict()
+        execution_parameters = dict()
+        for app_name, action_list in actions.items():
+            for action_code, action_name in action_list:
+                parameters = Utils.get_execution_parameters(app_name, action_code)
+                # only not None if the action has execution_codes function
+                if parameters:
+                    if app_name not in executable_actions:
+                        executable_actions[app_name] = []
+                    executable_actions[app_name].append((action_code, action_name))
+                    execution_parameters[action_code] = parameters
+
+        return render(request, "no-code/design_execution.html", {
+            "trigger": trigger,
+            "policy_id": policy_id,
+            "exec_kind": exec_kind,
+            "actions": executable_actions,
+            "execution_parameters": json.dumps(execution_parameters),
+        })
+
+@login_required
+def create_execution(request):
+    '''
+        request.body: A Json object in the shape of 
+            {
+                action_type: ActionType.codename, e.g., "slackpostmessage",
+                policy_id: an integer, which represents the primary key of the policy that we are creating
+                exec_kind: "success" or "fail",
+                trigger: "true" or "false",
+                data: relevant specs for this action
+            }
+
+        we replace the success or fail code block of the corresponding policy instance with the execution code here
+        if it is not a trigger policy, we change either the success or fail code block
+        if it is a trigger policy, we change the success code block and assume the fail code block is empty
+    '''
+    from policyengine.models import ActionType, Policy
+    request_body = json.loads(request.body)
+    action_type = request_body.get("action_type", None)
+    policy_id = request_body.get("policy_id", None)
+    exec_kind = request_body.get("exec_kind", None)
+    trigger = request_body.get("trigger", "false")
+    data = request_body.get("data")
+    if policy_id:
+        
+        # if the user chooses not to specify an execution action
+        if action_type == "default":
+            execution_code = "PASS"
+        else:
+            action_type = ActionType.objects.filter(codename=action_type).first()
+            action_class = Utils.find_action_cls(action_type.codename)
+            execution_code = action_class.execution_codes(**data)
+
+        policy = Policy.objects.filter(pk=int(policy_id)).first()
+        # if it is a trigger, then its fail code block is empty
+        if trigger == "true":
+            policy.success = execution_code
+            policy.fail = "PASS"
+        # if it is a governable action, the user need to specify both the fail and succcess code blocks,
+        # and therefore we only update the corresponding code block here.
+        elif exec_kind == "success":
+            policy.success = execution_code
+        elif exec_kind == "fail":
+            policy.fail = execution_code
+        policy.save()
+        
+        logger.debug(f" policy key: {policy.pk}; success codes {policy.success}; fail codes {policy.fail};")
+        return JsonResponse({"policy_id": policy.pk, "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
+
+
+@login_required 
+def policy_overview(request):
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id", None)
+    if policy_id is not None:
+        from policyengine.models import Policy
+        created_policy = Policy.objects.filter(pk=policy_id).first()
+        return render(request, "no-code/policy_overview.html", {
+            "trigger": trigger,
+            "policy": created_policy,
+            "policy_id": policy_id,
+        })
+
+@login_required  
+def create_overview(request):
+    from policyengine.models import ActionType, Policy
+    request_body = json.loads(request.body)
+    policy_id = request_body.get("policy_id", None)
+    data = request_body.get("data")
+    if policy_id:
+        policy = Policy.objects.filter(pk=int(policy_id)).first()
+        policy.name = data.get("name", "")
+        policy.description = data.get("description", "")
+        policy.save()
+        return JsonResponse({"policy_id": policy.pk, "policy_type": (policy.kind).capitalize(), "status": "success"})
     else:
         return JsonResponse({"status": "fail"})

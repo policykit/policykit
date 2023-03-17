@@ -61,6 +61,10 @@ urlpatterns = [
     path('no-code/create_custom_action', policyviews.create_custom_action),
     path('no-code/design_procedure', policyviews.design_procedure),
     path('no-code/create_procedure', policyviews.create_procedure),
+    path('no-code/design_execution', policyviews.design_execution),
+    path('no-code/create_execution', policyviews.create_execution),
+    path('no-code/policy_overview', policyviews.policy_overview),
+    path('no-code/create_overview', policyviews.create_overview),
     
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),

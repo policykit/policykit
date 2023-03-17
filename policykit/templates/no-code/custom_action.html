@@ -87,8 +87,10 @@
         const response = await submit('create_custom_action', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))
         if(response["status"] == "success"){
-            if(is_trigger == "false"){
-                redirect('procedure', {custom_action_id: response["custom_action_id"], trigger: is_trigger});
+            if(is_trigger == "false"){ // if it is not a trigger, then go to create procedure
+                redirect('procedure', {policy_id: response["policy_id"], trigger: is_trigger});
+            }else{ // if it is a trigger, then go to skip the creation of procedure
+                redirect('execution', {policy_id: response["policy_id"], trigger: is_trigger});
             }
         }
     }

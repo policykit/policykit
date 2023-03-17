@@ -286,3 +286,11 @@ def get_filter_parameters(app_name, action_codename):
         return action_model.FILTER_PARAMETERS
     else:
         return []
+    
+
+def get_execution_parameters(app_name, action_codename):
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "execution_codes"):
+        return action_model.EXECUTE_PARAMETERS
+    else:
+        return None
