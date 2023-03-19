@@ -973,8 +973,12 @@ def create_custom_action(request):
         new_policy = Policy.objects.create(
                 kind=policy_kind,
                 filter=custom_action.filter, 
+<<<<<<< HEAD
                 community=community,
                 is_active=False # do not activate the policy until the user has finished the flow
+=======
+                community=community
+>>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
             )
         new_policy.action_types.add(custom_action.action_type)
 
@@ -1037,14 +1041,21 @@ def create_procedure(request):
     data = json.loads(request.body)
     template_index = data.get("template_index", None)
     policy_id = data.get("policy_id", None)
+<<<<<<< HEAD
     variables_data = data.get("data", {})
+=======
+>>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
     if template_index and policy_id:
         procedure_template = Procedure.objects.filter(pk=template_index).first()
         new_policy = Policy.objects.filter(pk=policy_id).first()
         new_policy.initialize = procedure_template.initialize_code
         new_policy.check = procedure_template.check_code
         new_policy.notify = procedure_template.notify_code
+<<<<<<< HEAD
         procedure_template.create_policy_variables(new_policy, variables_data)
+=======
+        procedure_template.create_policy_variables(new_policy)
+>>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
         new_policy.save()
         return JsonResponse({"status": "success", "policy_id": new_policy.pk})
     else:
@@ -1159,7 +1170,10 @@ def create_overview(request):
         policy = Policy.objects.filter(pk=int(policy_id)).first()
         policy.name = data.get("name", "")
         policy.description = data.get("description", "")
+<<<<<<< HEAD
         policy.is_active = True
+=======
+>>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
         policy.save()
         return JsonResponse({"policy_id": policy.pk, "policy_type": (policy.kind).capitalize(), "status": "success"})
     else:
