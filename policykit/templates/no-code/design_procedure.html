@@ -9,7 +9,7 @@
         <label for="actionpicker">Procedure Templates</label>
         <div>
             <select id="actionpicker" name="actionpicker" class="selectpicker">
-                <option value="none" selected disabled hidden>Select an Option</option>
+                <option value="none" selected disabled>Select an Option</option>
                     {% for index, name in procedute_templates %}
                         <option value={{index}}>{{name}}</option>
                     {% endfor %}
@@ -38,8 +38,11 @@
     const showTemplateDetails = () => {
         var cur_index = parseInt(document.getElementById("actionpicker").value);
         console.log("now template index is: " + cur_index);
-        var template_dict = JSON.parse('{{template_details | safe}}');
-        var cur_detail = template_dict.find(dict => dict.pk == cur_index)
+        if(Number.isNaN(cur_index)) return;
+
+        var template_details = JSON.parse('{{template_details|safe}}');
+        var cur_detail = template_details.find(item => item.pk == cur_index);
+        console.log("cur detail is: " + JSON.stringify(cur_detail));
         document.getElementById("template-name").innerHTML = cur_detail["name"];
         
         var variables_div = document.getElementById('template-variables');
@@ -47,12 +50,10 @@
         if (docstyle == 'none') variables_div.style.display = '';
         
         variables_div.replaceChildren();
-        for(var key in cur_detail["variables_dict"]){
-            // console.log("now write the parameter " + item);
-            item = cur_detail["variables_dict"][key];
+        cur_detail["variables_dict"].forEach((item, index) => {
             var text = document.createElement('div');
             text.classList.add('variable');
-            text.id = item;
+            text.id = item.name;
             text.innerHTML = `
                 <div class='variable-values'>
                     <label class='variable-label' for='${item.name}'>${item.label}</label>
@@ -60,7 +61,7 @@
                 </div>
                 <p class='variable-prompt text-small'>${item.prompt}</p>`;
                 variables_div.appendChild(text);
-        }
+        })
     }
 
     const goCreateExecution= async () => {
@@ -69,7 +70,7 @@
         console.log("now filled in data: " + JSON.stringify(data));
 
         const submit_data = {
-                            custom_action_id: parseInt("{{custom_action_id}}"),
+                            policy_id: parseInt("{{policy_id}}"),
                             template_index: template_index,
                             data: data,
                         }
@@ -77,10 +78,13 @@
         const response = await submit('create_procedure', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))
         if(response["status"] == "success"){
-            redirect('execution', {policy_id: response["policy_id"], trigger: "{{trigger}}"});
+            redirect('execution', {policy_id: response["policy_id"], trigger: "{{trigger}}", exec_kind: "success"});
         }
     }
-    document.getElementById("actionpicker").addEventListener("change", showTemplateDetails);
+
     document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateExecution);
+    document.getElementById("actionpicker").addEventListener("change", showTemplateDetails);
+    showTemplateDetails();
+    
 </script>
 {% endblock %}

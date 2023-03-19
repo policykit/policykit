@@ -1,0 +1,119 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="design_execution">
+    {% if trigger == "false" %}
+        {% if exec_kind == "success" %}
+            <h4 class="heading-4 instruction">When the procedure succeeds, what else do you want to have happen besides passing the action?</h4>
+        {% elif exec_kind == "fail" %}
+            <h4 class="heading-4 instruction">When the procedure fails, what do you want to have happen</h4>
+        {% endif %}
+    {% else %}
+    <h4 class="heading-4 instruction">What do you want to have happen after this trigger?</h4>
+    {% endif %}
+
+
+    <div class="action-picker-group">
+        <label for="actionpicker">
+            Execution
+        </label>
+        <div>
+            <select id="actionpicker" name="actionpicker" class="selectpicker">
+                <option value="none" selected disabled hidden>Select an Option</option>
+                <option value="default">None</option>
+                {% for app_name, action_list in actions.items %}
+                    <optgroup label="{{app_name|upper}}">
+                        {% for model_name, verbose_name in action_list %}
+                            <option value={{model_name}}>{{verbose_name}}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div>
+        <h4 class="heading-4 instruction">Please fill in the following information about this action.</h4>
+        <div id="action-specs-group" class="variables"></div>
+    </div>
+    <!-- <div>
+        <h4 class="heading-4 instruction">Please give a name and description for this new policy</h4>
+        <div id="action-specs-group" class="variables">
+            <div class="variable-values">
+                <label class='variable-label' for='name'>Policy Name</label>
+                <input type='text' value='' data-id='name'  class='variable-input' name='name'/>
+            </div>
+            <div class="variable-values">
+                <label class='variable-label' for='description'>Description</label>
+                <input type='text' value='' data-id='description'  class='variable-input' name='description'/>
+            </div>
+        </div>
+    </div> -->
+    <div class="actions">
+        <button class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const showExecutionParameters = () => {
+        var new_action = document.getElementById("actionpicker").value;
+        if(new_action == "none" | new_action == "default")
+            return;
+
+        var execution_parameters_dict = JSON.parse('{{execution_parameters | safe}}');
+        var execution_parameters = execution_parameters_dict[new_action];
+        console.log("new val is: " + new_action + " filter parameters: " + execution_parameters);
+
+        var spec_group = document.getElementById('action-specs-group');
+        var docstyle = spec_group.style.display;
+        if (docstyle == 'none') spec_group.style.display = '';
+        
+        spec_group.replaceChildren();
+        execution_parameters.forEach(item => {
+            var text = document.createElement('div');
+            text.classList.add('variable-values');
+            text.id = item;
+            text.innerHTML = `<label class='variable-label' for='${item}'>${item}</label>
+                    <input type='text' value='' data-id='${item}'  class='variable-input' name='${item}'/>`;
+            spec_group.appendChild(text);
+        });
+    }
+
+    const goCreateExecution = async () => {
+        const data = getVariableDataInStep(stepElementIds.execution);
+        const now_actiontype = document.getElementById("actionpicker").value;
+        console.log("now filled in data: " + JSON.stringify(data));
+
+        const is_trigger = "{{trigger}}"
+        const exec_kind = "{{exec_kind}}"
+        const submit_data = {
+                            action_type: now_actiontype,
+                            exec_kind: exec_kind,
+                            is_trigger: is_trigger,
+                            policy_id: parseInt("{{policy_id}}"),
+                            data: data,
+                        }
+        const response = await submit('create_execution', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            if(is_trigger == "false" & exec_kind == "success"){
+                redirect('execution', {policy_id: response["policy_id"], trigger: is_trigger, exec_kind: "fail"});
+            } else {
+                redirect('overview', {policy_id: response["policy_id"], trigger: is_trigger});
+            }
+        }
+    }
+
+
+    document.getElementById("actionpicker").addEventListener("change", showExecutionParameters );
+    document.getElementById(stepElementIds.execution).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateExecution);
+</script>
+{% endblock %}

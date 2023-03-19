@@ -155,6 +155,17 @@ class SlackCommunity(CommunityPlatform):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
 
+    def get_channel_members(self, channel):
+        all_members = []
+        cursor = None
+        while True:
+            data = {"channel": channel, "cursor": cursor} if cursor else {"channel": channel}
+            response = self.__make_generic_api_call("conversations.members", data)
+            all_members.extend(response["members"])
+            if not response["response_metadata"]["next_cursor"]:
+                break
+            cursor = response["response_metadata"]["next_cursor"]
+        return all_members
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
@@ -180,10 +191,12 @@ class SlackPostMessage(GovernableAction):
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
     
     def execution_codes(**kwargs):
-        message = kwargs.get("message", None)
+        text = kwargs.get("text", None)
         channel = kwargs.get("channel", None)
+        if not channel:
+            channel = None
         thread =  kwargs.get("thread", None)
-        return f"slack.post_message(text={message} channel={channel}, thread_ts={thread}"
+        return f"slack.post_message(text=\"{text}\", channel={channel}, thread_ts={thread})"
 
 
 class SlackRenameConversation(GovernableAction):

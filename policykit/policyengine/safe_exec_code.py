@@ -9,6 +9,9 @@ import datetime
 import base64
 import itertools
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 policykit_builtins = {
     # see: https://restrictedpython.readthedocs.io/en/latest/usage/policy.html#predefined-builtins
@@ -80,7 +83,7 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
             "args": args,
             "kwargs": kwargs,
         }
-
+        logger.debug(f"Executing user code {user_func}: {kwargs}")
         restricted_globals = {
             "__builtins__": {
                 **policykit_builtins,
@@ -109,7 +112,6 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
 
         # Run it
         exec(byte_code, restricted_globals, restricted_locals)
-
         # User code has modified result inside restricted_locals. Return it.
         return restricted_locals["result"]
 

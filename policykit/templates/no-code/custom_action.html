@@ -20,7 +20,7 @@
         </label>
         <div>
             <select id="actionpicker" name="actionpicker" class="selectpicker">
-                <option value="none" selected disabled hidden>Select an Option</option>
+                <option value="none" selected disabled>Select an Option</option>
                 {% for app_name, action_list in actions.items %}
                     <optgroup label="{{app_name|upper}}">
                         {% for model_name, verbose_name in action_list %}
@@ -51,9 +51,11 @@
 <script>
     const showFilterParameters = () => {
         var new_action = document.getElementById("actionpicker").value;
+        console.log("new val is: " + new_action);
+        if (new_action == "none") return;
         var filter_parameters_dict = JSON.parse('{{filter_parameters | safe}}');
         var filter_parameters = filter_parameters_dict[new_action];
-        console.log("new val is: " + new_action + " filter parameters: " + filter_parameters);
+        console.log("filter parameters: " + filter_parameters);
 
         var spec_group = document.getElementById('action-specs-group');
         var docstyle = spec_group.style.display;
@@ -87,13 +89,15 @@
         const response = await submit('create_custom_action', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))
         if(response["status"] == "success"){
-            if(is_trigger == "false"){
-                redirect('procedure', {custom_action_id: response["custom_action_id"], trigger: is_trigger});
+            if(is_trigger == "false"){ // if it is not a trigger, then go to create procedure
+                redirect('procedure', {policy_id: response["policy_id"], trigger: is_trigger});
+            }else{ // if it is a trigger, then go to skip the creation of procedure
+                redirect('execution', {policy_id: response["policy_id"], trigger: is_trigger});
             }
         }
     }
-
-    document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
     document.getElementById(stepElementIds.custom_action).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateProcedure);
+    document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
+    showFilterParameters();
 </script>
 {% endblock %}

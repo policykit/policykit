@@ -158,7 +158,18 @@ class CommunityPlatform(PolymorphicModel):
 
         return CommunityUser.objects.filter(community=self)
 
+    def get_user_readable_name(self, username):
+        """
+        Returns the user's readable name on this platform.
+        """
+        filtered_users = CommunityUser.objects.filter(community=self, username=username)
+        if len(filtered_users) > 0:
+            user = filtered_users.first()
+            return user.readable_name if user.readable_name else user.username
+        else:
+            return username
 
+    
     def _execute_platform_action(self):
         pass
 
@@ -1102,15 +1113,23 @@ class CustomAction(models.Model):
             '''
                 currently it is only a simple version we don't consider a lot of details. 
                 For instance, some fields are actually integers and we need to convert the specs to a list of integers;
-                    we should also validate the input; and the frontend may also use some advanced way to specify some fields,
-                    we should be able to extract this list of specs from it 
+                    we should also validate the input is actually filters allowed by this action type;
+                    We should take into consideration that the frontend may also use some advanced way to specify some fields;
+                    we should be able to extract this list of specs from it.
+
 
             '''
-            spec = spec.strip() # remove leading or trailing space
-            if len(spec) > 0: # if it is not empty specs
+            spec = spec.strip()
+            # remove leading or trailing space
+            if len(spec) > 0:
+                # if it is not empty specs
                 spec = spec.split(",")
                 filter_codes.append(f"(action.{attr} in {spec})")
-        filter_codes = " and ". join(filter_codes)
+        if len(filter_codes) == 0:
+            # if there is no filter, then we just return True
+            filter_codes = "True"
+        else:
+            filter_codes = " and ". join(filter_codes)
         return f"return {filter_codes}"
     
     @property
@@ -1151,6 +1170,9 @@ class Procedure(models.Model):
     name = models.TextField(blank=True, default='')
     """the name of the procedure if exists"""
 
+    description = models.TextField(blank=True, default='')
+    """the description of the procedure if exists"""
+
     initialize_code = models.TextField(blank=True, default='')
 
     notify_code = models.TextField(blank=True, default='')
@@ -1162,10 +1184,11 @@ class Procedure(models.Model):
     def parse_variables_dict(self):
         return json.loads(self.variables_dict)
         
-    def create_policy_variables(self, policy):
+    def create_policy_variables(self, policy, variables_data):
         variables = self.parse_variables_dict()
-        for name, variable in variables.items():
+        for variable in variables:
             new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            new_variable.value = variables_data[variable["name"]]
             new_variable.save()
         
 

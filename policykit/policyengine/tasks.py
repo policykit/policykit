@@ -19,7 +19,7 @@ def evaluate_pending_proposals():
     pending_proposals = Proposal.objects.filter(status=Proposal.PROPOSED)
     for proposal in pending_proposals:
         community_name = proposal.action.community.community_name
-        logger.debug(f"{community_name} - Evaluating proposal '{proposal}'")
+        logger.debug(f"New {community_name} - Evaluating proposal '{proposal}'")
         try:
             engine.evaluate_proposal(proposal)
         except (engine.PolicyDoesNotExist, engine.PolicyIsNotActive, engine.PolicyDoesNotPassFilter) as e:

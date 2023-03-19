@@ -1,0 +1,49 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="policy_overview">
+    <div>
+        <h4 class="heading-4 instruction">Please give a name and description for this new policy</h4>
+        <div id="action-specs-group" class="variables">
+            <div class="variable-values">
+                <label class='variable-label' for='name'>Policy Name</label>
+                <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
+            </div>
+            <div class="variable-values">
+                <label class='variable-label' for='description'>Description</label>
+                <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <button class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const goCreateOverview= async () => {
+        const data = getVariableDataInStep(stepElementIds.overview);
+        console.log("now filled in data: " + JSON.stringify(data));
+        const submit_data = {
+                            policy_id: parseInt("{{policy_id}}"),
+                            data: data,
+                        }
+        const response = await submit('create_overview', submit_data);
+        console.log("after adding metadata, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            redirect("details", {policy: response["policy_id"], operation: "Change", type: response["policy_type"]})
+        }
+    }
+
+    document.getElementById(stepElementIds.overview).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateOverview);
+</script>
+{% endblock %}

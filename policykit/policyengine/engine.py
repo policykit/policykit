@@ -42,7 +42,7 @@ class EvaluationContext:
 
     def __init__(self, proposal):
         from policyengine.metagov_client import Metagov
-        from policyengine.models import ExecutedActionTriggerAction
+        from policyengine.models import ExecutedActionTriggerAction, PolicyVariable
 
         if isinstance(proposal.action, ExecutedActionTriggerAction):
             self.action = proposal.action.action
@@ -73,7 +73,14 @@ class EvaluationContext:
         self.metagov = Metagov(proposal)
 
         # Make policy variables available in the evaluation context
-        setattr(self, "variables", { v.name : v.value for v in self.policy.variables.all() or []})
+        variables = {}
+        for variable in self.policy.variables.all() or []:
+            if variable.type == PolicyVariable.NUMBER:
+                variables[variable.name] = int(variable.value)
+            else:
+                variables[variable.name] = variable.value
+        setattr(self, "variables", variables)
+        logger.debug(f"self.variables in evauation context: {self.variables}")
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
@@ -249,7 +256,6 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
         raise PolicyIsNotActive
 
     context = EvaluationContext(proposal)
-
     try:
         return evaluate_proposal_inner(context, is_first_evaluation)
     except PolicyDoesNotPassFilter:
