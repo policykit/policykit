@@ -918,7 +918,10 @@ def design_custom_action(request):
     filter_parameters = {}
     new_actions = {}
     
+    new_actions = {}
+    
     for app_name, action_list in actions.items():
+        new_action_list = []
         new_action_list = []
         for action_code, _ in action_list:
             parameter = Utils.get_filter_parameters(app_name, action_code)
@@ -931,8 +934,19 @@ def design_custom_action(request):
             new_actions[app_name] = new_action_list
                 
 
+            parameter = Utils.get_filter_parameters(app_name, action_code)
+            # only show actions that have filter parameters
+            if parameter:
+                filter_parameters[action_code] = parameter
+                new_action_list.append((action_code, _))
+        # only allow apps that have actions with filter parameters
+        if new_action_list:
+            new_actions[app_name] = new_action_list
+                
+
     return render(request, "no-code/custom_action.html", {
         "trigger": trigger,
+        "actions": new_actions,
         "actions": new_actions,
         "filter_parameters": json.dumps(filter_parameters),
     })
@@ -953,9 +967,13 @@ def create_custom_action(request):
     from policyengine.models import CustomAction, ActionType, Policy, PolicyActionKind
 
 
+    from policyengine.models import CustomAction, ActionType, Policy, PolicyActionKind
+
+
     data = json.loads(request.body)
     action_type = data.get("action_type", None)
     if action_type:
+        # create a new CustomAction instance
         # create a new CustomAction instance
         action_type = ActionType.objects.filter(codename=action_type).first()
         is_trigger = data.get("trigger", "false") == "true"
@@ -973,12 +991,8 @@ def create_custom_action(request):
         new_policy = Policy.objects.create(
                 kind=policy_kind,
                 filter=custom_action.filter, 
-<<<<<<< HEAD
                 community=community,
                 is_active=False # do not activate the policy until the user has finished the flow
-=======
-                community=community
->>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
             )
         new_policy.action_types.add(custom_action.action_type)
 
@@ -1041,21 +1055,14 @@ def create_procedure(request):
     data = json.loads(request.body)
     template_index = data.get("template_index", None)
     policy_id = data.get("policy_id", None)
-<<<<<<< HEAD
     variables_data = data.get("data", {})
-=======
->>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
     if template_index and policy_id:
         procedure_template = Procedure.objects.filter(pk=template_index).first()
         new_policy = Policy.objects.filter(pk=policy_id).first()
         new_policy.initialize = procedure_template.initialize_code
         new_policy.check = procedure_template.check_code
         new_policy.notify = procedure_template.notify_code
-<<<<<<< HEAD
         procedure_template.create_policy_variables(new_policy, variables_data)
-=======
-        procedure_template.create_policy_variables(new_policy)
->>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
         new_policy.save()
         return JsonResponse({"status": "success", "policy_id": new_policy.pk})
     else:
@@ -1146,7 +1153,6 @@ def create_execution(request):
     else:
         return JsonResponse({"status": "fail"})
 
-
 @login_required 
 def policy_overview(request):
     trigger = request.GET.get("trigger", "false")
@@ -1170,10 +1176,7 @@ def create_overview(request):
         policy = Policy.objects.filter(pk=int(policy_id)).first()
         policy.name = data.get("name", "")
         policy.description = data.get("description", "")
-<<<<<<< HEAD
         policy.is_active = True
-=======
->>>>>>> 4a72375789ba68837c55ff917473cf6ce5d688ea
         policy.save()
         return JsonResponse({"policy_id": policy.pk, "policy_type": (policy.kind).capitalize(), "status": "success"})
     else:

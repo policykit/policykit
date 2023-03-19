@@ -1,6 +1,6 @@
 [
     {
-        "name": "simple vote procedure",
+        "name": "Consesus Voting",
         "description": "A simple yes-no vote procedure: if no duration is set, the vote is closed as soon as the success or failure is reached",
         "initialize_code": "if not variables[\"channel\"]:\n  variables[\"channel\"] = action.channel\n", 
         "check_code": "if not proposal.vote_post_id:\n  return None\n\nif int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= int(variables[\"minimum_yes_required\"]):\n  return PASSED\nelif no_votes >= int(variables[\"maximum_no_allowed\"]):\n  return FAILED\n\nreturn PROPOSED",
@@ -8,10 +8,10 @@
         "variables_dict": [
             {
                 "name": "duration",
-                "label": "when the vote is closed (in minutes)",
+                "label": "When the vote is closed (in minutes)",
                 "default_value": 0,
                 "is_required": false,
-                "prompt": "when the vote is closed (in minutes); an empty value represents that the vote is closed as long as the success or failure is reached",
+                "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
                 "type": "number"
             },
             {
@@ -19,7 +19,7 @@
                 "label": "Which channel should we post the vote",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "Which channel should we post the vote; an empty value represents that the vote is cast in the channel where the action happens",
+                "prompt": "An empty value represents that the vote is cast in the channel where the action happens",
                 "type": "string"
             },
             {
@@ -27,7 +27,7 @@
                 "label": "Who should be eligible to vote",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "Who should be eligible to vote: an empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
                 "type": "string"
             },
             {
@@ -35,7 +35,7 @@
                 "label": "How many number of yes votes are required to reach success",
                 "default_value": 1,
                 "is_required": true,
-                "prompt": "How many number of yes votes are required to reach success",
+                "prompt": "",
                 "type": "number"
             },
             {
@@ -43,7 +43,7 @@
                 "label": "How many number of no votes are allowed before we call a failure",
                 "default_value": 1,
                 "is_required": true,
-                "prompt": "How many number of no votes are allowed before we call a failure",
+                "prompt": "",
                 "type": "number"
             },
             {
@@ -51,24 +51,24 @@
                 "label": "Message to be posed in the channel when the vote starts",
                 "default_value": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
-                "prompt": "Message to be posed in the channel when the vote starts",
+                "prompt": "",
                 "type": "string"
             }
         ]
     },
     {  
-        "name": "a jury procedure",
+        "name": "Jury",
         "description": "A jury procedure: the jury selected from the channel will vote on the proposal",
         "initialize_code": "if not variables[\"channel\"]:\n  variables[\"channel\"] = action.channel\n", 
-        "check_code": "if not proposal.vote_post_id:\n  return None\n\nif int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= int(variables[\"minimum_yes_required\"]):\n  return PASSED\nelif no_votes >= int(variables[\"maximum_no_allowed\"]):\n  return FAILED\n\nreturn PROPOSED",
+        "check_code": "if not proposal.vote_post_id:\n  return None\n\nif int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= int(variables[\"minimum_yes_required\"]):\n  return PASSED\nelif no_votes >= int(variables[\"maximum_no_allowed\"]):\n  return FAILED\n\nreturn PROPOSED",
         "notify_code": "all_members = slack.get_channel_members(variables[\"channel\"])\njury = random.sample(all_members, int(variables[\"jury_size\"]))\njury_names = \", \".join([slack.get_user_readable_name(username) for username in jury])\nmessage = variables[\"jury_message\"] + f\"The jury are {jury_names}\"\nslack.initiate_vote(text=message, users=jury, channel=variables[\"channel\"])",
         "variables_dict":[
             {
                 "name": "duration",
-                "label": "when the vote is closed (in minutes)",
+                "label": "When the vote is closed (in minutes)",
                 "default_value": 0,
                 "is_required": false,
-                "prompt": "when the vote is closed (in minutes); an empty value represents that the vote is closed as long as the success or failure is reached",
+                "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
                 "type": "number"
             },
             {
@@ -76,7 +76,7 @@
                 "label": "Which channel should we post the vote and select the jury from",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "Which channel should we post the vote and select the jury from; an empty value represents that the vote is cast in the channel where the actin happens",
+                "prompt": "An empty value represents that the vote is cast in the channel where the actin happens",
                 "type": "string"
             },
             {
@@ -84,7 +84,7 @@
                 "label": "How many number of yes votes are required to reach success",
                 "default_value": 1,
                 "is_required": true,
-                "prompt": "How many number of yes votes are required to reach success",
+                "prompt": "",
                 "type": "number"
             },
             {
@@ -92,7 +92,7 @@
                 "label": "How many number of no votes are allowed before we call a failure",
                 "default_value": 1,
                 "is_required": true,
-                "prompt": "How many number of no votes are allowed before we call a failure",
+                "prompt": "",
                 "type": "number"
             },
             {
@@ -100,7 +100,7 @@
                 "label": "How many people should be selected as jury",
                 "default_value": 1,
                 "is_required": true,
-                "prompt": "How many people should be selected as jury",
+                "prompt": "",
                 "type": "number"
             },
             {
@@ -108,17 +108,75 @@
                 "label": "Message to be posed in the channel when the jury is selected",
                 "default_value": "A jury is selected to vote on this proposal: ",
                 "is_required": true,
-                "prompt": "Message to be posed in the channel when the selected jury is prompted to vote",
+                "prompt": "",
                 "type": "string"
             }
         ]
     },
     {
-        "name": "an empty procedure",
-        "description": "An empty procedure: the proposal is always considered as passed",
-        "initialize_code": "pass", 
-        "check_code": "return PASSED",
-        "notify_code": "pass",
-        "variables_dict": []
+        "name": "Benevolent Dictator",
+        "description": "The Benevolent Dictator holds ultimate decision-making power, until the group is ready for a more inclusive structure",
+        "initialize_code": "if not variables[\"notify_channel\"]:\n  variables[\"notify_channel\"] = action.channel",
+        "check_code": "if not proposal.vote_post_id:\n  return None\n\nif int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED",
+        "notify_code": "at_username = slack.get_user_readable_name(variables[\"dictator\"])\nslack.initiate_vote(text=variables[\"decision_message\"], post_type=\"mpim\", users=[variables[\"dictator\"]])\nslack.post_message(text=f\"@{at_username}: \" + variables[\"notify_message\"], post_type='channel', channel=variables[\"notify_channel\"])",
+        "variables_dict":[
+            {
+                "name": "dictator",
+                "label": "Who is the dictator",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "duration",
+                "label": "How much time the dictator have to make a decision (in minutes)",
+                "default_value": 0,
+                "is_required": false,
+                "prompt": "An empty value represents that the dictator has unlimited time to make a decision",
+                "type": "number"
+            },
+            {
+                "name": "decision_message",
+                "label": "What messages the dictator should be prompted with to make a decision",
+                "default_value": "Please make a decision on this proposal by yes-or-no voting",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "notify_channel",
+                "label": "Which channel should we notify other community members about the decision",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that the notificaition is posted in the channel where the actin happens",
+                "type": "string"
+            },
+            {
+                "name": "notify_message",
+                "label": "What messages should we notify other community members when the dictator is asked to make a decision",
+                "default_value": "We have asked the dictator to make a decision on this proposal",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "name": "Permission",
+        "description": "Only members with a certain permission can perform the proposed action",
+        "initialize_code": "pass\n",
+        "check_code": "if action.initiator.has_perm(variables[\"required_permission\"]):\n  return PASSED\nelse:\n  return FAILED",
+        "notify_code": "pass\n",
+        "variables_dict":[
+            {
+                "name": "required_permission",
+                "label": "What permission is required to perform the action",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
     }
 ]
