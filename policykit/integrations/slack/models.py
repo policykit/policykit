@@ -160,6 +160,7 @@ class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel"]
+    FILTER_PARAMETERS = ["text", "channel", "timestamp"]
 
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
@@ -183,6 +184,7 @@ class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
+    FILTER_PARAMETERS = ["channel", "name", "previous_name"]
 
     name = models.CharField("name", max_length=150)
     channel = models.CharField("channel", max_length=150)
@@ -207,6 +209,7 @@ class SlackJoinConversation(GovernableAction):
     ACTION = "conversations.invite"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "users"]
+    FILTER_PARAMETERS = ["channel", "users"]
 
     channel = models.CharField("channel", max_length=150)
     users = models.CharField("users", max_length=15)
@@ -231,6 +234,8 @@ class SlackPinMessage(GovernableAction):
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
+    FILTER_PARAMETERS = ["channel", "timestamp"]
+
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32)
 
@@ -245,6 +250,7 @@ class SlackPinMessage(GovernableAction):
 class SlackScheduleMessage(GovernableAction):
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
+    FILTER_PARAMETERS = ["text", "channel", "post_at"]
 
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
@@ -258,6 +264,7 @@ class SlackKickConversation(GovernableAction):
     ACTION = "conversations.kick"
     AUTH = "user"
     EXECUTE_PARAMETERS = ["user", "channel"]
+    FILTER_PARAMETERS = ["user", "channel"]
 
     user = models.CharField("user", max_length=15)
     channel = models.CharField("channel", max_length=150)
