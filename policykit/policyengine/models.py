@@ -1165,12 +1165,13 @@ class Procedure(models.Model):
                     "when": null,
                 },
                 {
-                    "action": "post_message",
+                    "action": "postmessage",
                     "text": "variables.notify_message",    
                     "when": null,
                     "platform": null
                 }
             ],
+            
             Each list element represents an action that will be executed in the "notify" stage, and its parameters tells us its expected behavior, 
             1. The "when" parameter is optional and it is used to specify the condition upon which the action should be executed. 
             ### Todo: It could also be a filter-like JSON dict?
@@ -1201,13 +1202,13 @@ class Procedure(models.Model):
                 ],
                 "actions": [
                     {
-                        "action": "post_message",
+                        "action": "postmessage",
                         "text": "we are still waiting for the dictator to make a decision",
                         "when": "time_elapsed % 60 == 0"
                     }
                 ]
             }
-            
+
         We execute codes in the `check` field in the order of the list, 
             and we will execute actions in the `actions` field if the check codes return None or PROPOSED
     """
@@ -1226,6 +1227,27 @@ class Procedure(models.Model):
             new_variable = PolicyVariable.objects.create(policy=policy, **variable)
             new_variable.value = variables_data[variable["name"]]
             new_variable.save()
+
+# class Execution(models.Model):
+    
+#     action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
+#     """ The action type of the execution action """
+
+#     execution = models.TextField(blank=True, default='')
+#     """
+#         A JSON object, e.g.,
+#         {
+#             "text": "we are still waiting for the dictator to make a decision",
+#             "platform": null,
+#             "when": null
+#         }
+#     """
+    
+#     def generate_codes(self):
+#         # each Governable Action implement a method that returns the execution codes.
+#         # currently only supports SlackPostMessage
+#         pass
+
 
 ##### Pre-delete and post-delete signal receivers
 
