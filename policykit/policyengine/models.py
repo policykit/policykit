@@ -1026,6 +1026,120 @@ class GovernableActionForm(ModelForm):
         self.label_suffix = ''
 
 
+class CustomAction(models.Model):
+    
+    action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
+    """
+        The action type that this filter applies to.
+        1) CASCASE: when the action type is deleted (though unlikely to happen), 
+                    then the filters applied to this type of action should also be deleted
+    """
+
+    is_trigger = models.BooleanField(default=False)
+    """
+        whether this action should be treated as triggers or governable actions
+    """
+
+    filter = models.TextField(blank=True, default='')
+    """
+        a JSON dict, e.g.,
+        {
+            "initiator": {
+                "filter": {
+                    "kind": "CommunityUser", 
+                    "name": "permission",
+                    "permission": "can_add_slackpostmessage"
+                }
+            },
+            "text": {
+                "filter": {
+                    "kind": "string", 
+                    "name": "startswtih",
+                    "word": "vote"
+                }
+            },
+            "channel": {
+                "filter": {
+                    "kind": "channel",
+                    "name": "id",
+                    "id": "C01BQJZLZLQ"  
+                }
+            },
+            "timestamp": []
+        }
+
+        For each integration, there are a limited number of data fields that can be used as filters; 
+        we use kind to represent the kind of the filter, and name to represent the exact logic of the filter.
+    """
+
+    community_name = models.TextField(null=True, unique=True)
+    """
+        If users think this ActionFilter is frequently used, then they can name this filter 
+            and we would show it in the CustomAction tab on the interface.
+        
+        When it is null it means that users do not think it is frequently used;
+        We require it to be unique so that their permission codenames won't be the same
+    """
+        
+    @property
+    def action_kind(self):
+        '''
+            get the corresponding policy kind: PLATFORM, CONSTITUTION or TRIGGER
+        '''
+        if self.is_trigger:
+            return Policy.TRIGGER
+        else:
+            action_class = Utils.find_action_cls(self.action_type.codename)
+            app_label = action_class._meta.app_label
+            if app_label == "constitution":
+                return Policy.CONSTITUTION
+            else:
+                return Policy.PLATFORM
+            
+    
+    def generate_filter(self, specs):
+        '''
+        help generate the filters based on the filters
+        specs: a dict from the filter parameters of this action to possible values 
+                    that could be a list of values or just one value
+        '''
+        pass
+    
+    @property
+    def permissions(self):
+        if self.community_name:
+            # If it is a user custom action, it has a new permission name
+            permissions = ((f"can_execute_{self.community_name}", "Can execute {self.community_name}"))
+        else:
+            from django.contrib.auth.models import Permission
+            from django.contrib.contenttypes.models import ContentType
+
+            # Otherwise, this permission for this new CustomAction is the same as the GovernableAction it builts upon 
+            action_content_type = ContentType.objects.filter(model=self.action_type)     
+            all_permissions = Permission.objects.filter(content_type__in=action_content_type)
+            # Search for all permissions related to this GovernableAction
+            permissions = [(perm.codename, perm.name) for perm in all_permissions if perm.codename.startswith("can_execute") ]
+            
+            # While it is obvious that the permission codename is f"can_execute_{self.action_type}", 
+            # We actually do not know exactly the corresponding permisson name
+            # That is why we take such trouble to extract it
+        return permissions
+
+
+    def save(self, *args, **kwargs):
+        """
+        Add the permission if it is a user custom action
+        """
+
+        if not self.pk and self.community_name:
+            action_content_type = ContentType.objects.get_for_model(CustomAction)
+            all_permissions = self.permissions
+            for perm in all_permissions:
+                # TODO not sure whether we should use the content type of CustomAction here
+                Permission.objects.create(codename=perm[0], name=perm[1], content_type=action_content_type)
+                # TODO not sure we would like to assign this permission to all users by default or not
+                # perhaps we should at first assign it to users who have the execute permission of the referenced GovernableAction
+        super(CustomAction, self).save(*args, **kwargs)
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
