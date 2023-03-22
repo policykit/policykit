@@ -1042,7 +1042,7 @@ class CustomAction(models.Model):
 
     filter = models.TextField(blank=True, default='')
     """
-        a JSON dict, e.g.,
+        a JSON object e.g.,
         {
             "initiator": {
                 "filter": {
@@ -1065,9 +1065,9 @@ class CustomAction(models.Model):
                     "id": "C01BQJZLZLQ"  
                 }
             },
-            "timestamp": []
+            "timestamp": {}
         }
-
+        For each custom action, we only allow filters that apply to the filter parameters of the referenced governable action
         For each integration, there are a limited number of data fields that can be used as filters; 
         we use kind to represent the kind of the filter, and name to represent the exact logic of the filter.
     """
@@ -1130,7 +1130,8 @@ class CustomAction(models.Model):
         """
         Add the permission if it is a user custom action
         """
-
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
         if not self.pk and self.community_name:
             action_content_type = ContentType.objects.get_for_model(CustomAction)
             all_permissions = self.permissions
@@ -1140,6 +1141,92 @@ class CustomAction(models.Model):
                 # TODO not sure we would like to assign this permission to all users by default or not
                 # perhaps we should at first assign it to users who have the execute permission of the referenced GovernableAction
         super(CustomAction, self).save(*args, **kwargs)
+
+class Procedure(models.Model):
+
+    name = models.TextField(blank=True, default='')
+    """the name of the procedure if exists"""
+
+    description = models.TextField(blank=True, default='')
+    """the description of the procedure if exists"""
+
+    initialize_code = models.TextField(blank=True, default='')
+
+    notify = models.TextField(blank=True, default='')
+    """
+        a JSON object, e.g.,
+            "notify": [
+                {
+                    "action": "initiate_vote",
+                    "vote_message": "varaibles.vote_message",
+                    "vote_type": "boolean",
+                    "users": "variables.dictator",
+                    "platform": null,
+                    "when": null,
+                },
+                {
+                    "action": "post_message",
+                    "text": "variables.notify_message",    
+                    "when": null,
+                    "platform": null
+                }
+            ],
+            Each list element represents an action that will be executed in the "notify" stage, and its parameters tells us its expected behavior, 
+            1. The "when" parameter is optional and it is used to specify the condition upon which the action should be executed. 
+            ### Todo: It could also be a filter-like JSON dict?
+
+            2. We could here use variables defined in the "variables" field to specify the parameters of the action
+
+            3. A non-empty "platform" field suggests that this action is expected to be integration-specific, 
+                    then parameters that are needed by this specific integration should be further specified (e.g. "channel" and "post_type" for "slack")
+                If the "platform" field is empty, then the action is expected to be generic,
+                    then when a user designates a specific platform, we will help add more integration-specific parameters to this action
+    """
+
+    check_ = models.TextField(blank=True, default='')
+    """
+        don't know why but check is a name that has already been used
+        
+        A JSON object, e.g.,
+            "check": {
+                "check": [
+                    {
+                        "name": "vote_duration",
+                        "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n" 
+                    },
+                    {
+                        "name": "main",
+                        "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED"
+                    }
+                ],
+                "actions": [
+                    {
+                        "action": "post_message",
+                        "text": "we are still waiting for the dictator to make a decision",
+                        "when": "time_elapsed % 60 == 0"
+                    }
+                ]
+            }
+            
+        We execute codes in the `check` field in the order of the list, 
+            and we will execute actions in the `actions` field if the check codes return None or PROPOSED
+    """
+
+    variables = models.TextField(blank=True, default='')
+    """
+        varaibles used in the procedure
+    """
+        
+    def parse_variables(self):
+        return json.loads(self.variables)
+        
+    def create_policy_variables(self, policy, variables_data):
+        variables = self.parse_variables()
+        for variable in variables:
+            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            new_variable.value = variables_data[variable["name"]]
+            new_variable.save()
+
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
