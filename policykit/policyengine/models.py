@@ -1150,7 +1150,7 @@ class Procedure(models.Model):
     description = models.TextField(blank=True, default='')
     """the description of the procedure if exists"""
 
-    initialize_code = models.TextField(blank=True, default='')
+    initialize = models.TextField(blank=True, default='')
 
     notify = models.TextField(blank=True, default='')
     """
@@ -1171,7 +1171,6 @@ class Procedure(models.Model):
                     "platform": null
                 }
             ],
-            
             Each list element represents an action that will be executed in the "notify" stage, and its parameters tells us its expected behavior, 
             1. The "when" parameter is optional and it is used to specify the condition upon which the action should be executed. 
             ### Todo: It could also be a filter-like JSON dict?
@@ -1189,34 +1188,25 @@ class Procedure(models.Model):
         don't know why but check is a name that has already been used
         
         A JSON object, e.g.,
-            "check": {
-                "check": [
-                    {
-                        "name": "vote_duration",
-                        "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n" 
-                    },
-                    {
-                        "name": "main",
-                        "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED"
-                    }
-                ],
-                "actions": [
-                    {
-                        "action": "postmessage",
-                        "text": "we are still waiting for the dictator to make a decision",
-                        "when": "time_elapsed % 60 == 0"
-                    }
-                ]
-            }
+            "check": [
+                {
+                    "name": "vote_duration",
+                    "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n" 
+                },
+                {
+                    "name": "main",
+                    "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED"
+                }
+            ]
 
         We execute codes in the `check` field in the order of the list, 
-            and we will execute actions in the `actions` field if the check codes return None or PROPOSED
+        to make the procedure template simple, we do not support adding new actions here, 
+        but users will be asked whether they expect some extra actions happen at this stage when authoring new policies. 
+            
     """
 
     variables = models.TextField(blank=True, default='')
-    """
-        varaibles used in the procedure
-    """
+    """ varaibles used in the procedure """
         
     def parse_variables(self):
         return json.loads(self.variables)
@@ -1228,25 +1218,78 @@ class Procedure(models.Model):
             new_variable.value = variables_data[variable["name"]]
             new_variable.save()
 
-# class Execution(models.Model):
+class Execution(models.Model):
     
-#     action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
-#     """ The action type of the execution action """
+    action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
+    """ The action type of the execution action """
 
-#     execution = models.TextField(blank=True, default='')
-#     """
-#         A JSON object, e.g.,
-#         {
-#             "text": "we are still waiting for the dictator to make a decision",
-#             "platform": null,
-#             "when": null
-#         }
-#     """
+    execution = models.TextField(blank=True, default='')
+    """
+        A JSON object, e.g.,
+        {
+            "text": "we are still waiting for the dictator to make a decision",
+            "platform": null,
+            "when": null
+        }
+    """
     
-#     def generate_codes(self):
-#         # each Governable Action implement a method that returns the execution codes.
-#         # currently only supports SlackPostMessage
-#         pass
+    def generate_codes(self):
+        # each Governable Action implement a method that returns the execution codes.
+        # currently only supports SlackPostMessage
+        pass
+
+
+class PolicyTemplate(models.Model):
+
+    name = models.CharField(max_length=100)
+    """The name of the policy template."""
+
+    description = models.TextField(null=True, blank=True)
+    """The description of the policy template. May be empty."""
+
+    custom_actions = models.ForeignKey(CustomAction, on_delete=models.CASCADE)
+
+    procedure_check = models.TextField(blank=True, default='')
+    """ extra check logic that are preapended to the check logic of the procedure"""
+    
+    procedure = models.ForeignKey(Procedure, on_delete=models.CASCADE)
+
+    procedure_actions = models.TextField(blank=True, default='')
+    """
+        A JSON object representing extra actions that are expected to be executed in each stage of this procedure
+        e.g.,
+            {
+                "notify": [
+                
+                ],
+                "check": [
+                    {
+                        "action": "postmessage",
+                        "text": "we are still waiting for the dictator to make a decision",
+                        "when": "time_elapsed % 60 == 0"
+                    }
+                ]
+
+
+            }
+
+    """
+    
+    success_execution = models.ForeignKey(Execution, on_delete=models.CASCADE)
+    """ 
+        not sure this is a good way, cause there might be multiple executions in the success block
+        but we use Execution class to represent the unit execution.
+    """
+
+    failure_execution = models.ForeignKey(Execution, on_delete=models.CASCADE)
+
+    variables = models.TextField(blank=True, default='')
+    """ 
+        varaibles used in the policy template；
+        we will also put the variables used in the referenced procedure here
+    
+    """
+
 
 
 ##### Pre-delete and post-delete signal receivers
