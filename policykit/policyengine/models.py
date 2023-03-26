@@ -1162,22 +1162,18 @@ class Procedure(models.Model):
                     "vote_type": "boolean",
                     "users": "variables.dictator",
                     "platform": null,
-                    "when": null,
                 },
                 {
                     "action": "postmessage",
                     "text": "variables.notify_message",    
-                    "when": null,
-                    "platform": null
+                    "platform": null,
                 }
             ],
             Each list element represents an action that will be executed in the "notify" stage, and its parameters tells us its expected behavior, 
-            1. The "when" parameter is optional and it is used to specify the condition upon which the action should be executed. 
-            ### Todo: It could also be a filter-like JSON dict?
 
-            2. We could here use variables defined in the "variables" field to specify the parameters of the action
+            1. We could here use variables defined in the "variables" field to specify the parameters of the action
 
-            3. A non-empty "platform" field suggests that this action is expected to be integration-specific, 
+            2. A non-empty "platform" field suggests that this action is expected to be integration-specific, 
                     then parameters that are needed by this specific integration should be further specified (e.g. "channel" and "post_type" for "slack")
                 If the "platform" field is empty, then the action is expected to be generic,
                     then when a user designates a specific platform, we will help add more integration-specific parameters to this action
@@ -1202,8 +1198,13 @@ class Procedure(models.Model):
         We execute codes in the `check` field in the order of the list, 
         to make the procedure template simple, we do not support adding new actions here, 
         but users will be asked whether they expect some extra actions happen at this stage when authoring new policies. 
-            
     """
+
+    success =  models.TextField(blank=True, default='')
+    """ in a similar structure to the "notify" field  """
+
+    fail =  models.TextField(blank=True, default='')
+    """ in a similar structure to the "notify" field  """
 
     variables = models.TextField(blank=True, default='')
     """ varaibles used in the procedure """
@@ -1218,27 +1219,6 @@ class Procedure(models.Model):
             new_variable.value = variables_data[variable["name"]]
             new_variable.save()
 
-class Execution(models.Model):
-    
-    action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
-    """ The action type of the execution action """
-
-    execution = models.TextField(blank=True, default='')
-    """
-        A JSON object, e.g.,
-        {
-            "text": "we are still waiting for the dictator to make a decision",
-            "platform": null,
-            "when": null
-        }
-    """
-    
-    def generate_codes(self):
-        # each Governable Action implement a method that returns the execution codes.
-        # currently only supports SlackPostMessage
-        pass
-
-
 class PolicyTemplate(models.Model):
 
     name = models.CharField(max_length=100)
@@ -1251,7 +1231,7 @@ class PolicyTemplate(models.Model):
 
     procedure_check = models.TextField(blank=True, default='')
     """ extra check logic that are preapended to the check logic of the procedure"""
-    
+
     procedure = models.ForeignKey(Procedure, on_delete=models.CASCADE)
 
     procedure_actions = models.TextField(blank=True, default='')
@@ -1275,14 +1255,6 @@ class PolicyTemplate(models.Model):
 
     """
     
-    success_execution = models.ForeignKey(Execution, on_delete=models.CASCADE)
-    """ 
-        not sure this is a good way, cause there might be multiple executions in the success block
-        but we use Execution class to represent the unit execution.
-    """
-
-    failure_execution = models.ForeignKey(Execution, on_delete=models.CASCADE)
-
     variables = models.TextField(blank=True, default='')
     """ 
         varaibles used in the policy template；
