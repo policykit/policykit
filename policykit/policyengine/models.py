@@ -1025,24 +1025,6 @@ class GovernableActionForm(ModelForm):
         super(GovernableActionForm, self).__init__(*args, **kwargs)
         self.label_suffix = ''
 
-
-
-class GovernableActionForm(ModelForm):
-    class Meta:
-        model = GovernableAction
-        exclude = [
-            "initiator",
-            "community",
-            "community_revert",
-            "community_origin",
-            "is_bundled"
-        ]
-
-    def __init__(self, *args, **kwargs):
-        super(GovernableActionForm, self).__init__(*args, **kwargs)
-        self.label_suffix = ''
-
-
 class CustomAction(models.Model):
     
     JSON_FIELDS = ["filter"]
@@ -1163,6 +1145,107 @@ class CustomAction(models.Model):
                 # TODO not sure we would like to assign this permission to all users by default or not
                 # perhaps we should at first assign it to users who have the execute permission of the referenced GovernableAction
         super(CustomAction, self).save(*args, **kwargs)
+
+class Procedure(models.Model):
+
+    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables"]
+    """fields that are stored as JSON dumps"""
+
+    SLACK = "Slack"
+    DISCORD = "Discord"
+    DISCOURSE = "Discourse"
+    GITHUB = "Github"
+    OPENCOLLECTIVE = "Opencollective"
+    REDDIT = "Reddit"
+    ALL = "All"
+    
+    PLATFORMS = [
+        (SLACK, "Slack"),
+        (DISCORD, "Discord"),
+        (DISCOURSE, "Discourse"),
+        (GITHUB, "Github"),
+        (OPENCOLLECTIVE, "OpenCollective"),
+        (REDDIT, "Reddit"),
+        (ALL, "All"),
+    ]
+
+    name = models.TextField(blank=True, default='')
+    """such as Jury, Dictator, etc."""
+
+    description = models.TextField(blank=True, default='')
+
+    platform = models.TextField(choices=PLATFORMS, blank=True, default='')
+    """the platform where the procedure (in particular, the voting component) is expected to happen"""
+
+    initialize = models.TextField(blank=True, default='[]')
+    """ ideally we would put the initialization codes of each policy variable here """
+
+    notify = models.TextField(blank=True, default='[]')
+    """
+        a JSON object. Each list element represents an action that will be executed in the "notify" stage, 
+        and its parameters tells us its expected behavior, 
+        In partucilar, we could here use variables defined in the "variables" field 
+        to specify the parameters of the action
+        
+        e.g.,
+            "notify": [
+                {
+                    "action": "initiate_vote",
+                    "vote_message": "varaibles[\"vote_message\"]",
+                    "vote_type": "boolean",
+                    "users": "variables[\"dictator\"]",
+                    "platform": "slack",
+                },
+                {
+                    "action": "slackpostmessage",
+                    "text": "variables[\"notify_message\"]",    
+                    "platform": "slack",
+                }
+            ],
+
+    """
+
+    check = models.TextField(blank=True, default='[]')
+    """        
+        A JSON object. We execute codes in the `check` field in the order of the list, 
+        to make the procedure template simple, we do not support adding new actions at this stage, 
+        but users will be asked whether they expect some extra actions happen at this stage when authoring new policies
+        e.g.
+            "check": [
+                {
+                    "name": "vote_duration",
+                    "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n" 
+                },
+                {
+                    "name": "main",
+                    "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED"
+                }
+            ]
+
+    """
+
+    success =  models.TextField(blank=True, default='[]')
+    """ in a similar structure to the "notify" field  """
+
+    fail =  models.TextField(blank=True, default='[]')
+    """ in a similar structure to the "notify" field  """
+
+    variables = models.TextField(blank=True, default='[]')
+    """ varaibles used in the procedure """
+        
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+    
+    def to_json(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "initialize": self.loads("initialize"),
+            "notify": self.loads("notify"),
+            "check": self.loads("check"),
+            "success": self.loads("success"),
+            "fail": self.loads("fail"),
+        }
 
 ##### Pre-delete and post-delete signal receivers
 
