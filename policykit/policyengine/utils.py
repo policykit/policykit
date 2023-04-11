@@ -525,3 +525,12 @@ def get_filter_parameters(app_name, action_codename):
         return action_model.FILTER_PARAMETERS
     else:
         return []
+    
+def determine_policy_kind(is_trigger, app_name):
+    from policyengine.models import Policy
+    if is_trigger:
+        return Policy.TRIGGER
+    elif app_name == "constitution":
+        return Policy.CONSTITUTION
+    else:
+        return Policy.PLATFORM

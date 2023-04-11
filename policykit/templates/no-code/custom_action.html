@@ -77,7 +77,7 @@
                 The exepcted div structure looks like this:
                 <div id="action-specs-group">
                     # for all fields of this action
-                    <div class="variables">
+                    <div class="variables" id=${action}>
                         <label class="action-label">For action ... </label>
                         <div class="action-field">
                             <div class="variables-values" id="${action}.${field}">
@@ -87,16 +87,20 @@
                                     ...
                                 </select>
                             </div>
+                            # for all variables of the filter module selected in the div above; 
+                            # added in the showFilterModuleVariables function
+                            <div class="variable-values" id="select-${action}.${field}.${variable.name}"> ... 
+                                <label class='variable-label' for='${variable_id}'>${variable.name}</label>
+                                <input type='text' data-id='${variable_id}' name='${variable_id}' class='variable-input' ${default_value}>
+                            </div>
                         </div>
-                        # for all variables of the filter module selected in the div above; 
-                        # added in the showFilterModuleVariables function
-                        <div class="variable-values" id="select-${action}.${field}.${variable.name}"> ... 
-                            <label class='variable-label' for='${variable_id}'>${variable.name}</label>
-                            <input type='text' data-id='${variable_id}' name='${variable_id}' class='variable-input' ${default_value}>
-                        </div>
+                        
+                        # for other fields of this action
+                        <div class="action-field"> ... </div>
                     </div>
 
-                    <div class="variables">
+                    # for other selected actions
+                    <div class="variables" id=${action}>
                         ...
                     </div
                 </div>
@@ -183,6 +187,67 @@
         });
     
     }
+    
+    const goCreateProcedure = async () => {
+        var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
+        selected_options = selected_options.filter(option => option.value != "none");
+        
+        var selected_actions = Array.from(selected_options).map(({ value }) => value); // in codenames
+        
+        // get the corresponding apps of the selected actions
+        var selected_groups = Array.from(selected_options).map( option => option.getAttribute('group'));
+        // make sure that all selected actions are from the same app
+        if(selected_groups.every( (val, i, arr) => val === arr[0] )){
+            var app_name = selected_groups[0];
+        } else {
+            alert("Please select actions from the same app");
+            return;
+        }
+        console.log("new actions are: " + selected_actions);
+        
+        const filters = selected_actions.map((action, index) => {
+            const action_div = document.getElementById(action);
+            let action_field_divs = action_div.getElementsByClassName('action-field');
+            var filters_per_action = {}
+            Array.from(action_field_divs).forEach((action_field_div => {
+                let action_field_id = action_field_div.firstElementChild.id; // the field itself: slackpostmessage.initiator
+                let action_field_name = action_field_id.split(".")[1]; // initiator
+                let selected_filter_pk = document.getElementById(`select-${action_field_id}`).value; // select-slackpostmessage.initiator
+                if(selected_filter_pk === ""){
+                    filters_per_action[action_field_name] = {}
+                } else {
+                    // a dict of variable_name: variable_value
+                    for(var i=1, len = action_field_div.childElementCount ; i < len; ++i){
+                        let filter_variable_div = action_field_div.children[i];
+                        let filter_variable_input = filter_variable_div.querySelectorAll('.variable-input');
+                        var variables_dict = Array.from(filter_variable_input).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id').split(".").pop() ] : curr.value }), {});
+                    }
+                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
+                }
+            }))
+            console.log("filters per action: " + JSON.stringify(filters_per_action));
+            return {action_type: action, filter: filters_per_action}
+        });
+
+        const is_trigger = "{{trigger}}"
+        const submit_data = {
+                            trigger: is_trigger,
+                            filters: filters,
+                            app_name: app_name,
+                        }
+        console.log("submit data " + JSON.stringify(submit_data));
+        const response = await submit('create_custom_action', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            if(is_trigger == "false"){ // if it is not a trigger, then go to create procedure
+                redirect('procedure', {policy_id: response["policy_id"], trigger: is_trigger});
+            } else{ // if it is a trigger, then go to skip the creation of procedure
+                redirect('execution', {policy_id: response["policy_id"], trigger: is_trigger});
+            }
+        }
+    }
+    
+    document.getElementById(stepElementIds.custom_action).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateProcedure);
     
     document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
     showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded

@@ -962,3 +962,84 @@ def design_custom_action(request):
         "filter_parameters": json.dumps(filter_parameters), # this variable is used in javascript and therefore needs to be dumped
         "filter_modules": json.dumps(filter_modules)
     })
+
+@login_required
+def create_custom_action(request):
+    '''
+        create custom actions or action_types of a PolicyTemplate instance based on the request body.
+        We create a new CustomAction instance if filters are specified; otherwise, we reference the action type 
+
+        parameters:
+            request.body: A Json object in the shape of 
+                {
+                    trigger: "true"/"false",
+                    filters: [
+                        {
+                            "action_type": "slackpostmessage",
+                            "filter": {
+                                "message": {
+                                    "filter_pk": 1,
+                                    "platform": "slack",
+                                    "variables": {"word": "vote"}
+                                },
+                                "initiator": ...
+                            }
+                        },
+
+                        ...
+                    ]
+                    app_name: "slack",
+                }
+    '''
+
+    from policyengine.models import CustomAction, ActionType, PolicyTemplate, FilterModule
+
+    data = json.loads(request.body)
+    filters = data.get("filters", None)
+    # only create a new PolicyTemplate instance when there is at least one filter specified
+    if filters and len(filters) > 0:
+        is_trigger = data.get("trigger", "false") == "true"
+        policy_kind = Utils.determine_policy_kind(is_trigger, data.get("app_name"))
+        
+        new_policy = PolicyTemplate.objects.create(kind=policy_kind, is_trigger=is_trigger)
+        for filter in filters:
+            action_type = filter.get("action_type")
+            action_type = ActionType.objects.filter(codename=action_type).first()
+            
+            action_specs = filter.get("filter")
+            '''
+                check whether the value of each action_specs is an empty string
+                create a new CustomAction instance for each selected action that has specified filter parameters
+                and only search the action_type for any selected action without specified filter parameters
+                an example of a action_specs:
+                    {
+                        "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
+                        "text":{}
+                    }
+                    
+            '''
+            empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
+            filter_JSON = {}
+            if empty_filter:
+                new_policy.action_types.add(action_type)
+            else:
+                custom_action = CustomAction.objects.create(
+                    action_type=action_type, is_trigger=is_trigger
+                )
+                for field, filter_info in action_specs.items():
+                    if not filter_info:
+                        filter_JSON[field] = None
+                    else:
+                        filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
+                        # create a filter JSON object with the actual value specified for each variable
+                        filter_JSON[field] = filter_module.to_json(filter_info["variables"])
+                        # to faciliate the generation of codes for custom actions, we store the platform of each filter
+                        filter_JSON[field]["platform"] = filter_info["platform"]
+                custom_action.dumps("filter", filter_JSON)
+                custom_action.save()
+                new_policy.custom_actions.add(custom_action)                
+
+        new_policy.save()
+        return JsonResponse({"policy_id": new_policy.pk, "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
