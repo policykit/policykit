@@ -1053,12 +1053,12 @@ def design_procedure(request):
     from policyengine.models import Procedure, CheckModule      
 
     # load all procedure templates
-    procedure_templates = Procedure.objects.all()
+    procedure_objects= Procedure.objects.all()
     procedures = []
     procedure_details = []
     # keep variables in a different dict simply to avoid escaping problems of nested quotes
     # the first is to use directly in template rendering, while the second is to use in javascript
-    for template in procedure_templates:
+    for template in procedure_objects:
         procedures.append({
             "name": template.name, 
             "pk": template.pk, 
@@ -1117,3 +1117,46 @@ def create_procedure(request):
             new_policy.save()
             return JsonResponse({"status": "success", "policy_id": new_policy.pk})
     return JsonResponse({"status": "fail"})
+
+
+@login_required
+def customize_procedure(request):
+    """
+        Help render the customize procedure page
+    """
+
+    from policyengine.models import CheckModule, PolicyTemplate
+    
+    # prepare information about module templates
+    checkmodules_objects = CheckModule.objects.all()
+    checkmodules = []
+    checkmodules_details = []
+    for template in checkmodules_objects:
+        checkmodules.append((template.pk, template.name))
+        checkmodules_details.append({
+            "name": template.name, 
+            "pk": template.pk, 
+            "variables": template.loads("variables")
+        })
+
+    # prepare information about extra executions that are supported
+    user = get_user(request)
+    executable_actions, execution_parameters = Utils.extract_executable_actions(user.community.community)
+
+    
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id")
+    data = {
+            "checkmodules": checkmodules,
+            "checkmodules_details": json.dumps(checkmodules_details),
+            "executions": executable_actions,
+            "execution_parameters": json.dumps(execution_parameters),
+            "trigger": trigger,
+            "policy_id": policy_id,
+        }
+
+    now_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    data["policy_variables"] = json.dumps(
+            now_policy.loads("variables") if now_policy else {}
+        )
+    return render(request, "no-code/customize_procedure.html", data)

@@ -1,0 +1,166 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="customize_procedure">
+    <div id="check_modules">
+        <h4 class="heading-4">Add Procedure Modules</h4>
+        <div class="selectpicker-group">
+            <label for="module-picker">Modules</label>
+            <div>
+                <select id="module-picker" class="selectpicker">
+                    <option value="none" selected>Select an Option</option>
+                        {% for index, name in checkmodules %}
+                            <option value={{index}}>{{name}}</option>
+                        {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div id="module-variables" class="variables">
+
+        </div>
+    </div>
+    <div id="extra-actions">
+        <h4 class="heading-4">Add Extra Executions</h4>
+        <div id="action-code-block">
+            <label>
+                <input type="radio" name="option" value="notify" checked> Add actions when starting the procedure
+            </label>
+            <label>
+                <input type="radio" name="option" value="check"> Add actions for progress updates
+            </label>
+        </div>
+        <div class="selectpicker-group">
+            <label for="extra-action-picker">
+                Execution
+            </label>
+            <div>
+                <select id="extra-action-picker" class="selectpicker">
+                    <option value="none" selected>Select an Option</option>
+                    {% for app_name, action_list in executions.items %}
+                        <optgroup label="{{app_name|upper}}">
+                            {% for codename, verbose_name in action_list %}
+                                <option value={{codename}}>{{verbose_name}}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div>
+            <h4 class="heading-4">Please fill in the following information about this action.</h4>
+            <div class="variables" id="action-variables">
+
+            </div>
+        </div>
+    </div>
+    <div class="button-group">
+        <button class="button secondary">
+            Back
+        </button>
+        <button class="button primary">
+            Continue
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const checkmodule_details = JSON.parse('{{checkmodules_details|safe}}');
+    const execution_parameters = JSON.parse('{{execution_parameters|safe}}');
+    const policy_variables = JSON.parse('{{policy_variables|safe}}');
+
+    const showModuleDetails = () => {
+        const module_index = parseInt(document.getElementById("module-picker").value);
+        console.log("now module index is: " + module_index);
+
+        removeElementChildren('module-variables');
+        if(Number.isNaN(module_index)) return;
+
+        var variables_div = document.getElementById('module-variables');
+        const cur_detail = checkmodule_details.find(module => module.pk == module_index);
+        console.log("now module detail is: " + JSON.stringify(cur_detail))
+        
+        /*
+            The expected htm structure is as follows:
+            <div class="variables" id="module-variables">
+                <div class="variable" id="duration">
+                    <div class='variable-values'>
+                        <label class='variable-label' for='${item.name}'>${item.label}</label>
+                        <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                    </div>
+                    <p class='variable-prompt text-small'>${item.prompt}</p>`;
+                </div>
+                <div class="variable" ...> </div> 
+            </div>  
+        */
+        cur_detail["variables"].forEach((item, index) => {
+            var text = document.createElement('div');
+            text.classList.add('variable');
+            text.id = item.name;
+            text.innerHTML = `
+                <div class='variable-values'>
+                    <label class='variable-label' for='${item.name}'>${item.label}</label>
+                    <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                </div>
+                <p class='variable-prompt text-small'>${item.prompt}</p>`;
+                variables_div.appendChild(text);
+        })
+
+    }
+
+    const showActionDetails = () => {
+        var new_execution = document.getElementById("extra-action-picker").value;
+
+        removeElementChildren('action-variables')
+        if(new_execution == "none") return;
+
+        var variables_div = document.getElementById('action-variables');    
+        var cur_detail = [...execution_parameters[new_execution]]; 
+        // copy the object to avoid adding frequency fields for multiple times
+
+        // which stage we should add this extra execution to
+        // check executions need a new field frequency to determine the frequency of the execution
+        const selected_block = document.querySelector('input[name="option"]:checked').value;
+        if(selected_block == "check")  cur_detail.push("frequency (in minutes)");
+        
+        /* 
+            To enable users to set fields of executions as variables already used in the procedure step,
+            we will add a datalist to each field.
+            We use datalist so that users are still able to input their own values.
+        */
+
+        let policy_variables_datalist = `<datalist id="variable-options">`
+        policy_variables.forEach(item => {
+            policy_variables_datalist += '<option value="variables[&quot;' + item.name + '&quot;]">' + item.label + '</option>';
+        })
+        policy_variables_datalist += `</datalist>`
+        
+        cur_detail.forEach(item => {
+            var text = document.createElement('div');
+            text.classList.add('variables');
+            text.id = item;
+            text.innerHTML = `
+                    <div class='variable-values'>
+                        <label class='variable-label' for='${item}'>${item}</label>
+                        <input class='variable-input' type='text' value='' data-id='${item}' name='${item}' list="variable-options"/>
+                        ${policy_variables_datalist}
+                    </div>`;
+            variables_div.appendChild(text);
+        });
+    }
+
+    document.getElementById("module-picker").addEventListener("change", showModuleDetails);
+    document.getElementById("extra-action-picker").addEventListener("change", showActionDetails);
+    showModuleDetails();
+
+    const radioButtons = document.querySelectorAll('input[name="option"]');
+    radioButtons.forEach(radioButton => {
+        radioButton.addEventListener('change', event => {
+            showActionDetails();
+        });
+    });
+    
+</script>
+{% endblock %}

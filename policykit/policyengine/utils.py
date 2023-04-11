@@ -534,3 +534,28 @@ def determine_policy_kind(is_trigger, app_name):
         return Policy.CONSTITUTION
     else:
         return Policy.PLATFORM
+
+def get_execution_parameters(app_name, action_codename):
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "execution_codes"):
+        return action_model.EXECUTE_PARAMETERS
+    else:
+        return None
+    
+def extract_executable_actions(community):
+    from policyengine.models import PolicyActionKind
+    actions = get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
+
+    executable_actions = dict()
+    execution_parameters = dict()
+    for app_name, action_list in actions.items():
+        for action_code, action_name in action_list:
+            parameters = get_execution_parameters(app_name, action_code)
+            # only not None if the action has execution_codes function
+            if parameters:
+                if app_name not in executable_actions:
+                    executable_actions[app_name] = []
+                executable_actions[app_name].append((action_code, action_name))
+                execution_parameters[action_code] = parameters
+    
+    return executable_actions, execution_parameters
