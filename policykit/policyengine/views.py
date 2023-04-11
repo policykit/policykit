@@ -1043,3 +1043,42 @@ def create_custom_action(request):
         return JsonResponse({"policy_id": new_policy.pk, "status": "success"})
     else:
         return JsonResponse({"status": "fail"})
+    
+@login_required  
+def design_procedure(request):
+        from policyengine.models import Procedure, CheckModule      
+ 
+        # load all procedure templates
+        procedure_templates = Procedure.objects.all()
+        procedures = []
+        procedure_details = []
+        # keep variables in a different dict simply to avoid escaping problems of nested quotes
+        # the first is to use directly in template rendering, while the second is to use in javascript
+        for template in procedure_templates:
+            procedures.append({
+                "name": template.name, 
+                "pk": template.pk, 
+                "platform": template.platform,     
+            })
+                
+            procedure_details.append({
+                "name": template.name, 
+                "pk": template.pk, 
+                "variables": template.loads("variables")
+            })
+        
+        # get all platform names this community is using
+        user = get_user(request)
+        platforms = user.community.community.get_platform_communities()
+        platform_names = [platform.platform for platform in platforms]
+
+
+        trigger = request.GET.get("trigger", "false")
+        policy_id = request.GET.get("policy_id")
+        return render(request, "no-code/design_procedure.html", {
+            "procedures": json.dumps(procedures),
+            "procedure_details": json.dumps(procedure_details),
+            "platforms": platform_names,
+            "trigger": trigger,
+            "policy_id": policy_id
+        })

@@ -1,0 +1,120 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="design_procedure">
+    
+    <h4 class="heading-4">What kind of governing procedure do you want to use?</h4>
+    <div class="selectpicker-group">
+        <label for="platform-picker">Platform</label>
+        <div>
+            <select id="platform-picker" class="selectpicker">
+                <option value="none" selected>Select an Option</option>
+                    {% for name in platforms %}
+                        <option value={{name|capfirst}}>{{name | capfirst }}</option>
+                    {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="selectpicker-group">
+        <label for="procedure-picker">Procedures</label>
+        <div>
+            <select id="procedure-picker" class="selectpicker">
+            </select>
+        </div>
+    </div>
+    <div class="variables-list">
+        <h4 class="heading-4" id="procedure-name"></h4>
+        <div id="procedure-variables" class="variables">
+
+        </div>
+    </div>
+    <div class="actions">
+        <button class="button secondary">
+            Customize
+        </button>
+        <button class="button primary">
+            Continue
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const procedure_details = JSON.parse('{{procedure_details|safe}}');
+    const procedures = JSON.parse('{{procedures|safe}}');
+
+    const showProcedureDetails = () => {
+        var cur_index = parseInt(document.getElementById("procedure-picker").value);
+        // remove previously shown procedure details
+        removeElementChildren('procedure-variables')
+        document.getElementById("procedure-name").innerHTML = '';
+        
+        // if the "none" option is selected, return
+        if(Number.isNaN(cur_index)) return;
+        var variables_div = document.getElementById('procedure-variables');
+
+        var cur_detail = procedure_details.find(item => item.pk == cur_index);
+        console.log("now template detail is: " + JSON.stringify(cur_detail));
+        document.getElementById("procedure-name").innerHTML = cur_detail["name"];
+        
+        /*
+            The expected html structure is as follows:
+
+             <div id="procedure-variables" class="variables">
+                <div class="variable">
+                    <div class='variable-values'>
+                        <label class='variable-label' for='${item.name}'>${item.label}</label>
+                        <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                    </div>
+                    <p class='variable-prompt text-small'>${item.prompt}</p>`
+                </div>
+                <div class="variable"> ... </div>
+            </div>
+        */
+        cur_detail["variables"].forEach((item, index) => {
+            var text = document.createElement('div');
+            text.classList.add('variable');
+            text.id = item.name;
+            text.innerHTML = `
+                <div class='variable-values'>
+                    <label class='variable-label' for='${item.name}'>${item.label}</label>
+                    <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                </div>
+                <p class='variable-prompt text-small'>${item.prompt}</p>`;
+            variables_div.appendChild(text);
+        })
+    }
+
+    const showPlatformProcedures = () => {
+        var cur_platform = document.getElementById("platform-picker").value;
+
+        removeElementChildren('procedure-picker')
+        if(cur_platform == "none") return;
+
+        var procedure_dropdown = document.getElementById('procedure-picker');
+        // filter out procedures of which the platform is cur_platform
+        // insert a dict for "none" option in the beginning of the now_procedures
+        var now_procedures = procedures.filter(item => item.platform == cur_platform);  
+        now_procedures.unshift({pk: "none", name: "Select an Option"});
+
+        $(".selectpicker").selectpicker();
+        now_procedures.forEach((item, index)  => {
+            console.log("now item is: " + JSON.stringify(item));
+            var new_option = document.createElement('option');
+            if(index == 0) new_option.selected = true;
+            new_option.value = item.pk;
+            new_option.innerHTML = item.name;
+            procedure_dropdown.appendChild(new_option);
+        })
+        $('.selectpicker').selectpicker('refresh');
+
+    }
+        
+    document.getElementById("procedure-picker").addEventListener("change", showProcedureDetails);
+    document.getElementById("platform-picker").addEventListener("change", showPlatformProcedures);
+    showProcedureDetails();
+    
+</script>
+{% endblock %}
