@@ -1427,17 +1427,20 @@ class PolicyTemplate(models.Model):
         """
             reduce this PolicyTemplate object to a JSON object
         """
+
+        # combine the custom actions and the action types together as a filter of this Procedure    
         filters = [action.to_json() for action in self.custom_actions.all()]
         filters += [{"action_type": action.codename} for action in self.action_types.all()]
 
         procedure = self.procedure.to_json()
         executions = self.loads("extra_executions")
-        # add procedure actions to the extra_executions
+        # add actions defined in the Procedure isntance to the extra_executions
         for key in ["notify", "success", "fail"]:
             if key not in executions:
                 executions[key] = []
             # prepend the procedure actions to the extra_executions
             if key in procedure:
+                # We assume extra executions are appended to the procedure actions
                 executions[key] = procedure[key] + executions[key]
 
         procedure["check"] = self.loads("extra_check") + procedure["check"]
@@ -1451,6 +1454,37 @@ class PolicyTemplate(models.Model):
             "executions": executions,
             "variables": self.loads("variables"),
         }
+
+class CheckModule(models.Model):
+
+        JSON_FIELDS = ["variables"]
+        """the fields that are stored as JSON dumps"""
+
+        name = models.TextField(blank=True, default='')
+        """the name of the check module"""
+
+        description = models.TextField(blank=True, default='')
+        """the description of the check module"""
+
+        codes = models.TextField(blank=True, default='')
+        """the codes of the check module"""
+    
+        variables = models.TextField(blank=True, default='[]')
+        """ varaibles used in the check module defined in a similar way to variables in a PolicyTemplate"""
+
+        def loads(self, attr):
+            return json.loads(getattr(self, attr))
+
+        def __str__(self):
+            return self.name
+        
+        def to_json(self):
+            return {
+                "name": self.name,
+                "codes": self.codes
+            }
+
+
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
