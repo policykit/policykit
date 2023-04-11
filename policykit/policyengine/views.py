@@ -1046,39 +1046,74 @@ def create_custom_action(request):
     
 @login_required  
 def design_procedure(request):
-        from policyengine.models import Procedure, CheckModule      
- 
-        # load all procedure templates
-        procedure_templates = Procedure.objects.all()
-        procedures = []
-        procedure_details = []
-        # keep variables in a different dict simply to avoid escaping problems of nested quotes
-        # the first is to use directly in template rendering, while the second is to use in javascript
-        for template in procedure_templates:
-            procedures.append({
-                "name": template.name, 
-                "pk": template.pk, 
-                "platform": template.platform,     
-            })
-                
-            procedure_details.append({
-                "name": template.name, 
-                "pk": template.pk, 
-                "variables": template.loads("variables")
-            })
-        
-        # get all platform names this community is using
-        user = get_user(request)
-        platforms = user.community.community.get_platform_communities()
-        platform_names = [platform.platform for platform in platforms]
+    """
+        Help render the design procedure page
+    """  
 
+    from policyengine.models import Procedure, CheckModule      
 
-        trigger = request.GET.get("trigger", "false")
-        policy_id = request.GET.get("policy_id")
-        return render(request, "no-code/design_procedure.html", {
-            "procedures": json.dumps(procedures),
-            "procedure_details": json.dumps(procedure_details),
-            "platforms": platform_names,
-            "trigger": trigger,
-            "policy_id": policy_id
+    # load all procedure templates
+    procedure_templates = Procedure.objects.all()
+    procedures = []
+    procedure_details = []
+    # keep variables in a different dict simply to avoid escaping problems of nested quotes
+    # the first is to use directly in template rendering, while the second is to use in javascript
+    for template in procedure_templates:
+        procedures.append({
+            "name": template.name, 
+            "pk": template.pk, 
+            "platform": template.platform,     
         })
+            
+        procedure_details.append({
+            "name": template.name, 
+            "pk": template.pk, 
+            "variables": template.loads("variables")
+        })
+    
+    # get all platform names this community is using
+    user = get_user(request)
+    platforms = user.community.community.get_platform_communities()
+    platform_names = [platform.platform for platform in platforms]
+
+
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id")
+    return render(request, "no-code/design_procedure.html", {
+        "procedures": json.dumps(procedures),
+        "procedure_details": json.dumps(procedure_details),
+        "platforms": platform_names,
+        "trigger": trigger,
+        "policy_id": policy_id
+    })
+
+@login_required  
+def create_procedure(request):
+    '''
+        Create the procedure field of a PolicyTemplate instance based on the request body.
+        We also add variables defined in the selected procedure to the new policytemplate instance
+
+        Parameters:
+            request.body: 
+                A Json object in the shape of
+                {  
+                    "procedure_index": an integer, which represents the primary key of the selected procedure;
+                    "policy_id": an integer, which represents the primary key of the policy that we are creating
+                    "procedure_variables": a dict of variable names and their values
+                }
+    '''
+    from policyengine.models import Procedure, PolicyTemplate
+
+    data = json.loads(request.body)
+    procedure_index = data.get("procedure_index", None)
+    policy_id = data.get("policy_id", None)
+    if procedure_index and policy_id:
+        procedure = Procedure.objects.filter(pk=procedure_index).first()
+        new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+        if new_policy and procedure:
+            logger.debug("creating variables for the new policy") 
+            new_policy.procedure = procedure
+            new_policy.add_variables(procedure.loads("variables"), data.get("procedure_variables", {}))
+            new_policy.save()
+            return JsonResponse({"status": "success", "policy_id": new_policy.pk})
+    return JsonResponse({"status": "fail"})
