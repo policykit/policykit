@@ -1,0 +1,122 @@
+[
+    {
+        "kind": "CommunityUser",
+        "name": "Permission",
+        "description": "Only users with the specified permission",
+        "platform": "All",
+        "codes": "all_usernames_with_permission = [_user.username for _user in {platform}.get_users_with_permission(permission)]\nreturn (object.username in all_usernames_with_permission) if object else None, all_usernames_with_permission\n",
+        "variables":[
+            {
+                "name": "permission",
+                "label": "Which permission users should have?",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "Role",
+        "description": "Only users of the specified role",
+        "platform": "All",
+        "codes": "all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\nreturn (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles\n",
+        "variables":[
+            {
+                "name": "role",
+                "label": "Which role users should have?",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "ReadableName",
+        "description": "Only users with the specified readable name",
+        "platform": "All",
+        "codes": "return object.readable_name == readable_name, None",
+        "variables":[
+            {
+                "name": "readable_name",
+                "label": "Which readable name the user should have?",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "UserID",
+        "description": "Only users with the specified user ID",
+        "platform": "All",
+        "codes": "return object.username == user_ID, None",
+        "variables":[
+            {
+                "name": "user_ID",
+                "label": "Which ID the user should have?",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+
+    {
+        "kind": "Text",
+        "name": "Startswith",
+        "description": "Only texts that start with the specified word",
+        "platform": "All",
+        "codes": "return object.startswith(word), None",
+        "variables":[
+            {
+                "name": "word",
+                "label": "Which word do you expect the message starts wtih?",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "kind": "Text",
+        "name": "Equals",
+        "description": "Only texts that equals the specified text",
+        "platform": "All",
+        "codes": "return object == text, None",
+        "variables":[
+            {
+                "name": "text",
+                "label": "What do you expect the text to be",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "kind": "Text",
+        "name": "Length",
+        "description": "Only texts that have the length greater than the specified length",
+        "platform": "All",
+        "codes": "return len(object) > length, None",
+        "variables":[
+            {
+                "name": "length",
+                "label": "Which maximum length do you expect the text to be of?",
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "number"
+            }
+        ]
+    }
+]
