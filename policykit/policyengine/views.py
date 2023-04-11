@@ -1160,3 +1160,47 @@ def customize_procedure(request):
             now_policy.loads("variables") if now_policy else {}
         )
     return render(request, "no-code/customize_procedure.html", data)
+
+@login_required
+def create_customization(request):
+    """
+        Add extra check modules and extra actions to the policy template
+
+        parameters:
+            request.body: e.g.,
+                {
+                    "policy_id": 1,
+                    
+                    "module_index": 1,
+                    "module_data": {
+                        "duration": ...
+                    }
+                    
+                    "action_data": {
+                        "check"/"notify": {
+                            "action": "slackpostmessage",
+                            "channel": ...,
+                            "text": ...
+                        }
+                    }
+                }
+    """
+    from policyengine.models import CheckModule, PolicyTemplate
+
+    data = json.loads(request.body)
+    
+    policy_id = data.get("policy_id", None)
+    new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    if new_policy:
+        module_index = data.get("module_index", None)
+        module_template = CheckModule.objects.filter(pk=module_index).first()
+        if module_template:
+            new_policy.add_check_module(module_template)
+            new_policy.add_variables(module_template.loads("variables"), data.get("module_data", {}))
+
+        action_data = data.get("action_data", None)
+        if action_data:
+            new_policy.add_extra_actions(action_data)
+        new_policy.save()
+        return JsonResponse({"status": "success", "policy_id": new_policy.pk})
+    return JsonResponse({"status": "fail"})

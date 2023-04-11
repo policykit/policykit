@@ -83,6 +83,7 @@ urlpatterns = [
     path('no-code/design_procedure', policyviews.design_procedure),
     path('no-code/create_procedure', policyviews.create_procedure),
     path('no-code/customize_procedure', policyviews.customize_procedure),
+    path('no-code/create_customization', policyviews.create_customization),
 
 ]
 
