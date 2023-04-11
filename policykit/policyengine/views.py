@@ -905,3 +905,60 @@ def embed_success (request):
 @login_required
 def choose_policy_type(request):
     return render(request, "no-code/policytype.html")
+
+@login_required
+def design_custom_action(request):
+    """
+        help render the custom action page
+    """
+    from policyengine.models import PolicyActionKind, FilterModule
+
+    """
+        determine which action types to show in the dropdown
+        The resultant new_actions is a dictionary of app_name: [(action_code, action_name), ...]
+        The resultant filter_parameters is a dictionary of action_code: {parameter_name: filter_kind, ...}
+    """
+    filter_parameters = {}
+    new_actions = {}
+
+    user = get_user(request)
+    actions = Utils.get_action_types(user.community.community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])    
+    for app_name, action_list in actions.items():
+        new_action_list = []
+        for action_code, verbose_name in action_list:
+            parameter = Utils.get_filter_parameters(app_name, action_code)
+            # only show actions that have filter parameters
+            if parameter:
+                filter_parameters[action_code] = parameter
+                new_action_list.append((action_code, verbose_name))
+        # only show apps that have at least one action with filter parameters
+        if new_action_list:
+            new_actions[app_name] = new_action_list
+
+    """
+        For each app, get all filter modules available listed by kind (CommunityUser, Text, Channel, etc.)
+        The resultant filters is a dictionary of app_name: {kind: [filter_module, ...], ...}
+    """
+    filter_modules = {}
+    for app_name in new_actions:
+        filter_modules[app_name] = {}
+        filters_per_app = FilterModule.objects.filter(platform__in=[app_name, "All"])
+        # get distinct filter kinds for each app
+        filter_kinds = list(filters_per_app.values_list('kind', flat=True).distinct())
+        for kind in filter_kinds:
+            filter_modules[app_name][kind] = []
+            for filter in filters_per_app.filter(kind=kind):
+                filter_modules[app_name][kind].append({
+                    "pk": filter.pk, 
+                    "name": filter.name,
+                    "description": filter.description, 
+                    "variables": filter.loads("variables")
+                })
+
+    trigger = request.GET.get("trigger", "false")
+    return render(request, "no-code/custom_action.html", {
+        "trigger": trigger,
+        "actions": new_actions, # this variable is only used in html template and therefore no dump is needed
+        "filter_parameters": json.dumps(filter_parameters), # this variable is used in javascript and therefore needs to be dumped
+        "filter_modules": json.dumps(filter_modules)
+    })

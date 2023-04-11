@@ -445,6 +445,7 @@ def generate_initiate_votes(execution):
     return codes
 
 def generate_execution_codes(executions, variables):
+
     """ 
     Help generate codes for a list of executions. 
     
@@ -514,3 +515,13 @@ def generate_execution_codes(executions, variables):
             if hasattr(this_action, "execution_codes"):
                 execution_codes.append(this_action.execution_codes(**execution))
     return "\n".join(execution_codes)
+
+def get_filter_parameters(app_name, action_codename):
+    """
+        Get the designated filter parameters for a GovernableAction
+    """
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "FILTER_PARAMETERS"):
+        return action_model.FILTER_PARAMETERS
+    else:
+        return []
