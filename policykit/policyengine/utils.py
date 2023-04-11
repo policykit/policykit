@@ -429,3 +429,88 @@ def generate_check_codes(checks):
     for check in checks:
         check_codes += check["codes"]
     return check_codes
+
+def generate_initiate_votes(execution):
+    codes = ""
+    
+    if execution["platform"] == "slack":
+        codes = "slack.initiate_vote(users={users}, text={text}, poll_type={poll_type}, channel={channel})".format(
+                users = execution["users"],
+                text = execution["vote_message"],
+                channel = execution["channel"],
+                poll_type = execution["vote_type"],
+            )
+    else:
+        raise NotImplementedError
+    return codes
+
+def generate_execution_codes(executions, variables):
+    """ 
+    Help generate codes for a list of executions. 
+    
+    Parameters: 
+        Variables: provide definitions of variables used in the executions, including its name, type, and value
+
+    some examples of executions:
+        [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables[\"vote_message\"]",
+                "vote_type": "boolean",
+                "users": "variables[\"users\"]",
+                "channel": "variables[\"vote_channel\"]",
+                "platform": "slack"
+            }
+        ]
+    or
+        [
+            {   
+                "action": "slackpostmessage",
+                "text": "LeijieWang",
+                "channel": "test-channel",
+                "frequency": "60"
+            }
+        ],
+    """
+    import re
+
+    execution_codes = []
+    for execution in executions:
+        for name, value in execution.items():
+            if not (name in ["action", "platform"] or value.startswith("variables")):
+                """
+                    if the value is not a variable, then we need to add quotation marks
+                    so that the variable will still be embedded as a string instead of a Python variable name
+                    
+                    We put the type validation in the `execution_codes` of each GovernableAction.
+                    That is, if the value is expected to be an integer, 
+                    each GovernableAction will convert the value to the integer by explictly calling `int()` in the generated codes
+                """
+                execution[name] = f"\"{value}\""
+            
+            # force the type of the value to be the same as the type of the corresponding variable as defined
+            if value.startswith("variables"):
+                # find in the list of variables of which the name is the same as the name here
+                # extract "users" from the string variables[\"users\"]
+                
+                match = re.search(r'variables\[\"(.+?)\"\]', value)
+                if match:
+                    variable_name = match.group(1)
+                matching_variables = list(filter(lambda var: var["name"] == variable_name, variables))
+                if len(matching_variables) > 1:
+                    raise ValueError("There should be only one variable with the same name")
+                elif len(matching_variables) == 0:
+                    raise ValueError("There should be at least one variable with the same name")
+                else:
+                    if matching_variables[0]["type"] == "number":
+                        execution[name] = f"int({value})"
+
+        if execution["action"] == "initiate_vote":
+            execution_codes.append(generate_initiate_votes(execution))
+        else:
+            # currently only support slackpostmessage
+            action_codename = execution["action"]
+            this_action = find_action_cls(action_codename)
+            if hasattr(this_action, "execution_codes"):
+                execution_codes.append(this_action.execution_codes(**execution))
+    return "\n".join(execution_codes)

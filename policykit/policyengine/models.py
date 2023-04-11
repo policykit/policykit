@@ -1470,6 +1470,9 @@ class PolicyTemplate(models.Model):
         policy.initialize = "pass"
         policy.check = Utils.generate_check_codes(policy_json["check"])
 
+        policy.notify = Utils.generate_execution_codes(policy_json["executions"]["notify"], self.loads("variables"))
+        policy.success = Utils.generate_execution_codes(policy_json["executions"]["success"], self.loads("variables"))
+        policy.fail = Utils.generate_execution_codes(policy_json["executions"]["fail"], self.loads("variables"))
         
         self.create_policy_variables(policy, {})
         policy.save()
