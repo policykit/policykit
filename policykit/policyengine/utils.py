@@ -410,3 +410,22 @@ def generate_filter_codes(filters):
         else:
             filter_codes += "return True\n"
     return filter_codes
+
+def generate_check_codes(checks):
+    """
+        e.g. 
+        [
+            {
+                "name": "Enforce procedure time restrictions",
+                "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n"
+            },
+            {
+                "name": "main",
+                "code": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= int(variables[\"minimum_yes_required\"]):\n  return PASSED\nelif no_votes >= int(variables[\"maximum_no_allowed\"]):\n  return FAILED\n\nreturn PROPOSED\n"
+            }
+        ],
+    """
+    check_codes = ""
+    for check in checks:
+        check_codes += check["codes"]
+    return check_codes

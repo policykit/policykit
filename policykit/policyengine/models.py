@@ -1467,6 +1467,9 @@ class PolicyTemplate(models.Model):
             policy.action_types.add(action_type)
         
         policy.filter = Utils.generate_filter_codes(policy_json["filter"])
+        policy.initialize = "pass"
+        policy.check = Utils.generate_check_codes(policy_json["check"])
+
         
         self.create_policy_variables(policy, {})
         policy.save()
