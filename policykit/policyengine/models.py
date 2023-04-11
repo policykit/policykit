@@ -1454,6 +1454,23 @@ class PolicyTemplate(models.Model):
             "executions": executions,
             "variables": self.loads("variables"),
         }
+    
+    def create_policy(self, community):
+        """
+            Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
+        """
+        policy_json = self.to_json()
+        policy = Policy.objects.create(name=self.name, description=self.description, kind=self.kind, community=community)
+        
+        action_types =  Utils.extract_action_types(policy_json["filter"]) 
+        for action_type in action_types:
+            policy.action_types.add(action_type)
+        
+        policy.filter = Utils.generate_filter_codes(policy_json["filter"])
+        
+        self.create_policy_variables(policy, {})
+        policy.save()
+        return policy
 
 class CheckModule(models.Model):
 
@@ -1515,7 +1532,8 @@ class FilterModule(models.Model):
         It should be a block of codes that takes an object and variables as parameters and then 
         returns a boolean value indicating whether the object passes the filter, 
         as well as a list of filtered values (if the filter is checking whether the object is an element of a list) 
-        
+        We used a placeholder platform to represent the actual platform designated by the user when creating a policy
+
         For instance, a text.startswith filter should have codes like this: "return object.startswith(word), None"
         a communityUser.role filter should have codes like this：
             all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\n

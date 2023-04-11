@@ -279,3 +279,134 @@ def _add_permissions_to_role(role, permission_sets, content_types):
     if "execute" in permission_sets:
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
+
+def extract_action_types(filters):
+    """ 
+    extract all ActionTypes defined in a list of CustomActions JSON
+    e.g.,
+        [
+            {
+                "action_type": "slackpostmessage",
+                "filter": {
+                    "initiator": {
+                        "kind": "CommunityUser",
+                        "name": "Role",
+                        "codes": "all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\nreturn (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles\n",
+                        "variables": [
+                                {
+                                    "name": "role",
+                                    "type": "string",
+                                    "value": "hello"
+                                }
+                            ]
+                    },
+                    "text": {
+                        "kind": "Text",
+                        "name": "Startswith",
+                        "codes": "return object.startswith(word), None",
+                        "variables": [
+                            {
+                                "name": "word",
+                                "type": "string",
+                                "value": "test"
+                            }
+                        ]
+                    }
+                },
+                "community_name": null
+            },
+            {
+                "action_type": "slackrenameconversation"
+            }
+        ],
+    """
+    from policyengine.models import ActionType
+    action_types = []
+    for filter in filters:
+        action_codename = filter["action_type"]
+        action_type = ActionType.objects.filter(codename=action_codename).first()
+        if action_type:
+            action_types.append(action_type)
+    return action_types
+
+def generate_filter_codes(filters):
+    """
+        Generate codes from a list of filters defined in JSON
+        See examples of the parameter filters above 
+
+        The generated codes will be in the shape of 
+        if action.action_type == "slackpostmessage":
+	        def CommunityUser_Role(role, object=None):
+		        all_usernames_with_roles = [_user.username for _user in slack.get_users(role_names=[role])]
+		        return (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles
+	        def Text_Equals(text, object=None):
+		        return object == text, None
+	        return CommunityUser_Role("test", action.initiator)[0] and Text_Equals("test", action.text)[0]
+
+    """
+
+    filter_codes = ""
+    for action_filter in filters:
+        # we first check whether the action is the one we want to apply filters to
+        filter_codes += "if action.action_type == \"{action_type}\":\n\t".format(action_type = action_filter["action_type"])
+        # one example: "if action.action_type == \"slackpostmessage\":\n\t
+        
+        now_codes = []
+        function_calls = [] # a list of names of filter functions we will call in the end for each action type
+        
+        # only custom actions have the filter key
+        for field, field_filter in action_filter["filter"].items():
+            """  e.g.,
+                    "initiator": {
+                        "kind": "CommunityUser",
+                        "name": "Role",
+                        "codes": "all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\nreturn (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles\n",
+                        "variables": [
+                            {
+                            "name": "role",
+                            "type": "string",
+                            "value": "test"
+                            }
+                        ],
+                        "platform": "slack"
+                    },
+            """
+            if field_filter:
+                
+                parameters_codes = ", ".join([var["name"]  for var in field_filter["variables"]]) + ", object=None" 
+                # in case the filter is used to filter out a list of entities
+                now_codes.append(
+                    "def {kind}_{name}({parameters}):".format(
+                        kind = field_filter["kind"], 
+                        name = field_filter["name"],
+                        parameters = parameters_codes
+                    )
+                ) # result example: def CommunityUser_Role(role, object=None):
+
+                module_codes = field_filter["codes"].format(platform=field_filter["platform"])
+                # in case the exact platform such as slack is used in the codes
+                module_codes = ["\t" + line for line in module_codes.splitlines()]
+                # because these codes are put inside a function, we need to indent them
+
+                now_codes.extend(module_codes)
+
+                parameters_called = []
+                for var in field_filter["variables"]:
+                    if var["type"] == "number":
+                        parameters_called.append(var["value"]) # "1" will be embedded as an integer 1 as required
+                    else:
+                        parameters_called.append("\"{}\"".format(var["value"]))
+                parameters_called.append("action.{field}".format(field=field)) # action.initiator
+                parameters_called = ", ".join(parameters_called) # "test", action.initiator
+                function_calls.append(
+                    "{kind}_{name}({parameters})[0]".format(
+                        kind = field_filter["kind"], 
+                        name = field_filter["name"], 
+                        parameters = parameters_called
+                    )
+                )
+        if now_codes:
+            filter_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
+        else:
+            filter_codes += "return True\n"
+    return filter_codes
