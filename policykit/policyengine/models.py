@@ -1247,6 +1247,210 @@ class Procedure(models.Model):
             "fail": self.loads("fail"),
         }
 
+class PolicyTemplate(models.Model):
+
+    JSON_FIELDS = ["extra_check", "extra_executions", "variables"]
+    """fields that are stored as JSON dumps"""
+
+    name = models.CharField(max_length=100)
+
+    description = models.TextField(null=True, blank=True)
+
+    kind = models.CharField(choices=Policy.POLICY_KIND, max_length=30)
+    """Kind of policy template (platform, constitution, or trigger)."""
+
+    custom_actions = models.ManyToManyField(CustomAction)
+    """governable actions with filters specified this policy template applies to. """
+    
+    action_types = models.ManyToManyField(ActionType)
+    """The governable actions (with no additional filters specified) that this policy template applies to."""
+
+    is_trigger = models.BooleanField(default=False)
+    """
+        Whether these actions is treated as triggers;
+        this attribute is used together with action_types 
+        when users do not create custom actions (which itself stores whether this action is trigger or not).
+        But a policy template can govern both custom actions and action types.
+    """
+
+    extra_check = models.TextField(blank=True, default='[]')
+    """ extra check logic that are preapended to the check logic of the procedure"""
+
+    procedure = models.ForeignKey(Procedure, on_delete=models.CASCADE, null=True)
+    """the procedure that this policy template is based on"""
+
+    extra_executions = models.TextField(blank=True, default='{}')
+    """
+        A JSON object representing extra actions that are expected to be executed in each stage of this policy
+        in addition to thoes defined in the referenced procedure.
+        While the action item is defined in a similar way to those in the Procedure, 
+        we expect to add a new field called "frequency" to actions in the "check" stage 
+        to specify how often this action should be executed.
+
+        e.g.,
+            {
+                "notify": a list of actions,
+                "check": [
+                    {
+                        "action": "slackpostmessage",
+                        "text": "we are still waiting for the dictator to make a decision",
+                        "frequency": 60,
+                    }
+                ],
+                "success": [],
+                "fail": []
+            }
+    """
+    
+    variables = models.TextField(blank=True, default='[]')
+    """ 
+        Varaibles used in all codes of the policy template
+        Whenever we add a new module (such as Procedure and CheckModule) 
+        that defines its own variables, we will add them here.
+    
+    """
+
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+
+    def dumps(self, attr, value):
+        setattr(self, attr, json.dumps(value))
+
+    def add_variables(self, new_variables, values={}):
+        """
+            add new policy variables from other modules or the referenced procedure to this policy template
+            
+            parameters:
+                new_variables:
+                    a list of variables to be added, 
+                    e.g., 
+                        [
+                            {
+                                "name": "duration",
+                                "label": "When the vote is closed (in minutes)",
+                                "default_value": 0,
+                                "is_required": false,
+                                "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
+                                "type": "number"
+                            }
+                        ]
+    
+                values: 
+                    a dictionary from each variable name to its specified value if any
+                    e.g. 
+                        {
+                            "duraction": 10, 
+                            ...
+                        }
+        """
+        variables = self.loads("variables")
+        added_names = [v["name"] for v in variables]
+        for var in new_variables:
+            # skip variables that have already been added, we assume variables do not have the same name
+            if var["name"] in added_names:
+                continue
+            # set the value of this variable. 
+            # We do not check if the value matchs the expected type of the variable now
+            if var["name"] in values:
+                var["value"] = values[var["name"]]
+            else:
+                var["value"] = var["default_value"]
+            variables.append(var)
+        self.dumps("variables", variables)
+        self.save()
+
+    def add_check_module(self, check_module):
+        """
+            add a check module to this policy template
+            
+            Currently, the variables belonging to this check module is added by calling add_variables explictly
+            perhaps we should put them together in the future
+
+            paramters:
+                check_module: a CheckModule object
+
+        """
+
+        extra_check = self.loads("extra_check")
+        new_check = check_module.to_json()
+        # check if the check module has already been added.
+        for check in extra_check:
+            if check["name"] == new_check["name"]:
+                return
+        extra_check.append(new_check)
+        self.dumps("extra_check", extra_check)
+        self.save()
+
+    def add_extra_actions(self, extra_actions):
+        """
+            add extra actions to this policy template
+
+            Actually we now assume only one action is added at a time 
+            because the design of the frontend only allow users to specify one action for each stage
+
+            parameters:
+                extra_actions: a dictionary from each stage to a list of actions
+                e.g. 
+                    {
+                        "notify": []
+                        "success": [] 
+                        "fail": []
+                        "check": []
+                    }
+        """
+        extra_executions = self.loads("extra_executions")
+        for key in extra_actions:
+            if key not in extra_executions:
+                extra_executions[key] = []
+                # perhaps we would like to use extend in case extra_actions[key] is a list
+            extra_executions[key].append(extra_actions[key])
+        self.dumps("extra_executions", extra_executions)
+        self.save()
+
+    def create_policy_variables(self, policy, variables_data):
+        """
+            create policy variables for a policy based on this policy template
+
+            parameters:
+                policy: the Policy instance that these policy variables are expected to belongs to
+
+                variables_data: a dictionary from each variable name to its value
+        """
+        variables = self.loads("variables")
+        for variable in variables:
+            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            if variable["name"] in variables_data:
+                new_variable.value = variables_data[variable["name"]]
+            new_variable.save()
+
+    def to_json(self):
+        """
+            reduce this PolicyTemplate object to a JSON object
+        """
+        filters = [action.to_json() for action in self.custom_actions.all()]
+        filters += [{"action_type": action.codename} for action in self.action_types.all()]
+
+        procedure = self.procedure.to_json()
+        executions = self.loads("extra_executions")
+        # add procedure actions to the extra_executions
+        for key in ["notify", "success", "fail"]:
+            if key not in executions:
+                executions[key] = []
+            # prepend the procedure actions to the extra_executions
+            if key in procedure:
+                executions[key] = procedure[key] + executions[key]
+
+        procedure["check"] = self.loads("extra_check") + procedure["check"]
+        return {
+            "name": self.name,
+            "description": self.description,
+            "kind": self.kind,
+            "is_trigger": self.is_trigger,
+            "filter": filters,
+            "check": procedure["check"],
+            "executions": executions,
+            "variables": self.loads("variables"),
+        }
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
