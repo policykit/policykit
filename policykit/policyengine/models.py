@@ -1484,6 +1484,72 @@ class CheckModule(models.Model):
                 "codes": self.codes
             }
 
+class FilterModule(models.Model):
+
+    JSON_FIELDS = ["variables"]
+    """the fields that are stored as JSON dumps"""
+
+    kind = models.TextField(blank=True, default="")
+    """The entity of the filter module e.g., CommunityUser, Text, or Channel """
+
+    name = models.TextField(blank=True, default="")
+    """the name of the filter module e.g., permission """
+
+    description = models.TextField(blank=True, default="")
+    """The description of the filter module e.g., users with a given permission """
+
+    platform = models.TextField(choices=Procedure.PLATFORMS, blank=True, default=Procedure.ALL)
+    """the platform this filter can apply to. It could be specific to one platform or all platforms"""
+
+    variables = models.TextField(blank=True, default='[]')
+    """
+        variables needed in this filter module e.g., permission users are asked to specify
+        But we will not create a policy variable for these variables 
+        because we asume users may not change which governable actions a policy should be applied to 
+        after the policy is created
+    """
+
+    codes = models.TextField(blank=True, default="")
+    """
+        how to generate codes for this filter module.
+        It should be a block of codes that takes an object and variables as parameters and then 
+        returns a boolean value indicating whether the object passes the filter, 
+        as well as a list of filtered values (if the filter is checking whether the object is an element of a list) 
+        
+        For instance, a text.startswith filter should have codes like this: "return object.startswith(word), None"
+        a communityUser.role filter should have codes like this：
+            all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\n
+            return (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles\n
+        
+        This is to faciliate the use of filters in specifying a list of objects for a variable or a field (e.g., users who are admins)
+
+        Finally, when generating codes, we will put these codes under a function named kind.name (Text_startsWith or CommunityUser_Role) and 
+        pass in parameters "object" and all names defined in variables. 
+        We will take care of the type of these variables before passing them to these functions
+    """
+
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+    
+    def to_json(self, variables_value=None):
+        """ 
+            parameters: 
+                variables_value
+                    {"role": "test" ....} 
+        
+        """
+        variables = [ {"name": variable["name"], "type": variable["type"]} for variable in self.loads("variables") ]
+        # we should expect there is a value for each variable. Otherwise we should throw an Exception
+        if variables_value:
+            for variable in variables:
+                if variable["name"] in variables_value:
+                    variable["value"] = variables_value[variable["name"]]
+        return {
+            "kind": self.kind,
+            "name": self.name,
+            "codes": self.codes,
+            "variables": variables
+        }
 
 ##### Pre-delete and post-delete signal receivers
 
