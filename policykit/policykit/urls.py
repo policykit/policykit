@@ -75,4 +75,9 @@ urlpatterns = [
     path('api/hooks/<slug:plugin_name>/<slug:community_slug>', handle_incoming_webhook),
     path('api/hooks/<slug:plugin_name>/<slug:community_slug>/<slug:community_platform_id>', handle_incoming_webhook),
     # path("schema/", Schema.as_view()),
+
+    # urls of no-code UI
+    path('no-code/policytype', policyviews.choose_policy_type),
 ]
+
+    
