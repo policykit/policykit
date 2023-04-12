@@ -553,7 +553,6 @@ class Proposal(models.Model):
                 self.governance_process.proxy.close()
             except NotImplementedError:
                 pass
-
     def _fail_evaluation(self):
         """
         Sets the proposal to FAILED.
@@ -1442,6 +1441,8 @@ class PolicyTemplate(models.Model):
             if key in procedure:
                 # We assume extra executions are appended to the procedure actions
                 executions[key] = procedure[key] + executions[key]
+        if "check" not in executions: # the check in procedure is the check logic instead of executions
+            executions["check"] = []
 
         procedure["check"] = self.loads("extra_check") + procedure["check"]
         return {
@@ -1468,7 +1469,9 @@ class PolicyTemplate(models.Model):
         
         policy.filter = Utils.generate_filter_codes(policy_json["filter"])
         policy.initialize = "pass"
-        policy.check = Utils.generate_check_codes(policy_json["check"])
+        
+        check_executions = Utils.generate_execution_codes(policy_json["executions"]["check"], self.loads("variables"))
+        policy.check = check_executions + Utils.generate_check_codes(policy_json["check"])
 
         policy.notify = Utils.generate_execution_codes(policy_json["executions"]["notify"], self.loads("variables"))
         policy.success = Utils.generate_execution_codes(policy_json["executions"]["success"], self.loads("variables"))

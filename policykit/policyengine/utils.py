@@ -506,15 +506,25 @@ def generate_execution_codes(executions, variables):
                     if matching_variables[0]["type"] == "number":
                         execution[name] = f"int({value})"
 
+        codes = ""
+        if "frequency" in execution:
+            # if the execution has a frequency, then it is a recurring execution
+            # we need to add the frequency to the execution
+            duration_variable = "last_time_" + execution["action"]
+            codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+
         if execution["action"] == "initiate_vote":
-            execution_codes.append(generate_initiate_votes(execution))
+            codes += generate_initiate_votes(execution)
         else:
             # currently only support slackpostmessage
             action_codename = execution["action"]
             this_action = find_action_cls(action_codename)
             if hasattr(this_action, "execution_codes"):
-                execution_codes.append(this_action.execution_codes(**execution))
-    return "\n".join(execution_codes)
+                codes += this_action.execution_codes(**execution)
+            else:
+                raise NotImplementedError
+        execution_codes.append(codes)
+    return "\n".join(execution_codes) + "\n"
 
 def get_filter_parameters(app_name, action_codename):
     """
