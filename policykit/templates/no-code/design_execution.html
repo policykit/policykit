@@ -1,0 +1,70 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="design_execution">
+    {% if trigger == "false" %}
+        {% if exec_kind == "success" %}
+            <h4 class="heading-4">When the procedure succeeds, what else do you want to have happen besides passing the action?</h4>
+        {% elif exec_kind == "fail" %}
+            <h4 class="heading-4">When the procedure fails, what do you want to have happen</h4>
+        {% endif %}
+    {% else %}
+    <h4 class="heading-4">What do you want to have happen after this trigger?</h4>
+    {% endif %}
+
+
+    <div class="selectpicker-group">
+        <label for="actionpicker">
+            Execution
+        </label>
+        <div>
+            <select id="actionpicker" name="actionpicker" class="selectpicker">
+                <option value="none" selected disabled hidden>Select an Option</option>
+                <option value="default">None</option>
+                {% for app_name, execution_list in executions.items %}
+                    <optgroup label="{{app_name|upper}}">
+                        {% for codename, verbose_name in execution_list %}
+                            <option value={{codename}}>{{verbose_name}}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div>
+        <h4 class="heading-4">Please fill in the following information about this action.</h4>
+        <div id="action-specs-group" class="variables"></div>
+    </div>
+    <div class="button-group">
+        <button class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const execution_parameters = JSON.parse('{{execution_parameters | safe}}');
+    const showExecutionParameters = () => {
+        removeElementChildren('action-specs-group');
+
+        var new_action = document.getElementById("actionpicker").value;
+        if(new_action == "none" | new_action == "default")
+            return;
+
+        const now_parameters = execution_parameters[new_action];
+        console.log("new val is: " + new_action + " filter parameters: " + now_parameters);
+        var spec_group = document.getElementById('action-specs-group');
+        now_parameters.forEach(item => addVariableInputBox(label=item, id=item, value='', parentDiv=spec_group, options=''));
+    }
+
+    document.getElementById("actionpicker").addEventListener("change", showExecutionParameters);
+   
+</script>
+{% endblock %}

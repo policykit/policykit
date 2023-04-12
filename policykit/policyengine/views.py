@@ -1175,7 +1175,7 @@ def create_customization(request):
                     "module_data": {
                         "duration": ...
                     }
-                    
+
                     "action_data": {
                         "check"/"notify": {
                             "action": "slackpostmessage",
@@ -1204,3 +1204,26 @@ def create_customization(request):
         new_policy.save()
         return JsonResponse({"status": "success", "policy_id": new_policy.pk})
     return JsonResponse({"status": "fail"})
+
+@login_required
+def design_execution(request):
+    """
+        Help render the design execution page
+
+        Ideally, we should put add executions at different stages all in this page
+    """
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id", None)
+    exec_kind = request.GET.get("exec_kind", None) 
+    # "success" or "fail"
+
+    if policy_id:
+        user = get_user(request)
+        executable_actions, execution_parameters = Utils.extract_executable_actions(user.community.community)
+        return render(request, "no-code/design_execution.html", {
+            "trigger": trigger,
+            "policy_id": policy_id,
+            "exec_kind": exec_kind,
+            "executions": executable_actions,
+            "execution_parameters": json.dumps(execution_parameters),
+        })
