@@ -169,21 +169,14 @@
 
         variables.forEach(variable => {
             console.log("adding variable: " + JSON.stringify(variable));
-            
-            const variable_id = `${select_id}.${variable.name}`; // select-${action}.${field}.${variable.name}
-
-            const variable_div = document.createElement('div');
-            variable_div.classList.add('variable-values');
-            variable_div.id = variable_id;
-
-            var default_value = `value=''`;
+            const variable_id = `${select_id}.${variable.name}`;
+            // select-${action}.${field}.${variable.name}
             if(!variable.default_value){
-                default_value = `value=${variable.default_value}`
+                var default_value = `${variable.default_value}`
+            } else {
+                var default_value = '';
             }
-            variable_div.innerHTML = `<label class='variable-label' for='${variable_id}'>${variable.name}</label>
-                <input type='text' data-id='${variable_id}' name='${variable_id}' class='variable-input' ${default_value}>`;
-            
-            field_div.appendChild(variable_div);
+            addVariableInputBox(label=variable.name, id=variable_id, value=default_value, field_div, options='')
         });
     
     }

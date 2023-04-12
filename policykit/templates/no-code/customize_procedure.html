@@ -96,16 +96,9 @@
             </div>  
         */
         cur_detail["variables"].forEach((item, index) => {
-            var text = document.createElement('div');
-            text.classList.add('variable');
-            text.id = item.name;
-            text.innerHTML = `
-                <div class='variable-values'>
-                    <label class='variable-label' for='${item.name}'>${item.label}</label>
-                    <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
-                </div>
-                <p class='variable-prompt text-small'>${item.prompt}</p>`;
-                variables_div.appendChild(text);
+            addVariableInputBox(
+                label=item.label, id=item.name, value=item.default_value, variables_div, 
+                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`);
         })
 
     }
@@ -137,18 +130,9 @@
         })
         policy_variables_datalist += `</datalist>`
         
-        cur_detail.forEach(item => {
-            var text = document.createElement('div');
-            text.classList.add('variables');
-            text.id = item;
-            text.innerHTML = `
-                    <div class='variable-values'>
-                        <label class='variable-label' for='${item}'>${item}</label>
-                        <input class='variable-input' type='text' value='' data-id='${item}' name='${item}' list="variable-options"/>
-                        ${policy_variables_datalist}
-                    </div>`;
-            variables_div.appendChild(text);
-        });
+        cur_detail.forEach(item => 
+            addVariableInputBox(label=item, id=item, value='', parentDiv=variables_div, options=policy_variables_datalist)
+        );
     }
 
     const goCustomizeProcedure = async (next) => {
