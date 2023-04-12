@@ -355,7 +355,7 @@ def generate_filter_codes(filters):
         function_calls = [] # a list of names of filter functions we will call in the end for each action type
         
         # only custom actions have the filter key
-        for field, field_filter in action_filter["filter"].items():
+        for field, field_filter in action_filter.get("filter", {}).items():
             """  e.g.,
                     "initiator": {
                         "kind": "CommunityUser",
@@ -511,7 +511,7 @@ def generate_execution_codes(executions, variables):
             # if the execution has a frequency, then it is a recurring execution
             # we need to add the frequency to the execution
             duration_variable = "last_time_" + execution["action"]
-            codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+            codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
         if execution["action"] == "initiate_vote":
             codes += generate_initiate_votes(execution)
