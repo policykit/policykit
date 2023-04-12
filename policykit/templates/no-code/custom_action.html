@@ -172,9 +172,9 @@
             const variable_id = `${select_id}.${variable.name}`;
             // select-${action}.${field}.${variable.name}
             if(!variable.default_value){
-                var default_value = `${variable.default_value}`
-            } else {
                 var default_value = '';
+            } else {
+                var default_value = `${variable.default_value}`
             }
             addVariableInputBox(label=variable.name, id=variable_id, value=default_value, field_div, options='')
         });
@@ -198,6 +198,8 @@
         }
         console.log("new actions are: " + selected_actions);
         
+        let missing_input = false;
+        let missing_variables = [];
         const filters = selected_actions.map((action, index) => {
             const action_div = document.getElementById(action);
             let action_field_divs = action_div.getElementsByClassName('action-field');
@@ -207,6 +209,7 @@
                 let action_field_name = action_field_id.split(".")[1]; // initiator
                 let selected_filter_pk = document.getElementById(`select-${action_field_id}`).value; // select-slackpostmessage.initiator
                 if(selected_filter_pk === ""){
+                    // if no filter modules are selected, then no filter is applied to this field
                     filters_per_action[action_field_name] = {}
                 } else {
                     // a dict of variable_name: variable_value
@@ -214,6 +217,15 @@
                         let filter_variable_div = action_field_div.children[i];
                         let filter_variable_input = filter_variable_div.querySelectorAll('.variable-input');
                         var variables_dict = Array.from(filter_variable_input).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id').split(".").pop() ] : curr.value }), {});
+                        // check whether all variables are filled and alert with the missing variable names
+                        if(Object.values(variables_dict).includes('')){
+                            Object.keys(variables_dict).forEach(variable => {
+                                if(variables_dict[variable] === ''){
+                                    missing_variables.push(`${action_field_id}.${variable}`);
+                                }
+                            });
+                            missing_input = true;   
+                        }
                     }
                     filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
                 }
@@ -221,6 +233,11 @@
             console.log("filters per action: " + JSON.stringify(filters_per_action));
             return {action_type: action, filter: filters_per_action}
         });
+        // only submit the data if all variables are filled
+        if(missing_input){
+            alert(`Please fill in the following variables: ${missing_variables.join(", ")}`);
+            return;
+        }
 
         const is_trigger = "{{trigger}}"
         const submit_data = {
