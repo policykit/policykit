@@ -64,7 +64,34 @@
         now_parameters.forEach(item => addVariableInputBox(label=item, id=item, value='', parentDiv=spec_group, options=''));
     }
 
-    document.getElementById("actionpicker").addEventListener("change", showExecutionParameters);
+    
    
+    const goCreateExecution = async () => {
+
+        const is_trigger = "{{trigger}}"
+        const submit_data = {is_trigger: is_trigger, policy_id: parseInt("{{policy_id}}")}
+
+        const exec_kind = "{{exec_kind}}"
+        const now_actiontype = document.getElementById("actionpicker").value;
+        if(now_actiontype != "none" & now_actiontype != "default"){
+            var data = getVariableDataInStep(stepElementIds.execution);
+            data["action"] = now_actiontype;            
+            submit_data["action_data"] = {[exec_kind]: data};
+        }
+        console.log("before creating custom action, " + JSON.stringify(submit_data))
+        
+        const response = await submit('create_execution', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            if(is_trigger == "false" & exec_kind == "success"){
+                redirect('execution', {policy_id: response["policy_id"], trigger: is_trigger, exec_kind: "fail"});
+            } else {
+                redirect('overview', {policy_id: response["policy_id"], trigger: is_trigger});
+            }
+        }
+    }
+
+    document.getElementById("actionpicker").addEventListener("change", showExecutionParameters);
+    document.getElementById(stepElementIds.execution).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateExecution);
 </script>
 {% endblock %}

@@ -1227,3 +1227,31 @@ def design_execution(request):
             "executions": executable_actions,
             "execution_parameters": json.dumps(execution_parameters),
         })
+    
+def create_execution(request):
+    """
+        Add executions to success or fail blocks of the policytemplate instance
+
+        parameters:
+            request.body: e.g.,
+                "action_data":  
+                    {
+                        "success"/"fail": {
+                            "action": "slackpostmessage",
+                            "channel": ...,
+                            "text": ...
+                        }
+                    }
+    """
+    from policyengine.models import PolicyTemplate
+
+    data = json.loads(request.body)
+    policy_id = data.get("policy_id", None)
+    new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    if new_policy:
+        action_data = data.get("action_data", {})
+        if action_data:
+            new_policy.add_extra_actions(action_data)
+            new_policy.save()
+        return JsonResponse({"status": "success", "policy_id": new_policy.pk})
+    return JsonResponse({"status": "fail"})
