@@ -129,7 +129,8 @@
                     select_id = `select-${action}.${field}`
                     select_html = `<div class='variables-values' id='${action}.${field}'>
                             <label class='variable-label' for='${select_id}'>${field}</label>
-                            <select id='${select_id}' class="selectpicker" title="Select a filter">`
+                            <select id='${select_id}' class="selectpicker" title="Select a filter">
+                                <option value="none">None</option>`
                     
                     // add filter modules as options for this select
                     const filters_this_kind = filters_this_app[filter_kind]
@@ -148,6 +149,8 @@
 
     const showFilterModuleVariables = (select_id) => {
         let filter_pk = parseInt(document.getElementById(select_id).value);
+
+        if(Number.isNaN(filter_pk)) return; // when no filter is selected, the value is "none" (NaN after parseInt)
 
         // search for a filter with this pk by iterating through filter_per_app
         let filter = null;
@@ -208,7 +211,7 @@
                 let action_field_id = action_field_div.firstElementChild.id; // the field itself: slackpostmessage.initiator
                 let action_field_name = action_field_id.split(".")[1]; // initiator
                 let selected_filter_pk = document.getElementById(`select-${action_field_id}`).value; // select-slackpostmessage.initiator
-                if(selected_filter_pk === ""){
+                if(selected_filter_pk === "" || selected_filter_pk === "none"){
                     // if no filter modules are selected, then no filter is applied to this field
                     filters_per_action[action_field_name] = {}
                 } else {
