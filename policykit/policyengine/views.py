@@ -1255,3 +1255,53 @@ def create_execution(request):
             new_policy.save()
         return JsonResponse({"status": "success", "policy_id": new_policy.pk})
     return JsonResponse({"status": "fail"})
+
+@login_required 
+def policy_overview(request):
+    """
+        help render the policy overview page where users can fill in the policy name and description,
+        and also see the policy template in json format
+    """
+    from policyengine.models import PolicyTemplate
+
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id", None)
+    created_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    if created_policy:
+        created_policy_json = created_policy.to_json()
+        return render(request, "no-code/policy_overview.html", {
+            "trigger": trigger,
+            "policy": json.dumps(created_policy_json),
+            "policy_id": policy_id,
+        })
+
+@login_required  
+def create_overview(request):
+    """
+        Add policy name and description to the policy template instance
+
+        parameters:
+            request.body: 
+                {
+                    "policy_id": 1,
+                    data: {
+                        "name": "policy name",
+                        "description": "policy description"
+                    }
+                }
+    """
+    from policyengine.models import PolicyTemplate
+    request_body = json.loads(request.body)
+    policy_id = int(request_body.get("policy_id", -1))
+    policy_template = PolicyTemplate.objects.filter(pk=int(policy_id)).first()
+    if policy_template :
+        data = request_body.get("data")
+        policy_template.name = data.get("name", "")
+        policy_template.description = data.get("description", "")
+        policy_template.save()
+
+        user = get_user(request)
+        new_policy = policy_template.create_policy(user.community.community)
+        return JsonResponse({"policy_id": new_policy.pk, "policy_type": (new_policy.kind).capitalize(), "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
