@@ -29,7 +29,8 @@
                 "default_value": "",
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
-                "type": "string"
+                "type": "string",
+                "is_list": true
             },
             {
                 "name": "minimum_yes_required",
@@ -37,7 +38,9 @@
                 "default_value": 1,
                 "is_required": true,
                 "prompt": "",
-                "type": "number"
+                "type": "number",
+                "is_list": false
+                
             },
             {
                 "name": "maximum_no_allowed",
@@ -45,7 +48,8 @@
                 "default_value": 1,
                 "is_required": true,
                 "prompt": "",
-                "type": "number"
+                "type": "number",
+                "is_list": false
             },
             {
                 "name": "vote_message",
@@ -53,7 +57,8 @@
                 "default_value": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             },
             {
                 "name": "vote_channel",
@@ -61,7 +66,8 @@
                 "default_value": "",
                 "is_required": false,
                 "prompt": "If empty, the vote message will be posted in the same channel as the action",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     }

@@ -775,6 +775,9 @@ class PolicyVariable(models.Model):
     type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
     """Variable type, which should correlate to form ui element."""
 
+    is_list = models.BooleanField(default=False)
+    """Whether the variable is a list. If it is a list of strings or numbers, then they are comma separated without brackets."""
+
     policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
     """Variables used in the scope of the policy."""
 
@@ -1463,13 +1466,13 @@ class PolicyTemplate(models.Model):
         policy_json = self.to_json()
         policy = Policy.objects.create(name=self.name, description=self.description, kind=self.kind, community=community)
         
-        action_types =  Utils.extract_action_types(policy_json["filter"]) 
+        action_types = Utils.extract_action_types(policy_json["filter"]) 
         for action_type in action_types:
             policy.action_types.add(action_type)
         
         policy.filter = Utils.generate_filter_codes(policy_json["filter"])
         policy.initialize = "pass"
-        
+
         check_executions = Utils.generate_execution_codes(policy_json["executions"]["check"], self.loads("variables"))
         policy.check = check_executions + Utils.generate_check_codes(policy_json["check"])
 

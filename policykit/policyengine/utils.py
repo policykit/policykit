@@ -569,3 +569,42 @@ def extract_executable_actions(community):
                 execution_parameters[action_code] = parameters
     
     return executable_actions, execution_parameters
+
+def dump_to_JSON(object, json_fields):
+    for field in json_fields:
+        object[field] = json.dumps(object[field])
+    return object
+
+def load_templates(kind):
+        """
+            Load procedute and module templates for a given platform
+        """
+            
+        cur_path = os.path.abspath(os.path.dirname(__file__))
+        if kind == "Procedure":
+            from policyengine.models import Procedure
+            Procedure.objects.all().delete()
+            procedure_path = os.path.join(cur_path, f"../policytemplates/procedures.json")
+            with open(procedure_path) as f:
+                procedure_data = json.loads(f.read())
+                for procedure in procedure_data:
+                    procedure = dump_to_JSON(procedure, Procedure.JSON_FIELDS)
+                    Procedure.objects.create(**procedure)
+        elif kind == "CheckModule":
+            from policyengine.models import CheckModule
+            CheckModule.objects.all().delete()
+            checkmodule_path = os.path.join(cur_path, f"../policytemplates/modules.json")
+            with open(checkmodule_path) as f:
+                checkmodule_data = json.loads(f.read())
+                for checkmodule in checkmodule_data:
+                    checkmodule = dump_to_JSON(checkmodule, CheckModule.JSON_FIELDS)
+                    CheckModule.objects.create(**checkmodule)
+        elif kind == "FilterModule":
+            from policyengine.models import FilterModule
+            FilterModule.objects.all().delete()
+            filtermodule_path = os.path.join(cur_path, f"../policytemplates/filters.json")
+            with open(filtermodule_path) as f:
+                filtermodule_data = json.loads(f.read())
+                for filtermodule in filtermodule_data:
+                    filtermodule = dump_to_JSON(filtermodule, FilterModule.JSON_FIELDS)
+                    FilterModule.objects.create(**filtermodule)
