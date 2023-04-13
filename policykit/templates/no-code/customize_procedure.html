@@ -98,7 +98,7 @@
         cur_detail["variables"].forEach((item, index) => {
             addVariableInputBox(
                 label=item.label, id=item.name, value=item.default_value, variables_div, 
-                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`);
+                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`, required=item.is_required);
         })
 
     }
@@ -131,7 +131,9 @@
         policy_variables_datalist += `</datalist>`
         
         cur_detail.forEach(item => 
-            addVariableInputBox(label=item, id=item, value='', parentDiv=variables_div, options=policy_variables_datalist)
+            addVariableInputBox(label=item, id=item, 
+                value='', parentDiv=variables_div, 
+                options=policy_variables_datalist, required=true)
         );
     }
 
@@ -139,29 +141,35 @@
         var submit_data = { policy_id: parseInt("{{policy_id}}")}
 
         // if users would like to add extra checkmodules
-        const module_data = getVariableDataInStep("check_modules");
+        var missing_input = false;
         const module_index = parseInt(document.getElementById("module-picker").value);
         if(!Number.isNaN(module_index)){
-            submit_data["module_index"] = module_index;
-            submit_data["module_data"] = module_data;
+            if(checkMissingVariable("module-variables")) missing_input = true;
+            else {
+                submit_data["module_index"] = module_index;
+                submit_data["module_data"] = getVariableDataInStep("module-variables");
+            }
         }
 
         // if users would like to add extra executions
         const new_action = document.getElementById("extra-action-picker").value;
-        const action_data = getVariableDataInStep("action-variables");
-
         // if action_data is not an empty dict
-        if(new_action != "none" & Object.keys(action_data).length != 0){
-            action_data["action"] = new_action;
-            const selected_block = document.querySelector('input[name="option"]:checked').value;
-            // if it is check block, replace the key "frequency (in minutes)" in action_data with "frequency"
-            if(selected_block == "check"){
-                action_data["frequency"] = action_data["frequency (in minutes)"];
-                delete action_data["frequency (in minutes)"];
+        if(new_action != "none") {
+            if(checkMissingVariable("action-variables")) missing_input = true;
+            else {
+                var action_data = getVariableDataInStep("action-variables");
+                action_data["action"] = new_action;
+                const selected_block = document.querySelector('input[name="option"]:checked').value;
+                // if it is check block, replace the key "frequency (in minutes)" in action_data with "frequency"
+                if(selected_block == "check"){
+                    action_data["frequency"] = action_data["frequency (in minutes)"];
+                    delete action_data["frequency (in minutes)"];
+                }
+                submit_data["action_data"] = {[selected_block]: action_data}
             }
-            submit_data["action_data"] = {[selected_block]: action_data}
         }
-        
+        if(missing_input) return;
+
         console.log("submit data " + JSON.stringify(submit_data));
         const response = await submit('create_customization', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))

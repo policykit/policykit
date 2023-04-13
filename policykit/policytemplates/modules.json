@@ -7,9 +7,9 @@
             {
                 "name": "duration",
                 "label": "When the vote is closed (in minutes)",
-                "default_value": 0,
-                "is_required": false,
-                "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             }
