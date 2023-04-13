@@ -908,10 +908,9 @@ def choose_policy_type(request):
         help render the policy type page
     """
     reload = request.GET.get("reload", "false")
-    if reload == "true":
-        Utils.load_templates("Procedure")
-        Utils.load_templates("CheckModule")
-        Utils.load_templates("FilterModule")
+    # Utils.load_templates("Procedure")
+    # Utils.load_templates("CheckModule")
+    # Utils.load_templates("FilterModule")
     return render(request, "no-code/policytype.html")
 
 @login_required

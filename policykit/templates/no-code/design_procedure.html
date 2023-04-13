@@ -74,16 +74,10 @@
             </div>
         */
         cur_detail["variables"].forEach((item, index) => {
-            var text = document.createElement('div');
-            text.classList.add('variable');
-            text.id = item.name;
-            text.innerHTML = `
-                <div class='variable-values'>
-                    <label class='variable-label' for='${item.name}'>${item.label}</label>
-                    <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
-                </div>
-                <p class='variable-prompt text-small'>${item.prompt}</p>`;
-            variables_div.appendChild(text);
+            addVariableInputBox(label=item.label, id=item.name, 
+                value=item.default_value, 
+                parentDiv=variables_div, 
+                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`, is_required=item.is_required)
         })
     }
 

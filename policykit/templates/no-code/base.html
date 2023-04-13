@@ -288,15 +288,23 @@
       element.replaceChildren();
   }
 
-  const addVariableInputBox = (label, id, value, parentDiv, options) => {
+  const addVariableInputBox = (label, id, value, parentDiv, options="", is_required=false) => {
       var text = document.createElement('div');
       text.classList.add('variable');
       text.id = id;
-      text.innerHTML = `<div class='variable-values'>
+      if(is_required) {
+        text.innerHTML = `<div class='variable-values'>
+                            <label class='variable-label' for='${id}'>${label}</label>
+                            <input class='variable-input' type='text' value='${value}' name='${id}' data-id='${id}' list='variable-options' required/>
+                            ${options}
+                        </div>`;
+      } else {
+        text.innerHTML = `<div class='variable-values'>
                             <label class='variable-label' for='${id}'>${label}</label>
                             <input class='variable-input' type='text' value='${value}' name='${id}' data-id='${id}' list='variable-options'/>
                             ${options}
                         </div>`;
+      }
       parentDiv.appendChild(text);
   }
 </script>

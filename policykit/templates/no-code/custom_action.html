@@ -174,12 +174,12 @@
             console.log("adding variable: " + JSON.stringify(variable));
             const variable_id = `${select_id}.${variable.name}`;
             // select-${action}.${field}.${variable.name}
-            if(!variable.default_value){
+            if(variable.is_required){
                 var default_value = '';
             } else {
                 var default_value = `${variable.default_value}`
             }
-            addVariableInputBox(label=variable.name, id=variable_id, value=default_value, field_div, options='')
+            addVariableInputBox(label=variable.name, id=variable_id, value=default_value, field_div, options='', is_required=variable.is_required)
         });
     
     }
