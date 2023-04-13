@@ -8,8 +8,8 @@
         <div class="selectpicker-group">
             <label for="module-picker">Modules</label>
             <div>
-                <select id="module-picker" class="selectpicker">
-                    <option value="none" selected>Select an Option</option>
+                <select id="module-picker" class="selectpicker" title="Select a Module">
+                    <option value="none">None</option>
                         {% for index, name in checkmodules %}
                             <option value={{index}}>{{name}}</option>
                         {% endfor %}
@@ -35,8 +35,8 @@
                 Execution
             </label>
             <div>
-                <select id="extra-action-picker" class="selectpicker">
-                    <option value="none" selected>Select an Option</option>
+                <select id="extra-action-picker" class="selectpicker" title="Select an Execution...">
+                    <option value="none">None</option>
                     {% for app_name, action_list in executions.items %}
                         <optgroup label="{{app_name|upper}}">
                             {% for codename, verbose_name in action_list %}

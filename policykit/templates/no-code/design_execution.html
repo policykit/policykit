@@ -19,9 +19,8 @@
             Execution
         </label>
         <div>
-            <select id="actionpicker" name="actionpicker" class="selectpicker">
-                <option value="none" selected disabled hidden>Select an Option</option>
-                <option value="default">None</option>
+            <select id="actionpicker" name="actionpicker" class="selectpicker" title="Select an Execution">
+                <option value="none">None</option>
                 {% for app_name, execution_list in executions.items %}
                     <optgroup label="{{app_name|upper}}">
                         {% for codename, verbose_name in execution_list %}

@@ -8,18 +8,17 @@
     <div class="selectpicker-group">
         <label for="platform-picker">Platform</label>
         <div>
-            <select id="platform-picker" class="selectpicker">
-                <option value="none" selected>Select an Option</option>
-                    {% for name in platforms %}
-                        <option value={{name|capfirst}}>{{name | capfirst }}</option>
-                    {% endfor %}
+            <select id="platform-picker" class="selectpicker" title="Select a Platform">
+                {% for name in platforms %}
+                    <option value={{name|capfirst}}>{{name | capfirst }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
     <div class="selectpicker-group">
         <label for="procedure-picker">Procedures</label>
         <div>
-            <select id="procedure-picker" class="selectpicker">
+            <select id="procedure-picker" class="selectpicker" title="Select a Procedure">
             </select>
         </div>
     </div>
@@ -91,7 +90,6 @@
         // filter out procedures of which the platform is cur_platform
         // insert a dict for "none" option in the beginning of the now_procedures
         var now_procedures = procedures.filter(item => item.platform == cur_platform);  
-        now_procedures.unshift({pk: "none", name: "Select an Option"});
 
         $(".selectpicker").selectpicker();
         now_procedures.forEach((item, index)  => {
