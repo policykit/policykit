@@ -73,10 +73,13 @@
             </div>
         */
         cur_detail["variables"].forEach((item, index) => {
-            addVariableInputBox(label=item.label, id=item.name, 
+            addVariableInputBox(
+                label=item.label, 
+                id=item.name, 
                 value=item.default_value, 
                 parentDiv=variables_div, 
-                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`, is_required=item.is_required)
+                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`, 
+                more={is_required: item.is_required, type: item.type, is_list: item.is_list})
         })
     }
 

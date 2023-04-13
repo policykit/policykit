@@ -12,7 +12,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -29,7 +30,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -46,7 +48,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -63,7 +66,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -81,7 +85,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -98,7 +103,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -115,7 +121,8 @@
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
-                "type": "number"
+                "type": "number",
+                "is_list": false
             }
         ]
     }

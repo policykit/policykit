@@ -60,7 +60,13 @@
         const now_parameters = execution_parameters[new_action];
         console.log("new val is: " + new_action + " filter parameters: " + now_parameters);
         var spec_group = document.getElementById('action-specs-group');
-        now_parameters.forEach(item => addVariableInputBox(label=item, id=item, value='', parentDiv=spec_group, options='', required=true));
+        now_parameters.forEach(item => addVariableInputBox(
+            label=item, 
+            id=item, 
+            value='', 
+            parentDiv=spec_group, 
+            options='', 
+            more={is_required: true, type: "string", is_list: false}))
     }
 
     

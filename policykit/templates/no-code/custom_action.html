@@ -179,7 +179,13 @@
             } else {
                 var default_value = `${variable.default_value}`
             }
-            addVariableInputBox(label=variable.name, id=variable_id, value=default_value, field_div, options='', is_required=variable.is_required)
+            addVariableInputBox(
+                label=variable.name, 
+                id=variable_id, 
+                value=default_value, 
+                parentDiv=field_div, 
+                options='',
+                more={is_required: variable.is_required, type: variable.type, is_list: variable.is_list})
         });
     
     }

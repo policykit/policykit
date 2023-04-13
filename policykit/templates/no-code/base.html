@@ -238,21 +238,16 @@
       inputElements = elements.querySelectorAll('.variable-input');
     } 
     
-    var missing_variables = [];
+    var missing_variables = false;
     Array.from(inputElements).forEach(input => {
-      if (input.hasAttribute("required") && input.value === '') {
-        missing_variables.push(input.getAttribute('data-id'));
+      if (!input.reportValidity()) {
+        missing_variables = true;
         input.style.border = '1px solid red';
       } else {
         input.style.border = '1px solid #bbb';
       }
     });
-    if(missing_variables.length > 0) {
-      console.log("Missing variables: " + missing_variables);
-      return true;
-    } else {
-      return false;
-    }
+    return missing_variables;
   }
   // Redirect to another step page
   const redirect = (pageKey, urlParams = {}) => {
@@ -312,20 +307,32 @@
       element.replaceChildren();
   }
 
-  const addVariableInputBox = (label, id, value, parentDiv, options="", is_required=false) => {
+  const addVariableInputBox = (label, id, value, parentDiv, options="", more={}) => {
       var text = document.createElement('div');
       text.classList.add('variable');
       text.id = id;
-      if(is_required) {
+      var input_validate;
+      if(more["is_list"] ?? false){
+        if(more["type"] === "string")
+          input_validate = 'pattern="^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+        else if(more["type"] === "number")
+          input_validate = 'pattern="^\d+(,\d+)*$" title="Please enter comma separated numbers" type="text"';
+      } else {
+        if(more["type"] === "string")
+          input_validate = 'type="text"';
+        else if(more["type"] === "number")
+          input_validate = 'type="number"';
+      }
+      if(more["is_required"] ?? true) {
         text.innerHTML = `<div class='variable-values'>
                             <label class='variable-label' for='${id}'>${label}</label>
-                            <input class='variable-input' type='text' value='${value}' name='${id}' data-id='${id}' list='variable-options' required/>
+                            <input class='variable-input' data-id='${id}' value='${value}' ${input_validate} list='variable-options' required/>
                             ${options}
                         </div>`;
       } else {
         text.innerHTML = `<div class='variable-values'>
                             <label class='variable-label' for='${id}'>${label}</label>
-                            <input class='variable-input' type='text' value='${value}' name='${id}' data-id='${id}' list='variable-options'/>
+                            <input class='variable-input' data-id='${id}' value='${value}' ${input_validate} list='variable-options'/>
                             ${options}
                         </div>`;
       }
