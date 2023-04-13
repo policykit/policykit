@@ -230,6 +230,30 @@
         return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {});
   }
 
+  const checkMissingVariable = (elementId, elements=null) => {
+    var inputElements;
+    if(elementId){
+      inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
+    } else {
+      inputElements = elements.querySelectorAll('.variable-input');
+    } 
+    
+    var missing_variables = [];
+    Array.from(inputElements).forEach(input => {
+      if (input.hasAttribute("required") && input.value === '') {
+        missing_variables.push(input.getAttribute('data-id'));
+        input.style.border = '1px solid red';
+      } else {
+        input.style.border = '1px solid #bbb';
+      }
+    });
+    if(missing_variables.length > 0) {
+      console.log("Missing variables: " + missing_variables);
+      return true;
+    } else {
+      return false;
+    }
+  }
   // Redirect to another step page
   const redirect = (pageKey, urlParams = {}) => {
     // URLs for the different step pages

@@ -56,7 +56,7 @@
         var variables_div = document.getElementById('procedure-variables');
 
         var cur_detail = procedure_details.find(item => item.pk == cur_index);
-        console.log("now template detail is: " + JSON.stringify(cur_detail));
+        
         document.getElementById("procedure-name").innerHTML = cur_detail["name"];
         
         /*
@@ -107,13 +107,15 @@
     }
         
     const createProcedure = async (next) => {
-        const data = getVariableDataInStep(stepElementIds.procedure);
+        
         const procedure_index = parseInt(document.getElementById("procedure-picker").value);
         if(Number.isNaN(procedure_index)) {
             alert("Please select a procedure");
             return;
         }
-
+        if(checkMissingVariable(stepElementIds.procedure)) return;
+        
+        const data = getVariableDataInStep(stepElementIds.procedure);
         const submit_data = {
                             policy_id: parseInt("{{policy_id}}"),
                             procedure_index: procedure_index,
