@@ -61,7 +61,7 @@
         const now_parameters = execution_parameters[new_action];
         console.log("new val is: " + new_action + " filter parameters: " + now_parameters);
         var spec_group = document.getElementById('action-specs-group');
-        now_parameters.forEach(item => addVariableInputBox(label=item, id=item, value='', parentDiv=spec_group, options=''));
+        now_parameters.forEach(item => addVariableInputBox(label=item, id=item, value='', parentDiv=spec_group, options='', required=true));
     }
 
     
@@ -74,6 +74,7 @@
         const exec_kind = "{{exec_kind}}"
         const now_actiontype = document.getElementById("actionpicker").value;
         if(now_actiontype != "none" & now_actiontype != "default"){
+            if(checkMissingVariable(stepElementIds.execution)) return;
             var data = getVariableDataInStep(stepElementIds.execution);
             data["action"] = now_actiontype;            
             submit_data["action_data"] = {[exec_kind]: data};
