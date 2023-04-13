@@ -78,7 +78,7 @@
 
         const exec_kind = "{{exec_kind}}"
         const now_actiontype = document.getElementById("actionpicker").value;
-        if(now_actiontype != "none" & now_actiontype != "default"){
+        if(now_actiontype != "none" && now_actiontype != "default" && now_actiontype != ""){
             if(checkMissingVariable(stepElementIds.execution)) return;
             var data = getVariableDataInStep(stepElementIds.execution);
             data["action"] = now_actiontype;            
