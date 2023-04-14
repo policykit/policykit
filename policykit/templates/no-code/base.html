@@ -223,12 +223,28 @@
     secondary: 'secondary'
   }
 
-  const getVariableDataInStep = stepId => {
+  const getVariableDataInStep = (elementId, elements=null) => {
         // Select all input elements in step element
-        const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input');
+        var inputElements;
+        if(elementId){
+          inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
+        } else {
+          inputElements = elements.querySelectorAll('.variable-input');
+        }
 
-        // Build JS object with variable data in the form of { id: value, id: value }
-        return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {});
+        var variable_data = {};
+        
+        Array.from(inputElements).forEach(input => {
+          // if it is an input element
+          if(input.tagName === 'INPUT'){
+            variable_data[input.getAttribute('data-id')] = input.value;
+          }
+          else if(input.tagName === 'SELECT'){
+            let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
+            variable_data[input.getAttribute('data-id')] = selected_options;
+          }
+        });
+        return variable_data;
   }
 
   const checkMissingVariable = (elementId, elements=null) => {
@@ -241,11 +257,23 @@
     
     var missing_variables = false;
     Array.from(inputElements).forEach(input => {
-      if (!input.reportValidity()) {
-        missing_variables = true;
-        input.style.border = '1px solid red';
-      } else {
-        input.style.border = '1px solid #bbb';
+        // if it is an input box
+      if(input.tagName === 'INPUT') {
+        if(!input.reportValidity()){
+          missing_variables = true;
+          input.style.border = '1px solid red';
+        } else {
+          input.style.border = '1px solid #bbb';
+        }
+      } else if(input.tagName === 'SELECT'){
+        // if it is a select-picker object, it is actually an select element enclosed by a div
+        let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
+        if(selected_options === ""){
+          missing_variables = true;
+          input.parentElement.style.border = '1px solid red';
+        } else {
+          input.parentElement.style.border = '1px solid rgb(187, 187, 187)';
+        }
       }
     });
     return missing_variables;

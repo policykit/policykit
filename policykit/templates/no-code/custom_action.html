@@ -217,9 +217,10 @@
                         // check whether all variables are filled and alert with the missing variable names
                         missing_input = checkMissingVariable(null, elements=filter_variable_div);
                         if(missing_input) break;
-                        let filter_variable_input = filter_variable_div.querySelectorAll('.variable-input');
-                        Array.from(filter_variable_input).forEach((input) => {
-                            variables_dict[input.getAttribute('data-id').split(".").pop()] = input.value;
+                        let filter_variable_input = getVariableDataInStep(null, elements=filter_variable_div);
+                        // replace original key in filter_variable_input with the variable name
+                        Object.keys(filter_variable_input).forEach(key => {
+                            variables_dict[key.split(".").pop()] = filter_variable_input[key];
                         });
                     }
                     filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
