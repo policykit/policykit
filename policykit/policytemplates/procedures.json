@@ -31,7 +31,7 @@
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
                 "type": "string",
-                "is_list": true,
+                "is_list": true
                 
             },
             {
@@ -43,7 +43,6 @@
                 "prompt": "",
                 "type": "number",
                 "is_list": false
-                
             },
             {
                 "name": "maximum_no_allowed",

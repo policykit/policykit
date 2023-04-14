@@ -962,12 +962,14 @@ def design_custom_action(request):
                     "variables": filter.loads("variables")
                 })
 
+    entities = Utils.load_entities(user.community)
     trigger = request.GET.get("trigger", "false")
     return render(request, "no-code/custom_action.html", {
         "trigger": trigger,
         "actions": new_actions, # this variable is only used in html template and therefore no dump is needed
         "filter_parameters": json.dumps(filter_parameters), # this variable is used in javascript and therefore needs to be dumped
-        "filter_modules": json.dumps(filter_modules)
+        "filter_modules": json.dumps(filter_modules),
+        "entities": json.dumps(entities)
     })
 
 @login_required

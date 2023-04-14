@@ -152,6 +152,7 @@
       color: #bbb;
   }
 
+  input
   .variable-input {
       padding: 8px;
       border: 1px solid #bbb;
@@ -339,52 +340,66 @@
       parentDiv.appendChild(text);
   }*/
 
-  const addVariableInputBox = (variable, id, parentDiv, datalist=null) => {
+  const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null) => {
       var text = document.createElement('div');
       text.classList.add('variable');
       text.id = id;
 
-      // figure out what type of input requirement is needed
-      var input_validate;
-      if(variable["is_list"] ?? false){
-        if(more["type"] === "string")
-          input_validate = 'pattern="^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
-        else if(variable["type"] === "number")
-          input_validate = 'pattern="^\d+(,\d+)*$" title="Please enter comma separated numbers" type="text"';
-      } else {
-        if(variable["type"] === "string")
-          input_validate = 'type="text"';
-        else if(variable["type"] === "number")
-          input_validate = 'type="number"';
-      }
-
-      if(variable["is_required"] ?? true){
-          input_validate += " required";
-      } else {
-          input_validate += `value='${variable.default_value}'`;
-      }
-
-      var prompt = "";
-      if(Boolean(variable["prompt"]) == true)
-        // if it is not empty, null, or undefined
-        prompt = `<p class='variable-prompt text-small'>${variable.prompt}</p>`;
-
-      if(datalist){
-        text.innerHTML = `<div class='variable-values'>
-                          <label class='variable-label' for='${id}'>${variable.label}</label>
-                          <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
-                          ${prompt}
-                          ${datalist}
-                      </div>`;
-      } else {
-        text.innerHTML = `<div class='variable-values'>
+      if(options && variable["entity"] && (variable["entity"] in options)){
+        // if it is, then we use a select as the input box
+        let innerHTML = `<div class='variable-values'>
                             <label class='variable-label' for='${id}'>${variable.label}</label>
-                            <input class='variable-input' data-id='${id}' ${input_validate}/>
-                            ${prompt}
-                        </div>`;
-      }
+                            <select class='variable-input selectpicker' data-id='${id}' title="Select an ${variable.label}">`;
+        options[variable["entity"]].forEach(entity => {
+          innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
+        });
+        innerHTML += `</select></div>`;
+        text.innerHTML = innerHTML;
+        
+      } else {
+        // figure out what type of input requirement is needed
+        var input_validate;
+        if(variable["is_list"] ?? false){
+            if(more["type"] === "string")
+              input_validate = 'pattern="^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+            else if(variable["type"] === "number")
+              input_validate = 'pattern="^\d+(,\d+)*$" title="Please enter comma separated numbers" type="text"';
+        } else {
+            if(variable["type"] === "string")
+              input_validate = 'type="text"';
+            else if(variable["type"] === "number")
+              input_validate = 'type="number"';
+        }
 
+        if(variable["is_required"] ?? true){
+            input_validate += " required";
+        } else {
+            input_validate += `value='${variable.default_value}'`;
+        }
+
+        var prompt = "";
+        if(Boolean(variable["prompt"]) == true)
+          // if it is not empty, null, or undefined
+          prompt = `<p class='variable-prompt text-small'>${variable.prompt}</p>`;
+        
+        if(datalist){
+          // if there is a datalist, then we need to add the datalist to the parent div
+          text.innerHTML = `<div class='variable-values'>
+                            <label class='variable-label' for='${id}'>${variable.label}</label>
+                            <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
+                            ${prompt}
+                            ${datalist}
+                        </div>`;
+        } else {
+          text.innerHTML = `<div class='variable-values'>
+                              <label class='variable-label' for='${id}'>${variable.label}</label>
+                              <input class='variable-input' data-id='${id}' ${input_validate}/>
+                              ${prompt}
+                          </div>`;
+        }
+      }
       parentDiv.appendChild(text);
+      
   }
 </script>
 {% endblock %}
