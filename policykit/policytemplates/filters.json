@@ -9,6 +9,7 @@
             {
                 "name": "permission",
                 "label": "Which permission users should have?",
+                "entity": "Permission",
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
@@ -27,6 +28,7 @@
             {
                 "name": "role",
                 "label": "Which role users should have?",
+                "entity": "Role",
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
@@ -45,6 +47,7 @@
             {
                 "name": "readable_name",
                 "label": "Which readable name the user should have?",
+                "entity": null,
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
@@ -63,6 +66,7 @@
             {
                 "name": "user_ID",
                 "label": "Which ID the user should have?",
+                "entity": null,
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
@@ -82,6 +86,7 @@
             {
                 "name": "word",
                 "label": "Which word do you expect the message starts wtih?",
+                "entity": null,
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
@@ -100,6 +105,7 @@
             {
                 "name": "text",
                 "label": "What do you expect the text to be",
+                "entity": null,
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",
@@ -118,6 +124,7 @@
             {
                 "name": "length",
                 "label": "Which maximum length do you expect the text to be of?",
+                "entity": null,
                 "default_value": null,
                 "is_required": true,
                 "prompt": "",

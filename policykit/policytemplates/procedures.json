@@ -26,15 +26,18 @@
             {
                 "name": "users",
                 "label": "Who should be eligible to vote",
+                "entity": "CommunityUser",
                 "default_value": "",
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
                 "type": "string",
-                "is_list": true
+                "is_list": true,
+                
             },
             {
                 "name": "minimum_yes_required",
                 "label": "How many number of yes votes are required to reach success",
+                "entity": null,
                 "default_value": 1,
                 "is_required": true,
                 "prompt": "",
@@ -45,6 +48,7 @@
             {
                 "name": "maximum_no_allowed",
                 "label": "How many number of no votes are allowed before we call a failure",
+                "entity": null,
                 "default_value": 1,
                 "is_required": true,
                 "prompt": "",
@@ -54,6 +58,7 @@
             {
                 "name": "vote_message",
                 "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
                 "default_value": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
                 "prompt": "",
@@ -63,6 +68,7 @@
             {
                 "name": "vote_channel",
                 "label": "Channel to post the vote message",
+                "entity": "SlackChannel",
                 "default_value": "",
                 "is_required": false,
                 "prompt": "If empty, the vote message will be posted in the same channel as the action",

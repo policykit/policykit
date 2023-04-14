@@ -7,6 +7,7 @@
             {
                 "name": "duration",
                 "label": "When the vote is closed (in minutes)",
+                "entity": null,
                 "default_value": "",
                 "is_required": true,
                 "prompt": "",
