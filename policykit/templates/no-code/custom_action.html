@@ -50,6 +50,7 @@
 <script>
     const filter_parameters_dict = JSON.parse('{{filter_parameters | safe}}');
     const filters_per_app = JSON.parse('{{filter_modules | safe}}');
+    const entities = JSON.parse('{{entities|safe}}');
     const showFilterParameters = () => {
         var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
         selected_options = selected_options.filter(option => option.value != "none");
@@ -174,18 +175,7 @@
             console.log("adding variable: " + JSON.stringify(variable));
             const variable_id = `${select_id}.${variable.name}`;
             // select-${action}.${field}.${variable.name}
-            if(variable.is_required){
-                var default_value = '';
-            } else {
-                var default_value = `${variable.default_value}`
-            }
-            addVariableInputBox(
-                label=variable.name, 
-                id=variable_id, 
-                value=default_value, 
-                parentDiv=field_div, 
-                options='',
-                more={is_required: variable.is_required, type: variable.type, is_list: variable.is_list})
+            addVariableInputBox(variable=variable, id=variable_id, parentDiv=field_div)
         });
     
     }

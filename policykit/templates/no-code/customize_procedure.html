@@ -95,14 +95,8 @@
                 <div class="variable" ...> </div> 
             </div>  
         */
-        cur_detail["variables"].forEach((item, index) => {
-            addVariableInputBox(
-                label=item.label, 
-                id=item.name, 
-                value=item.default_value, 
-                parentDiv=variables_div, 
-                options=`<p class='variable-prompt text-small'>${item.prompt}</p>`, 
-                more={is_required: item.is_required, type: item.type, is_list: item.is_list});
+        cur_detail["variables"].forEach((varaible, index) => {
+            addVariableInputBox(variable=variable, id=item.name, parentDiv=variables_div);
         })
 
     }
@@ -134,16 +128,15 @@
         })
         policy_variables_datalist += `</datalist>`
         
-        cur_detail.forEach(item => 
-            addVariableInputBox(
-                label=item, 
-                id=item, 
-                value='', 
-                parentDiv=variables_div, 
-                options=policy_variables_datalist,
-                more={is_required: true, type: "string", is_list: false})
-                // ideally, we should add a field requirement at each GovernableAction
-        );
+        cur_detail.forEach(field => {
+            let variable = {
+                name: field, label: field, 
+                default_value: "", prompt: "", 
+                is_required: true, type: "string", is_list: false
+            }
+            addVariableInputBox(variable=variable, id=field, parentDiv=variables_div, datalist=policy_variables_datalist);
+            // ideally, we should add a field requirement at each GovernableAction
+        });
     }
 
     const goCustomizeProcedure = async (next) => {
