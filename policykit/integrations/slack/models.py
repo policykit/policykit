@@ -155,6 +155,26 @@ class SlackCommunity(CommunityPlatform):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
 
+    def get_conversations(self, types=["channel"]):
+        """
+            acceptable types are "im", "group", "channel"
+        """
+        def get_channel_type(channel):
+            if channel.get("is_im", False):
+                return "im"
+            elif channel("is_group", False):
+                return "group"
+            elif channel("is_channel", False):
+                return "channel"
+            else:
+                return None
+            
+        response = self.__make_generic_api_call("conversations.list", {})
+        if response.get("ok", False):
+            return [channel for channel in response["channels"] if get_channel_type(channel) in types]
+        else:
+            return []
+
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
