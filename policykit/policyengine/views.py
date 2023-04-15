@@ -1157,6 +1157,7 @@ def customize_procedure(request):
     
     trigger = request.GET.get("trigger", "false")
     policy_id = request.GET.get("policy_id")
+    entities = Utils.load_entities(user.community)
     data = {
             "checkmodules": checkmodules,
             "checkmodules_details": json.dumps(checkmodules_details),
@@ -1164,6 +1165,7 @@ def customize_procedure(request):
             "execution_parameters": json.dumps(execution_parameters),
             "trigger": trigger,
             "policy_id": policy_id,
+            "entities": json.dumps(entities)
         }
 
     now_policy = PolicyTemplate.objects.filter(pk=policy_id).first()

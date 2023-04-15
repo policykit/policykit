@@ -70,6 +70,7 @@
     const checkmodule_details = JSON.parse('{{checkmodules_details|safe}}');
     const execution_parameters = JSON.parse('{{execution_parameters|safe}}');
     const policy_variables = JSON.parse('{{policy_variables|safe}}');
+    const entities = JSON.parse('{{entities|safe}}');
 
     const showModuleDetails = () => {
         const module_index = parseInt(document.getElementById("module-picker").value);
@@ -95,8 +96,8 @@
                 <div class="variable" ...> </div> 
             </div>  
         */
-        cur_detail["variables"].forEach((varaible, index) => {
-            addVariableInputBox(variable=variable, id=item.name, parentDiv=variables_div);
+        cur_detail["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variables_div, options=entities);
         })
 
     }
