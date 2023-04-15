@@ -385,9 +385,13 @@
 
       if(options && variable["entity"] && (variable["entity"] in options)){
         // if it is, then we use a select as the input box
+        if(variable["is_list"] ?? false){
+          input_validate += "  multiple";
+        }
         let innerHTML = `<div class='variable-values'>
                             <label class='variable-label' for='${id}'>${variable.label}</label>
                             <select class='variable-input selectpicker' data-id='${id}' title="Select an ${variable.label}" ${input_validate}>`;
+        
         options[variable["entity"]].forEach(entity => {
           innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
         });
