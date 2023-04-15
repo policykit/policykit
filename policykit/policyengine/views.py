@@ -1088,12 +1088,14 @@ def design_procedure(request):
 
     trigger = request.GET.get("trigger", "false")
     policy_id = request.GET.get("policy_id")
+    entities = Utils.load_entities(user.community)
     return render(request, "no-code/design_procedure.html", {
         "procedures": json.dumps(procedures),
         "procedure_details": json.dumps(procedure_details),
         "platforms": platform_names,
         "trigger": trigger,
-        "policy_id": policy_id
+        "policy_id": policy_id,
+        "entities": json.dumps(entities)
     })
 
 @login_required  

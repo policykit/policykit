@@ -43,6 +43,7 @@
 <script>
     const procedure_details = JSON.parse('{{procedure_details|safe}}');
     const procedures = JSON.parse('{{procedures|safe}}');
+    const entities = JSON.parse('{{entities|safe}}');
 
     const showProcedureDetails = () => {
         var cur_index = parseInt(document.getElementById("procedure-picker").value);
@@ -73,7 +74,7 @@
             </div>
         */
         cur_detail["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variables_div)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variables_div, options=entities)
         })
     }
 
