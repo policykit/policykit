@@ -68,7 +68,7 @@
 {% block step_scripts %}
 <script>
     const checkmodule_details = JSON.parse('{{checkmodules_details|safe}}');
-    const execution_parameters = JSON.parse('{{execution_parameters|safe}}');
+    const execution_variables = JSON.parse('{{execution_variables|safe}}');
     const policy_variables = JSON.parse('{{policy_variables|safe}}');
     const entities = JSON.parse('{{entities|safe}}');
 
@@ -106,16 +106,28 @@
         var new_execution = document.getElementById("extra-action-picker").value;
 
         removeElementChildren('action-variables')
-        if(new_execution == "none") return;
+        if(!new_execution || new_execution == "none") return;
 
         var variables_div = document.getElementById('action-variables');    
-        var cur_detail = [...execution_parameters[new_execution]]; 
+        
+        var cur_detail = execution_variables[new_execution].slice();
         // copy the object to avoid adding frequency fields for multiple times
 
         // which stage we should add this extra execution to
         // check executions need a new field frequency to determine the frequency of the execution
         const selected_block = document.querySelector('input[name="option"]:checked').value;
-        if(selected_block == "check")  cur_detail.push("frequency (in minutes)");
+        if(selected_block == "check")  cur_detail.push(
+            {
+                "name": "frequency",
+                "label": "frequency (in minutes)",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            }
+        );
         
         /* 
             To enable users to set fields of executions as variables already used in the procedure step,
@@ -129,13 +141,8 @@
         })
         policy_variables_datalist += `</datalist>`
         
-        cur_detail.forEach(field => {
-            let variable = {
-                name: field, label: field, 
-                default_value: "", prompt: "", 
-                is_required: true, type: "string", is_list: false
-            }
-            addVariableInputBox(variable=variable, id=field, parentDiv=variables_div, datalist=policy_variables_datalist);
+        cur_detail.forEach(variable => {
+            addVariableInputBox(variable=variable, id=variable["name"], parentDiv=variables_div, options=entities, datalist=policy_variables_datalist);
             // ideally, we should add a field requirement at each GovernableAction
         });
     }
@@ -163,11 +170,6 @@
                 var action_data = getVariableDataInStep("action-variables");
                 action_data["action"] = new_action;
                 const selected_block = document.querySelector('input[name="option"]:checked').value;
-                // if it is check block, replace the key "frequency (in minutes)" in action_data with "frequency"
-                if(selected_block == "check"){
-                    action_data["frequency"] = action_data["frequency (in minutes)"];
-                    delete action_data["frequency (in minutes)"];
-                }
                 submit_data["action_data"] = {[selected_block]: action_data}
             }
         }

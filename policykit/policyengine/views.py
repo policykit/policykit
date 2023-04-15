@@ -1152,7 +1152,7 @@ def customize_procedure(request):
 
     # prepare information about extra executions that are supported
     user = get_user(request)
-    executable_actions, execution_parameters = Utils.extract_executable_actions(user.community.community)
+    executable_actions, execution_variables = Utils.extract_executable_actions(user.community.community)
 
     
     trigger = request.GET.get("trigger", "false")
@@ -1162,7 +1162,7 @@ def customize_procedure(request):
             "checkmodules": checkmodules,
             "checkmodules_details": json.dumps(checkmodules_details),
             "executions": executable_actions,
-            "execution_parameters": json.dumps(execution_parameters),
+            "execution_variables": json.dumps(execution_variables),
             "trigger": trigger,
             "policy_id": policy_id,
             "entities": json.dumps(entities)
@@ -1232,13 +1232,15 @@ def design_execution(request):
 
     if policy_id:
         user = get_user(request)
-        executable_actions, execution_parameters = Utils.extract_executable_actions(user.community.community)
+        executable_actions, execution_variables = Utils.extract_executable_actions(user.community.community)
+        entities = Utils.load_entities(user.community)
         return render(request, "no-code/design_execution.html", {
             "trigger": trigger,
             "policy_id": policy_id,
             "exec_kind": exec_kind,
             "executions": executable_actions,
-            "execution_parameters": json.dumps(execution_parameters),
+            "execution_variables": json.dumps(execution_variables),
+            "entities": json.dumps(entities)
         })
     
 def create_execution(request):

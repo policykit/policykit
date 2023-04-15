@@ -545,10 +545,10 @@ def determine_policy_kind(is_trigger, app_name):
     else:
         return Policy.PLATFORM
 
-def get_execution_parameters(app_name, action_codename):
+def get_execution_variables(app_name, action_codename):
     action_model = apps.get_model(app_name, action_codename)
     if hasattr(action_model, "execution_codes"):
-        return action_model.EXECUTE_PARAMETERS
+        return action_model.EXECUTE_VARIABLES
     else:
         return None
     
@@ -557,18 +557,18 @@ def extract_executable_actions(community):
     actions = get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
 
     executable_actions = dict()
-    execution_parameters = dict()
+    execution_variables = dict()
     for app_name, action_list in actions.items():
         for action_code, action_name in action_list:
-            parameters = get_execution_parameters(app_name, action_code)
+            variables = get_execution_variables(app_name, action_code)
             # only not None if the action has execution_codes function
-            if parameters:
+            if variables:
                 if app_name not in executable_actions:
                     executable_actions[app_name] = []
                 executable_actions[app_name].append((action_code, action_name))
-                execution_parameters[action_code] = parameters
+                execution_variables[action_code] = variables
     
-    return executable_actions, execution_parameters
+    return executable_actions, execution_variables
 
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
