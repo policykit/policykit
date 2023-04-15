@@ -162,18 +162,18 @@ class SlackCommunity(CommunityPlatform):
         def get_channel_type(channel):
             if channel.get("is_im", False):
                 return "im"
-            elif channel("is_group", False):
+            elif channel.get("is_group", False):
                 return "group"
-            elif channel("is_channel", False):
+            elif channel.get("is_channel", False):
                 return "channel"
             else:
                 return None
-            
+        
+        logger.debug("start getting conversations")
         response = self.__make_generic_api_call("conversations.list", {})
-        if response.get("ok", False):
-            return [channel for channel in response["channels"] if get_channel_type(channel) in types]
-        else:
-            return []
+        logger.debug("get_conversations response: " + str(response))
+        return [channel for channel in response["channels"] if get_channel_type(channel) in types]
+
 
 
 class SlackPostMessage(GovernableAction):
