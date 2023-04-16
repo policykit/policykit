@@ -266,7 +266,6 @@ def initialize_starterkit_inner(community, kit_data, creator_username=None):
 
         r.save()
 
-
 def _add_permissions_to_role(role, permission_sets, content_types):
     from django.contrib.auth.models import Permission
 
@@ -328,6 +327,42 @@ def extract_action_types(filters):
         if action_type:
             action_types.append(action_type)
     return action_types
+
+def force_variable_types(value, variable):
+    """
+        when generating codes, we need to make sure the value specified by users (a string) are correctly embedded in the codes
+        in accordance with the variable type (e.g., string, number, list of string, list of number) 
+    """     
+    value_codes = ""
+    if value == "" or value == "None":
+        # for now we assume an empty string represents None, 
+        # as we do not know whether an empty string is no input or actually an empty string
+        value_codes = "None"
+    else:
+        if variable["is_list"]:
+            if variable["type"] == "number": 
+                # e.g., value = "1, 2, 3", then codes should be "[1, 2, 3]"
+                value_codes = f"[{value}]"
+            elif variable["type"] == "string":
+                # e.g., value = "test1, test2, test3", then codes should be "[\"test1\", \"test2\", \"test3\"]"
+                value_list = value.split(",")
+                value_codes = "["
+                for value in value_list:
+                    value_codes += f"\"{value}\","
+                value_codes = value_codes[:-1] # remove the last comma
+                value_codes += "]"
+            else:
+                raise NotImplementedError
+        else:
+            if variable["type"] == "number":
+                # e.g., value = "1", then codes should be "1"
+                value_codes = f"{value}"
+            elif variable["type"] == "string":
+                # e.g., value = "test", then codes should be "\"test\""
+                value_codes = f"\"{value}\""
+            else:
+                raise NotImplementedError
+    return value_codes
 
 def generate_filter_codes(filters):
     """
@@ -392,10 +427,8 @@ def generate_filter_codes(filters):
 
                 parameters_called = []
                 for var in field_filter["variables"]:
-                    if var["type"] == "number":
-                        parameters_called.append(var["value"]) # "1" will be embedded as an integer 1 as required
-                    else:
-                        parameters_called.append("\"{}\"".format(var["value"]))
+                    # we need to make sure the value specified by users (a string) are correctly embedded in the codes
+                    parameters_called.append(force_variable_types(var["value"], var))
                 parameters_called.append("action.{field}".format(field=field)) # action.initiator
                 parameters_called = ", ".join(parameters_called) # "test", action.initiator
                 function_calls.append(
@@ -434,15 +467,75 @@ def generate_initiate_votes(execution):
     codes = ""
     
     if execution["platform"] == "slack":
-        codes = "slack.initiate_vote(users={users}, text={text}, poll_type={poll_type}, channel={channel})".format(
-                users = execution["users"],
-                text = execution["vote_message"],
-                channel = execution["channel"],
-                poll_type = execution["vote_type"],
-            )
+        if execution["poll_type"] == "boolean":
+            codes = "slack.initiate_vote(users={users}, text={text}, poll_type={poll_type}, channel={channel})".format(
+                    users = execution["users"],
+                    text = execution["vote_message"],
+                    channel = execution["channel"],
+                    options=None
+                )
+        else:
+            raise NotImplementedError
     else:
         raise NotImplementedError
     return codes
+
+def initiate_execution_variables(platform):
+    """
+        Ideally, we should create a new BaseAction for initating votes in each integration, 
+        and specify execution variables. But for now, we just hardcode them here, 
+        since an addition of a new BaseAction may involve other more fundamental changes
+    """
+    if platform == "slack":
+        return [
+            {
+                "name": "channel",
+                "label": "Channel to post the vote",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "users",
+                "label": "Eligible voters",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+        ]
+    else:
+        raise NotImplementedError
+
+def force_execution_variable_types(execution, variables_details):
+    """
+        a wrapper function for force_variable_types when generating codes for an execution
+    """
+
+    for name, value in execution.items():
+        if not (name in ["action", "platform"] or value.startswith("variables")):
+            """ 
+                if the value is not a PolicyVariable, we need to convert it to the expected type
+                Otherwise, this is not needed because we explictly force all PolicyVariables 
+                to be expected types in EvaluationContext before executing codes 
+            """
+            execution[name] = force_variable_types(value, variables_details[name]) 
+    return execution
 
 def generate_execution_codes(executions, variables):
 
@@ -473,39 +566,9 @@ def generate_execution_codes(executions, variables):
             }
         ],
     """
-    import re
 
     execution_codes = []
     for execution in executions:
-        for name, value in execution.items():
-            if not (name in ["action", "platform"] or value.startswith("variables")):
-                """
-                    if the value is not a variable, then we need to add quotation marks
-                    so that the variable will still be embedded as a string instead of a Python variable name
-                    
-                    We put the type validation in the `execution_codes` of each GovernableAction.
-                    That is, if the value is expected to be an integer, 
-                    each GovernableAction will convert the value to the integer by explictly calling `int()` in the generated codes
-                """
-                execution[name] = f"\"{value}\""
-            
-            # force the type of the value to be the same as the type of the corresponding variable as defined
-            if value.startswith("variables"):
-                # find in the list of variables of which the name is the same as the name here
-                # extract "users" from the string variables[\"users\"]
-                
-                match = re.search(r'variables\[\"(.+?)\"\]', value)
-                if match:
-                    variable_name = match.group(1)
-                matching_variables = list(filter(lambda var: var["name"] == variable_name, variables))
-                if len(matching_variables) > 1:
-                    raise ValueError("There should be only one variable with the same name")
-                elif len(matching_variables) == 0:
-                    raise ValueError("There should be at least one variable with the same name")
-                else:
-                    if matching_variables[0]["type"] == "number":
-                        execution[name] = f"int({value})"
-
         codes = ""
         if "frequency" in execution:
             # if the execution has a frequency, then it is a recurring execution
@@ -514,12 +577,16 @@ def generate_execution_codes(executions, variables):
             codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
         if execution["action"] == "initiate_vote":
+            execute_variables = initiate_execution_variables(execution["platform"])
+            execution = force_execution_variable_types(execution, execute_variables)
             codes += generate_initiate_votes(execution)
         else:
             # currently only support slackpostmessage
             action_codename = execution["action"]
             this_action = find_action_cls(action_codename)
             if hasattr(this_action, "execution_codes"):
+                execute_variables = this_action.EXECUTE_VARIABLES
+                execution = force_execution_variable_types(execution, execute_variables)
                 codes += this_action.execution_codes(**execution)
             else:
                 raise NotImplementedError
