@@ -417,7 +417,7 @@ def generate_filter_codes(filters):
                     raise Exception(f"Filter {field_filter['kind']}_{field_filter['name']} not found")
                 
                 field_filter["codes"] = filter.codes
-                parameters_codes = ", ".join([var["name"]  for var in field_filter["variables"]]) + ", object=None" 
+                parameters_codes = "object, " + ", ".join([var["name"]  for var in field_filter["variables"]])
                 # in case the filter is used to filter out a list of entities
                 now_codes.append(
                     "def {kind}_{name}({parameters}):".format(
@@ -436,13 +436,13 @@ def generate_filter_codes(filters):
                 now_codes.extend(module_codes)
 
                 parameters_called = []
+                parameters_called.append("action.{field}".format(field=field)) # action.initiator
                 for var in field_filter["variables"]:
                     # we need to make sure the value specified by users (a string) are correctly embedded in the codes
                     parameters_called.append(force_variable_types(var["value"], var))
-                parameters_called.append("action.{field}".format(field=field)) # action.initiator
                 parameters_called = ", ".join(parameters_called) # "test", action.initiator
                 function_calls.append(
-                    "{kind}_{name}({parameters})[0]".format(
+                    "{kind}_{name}({parameters})".format(
                         kind = field_filter["kind"], 
                         name = field_filter["name"], 
                         parameters = parameters_called
