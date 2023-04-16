@@ -1578,7 +1578,7 @@ class FilterModule(models.Model):
                     {"role": "test" ....} 
         
         """
-        variables = [ {"name": variable["name"], "type": variable["type"]} for variable in self.loads("variables") ]
+        variables = self.loads("variables")
         # we should expect there is a value for each variable. Otherwise we should throw an Exception
         if variables_value:
             for variable in variables:
