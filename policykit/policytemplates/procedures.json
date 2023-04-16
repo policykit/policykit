@@ -1,15 +1,13 @@
 [
     {
         "name": "Consesus Voting",
-        "description": "A simple yes-no vote procedure: if no duration is set, the vote is closed as soon as the success or failure is reached",
+        "description": "A simple yes-no vote procedure: if the number of yes votes is greater than or equal to the minimum required, the proposal is passed. If the number of no votes is greater than or equal to the maximum allowed, the proposal is failed. Otherwise, the proposal is still in progress.",
         "platform": "Slack",
         "initialize": [], 
-        "check": [
-            {
+        "check": {
                 "name": "main",
                 "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables[\"minimum_yes_required\"]:\n  return PASSED\nelif no_votes >= variables[\"maximum_no_allowed\"]:\n  return FAILED\n\nreturn PROPOSED\n"
-            }
-        ],
+        },
         "notify": [
             {
                 "action": "initiate_vote",
