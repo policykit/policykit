@@ -1259,7 +1259,7 @@ class Procedure(models.Model):
         check["name"] = self.name
         check["description"] = self.description
         # remove the key-value pair "codes" from the check
-        del check[]
+        del check["codes"]
 
         # we will later use this name to search for the corresponding procedure and later the check codes
         return {
