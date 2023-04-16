@@ -778,6 +778,8 @@ class PolicyVariable(models.Model):
     is_list = models.BooleanField(default=False)
     """Whether the variable is a list. If it is a list of strings or numbers, then they are comma separated without brackets."""
 
+    entity = models.CharField(blank=True, null=True, max_length=100)
+
     policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
     """Variables used in the scope of the policy."""
 
@@ -1171,8 +1173,16 @@ class Procedure(models.Model):
         (ALL, "All"),
     ]
 
+    class Meta:
+        unique_together = ('name', 'platform')
+        """
+            We will use the name to search for the corresponding procedure, and therefore it should be unique.
+            On the other hand, we allow a similar procedure (such as consesus voting) to be used on different platforms.
+            Therefore, these two fields combined should be unique.
+        """
+
     name = models.TextField(blank=True, default='')
-    """such as Jury, Dictator, etc."""
+    """ such as Jury, Dictator, etc. """
 
     description = models.TextField(blank=True, default='')
 
