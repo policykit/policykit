@@ -467,8 +467,8 @@ def generate_initiate_votes(execution):
     codes = ""
     
     if execution["platform"] == "slack":
-        if execution["poll_type"] == "boolean":
-            codes = "slack.initiate_vote(users={users}, text={text}, poll_type={poll_type}, channel={channel})".format(
+        if execution["vote_type"] == "boolean":
+            codes = "slack.initiate_vote(users={users}, text={text}, channel={channel}, options={options})".format(
                     users = execution["users"],
                     text = execution["vote_message"],
                     channel = execution["channel"],
@@ -534,7 +534,9 @@ def force_execution_variable_types(execution, variables_details):
                 Otherwise, this is not needed because we explictly force all PolicyVariables 
                 to be expected types in EvaluationContext before executing codes 
             """
-            execution[name] = force_variable_types(value, variables_details[name]) 
+            var_detail = [var for var in variables_details if var["name"] == name]
+            if len(var_detail) > 0:
+                execution[name] = force_variable_types(value, var_detail[0])
     return execution
 
 def generate_execution_codes(executions, variables):
