@@ -158,6 +158,18 @@ class CommunityPlatform(PolymorphicModel):
 
         return CommunityUser.objects.filter(community=self)
 
+    def get_users_with_permission(self, permission=None):
+        """
+        Returns a QuerySet of all users with the given permission
+        """
+        if permission:
+            from django.db.models import Q
+            return CommunityUser.objects.filter(
+                        Q(is_superuser=True) | 
+                        Q(user_permissions__codename=permission) |
+                        Q(groups__permissions__codename=permission)
+                ).distinct()
+        return CommunityUser.objects.filter(community=self)
 
     def _execute_platform_action(self):
         pass
@@ -1247,7 +1259,7 @@ class Procedure(models.Model):
         check["name"] = self.name
         check["description"] = self.description
         # remove the key-value pair "codes" from the check
-        del check["codes"]
+        del check[]
 
         # we will later use this name to search for the corresponding procedure and later the check codes
         return {
