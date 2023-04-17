@@ -237,7 +237,19 @@
         Array.from(inputElements).forEach(input => {
           // if it is an input element
           if(input.tagName === 'INPUT'){
-            variable_data[input.getAttribute('data-id')] = input.value;
+            let value = input.value;
+            /* 
+              the display of a input box that shows a date and time is for the conveience of the user,
+              while in the backend we still use timestamp. 
+              Therefore, the conversation of the value is more of the task of the frontend. 
+              In contrast, we store a list of numbers still as strings in the backend, 
+              and the backend should take care of the conversion of such values
+            */
+            if(input.type === 'datetime-local'){
+              const dateObject = new Date(value);
+              value = Math.floor(dateObject.getTime() / 1000)
+            }
+            variable_data[input.getAttribute('data-id')] = value;
           }
           else if(input.tagName === 'SELECT'){
             let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
@@ -370,14 +382,22 @@
         // figure out what type of input requirement is needed
         if(variable["is_list"] ?? false){
             if(more["type"] === "string")
-              input_validate += '  pattern="^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+              input_validate += '  pattern="^[a-zA-Z0-9]+(,\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
             else if(variable["type"] === "number")
-              input_validate += '  pattern="^\d+(,\d+)*$" title="Please enter comma separated numbers" type="text"';
+              input_validate += '  pattern="^\d+(,\s*\d+)*$" title="Please enter comma separated numbers" type="text"';
+            else if(variable["type"] === "float")
+              input_validate += '  pattern="^([-+]?[0-9]*\.?[0-9]+)(,\s*[-+]?[0-9]*\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
+            else if(variable["type"] === "timestamp")
+              console.warn("We do not support a variable as a list of timestamps yet");
         } else {
             if(variable["type"] === "string")
               input_validate += ' type="text"';
             else if(variable["type"] === "number")
               input_validate += ' type="number"';
+            else if(variable["type"] === "float")
+              input_validate += ' type="number" step="0.01"';
+            else if(variable["type"] === "timestamp")
+              input_validate += ' type="datetime-local"';
         }
 
         if(variable["default_value"])
