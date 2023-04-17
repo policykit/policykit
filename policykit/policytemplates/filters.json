@@ -113,5 +113,34 @@
                 "is_list": false
             }
         ]
+    },
+    {
+        "kind": "Timestamp",
+        "name": "BetweenStartAndEnd",
+        "description": "Only timestamps that are between the specified start and end",
+        "platform": "All",
+        "codes": "return start <= int(object) <= end",
+        "variables":[
+            {
+                "name": "start",
+                "label": "Which start time do you expect the timestamp to be after?",
+                "entity": null,
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "timestamp",
+                "is_list": false
+            },
+            {
+                "name": "end",
+                "label": "Which end time do you expect the timestamp to be before?",
+                "entity": null,
+                "default_value": null,
+                "is_required": true,
+                "prompt": "",
+                "type": "timestamp",
+                "is_list": false
+            }
+        ]
     }
 ]

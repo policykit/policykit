@@ -204,9 +204,6 @@ class SlackPostMessage(GovernableAction):
         }
     ]
 
-    
-    
-
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32, blank=True)
@@ -330,12 +327,12 @@ class SlackJoinConversation(GovernableAction):
 
 class SlackPinMessage(GovernableAction):
     """
-        Slack API use the timestamp of the message to identify which message should be pinned in this channel 
+        Slack API use the timestamp of the message (in string format) to identify which message should be pinned in this channel 
     """
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": None}
+    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
@@ -371,9 +368,15 @@ class SlackPinMessage(GovernableAction):
 
 
 class SlackScheduleMessage(GovernableAction):
+    """
+        Slack API use the timestamp of the message (an integer) here, 
+        in contrast to the timestamp (in string format) in SlackPinMessage.
+        For the simplicity, we treat all of them as integer by default
+        We will convert the timestamp to string when we generate codes for this SlackPinMessage action
+    """
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
-    FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": None}
+    FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
     EXECUTE_VARIABLES = [
         {
             "name": "text",

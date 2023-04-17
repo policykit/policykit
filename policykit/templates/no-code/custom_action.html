@@ -124,6 +124,7 @@
             // then add the filter parameters for each action in this action_div
             const filter_parameters = filter_parameters_dict[action]; // a dict of field: filter_kind
             const filters_this_app = filters_per_app[selected_groups[index]]; // a dict of filter_kind: [filter_modules]
+            // console.log("filters for this app: " + JSON.stringify(filters_this_app));
             Object.keys(filter_parameters).forEach(field => {
                 const filter_kind = filter_parameters[field];
                 if(filter_kind){
@@ -138,7 +139,9 @@
                                 <option value="none">None</option>`
                     
                     // add filter modules as options for this select
+
                     const filters_this_kind = filters_this_app[filter_kind]
+                    // console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
                     filters_this_kind.forEach(filter => {
                         select_html  += `<option value=${filter.pk}>${filter.description}</option>`
                     });

@@ -291,7 +291,7 @@ def force_variable_types(value, variable):
         value_codes = "None"
     else:
         if variable["is_list"]:
-            if variable["type"] == "number": 
+            if variable["type"] == "number" or variable["type"] == "float":
                 # e.g., value = "1, 2, 3", then codes should be "[1, 2, 3]"
                 value_codes = f"[{value}]"
             elif variable["type"] == "string":
@@ -303,10 +303,10 @@ def force_variable_types(value, variable):
                 value_codes = value_codes[:-1] # remove the last comma
                 value_codes += "]"
             else:
-                raise NotImplementedError
+                raise Exception(f"variable type {variable['type']} is not supported for list")
         else:
-            if variable["type"] == "number":
-                # e.g., value = "1", then codes should be "1"
+            if variable["type"] in ["number", "float", "timestamp"]:
+                # e.g., value = "1", then codes should be "1" and we treat timestamp as an integer
                 value_codes = f"{value}"
             elif variable["type"] == "string":
                 # e.g., value = "test", then codes should be "\"test\""
