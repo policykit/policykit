@@ -978,10 +978,19 @@ def create_custom_action(request):
         create custom actions or action_types of a PolicyTemplate instance based on the request body.
         We create a new CustomAction instance if filters are specified; otherwise, we reference the action type 
 
+        We use trigger to determine whether the policy is an if-then rule (no procedure in between)
+        We then use is_platform_policy to determine whether the policy is a platform policy, that is, 
+        the triggering action will only be executed after the procedure succeeds.
+
+        However, we still need to adapt such conceptual differences to the current implementation of PolicyKit.
+        Therefore, we consider a policy as a "trigger policy" (in the old sense) if it is an if-then rule or 
+        if it is not a platform policy. Otherwise, it is a "platform/constitution policy" (in the old sense).
+
         parameters:
             request.body: A Json object in the shape of 
                 {
                     trigger: "true"/"false",
+                    is_platform_policy: "true"/"false",
                     filters: [
                         {
                             "action_type": "slackpostmessage",
@@ -1008,6 +1017,10 @@ def create_custom_action(request):
     # only create a new PolicyTemplate instance when there is at least one filter specified
     if filters and len(filters) > 0:
         is_trigger = data.get("trigger", "false") == "true"
+        is_platform_policy = data.get("is_platform_policy", "false") == "true"
+        if is_trigger or not is_platform_policy:
+            is_trigger = True
+
         policy_kind = Utils.determine_policy_kind(is_trigger, data.get("app_name"))
         
         new_policy = PolicyTemplate.objects.create(kind=policy_kind, is_trigger=is_trigger)

@@ -8,8 +8,6 @@
     {% else %}
     <h4 class="heading-4">What action are you trying trigger based off?</h4>
     {% endif %}
-
-
     <div class="selectpicker-group">
         <label for="actionpicker">
             {% if trigger == "false" %}
@@ -34,6 +32,12 @@
         <h4 class="heading-4">Which filters you would like to apply to each action?</h4>
         <div class="variables-group" id="action-specs-group"></div>
     </div>
+    {% if trigger == "false" %}
+    <div>
+        <span class="variable-label" for="platform-policy-checkbox">The action will only be executed after the procedure succeeds</span>
+        <input class="variable-input" type="checkbox" id="platform-policy-checkbox" value="platform-policy" >
+    </div>
+    {% endif %}
     <div class="button-group">
         <button class="button secondary">
           Go back
@@ -231,21 +235,27 @@
         });
         // only submit the data if all variables are filled
         if(missing_input) return;
-
-        const is_trigger = "{{trigger}}"
-        const submit_data = {
-                            trigger: is_trigger,
+        
+        const skip_procedure = "{{trigger}}"
+        let submit_data = {
+                            trigger: skip_procedure,
                             filters: filters,
                             app_name: app_name,
                         }
+        if(skip_procedure == "false"){
+            // we only show this checkbox when creating a policy, not when creating an if-then rule
+            let is_platform_policy = document.getElementById("platform-policy-checkbox").checked;
+            submit_data["is_platform_policy"] = is_platform_policy.toString(); 
+            // to keep it consistent with the type of trigger
+        }
         console.log("submit data " + JSON.stringify(submit_data));
         const response = await submit('create_custom_action', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))
         if(response["status"] == "success"){
-            if(is_trigger == "false"){ // if it is not a trigger, then go to create procedure
-                redirect('procedure', {policy_id: response["policy_id"], trigger: is_trigger});
-            } else{ // if it is a trigger, then go to skip the creation of procedure
-                redirect('execution', {policy_id: response["policy_id"], trigger: is_trigger});
+            if(skip_procedure== "false"){ // if it is not an if-then rule, then go to create procedure
+                redirect('procedure', {policy_id: response["policy_id"], trigger: skip_procedure});
+            } else{ // if it is an if-then rule, then skip the creation of procedure
+                redirect('execution', {policy_id: response["policy_id"], trigger: skip_procedure});
             }
         }
     }
