@@ -760,10 +760,14 @@ class PolicyVariable(models.Model):
 
     NUMBER = 'number'
     STRING = 'string'
-
+    FLOAT = 'string'
+    TIMESTAMP = 'timestamp'
+    
     POLICY_VARIABLE_TYPE = [
         (NUMBER, 'number'),
-        (STRING, 'string')
+        (STRING, 'string'),
+        (FLOAT, 'float'),
+        (TIMESTAMP, 'timestamp')
     ]
 
     name = models.CharField(blank=False, max_length=100)

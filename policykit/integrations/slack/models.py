@@ -354,7 +354,7 @@ class SlackPinMessage(GovernableAction):
             "default_value": "",
             "is_required": True,
             "prompt": "",
-            "type": "string",
+            "type": "timestamp",
             "is_list": False
         }
     ]
@@ -402,7 +402,7 @@ class SlackScheduleMessage(GovernableAction):
             "default_value": "",
             "is_required": True,
             "prompt": "",
-            "type": "string",
+            "type": "timestamp",
             "is_list": False
         }
     ]
