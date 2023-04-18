@@ -11,10 +11,10 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables[\"vote_message\"]",
-                "vote_type": "boolean",
-                "users": "variables[\"users\"]",
-                "channel": "variables[\"vote_channel\"]",
+                "vote_message": "variables.vote_message",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
                 "platform": "slack"
             }
         ],
@@ -25,7 +25,7 @@
                 "name": "users",
                 "label": "Who should be eligible to vote",
                 "entity": "CommunityUser",
-                "default_value": "",
+                "default_value": null,
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
                 "type": "string",
@@ -69,6 +69,74 @@
                 "default_value": "",
                 "is_required": false,
                 "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "name": "Benevolent Dictator",
+        "description": "A benevolent dictator has the final say on all proposals. The dictator can either approve or reject a proposal through a DM with the bot.",
+        "platform": "Slack",
+        "initialize": [],
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n\treturn FAILED\nreturn PROPOSED"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.decision_message",
+                "post_type": "mpim",
+                "users": "variables.dictator",
+                "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.notify_message",
+                "channel": "variables.notify_channel"
+            }
+        ],
+        "success": [],
+        "fail": [],
+        "variables": [
+            {
+                "name": "dictator",
+                "label": "Who is the benevolent dictator",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "decision_message",
+                "label": "What messages the dictator should be prompted with to make a decision",
+                "entity": null,
+                "default_value": "Please make a decision on this proposal by yes-or-no voting",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "notify_message",
+                "label": "What messages should we notify other community members when the dictator is asked to make a decision",
+                "entity": null,
+                "default_value": "We have asked the dictator to make a decision on this proposal",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "notify_channel",
+                "label": "Which channel should we notify other community members about the decision",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }

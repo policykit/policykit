@@ -137,7 +137,7 @@
 
         let policy_variables_datalist = `<datalist id="variable-options">`
         policy_variables.forEach(item => {
-            policy_variables_datalist += '<option value="variables[&quot;' + item.name + '&quot;]">' + item.label + '</option>';
+            policy_variables_datalist += '<option value="variables.' + item.name + '">' + item.label + '</option>';
         })
         policy_variables_datalist += `</datalist>`
         

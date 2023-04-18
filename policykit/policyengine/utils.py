@@ -498,7 +498,7 @@ def generate_initiate_votes(execution):
     codes = ""
     
     if execution["platform"] == "slack":
-        if execution["vote_type"] == "boolean":
+        if execution.get("vote_type", "boolean") == "boolean":
             codes = "slack.initiate_vote(users={users}, text={text}, channel={channel}, options={options})".format(
                     users = execution["users"],
                     text = execution["vote_message"],
@@ -568,6 +568,10 @@ def force_execution_variable_types(execution, variables_details):
             var_detail = [var for var in variables_details if var["name"] == name]
             if len(var_detail) > 0:
                 execution[name] = force_variable_types(value, var_detail[0])
+        elif value.startswith("variables"):
+            # parts after the first dot is the name of the variable
+            var_name = value.split(".", 1)[1]
+            execution[name] = f"variables[\"{var_name}\"]"
     return execution
 
 def generate_execution_codes(executions, variables):
@@ -582,10 +586,10 @@ def generate_execution_codes(executions, variables):
         [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables[\"vote_message\"]",
+                "vote_message": "variables.vote_message",
                 "vote_type": "boolean",
-                "users": "variables[\"users\"]",
-                "channel": "variables[\"vote_channel\"]",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
                 "platform": "slack"
             }
         ]
