@@ -42,7 +42,7 @@
         "name": "UserID",
         "description": "Only users with the specified userIDs",
         "platform": "All",
-        "codes": "return object.username in usesr_IDs",
+        "codes": "return object.username in user_IDs",
         "variables":[
             {
                 "name": "user_IDs",
