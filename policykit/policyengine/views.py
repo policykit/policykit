@@ -1138,6 +1138,7 @@ def create_procedure(request):
             logger.debug("creating variables for the new policy") 
             new_policy.procedure = procedure
             new_policy.add_variables(procedure.loads("variables"), data.get("procedure_variables", {}))
+            new_policy.add_descriptive_data(procedure.loads("data"))
             new_policy.save()
             return JsonResponse({"status": "success", "policy_id": new_policy.pk})
     return JsonResponse({"status": "fail"})
@@ -1223,7 +1224,7 @@ def create_customization(request):
         if module_template:
             new_policy.add_check_module(module_template)
             new_policy.add_variables(module_template.loads("variables"), data.get("module_data", {}))
-
+            new_policy.add_descriptive_data(module_template.loads("data"))
         action_data = data.get("action_data", None)
         if action_data:
             new_policy.add_extra_actions(action_data)

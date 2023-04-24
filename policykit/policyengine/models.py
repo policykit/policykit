@@ -1271,7 +1271,7 @@ class Procedure(models.Model):
                 "entity": "CommunityUser",
                 "type": "string",
                 "is_list": true,
-                "codes": "board_members = [user.username for user in {platform}.get_users(role_names=[variables[\"board_role\"]])]\n",
+                "codes": "board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]\n",
                 "dynamic": false
             },
             {
@@ -1412,7 +1412,7 @@ class PolicyTemplate(models.Model):
         for var in new_variables:
             # skip variables that have already been added, we assume variables do not have the same name
             if var["name"] in added_names:
-                continue
+                raise Exception("variable with name {} already exists".format(var["name"]))
             
             # set the value of this variable; 
             # the value should match the expected type of this variable because we enforce it in the frontend
@@ -1426,7 +1426,7 @@ class PolicyTemplate(models.Model):
         added_names = [datum["name"] for datum in data]
         for datum in new_data:
             if datum["name"] in added_names:
-                continue
+                raise Exception("data with name {} already exists".format(datum["name"]))
             data.append(datum)
         self.dumps("data", data)
         self.save()
@@ -1520,6 +1520,8 @@ class PolicyTemplate(models.Model):
 
         check = self.loads("extra_check")
         check.append(procedure["check"])
+
+        
         return {
             "name": self.name,
             "description": self.description,
@@ -1529,6 +1531,7 @@ class PolicyTemplate(models.Model):
             "check": check,
             "executions": executions,
             "variables": self.loads("variables"),
+            "data": self.loads("data")
         }
     
     def create_policy(self, community):
@@ -1543,14 +1546,14 @@ class PolicyTemplate(models.Model):
             policy.action_types.add(action_type)
         
         policy.filter = Utils.generate_filter_codes(policy_json["filter"])
-        policy.initialize = "pass"
-
-        check_executions = Utils.generate_execution_codes(policy_json["executions"]["check"], self.loads("variables"))
+        policy.initialize = Utils.generate_initialize_codes(self.loads("data"))
+ 
+        check_executions = Utils.generate_execution_codes(policy_json["executions"]["check"])
         policy.check = check_executions + Utils.generate_check_codes(policy_json["check"])
 
-        policy.notify = Utils.generate_execution_codes(policy_json["executions"]["notify"], self.loads("variables"))
-        policy.success = Utils.generate_execution_codes(policy_json["executions"]["success"], self.loads("variables"))
-        policy.fail = Utils.generate_execution_codes(policy_json["executions"]["fail"], self.loads("variables"))
+        policy.notify = Utils.generate_execution_codes(policy_json["executions"]["notify"])
+        policy.success = Utils.generate_execution_codes(policy_json["executions"]["success"])
+        policy.fail = Utils.generate_execution_codes(policy_json["executions"]["fail"])
         
         self.create_policy_variables(policy, {})
         policy.save()
@@ -1558,7 +1561,7 @@ class PolicyTemplate(models.Model):
 
 class CheckModule(models.Model):
 
-        JSON_FIELDS = ["variables"]
+        JSON_FIELDS = ["variables", "data"]
         """the fields that are stored as JSON dumps"""
 
         name = models.TextField(blank=True, default='', unique=True)

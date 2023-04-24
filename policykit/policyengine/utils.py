@@ -460,6 +460,21 @@ def generate_filter_codes(filters):
             filter_codes += "return True\n"
     return filter_codes
 
+def generate_initialize_codes(data):
+    """
+        Help generate codes for calculating static data, as codes for dynamic data have already been included in check codes
+    """
+    initialize_codes = ""
+    for datum in data:
+        if(datum["dynamic"] == False):
+            initialize_codes += datum["codes"] 
+            # e.g. board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]
+            initialize_codes += "proposal.set(\"{name}\", {name})".format(name=datum["name"]) + "\n"
+            # e.g. proposal.set("board_members", board_members)
+    if not initialize_codes:
+        initialize_codes = "pass"
+    return initialize_codes
+
 def generate_check_codes(checks):
     """
         a list of checks defined in JSON
@@ -589,16 +604,17 @@ def force_execution_variable_types(execution, variables_details):
             # parts after the first dot is the name of the variable
             var_name = value.split(".", 1)[1]
             execution[name] = f"variables[\"{var_name}\"]"
+        elif value.startswith("data"):
+            # value e.g., data.board_members
+            datum_name = value.split(".", 1)[1]
+            execution[name] = f"proposal.data.get(\"{datum_name}\")"
     return execution
 
-def generate_execution_codes(executions, variables):
+def generate_execution_codes(executions):
 
     """ 
     Help generate codes for a list of executions. 
     
-    Parameters: 
-        Variables: provide definitions of variables used in the executions, including its name, type, and value
-
     some examples of executions:
         [
             {
