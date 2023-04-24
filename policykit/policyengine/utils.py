@@ -591,16 +591,9 @@ def force_execution_variable_types(execution, variables_details):
     """
 
     for name, value in execution.items():
-        if not (name in ["action", "platform"] or value.startswith("variables")):
-            """ 
-                if the value is not a PolicyVariable, we need to convert it to the expected type
-                Otherwise, this is not needed because we explictly force all PolicyVariables 
-                to be expected types in EvaluationContext before executing codes 
-            """
-            var_detail = [var for var in variables_details if var["name"] == name]
-            if len(var_detail) > 0:
-                execution[name] = force_variable_types(value, var_detail[0])
-        elif value.startswith("variables"):
+        if name in ["action", "platform"]:
+            continue
+        if value.startswith("variables"):
             # parts after the first dot is the name of the variable
             var_name = value.split(".", 1)[1]
             execution[name] = f"variables[\"{var_name}\"]"
@@ -608,6 +601,16 @@ def force_execution_variable_types(execution, variables_details):
             # value e.g., data.board_members
             datum_name = value.split(".", 1)[1]
             execution[name] = f"proposal.data.get(\"{datum_name}\")"
+        else:
+            """ 
+                if the value is not a PolicyVariable or data, we need to convert it to the expected type
+                Otherwise, this is not needed because we explictly force all PolicyVariables 
+                to be expected types in EvaluationContext before executing codes 
+            """
+            var_detail = [var for var in variables_details if var["name"] == name]
+            if len(var_detail) > 0:
+                execution[name] = force_variable_types(value, var_detail[0])
+
     return execution
 
 def generate_execution_codes(executions):
