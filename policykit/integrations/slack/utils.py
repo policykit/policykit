@@ -131,6 +131,8 @@ def infer_channel(proposal):
 
 
 def construct_vote_params(proposal, users=None, post_type="channel", text=None, channel=None, options=None):
+    from policyengine.models import CommunityUser
+    
     if post_type not in ["channel", "mpim"]:
         raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
     if post_type == "mpim" and not users:
@@ -138,7 +140,10 @@ def construct_vote_params(proposal, users=None, post_type="channel", text=None, 
 
     params = {}
 
-    if users is not None and len(users) > 0:
+    if users is not None:
+        if isinstance(users, str) or isinstance(users, CommunityUser):
+            users = [users]
+
         if isinstance(users[0], str):
             params["eligible_voters"] = users
         else:
