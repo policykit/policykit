@@ -25,7 +25,7 @@
                 "name": "users",
                 "label": "Who should be eligible to vote",
                 "entity": "CommunityUser",
-                "default_value": null,
+                "default_value": "",
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
                 "type": "string",
@@ -57,7 +57,7 @@
                 "label": "Message to be posed in the channel when the vote starts",
                 "entity": null,
                 "default_value": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
-                "is_required": true,
+                "is_required": false,
                 "prompt": "",
                 "type": "string",
                 "is_list": false

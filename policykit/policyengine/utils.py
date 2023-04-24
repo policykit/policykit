@@ -285,9 +285,15 @@ def force_variable_types(value, variable):
         in accordance with the variable type (e.g., string, number, list of string, list of number) 
     """     
     value_codes = ""
-    if value == "" or value == "None":
-        # for now we assume an empty string represents None, 
-        # as we do not know whether an empty string is no input or actually an empty string
+    if value == "" or value is None:
+        """
+            For now we assume an empty string represents None in the execution codes 
+            as we do not know whether an empty string is no input or actually an empty string
+            
+            We do not need to replace value with the default value of this variable here,
+            as we load default values in the input box of the frontend, and if users make no change,
+            the value will automatically be the default value.
+        """
         value_codes = "None"
     else:
         if variable["is_list"]:
