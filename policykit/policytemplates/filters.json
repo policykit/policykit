@@ -4,7 +4,7 @@
         "name": "Permission",
         "description": "Only users with the specified permission",
         "platform": "All",
-        "codes": "all_usernames_with_permission = [_user.username for _user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
+        "codes": "all_usernames_with_permission = [user.username for user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
         "variables":[
             {
                 "name": "permission",
@@ -23,7 +23,7 @@
         "name": "Role",
         "description": "Only users of the specified roles",
         "platform": "All",
-        "codes": "all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\nreturn object.username in all_usernames_with_roles",
+        "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn object.username in all_usernames_with_roles",
         "variables":[
             {
                 "name": "role",
@@ -119,7 +119,7 @@
         "name": "BetweenStartAndEnd",
         "description": "Only timestamps that are between the specified start and end",
         "platform": "All",
-        "codes": "return start <= int(object) <= end",
+        "codes": "return start <= int(object) and int(object) <= end",
         "variables":[
             {
                 "name": "start",
