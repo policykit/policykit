@@ -151,7 +151,7 @@
         "initialize": [],
         "check": {
                 "name": "main",
-                "codes": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n\treturn FAILED\nreturn PROPOSED"
+                "codes": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables[\"minimum_yes_required\"]:\n  return PASSED\nelif no_votes >= variables[\"maximum_no_allowed\"]:\n  return FAILED\nreturn PROPOSED\n"
         },
         "notify": [
             {
@@ -208,6 +208,26 @@
                 "is_required": true,
                 "prompt": "",
                 "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "minimum_yes_required",
+                "label": "How many number of yes votes are required to reach success",
+                "entity": null,
+                "default_value": 1,
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            },
+            {
+                "name": "maximum_no_allowed",
+                "label": "How many number of no votes are allowed before we call a failure",
+                "entity": null,
+                "default_value": 1,
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
                 "is_list": false
             }
         ],
