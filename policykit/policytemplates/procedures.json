@@ -1,6 +1,6 @@
 [
     {
-        "name": "Consesus Voting",
+        "name": "Consensus Voting",
         "description": "A simple yes-no vote procedure: if the number of yes votes is greater than or equal to the minimum required, the proposal is passed. If the number of no votes is greater than or equal to the maximum allowed, the proposal is failed. Otherwise, the proposal is still in progress.",
         "platform": "Slack",
         "initialize": [], 
@@ -72,7 +72,8 @@
                 "type": "string",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "name": "Benevolent Dictator",
@@ -139,6 +140,105 @@
                 "prompt": "",
                 "type": "string",
                 "is_list": false
+            }
+        ],
+        "data": []
+    },
+    {
+        "name": "Board Voting",
+        "description": "Community members of a specified role, i.e. a Board, can vote on a proposal. The board can either approve or reject a proposal through either a designated moderation channel or mpim with the bot.",
+        "platform": "Slack",
+        "initialize": [],
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n\treturn FAILED\nreturn PROPOSED"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.decision_message",
+                "post_type": "mpim",
+                "users": "data.board_members",
+                "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.notify_message",
+                "channel": "variables.notify_channel"
+            }
+        ],
+        "success": [],
+        "fail": [],
+        "variables": [
+            {
+                "name": "board_role",
+                "label": "Which role do board members have",
+                "entity": "Role",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "decision_message",
+                "label": "What messages board members should be prompted with to make a decision",
+                "entity": null,
+                "default_value": "Please make a decision on this proposal by yes-or-no voting",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "notify_message",
+                "label": "What messages should we notify other community members when board members is asked to make a decision",
+                "entity": null,
+                "default_value": "We have asked the board to make a decision on this proposal",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "notify_channel",
+                "label": "Which channel should we notify other community members about the decision",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "board_members",
+                "label": "Board Members",
+                "prompt": "Given the board role, who are the board members",
+                "entity": "CommunityUser",
+                "type": "string",
+                "is_list": true,
+                "codes": "board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]\n",
+                "dynamic": false
+            },
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
             }
         ]
     }

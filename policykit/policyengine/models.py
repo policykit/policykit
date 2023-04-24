@@ -1166,7 +1166,7 @@ class CustomAction(models.Model):
 
 class Procedure(models.Model):
 
-    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables"]
+    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     SLACK = "Slack"
@@ -1253,8 +1253,38 @@ class Procedure(models.Model):
     """ in a similar structure to the "notify" field  """
 
     variables = models.TextField(blank=True, default='[]')
-    """ varaibles used in the procedure """
+    """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
         
+    data = models.TextField(blank=True, default='[]')
+    """ 
+        a JSON object. We will use this field to store the descriptive data of the procedure, 
+        such as (dynamic, codes used to calculate them are part of the check codes) the number of yes votes, the number of no votes,
+        or eligible voters of a specified role (statis, codes used to calculate them are in the initialize codes)
+
+        We do not need is_required and default_value here because users are not allowed to configure them as policy variables
+        e.g.,
+
+            {
+                "name": "board_members",
+                "label": "Board Members",
+                "prompt": "Given the board role, who are the board members",
+                "entity": "CommunityUser",
+                "type": "string",
+                "is_list": true,
+                "codes": "board_members = [user.username for user in {platform}.get_users(role_names=[variables[\"board_role\"]])]\n",
+                "dynamic": false
+            },
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+    """
+
     def loads(self, attr):
         return json.loads(getattr(self, attr))
     
@@ -1278,7 +1308,7 @@ class Procedure(models.Model):
 
 class PolicyTemplate(models.Model):
 
-    JSON_FIELDS = ["extra_check", "extra_executions", "variables"]
+    JSON_FIELDS = ["extra_check", "extra_executions", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     name = models.CharField(max_length=100)
@@ -1336,7 +1366,12 @@ class PolicyTemplate(models.Model):
         Varaibles used in all codes of the policy template
         Whenever we add a new module (such as Procedure and CheckModule) 
         that defines its own variables, we will add them here.
-    
+    """
+
+    data = models.TextField(blank=True, default='[]')
+    """ 
+        data defined similarly to that in the Procedure model.
+        It provides descriptive variables that users can use to configure executions
     """
 
     def loads(self, attr):
@@ -1378,15 +1413,24 @@ class PolicyTemplate(models.Model):
             # skip variables that have already been added, we assume variables do not have the same name
             if var["name"] in added_names:
                 continue
-            # set the value of this variable. 
-            # We do not check if the value matchs the expected type of the variable now
-            if var["name"] in values:
-                var["value"] = values[var["name"]]
-            else:
-                var["value"] = var["default_value"]
+            
+            # set the value of this variable; 
+            # the value should match the expected type of this variable because we enforce it in the frontend
+            var["value"] = values[var["name"]] if var["name"] in values else var["default_value"]
             variables.append(var)
         self.dumps("variables", variables)
         self.save()
+
+    def add_descriptive_data(self, new_data):
+        data = self.loads("data")
+        added_names = [datum["name"] for datum in data]
+        for datum in new_data:
+            if datum["name"] in added_names:
+                continue
+            data.append(datum)
+        self.dumps("data", data)
+        self.save()
+
 
     def add_check_module(self, check_module):
         """
@@ -1529,6 +1573,8 @@ class CheckModule(models.Model):
         variables = models.TextField(blank=True, default='[]')
         """ varaibles used in the check module defined in a similar way to variables in a PolicyTemplate"""
 
+        data = models.TextField(blank=True, default='[]')
+        """the data used in the check module defined in a similar way to data in a Procedure"""
 
         def loads(self, attr):
             return json.loads(getattr(self, attr))
