@@ -708,6 +708,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         if self.community_revert:
             self.community._execute_platform_action(self)
+            self.community_revert = False
 
 
 class TriggerAction(BaseAction, PolymorphicModel):
