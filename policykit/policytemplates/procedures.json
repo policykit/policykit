@@ -261,5 +261,99 @@
                 "dynamic": true
             }
         ]
-    }
+    },
+    {
+        "name": "Do-ocracy",
+        "description": "The action will be approved once being proposed, but will be reverted if there are enough people who vote against it later",
+        "platform": "Slack",
+        "initialize": [],
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n\treturn None\nif proposal.get_time_elapsed().total_seconds() > variables[\"maximum_oppose_time\"]:\n\treturn PASSED\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"no_votes_num\", no_votes)\nif no_votes >= variables[\"maximum_no_required\"]:\n  return FAILED\nreturn PROPOSED"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.vote_message",
+                "post_type": "channel",
+                "users": "variables.users",
+                "platform": "slack"
+            },
+            {
+                "action": "action.execute",
+                "description": "execute the action that is being governed by this proposal"
+            }
+        ],
+        "success": [],
+        "fail": [
+            {
+                "action": "action.revert",
+                "description": "Revert the action that is being governed by this proposal"
+            }
+        ],
+        "variables": [
+            {
+                "name": "maximum_no_required",
+                "label": "Maximum number of no-votes required to revert the action",
+                "entity": null,
+                "default_value": 1,
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            },
+            {
+                "name": "users",
+                "label": "Users eligible to vote",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to post the vote message",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "maximum_oppose_time",
+                "label": "Maximum time allowed for people to vote against the action",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "(in seconds)",
+                "type": "number",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
 ]
