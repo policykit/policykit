@@ -697,11 +697,17 @@ class GovernableAction(BaseAction, PolymorphicModel):
         self.community_revert = True
         self.save()
 
+    def revert(self):
+        """ wrapper of the _revert, so that we can revert an action in the policykit codes"""
+        if not self.community_revert:
+            self._revert()
+
     def execute(self):
         """
         Executes the action.
         """
-        self.community._execute_platform_action(self)
+        if self.community_revert:
+            self.community._execute_platform_action(self)
 
 
 class TriggerAction(BaseAction, PolymorphicModel):
