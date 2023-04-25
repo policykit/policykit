@@ -277,6 +277,7 @@
                 "vote_message": "variables.vote_message",
                 "post_type": "channel",
                 "users": "variables.users",
+                "channel": "variables.vote_channel",
                 "platform": "slack"
             },
             {
