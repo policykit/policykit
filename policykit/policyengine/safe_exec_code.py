@@ -9,6 +9,8 @@ import datetime
 import base64
 import itertools
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 policykit_builtins = {
     # see: https://restrictedpython.readthedocs.io/en/latest/usage/policy.html#predefined-builtins
@@ -118,4 +120,5 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
         raise
     except Exception as e:
         # The code did something that is not allowed
+        logging.debug(f"User code failed with exception: {e}")
         raise
