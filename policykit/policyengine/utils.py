@@ -653,6 +653,10 @@ def generate_execution_codes(executions):
             execute_variables = initiate_execution_variables(execution["platform"])
             execution = force_execution_variable_types(execution, execute_variables)
             codes += generate_initiate_votes(execution)
+        elif execution["action"] == "action.revert":
+            codes += "action.revert()"
+        elif execution["action"] == "action.execute":
+            codes += "action.execute()"
         else:
             # currently only support slackpostmessage
             action_codename = execution["action"]
