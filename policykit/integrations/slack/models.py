@@ -107,7 +107,10 @@ class SlackCommunity(CommunityPlatform):
         channel = post in channel
         ephemeral = ephemeral post(s) in channel that is only visible to one user
         """
-        usernames = [user.username for user in users or []]
+        if users and len(users) > 0 and isinstance(users[0], str):
+            usernames = users
+        else:
+            usernames = [user.username for user in users or []]
         if len(usernames) == 0 and post_type in ["mpim", "im", "ephemeral"]:
             raise Exception(f"user(s) required for post type '{post_type}'")
 
