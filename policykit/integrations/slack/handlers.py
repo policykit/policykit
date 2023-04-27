@@ -4,7 +4,7 @@ import integrations.slack.utils as SlackUtils
 from django.dispatch import receiver
 from integrations.slack.models import SlackCommunity, SlackUser
 from metagov.core.signals import governance_process_updated, platform_event_created
-from metagov.plugins.slack.models import Slack, SlackEmojiVote
+from metagov.plugins.slack.models import Slack, SlackEmojiVote, SlackAdvancedVote
 from policyengine.models import (
     BooleanVote,
     NumberVote,
@@ -98,3 +98,14 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
                     logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
                     existing_vote.value = vote_option
                     existing_vote.save()
+
+
+@receiver(governance_process_updated, sender=SlackAdvancedVote)
+def slack_advanced_vote_updated_receiver(sender, instance, status, outcome, errors, **kwargs):
+    """
+    Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
+    This function gets called any time a slack.emoji-vote gets updated (e.g. if a vote was cast).
+    """
+    
+    logger.debug(f"Received vote update from {instance} - {instance.plugin.community_platform_id}")
+
