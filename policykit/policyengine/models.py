@@ -755,6 +755,8 @@ class PolicyVariable(models.Model):
         (STRING, 'string')
     ]
 
+    # TODO: add a SELECT type
+
     name = models.CharField(blank=False, max_length=100)
     """The name of the variable."""
 
@@ -931,7 +933,6 @@ class Policy(models.Model):
 
     def copy_to_community(self, community = None, variable_data = {}):
         """Make a copy of the policy object and assign to a new community"""
-
 
         # TODO NMV Feb 1: revert this after a UI is added to make Template Policies
         # if not self.is_template:

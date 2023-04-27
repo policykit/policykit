@@ -839,17 +839,42 @@ def policy_from_request(request, key_name = 'policy'):
 # But probably not a separate "django app".
 # ===
 
-#NMV March 29: cuttable?
-def get_policy_by_name(request, key_name="name"):
-    """
-    Get policy by name.
-    """
-    from policyengine.models import Policy
-    name = request.GET.get(key_name)
-    try:
-        return Policy.objects.get(name=name)
-    except Policy.DoesNotExist:
-        return(None)
+def create_cv_policy(community):
+    from policyengine.models import Policy, PolicyVariable, ActionType
+    source = Policy.objects.get(name="collectivevoicebase")
+
+    policy =  Policy.objects.create(
+        kind="trigger",
+        name="collectivevoice",
+        community=community,
+
+        filter=source.filter,
+        initialize=source.initialize,
+        check=source.check,
+        notify=source.notify,
+        success=source.success,
+        fail=source.fail,
+        description=source.description
+    )
+
+    action_type, _ = ActionType.objects.get_or_create(codename="expensecreated")
+    policy.action_types.add(action_type)
+
+    vars = source.variables.all()
+
+    for variable in vars:
+        PolicyVariable.objects.create(
+            name=variable.name, label=variable.label, default_value=variable.default_value, is_required=True,
+            prompt=variable.prompt, type=variable.type, policy=policy)
+
+    channel_options = []
+    # get channel names from Slack API if needed
+    if any(['channel' in x.name for x in vars]):
+        channel_options = get_channel_options(community.id)
+
+    return policy, channel_options
+
+
 
 def get_channel_options(community_id):
     """
@@ -857,7 +882,6 @@ def get_channel_options(community_id):
     """
     channel_options = []
     from integrations.slack.models import SlackCommunity
-
     slack_community = SlackCommunity.objects.get(community_id=community_id)
     for channel in slack_community.get_conversations()['channels']:
         if channel['is_channel']: # get only the "channels" (as opposed to group, im, mpim, private)
@@ -865,6 +889,70 @@ def get_channel_options(community_id):
                 {'name': channel['name'], 'channel_id': channel['id']}
             )
     return channel_options
+
+def collectivevoice_home(request):
+    """
+    Show the home screen for CV
+    If they've already gone through the flow, show policy details.
+    Otherwise, start new flow
+    """
+    from policyengine.models import Policy
+
+    user = get_user(request)
+    community = user.community.community
+
+    try:
+        policy = Policy.objects.get(name="collectivevoice", community=community)
+    except Policy.DoesNotExist:
+        policy, channel_options = create_cv_policy(community)   
+    variables = policy.variables.all()
+    
+    return render(request, "collectivevoice/home.html", {
+        'policy': policy,
+        'variables': variables
+    })
+
+
+def collectivevoice_edit_expenses(request):
+    """
+    User can select which expenses will trigger votes
+    """
+    expense_variable_names = [
+        "expense_type", "Payout Type", "Amount", "Tags"
+    ]
+    policy = policy_from_request(request)
+
+    expense_variables = policy.variables.filter(name__in=expense_variable_names)
+
+    return render(request, "collectivevoice/edit_expenses.html", {
+        'policy': policy,
+        'expense_variables': expense_variables
+    })
+
+def collectivevoice_edit_voting(request):
+    """
+    User can select how voting works
+    """
+    voting_options = [
+        {"name": "Peer Approval", "yes_votes_to_approve": 1, "no_votes_to_reject": 1000},
+        # {"name": "Consensus", "no_votes_to_reject": 1, "yes_votes_to_approve": 10}
+    ]
+        # "Peer Approval", "Consensus", "Majority Vote", "Custom"
+        {"name": "Custom"}
+    ]
+    voting_variable_names = [
+        "yes_votes_to_approve", "no_votes_to_reject", "slack_channel_id",
+    ]
+    policy = policy_from_request(request)
+
+    voting_variables = policy.variables.filter(name__in=voting_variable_names)
+
+    return render(request, "collectivevoice/edit_voting.html", {
+        'policy': policy,
+        'voting_options': voting_options,
+        'voting_variables': voting_variables
+    })
+
 
 def embed_select_template(request):
     """
@@ -876,12 +964,11 @@ def embed_select_template(request):
     from policyengine.models import Policy
     template_policies = Policy.objects.filter(is_template=True)
 
-    return render(request, "embed/select_template.html", {
+    return render(request, "collectivevoice/select_template.html", {
         'template_policies': template_policies
     })
 
 def embed_initial(request):
-    # Get source policy based on id passed via the URL
     user = get_user(request)
     community = user.community.community
     policy_source = policy_from_request(request, key_name="source")
@@ -901,7 +988,7 @@ def embed_initial(request):
     # Variables are ordered with initial variables first
     all_variables = policy_source.variables.order_by("default_value")
 
-    return render(request, "embed/initial.html", {
+    return render(request, "collectivevoice/initial.html", {
         "policy": policy_source,
         "initial_variables": initial_variables,
         "channel_options": channel_options,
@@ -910,13 +997,9 @@ def embed_initial(request):
 
 def embed_setup(request):
     """
-    Part of the no-code policy editing flow. This view is
-    hit when the user clicks "Continue" from initial.html (embed_initial view)
-
+    This view is hit when the user clicks "Continue" from initial.html (embed_initial view)
     This gets the current user and community, then makes a copy of the "starter" template policy
     and adds it the user's community
-
-    The _starter substring is removed from the policy name.
     
     Returns JSON with the the copied policy's id.
     """
@@ -940,7 +1023,7 @@ def embed_summary(request):
 
     variables = policy.variables.all()
 
-    return render(request, "embed/summary.html", {
+    return render(request, "collectivevoice/summary.html", {
         "policy": policy,
         "all_variables": variables
     })
@@ -973,7 +1056,7 @@ def embed_edit(request):
     if any(['channel' in x.name for x in variables]):
         channel_options = get_channel_options(community.id)
 
-    return render(request, "embed/edit.html", {
+    return render(request, "collectivevoice/edit.html", {
         "policy": policy,
         "all_variables": variables,
         "channel_options": channel_options
@@ -982,6 +1065,6 @@ def embed_edit(request):
 def embed_success(request):
     """Shows success page when no-code editing is finished."""
     policy = policy_from_request(request)
-    return render(request, "embed/success.html", {
+    return render(request, "collectivevoice/success.html", {
         "policy": policy
     })

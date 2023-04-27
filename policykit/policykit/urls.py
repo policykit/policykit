@@ -49,15 +49,16 @@ urlpatterns = [
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
 
-    ## URLs for the "embed" (no-code) user flow
-   # path('embed/populate_templates', policyviews.embed_populate_templates),
-    path('embed/select_template', policyviews.embed_select_template),
-    path('embed/', policyviews.embed_initial),
-    path('embed/setup', policyviews.embed_setup),
-    path('embed/summary', policyviews.embed_summary),
-    path('embed/update', policyviews.embed_update),
-    path('embed/edit', policyviews.embed_edit),
-    path('embed/success', policyviews.embed_success),
+    # COLLECTIVE VOICE
+    path('collectivevoice/home', policyviews.collectivevoice_home),
+    path('collectivevoice/edit_expenses', policyviews.collectivevoice_edit_expenses),
+    path('collectivevoice/select_template', policyviews.embed_select_template),
+    path('collectivevoice/', policyviews.embed_initial),
+    path('collectivevoice/setup', policyviews.embed_setup),
+    path('collectivevoice/summary', policyviews.embed_summary),
+    path('collectivevoice/update', policyviews.embed_update),
+    path('collectivevoice/edit', policyviews.embed_edit),
+    path('collectivevoice/success', policyviews.embed_success),
     path('admin/', admin.site.urls),
 
     # custom enable/disable views for integrations that use OAuth

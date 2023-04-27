@@ -1,0 +1,55 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step" id="policy_summary">
+  <h2 class="heading-2">
+    CollectiveVoice Summary
+  </h2>
+  <p class="description heading-5">
+    {{ policy.description }}
+  </p>
+
+  <div>
+    Expense Type: Not set
+
+    <button id="editExpenses" class="button secondary">
+        Edit
+      </button>
+
+  </div>
+
+  <div>
+    Voting Template: Not set
+
+    <button class="button secondary">
+        Edit
+      </button>
+
+  </div>
+
+  <div>
+    Follow up action: Not set
+
+    <button class="button secondary">
+        Edit
+      </button>
+
+  </div>
+
+  <div>
+    PREVIEW
+
+  </div>
+
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+  const handleEditExpenses = () => redirect('edit_expenses', { policy: '{{ policy.id }}' })
+  // Event handlers for steps
+  document.getElementById("editExpenses").addEventListener('click', handleEditExpenses)
+  
+  </script>
+{% endblock %}

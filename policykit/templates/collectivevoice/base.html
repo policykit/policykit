@@ -189,10 +189,11 @@
   const redirect = (pageKey, urlParams = {}) => {
     // URLs for the different step pages
     const pages = {
-      setup: '/embed',
-      summary: '/embed/summary',
-      edit: '/embed/edit',
-      success: '/embed/success'
+      home: '/collectivevoice/home',
+      summary: '/collectivevoice/summary',
+      edit: '/collectivevoice/edit',
+      edit_expenses: '/collectivevoice/edit_expenses',
+      success: '/collectivevoice/success'
     }
 
     if (!pages[pageKey]) return
@@ -221,7 +222,7 @@
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
 
     try {
-      const response = await fetch(`../../../embed/${url}?policy={{ policy.id }}`, {
+      const response = await fetch(`../../../collectivevoice/${url}?policy={{ policy.id }}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
