@@ -503,6 +503,17 @@ class Proposal(models.Model):
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
 
+    def get_select_votes_by_users(self, users=None):
+        """ Returns all select votes by a given user """
+        if users:
+            return SelectVote.objects.filter(proposal=self, user__in=users)
+        return SelectVote.objects.filter(proposal=self)
+
+    def get_select_votes_for_candidates(self, candidates=None):
+        if candidates:
+            return SelectVote.objects.filter(proposal=self, candidate__in=candidates)
+        return SelectVote.objects.filter(proposal=self)
+    
     def get_choice_votes(self, value=None):
         if value:
             return ChoiceVote.objects.filter(proposal=self, value=value)
@@ -1002,6 +1013,17 @@ class UserVote(models.Model):
         """
         return datetime.now(timezone.utc) - self.vote_time
 
+class SelectVote(UserVote):
+    """ where a user assigns a option to a candidate"""
+    candidate = models.CharField(max_length=100)
+    """The candidate that the user voted for."""
+
+    option = models.CharField(max_length=100)
+    """The option that the user selected."""
+
+    def __str__(self):
+        return str(self.user) + ' : selected ' + str(self.option) + " for  " + str(self.candidate)
+    
 class BooleanVote(UserVote):
     """BooleanVote"""
 
