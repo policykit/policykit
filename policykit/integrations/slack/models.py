@@ -1,4 +1,5 @@
 import logging
+import inspect
 
 from django.db import models
 import integrations.slack.utils as SlackUtils
@@ -41,11 +42,11 @@ class SlackCommunity(CommunityPlatform):
         logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
         proposal.save()
 
-    def initiate_advanced_vote(self, proposal, candidates, options, channel, title):
+    def initiate_advanced_vote(self, proposal, candidates, options, channel, title, private=False, validate=""):
 
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("slack", self.team_id)
         # start process
-        process = plugin.start_process("advanced-vote", candidates=candidates, options=options, channel=channel, title=title)
+        process = plugin.start_process("advanced-vote", candidates=candidates, options=options, channel=channel, title=title, private=private, validate=validate)
         # save reference to process on the proposal, so we can link up the signals later
         proposal.governance_process = process
         proposal.save()
