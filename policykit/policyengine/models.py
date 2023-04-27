@@ -503,16 +503,30 @@ class Proposal(models.Model):
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
 
-    def get_select_votes_by_users(self, users=None):
+    def get_select_votes_by_users(self):
         """ Returns all select votes by a given user """
-        if users:
-            return SelectVote.objects.filter(proposal=self, user__in=users)
-        return SelectVote.objects.filter(proposal=self)
+        select_votes = SelectVote.objects.filter(proposal=self)
+        outcomes = {}
+        for vote in select_votes:
+            if vote.user not in outcomes:
+                outcomes[vote.user] = {}
+            outcomes[vote.user][vote.candidate] = vote.option
+        return outcomes
 
-    def get_select_votes_for_candidates(self, candidates=None):
-        if candidates:
-            return SelectVote.objects.filter(proposal=self, candidate__in=candidates)
-        return SelectVote.objects.filter(proposal=self)
+    def get_select_votes_by_candidates(self, candidates=None):
+        select_votes = SelectVote.objects.filter(proposal=self)
+        outcomes = {}
+        for vote in select_votes:
+            if vote.candidate not in outcomes:
+                outcomes[vote.candidate] = {}
+            if vote.option not in outcomes[vote.candidate]:
+                outcomes[vote.candidate][vote.option] = []
+            outcomes[vote.candidate][vote.option].append(vote.user) 
+        return outcomes
+    
+    def get_select_voters(self):
+        """ get usernames of all users who have voted on this proposal"""
+        return SelectVote.objects.filter(proposal=self).values_list('user', flat=True).distinct()
     
     def get_choice_votes(self, value=None):
         if value:
