@@ -265,7 +265,7 @@ LOGGING = {
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 
-CELERY_BEAT_FREQUENCY = 60.0
+CELERY_BEAT_FREQUENCY = 20.0
 
 CELERY_BEAT_SCHEDULE = {
     # Evaluate pending policy evaluations every minute
