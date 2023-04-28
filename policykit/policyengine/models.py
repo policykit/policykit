@@ -514,8 +514,11 @@ class Proposal(models.Model):
             outcomes[username][vote.candidate] = vote.option
         return outcomes
 
-    def get_select_votes_by_candidates(self, candidates=None):
-        select_votes = SelectVote.objects.filter(proposal=self)
+    def get_select_votes_by_candidates(self, users=None):
+        if users:
+            select_votes = SelectVote.objects.filter(proposal=self, user__in=users)
+        else:
+            select_votes = SelectVote.objects.filter(proposal=self)
         outcomes = {}
         for vote in select_votes:
             if vote.candidate not in outcomes:
