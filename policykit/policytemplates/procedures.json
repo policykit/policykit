@@ -369,7 +369,7 @@
         "notify": [
             {
                 "action": "initiate_advanced_vote",
-                "candidates": "\"Your representative for this proposal\"",
+                "candidates": "Your representative for this proposal",
                 "options": "variables.eligible_voters",
                 "users": "variables.eligible_voters",
                 "channel": "variables.procedure_channel",
@@ -382,7 +382,7 @@
         "fail": [],
         "variables": [
             {
-                "name": "eligibile_voters",
+                "name": "eligible_voters",
                 "label": "Users eligible to vote",
                 "entity": "CommunityUser",
                 "default_value": "",
@@ -395,7 +395,7 @@
                 "name": "delegate_message",
                 "label": "Message to be posed at the delegation stage",
                 "entity": null,
-                "default_value": "Before deciding on this proposal, people have the opportunity to delegate their votes to another individual who will then be asked to make decisions for this proposal on their behalf. People who haven't select their delegates or select themselves as delegates will then need to decide this proposal by themselves",
+                "default_value": "Before deciding on this proposal, people have the opportunity to delegate their votes to another individual who will then be asked to make decisions for this proposal on their behalf. People who have not select their delegates or select themselves as delegates will then need to decide this proposal by themselves",
                 "is_required": false,
                 "prompt": "",
                 "type": "string",
