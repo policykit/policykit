@@ -42,11 +42,12 @@ class SlackCommunity(CommunityPlatform):
         logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
         proposal.save()
 
-    def initiate_advanced_vote(self, proposal, candidates, options, channel, title):
+    def initiate_advanced_vote(self, proposal, candidates, options, users=None, post_type="channel", title=None, channel=None, details=None):
+        args = SlackUtils.construct_select_vote_params(proposal, candidates, options, users, post_type, title, channel, details)
 
         plugin = metagov.get_community(self.community.metagov_slug).get_plugin("slack", self.team_id)
         # start process
-        process = plugin.start_process("advanced-vote", candidates=candidates, options=options, channel=channel, title=title)
+        process = plugin.start_process("advanced-vote", **args)
         # save reference to process on the proposal, so we can link up the signals later
         proposal.governance_process = process
         proposal.vote_post_id = process.outcome["message_ts"]
