@@ -146,6 +146,12 @@ class CommunityPlatform(PolymorphicModel):
         """
         return self.community.get_roles()
 
+    def get_username_to_readable_name_dict(self):
+        """
+        Returns a dictionary mapping usernames to readable names. 
+        """
+        return {u.username: str(u) for u in self.get_users()}
+    
     def get_users(self, role_names=None):
         """
         Returns a QuerySet of all users in the community on this platform.
@@ -516,7 +522,7 @@ class Proposal(models.Model):
 
     def get_select_votes_by_candidates(self, users=None):
         if users:
-            select_votes = SelectVote.objects.filter(proposal=self, user__in=users)
+            select_votes = SelectVote.objects.filter(proposal=self, user__username__in=users)
         else:
             select_votes = SelectVote.objects.filter(proposal=self)
         outcomes = {}
