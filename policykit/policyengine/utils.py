@@ -518,7 +518,7 @@ def generate_check_codes(checks):
 def generate_initiate_votes(execution):
     codes = ""
     
-    if execution["platform"] == "slack":
+    if execution["platform"] == "slack" and execution["action"] == "initiate_vote":
         if execution.get("post_type") == "\"mpim\"":
             execution["channel"] = "None"
         
@@ -529,17 +529,26 @@ def generate_initiate_votes(execution):
                     channel = execution["channel"],
                     options = None
                 )
+    elif execution["platform"] == "slack" and execution["action"] == "initiate_advanced_vote":
+        codes = "slack.initiate_advanced_vote(candidates={candidates}, options={options}, users={users}, channel={channel}, title={title}, details={details})".format(
+                    candidates = execution["candidates"],
+                    options = execution["options"],
+                    users = execution["users"],
+                    channel = execution["channel"],
+                    title=execution["title"],
+                    details = execution["details"]
+                )
     else:
         raise NotImplementedError
     return codes
 
-def initiate_execution_variables(platform):
+def initiate_execution_variables(platform, vote_type):
     """
         Ideally, we should create a new BaseAction for initating votes in each integration, 
         and specify execution variables. But for now, we just hardcode them here, 
         since an addition of a new BaseAction may involve other more fundamental changes
     """
-    if platform == "slack":
+    if platform == "slack" and vote_type == "initiate_vote":
         return [
             {
                 "name": "channel",
@@ -576,6 +585,69 @@ def initiate_execution_variables(platform):
                 "label": "How to post the vote in Slack",
                 "entity": None,
                 "default_value": "channel",
+                "is_required": False,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            }
+        ]
+    elif platform == "slack" and vote_type == "initiate_advanced_vote":
+        return [
+            {
+                "name": "candidates",
+                "label": "Candidates that users can vote for",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "options",
+                "label": "Options that users can select for each candidate",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "users",
+                "label": "Eligible voters",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": False,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "channel",
+                "label": "Channel to post the vote",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "title",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "details",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
                 "is_required": False,
                 "prompt": "",
                 "type": "string",
@@ -649,8 +721,8 @@ def generate_execution_codes(executions):
             duration_variable = "last_time_" + execution["action"]
             codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
-        if execution["action"] == "initiate_vote":
-            execute_variables = initiate_execution_variables(execution["platform"])
+        if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
+            execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
             execution = force_execution_variable_types(execution, execute_variables)
             codes += generate_initiate_votes(execution)
         elif execution["action"] == "action.revert":

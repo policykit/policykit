@@ -356,5 +356,82 @@
                 "dynamic": true
             }
         ]
+    },
+    {
+        "name": "Liquid Democracy",
+        "description": "The action will be governed through liquid democracy. Voters in a liquid democracy have the right to vote directly on all policy issues (direct democracy); voters also have the option to delegate their votes to someone who will vote on their behalf (representative democracy).",
+        "platform": "Slack",
+        "initialize": [],
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.data.get(\"delegate_stage\"):\n\tproposal.data.set(\"delegate_stage\", True)\n\nif not proposal.vote_post_id:\n\treturn None\n\nif proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > variables[\"delegate_duration\"]:\n\tif not proposal.data.get(\"username_dict\") or not proposal.data.get(\"readable_name_dict\"):\n\t\tall_users_dict = {user.username: str(user) for user in slack.get_users()}\n\t\tusername_dict = {username: all_users[username] for username in variables[\"eligible_voters\"]}\n\t\treadable_name_dict = {readable_name: username for username, readable_name in username_dict.items()}\n\t\tproposal.data.set(\"username_dict\", username_dict)\n\t\tproposal.data.set(\"readable_name_dict\", readable_name_dict)\n\t\n\treadable_name_dict = proposal.data.get(\"readable_name_dict\")\n\tusername_dict = proposal.data.get(\"username_dict\")\n\t\n\toutcomes = proposal.get_select_votes_by_users()\n\tfake_option = \"Your representative for this proposal\"\n\tdelegates_dict = {}\n\tproxy_dict = {}\n\tfor user in variables[\"eligible_voters\"]: # iterate all usernames, including those who haven't voted\n\t\tvotes = outcomes.get(user, {})\n\t\tif votes.get(fake_option, {}) and username_dict.get(votes[fake_option], \"\") != user:\n\t\t\tdelegates_dict[user] = username_dict[votes[fake_option]] # converted to user id\n\t\t\tslack.post_message(f\"You have delegated your votes to {votes[fake_option]}\", users=[user], post_type='ephemeral', channel=variables[\"procedure_channel\"])\n\t\telse:\n\t\t\tdelegates_dict[user] = user\n\t\t\tproxy_dict[user] = [user]\n            \n    # TODO: we need to decide whether there is a loop in this directed graph\n\tfor voter, delegate in delegates_dict.items():\n\t\tif voter not in proxy_dict: # they delegate their votes to others\n\t\t\tfinal_delegate = delegate\n\t\t\twhile final_delegate not in proxy_dict:\n\t\t\t\tfinal_delegate = delegates_dict[final_delegate]\n\t\t\tproxy_dict[final_delegate].append(voter)\n\tfor proxy, delegate_list in proxy_dict.items():\n\t\treadable_names = \", \".join(readable_name_dict[user] for user in delegate_list)\n\t\tslack.post_message(f\"When making decision on this proposal, please remember that you are representing the following users {readable_names}\", post_type='ephemeral', users=[proxy], channel=variables[\"procedure_channel\"])\n\tlogger.debug(f\"representatives: {', '.join([readable_name_dict[proxy] for proxy in proxy_dict.keys()])}\")\n\tslack.initiate_vote(users=[key for key in proxy_dict.keys()], post_type='channel', text=\"We have collected people's delegation results, and now let's vote on this proposal\", channel=variables[\"procedure_channel\"])\n\t\n\tproposal.data.set(\"proxy_dict\", proxy_dict)\n\tproposal.data.set(\"delegate_stage\", False)\n\treturn PROPOSED\n\nif not proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > variables[\"delegate_duration\"] + variables[\"vote_duration\"]:\n\tproxy_dict = proposal.data.get(\"proxy_dict\")\n\tyes_votes = proposal.get_yes_votes()\n\tweighted_yes_votes_sum = 0\n\tfor vote in yes_votes:\n\t\tweighted_yes_votes_sum += len(proxy_dict[vote.user.username])\n\tno_votes = proposal.get_no_votes()\n\tweighted_no_votes_sum = 0\n\tfor vote in no_votes:\n\t\tweighted_no_votes_sum += len(proxy_dict[vote.user.username])\n\tslack.post_message(f\"There are in total {weighted_yes_votes_sum} yes votes and {weighted_no_votes_sum} no votes\")\n\tif weighted_yes_votes_sum > weighted_no_votes_sum:\n\t\treturn PASSED\n\telse:\n\t\treturn FAILED"
+        },
+        "notify": [
+            {
+                "action": "initiate_advanced_vote",
+                "candidates": "\"Your representative for this proposal\"",
+                "options": "variables.eligible_voters",
+                "users": "variables.eligible_voters",
+                "channel": "variables.procedure_channel",
+                "title": "Please select the individual you would like to delegate your vote to",
+                "details": "variables.delegate_message",
+                "platform": "slack"
+            }
+        ],
+        "success": [],
+        "fail": [],
+        "variables": [
+            {
+                "name": "eligibile_voters",
+                "label": "Users eligible to vote",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+            },
+            {
+                "name": "delegate_message",
+                "label": "Message to be posed at the delegation stage",
+                "entity": null,
+                "default_value": "Before deciding on this proposal, people have the opportunity to delegate their votes to another individual who will then be asked to make decisions for this proposal on their behalf. People who haven't select their delegates or select themselves as delegates will then need to decide this proposal by themselves",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "procedure_channel",
+                "label": "Channel where the procedure happens",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "type": "string",
+                "is_list": false
+            },
+            {
+                "name": "delegate_duration",
+                "label": "Duration for the delegation process is closed (in seconds)",
+                "entity": null,
+                "default_value": "60",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            },
+            {
+                "name": "vote_duration",
+                "label": "Duration for the actual voting process is closed (in seconds)",
+                "entity": null,
+                "default_value": "60",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            }
+        ],
+        "data": []
     }
 ]
