@@ -381,7 +381,7 @@
       } else {
         // figure out what type of input requirement is needed
         if(variable["is_list"] ?? false){
-            if(more["type"] === "string")
+            if(variable["type"] === "string")
               input_validate += '  pattern="^[a-zA-Z0-9]+(,\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
             else if(variable["type"] === "number")
               input_validate += '  pattern="^\d+(,\s*\d+)*$" title="Please enter comma separated numbers" type="text"';

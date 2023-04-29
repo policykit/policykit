@@ -297,6 +297,16 @@
                 "is_list": false
             },
             {
+                "name": "candidates",
+                "label": "Candidates or issues to be voted on",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "If there are multiple candidates, separate them by commas",
+                "type": "string",
+                "is_list": true
+            },
+            {
                 "name": "eligible_voters",
                 "label": "Users eligible to vote",
                 "entity": "CommunityUser",
