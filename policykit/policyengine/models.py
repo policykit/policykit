@@ -522,6 +522,7 @@ class Proposal(models.Model):
 
     def get_select_votes_by_candidates(self, users=None):
         if users:
+
             select_votes = SelectVote.objects.filter(proposal=self, user__username__in=users)
         else:
             select_votes = SelectVote.objects.filter(proposal=self)
@@ -844,6 +845,25 @@ class PolicyVariable(models.Model):
     def clean(self):
         if self.is_required and not self.value:
             raise ValidationError('Variable value is required')
+    
+    @staticmethod
+    def convert_variable_types(value, type):
+        if not value:
+            return None
+        elif type == PolicyVariable.NUMBER:
+            return int(value)
+        elif type == PolicyVariable.FLOAT:
+            return float(value)
+        elif type == PolicyVariable.TIMESTAMP or type == PolicyVariable.STRING:
+            return value.strip()
+            
+    def get_variable_values(self):
+        values = None
+        if(self.is_list) and self.value:
+            values = [PolicyVariable.convert_variable_types(val, self.type) for val in self.value.split(",")]
+        elif not self.is_list:
+            values = PolicyVariable.convert_variable_types(self.value, self.type)
+        return values
 
 class Policy(models.Model):
     """Policy"""
