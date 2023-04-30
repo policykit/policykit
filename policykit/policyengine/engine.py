@@ -74,16 +74,23 @@ class EvaluationContext:
 
         # Make policy variables available in the evaluation context
         def convert_variable_types(value, type):
-            if type == "number":
+            if not value:
+                return None
+            elif type == "number":
                 return int(value)
+            elif type == "float":
+                return float(value)
             else:
                 return value.strip()
         
         for variable in self.policy.variables.all() or []:
             if(variable.is_list):
                 values = []
-                for value in variable.value.split(","):
-                    values.append(convert_variable_types(value, variable.type))
+                if variable.value:
+                    for value in variable.value.split(","):
+                        values.append(convert_variable_types(value, variable.type))
+                else:
+                    values = None
                 self.variables[variable.name] = values
             else:
                 self.variables[variable.name] = convert_variable_types(variable.value, variable.type)
