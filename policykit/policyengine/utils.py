@@ -285,7 +285,7 @@ def force_variable_types(value, variable):
         in accordance with the variable type (e.g., string, number, list of string, list of number) 
     """     
     value_codes = ""
-    if value == "" or value is None:
+    if not value:
         """
             For now we assume an empty string represents None in the execution codes 
             as we do not know whether an empty string is no input or actually an empty string
@@ -666,9 +666,8 @@ def force_execution_variable_types(execution, variables_details):
         if name in ["action", "platform"]:
             continue
         if value.startswith("variables"):
-            # parts after the first dot is the name of the variable
-            var_name = value.split(".", 1)[1]
-            execution[name] = f"variables[\"{var_name}\"]"
+            # We do nothing there as we also use the attribute style of variables
+            execution[name] = value
         elif value.startswith("data"):
             # value e.g., data.board_members
             datum_name = value.split(".", 1)[1]
