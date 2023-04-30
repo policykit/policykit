@@ -1611,22 +1611,24 @@ class PolicyTemplate(models.Model):
         """
             Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
         """
+        import policyengine.generate_codes as CodesGenerator
+
         policy_json = self.to_json()
         policy = Policy.objects.create(name=self.name, description=self.description, kind=self.kind, community=community)
         
-        action_types = Utils.extract_action_types(policy_json["filter"]) 
+        action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 
         for action_type in action_types:
             policy.action_types.add(action_type)
         
-        policy.filter = Utils.generate_filter_codes(policy_json["filter"])
-        policy.initialize = Utils.generate_initialize_codes(self.loads("data"))
+        policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
+        policy.initialize = CodesGenerator.generate_initialize_codes(self.loads("data"))
  
-        check_executions = Utils.generate_execution_codes(policy_json["executions"]["check"])
-        policy.check = check_executions + Utils.generate_check_codes(policy_json["check"])
+        check_executions = CodesGenerator.generate_execution_codes(policy_json["executions"]["check"])
+        policy.check = check_executions + CodesGenerator.generate_check_codes(policy_json["check"])
 
-        policy.notify = Utils.generate_execution_codes(policy_json["executions"]["notify"])
-        policy.success = Utils.generate_execution_codes(policy_json["executions"]["success"])
-        policy.fail = Utils.generate_execution_codes(policy_json["executions"]["fail"])
+        policy.notify = CodesGenerator.generate_execution_codes(policy_json["executions"]["notify"])
+        policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"])
+        policy.fail = CodesGenerator.generate_execution_codes(policy_json["executions"]["fail"])
         
         self.create_policy_variables(policy, {})
         policy.save()
