@@ -2,6 +2,45 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def check_format_string(string):
+    """ 
+        Check whether the string contains any embedded variables or data, and format it accordingly 
+        TODO: check whether the referenced variables or data are defined
+    """
+    import re
+    curley_pattern = r"\{(.+?)\}"
+    data_pattern = r"data\.([a-zA-Z_][a-zA-Z0-9_]*)"
+    variable_pattern = r"variables\.([a-zA-Z_][a-zA-Z0-9_]*)"
+    action_pattern = r"action\.([a-zA-Z_][a-zA-Z0-9_]*)"
+
+    required_f_string = False
+    for match in re.finditer(curley_pattern, string):
+        match_str = match.group(0)
+        content = match.group(1)
+        logger.debug(f"Matched string: {match_str}, content {content}")
+        
+        data_match = re.match(data_pattern, content)
+        if data_match and data_match.group(1).isidentifier():
+            # e.g., check whether the contents are of the shape of data.board_members
+            string  = string.replace(match_str, f"{{proposal.data.get(\"{data_match.group(1)}\")}}")
+            required_f_string = True
+        
+        variable_match = re.match(variable_pattern, content)
+        if variable_match:
+            if variable_match.group(1).isidentifier():
+                required_f_string = True
+            else:
+                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
+        
+        action_match = re.match(action_pattern, content)
+        if action_match:
+            if action_match.group(1).isidentifier():
+                required_f_string = True
+            else:
+                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
+            
+    return string, required_f_string
+
 def force_variable_types(value, variable):
     """
         when generating codes, we need to make sure the value specified by users (a string) are correctly embedded in the codes
@@ -40,8 +79,10 @@ def force_variable_types(value, variable):
             elif variable["type"] == "string":
                 # e.g., value = "test", then codes should be "\"test\""
                 # an additional f is included so that variables inside the string can be evaluated
-                # TODO: add safety check to make sure the string does not contain any malicious codes
-                value_codes = f"f\"{value}\""
+                
+                # add safety check to make sure the string does not contain any malicious codes
+                value, required_f_string = check_format_string(value)
+                value_codes = f"f\"{value}\"" if required_f_string else f"\"{value}\""
             else:
                 raise NotImplementedError
     return value_codes

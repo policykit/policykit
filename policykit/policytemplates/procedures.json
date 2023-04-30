@@ -279,7 +279,7 @@
                 "users": "variables.eligible_voters",
                 "channel": "variables.vote_channel",
                 "title": "variables.vote_message",
-                "details": "Each voter is given a budget of vote credits that they can spend in order to influence the outcome of a range of decisions. The cost of vote credits is quadratic to the number of votes",
+                "details": "Each voter is given a budget of vote credits {variables.vote_budget} that they can spend in order to influence the outcome of a range of decisions. The cost of vote credits is quadratic to the number of votes",
                 "platform": "slack"
             }
         ],
