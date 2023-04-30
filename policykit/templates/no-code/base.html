@@ -382,11 +382,11 @@
         // figure out what type of input requirement is needed
         if(variable["is_list"] ?? false){
             if(variable["type"] === "string")
-              input_validate += '  pattern="^[a-zA-Z0-9]+(,\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+              input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
             else if(variable["type"] === "number")
-              input_validate += '  pattern="^\d+(,\s*\d+)*$" title="Please enter comma separated numbers" type="text"';
+              input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
             else if(variable["type"] === "float")
-              input_validate += '  pattern="^([-+]?[0-9]*\.?[0-9]+)(,\s*[-+]?[0-9]*\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
+              input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
             else if(variable["type"] === "timestamp")
               console.warn("We do not support a variable as a list of timestamps yet");
         } else {
@@ -418,6 +418,7 @@
                               ${prompt}
                           </div>`;
         }
+        console.log(text.innerHTML);
       }
       parentDiv.appendChild(text);
       $(".selectpicker").selectpicker("refresh");
