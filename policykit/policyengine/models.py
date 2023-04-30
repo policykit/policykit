@@ -803,7 +803,7 @@ class PolicyVariable(models.Model):
 
     NUMBER = 'number'
     STRING = 'string'
-    FLOAT = 'string'
+    FLOAT = 'float'
     TIMESTAMP = 'timestamp'
     
     POLICY_VARIABLE_TYPE = [
