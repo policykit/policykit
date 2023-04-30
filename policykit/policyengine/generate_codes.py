@@ -12,6 +12,7 @@ def check_format_string(string):
     data_pattern = r"data\.([a-zA-Z_][a-zA-Z0-9_]*)"
     variable_pattern = r"variables\.([a-zA-Z_][a-zA-Z0-9_]*)"
     action_pattern = r"action\.([a-zA-Z_][a-zA-Z0-9_]*)"
+    proposal_pattern = r"proposal\.([a-zA-Z_][a-zA-Z0-9_]*)"
 
     required_f_string = False
     for match in re.finditer(curley_pattern, string):
@@ -38,7 +39,14 @@ def check_format_string(string):
                 required_f_string = True
             else:
                 logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-            
+        
+        proposal_match = re.match(proposal_pattern, content)
+        if proposal_match:
+            if proposal_match.group(1).isidentifier():
+                required_f_string = True
+            else:
+                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
+                
     return string, required_f_string
 
 def force_variable_types(value, variable):
