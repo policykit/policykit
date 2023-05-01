@@ -225,6 +225,21 @@ def generate_filter_codes(filters):
             filter_codes += "return True\n"
     return filter_codes
 
+def generate_initialize_codes(data):
+    """
+        Help generate codes for calculating static data, as codes for dynamic data have already been included in check codes
+    """
+    initialize_codes = ""
+    for datum in data:
+        if(datum["dynamic"] == False):
+            initialize_codes += datum["codes"] 
+            # e.g. board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]
+            initialize_codes += "proposal.data.set(\"{name}\", {name})".format(name=datum["name"]) + "\n"
+            # e.g. proposal.set("board_members", board_members)
+    if not initialize_codes:
+        initialize_codes = "pass"
+    return initialize_codes
+
 def generate_check_codes(checks):
     """
         a list of checks defined in JSON
@@ -346,9 +361,13 @@ def force_execution_variable_types(execution, variables_details):
         if value.startswith("variables"):
             # We do nothing there as we also use the attribute style of variables
             execution[name] = value
+        elif value.startswith("data"):
+            # value e.g., data.board_members
+            datum_name = value.split(".", 1)[1]
+            execution[name] = f"proposal.data.get(\"{datum_name}\")"
         else:
             """ 
-                if the value is not a PolicyVariable, we need to convert it to the expected type
+                if the value is not a PolicyVariable or data, we need to convert it to the expected type
                 Otherwise, this is not needed because we explictly force all PolicyVariables 
                 to be expected types in EvaluationContext before executing codes 
             """
