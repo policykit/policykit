@@ -347,7 +347,9 @@ def generate_execution_codes(executions):
                         execution[name] = f"int({value})"
 
         if execution["action"] == "initiate_vote":
-            execution_codes.append(generate_initiate_votes(execution))
+            execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
+            execution = force_execution_variable_types(execution, execute_variables)
+            codes += generate_initiate_votes(execution)
         else:
             # currently only support slackpostmessage
             action_codename = execution["action"]
