@@ -1575,12 +1575,14 @@ class PolicyTemplate(models.Model):
             policy.action_types.add(action_type)
         
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
-        policy.initialize = "pass"
-        policy.check = CodesGenerator.generate_check_codes(policy_json["check"])
+        policy.initialize = CodesGenerator.generate_initialize_codes(self.loads("data"))
+ 
+        check_executions = CodesGenerator.generate_execution_codes(policy_json["executions"]["check"])
+        policy.check = check_executions + CodesGenerator.generate_check_codes(policy_json["check"])
 
-        policy.notify = CodesGenerator.generate_execution_codes(policy_json["executions"]["notify"], self.loads("variables"))
-        policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"], self.loads("variables"))
-        policy.fail = CodesGenerator.generate_execution_codes(policy_json["executions"]["fail"], self.loads("variables"))
+        policy.notify = CodesGenerator.generate_execution_codes(policy_json["executions"]["notify"])
+        policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"])
+        policy.fail = CodesGenerator.generate_execution_codes(policy_json["executions"]["fail"])
         
         self.create_policy_variables(policy, {})
         policy.save()
