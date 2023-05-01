@@ -1193,7 +1193,7 @@ class CustomAction(models.Model):
 
 class Procedure(models.Model):
 
-    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables"]
+    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     SLACK = "Slack"
@@ -1223,7 +1223,7 @@ class Procedure(models.Model):
         """
 
     name = models.TextField(blank=True, default='')
-    """such as Jury, Dictator, etc."""
+    """ such as Jury, Dictator, etc. """
 
     description = models.TextField(blank=True, default='')
 
@@ -1280,8 +1280,38 @@ class Procedure(models.Model):
     """ in a similar structure to the "notify" field  """
 
     variables = models.TextField(blank=True, default='[]')
-    """ varaibles used in the procedure """
+    """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
         
+    data = models.TextField(blank=True, default='[]')
+    """ 
+        a JSON object. We will use this field to store the descriptive data of the procedure, 
+        such as (dynamic, codes used to calculate them are part of the check codes) the number of yes votes, the number of no votes,
+        or eligible voters of a specified role (statis, codes used to calculate them are in the initialize codes)
+
+        We do not need is_required and default_value here because users are not allowed to configure them as policy variables
+        e.g.,
+
+            {
+                "name": "board_members",
+                "label": "Board Members",
+                "prompt": "Given the board role, who are the board members",
+                "entity": "CommunityUser",
+                "type": "string",
+                "is_list": true,
+                "codes": "board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]\n",
+                "dynamic": false
+            },
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+    """
+
     def loads(self, attr):
         return json.loads(getattr(self, attr))
     
@@ -1305,7 +1335,7 @@ class Procedure(models.Model):
 
 class PolicyTemplate(models.Model):
 
-    JSON_FIELDS = ["extra_check", "extra_executions", "variables"]
+    JSON_FIELDS = ["extra_check", "extra_executions", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     name = models.CharField(max_length=100)
@@ -1363,7 +1393,12 @@ class PolicyTemplate(models.Model):
         Varaibles used in all codes of the policy template
         Whenever we add a new module (such as Procedure and CheckModule) 
         that defines its own variables, we will add them here.
-    
+    """
+
+    data = models.TextField(blank=True, default='[]')
+    """ 
+        data defined similarly to that in the Procedure model.
+        It provides descriptive variables that users can use to configure executions
     """
 
     def loads(self, attr):
@@ -1514,6 +1549,7 @@ class PolicyTemplate(models.Model):
             "check": check,
             "executions": executions,
             "variables": self.loads("variables"),
+            "data": self.loads("data")
         }
     
     def create_policy(self, community):
@@ -1543,7 +1579,7 @@ class PolicyTemplate(models.Model):
 
 class CheckModule(models.Model):
 
-        JSON_FIELDS = ["variables"]
+        JSON_FIELDS = ["variables", "data"]
         """the fields that are stored as JSON dumps"""
 
         name = models.TextField(blank=True, default='', unique=True)
@@ -1557,6 +1593,9 @@ class CheckModule(models.Model):
     
         variables = models.TextField(blank=True, default='[]')
         """ varaibles used in the check module defined in a similar way to variables in a PolicyTemplate"""
+
+        data = models.TextField(blank=True, default='[]')
+        """the data used in the check module defined in a similar way to data in a Procedure"""
 
         def loads(self, attr):
             return json.loads(getattr(self, attr))
