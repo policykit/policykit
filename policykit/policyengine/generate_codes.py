@@ -209,10 +209,8 @@ def generate_filter_codes(filters):
                 parameters_called = []
                 parameters_called.append("action.{field}".format(field=field)) # action.initiator
                 for var in field_filter["variables"]:
-                    if var["type"] == "number":
-                        parameters_called.append(var["value"]) # "1" will be embedded as an integer 1 as required
-                    else:
-                        parameters_called.append("\"{}\"".format(var["value"]))
+                    # we need to make sure the value specified by users (a string) are correctly embedded in the codes
+                    parameters_called.append(force_variable_types(var["value"], var))
                 parameters_called = ", ".join(parameters_called) # "test", action.initiator
                 function_calls.append(
                     "{kind}_{name}({parameters})".format(
@@ -369,10 +367,10 @@ def generate_execution_codes(executions):
         [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables[\"vote_message\"]",
+                "vote_message": "variables.vote_message",
                 "vote_type": "boolean",
-                "users": "variables[\"users\"]",
-                "channel": "variables[\"vote_channel\"]",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
                 "platform": "slack"
             }
         ]
