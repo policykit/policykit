@@ -59,7 +59,7 @@ class EvaluationContext:
             self.action = proposal.action
 
         self.policy = proposal.policy
-        self.variables = AttrDict()
+        self.variables = {}
         self.proposal = proposal
 
         # Can't use logger in filter step because proposal isn't saved yet
@@ -80,9 +80,9 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
-
-        # Make policy variables available in the evaluation context
-        setattr(self, "variables", AttrDict({ v.name : v.value for v in self.policy.variables.all() or []}))
+               
+         # Make policy variables available in the evaluation context
+        setattr(self, "variables", AttrDict({ variable.name : variable.get_variable_values() for variable in self.policy.variables.all() or []}))
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
