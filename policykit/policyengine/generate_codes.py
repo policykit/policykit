@@ -9,6 +9,7 @@ def check_format_string(string):
     """
     import re
     curley_pattern = r"\{(.+?)\}"
+    data_pattern = r"data\.([a-zA-Z_][a-zA-Z0-9_]*)"
     variable_pattern = r"variables\.([a-zA-Z_][a-zA-Z0-9_]*)"
     action_pattern = r"action\.([a-zA-Z_][a-zA-Z0-9_]*)"
     proposal_pattern = r"proposal\.([a-zA-Z_][a-zA-Z0-9_]*)"
@@ -18,6 +19,12 @@ def check_format_string(string):
         match_str = match.group(0)
         content = match.group(1)
         logger.debug(f"Matched string: {match_str}, content {content}")
+        
+        data_match = re.match(data_pattern, content)
+        if data_match and data_match.group(1).isidentifier():
+            # e.g., check whether the contents are of the shape of data.board_members
+            string  = string.replace(match_str, f"{{proposal.data.get(\"{data_match.group(1)}\")}}")
+            required_f_string = True
         
         variable_match = re.match(variable_pattern, content)
         if variable_match:
