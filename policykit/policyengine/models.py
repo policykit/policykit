@@ -1074,7 +1074,6 @@ class CustomAction(models.Model):
             "initiator": {
                 "kind": "CommunityUser", 
                 "name": "permission",
-                "codes": "...",
                 "variables": [
                     {
                         "name": "permission",
@@ -1086,7 +1085,6 @@ class CustomAction(models.Model):
             "text": {
                 "kind": "Text", 
                 "name": "startsWtih",
-                "codes": "...",
                 "variables": [
                     {
                         "name": "word",
@@ -1198,6 +1196,14 @@ class Procedure(models.Model):
         (ALL, "All"),
     ]
 
+    class Meta:
+        unique_together = ('name', 'platform')
+        """
+            We will use the name to search for the corresponding procedure, and therefore it should be unique.
+            On the other hand, we allow a similar procedure (such as consesus voting) to be used on different platforms.
+            Therefore, these two fields combined should be unique.
+        """
+
     name = models.TextField(blank=True, default='')
     """such as Jury, Dictator, etc."""
 
@@ -1238,18 +1244,14 @@ class Procedure(models.Model):
     """        
         A JSON object. We execute codes in the `check` field in the order of the list, 
         to make the procedure template simple, we do not support adding new actions at this stage, 
-        but users will be asked whether they expect some extra actions happen at this stage when authoring new policies
+        but users will be asked whether they expect some extra actions happen at this stage when authoring new policies.
+
+        For each procedure, we assume there is only one check element in each procedure, and therefore its a dictionary.
         e.g.
-            "check": [
-                {
-                    "name": "vote_duration",
-                    "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n" 
-                },
-                {
+            "check": {
                     "name": "main",
                     "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED"
-                }
-            ]
+            }
 
     """
 
@@ -1266,12 +1268,19 @@ class Procedure(models.Model):
         return json.loads(getattr(self, attr))
     
     def to_json(self):
+        check = self.loads("check")
+        check["name"] = self.name
+        check["description"] = self.description
+        # remove the key-value pair "codes" from the check
+        del check["codes"]
+
+        # we will later use this name to search for the corresponding procedure and later the check codes
         return {
             "name": self.name,
             "description": self.description,
             "initialize": self.loads("initialize"),
             "notify": self.loads("notify"),
-            "check": self.loads("check"),
+            "check": check,
             "success": self.loads("success"),
             "fail": self.loads("fail"),
         }
@@ -1471,15 +1480,20 @@ class PolicyTemplate(models.Model):
             if key in procedure:
                 # We assume extra executions are appended to the procedure actions
                 executions[key] = procedure[key] + executions[key]
+        if "check" not in executions: # the check in procedure is the check logic instead of executions
+            executions["check"] = []
 
-        procedure["check"] = self.loads("extra_check") + procedure["check"]
+        check = self.loads("extra_check")
+        check.append(procedure["check"])
+
+        
         return {
             "name": self.name,
             "description": self.description,
             "kind": self.kind,
             "is_trigger": self.is_trigger,
             "filter": filters,
-            "check": procedure["check"],
+            "check": check,
             "executions": executions,
             "variables": self.loads("variables"),
         }
@@ -1514,8 +1528,8 @@ class CheckModule(models.Model):
         JSON_FIELDS = ["variables"]
         """the fields that are stored as JSON dumps"""
 
-        name = models.TextField(blank=True, default='')
-        """the name of the check module"""
+        name = models.TextField(blank=True, default='', unique=True)
+        """the name of the check module. We use this as a checkmodule identifier"""
 
         description = models.TextField(blank=True, default='')
         """the description of the check module"""
@@ -1535,7 +1549,7 @@ class CheckModule(models.Model):
         def to_json(self):
             return {
                 "name": self.name,
-                "codes": self.codes
+                "description": self.description,
             }
 
 class FilterModule(models.Model):
@@ -1548,6 +1562,9 @@ class FilterModule(models.Model):
 
     name = models.TextField(blank=True, default="")
     """the name of the filter module e.g., permission """
+
+    class Meta:
+        unique_together = ('kind', 'name')
 
     description = models.TextField(blank=True, default="")
     """The description of the filter module e.g., users with a given permission """
@@ -1593,7 +1610,7 @@ class FilterModule(models.Model):
                     {"role": "test" ....} 
         
         """
-        variables = [ {"name": variable["name"], "type": variable["type"]} for variable in self.loads("variables") ]
+        variables = self.loads("variables")
         # we should expect there is a value for each variable. Otherwise we should throw an Exception
         if variables_value:
             for variable in variables:
@@ -1602,7 +1619,7 @@ class FilterModule(models.Model):
         return {
             "kind": self.kind,
             "name": self.name,
-            "codes": self.codes,
+            "description": self.description,
             "variables": variables
         }
 
