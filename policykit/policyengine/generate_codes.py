@@ -262,13 +262,35 @@ def initiate_execution_variables(platform, vote_type):
         ]
     else:
         raise NotImplementedError
-def generate_execution_codes(executions, variables):
+
+def force_execution_variable_types(execution, variables_details):
+    """
+        a wrapper function for force_variable_types when generating codes for an execution
+    """
+
+    for name, value in execution.items():
+        if name in ["action", "platform"]:
+            continue
+        if value.startswith("variables"):
+            # We do nothing there as we also use the attribute style of variables
+            execution[name] = value
+        else:
+            """ 
+                if the value is not a PolicyVariable, we need to convert it to the expected type
+                Otherwise, this is not needed because we explictly force all PolicyVariables 
+                to be expected types in EvaluationContext before executing codes 
+            """
+            var_detail = [var for var in variables_details if var["name"] == name]
+            if len(var_detail) > 0:
+                execution[name] = force_variable_types(value, var_detail[0])
+
+    return execution
+
+def generate_execution_codes(executions):
+
     """ 
     Help generate codes for a list of executions. 
     
-    Parameters: 
-        Variables: provide definitions of variables used in the executions, including its name, type, and value
-
     some examples of executions:
         [
             {
@@ -331,5 +353,10 @@ def generate_execution_codes(executions, variables):
             action_codename = execution["action"]
             this_action = find_action_cls(action_codename)
             if hasattr(this_action, "execution_codes"):
-                execution_codes.append(this_action.execution_codes(**execution))
-    return "\n".join(execution_codes)
+                execute_variables = this_action.EXECUTE_VARIABLES
+                execution = force_execution_variable_types(execution, execute_variables)
+                codes += this_action.execution_codes(**execution)
+            else:
+                raise NotImplementedError
+        execution_codes.append(codes)
+    return "\n".join(execution_codes) + "\n"
