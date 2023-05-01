@@ -73,8 +73,8 @@ def generate_filter_codes(filters):
         now_codes = []
         function_calls = [] # a list of names of filter functions we will call in the end for each action type
         
-        # only custom actions have the filter key
-        for field, field_filter in action_filter["filter"].items():
+        # only custom actions have the filter key; use get in case the filter key is not defined
+        for field, field_filter in action_filter.get("filter", {}).items():
             """  e.g.,
                     "initiator": {
                         "kind": "CommunityUser",
@@ -92,8 +92,8 @@ def generate_filter_codes(filters):
             """
             if field_filter:
                 
-                parameters_codes = ", ".join([var["name"]  for var in field_filter["variables"]]) + ", object=None" 
-                # in case the filter is used to filter out a list of entities
+                parameters_codes = "object, " + ", ".join([var["name"]  for var in field_filter["variables"]])
+                
                 now_codes.append(
                     "def {kind}_{name}({parameters}):".format(
                         kind = field_filter["kind"], 
@@ -101,6 +101,7 @@ def generate_filter_codes(filters):
                         parameters = parameters_codes
                     )
                 ) # result example: def CommunityUser_Role(role, object=None):
+
 
                 module_codes = field_filter["codes"].format(platform=field_filter["platform"])
                 # in case the exact platform such as slack is used in the codes
@@ -110,15 +111,15 @@ def generate_filter_codes(filters):
                 now_codes.extend(module_codes)
 
                 parameters_called = []
+                parameters_called.append("action.{field}".format(field=field)) # action.initiator
                 for var in field_filter["variables"]:
                     if var["type"] == "number":
                         parameters_called.append(var["value"]) # "1" will be embedded as an integer 1 as required
                     else:
                         parameters_called.append("\"{}\"".format(var["value"]))
-                parameters_called.append("action.{field}".format(field=field)) # action.initiator
                 parameters_called = ", ".join(parameters_called) # "test", action.initiator
                 function_calls.append(
-                    "{kind}_{name}({parameters})[0]".format(
+                    "{kind}_{name}({parameters})".format(
                         kind = field_filter["kind"], 
                         name = field_filter["name"], 
                         parameters = parameters_called
