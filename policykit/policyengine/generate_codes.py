@@ -415,35 +415,7 @@ def generate_execution_codes(executions):
 
     execution_codes = []
     for execution in executions:
-        for name, value in execution.items():
-            if not (name in ["action", "platform"] or value.startswith("variables")):
-                """
-                    if the value is not a variable, then we need to add quotation marks
-                    so that the variable will still be embedded as a string instead of a Python variable name
-                    
-                    We put the type validation in the `execution_codes` of each GovernableAction.
-                    That is, if the value is expected to be an integer, 
-                    each GovernableAction will convert the value to the integer by explictly calling `int()` in the generated codes
-                """
-                execution[name] = f"\"{value}\""
-            
-            # force the type of the value to be the same as the type of the corresponding variable as defined
-            if value.startswith("variables"):
-                # find in the list of variables of which the name is the same as the name here
-                # extract "users" from the string variables[\"users\"]
-                
-                match = re.search(r'variables\[\"(.+?)\"\]', value)
-                if match:
-                    variable_name = match.group(1)
-                matching_variables = list(filter(lambda var: var["name"] == variable_name, variables))
-                if len(matching_variables) > 1:
-                    raise ValueError("There should be only one variable with the same name")
-                elif len(matching_variables) == 0:
-                    raise ValueError("There should be at least one variable with the same name")
-                else:
-                    if matching_variables[0]["type"] == "number":
-                        execution[name] = f"int({value})"
-
+        codes = ""
         if execution["action"] == "initiate_vote":
             execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
             execution = force_execution_variable_types(execution, execute_variables)
