@@ -438,7 +438,7 @@ def force_execution_variable_types(execution, variables_details):
     for name, value in execution.items():
         if name in ["action", "platform"]:
             continue
-        if value.startswith("variables"):
+        if value.startswith("variables") or value.startswith("proposal"):
             # We do nothing there as we also use the attribute style of variables
             execution[name] = value
         elif value.startswith("data"):
