@@ -164,6 +164,28 @@ class SlackPostMessage(GovernableAction):
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "timestamp": None}
+    EXECUTE_VARIABLES = [
+        {
+            "name": "text",
+            "label": "Message to be posted",
+            "entity": None,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "channel",
+            "label": "Channel to post message in",
+            "entity": "SlackChannel",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
 
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
@@ -197,6 +219,28 @@ class SlackRenameConversation(GovernableAction):
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "name": "Text", "previous_name": "Text", "channel": None}
+    EXECUTE_VARIABLES = [
+        {
+            "name": "channel",
+            "label": "Channel to rename",
+            "entity": "SlackChannel",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "name",
+            "label": "New name for the channel",
+            "entity": None,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
 
     name = models.CharField("name", max_length=150)
     channel = models.CharField("channel", max_length=150)
@@ -222,6 +266,28 @@ class SlackJoinConversation(GovernableAction):
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "users"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "users": None}
+    EXECUTE_VARIABLES = [
+        {
+            "name": "channel",
+            "label": "Channel to join",
+            "entity": "SlackChannel",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "users",
+            "label": "Users that will join the channel",
+            "entity": "SlackUser",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": True
+        }
+    ]
 
     channel = models.CharField("channel", max_length=150)
     users = models.CharField("users", max_length=15)
@@ -243,10 +309,35 @@ class SlackJoinConversation(GovernableAction):
 
 
 class SlackPinMessage(GovernableAction):
+    """
+        Slack API use the timestamp of the message (in string format) to identify which message should be pinned in this channel 
+    """
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": None}
+    EXECUTE_VARIABLES = [
+        {
+            "name": "channel",
+            "label": "Channel that the message is pinned to",
+            "entity": "SlackChannel",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "timestamp",
+            "label": "Timestamp of the message to pin",
+            "entity": None,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "timestamp",
+            "is_list": False
+        }
+    ]
 
     channel = models.CharField("channel", max_length=150)
     timestamp = models.CharField(max_length=32)
@@ -263,7 +354,38 @@ class SlackScheduleMessage(GovernableAction):
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
     FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": None}
-
+    EXECUTE_VARIABLES = [
+        {
+            "name": "text",
+            "label": "Text of the message to send",
+            "entity": None,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "channel",
+            "label": "Channel that the message is scheduled to sent to",
+            "entity": "SlackChannel",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "post_at",
+            "label": "Timestamp when the message is scheduled to send",
+            "entity": None,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "timestamp",
+            "is_list": False
+        }
+    ]
     text = models.TextField()
     channel = models.CharField("channel", max_length=150)
     post_at = models.IntegerField("post at")
@@ -277,6 +399,28 @@ class SlackKickConversation(GovernableAction):
     AUTH = "user"
     EXECUTE_PARAMETERS = ["user", "channel"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "user": "CommunityUser"}
+    EXECUTE_VARIABLES = [
+        {
+            "name": "channel",
+            "label": "Channel to kick the user from",
+            "entity": "SlackChannel",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "user",
+            "label": "User to kick from the channel",
+            "entity": "SlackUser",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
 
     user = models.CharField("user", max_length=15)
     channel = models.CharField("channel", max_length=150)
