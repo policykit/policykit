@@ -153,13 +153,17 @@ def generate_check_codes(checks):
 def generate_initiate_votes(execution):
     codes = ""
     
-    if execution["platform"] == "slack":
-        codes = "slack.initiate_vote(users={users}, text={text}, poll_type={poll_type}, channel={channel})".format(
-                users = execution["users"],
-                text = execution["vote_message"],
-                channel = execution["channel"],
-                poll_type = execution["vote_type"],
-            )
+    if execution["platform"] == "slack" and execution["action"] == "initiate_vote":
+        if execution.get("post_type") == "\"mpim\"":
+            execution["channel"] = "None"
+        
+        codes = "slack.initiate_vote(users={users}, text={text}, post_type={post_type}, channel={channel}, options={options})".format(
+                    users = execution["users"],
+                    text = execution["vote_message"],
+                    post_type = execution["post_type"],
+                    channel = execution["channel"],
+                    options = None
+                )
     else:
         raise NotImplementedError
     return codes
