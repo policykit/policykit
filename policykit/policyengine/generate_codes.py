@@ -98,7 +98,6 @@ def extract_action_types(filters):
                     "initiator": {
                         "kind": "CommunityUser",
                         "name": "Role",
-                        "codes": "all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\nreturn (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles\n",
                         "variables": [
                                 {
                                     "name": "role",
@@ -110,7 +109,6 @@ def extract_action_types(filters):
                     "text": {
                         "kind": "Text",
                         "name": "Startswith",
-                        "codes": "return object.startswith(word), None",
                         "variables": [
                             {
                                 "name": "word",
@@ -152,6 +150,8 @@ def generate_filter_codes(filters):
 
     """
 
+    from policyengine.models import FilterModule
+
     filter_codes = ""
     for action_filter in filters:
         # we first check whether the action is the one we want to apply filters to
@@ -167,19 +167,27 @@ def generate_filter_codes(filters):
                     "initiator": {
                         "kind": "CommunityUser",
                         "name": "Role",
-                        "codes": "all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\nreturn (object.username in all_usernames_with_roles) if object else None, all_usernames_with_roles\n",
                         "variables": [
                             {
-                            "name": "role",
-                            "type": "string",
-                            "value": "test"
+                                "name": "role",
+                                "label": "Which role users should have?",
+                                "entity": "Role",
+                                "default_value": null,
+                                "is_required": true,
+                                "prompt": "",
+                                "type": "string",
+                                "is_list": false
                             }
                         ],
                         "platform": "slack"
                     },
             """
             if field_filter:
+                filter = FilterModule.objects.filter(kind=field_filter["kind"], name=field_filter["name"]).first()
+                if not filter:
+                    raise Exception(f"Filter {field_filter['kind']}_{field_filter['name']} not found")
                 
+                field_filter["codes"] = filter.codes
                 parameters_codes = "object, " + ", ".join([var["name"]  for var in field_filter["variables"]])
                 
                 now_codes.append(
@@ -221,21 +229,42 @@ def generate_filter_codes(filters):
 
 def generate_check_codes(checks):
     """
+        a list of checks defined in JSON
+        We assume the last check is the one representing the referenced procedure, 
+        and we will use its name to find the procedure
         e.g. 
         [
             {
                 "name": "Enforce procedure time restrictions",
-                "codes": "if int(variables[\"duration\"]) > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=int(variables[\"duration\"])):\n    return None\n\n"
+                "description": "..."
             },
             {
-                "name": "main",
-                "code": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes(users=variables[\"users\"]).count()\nno_votes = proposal.get_no_votes(users=variables[\"users\"]).count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= int(variables[\"minimum_yes_required\"]):\n  return PASSED\nelif no_votes >= int(variables[\"maximum_no_allowed\"]):\n  return FAILED\n\nreturn PROPOSED\n"
+                "name": "Consesus Voting",
+                "description": "..."
             }
         ],
     """
+    from policyengine.models import CheckModule, Procedure
+    # in cases when the user writes a policy without any checks (e.g., a if-then rules)
+    if(len(checks) == 0):
+        return "pass"
+    
     check_codes = ""
-    for check in checks:
-        check_codes += check["codes"]
+    for check in checks[:-1]:
+        check_module = CheckModule.objects.filter(name=check["name"]).first()
+        if not check_module:
+            raise Exception(f"When generating check codes, CheckModule {check['name']} not found")
+        check_codes += check_module.codes
+    
+    # the last check is the one representing the referenced procedure
+    procedure = Procedure.objects.filter(name=checks[-1]["name"]).first()
+    if not procedure:
+        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} not found")
+    procedure_check = procedure.loads("check")
+    if "codes" not in procedure_check:
+        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} does not have check codes")
+    check_codes += procedure_check["codes"]
+
     return check_codes
 
 def generate_initiate_votes(execution):
