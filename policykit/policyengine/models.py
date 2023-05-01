@@ -1439,16 +1439,25 @@ class PolicyTemplate(models.Model):
         for var in new_variables:
             # skip variables that have already been added, we assume variables do not have the same name
             if var["name"] in added_names:
-                continue
-            # set the value of this variable. 
-            # We do not check if the value matchs the expected type of the variable now
-            if var["name"] in values:
-                var["value"] = values[var["name"]]
-            else:
-                var["value"] = var["default_value"]
+                raise Exception("variable with name {} already exists".format(var["name"]))
+            
+            # set the value of this variable; 
+            # the value should match the expected type of this variable because we enforce it in the frontend
+            var["value"] = values[var["name"]] if var["name"] in values else var["default_value"]
             variables.append(var)
         self.dumps("variables", variables)
         self.save()
+
+    def add_descriptive_data(self, new_data):
+        data = self.loads("data")
+        added_names = [datum["name"] for datum in data]
+        for datum in new_data:
+            if datum["name"] in added_names:
+                raise Exception("data with name {} already exists".format(datum["name"]))
+            data.append(datum)
+        self.dumps("data", data)
+        self.save()
+
 
     def add_check_module(self, check_module):
         """
