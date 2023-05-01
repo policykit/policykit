@@ -9,10 +9,12 @@
             {
                 "name": "permission",
                 "label": "Which permission users should have?",
-                "default_value": null,
+                "entity": "Permission",
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -26,27 +28,12 @@
             {
                 "name": "role",
                 "label": "Which role users should have?",
-                "default_value": null,
+                "entity": "Role",
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
-            }
-        ]
-    },
-    {
-        "kind": "CommunityUser",
-        "name": "ReadableName",
-        "description": "Only users with the specified readable name",
-        "platform": "All",
-        "codes": "return object.readable_name == readable_name, None",
-        "variables":[
-            {
-                "name": "readable_name",
-                "label": "Which readable name the user should have?",
-                "default_value": null,
-                "is_required": true,
-                "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -55,15 +42,17 @@
         "name": "UserID",
         "description": "Only users with the specified user ID",
         "platform": "All",
-        "codes": "return object.username == user_ID, None",
+        "codes": "return object.username in user_IDs, None",
         "variables":[
             {
-                "name": "user_ID",
+                "name": "user_IDs",
                 "label": "Which ID the user should have?",
-                "default_value": null,
+                "entity": "CommunityUser",
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": true
             }
         ]
     },
@@ -78,10 +67,12 @@
             {
                 "name": "word",
                 "label": "Which word do you expect the message starts wtih?",
-                "default_value": null,
+                "entity": null,
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -95,10 +86,12 @@
             {
                 "name": "text",
                 "label": "What do you expect the text to be",
-                "default_value": null,
+                "entity": null,
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
-                "type": "string"
+                "type": "string",
+                "is_list": false
             }
         ]
     },
@@ -112,10 +105,12 @@
             {
                 "name": "length",
                 "label": "Which maximum length do you expect the text to be of?",
-                "default_value": null,
+                "entity": null,
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
-                "type": "number"
+                "type": "number",
+                "is_list": false
             }
         ]
     }
