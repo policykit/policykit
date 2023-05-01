@@ -195,7 +195,7 @@ class SlackCommunity(CommunityPlatform):
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
-    EXECUTE_PARAMETERS = ["text", "channel"]
+    EXECUTE_PARAMETERS = ["text", "channel", "thread"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "timestamp": None}
     EXECUTE_VARIABLES = [
         {
@@ -214,6 +214,16 @@ class SlackPostMessage(GovernableAction):
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "thread",
+            "label": "Thread timestamp to post message in",
+            "entity": None,
+            "default_value": "",
+            "is_required": False,
             "prompt": "",
             "type": "string",
             "is_list": False
