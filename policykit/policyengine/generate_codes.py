@@ -168,6 +168,57 @@ def generate_initiate_votes(execution):
         raise NotImplementedError
     return codes
 
+def initiate_execution_variables(platform, vote_type):
+    """
+        Ideally, we should create a new BaseAction for initating votes in each integration, 
+        and specify execution variables. But for now, we just hardcode them here, 
+        since an addition of a new BaseAction may involve other more fundamental changes
+    """
+    if platform == "slack" and vote_type == "initiate_vote":
+        return [
+            {
+                "name": "channel",
+                "label": "Channel to post the vote",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "users",
+                "label": "Eligible voters",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "post_type",
+                "label": "How to post the vote in Slack",
+                "entity": None,
+                "default_value": "channel",
+                "is_required": False,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            }
+        ]
+    else:
+        raise NotImplementedError
 def generate_execution_codes(executions, variables):
     """ 
     Help generate codes for a list of executions. 
