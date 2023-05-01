@@ -749,10 +749,14 @@ class PolicyVariable(models.Model):
 
     NUMBER = 'number'
     STRING = 'string'
-
+    FLOAT = 'float'
+    TIMESTAMP = 'timestamp'
+    
     POLICY_VARIABLE_TYPE = [
         (NUMBER, 'number'),
-        (STRING, 'string')
+        (STRING, 'string'),
+        (FLOAT, 'float'),
+        (TIMESTAMP, 'timestamp')
     ]
 
     # TODO: add a SELECT type
@@ -778,12 +782,36 @@ class PolicyVariable(models.Model):
     type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
     """Variable type, which should correlate to form ui element."""
 
+    is_list = models.BooleanField(default=False)
+    """Whether the variable is a list. If it is a list of strings or numbers, then they are comma separated without brackets."""
+
+    entity = models.CharField(blank=True, null=True, max_length=100)
+
     policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
     """Variables used in the scope of the policy."""
 
     def clean(self):
         if self.is_required and not self.value:
             raise ValidationError('Variable value is required')
+    
+    @staticmethod
+    def convert_variable_types(value, type):
+        if not value:
+            return None
+        elif type == PolicyVariable.NUMBER:
+            return int(value)
+        elif type == PolicyVariable.FLOAT:
+            return float(value)
+        elif type == PolicyVariable.TIMESTAMP or type == PolicyVariable.STRING:
+            return value.strip()
+            
+    def get_variable_values(self):
+        values = None
+        if(self.is_list) and self.value:
+            values = [PolicyVariable.convert_variable_types(val, self.type) for val in self.value.split(",")]
+        elif not self.is_list:
+            values = PolicyVariable.convert_variable_types(self.value, self.type)
+        return values
 
 class Policy(models.Model):
     """Policy"""
