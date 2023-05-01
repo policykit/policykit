@@ -416,6 +416,12 @@ def generate_execution_codes(executions):
     execution_codes = []
     for execution in executions:
         codes = ""
+        if "frequency" in execution:
+            # if the execution has a frequency, then it is a recurring execution
+            # we need to add the frequency to the execution
+            duration_variable = "last_time_" + execution["action"]
+            codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+
         if execution["action"] == "initiate_vote":
             execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
             execution = force_execution_variable_types(execution, execute_variables)
