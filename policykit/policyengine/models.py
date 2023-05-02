@@ -1507,22 +1507,6 @@ class PolicyTemplate(models.Model):
         self.dumps("extra_executions", extra_executions)
         self.save()
 
-    def create_policy_variables(self, policy, variables_data):
-        """
-            create policy variables for a policy based on this policy template
-
-            parameters:
-                policy: the Policy instance that these policy variables are expected to belongs to
-
-                variables_data: a dictionary from each variable name to its value
-        """
-        variables = self.loads("variables")
-        for variable in variables:
-            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
-            if variable["name"] in variables_data:
-                new_variable.value = variables_data[variable["name"]]
-            new_variable.save()
-
     def to_json(self):
         """
             reduce this PolicyTemplate object to a JSON object
@@ -1561,21 +1545,47 @@ class PolicyTemplate(models.Model):
             "data": self.loads("data")
         }
     
-    def create_policy(self, community):
+    @staticmethod
+    def create_policy_variables(policy, variables, variables_data={}):
+        """
+            create policy variables for a policy based on this policy template
+
+            parameters:
+                policy: the Policy instance that these policy variables are expected to belongs to
+
+                variables_data: a dictionary from each variable name to its value
+        """
+        for variable in variables:
+            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            if variable["name"] in variables_data:
+                new_variable.value = variables_data[variable["name"]]
+            new_variable.save()
+
+
+    @staticmethod
+    def create_policy(community, policytemplate=None, policy_json=None, is_template=False):
         """
             Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
         """
         import policyengine.generate_codes as CodesGenerator
 
-        policy_json = self.to_json()
-        policy = Policy.objects.create(name=self.name, description=self.description, kind=self.kind, community=community)
+        if not policy_json:
+            policy_json = policytemplate.to_json()
+
+        policy = Policy.objects.create(
+            name=policy_json["name"], 
+            description=policy_json["description"], 
+            kind=policy_json["kind"], 
+            community=community,
+            is_template=is_template
+        )
         
         action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 
         for action_type in action_types:
             policy.action_types.add(action_type)
         
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
-        policy.initialize = CodesGenerator.generate_initialize_codes(self.loads("data"))
+        policy.initialize = CodesGenerator.generate_initialize_codes(policy_json("data"))
  
         check_executions = CodesGenerator.generate_execution_codes(policy_json["executions"]["check"])
         policy.check = check_executions + CodesGenerator.generate_check_codes(policy_json["check"])
@@ -1584,7 +1594,7 @@ class PolicyTemplate(models.Model):
         policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"])
         policy.fail = CodesGenerator.generate_execution_codes(policy_json["executions"]["fail"])
         
-        self.create_policy_variables(policy, {})
+        PolicyTemplate.create_policy_variables(policy, policy_json["variables"], {})
         policy.save()
         return policy
 
