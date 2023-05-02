@@ -47,7 +47,9 @@
             {
                 "action": "slackpostmessage",
                 "text": "Expense approved. The vote passed with {yes_votes_num} for and {no_votes_num} against.",
-                "channel": "C04PUT77UJC"
+                "channel": "C04PUT77UJC",
+                "thread": "proposal.vote_post_id"
+
             }
           ],
           "fail": [
@@ -62,9 +64,10 @@
                 "expense_id": "action.expense_id"
             },
             {
-              "text": "Expense rejected. The vote failed with {yes_votes_num} for and {no_votes_num} against.",
-              "channel": "C04PUT77UJC",
-              "action": "slackpostmessage"
+                "action": "slackpostmessage",
+                "text": "Expense rejected. The vote failed with {yes_votes_num} for and {no_votes_num} against.",
+                "channel": "C04PUT77UJC",
+                "thread": "proposal.vote_post_id"
             }
           ],
           "check": []
