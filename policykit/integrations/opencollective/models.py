@@ -81,7 +81,7 @@ class OpenCollectiveProcessExpense(BaseAction):
         {
             "name": "expense_id",
             "label": "ID of the expense we will process",
-            "entity": null,
+            "entity": None,
             "default_value": "",
             "is_required": True,
             "prompt": "",

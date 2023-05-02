@@ -1569,7 +1569,7 @@ class PolicyTemplate(models.Model):
         """
         import policyengine.generate_codes as CodesGenerator
 
-        if not policy_json:
+        if policytemplate:
             policy_json = policytemplate.to_json()
 
         policy = Policy.objects.create(
@@ -1585,8 +1585,8 @@ class PolicyTemplate(models.Model):
             policy.action_types.add(action_type)
         
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
-        policy.initialize = CodesGenerator.generate_initialize_codes(policy_json("data"))
- 
+        policy.initialize = CodesGenerator.generate_initialize_codes(policy_json["data"])
+
         check_executions = CodesGenerator.generate_execution_codes(policy_json["executions"]["check"])
         policy.check = check_executions + CodesGenerator.generate_check_codes(policy_json["check"])
 

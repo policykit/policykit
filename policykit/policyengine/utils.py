@@ -289,7 +289,7 @@ def create_policy_from_json(community):
     with open(template_path) as f:
         template_data = json.loads(f.read())
         for template in template_data:
-            PolicyTemplate.create_policy(community, is_template=True)
+            PolicyTemplate.create_policy(community, policy_json=template, is_template=True)
 
 def dump_to_JSON(object, json_fields):
     for field in json_fields:

@@ -967,7 +967,8 @@ def embed_select_template(request):
     user = get_user(request)
     reload = request.GET.get('reload', False)
     if reload:
-        Utils.create_policy_from_json(user.comunity.community)
+        Utils.create_policy_from_json(user.community.community)
+
     template_policies = Policy.objects.filter(is_template=True)
 
     return render(request, "collectivevoice/select_template.html", {
