@@ -3,8 +3,12 @@
         "name": "Expense Voting",
         "description": "Posts OpenCollective expenses to Slack channel to be voted on.      You set: minimum number of yes votes, maximum number of no votes, eligible voters.     After a three hour voting window, expense will be approved if enough yes votes and few enough no votes were cast.     Once the vote is resolved, posts to both Slack thread and the OpenCollective expense thread with vote results.     ",
         "kind": "platform",
-        "is_trigger": false,
-        "filter": [],
+        "is_trigger": true,
+        "filter": [
+            {
+                "action_type": "expensecreated"
+            }
+        ],
         "check": [
           {
             "name": "Consensus Voting",
