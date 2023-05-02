@@ -2,7 +2,7 @@ import logging
 
 from django.db import models
 from policyengine.metagov_app import metagov
-from policyengine.models import CommunityPlatform, CommunityUser, TriggerAction
+from policyengine.models import CommunityPlatform, CommunityUser, TriggerAction, BaseAction
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +38,85 @@ class OpencollectiveCommunity(CommunityPlatform):
             community_platform_id=self.team_id,
         )
 
+class OpenCollectivePostMessage(BaseAction):
+    EXECUTE_PARAMETERS = ["text", "expense_id"]
+    EXECUTE_VARIABLES = [
+        {
+            "name": "text",
+            "label": "Message to be posted",
+            "entity": None,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "expense_id",
+            "label": "ID of the expense we will post message under",
+            "entity": "",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
+
+    text = models.TextField()
+    expense_id = models.CharField("expense_id", max_length=150)
+
+    class Meta:
+        permissions = (("can_execute_opencollectivepostmessage", "Can execute open collective post message"),)
+
+    
+    def execution_codes(**kwargs):
+        text = kwargs.get("text", "")
+        expense_id = kwargs.get("expense_id", "")
+        return f"opencollective.post_message(text={text}, expense_id={expense_id})"
+
+class OpenCollectiveProcessExpense(BaseAction):
+    EXECUTE_PARAMETERS = ["expense_id", "action"]
+    EXECUTE_VARIABLES = [
+        {
+            "name": "expense_id",
+            "label": "ID of the expense we will process",
+            "entity": null,
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "action",
+            "label": "Action to be taken on the expense",
+            "entity": "",
+            "default_value": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
+
+
+
+    expense_id = models.CharField("expense_id", max_length=150)
+    action = models.CharField("action", max_length=150)
+
+    class Meta:
+        permissions = (("can_execute_opencollectiveprocessexpense", "Can execute open collective process expense"),)
+
+    def execution_codes(**kwargs):
+        expense_id = kwargs.get("expense_id", "")
+        action = kwargs.get("process_action", "")
+        return f"opencollective.process_expense(action={action}, expense_id={expense_id})"
 
 class ExpenseEvent(TriggerAction):
     data = models.JSONField()
-
+    FILTER_PARAMETERS = {"expense_id": None, "url": None, "description": None}
+    
     class Meta:
         abstract = True
 
