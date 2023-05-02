@@ -11,6 +11,14 @@ from policyengine.safe_exec_code import execute_user_code
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
 
+class AttrDict(dict):
+    """
+    For accessing variables using attribute-style access
+    e.g. variables.slack_channel_id
+    """
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 class EvaluationLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
@@ -71,9 +79,9 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
-
-        # Make policy variables available in the evaluation context
-        setattr(self, "variables", { v.name : v.value for v in self.policy.variables.all() or []})
+               
+         # Make policy variables available in the evaluation context
+        setattr(self, "variables", AttrDict({ variable.name : variable.get_variable_values() for variable in self.policy.variables.all() or []}))
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
