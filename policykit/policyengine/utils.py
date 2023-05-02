@@ -280,6 +280,17 @@ def _add_permissions_to_role(role, permission_sets, content_types):
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
 
+
+def create_policy_from_json(community):
+    from policyengine.models import PolicyTemplate
+    PolicyTemplate.objects.all().delete()
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    template_path = os.path.join(cur_path, f"../policytemplates/policies.json")
+    with open(template_path) as f:
+        template_data = json.loads(f.read())
+        for template in template_data:
+            PolicyTemplate.create_policy(community, is_template=True)
+
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
         object[field] = json.dumps(object[field])
