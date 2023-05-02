@@ -953,7 +953,7 @@ def collectivevoice_edit_voting(request):
         'voting_variables': voting_variables
     })
 
-
+@login_required
 def embed_select_template(request):
     """
     Select a template for Collective Voice
@@ -962,6 +962,12 @@ def embed_select_template(request):
     the populate_templates endpoint to populate.
     """
     from policyengine.models import Policy
+    import policyengine.utils as Utils
+
+    user = get_user(request)
+    reload = request.GET.get('reload', False)
+    if reload:
+        Utils.create_policy_from_json(user.comunity.community)
     template_policies = Policy.objects.filter(is_template=True)
 
     return render(request, "collectivevoice/select_template.html", {
