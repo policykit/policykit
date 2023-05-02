@@ -12,6 +12,7 @@
                 "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
                 "type": "number"
             }
-        ]
+        ],
+        "data": []
     }
 ]
