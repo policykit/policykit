@@ -184,6 +184,16 @@ class SlackPostMessage(GovernableAction):
             "prompt": "",
             "type": "string",
             "is_list": False
+        },
+        {
+            "name": "thread",
+            "label": "Thread timestamp to post message in",
+            "entity": None,
+            "default_value": "",
+            "is_required": False,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
         }
     ]
 
