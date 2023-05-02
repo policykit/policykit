@@ -220,7 +220,6 @@ class SlackPostMessage(GovernableAction):
         if not channel:
             channel = None
         thread =  kwargs.get("thread", None)
-        thread = f"int({thread})" if thread else "None"
         return f"slack.post_message(text={text}, channel={channel}, thread_ts={thread})"
 
 

@@ -9,44 +9,13 @@ def check_format_string(string):
     """
     import re
     curley_pattern = r"\{(.+?)\}"
-    data_pattern = r"data\.([a-zA-Z_][a-zA-Z0-9_]*)"
-    variable_pattern = r"variables\.([a-zA-Z_][a-zA-Z0-9_]*)"
-    action_pattern = r"action\.([a-zA-Z_][a-zA-Z0-9_]*)"
-    proposal_pattern = r"proposal\.([a-zA-Z_][a-zA-Z0-9_]*)"
 
     required_f_string = False
     for match in re.finditer(curley_pattern, string):
         match_str = match.group(0)
         content = match.group(1)
         logger.debug(f"Matched string: {match_str}, content {content}")
-        
-        data_match = re.match(data_pattern, content)
-        if data_match and data_match.group(1).isidentifier():
-            # e.g., check whether the contents are of the shape of data.board_members
-            string  = string.replace(match_str, f"{{proposal.data.get(\"{data_match.group(1)}\")}}")
-            required_f_string = True
-        
-        variable_match = re.match(variable_pattern, content)
-        if variable_match:
-            if variable_match.group(1).isidentifier():
-                required_f_string = True
-            else:
-                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-        
-        action_match = re.match(action_pattern, content)
-        if action_match:
-            if action_match.group(1).isidentifier():
-                required_f_string = True
-            else:
-                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-        
-        proposal_match = re.match(proposal_pattern, content)
-        if proposal_match:
-            if proposal_match.group(1).isidentifier():
-                required_f_string = True
-            else:
-                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-                
+        required_f_string = True
     return string, required_f_string
 
 def force_variable_types(value, variable):
@@ -365,7 +334,7 @@ def force_execution_variable_types(execution, variables_details):
     for name, value in execution.items():
         if name in ["action", "platform"]:
             continue
-        if value.startswith("variables") or value.startswith("proposal"):
+        if value.startswith("variables") or value.startswith("proposal") or value.startswith("action"):
             # We do nothing there as we also use the attribute style of variables
             execution[name] = value
         elif value.startswith("data"):
