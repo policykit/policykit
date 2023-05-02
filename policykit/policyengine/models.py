@@ -749,10 +749,14 @@ class PolicyVariable(models.Model):
 
     NUMBER = 'number'
     STRING = 'string'
-
+    FLOAT = 'float'
+    TIMESTAMP = 'timestamp'
+    
     POLICY_VARIABLE_TYPE = [
         (NUMBER, 'number'),
-        (STRING, 'string')
+        (STRING, 'string'),
+        (FLOAT, 'float'),
+        (TIMESTAMP, 'timestamp')
     ]
 
     name = models.CharField(blank=False, max_length=100)
@@ -775,6 +779,11 @@ class PolicyVariable(models.Model):
 
     type = models.CharField(choices=POLICY_VARIABLE_TYPE, max_length=30, default=STRING)
     """Variable type, which should correlate to form ui element."""
+
+    is_list = models.BooleanField(default=False)
+    """Whether the variable is a list. If it is a list of strings or numbers, then they are comma separated without brackets."""
+
+    entity = models.CharField(blank=True, null=True, max_length=100)
 
     policy = models.ForeignKey("Policy", related_name="variables", on_delete=models.CASCADE)
     """Variables used in the scope of the policy."""
