@@ -283,6 +283,10 @@ def _add_permissions_to_role(role, permission_sets, content_types):
 
 def create_policy_from_json(community):
     from policyengine.models import PolicyTemplate
+    load_templates("Procedure")
+    load_templates("CheckModule")
+    load_templates("FilterModule")
+    
     PolicyTemplate.objects.all().delete()
     cur_path = os.path.abspath(os.path.dirname(__file__))
     template_path = os.path.join(cur_path, f"../policytemplates/policies.json")
