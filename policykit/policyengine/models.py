@@ -1246,6 +1246,39 @@ class FilterModule(models.Model):
             "variables": variables
         }
 
+class CheckModule(models.Model):
+
+    JSON_FIELDS = ["variables", "data"]
+    """the fields that are stored as JSON dumps"""
+
+    name = models.TextField(blank=True, default='', unique=True)
+    """the name of the check module. We use this as a checkmodule identifier"""
+
+    description = models.TextField(blank=True, default='')
+    """the description of the check module"""
+
+    codes = models.TextField(blank=True, default='')
+    """the codes of the check module"""
+
+    variables = models.TextField(blank=True, default='[]')
+    """ varaibles used in the check module defined in a similar way to variables in a PolicyTemplate"""
+
+    data = models.TextField(blank=True, default='[]')
+    """the data used in the check module defined in a similar way to data in a Procedure"""
+
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+
+    def __str__(self):
+        return self.name
+    
+    def to_json(self):
+        # we do not need to include codes for a check module here, as we use its name as the identifier
+        return {
+            "name": self.name,
+            "description": self.description,
+        }
+    
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
