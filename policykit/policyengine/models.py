@@ -1053,6 +1053,88 @@ class GovernableActionForm(ModelForm):
         super(GovernableActionForm, self).__init__(*args, **kwargs)
         self.label_suffix = ''
 
+class CustomAction(models.Model):
+    
+    JSON_FIELDS = ["filter"]
+    """fields that are stored as JSON dumps"""
+
+    action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
+    """actions that this custom action is built upon"""
+
+    is_trigger = models.BooleanField(default=False)
+    """ whether this action should be treated as triggers or governable actions """
+
+    filter = models.TextField(blank=True, default="[]")
+    """
+        a JSON object. For each custom action, we only allow filters that apply to the filter parameters 
+        defined in the referenced governable action. We do not store the codes of each filter here.
+        See examples of filter modules in policytemplates/filters.json
+        e.g.,
+        {
+            "initiator": {
+                "kind": "CommunityUser", 
+                "name": "permission",
+                "variables": [
+                    {
+                        "name": "permission",
+                        "type": "string",
+                        "value": "can_add_slackpostmessage"
+                    }
+                ]
+            },
+            "text": {
+                "kind": "Text", 
+                "name": "startsWtih",
+                "variables": [
+                    {
+                        "name": "word",
+                        "type": "string",
+                        "value": "vote"
+                    }
+                ]
+            },
+            "channel": null,
+            "timestamp": null
+        }
+    """
+
+    community_name = models.TextField(null=True, unique=True)
+    """
+        If users think this ActionFilter is frequently used, then they can name this filter 
+            and we would show it in the CustomAction tab on the interface.
+        
+        When it is null it means that users do not think it is frequently used;
+        We require it to be unique so that their permission codenames won't be the same
+    """
+        
+    @property
+    def action_kind(self):
+        """ get the corresponding policy kind: PLATFORM, CONSTITUTION or TRIGGER """
+        if self.is_trigger:
+            return Policy.TRIGGER
+        else:
+            action_class = Utils.find_action_cls(self.action_type.codename)
+            app_label = action_class._meta.app_label
+            if app_label == "constitution":
+                return Policy.CONSTITUTION
+            else:
+                return Policy.PLATFORM
+                
+    def loads(self, attr):
+        """ load a field that is stored as a JSON dump """
+        return json.loads(getattr(self, attr))
+    
+    def dumps(self, attr, value):
+        """ set a field, which is stored as a JSON dump, as the given value """
+        setattr(self, attr, json.dumps(value))
+    
+    def to_json(self):
+        """ return a json object that represents this filter """
+        return {
+            "action_type": self.action_type.codename,
+            "filter": self.loads("filter"),
+            "community_name": self.community_name
+        }
 
 ##### Pre-delete and post-delete signal receivers
 
