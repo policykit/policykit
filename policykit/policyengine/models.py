@@ -1080,7 +1080,8 @@ class CustomAction(models.Model):
                         "type": "string",
                         "value": "can_add_slackpostmessage"
                     }
-                ]
+                ],
+                "platform": "slack"
             },
             "text": {
                 "kind": "Text", 
@@ -1091,7 +1092,8 @@ class CustomAction(models.Model):
                         "type": "string",
                         "value": "vote"
                     }
-                ]
+                ],
+                "platform": "slack"
             },
             "channel": null,
             "timestamp": null
@@ -1172,6 +1174,78 @@ class CustomAction(models.Model):
                 # TODO not sure we would like to assign this permission to all users by default or not
                 # perhaps we should at first assign it to users who have the execute permission of the referenced GovernableAction
         super(CustomAction, self).save(*args, **kwargs)
+
+class FilterModule(models.Model):
+
+    JSON_FIELDS = ["variables"]
+    """the fields that are stored as JSON dumps"""
+
+    kind = models.TextField(blank=True, default="")
+    """The entity of the filter module e.g., CommunityUser, Text, or Channel """
+
+    name = models.TextField(blank=True, default="")
+    """the name of the filter module e.g., permission """
+
+    class Meta:
+        unique_together = ('kind', 'name')
+
+    description = models.TextField(blank=True, default="")
+    """The description of the filter module e.g., users with a given permission """
+
+    platform = models.TextField(choices=Procedure.PLATFORMS, blank=True, default=Procedure.ALL)
+    """ the platform this filter can apply to. 
+        It could be specific to one platform or all platforms"""
+
+    variables = models.TextField(blank=True, default='[]')
+    """
+        variables needed in this filter module e.g., permission users are asked to specify
+        But we will not create a policy variable for these variables 
+        because we asume users may not change which governable actions a policy should be applied to 
+        after the policy is created
+    """
+
+    codes = models.TextField(blank=True, default="")
+    """
+        How to generate codes for this filter module?
+
+        It should be a block of codes that takes an object and variables as parameters and then 
+        returns a boolean value indicating whether the object passes the filter, 
+        We used a placeholder platform to represent the actual platform designated by the user when creating a policy
+
+        For instance, a text.startswith filter should have codes like this: "return object.startswith(word)"
+        a communityUser.role filter should have codes like this：
+            all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\n
+            return object.username in all_usernames_with_roles\n
+        
+        Finally, when generating codes, we will put these codes under a function named kind.name (Text_startsWith or CommunityUser_Role) and 
+        pass in parameters "object" and all names defined in variables. 
+        We will take care of the type of these variables before passing them to these functions
+    """
+
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+    
+    def to_json(self, variables_value=None):
+        """ 
+            parameters: 
+                variables_value
+                    {"role": "test" ....} 
+        
+        """
+        variables = self.loads("variables")
+        # whether the value satisfies the schema of the variable has alreadly been guaranteed by the frontend
+        if variables_value:
+            for variable in variables:
+                if variable["name"] in variables_value:
+                    variable["value"] = variables_value[variable["name"]]
+        # we do not need to include codes for a filter module here
+        return {
+            "kind": self.kind,
+            "name": self.name,
+            "description": self.description,
+            "variables": variables
+        }
+
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
