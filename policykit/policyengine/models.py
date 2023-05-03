@@ -1135,7 +1135,43 @@ class CustomAction(models.Model):
             "filter": self.loads("filter"),
             "community_name": self.community_name
         }
+    
+    @property
+    def permissions(self):
+        if self.community_name:
+            # If it is a user custom action, it has a new permission name
+            permissions = ((f"can_execute_{self.community_name}", "Can execute {self.community_name}"))
+        else:
+            from django.contrib.auth.models import Permission
+            from django.contrib.contenttypes.models import ContentType
 
+            # Otherwise, this permission for this new CustomAction is the same as the GovernableAction it builts upon 
+            action_content_type = ContentType.objects.filter(model=self.action_type)     
+            all_permissions = Permission.objects.filter(content_type__in=action_content_type)
+            # Search for all permissions related to this GovernableAction
+            permissions = [(perm.codename, perm.name) for perm in all_permissions if perm.codename.startswith("can_execute") ]
+            
+            # While it is obvious that the permission codename is f"can_execute_{self.action_type}", 
+            # We actually do not know exactly the corresponding permisson name
+            # That is why we take such trouble to extract it
+        return permissions
+
+
+    def save(self, *args, **kwargs):
+        """
+        Add the permission if it is a user custom action
+        """
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+        if not self.pk and self.community_name:
+            action_content_type = ContentType.objects.get_for_model(CustomAction)
+            all_permissions = self.permissions
+            for perm in all_permissions:
+                # TODO not sure whether we should use the content type of CustomAction here
+                Permission.objects.create(codename=perm[0], name=perm[1], content_type=action_content_type)
+                # TODO not sure we would like to assign this permission to all users by default or not
+                # perhaps we should at first assign it to users who have the execute permission of the referenced GovernableAction
+        super(CustomAction, self).save(*args, **kwargs)
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
