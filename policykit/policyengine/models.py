@@ -1546,6 +1546,8 @@ class PolicyTemplate(models.Model):
         """
         extra_executions = self.loads("extra_executions")
         for key in extra_actions:
+            if not extra_actions[key].get("action", None):
+                continue
             if key not in extra_executions:
                 extra_executions[key] = []
                 # perhaps we would like to use extend in case extra_actions[key] is a list
