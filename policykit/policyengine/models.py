@@ -1420,6 +1420,82 @@ class Procedure(models.Model):
             "success": self.loads("success"),
             "fail": self.loads("fail"),
         }
+
+class PolicyTemplate(models.Model):
+
+    JSON_FIELDS = ["transformers", "extra_executions", "variables", "data"]
+    """fields that are stored as JSON dumps"""
+
+    name = models.CharField(max_length=100)
+
+    description = models.TextField(null=True, blank=True)
+
+    kind = models.CharField(choices=Policy.POLICY_KIND, max_length=30)
+    """Kind of policy template (platform, constitution, or trigger)."""
+
+    custom_actions = models.ManyToManyField(CustomAction)
+    """governable actions with filters specified this policy template applies to. """
+    
+    action_types = models.ManyToManyField(ActionType)
+    """The governable actions (with no additional filters specified) that this policy template applies to."""
+
+    is_trigger = models.BooleanField(default=False)
+    """
+        Whether these actions are treated as triggers;
+        this attribute is used together with action_types 
+        when users do not create custom actions (which themselves store the trigger information).
+        But a policy template can have both custom actions and action types.
+    """
+
+    transformers = models.ForeignKey(Transformer, on_delete=models.SET_NULL, null=True)
+    """  Extra check logic that are preapended to the check logic of the procedure. """
+
+    procedure = models.ForeignKey(Procedure, on_delete=models.CASCADE, null=True)
+    """the procedure that this policy template is based on"""
+
+    extra_executions = models.TextField(blank=True, default='{}')
+    """
+        A JSON object representing extra actions that are expected to be executed in each stage of this policy
+        in addition to thoes defined in the referenced procedure.
+        
+        While the action item is defined in a similar way to those in the Procedure, 
+        we expect to add a new field called "frequency" to actions in the "check" stage 
+        to specify how often this action should be executed.
+
+        e.g.,
+            {
+                "notify": a list of actions,
+                "check": [
+                    {
+                        "action": "slackpostmessage",
+                        "text": "we are still waiting for the dictator to make a decision",
+                        "frequency": 60,
+                    }
+                ],
+                "success": [],
+                "fail": []
+            }
+    """
+    
+    variables = models.TextField(blank=True, default='[]')
+    """ 
+        Varaibles used in all codes of the policy template
+        Whenever we add a new module (such as Procedure and Transformer) 
+        that defines its own variables, we will add them here.
+    """
+
+    data = models.TextField(blank=True, default='[]')
+    """ 
+        data defined similarly to that in the Procedure model.
+        It provides descriptive data that users can use to configure executions
+    """
+
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+
+    def dumps(self, attr, value):
+        setattr(self, attr, json.dumps(value))
+
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
