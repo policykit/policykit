@@ -1549,7 +1549,6 @@ class PolicyTemplate(models.Model):
         self.dumps("data", data)
         self.save()
 
-
     def add_transformer(self, transformer):
         """
             add a transformer to this policy template
@@ -1596,7 +1595,43 @@ class PolicyTemplate(models.Model):
         self.dumps("extra_executions", extra_executions)
         self.save()
 
+    def to_json(self):
+        """
+            reduce this PolicyTemplate object to a JSON object
+        """
 
+        # combine the custom actions and the action types together as a filter of this Procedure    
+        filters = [action.to_json() for action in self.custom_actions.all()]
+        filters += [{"action_type": action.codename} for action in self.action_types.all()]
+
+         # add actions defined in the Procedure isntance to the extra_executions
+        procedure = self.procedure.to_json()
+        executions = self.loads("extra_executions") 
+        for key in ["notify", "success", "fail"]:
+            if key not in executions:
+                executions[key] = []
+            # prepend the procedure actions to the extra_executions
+            if key in procedure:
+                # We assume extra executions are appended to the procedure actions
+                executions[key] = procedure[key] + executions[key]
+        if "check" not in executions: # the check in procedure is the check logic instead of executions
+            executions["check"] = []
+
+        checks = [transformer.to_json() for transformer in self.transformers.all()]
+        checks.append(procedure["check"])
+
+        
+        return {
+            "name": self.name,
+            "description": self.description,
+            "kind": self.kind,
+            "is_trigger": self.is_trigger,
+            "filter": filters,
+            "check": checks,
+            "executions": executions,
+            "variables": self.loads("variables"),
+            "data": self.loads("data")
+        }
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
