@@ -1278,7 +1278,148 @@ class Transformer(models.Model):
             "name": self.name,
             "description": self.description,
         }
+
+class Procedure(models.Model):
+
+    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables", "data"]
+    """fields that are stored as JSON dumps"""
+
+    SLACK = "Slack"
+    DISCORD = "Discord"
+    DISCOURSE = "Discourse"
+    GITHUB = "Github"
+    OPENCOLLECTIVE = "Opencollective"
+    REDDIT = "Reddit"
+    ALL = "All"
     
+    PLATFORMS = [
+        (SLACK, "Slack"),
+        (DISCORD, "Discord"),
+        (DISCOURSE, "Discourse"),
+        (GITHUB, "Github"),
+        (OPENCOLLECTIVE, "OpenCollective"),
+        (REDDIT, "Reddit"),
+        (ALL, "All"),
+    ]
+
+    class Meta:
+        unique_together = ('name', 'platform')
+        """
+            We will use the name to search for the corresponding procedure, and therefore it should be unique.
+            On the other hand, we allow a similar procedure (such as consesus voting) to be used on different platforms.
+            Therefore, these two fields combined should be unique.
+        """
+
+    name = models.TextField(blank=True, default='')
+    """ such as Jury, Dictator, etc. """
+
+    description = models.TextField(blank=True, default='')
+
+    platform = models.TextField(choices=PLATFORMS, blank=True, default='')
+    """the platform where the procedure (in particular, the voting component) is expected to happen"""
+
+    initialize = models.TextField(blank=True, default='[]')
+    """ where we put the initialization codes of each policy data/variable here """
+
+    check = models.TextField(blank=True, default='\{\}')
+    """        
+        Code blocks used to check whether the proposal passes the policy.
+        To make the procedure template simple, we do not support adding new actions at this stage,
+        as procedure authors can put them in the codes without specifying them as an execution object.
+        But users will be asked whether they expect some extra actions happen at this stage when authoring new policies.
+
+        e.g.
+            "check": {
+                    "name": "main",
+                    "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n  \treturn FAILED\n\nreturn PROPOSED"
+            }
+
+    """
+
+    notify = models.TextField(blank=True, default='[]')
+    """
+        a JSON object. Each list element represents an action that will be executed in the "notify" stage, 
+        and its parameters tells us its expected behavior, 
+        In partucilar, we could here use variables defined in the "variables/data" field 
+        to specify the parameters of the action in an attribute style
+        
+        e.g.,
+            "notify": [
+                {
+                    "action": "initiate_vote",
+                    "vote_message": "varaibles.vote_message",
+                    "vote_type": "boolean",
+                    "users": "variables.dictator",
+                    "platform": "slack",
+                },
+                {
+                    "action": "slackpostmessage",
+                    "text": "variables.notify_message",    
+                    "platform": "slack",
+                }
+            ],
+
+    """
+
+    success =  models.TextField(blank=True, default='[]')
+    """ in a similar structure to the "notify" field  """
+
+    fail =  models.TextField(blank=True, default='[]')
+    """ in a similar structure to the "notify" field  """
+
+    variables = models.TextField(blank=True, default='[]')
+    """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
+        
+    data = models.TextField(blank=True, default='[]')
+    """ 
+        a JSON object. We will use this field to store the descriptive data of the procedure, 
+        such as the number of yes votes, the number of no votes (dynamic, codes used to calculate them are part of the check codes),
+        or eligible voters of a specified role (statis, codes used to calculate them are in the initialize codes)
+
+        We do not need is_required and default_value here because users are not allowed to configure them as policy variables
+        e.g.,
+
+            {
+                "name": "board_members",
+                "label": "Board Members",
+                "prompt": "Given the board role, who are the board members",
+                "entity": "CommunityUser",
+                "type": "string",
+                "is_list": true,
+                "codes": "board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]\n",
+                "dynamic": false
+            },
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+    """
+
+    def loads(self, attr):
+        return json.loads(getattr(self, attr))
+    
+    def to_json(self):
+        check = self.loads("check")
+        check["name"] = self.name
+        check["description"] = self.description
+        # remove the key-value pair "codes" from the check; we will use the name to find the corresponding procedure
+        del check["codes"]
+
+        # we will later use this name to search for the corresponding procedure and later the check codes
+        return {
+            "name": self.name,
+            "description": self.description,
+            "initialize": self.loads("initialize"),
+            "notify": self.loads("notify"),
+            "check": check,
+            "success": self.loads("success"),
+            "fail": self.loads("fail"),
+        }
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
