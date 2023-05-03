@@ -1423,7 +1423,7 @@ class Procedure(models.Model):
 
 class PolicyTemplate(models.Model):
 
-    JSON_FIELDS = ["transformers", "extra_executions", "variables", "data"]
+    JSON_FIELDS = ["extra_executions", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     name = models.CharField(max_length=100)
@@ -1447,7 +1447,7 @@ class PolicyTemplate(models.Model):
         But a policy template can have both custom actions and action types.
     """
 
-    transformers = models.ForeignKey(Transformer, on_delete=models.SET_NULL, null=True)
+    transformers = models.ManyToManyField(Transformer)
     """  Extra check logic that are preapended to the check logic of the procedure. """
 
     procedure = models.ForeignKey(Procedure, on_delete=models.CASCADE, null=True)
@@ -1495,6 +1495,107 @@ class PolicyTemplate(models.Model):
 
     def dumps(self, attr, value):
         setattr(self, attr, json.dumps(value))
+
+    def add_variables(self, new_variables, values={}):
+        """
+            add new policy variables from other modules or the referenced procedure to this policy template
+            
+            parameters:
+                new_variables:
+                    a list of variables to be added, 
+                    e.g., 
+                        [
+                            {
+                                "name": "duration",
+                                "label": "When the vote is closed (in minutes)",
+                                "default_value": 0,
+                                "is_required": false,
+                                "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
+                                "type": "number"
+                            }
+                        ]
+    
+                values: 
+                    a dictionary from each variable name to its specified value if any
+                    e.g. 
+                        {
+                            "duraction": 10, 
+                            ...
+                        }
+        """
+        variables = self.loads("variables")
+        added_names = [v["name"] for v in variables]
+        for var in new_variables:
+            # skip variables that have already been added, we assume names of variables are unique
+            if var["name"] in added_names:
+                logging.error("variable with name {} already exists".format(var["name"]))
+            else:
+                # set the value of this variable; 
+                # the value should match the expected type of this variable because we enforce it in the frontend
+                var["value"] = values[var["name"]] if var["name"] in values else var["default_value"]
+                variables.append(var)
+        self.dumps("variables", variables)
+        self.save()
+
+    def add_descriptive_data(self, new_data):
+        data = self.loads("data")
+        added_names = [datum["name"] for datum in data]
+        for datum in new_data:
+            # skip data that have already been added, we assume names of data are unique
+            if datum["name"] in added_names:
+                logging.error("data with name {} already exists".format(datum["name"]))
+            else:
+                data.append(datum)
+        self.dumps("data", data)
+        self.save()
+
+
+    def add_transformer(self, transformer):
+        """
+            add a transformer to this policy template
+            
+            Currently, the variables belonging to this transformer is added by calling add_variables explictly
+            perhaps we should put them together in the future
+
+            paramters:
+                transformer: a Transformer instance
+
+        """
+
+
+        # check if the check module has already been added.
+        added_transformer = [transform.name for transform in self.transformers.all()]
+        if transformer.name in added_transformer:
+            logger.error("transformer with name {} already exists".format(transformer.name))
+        self.transformers.add(transformer)
+        self.save()
+
+    def add_extra_executions(self, new_executions):
+        """
+            add extra actions to this policy template
+
+            Actually we now assume only one action is added at a time 
+            because the design of the frontend only allow users to specify one action for each stage
+
+            parameters:
+                new_executions: a dictionary from each stage to a list of actions
+                e.g. 
+                    {
+                        "notify": []
+                        "success": [] 
+                        "fail": []
+                        "check": []
+                    }
+        """
+        extra_executions = self.loads("extra_executions")
+        for key in new_executions:
+            if key not in extra_executions:
+                extra_executions[key] = []
+                # perhaps we would like to use extend in case extra_actions[key] is a list
+            extra_executions[key].append(new_executions[key])
+        self.dumps("extra_executions", extra_executions)
+        self.save()
+
 
 ##### Pre-delete and post-delete signal receivers
 
