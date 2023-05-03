@@ -1246,25 +1246,25 @@ class FilterModule(models.Model):
             "variables": variables
         }
 
-class CheckModule(models.Model):
+class Transformer(models.Model):
 
     JSON_FIELDS = ["variables", "data"]
     """the fields that are stored as JSON dumps"""
 
     name = models.TextField(blank=True, default='', unique=True)
-    """the name of the check module. We use this as a checkmodule identifier"""
+    """the name of the transformer. We use this as a transformer identifier"""
 
     description = models.TextField(blank=True, default='')
-    """the description of the check module"""
+    """the description of the transformer"""
 
     codes = models.TextField(blank=True, default='')
-    """the codes of the check module"""
+    """the codes of the transformer."""
 
     variables = models.TextField(blank=True, default='[]')
-    """ varaibles used in the check module defined in a similar way to variables in a PolicyTemplate"""
+    """ varaibles used in the transformer defined in a similar way to variables in a PolicyTemplate"""
 
     data = models.TextField(blank=True, default='[]')
-    """the data used in the check module defined in a similar way to data in a Procedure"""
+    """the data used in the  transformer defined in a similar way to data in a Procedure"""
 
     def loads(self, attr):
         return json.loads(getattr(self, attr))
@@ -1273,7 +1273,7 @@ class CheckModule(models.Model):
         return self.name
     
     def to_json(self):
-        # we do not need to include codes for a check module here, as we use its name as the identifier
+        # we do not need to include codes for a  transformer here, as we use its name as the identifier
         return {
             "name": self.name,
             "description": self.description,
