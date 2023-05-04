@@ -100,8 +100,6 @@ class OpenCollectiveProcessExpense(BaseAction):
         }
     ]
 
-
-
     expense_id = models.CharField("expense_id", max_length=150)
     action = models.CharField("action", max_length=150)
 
@@ -115,7 +113,9 @@ class OpenCollectiveProcessExpense(BaseAction):
 
 class ExpenseEvent(TriggerAction):
     data = models.JSONField()
-    FILTER_PARAMETERS = {"expense_id": None, "url": None, "description": None}
+    FILTER_PARAMETERS = {
+        "expense_id": "Text", "url": "Text", "description": "Text", "expense_type": "Text",
+    }
     
     class Meta:
         abstract = True
@@ -123,6 +123,10 @@ class ExpenseEvent(TriggerAction):
     @property
     def expense_id(self):
         return self.data.get("id")
+    
+    @property
+    def expense_type(self):
+        return self.data.get("expense_type")
 
     @property
     def url(self):

@@ -786,7 +786,7 @@ class PolicyVariable(models.Model):
     """The label used in public facing forms."""
 
     default_value = models.CharField(blank=False, max_length=100)
-    """The deafult value assigned to the variable."""
+    """The default value assigned to the variable."""
 
     is_required = models.BooleanField(default=False)
     """Whether a value for this policy variable is required."""
@@ -1218,7 +1218,7 @@ class Procedure(models.Model):
         unique_together = ('name', 'platform')
         """
             We will use the name to search for the corresponding procedure, and therefore it should be unique.
-            On the other hand, we allow a similar procedure (such as consesus voting) to be used on different platforms.
+            On the other hand, we allow a similar procedure (such as consensus voting) to be used on different platforms.
             Therefore, these two fields combined should be unique.
         """
 
