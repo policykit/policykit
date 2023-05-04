@@ -295,6 +295,50 @@ def create_policy_from_json(community):
         for template in template_data:
             PolicyTemplate.create_policy(community, policy_json=template, is_template=True)
 
+def get_filter_parameters(app_name, action_codename):
+    """
+        Get the designated filter parameters for a GovernableAction
+    """
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "FILTER_PARAMETERS"):
+        return action_model.FILTER_PARAMETERS
+    else:
+        return []
+    
+def determine_policy_kind(is_trigger, app_name):
+    from policyengine.models import Policy
+    if is_trigger:
+        return Policy.TRIGGER
+    elif app_name == "constitution":
+        return Policy.CONSTITUTION
+    else:
+        return Policy.PLATFORM
+
+def get_execution_variables(app_name, action_codename):
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "execution_codes"):
+        return action_model.EXECUTE_VARIABLES
+    else:
+        return None
+
+def extract_executable_actions(community):
+    from policyengine.models import PolicyActionKind
+    actions = get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
+
+    executable_actions = dict()
+    execution_variables = dict()
+    for app_name, action_list in actions.items():
+        for action_code, action_name in action_list:
+            variables = get_execution_variables(app_name, action_code)
+            # only not None if the action has execution_codes function
+            if variables:
+                if app_name not in executable_actions:
+                    executable_actions[app_name] = []
+                executable_actions[app_name].append((action_code, action_name))
+                execution_variables[action_code] = variables
+    
+    return executable_actions, execution_variables
+
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
         object[field] = json.dumps(object[field])
