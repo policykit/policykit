@@ -169,9 +169,9 @@ class SlackCommunity(CommunityPlatform):
             else:
                 return None
         
-        logger.debug("start getting conversations")
+        # logger.debug("start getting conversations")
         response = self.__make_generic_api_call("conversations.list", {})
-        logger.debug("get_conversations response: " + str(response))
+        #logger.debug("get_conversations response: " + str(response))
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
 
 
