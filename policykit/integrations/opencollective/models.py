@@ -16,8 +16,7 @@ class OpencollectiveCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def post_message(self, proposal, text, expense_id):
-        # TODO: could use the 'proposal' to try to infer the expense_id (if proposal was triggered by an expense event)
+    def post_message(self, text, expense_id):
 
         mg_community = metagov.get_community(self.community.metagov_slug)
         return mg_community.perform_action(
@@ -114,7 +113,9 @@ class OpenCollectiveProcessExpense(BaseAction):
 class ExpenseEvent(TriggerAction):
     data = models.JSONField()
     FILTER_PARAMETERS = {
-        "expense_id": "Text", "url": "Text", "description": "Text", "expense_type": "Text",
+        "description": "Text", "type": "Text",
+        "amount": "Number", 
+        "tags": "String" #TODO
     }
     
     class Meta:
@@ -125,8 +126,16 @@ class ExpenseEvent(TriggerAction):
         return self.data.get("id")
     
     @property
-    def expense_type(self):
-        return self.data.get("expense_type")
+    def type(self):
+        return self.data.get("type")
+    
+    @property
+    def amount(self):
+        return self.data.get("amount")
+    
+    @property
+    def tags(self):
+        return self.data.get("tags")
 
     @property
     def url(self):
