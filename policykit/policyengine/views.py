@@ -839,43 +839,6 @@ def policy_from_request(request, key_name = 'policy'):
 # But probably not a separate "django app".
 # ===
 
-def create_cv_policy(community):
-    from policyengine.models import Policy, PolicyVariable, ActionType
-    source = Policy.objects.get(name="collectivevoicebase")
-
-    policy =  Policy.objects.create(
-        kind="trigger",
-        name="collectivevoice",
-        community=community,
-
-        filter=source.filter,
-        initialize=source.initialize,
-        check=source.check,
-        notify=source.notify,
-        success=source.success,
-        fail=source.fail,
-        description=source.description
-    )
-
-    action_type, _ = ActionType.objects.get_or_create(codename="expensecreated")
-    policy.action_types.add(action_type)
-
-    vars = source.variables.all()
-
-    for variable in vars:
-        PolicyVariable.objects.create(
-            name=variable.name, label=variable.label, default_value=variable.default_value, is_required=True,
-            prompt=variable.prompt, type=variable.type, policy=policy)
-
-    channel_options = []
-    # get channel names from Slack API if needed
-    if any(['channel' in x.name for x in vars]):
-        channel_options = get_channel_options(community.id)
-
-    return policy, channel_options
-
-
-
 def get_channel_options(community_id):
     """
     Get channel ids and names from Slack
@@ -890,188 +853,612 @@ def get_channel_options(community_id):
             )
     return channel_options
 
-def collectivevoice_home(request):
-    """
-    Show the home screen for CV
-    If they've already gone through the flow, show policy details.
-    Otherwise, start new flow
-    """
-    from policyengine.models import Policy
+def create_blank_policytemplate(community):
+    from policyengine.models import PolicyTemplate
+    policytemplate = PolicyTemplate.objects.create(
+        kind="trigger",
+        name=f"collectivevoice_{community.id}",
+    )
+    return policytemplate
 
+# def create_cv_policytemplate(community):
+#     from policyengine.models import PolicyTemplate, PolicyVariable, ActionType
+#     source = PolicyTemplate.objects.get(name="collectivevoicebase")
+
+#     policy = PolicyTemplate.objects.create(
+#         kind="trigger",
+#         name="collectivevoice",
+#         community=community,
+
+#         filter=source.filter,
+#         initialize=source.initialize,
+#         check=source.check,
+#         notify=source.notify,
+#         success=source.success,
+#         fail=source.fail,
+#         description=source.description
+#     )
+
+#     action_type, _ = ActionType.objects.get_or_create(codename="expensecreated")
+#     policy.action_types.add(action_type)
+
+#     vars = source.variables.all()
+
+#     for variable in vars:
+#         PolicyVariable.objects.create(
+#             name=variable.name, label=variable.label, default_value=variable.default_value, is_required=True,
+#             prompt=variable.prompt, type=variable.type)
+
+#     channel_options = []
+#     # get channel names from Slack API if needed
+#     if any(['channel' in x.name for x in vars]):
+#         channel_options = get_channel_options(community.id)
+
+#     return policy, channel_options
+
+
+def get_collectivevoice_policytemplate_from_request(request):
+    from policyengine.models import PolicyTemplate
     user = get_user(request)
     community = user.community.community
 
     try:
-        policy = Policy.objects.get(name="collectivevoice", community=community)
-    except Policy.DoesNotExist:
-        policy, channel_options = create_cv_policy(community)   
-    variables = policy.variables.all()
+        policytemplate = PolicyTemplate.objects.get(name=f"collectivevoice_{community.id}")
+    except:
+        policytemplate = create_blank_policytemplate(community=community)
+    return policytemplate
+
+def collectivevoice_summary_data(pt):
+    """
+    Given a PolicyTemplate (`pt`) created with collective voice, summarize the 
+    "Expenses", "Voting Type", and "Follow up actions"
+    """
+    pass
+
+
+@login_required
+def collectivevoice_home(request):
+    """
+    Show the home screen for CV
+    If they've already gone through the flow, show policy details.
+    Otherwise, show buttons to edit EXPENSES, VOTING TEMPLATE, and FOLLOW UP
+
+    Operates on three main objects:
+        - a CustomAction (with FilterModules),
+        - a Procedure,
+        - and extra_executions attribute of the PolicyTemplate
+    """
+    from policyengine.models import PolicyTemplate
+    from django.core import serializers
+
+    # Utils.load_templates("Procedure")
+    # Utils.load_templates("CheckModule")
+    # Utils.load_templates("FilterModule")
+
+    # pt = get_collectivevoice_policytemplate_from_request(request)
+    policy_id = request.GET.get("policy_id")
+    try:
+        pt = PolicyTemplate.objects.get(pk=policy_id)
+    except:
+        pt = PolicyTemplate.objects.create(name="collectivevoice_tmp")
+
+    expenses_set = False
+    if len(pt.custom_actions.all()) > 0:
+        expenses_set = True
+
+    voting_set = False
+    if pt.procedure is not None:
+        voting_set = True
+
+    followup_set = False
+    if len(pt.extra_executions) > 2: # default is '{}'
+        followup_set = True
+
+    pt_data = serializers.serialize('json', [pt,])
     
     return render(request, "collectivevoice/home.html", {
-        'policy': policy,
-        'variables': variables
+        'policytemplate': pt_data,
+        'policy_id': pt.id,
+        'expenses_set': expenses_set,
+        'voting_set': voting_set,
+        'followup_set': followup_set,
     })
 
-
+@login_required
 def collectivevoice_edit_expenses(request):
     """
     User can select which expenses will trigger votes
     """
-    expense_variable_names = [
-        "expense_type", "Payout Type", "Amount", "Tags"
-    ]
-    policy = policy_from_request(request)
+    from policyengine.models import PolicyActionKind, FilterModule
+    policy_id = request.GET.get("policy_id")
 
-    expense_variables = policy.variables.filter(name__in=expense_variable_names)
+    filter_parameters = {}
+    new_actions = {}
 
+    user = get_user(request)
+    # only get Trigger actions for OpenCollective
+    # actions = Utils.get_action_types(user.community.community, kinds=[PolicyActionKind.TRIGGER])
+    app_name = "opencollective"
+    new_actions[app_name] = ["expensecreated", "Expense Created"]
+    # action_list = actions[app_name]
+    # new_action_list = []
+    # for action_code, verbose_name in action_list:
+    #     parameter = Utils.get_filter_parameters(app_name, action_code)
+    #     # only show actions that have filter parameters
+    #     if parameter:
+    #         filter_parameters[action_code] = parameter
+    #         new_action_list.append((action_code, verbose_name))
+    # # only show apps that have at least one action with filter parameters
+    # if new_action_list:
+    #     new_actions[app_name] = new_action_list
+
+    filter_modules = {}
+    for app_name in new_actions:
+        filter_modules[app_name] = {}
+        filters_per_app = FilterModule.objects.filter(platform__in=[app_name, "All"])
+        # get distinct filter kinds for each app
+        filter_kinds = list(filters_per_app.values_list('kind', flat=True).distinct())
+        for kind in filter_kinds:
+            filter_modules[app_name][kind] = []
+            for filter in filters_per_app.filter(kind=kind):
+                filter_modules[app_name][kind].append({
+                    "pk": filter.pk, 
+                    "name": filter.name,
+                    "description": filter.description, 
+                    "variables": filter.loads("variables")
+                })
+
+    entities = Utils.load_entities(user.community)
+    # This is an edited version of no-code/custom_action.html
     return render(request, "collectivevoice/edit_expenses.html", {
-        'policy': policy,
-        'expense_variables': expense_variables
-    })
-
-def collectivevoice_edit_voting(request):
-    """
-    User can select how voting works
-    """
-    voting_options = [
-        {"name": "Peer Approval", "yes_votes_to_approve": 1, "no_votes_to_reject": 1000},
-        # {"name": "Consensus", "no_votes_to_reject": 1, "yes_votes_to_approve": 10}
-    ]
-        # "Peer Approval", "Consensus", "Majority Vote", "Custom"
-        {"name": "Custom"}
-    ]
-    voting_variable_names = [
-        "yes_votes_to_approve", "no_votes_to_reject", "slack_channel_id",
-    ]
-    policy = policy_from_request(request)
-
-    voting_variables = policy.variables.filter(name__in=voting_variable_names)
-
-    return render(request, "collectivevoice/edit_voting.html", {
-        'policy': policy,
-        'voting_options': voting_options,
-        'voting_variables': voting_variables
+        "trigger": True,
+        "actions": new_actions, # this variable is only used in html template and therefore no dump is needed
+        "filter_parameters": json.dumps(filter_parameters), # this variable is used in javascript and therefore needs to be dumped
+        "filter_modules": json.dumps(filter_modules),
+        "entities": json.dumps(entities),
+        "policy_id": policy_id,
     })
 
 @login_required
-def embed_select_template(request):
+def collectivevoice_edit_voting(request):
     """
-    Select a template for Collective Voice
-
-    DB must be populated with `is_template=True` Policies. If not, hit
-    the populate_templates endpoint to populate.
+    c.f. design_procedures
     """
-    from policyengine.models import Policy
-    import policyengine.utils as Utils
+    from policyengine.models import Procedure      
 
-    user = get_user(request)
-    reload = request.GET.get('reload', False)
-    if reload:
-        Utils.create_policy_from_json(user.community.community)
-
-    template_policies = Policy.objects.filter(is_template=True)
-
-    return render(request, "collectivevoice/select_template.html", {
-        'template_policies': template_policies
-    })
-
-def embed_initial(request):
-    user = get_user(request)
-    community = user.community.community
-    policy_source = policy_from_request(request, key_name="source")
-
-    # Variables without a default value or value are set in the first step of the flow
-    initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
-
-    # later this could be abstrated as a "var_options"
-    # dict if there are more types of variables that need options
-    # collected with special API calls.
+    procedure_objects = Procedure.objects.all()
+    procedures = []
+    procedure_details = []
+    # keep variables in a different dict simply to avoid escaping problems of nested quotes
+    # the first is to use directly in template rendering, while the second is to use in javascript
+    for template in procedure_objects:
+        procedures.append({
+            "name": template.name, 
+            "pk": template.pk, 
+            "platform": template.platform,     
+        })
+            
+        procedure_details.append({
+            "name": template.name, 
+            "pk": template.pk, 
+            "variables": template.loads("variables")
+        })
     
-    channel_options = []
-    # only get channel names from Slack API if needed
-    if any(['channel' in x.name for x in initial_variables]):
-        channel_options = get_channel_options(community.id)
+    # Only Slack for v0.1 of CollectiveVoice
+    platform_names = ["slack"]
 
-    # Variables are ordered with initial variables first
-    all_variables = policy_source.variables.order_by("default_value")
-
-    return render(request, "collectivevoice/initial.html", {
-        "policy": policy_source,
-        "initial_variables": initial_variables,
-        "channel_options": channel_options,
-        "all_variables": all_variables
-    })
-
-def embed_setup(request):
-    """
-    This view is hit when the user clicks "Continue" from initial.html (embed_initial view)
-    This gets the current user and community, then makes a copy of the "starter" template policy
-    and adds it the user's community
-    
-    Returns JSON with the the copied policy's id.
-    """
     user = get_user(request)
-    community = user.community.community
+    # # platforms = user.community.community.get_platform_communities()
+    # # platform_names = [platform.platform for platform in platforms]
 
-    # Make a copy of the policy
-    data = json.loads(request.body)
-    policy_source = policy_from_request(request)
-    new_policy = policy_source.copy_to_community(community=community, variable_data=data["variables"])
-    new_policy.name = new_policy.name.replace('_starter', '_edited')
-    new_policy.save()
-
-    return JsonResponse({ "policy": new_policy.id })
-
-def embed_summary(request):
-    """
-    Shows the summary page with info about the edited policy.
-    """
-    policy = policy_from_request(request)
-
-    variables = policy.variables.all()
-
-    return render(request, "collectivevoice/summary.html", {
-        "policy": policy,
-        "all_variables": variables
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id")
+    entities = Utils.load_entities(user.community)
+    return render(request, "collectivevoice/edit_voting.html", {
+        "procedures": json.dumps(procedures),
+        "procedure_details": json.dumps(procedure_details),
+        "platforms": platform_names,
+        "trigger": trigger,
+        "policy_id": policy_id,
+        "entities": json.dumps(entities)
     })
 
-def embed_update(request):
-    """
-    Updates the PolicyVariable objects associated with
-    the policy being edited in the no-code flow.
-    """
-    policy = policy_from_request(request)
+@login_required
+def collectivevoice_edit_followup(request):
+    """cf no-code design_executions"""
+    policy_id = request.GET.get("policy_id", None)
+    # "success" or "fail"
 
-    # Update policy variables
+    if policy_id:
+        user = get_user(request)
+        executable_actions, execution_variables = Utils.extract_executable_actions(user.community.community)
+        entities = Utils.load_entities(user.community)
+        return render(request, "collectivevoice/edit_followup.html", {
+            "policy_id": policy_id,
+            "executions": executable_actions,
+            "execution_variables": json.dumps(execution_variables),
+            "entities": json.dumps(entities)
+        })
+
+
+
+@login_required
+def create_custom_action(request):
+    """see no-code create_custom_action for latest approach"""
+    from policyengine.models import CustomAction, ActionType, PolicyTemplate, FilterModule
+
     data = json.loads(request.body)
-    policy.update_variables(data["variables"])
+    filters = data.get("filters", None)
+
+    pt = PolicyTemplate.objects.get(id=data.get("policy_id"))
+    
+    # pt = get_collectivevoice_policytemplate_from_request(request)
+    # pt.action_types.clear()
+    pt.custom_actions.all().delete()
+
+    # only create a new PolicyTemplate instance when there is at least one filter specified
+    if filters and len(filters) > 0:
+        is_trigger = True
+        for filter in filters:
+            action_type = filter.get("action_type")
+            action_type = ActionType.objects.filter(codename=action_type).first()
+            
+            action_specs = filter.get("filter")
+            '''
+                check whether the value of each action_specs is an empty string
+                create a new CustomAction instance for each selected action that has specified filter parameters
+                and only search the action_type for any selected action without specified filter parameters
+                an example of a action_specs:
+                    {
+                        "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
+                        "text":{}
+                    }
+                    
+            '''
+            empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
+            filter_JSON = {}
+            if empty_filter:
+                pt.action_types.add(action_type)
+            else:
+                custom_action = CustomAction.objects.create(
+                    action_type=action_type, is_trigger=is_trigger
+                )
+                for field, filter_info in action_specs.items():
+                    if not filter_info:
+                        filter_JSON[field] = None
+                    else:
+                        filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
+                        # create a filter JSON object with the actual value specified for each variable
+                        filter_JSON[field] = filter_module.to_json(filter_info["variables"])
+                        # to faciliate the generation of codes for custom actions, we store the platform of each filter
+                        filter_JSON[field]["platform"] = filter_info["platform"]
+                custom_action.dumps("filter", filter_JSON)
+                custom_action.save()
+                pt.custom_actions.add(custom_action)                
+
+        pt.save()
+        return JsonResponse({"policy_id": pt.pk, "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
+    
+@login_required  
+def create_procedure(request):
+    '''
+        Create the procedure field of a PolicyTemplate instance based on the request body.
+        We also add variables defined in the selected procedure to the new policytemplate instance
+
+        Parameters:
+            request.body: 
+                A Json object in the shape of
+                {  
+                    "procedure_index": an integer, which represents the primary key of the selected procedure;
+                    "policy_id": an integer, which represents the primary key of the policy that we are creating
+                    "procedure_variables": a dict of variable names and their values
+                }
+    '''
+    from policyengine.models import Procedure, PolicyTemplate
+
+    data = json.loads(request.body)
+    procedure_index = data.get("procedure_index", None)
+    policy_id = data.get("policy_id", None)
+    if procedure_index and policy_id:
+        # why first?
+        procedure = Procedure.objects.filter(pk=procedure_index).first()
+        pt = PolicyTemplate.objects.filter(pk=policy_id).first()
+        if pt and procedure:
+            logger.debug("creating variables for the new policy") 
+            pt.procedure = procedure
+            pt.add_variables(procedure.loads("variables"), data.get("procedure_variables", {}))
+            pt.add_descriptive_data(procedure.loads("data"))
+            pt.save()
+
+            return JsonResponse({"status": "success", "policy_id": pt.pk})
+    return JsonResponse({"status": "fail"})
+
+
+@login_required
+def customize_procedure(request):
+    """
+        Help render the customize procedure page
+    """
+    from policyengine.models import CheckModule, PolicyTemplate
+    
+    # prepare information about module templates
+    checkmodules_objects = CheckModule.objects.all()
+    checkmodules = []
+    checkmodules_details = []
+    for template in checkmodules_objects:
+        checkmodules.append((template.pk, template.name))
+        checkmodules_details.append({
+            "name": template.name, 
+            "pk": template.pk, 
+            "variables": template.loads("variables")
+        })
+
+    # prepare information about extra executions that are supported
+    user = get_user(request)
+    executable_actions, execution_variables = Utils.extract_executable_actions(user.community.community)
+
+    
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id")
+    entities = Utils.load_entities(user.community)
+    data = {
+            "checkmodules": checkmodules,
+            "checkmodules_details": json.dumps(checkmodules_details),
+            "executions": executable_actions,
+            "execution_variables": json.dumps(execution_variables),
+            "trigger": trigger,
+            "policy_id": policy_id,
+            "entities": json.dumps(entities)
+        }
+
+    now_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    data["policy_variables"] = json.dumps(
+            now_policy.loads("variables") if now_policy else {}
+        )
+    return render(request, "no-code/customize_procedure.html", data)
+
+@login_required
+def create_customization(request):
+    """
+        Add extra check modules and extra actions to the policy template
+
+        parameters:
+            request.body: e.g.,
+                {
+                    "policy_id": 1,
+                    
+                    "module_index": 1,
+                    "module_data": {
+                        "duration": ...
+                    }
+
+                    "action_data": {
+                        "check"/"notify": {
+                            "action": "slackpostmessage",
+                            "channel": ...,
+                            "text": ...
+                        }
+                    }
+                }
+    """
+    from policyengine.models import CheckModule, PolicyTemplate
+
+    data = json.loads(request.body)
+    
+    policy_id = data.get("policy_id", None)
+    new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    if new_policy:
+        module_index = data.get("module_index", None)
+        module_template = CheckModule.objects.filter(pk=module_index).first()
+        if module_template:
+            new_policy.add_check_module(module_template)
+            new_policy.add_variables(module_template.loads("variables"), data.get("module_data", {}))
+            new_policy.add_descriptive_data(module_template.loads("data"))
+        action_data = data.get("action_data", None)
+        if action_data:
+            new_policy.add_extra_actions(action_data)
+        new_policy.save()
+        return JsonResponse({"status": "success", "policy_id": new_policy.pk})
+    return JsonResponse({"status": "fail"})
+
+
+    
+def create_execution(request):
+    """
+        Add executions to success or fail blocks of the policytemplate instance
+
+        parameters:
+            request.body: e.g.,
+                "action_data":  
+                    {
+                        "success"/"fail": {
+                            "action": "slackpostmessage",
+                            "channel": ...,
+                            "text": ...
+                        }
+                    }
+    """
+    from policyengine.models import PolicyTemplate
+
+    data = json.loads(request.body)
+    policy_id = data.get("policy_id", None)
+    pt = PolicyTemplate.objects.filter(pk=policy_id).first()
+    if pt:
+        action_data = data.get("action_data", {})
+        if action_data:
+            pt.add_extra_actions(action_data)
+            pt.save()
+        return JsonResponse({"status": "success", "policy_id": pt.pk})
+    return JsonResponse({"status": "fail"})
+
+@login_required 
+def policy_overview(request):
+    """
+        help render the policy overview page where users can fill in the policy name and description,
+        and also see the policy template in json format
+    """
+    from policyengine.models import PolicyTemplate
+
+    trigger = request.GET.get("trigger", "false")
+    policy_id = request.GET.get("policy_id", None)
+    created_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
+    if created_policy:
+        created_policy_json = created_policy.to_json()
+        return render(request, "no-code/policy_overview.html", {
+            "trigger": trigger,
+            "policy": json.dumps(created_policy_json),
+            "policy_id": policy_id,
+        })
+
+@login_required  
+def create_overview(request):
+    """
+        Add policy name and description to the policy template instance
+
+        parameters:
+            request.body: 
+                {
+                    "policy_id": 1,
+                    data: {
+                        "name": "policy name",
+                        "description": "policy description"
+                    }
+                }
+    """
+    from policyengine.models import PolicyTemplate
+    request_body = json.loads(request.body)
+    policy_id = int(request_body.get("policy_id", -1))
+    policy_template = PolicyTemplate.objects.filter(pk=int(policy_id)).first()
+    if policy_template :
+        data = request_body.get("data")
+        policy_template.name = data.get("name", "")
+        policy_template.description = data.get("description", "")
+        policy_template.save()
+
+        user = get_user(request)
+        new_policy = policy_template.create_policy(user.community.community)
+        return JsonResponse({"policy_id": new_policy.pk, "policy_type": (new_policy.kind).capitalize(), "status": "success"})
+    else:
+        return JsonResponse({"status": "fail"})
+
+
+# @login_required
+# def embed_select_template(request):
+#     """
+#     Select a template for Collective Voice
+
+#     DB must be populated with `is_template=True` Policies. If not, hit
+#     the populate_templates endpoint to populate.
+#     """
+#     from policyengine.models import Policy
+#     import policyengine.utils as Utils
+
+#     user = get_user(request)
+#     reload = request.GET.get('reload', False)
+#     if reload:
+#         Utils.create_policy_from_json(user.community.community)
+
+#     template_policies = Policy.objects.filter(is_template=True)
+
+#     return render(request, "collectivevoice/select_template.html", {
+#         'template_policies': template_policies
+#     })
+
+# def embed_initial(request):
+#     user = get_user(request)
+#     community = user.community.community
+#     policy_source = policy_from_request(request, key_name="source")
+
+#     # Variables without a default value or value are set in the first step of the flow
+#     initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
+
+#     channel_options = []
+#     # only get channel names from Slack API if needed
+#     if any(['channel' in x.name for x in initial_variables]):
+#         channel_options = get_channel_options(community.id)
+
+#     # Variables are ordered with initial variables first
+#     all_variables = policy_source.variables.order_by("default_value")
+
+#     return render(request, "collectivevoice/initial.html", {
+#         "policy": policy_source,
+#         "initial_variables": initial_variables,
+#         "channel_options": channel_options,
+#         "all_variables": all_variables
+#     })
+
+# def embed_setup(request):
+#     """
+#     This view is hit when the user clicks "Continue" from initial.html (embed_initial view)
+#     This gets the current user and community, then makes a copy of the "starter" template policy
+#     and adds it the user's community
+    
+#     Returns JSON with the the copied policy's id.
+#     """
+#     user = get_user(request)
+#     community = user.community.community
+
+#     # Make a copy of the policy
+#     data = json.loads(request.body)
+#     policy_source = policy_from_request(request)
+#     new_policy = policy_source.copy_to_community(community=community, variable_data=data["variables"])
+#     new_policy.name = new_policy.name.replace('_starter', '_edited')
+#     new_policy.save()
+
+    # return JsonResponse({ "policy": new_policy.id })
+
+# def embed_summary(request):
+#     """
+#     Shows the summary page with info about the edited policy.
+#     """
+#     policy = policy_from_request(request)
+
+#     variables = policy.variables.all()
+
+#     return render(request, "collectivevoice/summary.html", {
+#         "policy": policy,
+#         "all_variables": variables
+#     })
+
+# def embed_update(request):
+#     """
+#     Updates the PolicyVariable objects associated with
+#     the policy being edited in the no-code flow.
+#     """
+#     policy = policy_from_request(request)
+
+#     # Update policy variables
+#     data = json.loads(request.body)
+#     policy.update_variables(data["variables"])
 
     return JsonResponse({ "policy": policy.id })
 
-def embed_edit(request):
-    """
-    Shows the page for editing PolicyVariable objects
-    associated with the policy being edited in the no-code flow.
-    """
-    policy = policy_from_request(request)
-    user = get_user(request)
-    community = user.community.community
-    variables = policy.variables.all()
+# def embed_edit(request):
+#     """
+#     Shows the page for editing PolicyVariable objects
+#     associated with the policy being edited in the no-code flow.
+#     """
+#     policy = policy_from_request(request)
+#     user = get_user(request)
+#     community = user.community.community
+#     variables = policy.variables.all()
 
-    channel_options = []
-    # only get channel names from Slack API if needed
-    if any(['channel' in x.name for x in variables]):
-        channel_options = get_channel_options(community.id)
+#     channel_options = []
+#     # only get channel names from Slack API if needed
+#     if any(['channel' in x.name for x in variables]):
+#         channel_options = get_channel_options(community.id)
 
-    return render(request, "collectivevoice/edit.html", {
-        "policy": policy,
-        "all_variables": variables,
-        "channel_options": channel_options
-    })
+#     return render(request, "collectivevoice/edit.html", {
+#         "policy": policy,
+#         "all_variables": variables,
+#         "channel_options": channel_options
+#     })
 
-def embed_success(request):
-    """Shows success page when no-code editing is finished."""
-    policy = policy_from_request(request)
-    return render(request, "collectivevoice/success.html", {
-        "policy": policy
-    })
+# def embed_success(request):
+#     """Shows success page when no-code editing is finished."""
+#     policy = policy_from_request(request)
+#     return render(request, "collectivevoice/success.html", {
+#         "policy": policy
+#     })
