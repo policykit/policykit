@@ -1,7 +1,229 @@
 [
     {
-        "name": "Consensus Voting",
-        "description": "A simple yes-no vote procedure: if the number of yes votes is greater than or equal to the minimum required, the proposal is passed. If the number of no votes is greater than or equal to the maximum allowed, the proposal is failed. Otherwise, the proposal is still in progress.",
+        "name": "Peer Approval",
+        "description": "Peer approval: Just one eligible voter needs to approve an expense in order for it to pass. **Warning: If the person submitting the expense is also an eligible voter, you might want to tell them not to vote on their own expenses.",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= 1:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.vote_message",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            }
+        ],
+        "success": [],
+        "fail": [],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Who should be eligible to vote",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Peer approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to post the vote message",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
+    {
+        "name": "Majority Vote",
+        "description": "Majority: A majority of the eligible voters need to approve an expense in order for it to pass.",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= len(variables.user) / 2:\n  return PASSED\nelif no_votes >= len(variables.user) / 2:\n  return FAILED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.vote_message",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            }
+        ],
+        "success": [],
+        "fail": [],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Who should be eligible to vote",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Peer approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to post the vote message",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
+    {
+        "name": "Consensus Approval",
+        "description": "Consensus: All of the eligible voters need to approve an expense in order for it to pass.",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif no_votes >= 1:\n  return FAILED\nelif yes_votes >= len(variables.users):\n  return PASSED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.vote_message",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            }
+        ],
+        "success": [],
+        "fail": [],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Who should be eligible to vote",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Peer approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to post the vote message",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
+    {
+        "name": "Custom Voting",
+        "description": "Custom: Set your own thresholds for yes votes needed to approve or no votes needed to reject.",
         "platform": "Slack",
         "initialize": [], 
         "check": {

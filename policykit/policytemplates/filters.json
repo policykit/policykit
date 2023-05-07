@@ -1,5 +1,13 @@
 [
     {
+        "kind": "OpencollectiveExpense",
+        "name": "ExpenseType",
+        "description": "Only Expenses of a certain type",
+        "platform": "opencollective",
+        "codes": "pass",
+        "variables":[]
+    },
+    {
         "kind": "CommunityUser",
         "name": "Permission",
         "description": "Only users with the specified permission",
@@ -105,6 +113,25 @@
             {
                 "name": "length",
                 "label": "Which maximum length do you expect the text to be of?",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "Number",
+        "name": "GreaterThan",
+        "description": "Only numbers greater than specified",
+        "platform": "All",
+        "codes": "return object > threshold",
+        "variables":[
+            {
+                "name": "threshold",
+                "label": "Must be larger than threshold",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
