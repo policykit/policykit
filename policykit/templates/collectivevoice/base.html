@@ -1,4 +1,4 @@
-{% extends "./embed_base.html" %}
+{% extends "./nocode_base.html" %}
 {% load static %}
 
 {% block styles %}
@@ -42,12 +42,14 @@
   h3,
   .heading-3 {
     font-size: 27.65px;
+    text-align: center;
   }
 
   h4,
   .heading-4 {
     font-size: 23.04px;
     line-height: 28px;
+    text-align: center;
   }
 
   h5,
@@ -74,89 +76,131 @@
   .description {
     margin: 0 0 32px;
   }
+  
+  .selectpicker-group {
+      display: flex;
+      justify-content: center;
+      line-height: 50px;
+  }
 
+  .selectpicker-group label {
+      margin-right: 10px;
+  }
+
+  .action-picker div {
+      margin: 0px 0px 10px 24px;
+  }
+
+  .set{
+    color: green;
+  }
+
+  .not-set {
+    color:red;
+  }
+
+
+  
+  #action-specs-group {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      margin-top: 20px;
+  }
+
+
+  .selectpicker {
+    width: 100%;
+    height: 50px;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
+
+  .selectpicker + button.btn.dropdown-toggle,
+  .selectpicker + button.btn.dropdown-toggle.disabled {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
+
+  .selectpicker + button {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #ffffff;
+  }
+
+
+  #module-picker option {
+    width: fit-content;
+  }
+  .action-label {
+    font-weight: 500;
+    font-size: 19px;
+  }
   .variables {
-    margin: 0 0 24px;
-  }
-
-  .variable {
-    margin: 0 0 24px;
-  }
+        margin: 0 0 24px;
+        justify-content: center;
+        align-items: center;
+    }
 
   .variable-values {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    margin: 0 0 4px;
-  }
+      margin: 5px 0 4px 0;
+      justify-content: center;
+      align-items: center;
 
-  .template {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
   }
 
   .variable-label {
-    margin: 0 0 4px 0;
-  }
-
-  #policy_summary .variable-values {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    line-height: 1;
-  }
-
-  #policy_summary .variable-label {
-    margin: 0;
-  }
-
-  .variable-input {
-    padding: 8px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
-  }
-
-  .variable-value {
-    font-weight: 500;
+      margin: 2px 6px 4px 2px;
   }
 
   .variable-prompt {
-    color: #666;
-    margin: 0;
+      font-size: 10px;
+      color: #bbb;
   }
 
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
+  input
+  .variable-input {
+      padding: 8px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      width: 300px;
+  }
+
+  .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
   }
 
   .button {
-    border: none;
-    padding: 12px;
-    cursor: pointer;
-    border-radius: 16px;
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 16px;
   }
 
   .secondary {
-    background: transparent;
-    border: 1px solid #bbb;
-    margin: 0 0 16px;
+      background: transparent;
+      border: 1px solid #bbb;
+      margin: 0 10px 0 0;
   }
 
   .secondary:hover {
-    background: #eee;
+      background: #eee;
   }
 
   .primary {
-    background: #444;
-    color: #fff;
+      background: #444;
+      color: #fff;
   }
 
   .primary:hover {
-    background: #000;
+      background: #000;
   }
+
+
 </style>
 {% endblock %}
 
@@ -175,7 +219,16 @@
     setup: 'policy_setup',
     summary: 'policy_summary',
     edit: 'policy_editor',
-    success: 'policy_confirmation'
+    success: 'policy_confirmation',
+
+    edit_expenses: 'edit_expenses',
+    edit_voting: 'edit_voting',
+    edit_followup: 'edit_followup',
+
+    procedure: 'design_voting_procedure',
+    customize: "customize_procedure",
+    execution: 'design_execution',
+    overview: 'policy_overview',
   }
 
   // Reference of class names defined here to avoid repetition
@@ -185,14 +238,88 @@
     secondary: 'secondary'
   }
 
+  const getVariableDataInStep = (elementId, elements=null) => {
+        // Select all input elements in step element
+        var inputElements;
+        if(elementId){
+          inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
+        } else {
+          inputElements = elements.querySelectorAll('.variable-input');
+        }
+
+        var variable_data = {};
+        
+        Array.from(inputElements).forEach(input => {
+          // if it is an input element
+          if(input.tagName === 'INPUT'){
+            let value = input.value;
+            /* 
+              the display of a input box that shows a date and time is for the conveience of the user,
+              while in the backend we still use timestamp. 
+              Therefore, the conversation of the value is more of the task of the frontend. 
+              In contrast, we store a list of numbers still as strings in the backend, 
+              and the backend should take care of the conversion of such values
+            */
+            if(input.type === 'datetime-local'){
+              const dateObject = new Date(value);
+              value = Math.floor(dateObject.getTime() / 1000)
+            }
+            variable_data[input.getAttribute('data-id')] = value;
+          }
+          else if(input.tagName === 'SELECT'){
+            let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
+            variable_data[input.getAttribute('data-id')] = selected_options;
+          }
+        });
+        return variable_data;
+  }
+
+  const checkMissingVariable = (elementId, elements=null) => {
+    var inputElements;
+    if(elementId){
+      inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
+    } else {
+      inputElements = elements.querySelectorAll('.variable-input');
+    } 
+    
+    var missing_variables = false;
+    Array.from(inputElements).forEach(input => {
+        // if it is an input box
+      if(input.tagName === 'INPUT') {
+        if(!input.reportValidity()){
+          missing_variables = true;
+          input.style.border = '1px solid red';
+        } else {
+          input.style.border = '1px solid #bbb';
+        }
+      } else if(input.tagName === 'SELECT' && input.required){
+        // if it is a select-picker object, it is actually an select element enclosed by a div
+        let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
+        if(selected_options === ""){
+          missing_variables = true;
+          input.parentElement.style.border = '1px solid red';
+        } else {
+          input.parentElement.style.border = '1px solid rgb(187, 187, 187)';
+        }
+      }
+    });
+    return missing_variables;
+  }
   // Redirect to another step page
   const redirect = (pageKey, urlParams = {}) => {
     // URLs for the different step pages
     const pages = {
+      customize: '/no-code/customize_procedure',
+      overview: '/no-code/policy_overview',
+      details: '/main/editor/',
+
       home: '/collectivevoice/home',
       summary: '/collectivevoice/summary',
-      edit: '/collectivevoice/edit',
+      
       edit_expenses: '/collectivevoice/edit_expenses',
+      edit_voting: '/collectivevoice/edit_voting',
+      edit_followup: '/collectivevoice/edit_followup',
+
       success: '/collectivevoice/success'
     }
 
@@ -207,31 +334,18 @@
     window.location.href = `${pages[pageKey]}${searchParams}`
   }
 
-  // Get an object with variable data from a step section
-  const getVariableDataInStep = stepId => {
-    // Select all input elements in step element
-    const inputElements = document.getElementById(stepId).querySelectorAll('.variable-input')
-
-    // Build JS object with variable data in the form of { id: value, id: value }
-    return Array.from(inputElements).reduce((sum, curr) => ({ ...sum, [ curr.getAttribute('data-id') ] : curr.value }), {})
-  }
-
-  // Save variable data
-  const submit = async (url, variableData) => {
+  const submit = async (url, submitData) => {
     // Django generated csrf token
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
 
     try {
-      const response = await fetch(`../../../collectivevoice/${url}?policy={{ policy.id }}`, {
+      const response = await fetch(`${url}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify({
-          policy: '{{policy.id}}',
-          variables: variableData
-        })
+        body: JSON.stringify(submitData)
       })
 
       if (!response.ok) {
@@ -241,11 +355,94 @@
       }
 
       const json = await response.json()
-
       return json
     } catch (e) {
       console.log(e)
     }
+  }
+
+  const removeElementChildren = (element_id) => {
+      var element = document.getElementById(element_id);
+      var docstyle = element.style.display;
+      if (docstyle == 'none') element.style.display = '';
+      element.replaceChildren();
+  }
+
+  const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null) => {
+      var text = document.createElement('div');
+      text.classList.add('variable');
+      text.id = id;
+
+      var input_validate = "";
+      if(variable["is_required"] ?? true){
+            input_validate += " required";
+      }
+
+      var prompt = "";
+      if(Boolean(variable["prompt"]) == true)
+      // if it is not empty, null, or undefined
+      prompt = `<p class='variable-prompt text-small'>${variable.prompt}</p>`;
+
+      if(options && variable["entity"] && (variable["entity"] in options)){
+        // if it is, then we use a select as the input box
+        if(variable["is_list"] ?? false){
+          input_validate += "  multiple";
+        }
+        let innerHTML = `<div class='variable-values'>
+                            <label class='variable-label' for='${id}'>${variable.label}</label>
+                            <select class='variable-input selectpicker' data-id='${id}' title="Select an ${variable.label}" ${input_validate}>`;
+        
+        options[variable["entity"]].forEach(entity => {
+          innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
+        });
+        innerHTML += `</select>${prompt}</div>`;
+        text.innerHTML = innerHTML;
+        
+      } else {
+        // figure out what type of input requirement is needed
+        if(variable["is_list"] ?? false){
+            if(variable["type"] === "string")
+              input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+            else if(variable["type"] === "number")
+              input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
+            else if(variable["type"] === "float")
+              input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
+            else if(variable["type"] === "timestamp")
+              console.warn("We do not support a variable as a list of timestamps yet");
+        } else {
+            if(variable["type"] === "string")
+              input_validate += ' type="text"';
+            else if(variable["type"] === "number")
+              input_validate += ' type="number"';
+            else if(variable["type"] === "float")
+              input_validate += ' type="number" step="0.01"';
+            else if(variable["type"] === "timestamp")
+              input_validate += ' type="datetime-local"';
+        }
+
+        if(variable["default_value"])
+          // if it is a select input, then a default value is actually not much needed
+            input_validate += `  value='${variable.default_value}'`;
+        if(datalist){
+          // if there is a datalist, then we need to add the datalist to the parent div
+          text.innerHTML = `<div class='variable-values'>
+                            <label class='variable-label' for='${id}'>${variable.label}</label>
+                            <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
+                            ${prompt}
+                            ${datalist}
+                        </div>`;
+        } else {
+          text.innerHTML = `<div class='variable-values'>
+                              <label class='variable-label' for='${id}'>${variable.label}</label>
+                              <input class='variable-input' data-id='${id}' ${input_validate}/>
+                              ${prompt}
+                          </div>`;
+        }
+        console.log(text.innerHTML);
+      }
+      parentDiv.appendChild(text);
+      $(".selectpicker").selectpicker("refresh");
+      
   }
 </script>
 {% endblock %}
