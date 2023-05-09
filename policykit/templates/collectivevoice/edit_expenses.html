@@ -9,8 +9,10 @@
         <label for="actionpicker">
         </label>
         <div>
-            <p>Collective Voice will watch for whenever an Expense is created.</p>
-            <select id="actionpicker" class="selectpicker" title="Select an action..." multiple>
+            <p>Collective Voice will watch for whenever an expense is created. </p>
+            <p>If there are specific expenses you want to vote on, you can filter them using the below options: </p>
+            <div style="display:none">
+            <select  id="actionpicker" class="selectpicker" title="Select an action..." multiple>
                 {% for app_name, action_list in actions.items %}
                     <optgroup label="{{app_name|upper}}">
                         {% for model_name, verbose_name in action_list %}
@@ -24,15 +26,15 @@
                     </optgroup>
                 {% endfor %}
             </select>
+            </div>
         </div>
     </div>
     <div>
-        <h4 class="heading-4">Which expenses do you want to vote on?</h4>
         <div class="variables-group" id="action-specs-group"></div>
     </div>
 
     <div class="button-group">
-        <button class="button secondary">
+        <button id="back" class="button secondary">
           Go back
         </button>
         <button class="button primary">
@@ -110,10 +112,11 @@
             action_div.id = action;
 
             // add a label for each action in this action_div
-            var action_label = document.createElement('label');
-            action_label.classList.add('action-label');
-            action_label.innerHTML = `For ${selected_actions_names[index]}`;
-            action_div.appendChild(action_label);
+            // NMV: commented for Collective Voice minimalism
+            // var action_label = document.createElement('label');
+            // action_label.classList.add('action-label');
+            // action_label.innerHTML = `For ${selected_actions_names[index]}`;
+            // action_div.appendChild(action_label);
             
             // then add the filter parameters for each action in this action_div
             const filter_parameters = filter_parameters_dict[action]; // a dict of field: filter_kind
@@ -241,7 +244,7 @@
         const response = await submit('create_custom_action', submit_data);
         console.log("after creating custom action, " + JSON.stringify(response))
         if(response["status"] == "success"){
-                redirect('home', {policy_id: response["policy_id"], trigger: skip_procedure});
+                redirect('home', {policy_id: response["policy_id"]});
         }
     }
     
@@ -256,5 +259,8 @@
             showFilterModuleVariables(event.target.id);
         }
     });
+
+    const goBack = () => redirect('home', { policy_id: '{{ policy_id }}' })
+    document.getElementById("back").addEventListener('click', goBack)
 </script>
 {% endblock %}
