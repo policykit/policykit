@@ -6,7 +6,7 @@
     
     <h4 class="heading-4">Configure Voting Rules</h4>
     <p> Expenses on Open Collective will be up for a vote on Slack before being approved. </p>
-    <div class="selectpicker-group">
+    <!-- <div class="selectpicker-group">
         <label for="platform-picker">Platform</label>
         <div>
             <select id="platform-picker" class="selectpicker" title="Select a Platform">
@@ -15,7 +15,7 @@
                 {% endfor %}
             </select>
         </div>
-    </div>
+    </div> -->
     <div class="selectpicker-group">
         <label for="procedure-picker">Procedures</label>
         <div>
@@ -26,8 +26,19 @@
     <div class="variables-list">
         <h4 class="heading-4" id="procedure-name"></h4>
         <div id="procedure-variables" class="variables">
-
         </div>
+    </div>
+
+    <div>
+        Peer approval
+        Recommended for smaller, reoccurring/regular, essential or non-controversial expenses*.. i.e. monthly invoices from a trusted community member or reimbursements for purchases of communal items. *Works well for groups of any size.
+        
+        Consensus (all yes)
+        Recommended for larger, one-off, non-essential, or unexpected expenses that might invoke deliberation. *Works well for small or mid-size groups where the number of eligible voters is approx. 2 - 8 people.
+        Majority vote
+        Recommended for larger, one-off, non-essential, or unexpected expenses that might invoke deliberation. *Works well for small or mid-size groups where the number of eligible voters exceeds 8.
+        Custom
+        Define your own voting structure
     </div>
     <div class="actions">
         <button class="button secondary">
@@ -80,7 +91,8 @@
     }
 
     const showPlatformProcedures = () => {
-        var cur_platform = document.getElementById("platform-picker").value;
+        //var cur_platform = document.getElementById("platform-picker").value;
+        const cur_platform = "Slack";
 
         removeElementChildren('procedure-picker')
         if(cur_platform == "none") return;
@@ -96,7 +108,7 @@
             var new_option = document.createElement('option');
             if(index == 0) new_option.selected = true;
             new_option.value = item.pk;
-            new_option.innerHTML = item.name;
+            new_option.innerHTML = item.name + ": " + item.description;
             procedure_dropdown.appendChild(new_option);
         })
         $('.selectpicker').selectpicker('refresh');
@@ -132,7 +144,8 @@
     document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.secondary}`).addEventListener('click', (event) => createProcedure("customize"));
 
     document.getElementById("procedure-picker").addEventListener("change", showProcedureDetails);
-    document.getElementById("platform-picker").addEventListener("change", showPlatformProcedures);
+    //document.getElementById("platform-picker").addEventListener("change", showPlatformProcedures);
+    showPlatformProcedures()
     showProcedureDetails();
     
 </script>
