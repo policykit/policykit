@@ -115,7 +115,7 @@ class ExpenseEvent(TriggerAction):
     FILTER_PARAMETERS = {
         "description": "Text", "type": "Text",
         "amount": "Number", 
-        "tags": "String" #TODO
+        "tags": "Text" #TODO
     }
     
     class Meta:

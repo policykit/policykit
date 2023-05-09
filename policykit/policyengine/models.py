@@ -1390,7 +1390,7 @@ class PolicyTemplate(models.Model):
     
     variables = models.TextField(blank=True, default='[]')
     """ 
-        Varaibles used in all codes of the policy template
+        Variables used in all codes of the policy template
         Whenever we add a new module (such as Procedure and CheckModule) 
         that defines its own variables, we will add them here.
     """

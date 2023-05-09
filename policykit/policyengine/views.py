@@ -977,20 +977,20 @@ def collectivevoice_edit_expenses(request):
 
     user = get_user(request)
     # only get Trigger actions for OpenCollective
-    # actions = Utils.get_action_types(user.community.community, kinds=[PolicyActionKind.TRIGGER])
+    actions = Utils.get_action_types(user.community.community, kinds=[PolicyActionKind.TRIGGER])
     app_name = "opencollective"
-    new_actions[app_name] = ["expensecreated", "Expense Created"]
-    # action_list = actions[app_name]
-    # new_action_list = []
-    # for action_code, verbose_name in action_list:
-    #     parameter = Utils.get_filter_parameters(app_name, action_code)
-    #     # only show actions that have filter parameters
-    #     if parameter:
-    #         filter_parameters[action_code] = parameter
-    #         new_action_list.append((action_code, verbose_name))
-    # # only show apps that have at least one action with filter parameters
-    # if new_action_list:
-    #     new_actions[app_name] = new_action_list
+    # new_actions[app_name] = ["expensecreated", "Expense Created"]
+    action_list = actions[app_name]
+    new_action_list = []
+    for action_code, verbose_name in action_list:
+        parameter = Utils.get_filter_parameters(app_name, action_code)
+        # only show actions that have filter parameters
+        if parameter:
+            filter_parameters[action_code] = parameter
+            new_action_list.append((action_code, verbose_name))
+    # only show apps that have at least one action with filter parameters
+    if new_action_list:
+        new_actions[app_name] = new_action_list
 
     filter_modules = {}
     for app_name in new_actions:
@@ -1009,7 +1009,6 @@ def collectivevoice_edit_expenses(request):
                 })
 
     entities = Utils.load_entities(user.community)
-    # This is an edited version of no-code/custom_action.html
     return render(request, "collectivevoice/edit_expenses.html", {
         "trigger": True,
         "actions": new_actions, # this variable is only used in html template and therefore no dump is needed
@@ -1036,12 +1035,14 @@ def collectivevoice_edit_voting(request):
             "name": template.name, 
             "pk": template.pk, 
             "platform": template.platform,     
+            "description": template.description
+
         })
             
         procedure_details.append({
             "name": template.name, 
             "pk": template.pk, 
-            "variables": template.loads("variables")
+            "variables": template.loads("variables"),
         })
     
     # Only Slack for v0.1 of CollectiveVoice
