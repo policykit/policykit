@@ -216,14 +216,15 @@
 <script>
   // ids for UI sections
   const stepElementIds = {
-    setup: 'policy_setup',
-    summary: 'policy_summary',
-    edit: 'policy_editor',
-    success: 'policy_confirmation',
+    // setup: 'policy_setup',
+    // summary: 'policy_summary',
+    // edit: 'policy_editor',
+    // success: 'policy_confirmation',
 
     edit_expenses: 'edit_expenses',
     edit_voting: 'edit_voting',
     edit_followup: 'edit_followup',
+    policy_overview: 'policy_overview',
 
     procedure: 'design_voting_procedure',
     customize: "customize_procedure",
@@ -270,6 +271,9 @@
             let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
             variable_data[input.getAttribute('data-id')] = selected_options;
           }
+          // else if(input.tagName === 'TEXTAREA'){
+
+          // }
         });
         return variable_data;
   }
@@ -309,12 +313,10 @@
   const redirect = (pageKey, urlParams = {}) => {
     // URLs for the different step pages
     const pages = {
-      customize: '/no-code/customize_procedure',
-      overview: '/no-code/policy_overview',
-      details: '/main/editor/',
+      // customize: '/no-code/customize_procedure',
+      overview: '/collectivevoice/policy_overview',
 
       home: '/collectivevoice/home',
-      summary: '/collectivevoice/summary',
       
       edit_expenses: '/collectivevoice/edit_expenses',
       edit_voting: '/collectivevoice/edit_voting',
@@ -431,7 +433,19 @@
                             ${prompt}
                             ${datalist}
                         </div>`;
-        } else {
+        } 
+        // NMV May 10, 2023: we may want to use textarea down the line, but it breaks some of the UI code right now.
+        // else if(variable["type"] === "string") {
+        //   text.innerHTML = `<div class='variable-values'>
+        //                       <label class='variable-label' for='${id}'>${variable.label}</label>
+        //                       <textarea class='variable-input' data-id='${id}' ${input_validate}/>
+        //                       ${prompt}
+        //                       </textarea>
+                              
+        //                   </div>`;
+
+        // } 
+        else{
           text.innerHTML = `<div class='variable-values'>
                               <label class='variable-label' for='${id}'>${variable.label}</label>
                               <input class='variable-input' data-id='${id}' ${input_validate}/>

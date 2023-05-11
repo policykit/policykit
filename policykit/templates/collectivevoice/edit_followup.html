@@ -24,7 +24,7 @@
                 {% for app_name, execution_list in executions.items %}
                     <optgroup label="{{app_name|upper}}">
                         {% for codename, verbose_name in execution_list %}
-                            <option value={{codename}}>{{verbose_name}}</option>
+                            <option value={{codename}} selected>{{verbose_name}}</option>
                         {% endfor %}
                     </optgroup>
                 {% endfor %}
@@ -91,7 +91,8 @@
         }
     }
 
-    document.getElementById("actionpicker").addEventListener("change", showExecutionParameters);
+    // document.getElementById("actionpicker").addEventListener("change", showExecutionParameters);
+    showExecutionParameters();
     document.getElementById(stepElementIds.edit_followup).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateExecution);
 </script>
 {% endblock %}

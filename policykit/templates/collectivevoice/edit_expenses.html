@@ -11,6 +11,33 @@
         <div>
             <p>Collective Voice will watch for whenever an expense is created. </p>
             <p>If there are specific expenses you want to vote on, you can filter them using the below options: </p>
+            <p>
+                <button class="btn" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                  More info
+                </button>
+              </p>
+              <div class="collapse" id="collapseExample">
+                <div class="card card-body">
+                  Currently, Collective Voice supports four ways you can select certain expenses to filter on.
+                  You can look for matches based on:
+
+                  <ul>
+                    
+                    <li>
+                    the expense description (either look for a matching word or an exact match)
+                    </li>
+                    <li>
+                    the expense type. Currently, you can choose to only use CollectiveVoice for reimbursements or invoices.
+                    </li><li>
+                    the expense amount. You can either match all expenses below some threshold (small expenses) or above some threshold (large expenses)
+                    </li><li>
+                     expense tags. Finally you can use CollectiveVoice for expenses with a certain tag.
+                    </li>
+                </ul>
+
+                </div>
+              </div>
+            
             <div style="display:none">
             <select  id="actionpicker" class="selectpicker" title="Select an action..." multiple>
                 {% for app_name, action_list in actions.items %}

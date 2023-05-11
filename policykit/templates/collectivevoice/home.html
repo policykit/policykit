@@ -66,9 +66,10 @@
 
   </div>
 
+  <br>
   <div>
     <button id="save" class="button secondary">
-      Save Policy
+      Continue to Name and Save Your Policy
     </button>
 
   </div>
@@ -81,7 +82,7 @@
   const handleEditExpenses = () => redirect('edit_expenses', { policy_id: '{{ policy_id }}' })
   const handleEditVoting = () => redirect('edit_voting', { policy_id: '{{ policy_id }}' })
   const handleEditFollowup = () => redirect('edit_followup', { policy_id: '{{ policy_id }}' })
-  const handleSave = () => redirect('save_collectivevoice_policy', { policy_id: '{{ policy_id }}' })
+  const handleSave = () => redirect('overview', { policy_id: '{{ policy_id }}' })
 
   // Event handlers for steps
   document.getElementById("editExpenses").addEventListener('click', handleEditExpenses)
@@ -90,8 +91,8 @@
   document.getElementById("save").addEventListener('click', handleSave)
 
 
-  const policytemplate = JSON.parse('{{policytemplate | safe}}');
-  console.log(policytemplate);
+  //const policytemplate = JSON.parse('{{policytemplate | safe}}');
+  //console.log(policytemplate);
   
   </script>
 {% endblock %}
