@@ -379,7 +379,7 @@ def load_templates(kind):
                     FilterModule.objects.create(**filtermodule)
 
 def load_entities(platform):
-    SUPPORTED_ENTITIES = ["CommunityUser", "Role", "Permission", "SlackChannel"]
+    SUPPORTED_ENTITIES = ["CommunityUser", "Role", "Permission", "SlackChannel", "Expense"]
     
     entities = {}
     # extract all readable names of CommunityUsers on this platform
@@ -390,6 +390,11 @@ def load_entities(platform):
 
     # extract all permissions on this platform
     entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
+
+    entities["Expense"] = [{"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}]
+    # entities["Expense"] = [
+    #     {"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}
+    # ]
 
     # extract all Slack channels in this platform
     if platform.platform.upper() == "SLACK":

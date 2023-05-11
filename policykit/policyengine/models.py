@@ -1563,7 +1563,7 @@ class PolicyTemplate(models.Model):
 
 
     @staticmethod
-    def create_policy(community, policytemplate=None, policy_json=None, is_template=False):
+    def create_policy(community, policytemplate, policy_json=None):
         """
             Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
         """
@@ -1576,8 +1576,7 @@ class PolicyTemplate(models.Model):
             name=policy_json["name"], 
             description=policy_json["description"], 
             kind=policy_json["kind"], 
-            community=community,
-            is_template=is_template
+            community=community
         )
         
         action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 

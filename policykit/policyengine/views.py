@@ -979,7 +979,6 @@ def collectivevoice_edit_expenses(request):
     # only get Trigger actions for OpenCollective
     actions = Utils.get_action_types(user.community.community, kinds=[PolicyActionKind.TRIGGER])
     app_name = "opencollective"
-    # new_actions[app_name] = ["expensecreated", "Expense Created"]
     action_list = actions[app_name]
     new_action_list = []
     for action_code, verbose_name in action_list:
@@ -1302,13 +1301,11 @@ def policy_overview(request):
     """
     from policyengine.models import PolicyTemplate
 
-    trigger = request.GET.get("trigger", "false")
     policy_id = request.GET.get("policy_id", None)
     created_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
     if created_policy:
         created_policy_json = created_policy.to_json()
-        return render(request, "no-code/policy_overview.html", {
-            "trigger": trigger,
+        return render(request, "collectivevoice/policy_overview.html", {
             "policy": json.dumps(created_policy_json),
             "policy_id": policy_id,
         })
@@ -1336,10 +1333,12 @@ def create_overview(request):
         data = request_body.get("data")
         policy_template.name = data.get("name", "")
         policy_template.description = data.get("description", "")
+        # NMV: hard-code for CollectiveVoice
+        policy_template.kind = "trigger"
         policy_template.save()
 
         user = get_user(request)
-        new_policy = policy_template.create_policy(user.community.community)
+        new_policy = policy_template.create_policy(user.community.community, policy_template)
         return JsonResponse({"policy_id": new_policy.pk, "policy_type": (new_policy.kind).capitalize(), "status": "success"})
     else:
         return JsonResponse({"status": "fail"})
@@ -1434,7 +1433,7 @@ def create_overview(request):
 #     data = json.loads(request.body)
 #     policy.update_variables(data["variables"])
 
-    return JsonResponse({ "policy": policy.id })
+#    return JsonResponse({ "policy": policy.id })
 
 # def embed_edit(request):
 #     """
@@ -1457,9 +1456,9 @@ def create_overview(request):
 #         "channel_options": channel_options
 #     })
 
-# def embed_success(request):
-#     """Shows success page when no-code editing is finished."""
-#     policy = policy_from_request(request)
-#     return render(request, "collectivevoice/success.html", {
-#         "policy": policy
-#     })
+def collectivevoice_success(request):
+    """Shows success page when no-code editing is finished."""
+    policy = policy_from_request(request)
+    return render(request, "collectivevoice/success.html", {
+        "policy": policy
+    })

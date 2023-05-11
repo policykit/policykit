@@ -56,6 +56,13 @@ urlpatterns = [
     path('collectivevoice/edit_voting', policyviews.collectivevoice_edit_voting),
     path('collectivevoice/create_procedure', policyviews.create_procedure),
     path('collectivevoice/edit_followup', policyviews.collectivevoice_edit_followup),
+    path('collectivevoice/create_execution', policyviews.create_execution),
+    path('collectivevoice/policy_overview', policyviews.policy_overview),
+    path('collectivevoice/create_overview', policyviews.create_overview),
+    path('collectivevoice/success', policyviews.collectivevoice_success),
+
+
+
 
     # path('collectivevoice/select_template', policyviews.embed_select_template),
     # path('collectivevoice/', policyviews.embed_initial),
@@ -63,16 +70,13 @@ urlpatterns = [
     # path('collectivevoice/summary', policyviews.embed_summary),
     # path('collectivevoice/update', policyviews.embed_update),
     # path('collectivevoice/edit', policyviews.embed_edit),
-    # path('collectivevoice/success', policyviews.embed_success),
     path('admin/', admin.site.urls),
 
     # urls of no-code UI
     
     path('no-code/customize_procedure', policyviews.customize_procedure),
     path('no-code/create_customization', policyviews.create_customization),
-    path('no-code/create_execution', policyviews.create_execution),
-    path('no-code/policy_overview', policyviews.policy_overview),
-    path('no-code/create_overview', policyviews.create_overview),
+    
 
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),
