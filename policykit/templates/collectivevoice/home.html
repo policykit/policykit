@@ -14,9 +14,9 @@
     Expense Type: 
     
     {% if expenses_set %}
-    <span class="set">Set</span>
+    <span class="set">Specific expenses selected</span>
     {% else %}
-    <span class="not-set">Not set</span>
+    <span class="not-set">Will apply to all expenses</span>
     {% endif %}
     </div>
     <div>
@@ -66,6 +66,13 @@
 
   </div>
 
+  <div>
+    <button id="save" class="button secondary">
+      Save Policy
+    </button>
+
+  </div>
+
 </section>
 {% endblock %}
 
@@ -74,13 +81,13 @@
   const handleEditExpenses = () => redirect('edit_expenses', { policy_id: '{{ policy_id }}' })
   const handleEditVoting = () => redirect('edit_voting', { policy_id: '{{ policy_id }}' })
   const handleEditFollowup = () => redirect('edit_followup', { policy_id: '{{ policy_id }}' })
-
+  const handleSave = () => redirect('save_collectivevoice_policy', { policy_id: '{{ policy_id }}' })
 
   // Event handlers for steps
   document.getElementById("editExpenses").addEventListener('click', handleEditExpenses)
   document.getElementById("editVoting").addEventListener('click', handleEditVoting)
   document.getElementById("editFollowup").addEventListener('click', handleEditFollowup)
-
+  document.getElementById("save").addEventListener('click', handleSave)
 
 
   const policytemplate = JSON.parse('{{policytemplate | safe}}');

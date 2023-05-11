@@ -1,11 +1,22 @@
 [
     {
         "kind": "OpencollectiveExpense",
-        "name": "ExpenseType",
+        "name": "Expense",
         "description": "Only Expenses of a certain type",
         "platform": "opencollective",
-        "codes": "pass",
-        "variables":[]
+        "codes": "return object.type == type",
+        "variables":[
+            {
+                "name": "type",
+                "label": "Which type should expense have?",
+                "entity": "Expense",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
     },
     {
         "kind": "CommunityUser",
@@ -64,17 +75,16 @@
             }
         ]
     },
-
     {
         "kind": "Text",
-        "name": "Startswith",
-        "description": "Only texts that start with the specified word",
+        "name": "Exact match",
+        "description": "Filter only exact matches",
         "platform": "All",
-        "codes": "return object.startswith(word)",
+        "codes": "return object == text",
         "variables":[
             {
-                "name": "word",
-                "label": "Which word do you expect the message starts wtih?",
+                "name": "text",
+                "label": "What is the exact text you hope to see?",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
@@ -86,10 +96,10 @@
     },
     {
         "kind": "Text",
-        "name": "Equals",
-        "description": "Only texts that equals the specified text",
+        "name": "Includes",
+        "description": "Must include the specified text (for instance: home will match #homeExpense and #homeCosts",
         "platform": "All",
-        "codes": "return object == text",
+        "codes": "return object in text",
         "variables":[
             {
                 "name": "text",
@@ -104,15 +114,15 @@
         ]
     },
     {
-        "kind": "Text",
-        "name": "LengthGreaterThan",
-        "description": "Only texts that have the length greater than the specified length",
+        "kind": "Number",
+        "name": "GreaterThan",
+        "description": "Only numbers greater than specified",
         "platform": "All",
-        "codes": "return len(object) > length",
+        "codes": "return object > threshold",
         "variables":[
             {
-                "name": "length",
-                "label": "Which maximum length do you expect the text to be of?",
+                "name": "threshold",
+                "label": "Must be larger than threshold",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
@@ -124,14 +134,14 @@
     },
     {
         "kind": "Number",
-        "name": "GreaterThan",
-        "description": "Only numbers greater than specified",
+        "name": "LessThan",
+        "description": "Only numbers less than specified",
         "platform": "All",
-        "codes": "return object > threshold",
+        "codes": "return object < threshold",
         "variables":[
             {
                 "name": "threshold",
-                "label": "Must be larger than threshold",
+                "label": "Must be less than threshold",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
