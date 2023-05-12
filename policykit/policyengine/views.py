@@ -942,13 +942,22 @@ def collectivevoice_home(request):
     except:
         pt = PolicyTemplate.objects.create(name="collectivevoice_tmp")
 
+
+
     expenses_set = False
+    filter_names = []
     if len(pt.custom_actions.all()) > 0:
         expenses_set = True
+    #     for action in pt.custom_actions.all():
+    #         filter_names.append(action.name)
+    # filter_names_str = ",".join(filter_names)
+
 
     voting_set = False
+    procedure_name = None
     if pt.procedure is not None:
         voting_set = True
+        procedure_name = pt.procedure.name        
 
     followup_set = False
     if len(pt.extra_executions) > 2: # default is '{}'
@@ -962,6 +971,8 @@ def collectivevoice_home(request):
         'expenses_set': expenses_set,
         'voting_set': voting_set,
         'followup_set': followup_set,
+        'procedure_name': procedure_name,
+        # 'filter_names_str': filter_names_str
     })
 
 @login_required
@@ -1166,7 +1177,11 @@ def create_procedure(request):
         procedure = Procedure.objects.filter(pk=procedure_index).first()
         pt = PolicyTemplate.objects.filter(pk=policy_id).first()
         if pt and procedure:
-            logger.debug("creating variables for the new policy") 
+            logger.debug("clearing old variables in case user is changing the voting rule")
+            pt.variables = "[]"
+            pt.data = "[]"
+
+            logger.debug("creating variables for the new policy")
             pt.procedure = procedure
             pt.add_variables(procedure.loads("variables"), data.get("procedure_variables", {}))
             pt.add_descriptive_data(procedure.loads("data"))
