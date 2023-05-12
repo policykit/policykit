@@ -88,7 +88,7 @@ class OpenCollectiveProcessExpense(BaseAction):
             "is_list": False
         },
         {
-            "name": "action",
+            "name": "process_action",
             "label": "Action to be taken on the expense",
             "entity": "",
             "default_value": "",
@@ -113,9 +113,9 @@ class OpenCollectiveProcessExpense(BaseAction):
 class ExpenseEvent(TriggerAction):
     data = models.JSONField()
     FILTER_PARAMETERS = {
-        "description": "Text", "type": "OpencollectiveExpense",
+        "content": "OpencollectiveExpenseContent", "type": "OpencollectiveExpenseType",
         "amount": "Number", 
-        "tags": "Text" #TODO
+        "tags": "OpencollectiveExpenseTag" #TODO
     }
     
     class Meta:
