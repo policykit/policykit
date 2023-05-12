@@ -5,7 +5,7 @@
 <section class="step active" id="design_voting_procedure">
     
     <h4 class="heading-4">Configure Voting Rules</h4>
-    <p> Expenses on Open Collective will be up for a vote on Slack before being approved. </p>
+    <p> Choose how many votes are needed to approve or reject expenses via Slack Voting. </p>
     <!-- <div class="selectpicker-group">
         <label for="platform-picker">Platform</label>
         <div>
@@ -17,10 +17,12 @@
         </div>
     </div> -->
 
-    <button class="btn" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-        More info
-      </button>
-    </p>
+    <div class="d-flex justify-content-center">
+
+    <button class="button"  type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+        Show Recommendations
+    </button>
+</div>
     <div class="collapse" id="collapseExample">
       <div class="card card-body">
         Here, you can select the voting rules that determine when CollectiveVoice will approve or reject an expense.
@@ -48,6 +50,7 @@
 
       </div>
     </div>
+    
 
 
     <div class="selectpicker-group">
@@ -67,9 +70,9 @@
         
     </div>
     <div class="actions">
-        <button class="button secondary">
-            Customize
-        </button>
+        <button id="back" class="button secondary">
+            Go back
+          </button>
         <button class="button primary">
             Continue
         </button>
@@ -134,8 +137,13 @@
             var new_option = document.createElement('option');
             if(index == 0) new_option.selected = true;
             new_option.value = item.pk;
-            new_option.innerHTML = item.name + ": " + item.description;
+            new_option.innerHTML = item.name;
             procedure_dropdown.appendChild(new_option);
+            info_option = document.createElement('option');
+            info_option.disabled = true;
+            info_option.innerHTML = item.description;
+            info_option.style = "font:italic; font-size:0.8em"
+            procedure_dropdown.appendChild(info_option);
         })
         $('.selectpicker').selectpicker('refresh');
 
@@ -167,12 +175,14 @@
     }
 
     document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.primary}`).addEventListener('click', (event) => createProcedure("execution"));
-    document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.secondary}`).addEventListener('click', (event) => createProcedure("customize"));
+    // document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.secondary}`).addEventListener('click', (event) => createProcedure("customize"));
 
     document.getElementById("procedure-picker").addEventListener("change", showProcedureDetails);
     //document.getElementById("platform-picker").addEventListener("change", showPlatformProcedures);
     showPlatformProcedures()
     showProcedureDetails();
     
+    const goBack = () => redirect('home', { policy_id: '{{ policy_id }}' })
+    document.getElementById("back").addEventListener('click', goBack)
 </script>
 {% endblock %}

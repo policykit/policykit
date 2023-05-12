@@ -7,29 +7,29 @@
     CollectiveVoice Summary
   </h2>
   <p class="description heading-5">
-    Expenses on Open Collective will be up for a vote on Slack before being approved.
+    Expenses submitted by your community to Open Collective will be sent to Slack for an approval voting process.
   </p>
 
   <div>
-    Expense Type: 
-    
+    Expense Type:
+
     {% if expenses_set %}
-    <span class="set">Specific expenses selected</span>
+    <span class="set">Specific expenses selected based on {{filter_names_str}}</span>
     {% else %}
-    <span class="not-set">Will apply to all expenses</span>
+    <span class="set">Will apply to all expenses</span>
     {% endif %}
-    </div>
-    <div>
+  </div>
+  <div>
     <button id="editExpenses" class="button secondary">
-        Edit
-      </button>
+      Edit
+    </button>
 
   </div>
 
   <div>
     Voting Template:
     {% if voting_set %}
-    <span class="set">Set</span>
+    <span class="set">Set: {{procedure_name}}</span>
     {% else %}
     <span class="not-set">Not set</span>
     {% endif %}
@@ -38,12 +38,12 @@
   <div>
 
     <button id="editVoting" class="button secondary">
-        Edit
-      </button>
+      Edit
+    </button>
 
   </div>
 
-  <div>
+  <!-- <div>
     Follow up action:
     {% if followup_set %}
     <span class="set">Set</span>
@@ -53,16 +53,15 @@
 
   </div>
   <div>
-
-    <button id="editFollowup" class="button secondary">
-        Edit
-      </button>
-
-  </div>
+  <button id="editFollowup" class="button secondary">
+    Edit
+  </button>
+  </div> -->
 
   <div>
     Preview:
-    <img style="margin-top:20px; width:300px" src="{% static 'policyengine/img/collectivevoice_preview.png' %}" alt="Image showing what the vote will look like in Slack">
+    <img style="margin-top:20px; width:300px" src="{% static 'policyengine/img/collectivevoice_preview.png' %}"
+      alt="Image showing what the vote will look like in Slack">
 
   </div>
 
@@ -87,12 +86,12 @@
   // Event handlers for steps
   document.getElementById("editExpenses").addEventListener('click', handleEditExpenses)
   document.getElementById("editVoting").addEventListener('click', handleEditVoting)
-  document.getElementById("editFollowup").addEventListener('click', handleEditFollowup)
+  //document.getElementById("editFollowup").addEventListener('click', handleEditFollowup)
   document.getElementById("save").addEventListener('click', handleSave)
 
 
   //const policytemplate = JSON.parse('{{policytemplate | safe}}');
   //console.log(policytemplate);
-  
-  </script>
+
+</script>
 {% endblock %}
