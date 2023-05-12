@@ -1,7 +1,7 @@
 [
     {
         "name": "Peer Approval",
-        "description": "Peer approval: Just one eligible voter needs to approve an expense in order for it to pass. **Warning: If the person submitting the expense is also an eligible voter, you might want to tell them not to vote on their own expenses.",
+        "description": "Just one eligible voter needs to approve an expense in order for it to pass (requires honor system: submitter should not vote)",
         "platform": "Slack",
         "initialize": [], 
         "check": {
@@ -16,10 +16,28 @@
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
                 "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "action.expense_id",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
-        "success": [],
-        "fail": [],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "\"APPROVE\"",
+                "expense_id": "action.expense_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "\"REJECT\"",
+                "expense_id": "action.expense_id"
+            }
+        ],
         "variables": [
             {
                 "name": "users",
@@ -36,7 +54,7 @@
                 "name": "vote_message",
                 "label": "Message to be posed in the channel when the vote starts",
                 "entity": null,
-                "default_value": "Peer approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "default_value": "Vote on <{action.url}|this request> for funds: {action.description}. React with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
                 "prompt": "",
                 "type": "string"
@@ -46,7 +64,7 @@
                 "label": "Channel to post the vote message",
                 "entity": "SlackChannel",
                 "default_value": "",
-                "is_required": false,
+                "is_required": true,
                 "prompt": "If empty, the vote message will be posted in the same channel as the action",
                 "type": "string",
                 "is_list": false
@@ -75,7 +93,7 @@
     },
     {
         "name": "Majority Vote",
-        "description": "Majority: A majority of the eligible voters need to approve an expense in order for it to pass.",
+        "description": "A majority of the eligible voters need to approve an expense in order for it to pass.",
         "platform": "Slack",
         "initialize": [], 
         "check": {
@@ -110,7 +128,7 @@
                 "name": "vote_message",
                 "label": "Message to be posed in the channel when the vote starts",
                 "entity": null,
-                "default_value": "Peer approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "default_value": "Majority vote started: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
                 "prompt": "",
                 "type": "string"
@@ -149,7 +167,7 @@
     },
     {
         "name": "Consensus Approval",
-        "description": "Consensus: All of the eligible voters need to approve an expense in order for it to pass.",
+        "description": "All of the eligible voters need to approve an expense in order for it to pass.",
         "platform": "Slack",
         "initialize": [], 
         "check": {
@@ -184,7 +202,7 @@
                 "name": "vote_message",
                 "label": "Message to be posed in the channel when the vote starts",
                 "entity": null,
-                "default_value": "Peer approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "default_value": "Consensus approval started: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
                 "prompt": "",
                 "type": "string"
@@ -223,7 +241,7 @@
     },
     {
         "name": "Custom Voting",
-        "description": "Custom: Set your own thresholds for yes votes needed to approve or no votes needed to reject.",
+        "description": "Set your own thresholds for yes votes needed to approve or no votes needed to reject.",
         "platform": "Slack",
         "initialize": [], 
         "check": {
@@ -282,15 +300,6 @@
                 "is_required": true,
                 "prompt": "",
                 "type": "string"
-            },
-            {
-                "name": "vote_channel",
-                "label": "Channel to post the vote message",
-                "default_value": "",
-                "is_required": false,
-                "prompt": "",
-                "type": "string",
-                "is_list": false
             },
             {
                 "name": "vote_channel",

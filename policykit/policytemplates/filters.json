@@ -1,15 +1,53 @@
 [
     {
-        "kind": "OpencollectiveExpense",
-        "name": "Expense",
+        "kind": "OpencollectiveExpenseType",
+        "name": "Expense Type",
         "description": "Only Expenses of a certain type",
         "platform": "opencollective",
-        "codes": "return object.type == type",
+        "codes": "return object.type == expensetype",
         "variables":[
             {
-                "name": "type",
+                "name": "expensetype",
                 "label": "Which type should expense have?",
                 "entity": "Expense",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "OpencollectiveExpenseContent",
+        "name": "Includes words",
+        "description": "Vote on expenses with a particular word or phrase in the description or title",
+        "platform": "opencollective",
+        "codes": "return word in object.description or word in object.title",
+        "variables":[
+            {
+                "name": "word",
+                "label": "What word or phrase should CollectiveVoice look for?",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "OpencollectiveExpenseTag",
+        "name": "Includes tag",
+        "description": "Vote on expenses with a particular tag",
+        "platform": "opencollective",
+        "codes": "return word in object.tags.split(\",\"",
+        "variables":[
+            {
+                "name": "expensetype",
+                "label": "Which type should expense have?",
+                "entity": null,
                 "default_value": "",
                 "is_required": true,
                 "prompt": "",
