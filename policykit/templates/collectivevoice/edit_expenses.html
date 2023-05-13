@@ -168,7 +168,7 @@
                     select_html = `<div class='variables-values' id='${action}.${field}'>
                             <label class='variable-label' for='${select_id}'>${field}</label>
                             <select id='${select_id}' class="selectpicker" title="Select a filter">
-                                <option value="none">None (don't filter based on ${field})</option>`
+                                <option value="none" selected>None (don't filter based on ${field})</option>`
 
                     const filters_this_kind = filters_this_app[filter_kind]
                     console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
