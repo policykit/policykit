@@ -46,7 +46,7 @@
         "variables":[
             {
                 "name": "expensetype",
-                "label": "Which type should expense have?",
+                "label": "The tag",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,

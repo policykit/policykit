@@ -11,7 +11,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
+                "vote_message": "Peer approval vote started. React with :thumbsup: or :thumbsdown: on this post to vote. See thread for details!",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -19,7 +19,31 @@
             },
             {
                 "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
                 "text": "action.expense_id",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Link: {action.url}",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "{action.title}: {action.description}",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "action.tags",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -27,14 +51,14 @@
         "success": [
             {
                 "action": "opencollectiveprocessexpense",
-                "process_action": "\"APPROVE\"",
+                "process_action": "APPROVE",
                 "expense_id": "action.expense_id"
             }
         ],
         "fail": [
             {
                 "action": "opencollectiveprocessexpense",
-                "process_action": "\"REJECT\"",
+                "process_action": "REJECT",
                 "expense_id": "action.expense_id"
             }
         ],
@@ -45,16 +69,16 @@
                 "entity": "CommunityUser",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "prompt": "An empty value represents that all people in the channel are eligible to vote.",
                 "type": "string",
                 "is_list": true
                 
             },
             {
                 "name": "vote_message",
-                "label": "Message to be posed in the channel when the vote starts",
+                "label": "You can write a custom message here that will be posted alongside the expense link, title, and tags.",
                 "entity": null,
-                "default_value": "Vote on <{action.url}|this request> for funds: {action.description}. React with :thumbsup: or :thumbsdown: on this post.",
+                "default_value": "",
                 "is_required": true,
                 "prompt": "",
                 "type": "string"
@@ -110,8 +134,20 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            }
+        ],
         "variables": [
             {
                 "name": "users",
@@ -126,7 +162,7 @@
             },
             {
                 "name": "vote_message",
-                "label": "Message to be posed in the channel when the vote starts",
+                "label": "Message to be posted in the channel when the vote starts",
                 "entity": null,
                 "default_value": "Majority vote started: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": true,
@@ -184,8 +220,20 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            }
+        ],
         "variables": [
             {
                 "name": "users",
@@ -258,8 +306,20 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            }
+        ],
         "variables": [
             {
                 "name": "users",
