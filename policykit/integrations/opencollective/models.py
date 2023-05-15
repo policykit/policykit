@@ -113,8 +113,8 @@ class OpenCollectiveProcessExpense(BaseAction):
 class ExpenseEvent(TriggerAction):
     data = models.JSONField()
     FILTER_PARAMETERS = {
-        "content": "OpencollectiveExpenseContent", "type": "OpencollectiveExpenseType",
-        "amount": "Number", 
+        "description": "OpencollectiveExpenseContent", "type": "OpencollectiveExpenseType",
+        "amount": "OpencollectiveAmount", 
         "tags": "OpencollectiveExpenseTag" #TODO
     }
     

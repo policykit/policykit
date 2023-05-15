@@ -1,10 +1,10 @@
 [
     {
         "kind": "OpencollectiveExpenseType",
-        "name": "Expense Type",
+        "name": "ExpenseType",
         "description": "Only Expenses of a certain type",
         "platform": "opencollective",
-        "codes": "return object.type == expensetype",
+        "codes": "return object.lower() == expensetype.lower()",
         "variables":[
             {
                 "name": "expensetype",
@@ -20,10 +20,10 @@
     },
     {
         "kind": "OpencollectiveExpenseContent",
-        "name": "Includes words",
-        "description": "Vote on expenses with a particular word or phrase in the description or title",
+        "name": "IncludesWords",
+        "description": "Vote on expenses with a particular word in the description",
         "platform": "opencollective",
-        "codes": "return word in object.description or word in object.title",
+        "codes": "return word.lower() in object.lower()",
         "variables":[
             {
                 "name": "word",
@@ -39,10 +39,10 @@
     },
     {
         "kind": "OpencollectiveExpenseTag",
-        "name": "Includes tag",
+        "name": "IncludesTag",
         "description": "Vote on expenses with a particular tag",
         "platform": "opencollective",
-        "codes": "return word in object.tags.split(\",\"",
+        "codes": "return word.lower() in object",
         "variables":[
             {
                 "name": "expensetype",
@@ -115,7 +115,7 @@
     },
     {
         "kind": "Text",
-        "name": "Exact match",
+        "name": "ExactMatch",
         "description": "Filter only exact matches",
         "platform": "All",
         "codes": "return object == text",
@@ -152,11 +152,11 @@
         ]
     },
     {
-        "kind": "Number",
+        "kind": "OpencollectiveAmount",
         "name": "GreaterThan",
-        "description": "Only numbers greater than specified",
+        "description": "Only expenses greater than specified (in dollars)",
         "platform": "All",
-        "codes": "return object > threshold",
+        "codes": "return object > threshold * 100",
         "variables":[
             {
                 "name": "threshold",
@@ -171,11 +171,11 @@
         ]
     },
     {
-        "kind": "Number",
+        "kind": "OpencollectiveAmount",
         "name": "LessThan",
-        "description": "Only numbers less than specified",
+        "description": "Only expenses less than specified (in dollars)",
         "platform": "All",
-        "codes": "return object < threshold",
+        "codes": "return object < threshold * 100",
         "variables":[
             {
                 "name": "threshold",
