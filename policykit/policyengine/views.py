@@ -946,11 +946,17 @@ def collectivevoice_home(request):
 
     expenses_set = False
     filter_names = []
-    if len(pt.custom_actions.all()) > 0:
+    if len(pt.custom_actions.all()) > 0 or len(pt.action_types.all()) > 0:
         expenses_set = True
-    #     for action in pt.custom_actions.all():
-    #         filter_names.append(action.name)
-    # filter_names_str = ",".join(filter_names)
+        for action in pt.custom_actions.all():
+            try:
+                d = action.__dict__['filter']
+                filters = list(json.loads(d).keys())
+                filter_names += filters
+            except Exception as e:
+                logger.debug(str(e))
+            
+    filter_names_str = ",".join(filter_names)
 
 
     voting_set = False
@@ -972,7 +978,7 @@ def collectivevoice_home(request):
         'voting_set': voting_set,
         'followup_set': followup_set,
         'procedure_name': procedure_name,
-        # 'filter_names_str': filter_names_str
+        'filter_names_str': filter_names_str
     })
 
 @login_required

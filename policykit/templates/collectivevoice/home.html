@@ -14,9 +14,9 @@
     Expense Type:
 
     {% if expenses_set %}
-    <span class="set">Specific expenses selected based on {{filter_names_str}}</span>
+    <span class="set">Expenses set</span>
     {% else %}
-    <span class="set">Will apply to all expenses</span>
+    <span class="not-set">Not Set</span>
     {% endif %}
   </div>
   <div>
@@ -60,17 +60,24 @@
 
   <div>
     Preview:
-    <img style="margin-top:20px; width:300px" src="{% static 'policyengine/img/collectivevoice_preview.png' %}"
+    </div>
+    <div>
+    <img style="width:300px" src="{% static 'policyengine/img/collectivevoice_preview.png' %}"
       alt="Image showing what the vote will look like in Slack">
 
   </div>
 
   <br>
   <div>
+    {% if expenses_set and voting_set %}
     <button id="save" class="button secondary">
       Continue to Name and Save Your Policy
     </button>
-
+    {% else %}
+    <button class="button secondary" disabled>
+      Continue to Name and Save Your Policy
+    </button>
+    {% endif %}
   </div>
 
 </section>
