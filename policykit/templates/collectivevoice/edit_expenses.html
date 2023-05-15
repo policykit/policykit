@@ -9,39 +9,39 @@
         <label for="actionpicker">
         </label>
         <div>
-            <p>You can use CollectiveVoice to vote on all your community’s expenses or filter for the specific type of expense you want to vote on here.</p>
-            <p> If you don't want to filter based on a given field (for instance, you want all expense types, all tags, all amounts, etc.), you can either
-                ignore that dropdown or select "None"</p>
+            <p>You can use CollectiveVoice to vote on all your community's expenses or filter for the specific type of expense you want to vote on here.</p>
+            <p> If you don't want to filter based on a given field, just leave it untouched. If you click "Continue" and nothing else, CollectiveVoice will be used for all expenses.</p>
             <button class="button" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
                 Show More Info
             </button>
               <div class="collapse" id="collapseExample">
                 <div class="card card-body">
-                  Currently, Collective Voice supports four ways you can select certain expenses to filter on.
+                  Currently, CollectiveVoice supports four "filters" to select certain expenses.
+                  If you select multiple "filters", CollectiveVoice will only apply to expenses that meet ALL filters.
                   You can look for matches based on:
 
                   <ul>
                     <li>
-                        the expense type. Currently, you can choose to only use CollectiveVoice for reimbursements or invoices.
-                        <img class="small-image" src="{% static 'policyengine/img/type_screenshot.png' %}">
+                        the expense type: reimbursement or invoice.
     
                         </li>
 
                     <li>
-                    the expense description (either look for a matching word or an exact match)
-                    <img class="small-image" src="{% static 'policyengine/img/description_screenshot.png' %}">
+                    the presence of a word in the expense description.
                     </li>
                     
                     <li>
                     the expense amount. You can either match all expenses below some threshold (small expenses) or above some threshold (large expenses)
-                    <img class="small-image" src="{% static 'policyengine/img/amount_screenshot.png' %}">
 
                     </li><li>
-                     expense tags. Finally you can use CollectiveVoice for expenses with a certain tag.
-                     <img class="small-image" src="{% static 'policyengine/img/tags_screenshot.png' %}">
+                    the presence of a word in the expense tags.
 
                     </li>
                 </ul>
+                <!-- <img class="small-image" src="{% static 'policyengine/img/filter_screenshot2.png' %}">
+
+                <img class="small-image" src="{% static 'policyengine/img/filter_screenshot1.png' %}"> -->
+
 
                 </div>
               </div>
@@ -90,7 +90,6 @@
         var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
         selected_options = selected_options.filter(option => option.value != "none");
         if (selected_options.length == 0) {
-            // if no actions are selected, remove all previously displayed variables under the action-specs-group div
             removeElementChildren("action-specs-group");
             return;
         }
@@ -178,9 +177,12 @@
                     select_html += `</select></div>`;  
                     text.innerHTML = select_html; 
                     action_div.appendChild(text);
+
+                    
                 }
             });
             spec_group.appendChild(action_div);
+            
             $(".selectpicker").selectpicker('refresh');
         });
     }
