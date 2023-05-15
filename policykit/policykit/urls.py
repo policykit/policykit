@@ -77,6 +77,7 @@ urlpatterns = [
     # path("schema/", Schema.as_view()),
 
     # urls of no-code UI
+    path('no-code/main', policyviews.main),
     path('no-code/policytype', policyviews.choose_policy_type),
     path('no-code/custom_action', policyviews.design_custom_action),
     path('no-code/create_custom_action', policyviews.create_custom_action),

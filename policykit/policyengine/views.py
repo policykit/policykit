@@ -903,6 +903,25 @@ def embed_success (request):
     })
 
 @login_required
+def main(request):
+    import policyengine.frontend_utils as FrontendUtils
+    user = get_user(request)
+    # get base actions and filter kinds when creating custom actions
+    base_actions, action_filter_kinds = FrontendUtils.get_base_actions(user)
+    # for filter modules, only show the ones that are applicable to platforms base actions are available on
+    filter_modules = FrontendUtils.get_filter_modules(list(base_actions.keys()))
+    # get all entities in the community
+    entities = Utils.load_entities(user.community)
+    trigger = request.GET.get("trigger", "false")
+    return render(request, "no-code/main.html", {
+        "trigger": trigger,
+        "base_actions": base_actions,
+        "action_filter_kinds": json.dumps(action_filter_kinds),
+        "filter_modules": json.dumps(filter_modules),
+        "entities": json.dumps(entities),
+    })
+
+@login_required
 def choose_policy_type(request):
     """
         help render the policy type page

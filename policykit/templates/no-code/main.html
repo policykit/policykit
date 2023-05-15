@@ -1,0 +1,183 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<!-- <section class="step active" id="choose_policy_type">
+    <h4 class="section-title"> Would you like to create a <b>Governance Policy</b> or a <b>If-Then Rule</b>?</h4>
+    <div>
+      <label><input type="radio" name="option" value="notify" checked>Governance Policy</label>
+      <label><input type="radio" name="option" value="check">If-Then Rule</label>
+    </div>
+</section> -->
+
+<section class="" id="design_custom_action">
+    <h4 class="section-title">What action are you trying to govern?</h4>
+    <div class="selectpicker-group">
+        <label for="actionpicker">Action Types: </label>
+        <div>
+            <select id="actionpicker" class="selectpicker" title="Select an action..." multiple>
+                {% for app_name, action_list in base_actions.items %}
+                    <optgroup label="{{app_name|upper}}">
+                        {% for action_code, action_name in action_list %}
+                            <option value={{action_code}} group="{{app_name}}">{{action_name}}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div>
+        <h4 class="section-secondary-title">Which filters you would like to apply to each action?</h4>
+        <div class="variables-group" id="action-filters-group">
+        </div>
+    </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
+    const filter_modules = JSON.parse('{{filter_modules | safe}}');
+    const entities = JSON.parse('{{entities|safe}}');
+
+    const showFilterParameters = () => {
+        var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
+        if (selected_options.length == 0) {
+            // if no actions are selected, remove all previously displayed variables under the action-specs-group div
+            removeElementChildren("action-filters-group");
+            return;
+        }
+        // change them to codenames
+        var selected_actions = Array.from(selected_options).map(({ value }) => value);
+         // get the verbose names of the selected actions for future display
+        var selected_actions_names = Array.from(selected_options).map(({ innerHTML }) => innerHTML);
+        // get the corresponding apps of the selected actions
+        var selected_groups = Array.from(selected_options).map( option => option.getAttribute('group'));
+        console.log("new actions are: " + selected_actions);
+
+        // add filter parameters for each action, iterating with action and index
+        var spec_group = document.getElementById('action-filters-group');
+        selected_actions.forEach((action, index) => {
+            // remove all previously selected action
+            if(index == 0) removeElementChildren("action-filters-group");
+            
+            /*
+                The exepcted div structure looks like this:
+                <div id="action-filters-group">
+                    # for all fields of this action
+                    <div class="variables" id=${action}>
+                        <label class="action-label">For action ... </label>
+                        <div class="action-field">
+                            <div class="variables-values" id="${action}.${field}">
+                                <label class="variable-label" for="select-${action}.${field}">${field}</label>
+                                <select id="select-${action}.${field}" class="selectpicker" title="Select a filter">
+                                    <option value="filter.pk">filter.description</option>
+                                    ...
+                                </select>
+                            </div>
+                            # for all variables of the filter module selected in the div above; 
+                            # added in the showFilterModuleVariables function
+                            <div class="variable-values" id="select-${action}.${field}.${variable.name}"> ... 
+                                <label class='variable-label' for='${variable_id}'>${variable.name}</label>
+                                <input type='text' data-id='${variable_id}' name='${variable_id}' class='variable-input' ${default_value}>
+                            </div>
+                        </div>
+                        
+                        # for other fields of this action
+                        <div class="action-field"> ... </div>
+                    </div>
+
+                    # for other selected actions
+                    <div class="variables" id=${action}>
+                        ...
+                    </div
+                </div>
+
+            */
+            var action_div = document.createElement('div');
+            action_div.classList.add('variables');
+            action_div.id = action;
+
+            // add a label for each action in this action_div
+            var action_label = document.createElement('label');
+            action_label.classList.add('action-label');
+            action_label.innerHTML = `For ${selected_actions_names[index]}`;
+            action_div.appendChild(action_label);
+            
+            // then add the filter parameters for each action in this action_div
+            const now_filter_kinds = action_filter_kinds[action]; // a dict of field: filter_kind
+            const filters_this_app = filter_modules[selected_groups[index]]; // a dict of filter_kind: [filter_modules]
+            Object.keys(now_filter_kinds).forEach(field => {
+                const filter_kind = now_filter_kinds[field];
+                if(filter_kind){
+                    // only show fields of which the filter we support
+                    var text = document.createElement('div');
+                    text.classList.add('action-field');
+
+                    select_id = `select-${action}.${field}`
+                    select_html = `<div class='variables-values' id='${action}.${field}'>
+                            <label class='variable-label' for='${select_id}'>${field}</label>
+                            <select id='${select_id}' class="selectpicker" title="Select a filter">
+                                <option value="none">None</option>`
+                    
+                    // add filter modules as options for this select
+
+                    const filters_this_kind = filters_this_app[filter_kind]
+                    // console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
+                    filters_this_kind.forEach(filter => {
+                        select_html  += `<option value=${filter.pk}>${filter.description}</option>`
+                    });
+                    select_html += `</select></div>`;  
+                    text.innerHTML = select_html; 
+                    action_div.appendChild(text);
+                }
+            });
+            spec_group.appendChild(action_div);
+            $(".selectpicker").selectpicker('refresh');
+        });
+    }
+
+    const showFilterModuleVariables = (select_id) => {
+        let filter_pk = parseInt(document.getElementById(select_id).value);
+
+        if(Number.isNaN(filter_pk)) return; // when no filter is selected, the value is "none" (NaN after parseInt)
+
+        // search for a filter with this pk by iterating through filter_per_app
+        let filter = null;
+        for(let app in filter_modules){
+            for(let kind in filter_modules[app]){
+                filter = filter_modules[app][kind].find(filter => filter.pk == filter_pk);
+                if(filter) break;
+            }
+            if(filter) break;
+        }
+
+        const variables = filter.variables;
+        var field_div = document.getElementById(select_id).parentElement.parentElement.parentElement; 
+        // now at the level of the action-field div
+        while (field_div.childNodes.length > 1) {
+            field_div.removeChild(field_div.lastChild);
+            // remove previously displayed filter variables except the action-field div
+        } 
+
+        variables.forEach(variable => {
+            console.log("adding variable: " + JSON.stringify(variable));
+            const variable_id = `${select_id}.${variable.name}`;
+            // select-${action}.${field}.${variable.name}
+            addVariableInputBox(variable=variable, id=variable_id, parentDiv=field_div, options=entities)
+        });
+    
+    }
+
+    document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
+    showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
+    document.body.addEventListener('change', ( event ) => {
+        // check whether the id starts with "select-", which we named all fields of the selected actions
+        // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
+        if( event.target.id.startsWith("select-") ){
+            showFilterModuleVariables(event.target.id);
+        }
+    });
+</script>
+{% endblock %}
