@@ -33,6 +33,15 @@
     </div>
     </div>
 </section>
+
+<div class="button-group">
+    <button class="button secondary">
+      Go back
+    </button>
+    <button class="button primary" id="submit_policy">
+      Submit
+    </button>
+</div>
 {% endblock %}
 
 {% block step_scripts %}
@@ -170,6 +179,61 @@
     
     }
 
+    const collectCustomActionData = () => {
+        // to collect user input about custom actions
+        var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
+        var selected_actions = Array.from(selected_options).map(({ value }) => value); // in codenames
+        // get the corresponding apps of the selected actions
+        var selected_groups = Array.from(selected_options).map( option => option.getAttribute('group'));
+        // make sure that all selected actions are from the same app
+        if(selected_groups.every( (val, i, arr) => val === arr[0] )){
+            var app_name = selected_groups[0];
+        } else {
+            alert("Please select actions from the same app");
+            return;
+        }
+        console.log("new actions are: " + selected_actions);
+        
+        let missing_input = false;
+        const filters = selected_actions.map((action, index) => {
+            const action_div = document.getElementById(action);
+            let action_field_divs = action_div.getElementsByClassName('action-field');
+            var filters_per_action = {}
+            Array.from(action_field_divs).forEach((action_field_div => {
+                let action_field_id = action_field_div.firstElementChild.id; // the field itself: slackpostmessage.initiator
+                let action_field_name = action_field_id.split(".")[1]; // initiator
+                let selected_filter_pk = document.getElementById(`select-${action_field_id}`).value; // select-slackpostmessage.initiator
+                if(selected_filter_pk === "" || selected_filter_pk === "none"){
+                    // if no filter modules are selected, then no filter is applied to this field
+                    filters_per_action[action_field_name] = {}
+                } else {
+                    // a dict of variable_name: variable_value
+                    var variables_dict = {}
+                    for(var i=1, len = action_field_div.childElementCount ; i < len; ++i){
+                        let filter_variable_div = action_field_div.children[i];
+                        // check whether all variables are filled and alert with the missing variable names
+                        missing_input = checkMissingVariable(null, elements=filter_variable_div);
+                        if(missing_input) break;
+                        let filter_variable_input = getVariableDataInStep(null, elements=filter_variable_div);
+                        // replace original key in filter_variable_input with the variable name
+                        Object.keys(filter_variable_input).forEach(key => {
+                            variables_dict[key.split(".").pop()] = filter_variable_input[key];
+                        });
+                    }
+                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
+                }
+            }))
+            return {action_type: action, filter: filters_per_action}
+        });
+        // only submit the data if all variables are filled
+        if(missing_input) return; else return {filters: filters, app_name: app_name};
+    }
+
+    const goCreateProcedure = async () => {
+        let custom_action_data = collectCustomActionData();
+        console.log("custom action data: " + JSON.stringify(custom_action_data));
+    }
+    document.getElementById("submit_policy").addEventListener('click', goCreateProcedure);
     document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
     showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
     document.body.addEventListener('change', ( event ) => {
