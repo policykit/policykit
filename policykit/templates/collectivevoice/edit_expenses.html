@@ -187,8 +187,20 @@
 
     const showFilterModuleVariables = (select_id) => {
         let filter_pk = parseInt(document.getElementById(select_id).value);
+        console.log('*', filter_pk)
 
-        if(Number.isNaN(filter_pk)) return; // when no filter is selected, the value is "none" (NaN after parseInt)
+        var field_div = document.getElementById(select_id).parentElement.parentElement.parentElement; 
+        // now at the level of the action-field div
+        while (field_div.childNodes.length > 1) {
+            field_div.removeChild(field_div.lastChild);
+            // remove previously displayed filter variables except the action-field div
+        } 
+
+        if(Number.isNaN(filter_pk)){
+
+            return
+
+        } ; // when no filter is selected, the value is "none" (NaN after parseInt)
 
         // search for a filter with this pk by iterating through filter_per_app
         let filter = null;
@@ -201,12 +213,7 @@
         }
 
         const variables = filter.variables;
-        var field_div = document.getElementById(select_id).parentElement.parentElement.parentElement; 
-        // now at the level of the action-field div
-        while (field_div.childNodes.length > 1) {
-            field_div.removeChild(field_div.lastChild);
-            // remove previously displayed filter variables except the action-field div
-        } 
+        
 
         variables.forEach(variable => {
             console.log("adding variable: " + JSON.stringify(variable));
