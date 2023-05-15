@@ -391,7 +391,7 @@ def load_entities(platform):
     # extract all permissions on this platform
     entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
 
-    entities["Expense"] = [{"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}]
+    entities["Expense"] = [{"name": "Invoice", "value": "INVOICE"}, {"name": "Reimbursement", "value": "REIMBURSEMENT"}]
     # entities["Expense"] = [
     #     {"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}
     # ]
