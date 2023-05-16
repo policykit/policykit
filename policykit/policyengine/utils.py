@@ -378,8 +378,10 @@ def load_templates(kind):
                     filtermodule = dump_to_JSON(filtermodule, FilterModule.JSON_FIELDS)
                     FilterModule.objects.create(**filtermodule)
 
-def load_entities(platform):
-    SUPPORTED_ENTITIES = ["CommunityUser", "Role", "Permission", "SlackChannel", "Expense"]
+def load_entities(platform, get_slack_users=False):
+    SUPPORTED_ENTITIES = [
+        "CommunityUser", "Role", "Permission", "SlackChannel", "Expense", "SlackUser"
+    ]
     
     entities = {}
     # extract all readable names of CommunityUsers on this platform
@@ -392,6 +394,7 @@ def load_entities(platform):
     entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
 
     entities["Expense"] = [{"name": "Invoice", "value": "INVOICE"}, {"name": "Reimbursement", "value": "REIMBURSEMENT"}]
+    
     # entities["Expense"] = [
     #     {"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}
     # ]
@@ -404,4 +407,6 @@ def load_entities(platform):
                                 "value": channel["id"]
                             } for channel in platform.get_conversations(types=["channel"])
                         ]
+    if get_slack_users:
+        entities["SlackUser"] = platform.get_real_users()
     return entities
