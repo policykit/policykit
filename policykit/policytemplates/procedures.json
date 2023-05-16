@@ -11,7 +11,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "Peer approval vote started. React with :thumbsup: or :thumbsdown: on this post to vote. See thread for details!",
+                "vote_message": "An <expense|{action.url}> was submitted to Open Collective and requires a vote.\n\nExpense description: {action.description}\nAmount: {action.amount} {action.currency}\nTags: {action.tags}\nPayee (OC username): {action.expense_user_slug}\nEligible voters please react with :thumbsup: or :thumbsdown: on this post to vote.\nBased on our current CollectiveVoice configuration (Peer approval), this expense requires one eligible voter to give a thumbs up for approval. ",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -22,30 +22,6 @@
                 "text": "variables.vote_message",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
-            },
-            {
-                "action": "slackpostmessage",
-                "text": "action.expense_id",
-                "channel": "variables.vote_channel",
-                "thread": "proposal.vote_post_id"
-            },
-            {
-                "action": "slackpostmessage",
-                "text": "Link: {action.url}",
-                "channel": "variables.vote_channel",
-                "thread": "proposal.vote_post_id"
-            },
-            {
-                "action": "slackpostmessage",
-                "text": "{action.title}: {action.description}",
-                "channel": "variables.vote_channel",
-                "thread": "proposal.vote_post_id"
-            },
-            {
-                "action": "slackpostmessage",
-                "text": "action.tags",
-                "channel": "variables.vote_channel",
-                "thread": "proposal.vote_post_id"
             }
         ],
         "success": [
@@ -53,6 +29,12 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "APPROVE",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed! Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "fail": [
@@ -60,16 +42,22 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "REJECT",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed! Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "variables": [
             {
                 "name": "users",
-                "label": "Who should be eligible to vote",
+                "label": "Select all users who are eligble to vote.",
                 "entity": "CommunityUser",
                 "default_value": "",
-                "is_required": false,
-                "prompt": "An empty value represents that all people in the channel are eligible to vote.",
+                "is_required": true,
+                "prompt": "",
                 "type": "string",
                 "is_list": true
                 
@@ -85,11 +73,11 @@
             },
             {
                 "name": "vote_channel",
-                "label": "Channel to post the vote message",
+                "label": "Channel to use",
                 "entity": "SlackChannel",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -171,11 +159,11 @@
             },
             {
                 "name": "vote_channel",
-                "label": "Channel to post the vote message",
+                "label": "Channel to use",
                 "entity": "SlackChannel",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -257,11 +245,11 @@
             },
             {
                 "name": "vote_channel",
-                "label": "Channel to post the vote message",
+                "label": "Channel to use",
                 "entity": "SlackChannel",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -363,11 +351,11 @@
             },
             {
                 "name": "vote_channel",
-                "label": "Channel to post the vote message",
+                "label": "Channel to use",
                 "entity": "SlackChannel",
                 "default_value": "",
                 "is_required": false,
-                "prompt": "If empty, the vote message will be posted in the same channel as the action",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }

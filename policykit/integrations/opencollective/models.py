@@ -132,6 +132,10 @@ class ExpenseEvent(TriggerAction):
     @property
     def amount(self):
         return self.data.get("amount")
+
+    @property
+    def currency(self):
+        return self.data.get('currency')
     
     @property
     def tags(self):
@@ -144,6 +148,10 @@ class ExpenseEvent(TriggerAction):
     @property
     def description(self):
         return self.data.get("description")
+
+    @property
+    def expense_user_slug(self):
+        return self.data.get('payee').get('slug')
 
 
 class ExpenseCreated(ExpenseEvent):
