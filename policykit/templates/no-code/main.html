@@ -146,9 +146,11 @@
         Object.keys(now_filter_kinds).forEach(field => {
             const filter_kind = now_filter_kinds[field];
             if(filter_kind){ // only show fields of which the filter we support
+                var field_div = document.createElement('div');
+                field_div.classList.add('custom-action-field');
+
                 select_id = `select-${action}.${field}`
-                let field_html = `<div class='custom-action-field'>
-                        <div class='variable-item' id='${action}.${field}'>
+                let field_html = `<div class='variable-item' id='${action}.${field}'>
                             <label for='${select_id}'>${field}</label>
                             <select id='${select_id}' class="selectpicker" title="Select a filter">
                             <option value="none">None</option>`
@@ -160,8 +162,9 @@
                 filters_this_kind.forEach(filter => {
                     field_html   += `<option value=${filter.pk}>${filter.description}</option>`
                 });
-                field_html  += `</select></div></div>`;  
-                action_div.appendChild(field_html);
+                field_html  += `</select></div>`; 
+                field_div.innerHTML = field_html; 
+                action_div.appendChild(field_div);
             }
         });
         action_section.append(action_div);
