@@ -173,6 +173,70 @@ class SlackCommunity(CommunityPlatform):
         response = self.__make_generic_api_call("conversations.list", {})
         #logger.debug("get_conversations response: " + str(response))
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
+    
+    def get_real_users(self):
+        """
+        Get realname and id of all slack workspace members that are not bot and not slackbot
+        """
+        response = self.__make_generic_api_call("users.list", {})
+        members = response['members']
+        ret = [{'value': x['id'], 'name': x['real_name']} for x in members if x['is_bot'] is False and x['name'] != 'slackbot']
+        return ret
+
+
+# NMV May 15, 2023. Double check this. may need to add update call to  
+# class SlackUpdateMessage(GovernableAction):
+#     ACTION = "chat.update"
+#     AUTH = "admin_bot"
+#     EXECUTE_PARAMETERS = ["text", "channel"]
+#     FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "ts": None}
+#     EXECUTE_VARIABLES = [
+#         {
+#             "name": "text",
+#             "label": "New message to be updated",
+#             "entity": None,
+#             "default_value": "",
+#             "is_required": True,
+#             "prompt": "",
+#             "type": "string",
+#             "is_list": False
+#         },
+#         {
+#             "name": "channel",
+#             "label": "Channel containing the message to be updated.",
+#             "entity": "SlackChannel",
+#             "default_value": "",
+#             "is_required": True,
+#             "prompt": "",
+#             "type": "string",
+#             "is_list": False
+#         },
+#         {
+#             "name": "ts",
+#             "label": "Timestamp of the message to be updated.",
+#             "entity": None,
+#             "default_value": "",
+#             "is_required": False,
+#             "prompt": "",
+#             "type": "string",
+#             "is_list": False
+#         }
+#     ]
+
+#     text = models.TextField()
+#     channel = models.CharField("channel", max_length=150)
+#     ts = models.CharField(max_length=32, blank=True)
+
+#     class Meta:
+#         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
+    
+#     def execution_codes(**kwargs):
+#         text = kwargs.get("text", "")
+#         channel = kwargs.get("channel", None)
+#         if not channel:
+#             channel = None
+#         ts =  kwargs.get("ts", None)
+#         return f"slack.update(text={text}, channel={channel}, ts={ts})"
 
 
 class SlackPostMessage(GovernableAction):
