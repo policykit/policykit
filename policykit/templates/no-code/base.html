@@ -621,7 +621,7 @@
 
   const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null) => {
       var text = document.createElement('div');
-      text.classList.add('variable');
+      text.classList.add('variable-item');
       text.id = id;
 
       var input_validate = "";
@@ -639,9 +639,8 @@
         if(variable["is_list"] ?? false){
           input_validate += "  multiple";
         }
-        let innerHTML = `<div class='variable-values'>
-                            <label class='variable-label' for='${id}'>${variable.label}</label>
-                            <select class='variable-input selectpicker' data-id='${id}' title="Select an ${variable.label}" ${input_validate}>`;
+        let innerHTML = `<label for='${id}'>${variable.label}</label>
+                      <select class='variable-input selectpicker' data-id='${id}' title="Select an ${variable.label}" ${input_validate}>`;
         
         options[variable["entity"]].forEach(entity => {
           innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
@@ -676,15 +675,13 @@
             input_validate += `  value='${variable.default_value}'`;
         if(datalist){
           // if there is a datalist, then we need to add the datalist to the parent div
-          text.innerHTML = `<div class='variable-values'>
-                            <label class='variable-label' for='${id}'>${variable.label}</label>
+          text.innerHTML = `<label for='${id}'>${variable.label}</label>
                             <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
                             ${prompt}
                             ${datalist}
                         </div>`;
         } else {
-          text.innerHTML = `<div class='variable-values'>
-                              <label class='variable-label' for='${id}'>${variable.label}</label>
+          text.innerHTML = `<label for='${id}'>${variable.label}</label>
                               <input class='variable-input' data-id='${id}' ${input_validate}/>
                               ${prompt}
                           </div>`;
