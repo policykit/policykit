@@ -9,39 +9,53 @@
       <label><input type="radio" name="option" value="check">If-Then Rule</label>
     </div>
 </section> -->
-
-<section class="" id="design_custom_action">
-    <h4 class="section-title">What action are you trying to govern?</h4>
-    <div class="selectpicker-group">
-        <label for="actionpicker">Action Types: </label>
-        <div>
-            <select id="actionpicker" class="selectpicker" title="Select an action..." multiple>
-                {% for app_name, action_list in base_actions.items %}
-                    <optgroup label="{{app_name|upper}}">
-                        {% for action_code, action_name in action_list %}
-                            <option value={{action_code}} group="{{app_name}}">{{action_name}}</option>
-                        {% endfor %}
-                    </optgroup>
-                {% endfor %}
-            </select>
+<div class="nocode-container">
+    <div class="nocode-sidebar">
+        <div class="variables">
+            <div class="variable-values">
+                <label class='variable-label' for='name'>Policy Name</label>
+                <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
+            </div>
+            <div class="variable-values">
+                <label class='variable-label' for='description'>Description</label>
+                <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
+            </div>
         </div>
     </div>
-    <div>
-        <h4 class="section-secondary-title">Which filters you would like to apply to each action?</h4>
-        <div class="variables-group" id="action-filters-group">
+    <div class="nocode-panel"> 
+        <div class="panel-header"></div>
+        <div class="panel-body">
+            <section id="design_custom_action">
+                <div class="section-header">What action are you trying to govern?</div>
+                <div class="section-body">
+                    <div class="selectpicker-group">
+                        <label for="actionpicker">Action Types: </label>
+                        <div>
+                            <select id="actionpicker" class="selectpicker" title="Select an action..." multiple>
+                                {% for app_name, action_list in base_actions.items %}
+                                    <optgroup label="{{app_name|upper}}">
+                                        {% for action_code, action_name in action_list %}
+                                            <option value={{action_code}} group="{{app_name}}">{{action_name}}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="section-secondary-title">Which filters you would like to apply to each action?</h4>
+                        <div class="variables-group" id="action-filters-group"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="panel-bottom">
+            <button class="button secondary"> Go back </button>
+            <button class="button primary" id="submit_policy"> Submit </button>
         </div>
     </div>
-    </div>
-</section>
-
-<div class="button-group">
-    <button class="button secondary">
-      Go back
-    </button>
-    <button class="button primary" id="submit_policy">
-      Submit
-    </button>
 </div>
+
 {% endblock %}
 
 {% block step_scripts %}
@@ -233,7 +247,9 @@
         let custom_action_data = collectCustomActionData();
         console.log("custom action data: " + JSON.stringify(custom_action_data));
     }
+
     document.getElementById("submit_policy").addEventListener('click', goCreateProcedure);
+    
     document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
     showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
     document.body.addEventListener('change', ( event ) => {
@@ -243,5 +259,6 @@
             showFilterModuleVariables(event.target.id);
         }
     });
+
 </script>
 {% endblock %}
