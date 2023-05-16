@@ -42,7 +42,7 @@
             <section id="design_custom_action">
                 <div class="section-header">Actions</div>
                 <div class="section-body inactive">
-                    <button class="section-inactive-button small-button" type="actions">+ Add</button>
+                    <button class="section-inactive-button small-button small info" type="actions">+ Add</button>
                     <!-- <div class="selectpicker-group">
                         <label for="actionpicker">Action Types: </label>
                         <div>
@@ -281,6 +281,8 @@
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
                 button.innerHTML = "Select one or more actions from the left sidebar";
+                button.classList.remove("info");
+                button.classList.add("prompt");
                 $("#slide-panel-body").empty();
                 Object.keys(base_actions).forEach(app => {
                     let innerHTML = `<div class='actions-checkbox-section'>
@@ -289,9 +291,10 @@
                     let this_app_actions = base_actions[app];
                     this_app_actions.forEach(action => {
                         let action_value = app + "." + action[0];
+                        let action_name = action[1].replace(app, "").replace(app.charAt(0).toUpperCase() + app.slice(1), "");
                         innerHTML += `<div class='actions-checkbox-item'>
                             <input type='checkbox' name='${action_value}' value='${action_value}' class='actions-checkbox-input'>
-                            <label for='${action_value}' class='actions-checkbox-label normal medium'>${action[1]}</label>
+                            <label for='${action_value}' class='actions-checkbox-label normal medium'>${action_name}</label>
                         </div>`;
                     });
                     innerHTML += "</div></div>";

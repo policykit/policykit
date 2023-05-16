@@ -81,6 +81,9 @@
   .prompt {
     color: #52677A;
   }
+  .info {
+    color: #4451B2;;
+  }
 
   .container {
     display: flex;
@@ -139,6 +142,8 @@
     align-items: flex-start;
     padding: 0px;
     gap: 24px;
+
+    align-self: stretch;
   }
 
   .slide-panel-body {
@@ -213,8 +218,18 @@
     align-self: stretch;
     padding: 16px 32px;
     gap: 8px;
+
+    height: 100px;
   }
 
+  .section-inactive-button {
+    align-self: stretch;
+    flex-grow: 1;
+
+    background: #F8F9FA;
+    border-radius: 8px;
+    border: none;
+  }
   .small-button {
 
   }
@@ -231,7 +246,8 @@
   }
 
   .actions-checkbox-header {
-
+    border-bottom: 1px solid #F3F5F7;
+    align-self: stretch;
   }
 
   .action-checkbox-body {
@@ -244,19 +260,21 @@
     align-self: stretch;
   }
 
-  .action-checkbox-item {
+  .actions-checkbox-item {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: baseline;
     padding: 8px;
     gap: 16px;
   }
 
-  .action-checkbox-input {
+  .actions-checkbox-input {
     flex-grow: 0;
+    border: 1px solid #4451B2;
+    border-radius: 2px;
   }
 
-  .action-checkbox-label{
+  .actions-checkbox-label{
     flex-grow: 0;
   }
 
