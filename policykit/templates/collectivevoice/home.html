@@ -3,6 +3,10 @@
 
 {% block step %}
 <section class="step" id="policy_summary">
+  {% if not opencollective_community.community_name %}
+  Warning: it seems like you're using CollectiveVoice without having connected to an OpenCollective. See the docs for help.
+  {% endif %}
+  <p> <i> Slack Name: {{slack_community.community_name}} / OpenCollective Name: {{opencollective_community.community_name}}</i></p>
   <h2 class="heading-2">
     CollectiveVoice Summary
   </h2>
@@ -94,7 +98,13 @@
   document.getElementById("editExpenses").addEventListener('click', handleEditExpenses)
   document.getElementById("editVoting").addEventListener('click', handleEditVoting)
   //document.getElementById("editFollowup").addEventListener('click', handleEditFollowup)
-  document.getElementById("save").addEventListener('click', handleSave)
+  
+  try {
+    document.getElementById("save").addEventListener('click', handleSave)
+  } catch {
+    console.log('Complete the expenses and voting forms before saving!');
+  }
+  
 
 
   //const policytemplate = JSON.parse('{{policytemplate | safe}}');

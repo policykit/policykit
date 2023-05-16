@@ -929,6 +929,8 @@ def collectivevoice_home(request):
         - and extra_executions attribute of the PolicyTemplate
     """
     from policyengine.models import PolicyTemplate
+    from integrations.slack.models import SlackCommunity
+    from integrations.opencollective.models import OpencollectiveCommunity
     from django.core import serializers
 
     # Utils.load_templates("Procedure")
@@ -970,6 +972,10 @@ def collectivevoice_home(request):
         followup_set = True
 
     pt_data = serializers.serialize('json', [pt,])
+
+    user = get_user(request)
+    slack_community = SlackCommunity.objects.get(community=user.community.community) 
+    opencollective_community = OpencollectiveCommunity.objects.get(community=user.community.community) 
     
     return render(request, "collectivevoice/home.html", {
         'policytemplate': pt_data,
@@ -978,7 +984,9 @@ def collectivevoice_home(request):
         'voting_set': voting_set,
         'followup_set': followup_set,
         'procedure_name': procedure_name,
-        'filter_names_str': filter_names_str
+        'filter_names_str': filter_names_str,
+        'slack_community': slack_community,
+        'opencollective_community': opencollective_community
     })
 
 @login_required
