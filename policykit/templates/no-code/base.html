@@ -64,14 +64,20 @@
   }
 
   .large {
+    font-family: 'Nunito';
+    font-style: normal;
     font-size: 19px;
   }
 
   .medium {
+    font-family: 'Nunito';
+    font-style: normal;
     font-size: 16px;
   }
   
   .small {
+    font-family: 'Nunito';
+    font-style: normal;
     font-size: 14px;
   }
 
@@ -82,8 +88,9 @@
     color: #52677A;
   }
   .info {
-    color: #4451B2;;
+    color: #4451B2;
   }
+
 
   .container {
     display: flex;
@@ -205,7 +212,7 @@
     flex-direction: column;
     align-items: flex-start;
 
-    padding: 0px 16px;
+    padding: 0px 32px;
     gap: 16px;
     background: #FFFFFF;
   }
@@ -229,9 +236,6 @@
     background: #F8F9FA;
     border-radius: 8px;
     border: none;
-  }
-  .small-button {
-
   }
 
   /*for the actions list in the slider panel*/
@@ -309,16 +313,41 @@
       margin: 0px 0px 10px 24px;
   }
 
-
-  
-  #action-specs-group {
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      margin-top: 20px;
+  /*For the blocks of action filters*/
+  .custom-action-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px 16px;
+    gap: 16px;
   }
 
+  .custom-action-label {
+    font-weight: 500;
+  }
 
+  .custom-action-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px 16px;
+    gap: 10px;
+  }
+
+  .variable-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 8px;
+  }
+
+  .variable-item label {
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
   .selectpicker {
     width: 100%;
     height: 50px;
