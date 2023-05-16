@@ -75,6 +75,9 @@
     font-size: 14px;
   }
 
+  .normal {
+    color: #3A3A3A;
+  }
   .prompt {
     color: #52677A;
   }
@@ -93,16 +96,26 @@
     flex-grow: 1;
   }
 
+  /*For the overall panel layout 3:7 */
   .nocode-container {
     display: flex;
     width: 100%;
     
   }
-
   .nocode-sidebar {
     flex-basis: 30%;
   }
 
+  .nocode-panel {
+    flex-basis: 70%;
+    height: 100%;
+    background-color: #F8F9FA;
+
+    display: flex;
+    flex-direction: column;
+  }
+
+  /*for the slider panel that pops up when selecting actions or procedures*/
   #slider-panel {
     display: flex;
     flex-direction: column;
@@ -128,22 +141,23 @@
     gap: 24px;
   }
 
-
-  .nocode-panel {
-    flex-basis: 70%;
-    height: 100%;
-    background-color: #F8F9FA;
-
+  .slide-panel-body {
     display: flex;
     flex-direction: column;
-  
+    align-items: flex-start;
+    padding: 0px;
+    gap: 32px;
+
+    align-self: stretch;
   }
 
+
+  /* for the main panel */
   .panel-header {
 
   }
 
-  .panel-body {
+  .panel-body { /* for the list of sections */
     overflow-y: auto;
     flex-grow: 1;
     
@@ -154,12 +168,13 @@
     gap: 16px;
   }
 
-  .panel-bottom {
+  .panel-bottom { /* for the bottom buttons */
     align-self: flex-end;
     padding-left: 10%;
     padding-right: 10%;
   }
 
+  /* for each section in the main panel */
   .panel-body section {
     border-radius: 10px;
     background-color: white;
@@ -203,6 +218,56 @@
   .small-button {
 
   }
+
+  /*for the actions list in the slider panel*/
+  .actions-checkbox-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 16px;
+
+    align-self: stretch;
+  }
+
+  .actions-checkbox-header {
+
+  }
+
+  .action-checkbox-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px 0px 8px;
+    gap: 8px;
+
+    align-self: stretch;
+  }
+
+  .action-checkbox-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px;
+    gap: 16px;
+  }
+
+  .action-checkbox-input {
+    flex-grow: 0;
+  }
+
+  .action-checkbox-label{
+    flex-grow: 0;
+  }
+
+
+
+
+
+
+
+
+
 
 
 

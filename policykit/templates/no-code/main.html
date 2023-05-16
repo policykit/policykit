@@ -283,17 +283,18 @@
                 button.innerHTML = "Select one or more actions from the left sidebar";
                 $("#slide-panel-body").empty();
                 Object.keys(base_actions).forEach(app => {
-                    let innerHTML = `<div class='actions-checkbox-groups'>
-                        <div class='actions-checkbox-header'>${app}</div>`
+                    let innerHTML = `<div class='actions-checkbox-section'>
+                        <div class='actions-checkbox-header medium'>${app.charAt(0).toUpperCase() + app.slice(1)}</div>
+                        <div class="action-checkbox-body">`
                     let this_app_actions = base_actions[app];
                     this_app_actions.forEach(action => {
                         let action_value = app + "." + action[0];
                         innerHTML += `<div class='actions-checkbox-item'>
                             <input type='checkbox' name='${action_value}' value='${action_value}' class='actions-checkbox-input'>
-                            <label for='${action_value}' class='actions-checkbox-label'>${action[1]}</label>
+                            <label for='${action_value}' class='actions-checkbox-label normal medium'>${action[1]}</label>
                         </div>`;
                     });
-                    innerHTML += "</div>";
+                    innerHTML += "</div></div>";
                     $("#slide-panel-body").append(innerHTML);
                 })
                 $("#slider-panel").removeClass("hidden");
