@@ -11,7 +11,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "An <expense|{action.url}> was submitted to Open Collective and requires a vote.\n\nExpense description: {action.description}\nAmount: {action.amount} {action.currency}\nTags: {action.tags}\nPayee (OC username): {action.expense_user_slug}\nEligible voters please react with :thumbsup: or :thumbsdown: on this post to vote.\nBased on our current CollectiveVoice configuration (Peer approval), this expense requires one eligible voter to give a thumbs up for approval. ",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. | Based on our CollectiveVoice policy named {policy.name} (Peer approval), this expense requires one eligible voter to give a thumbs up for approval. See the expense on OpenCollective: {action.url}",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -32,7 +32,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote passed! Expense was approved!",
+                "text": "Vote passed, Expense was approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -45,7 +45,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote failed! Expense was not approved!",
+                "text": "Vote failed, Expense was not approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -54,7 +54,7 @@
             {
                 "name": "users",
                 "label": "Select all users who are eligble to vote.",
-                "entity": "CommunityUser",
+                "entity": "SlackUser",
                 "default_value": "",
                 "is_required": true,
                 "prompt": "",
@@ -64,7 +64,7 @@
             },
             {
                 "name": "vote_message",
-                "label": "You can write a custom message here that will be posted alongside the expense link, title, and tags.",
+                "label": "You can write a custom message here that will be posted when a vote is starte.",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,

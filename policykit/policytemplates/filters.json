@@ -45,7 +45,7 @@
         "codes": "return word.lower() in object",
         "variables":[
             {
-                "name": "expensetype",
+                "name": "word",
                 "label": "The tag",
                 "entity": null,
                 "default_value": "",

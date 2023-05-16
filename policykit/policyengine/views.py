@@ -853,6 +853,16 @@ def get_channel_options(community_id):
             )
     return channel_options
 
+
+# def get_slackuser_options(community_id):
+#     """
+#     Get user ids and names from slack
+#     """
+#     from integrations.slack.models import SlackCommunity
+#     slack_community = SlackCommunity.objects.get(community_id=community_id)
+#     return slack_community.get_real_users()
+
+
 def create_blank_policytemplate(community):
     from policyengine.models import PolicyTemplate
     policytemplate = PolicyTemplate.objects.create(
@@ -1078,7 +1088,7 @@ def collectivevoice_edit_voting(request):
 
     trigger = request.GET.get("trigger", "false")
     policy_id = request.GET.get("policy_id")
-    entities = Utils.load_entities(user.community)
+    entities = Utils.load_entities(user.community, get_slack_users=True)
     return render(request, "collectivevoice/edit_voting.html", {
         "procedures": json.dumps(procedures),
         "procedure_details": json.dumps(procedure_details),
