@@ -13,12 +13,12 @@
     <div class="nocode-sidebar">
         <section>
             <div class="variables section-body">
-                <div class="variable-values">
-                    <label class='variable-label' for='name'>Policy Name</label>
+                <div class="variable-item">
+                    <label for='name'>Policy Name</label>
                     <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
                 </div>
-                <div class="variable-values">
-                    <label class='variable-label' for='description'>Description</label>
+                <div class="variable-item">
+                    <label for='description'>Description</label>
                     <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
                 </div>
             </div>
@@ -43,21 +43,6 @@
                 <div class="section-header">Actions</div>
                 <div class="section-body inactive" id="design_custom_action-section-body">
                     <button class="section-inactive-button small-button small info" type="actions">+ Add</button>
-                    <!-- <div class="selectpicker-group">
-                        <label for="actionpicker">Action Types: </label>
-                        <div>
-                            <select id="actionpicker" class="selectpicker" title="Select an action...">
-                                {% for app_name, action_list in base_actions.items %}
-                                    <optgroup label="{{app_name|upper}}">
-                                        {% for action_code, action_name in action_list %}
-                                            <option value={{action_code}} group="{{app_name}}">{{action_name}}</option>
-                                        {% endfor %}
-                                    </optgroup>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div> -->
-                    <!-- <div class="variables-group" id="action-filters-group"></div> -->
                 </div>
             </section>
         </div>
