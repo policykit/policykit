@@ -132,6 +132,10 @@ class ExpenseEvent(TriggerAction):
     @property
     def amount(self):
         return self.data.get("amount")
+    
+    @property
+    def formatted_amount(self):
+        return '${:,.2f}'.format(self.amount / 100)
 
     @property
     def currency(self):
