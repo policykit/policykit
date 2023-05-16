@@ -11,27 +11,35 @@
 </section> -->
 <div class="nocode-container">
     <div class="nocode-sidebar">
-        <div class="variables">
-            <div class="variable-values">
-                <label class='variable-label' for='name'>Policy Name</label>
-                <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
+        <section>
+            <div class="variables section-body">
+                <div class="variable-values">
+                    <label class='variable-label' for='name'>Policy Name</label>
+                    <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
+                </div>
+                <div class="variable-values">
+                    <label class='variable-label' for='description'>Description</label>
+                    <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
+                </div>
             </div>
-            <div class="variable-values">
-                <label class='variable-label' for='description'>Description</label>
-                <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
-            </div>
+            <div id="slider-panel">Hello World!</div>
+        </section>
+        <div class="slide-panel">
+            <div class="slide-panel-header"></div>
+            <div class="slide-panel-body"></div>
         </div>
     </div>
     <div class="nocode-panel"> 
         <div class="panel-header"></div>
         <div class="panel-body">
             <section id="design_custom_action">
-                <div class="section-header">What action are you trying to govern?</div>
-                <div class="section-body">
-                    <div class="selectpicker-group">
+                <div class="section-header">Actions</div>
+                <div class="section-body inactive">
+                    <button class="section-inactive-button small-button" type="actions">+ Add</button>
+                    <!-- <div class="selectpicker-group">
                         <label for="actionpicker">Action Types: </label>
                         <div>
-                            <select id="actionpicker" class="selectpicker" title="Select an action..." multiple>
+                            <select id="actionpicker" class="selectpicker" title="Select an action...">
                                 {% for app_name, action_list in base_actions.items %}
                                     <optgroup label="{{app_name|upper}}">
                                         {% for action_code, action_name in action_list %}
@@ -41,11 +49,8 @@
                                 {% endfor %}
                             </select>
                         </div>
-                    </div>
-                    <div>
-                        <h4 class="section-secondary-title">Which filters you would like to apply to each action?</h4>
-                        <div class="variables-group" id="action-filters-group"></div>
-                    </div>
+                    </div> -->
+                    <!-- <div class="variables-group" id="action-filters-group"></div> -->
                 </div>
             </section>
         </div>
@@ -250,14 +255,31 @@
 
     document.getElementById("submit_policy").addEventListener('click', goCreateProcedure);
     
-    document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
-    showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
-    document.body.addEventListener('change', ( event ) => {
-        // check whether the id starts with "select-", which we named all fields of the selected actions
-        // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
-        if( event.target.id.startsWith("select-") ){
-            showFilterModuleVariables(event.target.id);
-        }
+    // document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
+    // showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
+    // document.body.addEventListener('change', ( event ) => {
+    //     // check whether the id starts with "select-", which we named all fields of the selected actions
+    //     // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
+    //     if( event.target.id.startsWith("select-") ){
+    //         showFilterModuleVariables(event.target.id);
+    //     }
+    // });
+
+    document.querySelectorAll(".section-inactive-button").forEach(btn => {
+        btn.addEventListener("click", (event) => {
+            // when the user clicks on the inactive button, the section should be activated
+            // and the button should be changed to active
+            let button = event.target;
+            let slidepanel_type = button.getAttribute("type");
+            if(slidepanel_type === "actions"){
+                button.innerHTML = "Select one or more actions from the left sidebar";
+                $("#slider-panel").slideReveal({
+                    trigger: button,
+                    push: false,
+                    width: "30%",
+                });
+            }
+        });
     });
 
 </script>
