@@ -22,8 +22,16 @@
                     <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
                 </div>
             </div>
-            <div id="slider-panel">Hello World!</div>
         </section>
+        <div id="slider-panel" class="hidden">
+            <div class="slide-panel-header">
+                <div class="large">Choose governed Actions</div>
+                <div class="prompt medium">Select one or more actions that you want to govern by a policy</div>
+            </div>
+            <div class="slide-panel-body">
+
+            </div>
+        </div>
         <div class="slide-panel">
             <div class="slide-panel-header"></div>
             <div class="slide-panel-body"></div>
@@ -273,11 +281,8 @@
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
                 button.innerHTML = "Select one or more actions from the left sidebar";
-                $("#slider-panel").slideReveal({
-                    trigger: button,
-                    push: false,
-                    width: "30%",
-                });
+                $("#slider-panel").removeClass("hidden");
+                $("#slider-panel").slideReveal({push: false, width: "30%"}).slideReveal("show");
             }
         });
     });
