@@ -147,9 +147,9 @@
             const filter_kind = now_filter_kinds[field];
             if(filter_kind){ // only show fields of which the filter we support
                 select_id = `select-${action}.${field}`
-                field_html = `<div class='custom-action-field'>
-                        <div class='variables-values' id='${action}.${field}'>
-                            <label class='variable-label' for='${select_id}'>${field}</label>
+                let field_html = `<div class='custom-action-field'>
+                        <div class='variable-item' id='${action}.${field}'>
+                            <label for='${select_id}'>${field}</label>
                             <select id='${select_id}' class="selectpicker" title="Select a filter">
                             <option value="none">None</option>`
                 
@@ -158,10 +158,10 @@
                 const filters_this_kind = filters_this_app[filter_kind]
                 // console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
                 filters_this_kind.forEach(filter => {
-                    select_html  += `<option value=${filter.pk}>${filter.description}</option>`
+                    field_html   += `<option value=${filter.pk}>${filter.description}</option>`
                 });
-                select_html += `</select></div></div>`;  
-                action_div.appendChild(text);
+                field_html  += `</select></div></div>`;  
+                action_div.appendChild(field_html);
             }
         });
         action_section.append(action_div);
