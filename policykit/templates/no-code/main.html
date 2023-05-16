@@ -41,7 +41,7 @@
         <div class="panel-body">
             <section id="design_custom_action">
                 <div class="section-header">Actions</div>
-                <div class="section-body inactive">
+                <div class="section-body inactive" id="design_custom_action-section-body">
                     <button class="section-inactive-button small-button small info" type="actions">+ Add</button>
                     <!-- <div class="selectpicker-group">
                         <label for="actionpicker">Action Types: </label>
@@ -83,11 +83,11 @@
         // check if the action has already been selected
         if(selected_actions.includes(action)) return;;
 
-        let action_section = $("#design_custom_action .section-body:first");
+        let action_section = $("#design_custom_action-section-body");
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_actions.length == 0) {
-            action_section.classList.remove("inactive");
-            action_section.classList.add("active");
+            action_section.removeClass("inactive");
+            action_section.addClass("active");
             action_section.empty();
         }
 
@@ -157,7 +157,7 @@
                 action_div.appendChild(text);
             }
         });
-        action_section.appendChild(action_div);
+        action_section.append(action_div);
         $(".selectpicker").selectpicker('refresh');
     }
 
