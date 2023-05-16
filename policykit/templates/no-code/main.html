@@ -78,6 +78,16 @@
     const entities = JSON.parse('{{entities|safe}}');
 
     var selected_actions = [];
+    const removeFilterParameters = (action, app) => {
+        selected_actions = selected_actions.filter((item) => item !== action);
+        $(`#custom-action-${action}`).remove();
+        if(selected_actions.length == 0) {
+            $("#design_custom_action-section-body").removeClass("active");
+            $("#design_custom_action-section-body").addClass("inactive");
+            $("#design_custom_action-section-body").empty();
+            $("#design_custom_action-section-body").append('<button class="section-inactive-button small-button small info" type="actions">+ Add</button>')
+        }
+    }
     const showFilterParameters = (action, app) => {
 
         // check if the action has already been selected
@@ -268,6 +278,8 @@
             let app = id.split(".")[1];
             if(event.target.checked){
                 showFilterParameters(action, app);
+            } else {
+                removeFilterParameters(action, app);
             }
         }
     });
