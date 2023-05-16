@@ -915,7 +915,7 @@ def main(request):
     trigger = request.GET.get("trigger", "false")
     return render(request, "no-code/main.html", {
         "trigger": trigger,
-        "base_actions": base_actions,
+        "base_actions": json.dumps(base_actions),
         "action_filter_kinds": json.dumps(action_filter_kinds),
         "filter_modules": json.dumps(filter_modules),
         "entities": json.dumps(entities),

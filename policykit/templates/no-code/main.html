@@ -28,8 +28,7 @@
                 <div class="large">Choose governed Actions</div>
                 <div class="prompt medium">Select one or more actions that you want to govern by a policy</div>
             </div>
-            <div class="slide-panel-body">
-
+            <div class="slide-panel-body" id="slide-panel-body">
             </div>
         </div>
         <div class="slide-panel">
@@ -73,6 +72,7 @@
 
 {% block step_scripts %}
 <script>
+    const base_actions = JSON.parse('{{base_actions | safe}}');
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
     const entities = JSON.parse('{{entities|safe}}');
@@ -281,6 +281,21 @@
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
                 button.innerHTML = "Select one or more actions from the left sidebar";
+                $("#slide-panel-body").empty();
+                Object.keys(base_actions).forEach(app => {
+                    let innerHTML = `<div class='actions-checkbox-groups'>
+                        <div class='actions-checkbox-header'>${app}</div>`
+                    let this_app_actions = base_actions[app];
+                    this_app_actions.forEach(action => {
+                        let action_value = app + "." + action[0];
+                        innerHTML += `<div class='actions-checkbox-item'>
+                            <input type='checkbox' name='${action_value}' value='${action_value}' class='actions-checkbox-input'>
+                            <label for='${action_value}' class='actions-checkbox-label'>${action[1]}</label>
+                        </div>`;
+                    });
+                    innerHTML += "</div>";
+                    $("#slide-panel-body").append(innerHTML);
+                })
                 $("#slider-panel").removeClass("hidden");
                 $("#slider-panel").slideReveal({push: false, width: "30%"}).slideReveal("show");
             }
