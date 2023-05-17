@@ -19,7 +19,7 @@
                 </div>
                 <div class="column-variable-item">
                     <label for='description' class="medium normal">Description</label>
-                    <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
+                    <textarea value='{{policy.description}}' data-id='description' class='variable-input' name='description' rows="5"/>
                 </div>
             </div>
         </section>
@@ -310,7 +310,7 @@
                     $("#slide-panel-body").append(innerHTML);
                 })
                 $("#slider-panel").removeClass("hidden");
-                $("#slider-panel").slideReveal({push: false, width: "30%"}).slideReveal("show");
+                $("#slider-panel").slideReveal({push: false, width: "35%"}).slideReveal("show");
             }
         });
     });
