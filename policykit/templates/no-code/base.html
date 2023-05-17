@@ -634,13 +634,14 @@
       // if it is not empty, null, or undefined
       prompt = `<p class='variable-prompt text-small'>${variable.prompt}</p>`;
 
+      let displayed_name = variable.name;
       if(options && variable["entity"] && (variable["entity"] in options)){
         // if it is, then we use a select as the input box
         if(variable["is_list"] ?? false){
           input_validate += "  multiple";
         }
-        let innerHTML = `<label for='${id}'>${variable.label}</label>
-                      <select class='variable-input selectpicker' data-id='${id}' title="Select an ${variable.label}" ${input_validate}>`;
+        let innerHTML = `<label for='${id}'>${displayed_name}</label>
+                      <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
         
         options[variable["entity"]].forEach(entity => {
           innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
@@ -675,13 +676,13 @@
             input_validate += `  value='${variable.default_value}'`;
         if(datalist){
           // if there is a datalist, then we need to add the datalist to the parent div
-          text.innerHTML = `<label for='${id}'>${variable.label}</label>
+          text.innerHTML = `<label for='${id}'>${displayed_name}</label>
                             <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
                             ${prompt}
                             ${datalist}
                         </div>`;
         } else {
-          text.innerHTML = `<label for='${id}'>${variable.label}</label>
+          text.innerHTML = `<label for='${id}'>${displayed_name}</label>
                               <input class='variable-input' data-id='${id}' ${input_validate}/>
                               ${prompt}
                           </div>`;
