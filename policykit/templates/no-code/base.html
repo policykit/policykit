@@ -722,6 +722,7 @@
 
   const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, column=false) => {
       var text = document.createElement('div');
+      console.log("variable column: " + column);
       if(column === true){
           text.classList.add('column-variable-item');
       } else text.classList.add('variable-item');
