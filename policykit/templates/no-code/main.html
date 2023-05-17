@@ -270,11 +270,14 @@
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
             showFilterModuleVariables(event.target.id);
-        } else if( event.target.id === "design_custom_action-next") {
-            collectCustomActionData();
-
         }
     });
+
+    document.body.addEventListener('click', (event) => {
+        if( event.target.id === "design_custom_action-next") {
+            collectCustomActionData();
+        }
+    })
 
     // listen to the event when users clicks add in a section and we pop up the slide panel
     document.querySelectorAll(".section-inactive-button").forEach(btn => {
