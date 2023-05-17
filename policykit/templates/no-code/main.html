@@ -225,7 +225,8 @@
                     // a dict of variable_name: variable_value
                     var variables_dict = {}
                     field_variables_div = action_field_div.getElementsByClassName('custom-action-filter-variable')[0];
-                    field_variables_div.children.forEach((filter_variable_div, i) => {
+                    for(var i = 0; i < field_variables_div.children.length; i++){
+                        filter_variable_div = 
                         // check whether all variables are filled and alert with the missing variable names
                         missing_input = checkMissingVariable(null, elements=filter_variable_div);
                         if(missing_input) break;
@@ -234,7 +235,7 @@
                         Object.keys(filter_variable_input).forEach(key => {
                             variables_dict[key.split(".").pop()] = filter_variable_input[key];
                         });
-                    });
+                    }
                     filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
                 }
             }))
