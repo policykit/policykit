@@ -306,7 +306,7 @@
             </div>
         */
         selected_procedure["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variable_div, options=entities, column=true)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variable_div, options=entities, datalist=null, column=true)
         })
     }
     const goCreateProcedure = async () => {
