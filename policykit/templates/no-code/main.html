@@ -243,7 +243,7 @@
             return {action_type: action, filter: filters_per_action, app_name: selected_actions[action]}
         });
         // only submit the data if all variables are filled
-        if(missing_input) return; else {
+        if(missing_input) return false; else {
             console.log("collect custom action data: " + JSON.stringify(filters));
             return filters;
         }
@@ -276,7 +276,7 @@
 
     document.body.addEventListener('click', (event) => {
         if( event.target.id === "design_custom_action-next") {
-            collectCustomActionData();
+            if(!collectCustomActionData()) return;
             $("#slider-panel").addClass("hidden");
             $("#slider-panel").slideReveal({push: false, width: "30%"}).slideReveal("hide");
         }
