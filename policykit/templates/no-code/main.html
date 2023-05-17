@@ -134,12 +134,12 @@
         */
 
         var action_div = document.createElement('div');
-        action_div.classList.add('custom-action-group');
+        action_div.classList.add('custom-group');
         action_div.id = `custom-action-${action}`;
 
         // add a label for this action in action_div
         var action_label = document.createElement('label');
-        action_label.classList.add('custom-action-label');
+        action_label.classList.add('custom-label');
         action_label.classList.add('large');
         action_label.innerHTML = capitalize(action);
         action_div.appendChild(action_label);
@@ -274,12 +274,12 @@
         let selected_procedure = procedures[app].find(item => item.pk == selected_procedure_pk);
 
         var procedure_div = document.createElement('div');
-        procedure_div.classList.add('custom-action-group');
+        procedure_div.classList.add('custom-group');
         procedure_div.id = `custom-procedure-${procedure_pk}`;
 
         // add a label for this action in action_div
         var procedure_label = document.createElement('label');
-        procedure_label.classList.add('custom-action-label');
+        procedure_label.classList.add('custom-label');
         procedure_label.classList.add('large');
         procedure_label.innerHTML = capitalize(selected_procedure.name);
         procedure_div.appendChild(procedure_label);
@@ -306,7 +306,7 @@
             </div>
         */
         selected_procedure["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variable_div, options=entities)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variable_div, options=entities, column=true)
         })
     }
     const goCreateProcedure = async () => {
