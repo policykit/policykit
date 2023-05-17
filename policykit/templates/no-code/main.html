@@ -63,9 +63,11 @@
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
     const entities = JSON.parse('{{entities|safe}}');
 
-    var selected_actions = [];
+    var selected_actions = {};
     const removeFilterParameters = (action, app) => {
-        selected_actions = selected_actions.filter((item) => item !== action);
+        // remove the action from the selected actions
+        delete selected_actions[action];
+        
         $(`#custom-action-${action}`).remove();
         if(selected_actions.length == 0) {
             let action_section = $("#design_custom_action-section-body");
@@ -76,10 +78,13 @@
             $("#design_custom_action .section-bottom:first").empty();
         }
     }
+    
     const showFilterParameters = (action, app) => {
 
         // check if the action has already been selected
-        if(selected_actions.includes(action)) return;;
+        if (action in selected_actions) {
+            return;
+        }
 
         let action_section = $("#design_custom_action-section-body");
         // if there are no actions selected before, remove the inactive class and empty the section
@@ -90,7 +95,7 @@
             $("#design_custom_action .section-bottom:first").append('<button class="button primary medium" id="design_custom_action-next">Next</button>')
         }
 
-        selected_actions.push(action)
+        selected_actions[action] = app;
         // add filter parameters for the new action, iterating with action and index 
         /*
             The exepcted div structure looks like this:
@@ -201,23 +206,13 @@
 
     const collectCustomActionData = () => {
         // to collect user input about custom actions
-        var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
-        var selected_actions = Array.from(selected_options).map(({ value }) => value); // in codenames
-        // get the corresponding apps of the selected actions
-        var selected_groups = Array.from(selected_options).map( option => option.getAttribute('group'));
-        // make sure that all selected actions are from the same app
-        if(selected_groups.every( (val, i, arr) => val === arr[0] )){
-            var app_name = selected_groups[0];
-        } else {
-            alert("Please select actions from the same app");
-            return;
-        }
+        
         console.log("new actions are: " + selected_actions);
         
         let missing_input = false;
-        const filters = selected_actions.map((action, index) => {
-            const action_div = document.getElementById(action);
-            let action_field_divs = action_div.getElementsByClassName('action-field');
+        const filters = Object.keys(selected_actions).map((action, index) => {
+            const action_div = document.getElementById(`#custom-action-${action}`);
+            let action_field_divs = action_div.getElementsByClassName('custom-action-field');
             var filters_per_action = {}
             Array.from(action_field_divs).forEach((action_field_div => {
                 let action_field_id = action_field_div.firstElementChild.id; // the field itself: slackpostmessage.initiator
@@ -229,8 +224,8 @@
                 } else {
                     // a dict of variable_name: variable_value
                     var variables_dict = {}
-                    for(var i=1, len = action_field_div.childElementCount ; i < len; ++i){
-                        let filter_variable_div = action_field_div.children[i];
+                    field_variables_div = action_field_div.getElementsByClassName('custom-action-filter-variable')[0];
+                    field_variables_div.children.forEach((filter_variable_div, i) => {
                         // check whether all variables are filled and alert with the missing variable names
                         missing_input = checkMissingVariable(null, elements=filter_variable_div);
                         if(missing_input) break;
@@ -239,14 +234,14 @@
                         Object.keys(filter_variable_input).forEach(key => {
                             variables_dict[key.split(".").pop()] = filter_variable_input[key];
                         });
-                    }
+                    });
                     filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
                 }
             }))
-            return {action_type: action, filter: filters_per_action}
+            return {action_type: action, filter: filters_per_action, app_name: selected_actions[action]}
         });
         // only submit the data if all variables are filled
-        if(missing_input) return; else return {filters: filters, app_name: app_name};
+        if(missing_input) return; else return filters;
     }
 
     const goCreateProcedure = async () => {
@@ -274,6 +269,9 @@
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
             showFilterModuleVariables(event.target.id);
+        } else if( event.target.id === "design_custom_action-next") {
+            collectCustomActionData();
+
         }
     });
 
