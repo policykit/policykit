@@ -184,14 +184,14 @@
         variable_div.classList.add('custom-action-filter-variable');
 
 
-
-
         variables.forEach(variable => {
             console.log("adding variable: " + JSON.stringify(variable));
             const variable_id = `${select_id}.${variable.name}`;
             // select-${action}.${field}.${variable.name}
             addVariableInputBox(variable=variable, id=variable_id, parentDiv=variable_div, options=entities)
         });
+
+        field_div.appendChild(variable_div);
     
     }
 
