@@ -84,7 +84,7 @@
   .smaller {
     font-family: 'Nunito';
     font-style: normal;
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .normal {
@@ -435,7 +435,14 @@
     align-self: stretch;
   }
 
-  .column-variable-item input:not([type="text"]) {
+  .column-variable-item input[type="number"] {
+    background: #F8F9FA;
+    border: 1px solid #F2F4FF;
+    border-radius: 4px;
+    width: 15%;
+  }
+
+  .column-variable-item input:not([type="text"]):not([type="number"]) {
     background: #F8F9FA;
     border: 1px solid #F2F4FF;
     border-radius: 4px;
