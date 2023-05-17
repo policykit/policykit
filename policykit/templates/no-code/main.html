@@ -337,7 +337,7 @@
                         innerHTML += `<div class='procedures-checkbox-item'>
                             <input type='checkbox' name='${checkbox_name}' value='${checkbox_value}' id="procedures-checkbox.${checkbox_value}">
                             <div class="procedure-label">
-                                <label for='${checkbox_name}' class='normal medium'>${checkbox_name}</label>
+                                <label for='${checkbox_name}' class='normal small'>${checkbox_name}</label>
                                 <div class="medium prompt">${procedure.description}</div>
                             </div>
                         </div>`;
@@ -346,7 +346,7 @@
                     $("#slide-panel-body").append(innerHTML);
                 })
                 $("#slider-panel").removeClass("hidden");
-                $("#slider-panel").slideReveal({push: false, width: "35%"}).slideReveal("show");
+                $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
 
             }
         });
