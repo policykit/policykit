@@ -236,7 +236,7 @@
                             variables_dict[key.split(".").pop()] = filter_variable_input[key];
                         });
                     }
-                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
+                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: selected_actions[action], variables: variables_dict}
                 }
             }))
             return {action_type: action, filter: filters_per_action, app_name: selected_actions[action]}

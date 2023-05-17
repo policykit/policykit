@@ -471,6 +471,10 @@
       color: #FFFFFF; 
   }
 
+  .wrong {
+    border: 1px solid red;
+  }
+
 </style>
 {% endblock %}
 
@@ -554,18 +558,18 @@
       if(input.tagName === 'INPUT') {
         if(!input.reportValidity()){
           missing_variables = true;
-          input.style.border = '1px solid red';
+          input.classList.add("wrong");
         } else {
-          input.style.border = '1px solid #bbb';
+          input.classList.remove("wrong");
         }
       } else if(input.tagName === 'SELECT' && input.required){
         // if it is a select-picker object, it is actually an select element enclosed by a div
         let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
         if(selected_options === ""){
           missing_variables = true;
-          input.parentElement.style.border = '1px solid red';
+          input.parentElement.parentElement.classList.add("wrong");
         } else {
-          input.parentElement.style.border = '1px solid rgb(187, 187, 187)';
+          input.parentElement.parentElement.classList.remove("wrong");
         }
       }
     });
