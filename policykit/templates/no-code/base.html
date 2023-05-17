@@ -247,12 +247,13 @@
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    padding: 16px 32px;
+    padding: 8px 32px;
     gap: 16px;
     
     background: #FFFFFF;
     border-top: 1px solid #F1F4F6;
     border-radius: 0px 0px 8px 8px;
+    align-self: stretch;
   }
 
 
@@ -451,28 +452,18 @@
       border: none;
       padding: 12px;
       cursor: pointer;
-      border-radius: 16px;
+      border-radius: 20px;
   }
 
   .secondary {
-      background: transparent;
-      border: 1px solid #bbb;
-      margin: 0 10px 0 0;
-  }
-
-  .secondary:hover {
-      background: #eee;
+      background:rgba(242, 244, 255, 1);
+      color: #4451B2;
   }
 
   .primary {
-      background: #444;
-      color: #fff;
+      background: rgba(68, 81, 178, 1);
+      color: #FFFFFF; 
   }
-
-  .primary:hover {
-      background: #000;
-  }
-
 
 </style>
 {% endblock %}
