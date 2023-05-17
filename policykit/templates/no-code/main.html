@@ -44,6 +44,7 @@
                 <div class="section-body inactive" id="design_custom_action-section-body">
                     <button class="section-inactive-button small-button small info" type="actions">+ Add</button>
                 </div>
+                <div class="section-bottom"></div>
             </section>
         </div>
         <div class="panel-bottom">
@@ -67,10 +68,12 @@
         selected_actions = selected_actions.filter((item) => item !== action);
         $(`#custom-action-${action}`).remove();
         if(selected_actions.length == 0) {
-            $("#design_custom_action-section-body").removeClass("active");
-            $("#design_custom_action-section-body").addClass("inactive");
-            $("#design_custom_action-section-body").empty();
-            $("#design_custom_action-section-body").append('<button class="section-inactive-button small-button small info" type="actions">+ Add</button>')
+            let action_section = $("#design_custom_action-section-body");
+            action_section.removeClass("active");
+            action_section.addClass("inactive");
+            action_section.empty();
+            action_section.append('<button class="section-inactive-button small-button small info" type="actions">+ Add</button>')
+            $("#design_custom_action .section-bottom:first").empty();
         }
     }
     const showFilterParameters = (action, app) => {
@@ -84,6 +87,7 @@
             action_section.removeClass("inactive");
             action_section.addClass("active");
             action_section.empty();
+            $("#design_custom_action .section-bottom:first").append('<button class="button primary" id="design_custom_action-next">Next</button>')
         }
 
         selected_actions.push(action)
@@ -272,6 +276,7 @@
             showFilterModuleVariables(event.target.id);
         }
     });
+
     // listen to the event when users clicks add in a section and we pop up the slide panel
     document.querySelectorAll(".section-inactive-button").forEach(btn => {
         btn.addEventListener("click", (event) => {

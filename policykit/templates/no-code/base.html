@@ -241,6 +241,21 @@
     border: none;
   }
 
+  /* For the section bottom */
+  .section-bottom {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 32px;
+    gap: 16px;
+    
+    background: #FFFFFF;
+    border-top: 1px solid #F1F4F6;
+    border-radius: 0px 0px 8px 8px;
+  }
+
+
   /*for the actions list in the slider panel*/
   .actions-checkbox-section {
     display: flex;
@@ -285,38 +300,7 @@
     flex-grow: 0;
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  .description {
-    margin: 0 0 32px;
-  }
-  
-  .selectpicker-group {
-      display: flex;
-      justify-content: center;
-      line-height: 50px;
-  }
-
-  .selectpicker-group label {
-      margin-right: 10px;
-  }
-
-  .action-picker div {
-      margin: 0px 0px 10px 24px;
-  }
-
-  /*For the blocks of action filters*/
+  /* For the blocks of action filters and displays of variables */
   .custom-action-group {
     display: flex;
     flex-direction: column;
@@ -370,6 +354,11 @@
     flex-shrink: 1;
   }
 
+  .variable-prompt {
+      font-size: 10px;
+      color: #bbb;
+  }
+
   .variable-item input[type="text"]{
     flex-basis: 85%;
     flex-grow: 1;
@@ -421,6 +410,7 @@
   }
 
 
+
   #module-picker option {
     width: fit-content;
   }
@@ -428,41 +418,34 @@
     font-weight: 500;
     font-size: 19px;
   }
-  .variables {
-        margin: 0 0 24px;
-        justify-content: center;
-        align-items: center;
-    }
 
-  .variable-values {
-      margin: 5px 0 4px 0;
+   .description {
+    margin: 0 0 32px;
+  }
+  
+  .selectpicker-group {
+      display: flex;
       justify-content: center;
-      align-items: center;
-
+      line-height: 50px;
   }
 
-  .variable-label {
-      margin: 2px 6px 4px 2px;
+  .selectpicker-group label {
+      margin-right: 10px;
   }
 
-  .variable-prompt {
-      font-size: 10px;
-      color: #bbb;
+  .action-picker div {
+      margin: 0px 0px 10px 24px;
   }
 
-  input
-  .variable-input {
-      padding: 8px;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      width: 300px;
-  }
+
+  
 
   .button-group {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
   }
+
 
   .button {
       border: none;
