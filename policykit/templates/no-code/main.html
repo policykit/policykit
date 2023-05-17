@@ -259,7 +259,7 @@
     }
 
     var selected_procedure_pk = null;
-    const showProcedureVariables = (procedure_pk) => {
+    const showProcedureVariables = (procedure_pk, app) => {
                
         let procedure_section = $("#design_procedure-section-body");
         // if there are no actions selected before, remove the inactive class and empty the section
@@ -271,7 +271,7 @@
         }
 
         selected_procedure_pk = procedure_pk;
-        let selected_procedure = procedures.find(item => item.pk == selected_procedure_pk);
+        let selected_procedure = procedures[app].find(item => item.pk == selected_procedure_pk);
 
         var procedure_div = document.createElement('div');
         procedure_div.classList.add('custom-action-group');
@@ -335,8 +335,9 @@
             if(event.target.checked){
                 // if the checkbox is checked, then uncheck all other checkboxes
                 $('.procedures-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
-                let procedure_pk = event.target.id.split(".")[1];
-                showProcedureVariables(procedure_pk);
+                let app = event.target.id.split(".")[1];
+                let procedure_pk = event.target.id.split(".")[2];
+                showProcedureVariables(procedure_pk, app);
             }
         }
     });
@@ -390,7 +391,7 @@
                         <div class="checkbox-body">`
                     let this_app_procedures = procedures[app];
                     this_app_procedures.forEach(procedure => {
-                        let checkbox_value = procedure.pk;
+                        let checkbox_value = app + "." + procedure.pk;
                         let checkbox_name = procedure.name;
                         innerHTML += `<div class='procedures-checkbox-item'>
                             <input type='checkbox' name='${checkbox_name}' value='${checkbox_value}' id="procedures-checkbox.${checkbox_value}">
