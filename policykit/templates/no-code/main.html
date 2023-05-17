@@ -271,6 +271,7 @@
         }
 
         selected_procedure_pk = procedure_pk;
+        let selected_procedure = procedures.find(item => item.pk == selected_procedure_pk);
 
         var procedure_div = document.createElement('div');
         procedure_div.classList.add('custom-action-group');
@@ -280,7 +281,7 @@
         var procedure_label = document.createElement('label');
         procedure_label.classList.add('custom-action-label');
         procedure_label.classList.add('large');
-        procedure_label.innerHTML = capitalize(procedure);
+        procedure_label.innerHTML = capitalize(selected_procedure.name);
         procedure_div.appendChild(procedure_label);
 
         
@@ -288,7 +289,7 @@
         variable_div.classList.add('custom-procedure-variables');
         procedure_div.appendChild(variable_div);
 
-        var selected_procedure = procedures.find(item => item.pk == selected_procedure_pk);
+       
         
         /*
             The expected html structure is as follows:
