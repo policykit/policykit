@@ -370,7 +370,7 @@
     flex-shrink: 5;
 
     background: rgba(241, 244, 246, 1);
-    border-radius: 2px;
+    border-radius: 4px;
     border: none;
 
   }
@@ -381,7 +381,8 @@
     flex-shrink: 0;
     background: rgba(241, 244, 246, 1);
     border: none;
-    border-radius: 2px;
+    border-radius: 4px;
+    text-align: center;
   }
 
   .variable-item .selectpicker-wrapper {
@@ -661,12 +662,13 @@
           input_validate += "  multiple";
         }
         let innerHTML = `<label for='${id}'>${displayed_name}</label>
+                      <div class='selectpicker-wrapper'>
                       <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
         
         options[variable["entity"]].forEach(entity => {
           innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
         });
-        innerHTML += `</select>${prompt}</div>`;
+        innerHTML += `</select>${prompt}</div></div>`;
         text.innerHTML = innerHTML;
         
       } else {
