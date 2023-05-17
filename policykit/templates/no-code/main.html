@@ -279,6 +279,8 @@
     document.body.addEventListener('click', (event) => {
         if( event.target.id === "design_custom_action-next") {
             collectCustomActionData();
+            $("#slider-panel").addClass("hidden");
+            $("#slider-panel").slideReveal({push: false, width: "30%"}).slideReveal("hide");
         }
     })
 
