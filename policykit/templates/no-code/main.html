@@ -258,6 +258,56 @@
         }
     }
 
+    var selected_procedure_pk = null;
+    const showProcedureVariables = (procedure_pk) => {
+               
+        let procedure_section = $("#design_procedure-section-body");
+        // if there are no actions selected before, remove the inactive class and empty the section
+        if(selected_procedure_pk === null) {
+            procedure_section.removeClass("inactive");
+            procedure_section.addClass("active");
+            procedure_section.empty();
+            $("#design_custom_action .section-bottom:first").append('<button class="button primary medium" id="design_procedure-next">Next</button>')
+        }
+
+        selected_procedure_pk = procedure_pk;
+
+        var procedure_div = document.createElement('div');
+        procedure_div.classList.add('custom-action-group');
+        procedure_div.id = `custom-procedure-${procedure_pk}`;
+
+        // add a label for this action in action_div
+        var procedure_label = document.createElement('label');
+        procedure_label.classList.add('custom-action-label');
+        procedure_label.classList.add('large');
+        procedure_label.innerHTML = capitalize(procedure);
+        procedure_div.appendChild(procedure_label);
+
+        
+        var variable_div = document.createElement('div');
+        variable_div.classList.add('custom-procedure-variables');
+        procedure_div.appendChild(variable_div);
+
+        var selected_procedure = procedures.find(item => item.pk == selected_procedure_pk);
+        
+        /*
+            The expected html structure is as follows:
+
+             <div id="procedure-variables" class="variables">
+                <div class="variable">
+                    <div class='variable-values'>
+                        <label class='variable-label' for='${item.name}'>${item.label}</label>
+                        <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                    </div>
+                    <p class='variable-prompt text-small'>${item.prompt}</p>`
+                </div>
+                <div class="variable"> ... </div>
+            </div>
+        */
+        selected_procedure["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variable_div, options=entities)
+        })
+    }
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
         console.log("custom action data: " + JSON.stringify(custom_action_data));
@@ -280,6 +330,13 @@
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
             showFilterModuleVariables(event.target.id);
+        } else if(event.target.id.startsWith("procedures-checkbox")){
+            if(event.target.checked){
+                // if the checkbox is checked, then uncheck all other checkboxes
+                $('.procedures-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
+                let procedure_pk = event.target.id.split(".")[1];
+                showProcedureVariables(procedure_pk);
+            }
         }
     });
 
