@@ -248,13 +248,6 @@
     
     // document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
     // showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
-    document.body.addEventListener('change', ( event ) => {
-        // check whether the id starts with "select-", which we named all fields of the selected actions
-        // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
-        if( event.target.id.startsWith("select-") ){
-            showFilterModuleVariables(event.target.id);
-        }
-    });
     
     // listen to events on the checkboxes in the slide panel
     document.body.addEventListener('change', (event) => {
@@ -267,6 +260,10 @@
             } else {
                 removeFilterParameters(action, app);
             }
+        } else if( event.target.id.startsWith("select-") ){
+            // check whether the id starts with "select-", which we named all fields of the selected actions
+            // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
+            showFilterModuleVariables(event.target.id);
         }
     });
     // listen to the event when users clicks add in a section and we pop up the slide panel
