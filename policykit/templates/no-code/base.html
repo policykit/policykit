@@ -348,7 +348,7 @@
   .variable-item {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: start;
     align-items: center;
     padding: 0px;
     gap: 8px;
@@ -369,12 +369,20 @@
     flex-grow: 1;
     flex-shrink: 5;
 
+    background: #F8F9FA;
+    border-bottom: 1px solid #F1F4F6;
+    border-radius: 2px;
+
   }
 
-  .variable-input input:not([type="text"]) {
+  .variable-item input:not([type="text"]) {
     flex-basis: 30%;
     flex-grow: 0;
     flex-shrink: 0;
+    background: #F8F9FA;
+
+    border-bottom: 1px solid #F1F4F6;
+    border-radius: 2px;
   }
 
   .variable-item .selectpicker-wrapper {
