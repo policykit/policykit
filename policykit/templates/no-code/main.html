@@ -12,13 +12,13 @@
 <div class="nocode-container">
     <div class="nocode-sidebar">
         <section>
-            <div class="variables section-body">
-                <div class="variable-item">
-                    <label for='name'>Policy Name</label>
-                    <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
+            <div class="section-body active">
+                <div class="column-variable-item">
+                    <label for='name' class="medium info">Policy Name</label>
+                    <input type='text' value='{{policy.name}}' data-id='name' class='variable-input' name='name'/>
                 </div>
-                <div class="variable-item">
-                    <label for='description'>Description</label>
+                <div class="column-variable-item">
+                    <label for='description' class="medium info">Description</label>
                     <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
                 </div>
             </div>
@@ -254,9 +254,6 @@
     }
 
     document.getElementById("submit_policy").addEventListener('click', goCreateProcedure);
-    
-    // document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
-    // showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
     
     // listen to events on the checkboxes in the slide panel
     document.body.addEventListener('change', (event) => {
