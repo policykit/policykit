@@ -504,6 +504,9 @@
 
 {% block scripts %}
 <script>
+  const capitalize = (word) => {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }
   // ids for UI sections
   const stepElementIds = {
     policytype: 'choose_policy_type',
@@ -661,7 +664,7 @@
       // if it is not empty, null, or undefined
       prompt = `<p class='variable-prompt text-small'>${variable.prompt}</p>`;
 
-      let displayed_name = variable.name;
+      let displayed_name = capitalize(variable.name);
       if(options && variable["entity"] && (variable["entity"] in options)){
         // if it is, then we use a select as the input box
         if(variable["is_list"] ?? false){
