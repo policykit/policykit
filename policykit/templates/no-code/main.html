@@ -173,7 +173,7 @@
         }
 
         const variables = filter.variables;
-        var field_div = document.getElementById(select_id).parentElement.parentElement.parentElement; 
+        var field_div = document.getElementById(select_id).closest(".custom-action-field"); 
         // now at the level of the action-field div
         while (field_div.childNodes.length > 1) {
             field_div.removeChild(field_div.lastChild);
