@@ -291,7 +291,7 @@
 
 
   /*for the actions list in the slider panel*/
-  .actions-checkbox-section {
+  .checkbox-section {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -301,12 +301,12 @@
     align-self: stretch;
   }
 
-  .actions-checkbox-header {
+  .checkbox-header {
     border-bottom: 1px solid #F3F5F7;
     align-self: stretch;
   }
 
-  .action-checkbox-body {
+  .checkbox-body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -324,16 +324,40 @@
     gap: 16px;
   }
 
-  .actions-checkbox-input {
+  .actions-checkbox-item input {
     flex-grow: 0;
     border: 1px solid #4451B2;
     border-radius: 2px;
   }
 
-  .actions-checkbox-label{
+  .actions-checkbox-item label{
     flex-grow: 0;
   }
 
+  /* for the procedures list in the slider panel */
+  .procedures-checkbox-item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 24px;
+    align-self: stretch;
+  }
+
+  .procedures-checkbox-item input {
+    border: 1px solid #4451B2;
+    border-radius: 10px;
+  }
+
+  .procedures-checkbox-item .procedure-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 24px;
+    align-self: stretch;
+  }
+  
   /* For the blocks of action filters and displays of variables */
   .custom-action-group {
     display: flex;

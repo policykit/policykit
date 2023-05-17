@@ -58,3 +58,24 @@ def get_filter_modules(apps):
                     "variables": filter.loads("variables")
                 })
     return filter_modules
+
+def get_all_platforms(user):
+    # get all platforms this community is on
+    platforms = user.community.community.get_platform_communities()
+    platform_names = [platform.platform for platform in platforms]
+    return platform_names
+
+def get_procedures(platforms):
+    from policyengine.models import Procedure
+    # load all procedure templates
+    procedure_objects= Procedure.objects.all()
+    procedures = { platform: [] for platform in platforms }
+   
+    for template in procedure_objects:
+        procedures[template.platform.lower()].append({
+            "name": template.name, 
+            "description": template.description,
+            "pk": template.pk, 
+            "variables": template.loads("variables")   
+        })
+    return procedures

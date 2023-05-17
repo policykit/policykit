@@ -910,6 +910,12 @@ def main(request):
     base_actions, action_filter_kinds = FrontendUtils.get_base_actions(user)
     # for filter modules, only show the ones that are applicable to platforms base actions are available on
     filter_modules = FrontendUtils.get_filter_modules(list(base_actions.keys()))
+
+    # get all platforms this community is on
+    platforms = FrontendUtils.get_all_platforms(user)
+    # get all procedures available to this community
+    procedures = FrontendUtils.get_procedures(platforms)
+
     # get all entities in the community
     entities = Utils.load_entities(user.community)
     trigger = request.GET.get("trigger", "false")
@@ -918,6 +924,10 @@ def main(request):
         "base_actions": json.dumps(base_actions),
         "action_filter_kinds": json.dumps(action_filter_kinds),
         "filter_modules": json.dumps(filter_modules),
+
+        "platforms": json.dumps(platforms),
+        "procedures": json.dumps(procedures),
+        
         "entities": json.dumps(entities),
     })
 
