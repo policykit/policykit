@@ -226,7 +226,7 @@
                     var variables_dict = {}
                     field_variables_div = action_field_div.getElementsByClassName('custom-action-filter-variable')[0];
                     for(var i = 0; i < field_variables_div.children.length; i++){
-                        filter_variable_div = 
+                        let filter_variable_div = field_variables_div.children[i];
                         // check whether all variables are filled and alert with the missing variable names
                         missing_input = checkMissingVariable(null, elements=filter_variable_div);
                         if(missing_input) break;
