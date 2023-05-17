@@ -81,6 +81,12 @@
     font-size: 14px;
   }
 
+  .smaller {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-size: 12px;
+  }
+
   .normal {
     color: #3A3A3A;
   }
@@ -369,7 +375,7 @@
     flex-direction: column;
     align-items: flex-start;
     padding: 5px 16px;
-    gap: 16px;
+    gap: 10px;
     
     border: 1px solid #F3F5F7;
     border-radius: 8px;
@@ -745,7 +751,7 @@
       var prompt = "";
       if(Boolean(variable["prompt"]) == true)
       // if it is not empty, null, or undefined
-      prompt = `<p class='variable-prompt text-small'>${variable.prompt}</p>`;
+      prompt = `<p class='prompt smaller'>${variable.prompt}</p>`;
 
       let displayed_name = capitalize(variable.name);
       if(options && variable["entity"] && (variable["entity"] in options)){
@@ -753,7 +759,7 @@
         if(variable["is_list"] ?? false){
           input_validate += "  multiple";
         }
-        let innerHTML = `<label for='${id}'>${displayed_name}</label>
+        let innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
                       <div class='selectpicker-wrapper'>
                       <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
         
@@ -790,13 +796,13 @@
             input_validate += `  value='${variable.default_value}'`;
         if(datalist){
           // if there is a datalist, then we need to add the datalist to the parent div
-          text.innerHTML = `<label for='${id}'>${displayed_name}</label>
+          text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
                             <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
                             ${prompt}
                             ${datalist}
                         </div>`;
         } else {
-          text.innerHTML = `<label for='${id}'>${displayed_name}</label>
+          text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
                               <input class='variable-input' data-id='${id}' ${input_validate}/>
                               ${prompt}
                           </div>`;
