@@ -84,6 +84,7 @@
   .normal {
     color: #3A3A3A;
   }
+
   .prompt {
     color: #52677A;
     font-weight: 300;
@@ -126,7 +127,30 @@
     display: flex;
     flex-direction: column;
   }
+  /* for the slider bar before the slider panel */
+  .nocode-sidebar section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 16px 32px;
+    gap: 32px;
 
+    background: #FFFFFF;
+    border: 1px solid #F1F4F6;
+    border-radius: 4px;
+  }
+
+  .nocode-sidebar.section-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 32px;
+
+    align-self: stretch;
+    border-radius: 4px;
+  }
   /*for the slider panel that pops up when selecting actions or procedures*/
   #slider-panel {
     display: flex;
@@ -350,6 +374,9 @@
 
     border-radius: 4px;
     align-self: stretch;
+  }
+
+  .column-variable-item label {
 
   }
   .variable-item {
