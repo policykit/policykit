@@ -242,7 +242,10 @@
             return {action_type: action, filter: filters_per_action, app_name: selected_actions[action]}
         });
         // only submit the data if all variables are filled
-        if(missing_input) return; else return filters;
+        if(missing_input) return; else {
+            console.log("collect custom action data: " + JSON.stringify(filters));
+            return filters;
+        }
     }
 
     const goCreateProcedure = async () => {
