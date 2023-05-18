@@ -832,24 +832,23 @@
               input_validate += ' type="datetime-local"';
         }
 
-        if(variable["default_value"])
-          // if it is a select input, then a default value is actually not much needed
-            input_validate += `  value='${variable.default_value}'`;
         
         if(variable["type"] === "string"){
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                              <textarea class='variable-input' data-id='${id}' ${input_validate}>
-                                ${variable.default_value ? variable.default_value.trim() : ""}
-                              </textarea>
+                              <textarea class='variable-input' data-id='${id}' ${input_validate}>${variable.default_value ? variable.default_value.trim() : ""}</textarea>
                               ${prompt}
                           </div>`;
-        } else 
+        } else {
+          if(variable["default_value"])
+          // if it is a select input, then a default value is actually not much needed
+            input_validate += `  value='${variable.default_value}'`;
           // if there is a datalist, then we need to add the datalist to the parent div
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
                             <input class='variable-input' data-id='${id}' ${input_validate} ${datalist ? 'list="variable-options"' : ''}/>
                             ${prompt}
                             ${datalist ? datalist : ""}
                         </div>`;
+        }
       }
       parentDiv.appendChild(text);
       $(".selectpicker").selectpicker("refresh");
