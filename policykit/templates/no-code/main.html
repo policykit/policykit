@@ -335,7 +335,7 @@
         if(checkMissingVariable("design_procedure")) return;
         
         const procedure_data = {
-            procedure_index: selected_procedure_value,
+            procedure_index: selected_procedure_value.split(".")[1],
             procedure_variables: getVariableDataInStep("design_procedure"),
         }
         console.log("procedure_data " + JSON.stringify(procedure_data));
@@ -407,7 +407,7 @@
         let children = document.getElementById(`design_${stage}-section-body`).children;
         for(let i=0; i<children.length; i++) {
             let child = children[i];
-            let execution_codename = child.id.split(".")[2];
+            let execution_codename = child.id.split(".")[3];
             let data = getVariableDataInStep(null, elements=child);
             execution_data.push({
                 execution_codename: execution_codename,
