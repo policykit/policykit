@@ -61,7 +61,7 @@
                 </div>
                 <div class="section-bottom"></div>
             </section>
-            <section id="design_success">
+            <section id="design_fail">
                 <div class="section-header">When Actions fail <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_fail-section-body">
                     <button class="section-inactive-button small-button small info" type="executions" stage="fail">+ Add</button>
@@ -400,7 +400,6 @@
         let children = document.getElementById(`design_${stage}-section-body`).children;
         for(let i=0; i<children.length; i++) {
             let child = children[i];
-            console.log("child: " + child.id);
             let execution_codename = child.id.split(".")[2];
             let data = getVariableDataInStep(null, elements=child);
             execution_data.push({
