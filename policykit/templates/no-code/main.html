@@ -498,8 +498,10 @@
         executions: "Select one or more executions from the left sidebar"
     }
     const showSliderPanel = (options) => {
+        console.log("show slider panel: " + focus_section_id);
         let focus_section = document.getElementById(focus_section_id);
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+        console.log("prompt button: " + prompt_button);
         let slidepanel_type = prompt_button.getAttribute("type");
 
         // show prompt text in the focus section
@@ -547,10 +549,10 @@
             let button = event.target;
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
-                focus_section_id = "design_custom_action"
+                focus_section_id = "design_custom_action";
                 showSliderPanel(base_actions);
             } else if(slidepanel_type == "procedures"){
-                focus_section = "design_procedure"
+                focus_section = "design_procedure";
                 showSliderPanel(procedures);
             } else if(slidepanel_type === "executions"){
                 let stage = button.getAttribute("stage");
