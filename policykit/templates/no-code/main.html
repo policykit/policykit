@@ -501,8 +501,8 @@
         console.log("show slider panel: " + focus_section_id);
         let focus_section = document.getElementById(focus_section_id);
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
-        console.log("prompt button: " + prompt_button);
         let slidepanel_type = prompt_button.getAttribute("type");
+        console.log("slidepanel type: " + slidepanel_type);
 
         // show prompt text in the focus section
         prompt_button.classList.remove("info");
@@ -545,7 +545,6 @@
         btn.addEventListener("click", (event) => {
             // when the user clicks on the inactive button, the section should be activated
             // and the button should be changed to active
-            focus_section_id = "design_custom_action"
             let button = event.target;
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
