@@ -308,7 +308,7 @@
                
         let procedure_section = $("#design_procedure-section-body");
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_procedure_value === null) {
+        if(selected_procedure_value === null || selected_procedure_value !== procedure_value) {
             procedure_section.removeClass("inactive");
             procedure_section.addClass("active");
             $("#design_procedure .section-bottom:first").append('<button class="button primary medium section-next" id="design_procedure-next">Next</button>')
