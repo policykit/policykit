@@ -298,31 +298,6 @@ def determine_policy_kind(is_trigger, app_name):
     else:
         return Policy.PLATFORM
 
-def get_execution_variables(app_name, action_codename):
-    action_model = apps.get_model(app_name, action_codename)
-    if hasattr(action_model, "execution_codes"):
-        return action_model.EXECUTE_VARIABLES
-    else:
-        return None
-    
-def extract_executable_actions(community):
-    from policyengine.models import PolicyActionKind
-    actions = get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
-
-    executable_actions = dict()
-    execution_variables = dict()
-    for app_name, action_list in actions.items():
-        for action_code, action_name in action_list:
-            variables = get_execution_variables(app_name, action_code)
-            # only not None if the action has execution_codes function
-            if variables:
-                if app_name not in executable_actions:
-                    executable_actions[app_name] = []
-                executable_actions[app_name].append((action_code, action_name))
-                execution_variables[action_code] = variables
-    
-    return executable_actions, execution_variables
-
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
         object[field] = json.dumps(object[field])
@@ -361,27 +336,4 @@ def load_templates(kind):
                 for filtermodule in filtermodule_data:
                     filtermodule = dump_to_JSON(filtermodule, FilterModule.JSON_FIELDS)
                     FilterModule.objects.create(**filtermodule)
-
-def load_entities(platform):
-    SUPPORTED_ENTITIES = ["CommunityUser", "Role", "Permission", "SlackChannel"]
-    
-    entities = {}
-    # extract all readable names of CommunityUsers on this platform
-    entities["CommunityUser"] = [{"name": user.readable_name, "value": user.username} for user in platform.get_users()]
-
-    # extract all roles on this platform
-    entities["Role"] = [{"name": role.role_name, "value": role.role_name } for role in platform.get_roles()]
-
-    # extract all permissions on this platform
-    entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
-
-    # extract all Slack channels in this platform
-    if platform.platform.upper() == "SLACK":
-        entities["SlackChannel"] = [
-                            {
-                                "name": channel.get("name", channel["id"]), 
-                                "value": channel["id"]
-                            } for channel in platform.get_conversations(types=["channel"])
-                        ]
-    return entities
 

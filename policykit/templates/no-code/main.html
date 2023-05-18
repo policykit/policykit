@@ -54,6 +54,13 @@
                 </div>
                 <div class="section-bottom"></div>
             </section>
+            <section id="design_success">
+                <div class="section-header">When Actions pass<span class="small prompt">(optional)</span></div>
+                <div class="section-body inactive" id="design_success-section-body">
+                    <button class="section-inactive-button small-button small info" type="executions">+ Add</button>
+                </div>
+                <div class="section-bottom"></div>
+            </section>
         </div>
         <div class="panel-bottom">
             <button class="button secondary"> Go back </button>
@@ -71,6 +78,7 @@
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
     const platforms = JSON.parse('{{platforms | safe}}');
     const procedures = JSON.parse('{{procedures | safe}}');
+    const executions = JSON.parse('{{executions | safe}}');
     const entities = JSON.parse('{{entities|safe}}');
 
     var selected_actions = {};
@@ -445,6 +453,29 @@
                 $("#slider-panel").removeClass("hidden");
                 $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
 
+            } else if(slidepanel_type === "executions"){
+                button.innerHTML = "Select one or more executions from the left sidebar";
+                button.classList.remove("info");
+                button.classList.add("prompt");
+                $("#slide-panel-body").empty();
+                Object.keys(executions).forEach(app => {
+                    let innerHTML = `<div class='checkbox-section'>
+                        <div class='checkbox-header large'>${capitalize(app)}</div>
+                        <div class="checkbox-body">`
+                    let this_app_actions = executions[app];
+                    this_app_actions.forEach(action => {
+                        let action_value = app + "." + action[0];
+                        let action_name = action[1].replace(app, "").replace(capitalize(app), "");
+                        innerHTML += `<div class='actions-checkbox-item'>
+                            <input type='checkbox' name='${action_value}' value='${action_value}' id="actions-checkbox.${action_value}">
+                            <label for='${action_value}' class='normal medium'>${action_name}</label>
+                        </div>`;
+                    });
+                    innerHTML += "</div></div>";
+                    $("#slide-panel-body").append(innerHTML);
+                })
+                $("#slider-panel").removeClass("hidden");
+                $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
             }
         });
     });

@@ -916,8 +916,11 @@ def main(request):
     # get all procedures available to this community
     procedures = FrontendUtils.get_procedures(platforms)
 
+    # get all execution modules available to this community
+    executions = FrontendUtils.extract_executable_actions(user)
+
     # get all entities in the community
-    entities = Utils.load_entities(user.community)
+    entities = FrontendUtils.load_entities(user.community)
     trigger = request.GET.get("trigger", "false")
     return render(request, "no-code/main.html", {
         "trigger": trigger,
@@ -927,7 +930,9 @@ def main(request):
 
         "platforms": json.dumps(platforms),
         "procedures": json.dumps(procedures),
-        
+
+        "executions": json.dumps(executions),
+
         "entities": json.dumps(entities),
     })
 
