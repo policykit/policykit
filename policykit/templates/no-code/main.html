@@ -465,7 +465,6 @@
 
 
     document.body.addEventListener('click', (event) => {
-        console.log("event target id: " + event.target.id);
         if( event.target.id === "design_custom_action-next") {
             if(!collectCustomActionData()) return;
             $("#slider-panel").addClass("hidden");
@@ -497,7 +496,6 @@
         executions: "Select one or more executions from the left sidebar"
     }
     const showSliderPanel = (options, focus_section_id) => {
-        console.log("show slider panel: " + focus_section_id);
         let focus_section = document.getElementById(focus_section_id);
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
         let slidepanel_type = prompt_button.getAttribute("type");
@@ -526,7 +524,7 @@
                             <input type='checkbox' name='${option.name}' value='${option.value}' id="procedures-checkbox.${option.value}">
                             <div class="procedures-label">
                                 <label for='procedures-checkbox.${option.value}' class='normal medium'>${option.name}</label>
-                                <div class="small prompt">${procedure.description}</div>
+                                <div class="small prompt">${option.description}</div>
                             </div>
                         </div>`;
                 }
