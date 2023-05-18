@@ -331,7 +331,7 @@
     const collectProcedureData = () => {
         if(selected_procedure_pk === null) return false;
 
-        if(checkMissingVariable()) return;
+        if(checkMissingVariable("design_procedure")) return;
         
         const procedure_data = {
             procedure_index: procedure_index,
@@ -425,7 +425,7 @@
                 $("#slide-panel-body").empty();
                 Object.keys(procedures).forEach(app => {
                     let innerHTML = `<div class='checkbox-section'>
-                        <div class='checkbox-header medium'>${capitalize(app)}</div>
+                        <div class='checkbox-header large'>${capitalize(app)}</div>
                         <div class="checkbox-body">`
                     let this_app_procedures = procedures[app];
                     this_app_procedures.forEach(procedure => {
