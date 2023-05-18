@@ -916,6 +916,9 @@ def main(request):
     # get all procedures available to this community
     procedures = FrontendUtils.get_procedures(platforms)
 
+    # get all transformers available to this community
+    transformers = FrontendUtils.get_transformers()
+
     # get all execution modules available to this community
     executions = FrontendUtils.extract_executable_actions(user)
 
@@ -927,12 +930,10 @@ def main(request):
         "base_actions": json.dumps(base_actions),
         "action_filter_kinds": json.dumps(action_filter_kinds),
         "filter_modules": json.dumps(filter_modules),
-
         "platforms": json.dumps(platforms),
         "procedures": json.dumps(procedures),
-
+        "transformers": json.dumps(transformers),
         "executions": json.dumps(executions),
-
         "entities": json.dumps(entities),
     })
 

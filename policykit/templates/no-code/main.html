@@ -61,6 +61,13 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
+            <section id="design_transformer">
+                <div class="section-header">Transformers<span class="small prompt">&nbsp;(optional)</span></div>
+                <div class="section-body inactive" id="design_transformer-section-body">
+                    <button class="section-inactive-button small-button small info" type="transformers">+ Add</button>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section>
             <section id="design_notify">
                 <div class="section-header">When Procedures start <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_notify-section-body">
@@ -101,6 +108,7 @@
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
     const platforms = JSON.parse('{{platforms | safe}}');
     const procedures = JSON.parse('{{procedures | safe}}');
+    const transformers = JSON.parse('{{transformers | safe}}');
     const executions = JSON.parse('{{executions | safe}}');
     const entities = JSON.parse('{{entities|safe}}');
 
@@ -488,6 +496,8 @@
             } else if(target.id === "design_procedure-next"){
                 if(!collectProcedureData()) return;
                 hideSliderPanel();
+            } else if(target.id === "design_transformer-next"){
+                hideSliderPanel();
             } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(target.id)){
                 const regex = /design_(\w+)-next/;
                 let match = target.id.match(regex);
@@ -506,6 +516,10 @@
                 if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_procedure";
                 showSliderPanel(procedures);
+            } else if(slidepanel_type == "transformers") {
+                if(focus_section_id) hideSliderPanel();
+                focus_section_id = "design_transformer";
+                showSliderPanel(transformers);
             } else if(slidepanel_type === "executions"){
                 if(focus_section_id) hideSliderPanel();
                 let stage = button.getAttribute("stage");
@@ -537,7 +551,6 @@
         let focus_section = document.getElementById(focus_section_id);
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
         let slidepanel_type = prompt_button.getAttribute("type");
-        console.log("slidepanel type: " + slidepanel_type);
 
         // show prompt text in the focus section
         prompt_button.classList.remove("info");
@@ -557,11 +570,11 @@
                         <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${option.value}">
                         <label for='${slidepanel_type}-checkbox.${option.value}' class='normal medium'>${option.name}</label>
                     </div>`;
-                } else if(slidepanel_type == "procedures"){
+                } else if(slidepanel_type == "procedures" || slidepanel_type == "transformers"){
                     innerHTML += `<div class='procedures-checkbox-item'>
-                            <input type='checkbox' name='${option.name}' value='${option.value}' id="procedures-checkbox.${option.value}">
+                            <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${option.value}">
                             <div class="procedures-label">
-                                <label for='procedures-checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                                <label for='${slidepanel_type}-checkbox.${option.value}' class='normal medium'>${option.name}</label>
                                 <div class="small prompt">${option.description}</div>
                             </div>
                         </div>`;

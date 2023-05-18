@@ -83,6 +83,22 @@ def get_procedures(platforms):
         })
     return procedures
 
+
+def get_transformers():
+    from policyengine.models import CheckModule
+    
+    # prepare information about module templates
+    transformers_objects = CheckModule.objects.all()
+    transformers = []
+    for template in transformers_objects:
+        transformers.append({
+            "name": template.name, 
+            "value": template.pk, 
+            "description": template.description,
+            "variables": template.loads("variables")
+        })
+    return {"all": transformers}
+
 def get_execution_variables(app_name, action_codename):
     action_model = apps.get_model(app_name, action_codename)
     if hasattr(action_model, "execution_codes"):
