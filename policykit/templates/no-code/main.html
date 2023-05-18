@@ -133,7 +133,7 @@
             action_section.removeClass("inactive");
             action_section.addClass("active");
             action_section.empty();
-            $("#design_custom_action .section-bottom:first").append('<button class="button primary medium" class="section-next" id="design_custom_action-next">Next</button>')
+            $("#design_custom_action .section-bottom:first").append('<button class="button primary medium section-next" id="design_custom_action-next">Next</button>')
         }
 
         selected_actions[action] = app;
@@ -311,7 +311,7 @@
         if(selected_procedure_value === null) {
             procedure_section.removeClass("inactive");
             procedure_section.addClass("active");
-            $("#design_procedure .section-bottom:first").append('<button class="button primary medium" class="section-next" id="design_procedure-next">Next</button>')
+            $("#design_procedure .section-bottom:first").append('<button class="button primary medium section-next" id="design_procedure-next">Next</button>')
         }
 
         procedure_section.empty();
@@ -360,7 +360,7 @@
         if(selected_executions[stage].length == 0) {
             execution_section.removeClass("inactive");
             execution_section.addClass("active");
-            $(`#design_${stage} .section-bottom:first`).append(`<button class="button primary medium" class="section-next" id="design_${stage}-next">Next</button>`)
+            $(`#design_${stage} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${stage}-next">Next</button>`)
         }
 
         selected_executions[stage].push(new_exe_value);
