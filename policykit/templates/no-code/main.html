@@ -259,7 +259,7 @@
     }
 
     var selected_procedure_pk = null;
-    const removeProcedureVariables = (procedure_pk, app) => {
+    const removeProcedureVariables = () => {
         selected_procedure_pk = null;
         let procedure_section = $("#design_procedure-section-body");
         // remove the next button if there are no actions selected
@@ -371,7 +371,7 @@
                 let procedure_pk = event.target.id.split(".")[2];
                 showProcedureVariables(procedure_pk, app);
             } else {
-                removeProcedureVariables(procedure_pk, app);
+                removeProcedureVariables();
             }
         }
     });
