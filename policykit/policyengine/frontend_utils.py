@@ -78,7 +78,7 @@ def get_procedures(platforms):
         procedures[template.platform.lower()].append({
             "name": template.name, 
             "description": template.description,
-            "value": template.platform.lower() + "." + template.pk, 
+            "value": f"{template.platform.lower()}.{template.pk}", 
             "variables": template.loads("variables")   
         })
     return procedures
