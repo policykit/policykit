@@ -286,10 +286,10 @@
         procedure_div.appendChild(procedure_label);
 
         
-        var variable_div = document.createElement('div');
-        variable_div.classList.add('custom-procedure-variables');
-        procedure_div.appendChild(variable_div);
-        procedure_section.append(procedure_div);
+        // var variable_div = document.createElement('div');
+        // variable_div.classList.add('custom-procedure-variables');
+        // procedure_div.appendChild(variable_div);
+        
        
         
         /*
@@ -307,8 +307,9 @@
             </div>
         */
         selected_procedure["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variable_div, options=entities, datalist=null, column=true)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=null, column=true)
         })
+        procedure_section.append(procedure_div);
     }
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
