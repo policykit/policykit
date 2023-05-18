@@ -369,6 +369,7 @@
         if(selected_transformers.includes(new_transformer_value)) return;
 
         if(selected_transformers.length === 0) {
+            transformer_section.empty();
             transformer_section.removeClass("inactive");
             transformer_section.addClass("active");
             $("#design_transformer .section-bottom").removeClass("hidden");
@@ -602,6 +603,7 @@
     const prompt_button_text = {
         actions: "Select one or more actions from the left sidebar",
         procedures: "Select a procedure from the left sidebar",
+        transformers: "Select one or more transformers from the left sidebar",
         executions: "Select one or more executions from the left sidebar"
     }
 
