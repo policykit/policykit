@@ -337,7 +337,7 @@
         if(selected_executions[stage].length == 0) {
             execution_section.removeClass("inactive");
             execution_section.addClass("active");
-            $(`#design_${stage} .section-bottom:first").append('<button class="button primary medium" id="design_${stage}-next">Next</button>`)
+            $(`#design_${stage} .section-bottom:first`).append('<button class="button primary medium" id="design_${stage}-next">Next</button>')
         }
 
         selected_executions[stage].push(new_exe_codename);
