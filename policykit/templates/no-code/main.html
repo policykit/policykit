@@ -57,7 +57,7 @@
             <section id="design_success">
                 <div class="section-header">When Actions pass <span class="small prompt">&nbsp;&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_success-section-body">
-                    <button class="section-inactive-button small-button small info" type="executions">+ Add</button>
+                    <button class="section-inactive-button small-button small info" type="executions" stage="success">+ Add</button>
                 </div>
                 <div class="section-bottom"></div>
             </section>
@@ -360,6 +360,8 @@
         new_execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
         })
+
+
     }
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
@@ -392,6 +394,14 @@
                 showProcedureVariables(procedure_pk, app);
             } else {
                 removeProcedureVariables();
+            }
+        } else if(event.target.id.includes("executions-checkbox")){
+            let id = event.target.id;
+            let stage = id.split(".")[1];
+            let app = id.split(".")[2];
+            let execution_codename = id.split(".")[3];
+            if(event.target.checked){
+                showExecutionVariables(stage, execution_codename, app);
             }
         }
     });
@@ -466,6 +476,8 @@
                 $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
 
             } else if(slidepanel_type === "executions"){
+                let stage = button.getAttribute("stage");
+
                 button.innerHTML = "Select one or more executions from the left sidebar";
                 button.classList.remove("info");
                 button.classList.add("prompt");
@@ -479,7 +491,7 @@
                         let action_value = app + "." + action.codename;
                         let action_name = action.name.replace(app, "").replace(capitalize(app), "");
                         innerHTML += `<div class='actions-checkbox-item'>
-                            <input type='checkbox' name='${action_value}' value='${action_value}' id="success-executions-checkbox.${action_value}">
+                            <input type='checkbox' name='${action_value}' value='${action_value}' id="executions-checkbox.${stage}.${action_value}">
                             <label for='${action_value}' class='normal medium'>${action_name}</label>
                         </div>`;
                     });
