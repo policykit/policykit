@@ -643,7 +643,7 @@
         
         Array.from(inputElements).forEach(input => {
           // if it is an input element
-          if(input.tagName === 'INPUT'){
+          if(input.tagName === 'INPUT' || input.tagName === 'TEXTAREA'){
             let value = input.value;
             /* 
               the display of a input box that shows a date and time is for the conveience of the user,
@@ -813,7 +813,13 @@
         if(variable["default_value"])
           // if it is a select input, then a default value is actually not much needed
             input_validate += `  value='${variable.default_value}'`;
-        if(datalist){
+        
+        if(variable["type"] === "string"){
+          text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
+                              <textarea class='variable-input' data-id='${id}' ${input_validate}/>
+                              ${prompt}
+                          </div>`;
+        } else if(datalist){
           // if there is a datalist, then we need to add the datalist to the parent div
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
                             <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
