@@ -343,10 +343,10 @@
     }
 
     var selected_executions = {success: [], fail: [], notify: []};
-    const showExecutionVariables = (stage, new_exe_codename, app) => {
+    const showExecutionVariables = (stage, new_exe_value, app) => {
         let execution_section = $(`#design_${stage}-section-body`);
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_executions[stage].includes(new_exe_codename)) return;
+        if(selected_executions[stage].includes(new_exe_value)) return;
 
         if(selected_executions[stage].length == 0) {
             execution_section.removeClass("inactive");
@@ -354,14 +354,14 @@
             $(`#design_${stage} .section-bottom:first`).append(`<button class="button primary medium" id="design_${stage}-next">Next</button>`)
         }
 
-        selected_executions[stage].push(new_exe_codename);
+        selected_executions[stage].push(new_exe_value);
         execution_section.empty();
 
-        let new_execution = executions[app].find(item => item.codename === new_exe_codename);
+        let new_execution = executions[app].find(item => item.value === new_exe_value);
 
         var execution_div = document.createElement('div');
         execution_div.classList.add('custom-group');
-        execution_div.id = `custom-execution.${stage}.${new_exe_codename}`;
+        execution_div.id = `custom-execution.${stage}.${new_exe_value}`;
 
         // add a label for this action in action_div
         var execution_label = document.createElement('label');
@@ -456,9 +456,9 @@
             let app = id.split(".")[2];
             let execution_codename = id.split(".")[3];
             if(event.target.checked){
-                showExecutionVariables(stage, execution_codename, app);
+                showExecutionVariables(stage, app + "." + execution_codename, app);
             } else {
-                removeExecutionVariables(stage, execution_codename, app);
+                removeExecutionVariables(stage, app + "." + execution_codename, app);
             }
         }
     });
@@ -553,7 +553,16 @@
             } else if(slidepanel_type === "executions"){
                 let stage = button.getAttribute("stage");
                 focus_section_id = `design_${stage}`;
-                showSliderPanel(executions, focus_section_id);
+                let new_executions = {};
+                Object.keys(executions).forEach(app => {
+                    new_executions[app] = executions[app].map(execution => {
+                        return {name: execution.name, value: `${stage}.${execution.value}`}
+                    })
+                });
+                showSliderPanel(new_executions, focus_section_id);
+
+            }
+                
             }
         });
     });
