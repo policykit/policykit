@@ -395,7 +395,7 @@
             let child = children[i];
             console.log("child: " + child.id);
             let execution_codename = child.id.split(".")[2];
-            let data = getVariableDataInStep(child);
+            let data = getVariableDataInStep(null, elements=child);
             execution_data.push({
                 execution_codename: execution_codename,
                 execution_variables: data,
