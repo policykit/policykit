@@ -381,7 +381,7 @@
 
         var transformer_div = document.createElement('div');
         transformer_div.classList.add('custom-group');
-        transformer_div.id = `custom-transformer-${new_transformer_value}`;
+        transformer_div.id = `custom-transformer.${new_transformer_value}`;
 
         // add a label for this action in action_div
         var transformer_label = document.createElement('label');
@@ -399,7 +399,7 @@
     const removeTransformerVariables = (transformer_value, app) => {
         selected_transformers = selected_transformers.filter(item => item !== transformer_value);
 
-        $(`custom-transformer-${transformer_value}`).remove();
+        $(`custom-transformer.${transformer_value}`).remove();
         if(selected_transformers.length == 0) {
             // remove the next button if there are no actions selected
             let transformer_section = $(`#design_transformer-section-body`);
@@ -413,6 +413,27 @@
             )
         }
     }
+    
+    const collectTransformerData = () => {
+        if(selected_transformers.length == 0) return false;
+
+        if(checkMissingVariable(`design_transformer`)) return false;
+
+        let transformers_data = [];
+        let children = document.getElementById(`design_transformer-section-body`).children;
+        for(let i=0; i < children.length; i++) {
+            let child = children[i];
+            let transformer_value = child.id.split(".")[1];
+            let data = getVariableDataInStep(null, elements=child);
+            transformers_data.push({
+                module_index: transformer_value,
+                module_data: data,
+            })
+        }
+        console.log("transformers_data " + JSON.stringify(transformers_data));
+        return transformers_data;
+    }
+
     var selected_executions = {success: [], fail: [], notify: []};
     const showExecutionVariables = (stage, new_exe_value, app) => {
         let execution_section = $(`#design_${stage}-section-body`);
@@ -557,6 +578,7 @@
                 if(!collectProcedureData()) return;
                 hideSliderPanel();
             } else if(target.id === "design_transformer-next"){
+                if(!collectTransformerData()) return;
                 hideSliderPanel();
             } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(target.id)){
                 const regex = /design_(\w+)-next/;
