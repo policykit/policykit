@@ -391,6 +391,7 @@
 
         let execution_data = [];
         $(`design_${stage}-section-body`).children().each((index, element) => {
+            console.log("element: " + index);
             let id = element.id;
             let execution_codename = id.split(".")[2];
             let data = getVariableDataInStep(element);
