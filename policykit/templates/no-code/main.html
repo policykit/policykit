@@ -334,7 +334,7 @@
         if(checkMissingVariable("design_procedure")) return;
         
         const procedure_data = {
-            procedure_index: procedure_index,
+            procedure_index: procedure_pk,
             procedure_variables: getVariableDataInStep("design_procedure"),
         }
         console.log("procedure_data " + JSON.stringify(procedure_data));
