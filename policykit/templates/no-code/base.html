@@ -816,22 +816,18 @@
         
         if(variable["type"] === "string"){
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                              <textarea class='variable-input' data-id='${id}' ${input_validate}></textarea>
+                              <textarea class='variable-input' data-id='${id}' ${input_validate}>
+                                ${variable.default_value ? variable.default_value : ""}
+                              </textarea>
                               ${prompt}
                           </div>`;
-        } else if(datalist){
+        } else 
           // if there is a datalist, then we need to add the datalist to the parent div
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                            <input class='variable-input' data-id='${id}' ${input_validate} list="variable-options"/>
+                            <input class='variable-input' data-id='${id}' ${input_validate} ${datalist ? 'list="variable-options"' : ''}/>
                             ${prompt}
-                            ${datalist}
+                            ${datalist ? datalist : ""}
                         </div>`;
-        } else {
-          text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                              <input class='variable-input' data-id='${id}' ${input_validate}/>
-                              ${prompt}
-                          </div>`;
-        }
       }
       parentDiv.appendChild(text);
       $(".selectpicker").selectpicker("refresh");
