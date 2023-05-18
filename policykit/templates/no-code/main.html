@@ -463,15 +463,20 @@
         }
     });
 
+    var focus_section_id = null;
+
     document.body.addEventListener('click', (event) => {
+        console.log("event target id: " + event.target.id);
         if( event.target.id === "design_custom_action-next") {
             if(!collectCustomActionData()) return;
             $("#slider-panel").addClass("hidden");
             $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+            focus_section = null;
         } else if(event.target.id === "design_procedure-next"){
             if(!collectProcedureData()) return;
             $("#slider-panel").addClass("hidden");
             $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+            focus_section = null;
         } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(event.target.id)){
             const regex = /design_(\w+)-next/;
             let match = event.target.id.match(regex);
@@ -479,94 +484,78 @@
             if(!collectExecutionData(stage)) return;
             $("#slider-panel").addClass("hidden");
             $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+            focus_section = null;
         } else if(event.target.id == "slide-panel-back"){
             $("#slider-panel").addClass("hidden");
             $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+            focus_section = null;
         }
     })
 
+    const prompt_button_text = {
+        actions: "Select one or more actions from the left sidebar",
+        procedures: "Select a procedure from the left sidebar",
+        executions: "Select one or more executions from the left sidebar"
+    }
+    const showSliderPanel = (options) => {
+        let focus_section = document.getElementById(focus_section_id);
+        let slidepanel_type = prompt_button.getAttribute("type");
+
+        // show prompt text in the focus section
+        let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+        prompt_button.classList.remove("info");
+        prompt_button.classList.add("prompt");
+        button.innerHTML = prompt_button_text[slidepanel_type];
+        
+        // display checkboxes in the slider panel
+        $("#slide-panel-body").empty();
+        Object.keys(options).forEach(app => {
+            let innerHTML = `<div class='checkbox-section'>
+                <div class='checkbox-header large'>${capitalize(app)}</div>
+                <div class="checkbox-body">`
+            let this_app_options = options[app];
+            this_app_options.forEach(option => {
+                if(slidepanel_type === "actions" || slidepanel_type === "executions"){
+                    innerHTML += `<div class='actions-checkbox-item'>
+                        <input type='checkbox' name='${option.name}' value='${option.value}' id="actions-checkbox.${option.value}">
+                        <label for='actions-checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                    </div>`;
+                } else if(slidepanel_type == "procedures"){
+                    innerHTML += `<div class='procedures-checkbox-item'>
+                            <input type='checkbox' name='${option.name}' value='${option.value}' id="procedures-checkbox.${option.value}">
+                            <div class="procedures-label">
+                                <label for='procedures-checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                                <div class="small prompt">${procedure.description}</div>
+                            </div>
+                        </div>`;
+                }
+            });
+            innerHTML += "</div></div>";
+            $("#slide-panel-body").append(innerHTML);
+        });
+        $("#slider-panel").removeClass("hidden");
+        $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
+
+
+    }
     // listen to the event when users clicks add in a section and we pop up the slide panel
     document.querySelectorAll(".section-inactive-button").forEach(btn => {
         btn.addEventListener("click", (event) => {
             // when the user clicks on the inactive button, the section should be activated
             // and the button should be changed to active
+            focus_section_id = "design_custom_action"
             let button = event.target;
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
-                button.innerHTML = "Select one or more actions from the left sidebar";
-                button.classList.remove("info");
-                button.classList.add("prompt");
-                $("#slide-panel-body").empty();
-                Object.keys(base_actions).forEach(app => {
-                    let innerHTML = `<div class='checkbox-section'>
-                        <div class='checkbox-header large'>${capitalize(app)}</div>
-                        <div class="checkbox-body">`
-                    let this_app_actions = base_actions[app];
-                    this_app_actions.forEach(action => {
-                        let action_value = app + "." + action[0];
-                        let action_name = action[1].replace(app, "").replace(capitalize(app), "");
-                        innerHTML += `<div class='actions-checkbox-item'>
-                            <input type='checkbox' name='${action_value}' value='${action_value}' id="actions-checkbox.${action_value}">
-                            <label for='${action_value}' class='normal medium'>${action_name}</label>
-                        </div>`;
-                    });
-                    innerHTML += "</div></div>";
-                    $("#slide-panel-body").append(innerHTML);
-                })
-                $("#slider-panel").removeClass("hidden");
-                $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
+                focus_section_id = "design_custom_action"
+                showSliderPanel(base_actions);
             } else if(slidepanel_type == "procedures"){
-                button.innerHTML = "Select a procedure from the left sidebar";
-                button.classList.remove("info");
-                button.classList.add("prompt");
-                $("#slide-panel-body").empty();
-                Object.keys(procedures).forEach(app => {
-                    let innerHTML = `<div class='checkbox-section'>
-                        <div class='checkbox-header large'>${capitalize(app)}</div>
-                        <div class="checkbox-body">`
-                    let this_app_procedures = procedures[app];
-                    this_app_procedures.forEach(procedure => {
-                        let checkbox_value = app + "." + procedure.pk;
-                        let checkbox_name = procedure.name;
-                        innerHTML += `<div class='procedures-checkbox-item'>
-                            <input type='checkbox' name='${checkbox_name}' value='${checkbox_value}' id="procedures-checkbox.${checkbox_value}">
-                            <div class="procedure-label">
-                                <label for='${checkbox_name}' class='normal medium'>${checkbox_name}</label>
-                                <div class="small prompt">${procedure.description}</div>
-                            </div>
-                        </div>`;
-                    });
-                    innerHTML += "</div></div>";
-                    $("#slide-panel-body").append(innerHTML);
-                })
-                $("#slider-panel").removeClass("hidden");
-                $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
-
+                focus_section = "design_procedure"
+                showSliderPanel(procedures);
             } else if(slidepanel_type === "executions"){
                 let stage = button.getAttribute("stage");
-
-                button.innerHTML = "Select one or more executions from the left sidebar";
-                button.classList.remove("info");
-                button.classList.add("prompt");
-                $("#slide-panel-body").empty();
-                Object.keys(executions).forEach(app => {
-                    let innerHTML = `<div class='checkbox-section'>
-                        <div class='checkbox-header large'>${capitalize(app)}</div>
-                        <div class="checkbox-body">`
-                    let this_app_actions = executions[app];
-                    this_app_actions.forEach(action => {
-                        let action_value = app + "." + action.codename;
-                        let action_name = action.name.replace(app, "").replace(capitalize(app), "");
-                        innerHTML += `<div class='actions-checkbox-item'>
-                            <input type='checkbox' name='${action_value}' value='${action_value}' id="executions-checkbox.${stage}.${action_value}">
-                            <label for='${action_value}' class='normal medium'>${action_name}</label>
-                        </div>`;
-                    });
-                    innerHTML += "</div></div>";
-                    $("#slide-panel-body").append(innerHTML);
-                })
-                $("#slider-panel").removeClass("hidden");
-                $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
+                focus_section = `design_${stage}`;
+                showSliderPanel(executions);
             }
         });
     });
