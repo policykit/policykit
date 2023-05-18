@@ -55,7 +55,7 @@
                 <div class="section-bottom"></div>
             </section>
             <section id="design_success">
-                <div class="section-header">When Actions pass<span class="small prompt">(optional)</span></div>
+                <div class="section-header">When Actions pass <span class="small prompt">&nbsp;&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_success-section-body">
                     <button class="section-inactive-button small-button small info" type="executions">+ Add</button>
                 </div>
@@ -464,8 +464,8 @@
                         <div class="checkbox-body">`
                     let this_app_actions = executions[app];
                     this_app_actions.forEach(action => {
-                        let action_value = app + "." + action[0];
-                        let action_name = action[1].replace(app, "").replace(capitalize(app), "");
+                        let action_value = app + "." + action.codename;
+                        let action_name = action.name.replace(app, "").replace(capitalize(app), "");
                         innerHTML += `<div class='actions-checkbox-item'>
                             <input type='checkbox' name='${action_value}' value='${action_value}' id="actions-checkbox.${action_value}">
                             <label for='${action_value}' class='normal medium'>${action_name}</label>
