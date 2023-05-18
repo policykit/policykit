@@ -363,6 +363,55 @@
         return procedure_data;
     }
 
+    var selected_transformers = [];
+    const showTransformerVariables = (new_transformer_value, app) => {
+        let transformer_section = $("#design_transformer-section-body");
+        if(selected_transformers.includes(new_transformer_value)) return;
+
+        if(selected_transformers.length === 0) {
+            transformer_section.removeClass("inactive");
+            transformer_section.addClass("active");
+            $("#design_transformer .section-bottom").removeClass("hidden");
+            $("#design_transformer .section-bottom:first").append('<button class="button primary medium section-next" id="design_transformer-next">Next</button>')
+        }
+        selected_transformers.push(new_transformer_value);
+        
+        let selected_transformer = transformers[app].find(item => item.value == new_transformer_value);
+
+        var transformer_div = document.createElement('div');
+        transformer_div.classList.add('custom-group');
+        transformer_div.id = `custom-transformer-${new_transformer_value}`;
+
+        // add a label for this action in action_div
+        var transformer_label = document.createElement('label');
+        transformer_label.classList.add('custom-label');
+        transformer_label.classList.add('large');
+        transformer_label.innerHTML = capitalize(selected_transformer.name);
+        transformer_div.appendChild(transformer_label);
+
+        transformer_section.append(transformer_div);
+        selected_transformer["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, column=true)
+        })
+    }
+
+    const removeTransformerVariables = (transformer_value, app) => {
+        selected_transformers = selected_transformers.filter(item => item !== transformer_value);
+
+        $(`custom-transformer-${transformer_value}`).remove();
+        if(selected_transformers.length == 0) {
+            // remove the next button if there are no actions selected
+            let transformer_section = $(`#design_transformer-section-body`);
+            transformer_section.removeClass("active");
+            transformer_section.addClass("inactive");
+            transformer_section.empty();
+            $(`#design_transformer .section-bottom:first`).empty();
+            $(`#design_transformer .section-bottom`).addClass("hidden");
+            transformer_section.append(
+                `<button class="section-inactive-button small-button small info" type="transformers" stage="${stage}">+ Add</button>`
+            )
+        }
+    }
     var selected_executions = {success: [], fail: [], notify: []};
     const showExecutionVariables = (stage, new_exe_value, app) => {
         let execution_section = $(`#design_${stage}-section-body`);
@@ -473,6 +522,16 @@
             } else {
                 removeProcedureVariables();
             }
+        } else if(event.target.id.startsWith("transformers-checkbox")){
+            if(event.target.checked){
+                // if the checkbox is checked, then uncheck all other checkboxes
+                let app = "all"
+                let transformer_value = event.target.value;
+                showTransformerVariables(transformer_value, app);
+            } else {
+                removeTransformerVariables();
+            }
+            
         } else if(event.target.id.includes("executions-checkbox")){
             let id = event.target.id;
             let stage = id.split(".")[1];
