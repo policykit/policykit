@@ -473,8 +473,8 @@
     });
 
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
-        let target = e.target.closest(".section-next");
-        let button = e.target.closest(".section-inactive-button");
+        let target = event.target.closest(".section-next");
+        let button = event.target.closest(".section-inactive-button");
         if(target){
             if(target.id === "design_custom_action-next") {
                 if(!collectCustomActionData()) return;
