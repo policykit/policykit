@@ -133,7 +133,7 @@
             action_section.removeClass("inactive");
             action_section.addClass("active");
             action_section.empty();
-            $("#design_custom_action .section-bottom:first").append('<button class="button primary medium" id="design_custom_action-next">Next</button>')
+            $("#design_custom_action .section-bottom:first").append('<button class="button primary medium" class="section-next" id="design_custom_action-next">Next</button>')
         }
 
         selected_actions[action] = app;
@@ -311,7 +311,7 @@
         if(selected_procedure_value === null) {
             procedure_section.removeClass("inactive");
             procedure_section.addClass("active");
-            $("#design_procedure .section-bottom:first").append('<button class="button primary medium" id="design_procedure-next">Next</button>')
+            $("#design_procedure .section-bottom:first").append('<button class="button primary medium" class="section-next" id="design_procedure-next">Next</button>')
         }
 
         procedure_section.empty();
@@ -360,7 +360,7 @@
         if(selected_executions[stage].length == 0) {
             execution_section.removeClass("inactive");
             execution_section.addClass("active");
-            $(`#design_${stage} .section-bottom:first`).append(`<button class="button primary medium" id="design_${stage}-next">Next</button>`)
+            $(`#design_${stage} .section-bottom:first`).append(`<button class="button primary medium" class="section-next" id="design_${stage}-next">Next</button>`)
         }
 
         selected_executions[stage].push(new_exe_value);
@@ -473,18 +473,46 @@
     });
 
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
-        if( event.target.id === "design_custom_action-next") {
-            if(!collectCustomActionData()) return;
-            focus_section_id = null;
-        } else if(event.target.id === "design_procedure-next"){
-            if(!collectProcedureData()) return;
-            hideSliderPanel();
-        } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(event.target.id)){
-            const regex = /design_(\w+)-next/;
-            let match = event.target.id.match(regex);
-            let stage = match ? match[1] : "";
-            if(!collectExecutionData(stage)) return;
-            hideSliderPanel();
+        let target = e.target.closest(".section-next");
+        let button = e.target.closest(".section-inactive-button");
+        if(target){
+            if(target.id === "design_custom_action-next") {
+                if(!collectCustomActionData()) return;
+                focus_section_id = null;
+            } else if(target.id === "design_procedure-next"){
+                if(!collectProcedureData()) return;
+                hideSliderPanel();
+            } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(target.id)){
+                const regex = /design_(\w+)-next/;
+                let match = target.id.match(regex);
+                let stage = match ? match[1] : "";
+                if(!collectExecutionData(stage)) return;
+                hideSliderPanel();
+            } 
+        } else if(button) {
+            // listen to the event when users clicks add in a section and we pop up the slide panel
+            let slidepanel_type = button.getAttribute("type");
+            if(slidepanel_type === "actions"){
+                if(focus_section_id) hideSliderPanel();
+                focus_section_id = "design_custom_action";
+                showSliderPanel(base_actions);
+            } else if(slidepanel_type == "procedures"){
+                if(focus_section_id) hideSliderPanel();
+                focus_section_id = "design_procedure";
+                showSliderPanel(procedures);
+            } else if(slidepanel_type === "executions"){
+                if(focus_section_id) hideSliderPanel();
+                let stage = button.getAttribute("stage");
+                focus_section_id = `design_${stage}`;
+                let new_executions = {};
+                Object.keys(executions).forEach(app => {
+                    new_executions[app] = executions[app].map(execution => {
+                        return {name: execution.name, value: `${stage}.${execution.value}`}
+                    })
+                });
+                showSliderPanel(new_executions);
+            }
+
         }
     });
 
@@ -553,35 +581,7 @@
         $("#slider-panel").addClass("hidden");
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
     }
-    // listen to the event when users clicks add in a section and we pop up the slide panel
-    document.querySelectorAll(".section-inactive-button").forEach(btn => {
-        btn.addEventListener("click", (event) => {
-            // when the user clicks on the inactive button, the section should be activated
-            // and the button should be changed to active
-            let button = event.target;
-            let slidepanel_type = button.getAttribute("type");
-            if(slidepanel_type === "actions"){
-                if(focus_section_id) hideSliderPanel();
-                focus_section_id = "design_custom_action";
-                showSliderPanel(base_actions);
-            } else if(slidepanel_type == "procedures"){
-                if(focus_section_id) hideSliderPanel();
-                focus_section_id = "design_procedure";
-                showSliderPanel(procedures);
-            } else if(slidepanel_type === "executions"){
-                if(focus_section_id) hideSliderPanel();
-                let stage = button.getAttribute("stage");
-                focus_section_id = `design_${stage}`;
-                let new_executions = {};
-                Object.keys(executions).forEach(app => {
-                    new_executions[app] = executions[app].map(execution => {
-                        return {name: execution.name, value: `${stage}.${execution.value}`}
-                    })
-                });
-                showSliderPanel(new_executions);
-            }
-        });
-    });
+
 
 
 </script>
