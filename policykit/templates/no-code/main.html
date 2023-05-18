@@ -367,7 +367,7 @@
     const removeExecutionVariables = (stage, execution_codename, app) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
 
-        $(`custom-execution-${stage}-${new_exe_codename}`).remove();
+        $(`custom-execution-${stage}-${execution_codename}`).remove();
         if(selected_executions[stage].length == 0) {
             // remove the next button if there are no actions selected
             let execution_section = $(`#design_${stage}-section-body`);
@@ -388,7 +388,7 @@
         if(selected_executions[stage].length == 0) return false;
 
         if(checkMissingVariable(`design_${stage}`)) return;
-        
+
     }
     
     const goCreateProcedure = async () => {
