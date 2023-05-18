@@ -110,7 +110,7 @@
         delete selected_actions[action];
         
         $(`#custom-action-${action}`).remove();
-        if(selected_actions.length == 0) {
+        if(Object.keys(selected_actions).length == 0) {
             let action_section = $("#design_custom_action-section-body");
             action_section.removeClass("active");
             action_section.addClass("inactive");
