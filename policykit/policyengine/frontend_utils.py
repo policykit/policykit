@@ -110,6 +110,7 @@ def extract_executable_actions(user):
     return executable_actions
 
 def load_entities(platform):
+    from policyengine.utils import get_all_permissions
     SUPPORTED_ENTITIES = ["CommunityUser", "Role", "Permission", "SlackChannel"]
     
     entities = {}
