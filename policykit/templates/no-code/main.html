@@ -552,12 +552,15 @@
             let button = event.target;
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
+                if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_custom_action";
                 showSliderPanel(base_actions);
             } else if(slidepanel_type == "procedures"){
+                if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_procedure";
                 showSliderPanel(procedures);
             } else if(slidepanel_type === "executions"){
+                if(focus_section_id) hideSliderPanel();
                 let stage = button.getAttribute("stage");
                 focus_section_id = `design_${stage}`;
                 let new_executions = {};
