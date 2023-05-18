@@ -307,27 +307,6 @@
         procedure_label.innerHTML = capitalize(selected_procedure.name);
         procedure_div.appendChild(procedure_label);
 
-        
-        // var variable_div = document.createElement('div');
-        // variable_div.classList.add('custom-procedure-variables');
-        // procedure_div.appendChild(variable_div);
-        
-       
-        
-        /*
-            The expected html structure is as follows:
-
-             <div id="procedure-variables" class="variables">
-                <div class="variable">
-                    <div class='variable-values'>
-                        <label class='variable-label' for='${item.name}'>${item.label}</label>
-                        <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
-                    </div>
-                    <p class='variable-prompt text-small'>${item.prompt}</p>`
-                </div>
-                <div class="variable"> ... </div>
-            </div>
-        */
         procedure_section.append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=null, column=true)
@@ -349,6 +328,39 @@
         return procedure_data;
     }
 
+    var selected_executions = {success: [], fail: [], notify: []};
+    const showExecutionVariables = (stage, new_exe_codename, app) => {
+        let execution_section = $(`#design_${stage}-section-body`);
+        // if there are no actions selected before, remove the inactive class and empty the section
+        if(selected_executions[stage].includes(new_exe_codename)) return;
+
+        if(selected_executions[stage].length == 0) {
+            execution_section.removeClass("inactive");
+            execution_section.addClass("active");
+            $(`#design_${stage} .section-bottom:first").append('<button class="button primary medium" id="design_${stage}-next">Next</button>`)
+        }
+
+        selected_executions[stage].push(new_exe_codename);
+        execution_section.empty();
+
+        let new_execution = executions[app].find(item => item.codename === new_exe_codename);
+
+        var execution_div = document.createElement('div');
+        execution_div.classList.add('custom-group');
+        execution_div.id = `custom-execution-${stage}-${procedure_pk}`;
+
+        // add a label for this action in action_div
+        var execution_label = document.createElement('label');
+        execution_label.classList.add('custom-label');
+        execution_label.classList.add('large');
+        execution_label.innerHTML = capitalize(new_execution.name);
+        execution_div.appendChild(execution_label);
+        
+        execution_section.append(execution_div);
+        new_execution["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
+        })
+    }
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
         console.log("custom action data: " + JSON.stringify(custom_action_data));
@@ -467,7 +479,7 @@
                         let action_value = app + "." + action.codename;
                         let action_name = action.name.replace(app, "").replace(capitalize(app), "");
                         innerHTML += `<div class='actions-checkbox-item'>
-                            <input type='checkbox' name='${action_value}' value='${action_value}' id="actions-checkbox.${action_value}">
+                            <input type='checkbox' name='${action_value}' value='${action_value}' id="success-executions-checkbox.${action_value}">
                             <label for='${action_value}' class='normal medium'>${action_name}</label>
                         </div>`;
                     });
