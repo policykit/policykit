@@ -390,17 +390,17 @@
         if(checkMissingVariable(`design_${stage}`)) return false;
 
         let execution_data = [];
-        $(`design_${stage}-section-body`).children().each((index, element) => {
-            console.log("element: " + element.id);
-            let id = element.id;
-            let execution_codename = id.split(".")[2];
-            let data = getVariableDataInStep(element);
-            console.log("execution data: " + JSON.stringify(data));
+        let children = document.getElementById(`design_${stage}-section-body`).children;
+        for(let i=0; i<children.length; i++) {
+            let child = children[i];
+            console.log("child: " + child.id);
+            let execution_codename = child.id.split(".")[2];
+            let data = getVariableDataInStep(child);
             execution_data.push({
                 execution_codename: execution_codename,
                 execution_variables: data,
             })
-        });
+        }
         console.log("execution_data " + JSON.stringify(execution_data));
         return execution_data;
     }
