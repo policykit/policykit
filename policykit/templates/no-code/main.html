@@ -463,10 +463,9 @@
         }
     });
 
-    document.body.addEventListener('click', (event) => {
+    document.getElementById("nocode-panel").addEventListener('click', (event) => {
         if( event.target.id === "design_custom_action-next") {
             if(!collectCustomActionData()) return;
-
             focus_section_id = null;
         } else if(event.target.id === "design_procedure-next"){
             if(!collectProcedureData()) return;
@@ -477,11 +476,12 @@
             let stage = match ? match[1] : "";
             if(!collectExecutionData(stage)) return;
             hideSliderPanel();
-        } else if(event.target.id == "slide-panel-back"){
-            console.log("I have clicked back");
-            hideSliderPanel();
         }
-    })
+    });
+
+    document.getElementById("slide-panel-back").addEventListener('click', (event) => {
+        hideSliderPanel();
+    };
 
     const prompt_button_text = {
         actions: "Select one or more actions from the left sidebar",
