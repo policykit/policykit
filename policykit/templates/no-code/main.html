@@ -93,7 +93,7 @@
         <div class="panel-bottom">
             <div>
                 <button class="button secondary"> Discord </button>
-                <button class="button primary" id="submit_policy"> Save </button>
+                <button class="button primary" id="save_policy"> Save </button>
             </div>
         </div>
     </div>
@@ -415,7 +415,7 @@
     }
     
     const collectTransformerData = () => {
-        if(selected_transformers.length == 0) return false;
+        if(selected_transformers.length == 0) return [];
 
         if(checkMissingVariable(`design_transformer`)) return false;
 
@@ -493,7 +493,7 @@
     }
 
     const collectExecutionData = (stage) => {
-        if(selected_executions[stage].length == 0) return false;
+        if(selected_executions[stage].length == 0) return [];
 
         if(checkMissingVariable(`design_${stage}`)) return false;
 
@@ -511,13 +511,6 @@
         console.log("execution_data " + JSON.stringify(execution_data));
         return execution_data;
     }
-    
-    const goCreateProcedure = async () => {
-        let custom_action_data = collectCustomActionData();
-        console.log("custom action data: " + JSON.stringify(custom_action_data));
-    }
-
-    document.getElementById("submit_policy").addEventListener('click', goCreateProcedure);
     
     // listen to events on the checkboxes in the slide panel
     document.body.addEventListener('change', (event) => {
@@ -684,7 +677,39 @@
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
     }
 
+    const goCreateProcedure = async () => {
+        let custom_action_data = collectCustomActionData();
+        if(custom_action_data === false) return;
 
+        let procedure_data = collectProcedureData();
+        if(procedure_data === false) return;
+
+        let transformer_data = collectTransformerData();
+        if(transformer_data === false) return;
+
+        let success_data = collectExecutionData("success");
+        if(success_data === false) return;
+
+        let fail_data = collectExecutionData("fail");
+        if(fail_data === false) return;
+
+        let notify_data = collectExecutionData("notify");
+        if(notify_data === false) return;
+
+        all_data = {
+                    filters: custom_action_data,
+                    procedure: procedure_data,
+                    transformers: transformer_data,
+                    executions: {
+                        notify: notify_data,
+                        success: success_data,
+                        fail: fail_data,
+                    }
+                }
+        console.log("all data: " + JSON.stringify(all_data));
+    }
+
+    document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
 
 </script>
 {% endblock %}
