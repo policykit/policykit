@@ -291,7 +291,7 @@
 
     var selected_procedure_value = null;
     const removeProcedureVariables = () => {
-        selected_procedure_pk = null;
+        selected_procedure_value = null;
         let procedure_section = $("#design_procedure-section-body");
         // remove the next button if there are no actions selected
         procedure_section.removeClass("active");
@@ -308,7 +308,7 @@
                
         let procedure_section = $("#design_procedure-section-body");
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_procedure_value === null || selected_procedure_value !== procedure_value) {
+        if(selected_procedure_value === null) {
             procedure_section.removeClass("inactive");
             procedure_section.addClass("active");
             $("#design_procedure .section-bottom:first").append('<button class="button primary medium section-next" id="design_procedure-next">Next</button>')
