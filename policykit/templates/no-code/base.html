@@ -816,7 +816,7 @@
         
         if(variable["type"] === "string"){
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                              <textarea class='variable-input' data-id='${id}' ${input_validate}/>
+                              <textarea class='variable-input' data-id='${id}' ${input_validate}></textarea>
                               ${prompt}
                           </div>`;
         } else if(datalist){
