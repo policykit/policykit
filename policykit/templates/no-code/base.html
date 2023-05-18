@@ -236,20 +236,20 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: 0px 10% 116px 5%;
+    padding: 0px 10% 10% 5%;
     gap: 16px;
   }
 
   .panel-bottom { /* for the bottom buttons */
     align-self: stretch;
-    padding-left: 10%;
-    padding-right: 10%;
+    flex-basis: 10%;
+    flex-grow:  0;
 
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    padding: 24px 128px 32px;
+    padding: 16px 10% 16px;
     gap: 16px;
 
     background: #F8F9FA;
@@ -257,9 +257,6 @@
     box-shadow: 0px 4px 4px #F1F4F7;
   }
 
-  .panel-bottom > div {
-    ;
-  }
 
   /* for each section in the main panel */
   .panel-body section {
