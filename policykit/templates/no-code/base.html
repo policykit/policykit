@@ -801,7 +801,7 @@
           input_validate += "  multiple";
         }
         let innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                      <div class='selectpicker-wrapper'>
+                      <div class='selectpicker-wrapper small normal'>
                       <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
         
         options[variable["entity"]].forEach(entity => {
@@ -835,7 +835,7 @@
         
         if(variable["type"] === "string"){
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                              <textarea class='variable-input' data-id='${id}' ${input_validate}>${variable.default_value ? variable.default_value.trim() : ""}</textarea>
+                              <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default_value ? variable.default_value.trim() : ""}</textarea>
                               ${prompt}
                           </div>`;
         } else {
@@ -844,7 +844,7 @@
             input_validate += `  value='${variable.default_value}'`;
           // if there is a datalist, then we need to add the datalist to the parent div
           text.innerHTML = `<label for='${id}' class="small normal">${displayed_name}</label>
-                            <input class='variable-input' data-id='${id}' ${input_validate} ${datalist ? 'list="variable-options"' : ''}/>
+                            <input class='variable-input small normal' data-id='${id}' ${input_validate} ${datalist ? 'list="variable-options"' : ''}/>
                             ${prompt}
                             ${datalist ? datalist : ""}
                         </div>`;
