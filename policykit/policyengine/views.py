@@ -937,6 +937,26 @@ def main(request):
         "entities": json.dumps(entities),
     })
 
+def create_policy(request):
+    data = json.loads(request.body)
+    from policyengine.models import PolicyTemplate
+    
+    is_trigger = data.get("policykind") in ["if-then rules", "triggering policies"]
+    policy_kind = Utils.determine_policy_kind(is_trigger, data.get("app_name"))
+    new_policy = PolicyTemplate.objects.create(
+        is_trigger=is_trigger, 
+        kind=policy_kind,
+        name=data.get("name", ""),
+        description=data.get("description", "")
+    )
+    create_custom_action(data.get("filters", {}), new_policy)
+    create_procedure(data.get("procedure", {}), new_policy)
+    create_customization(data.get("transformers", {}), new_policy)
+    create_execution(data.get("executions", {}), new_policy)
+
+
+
+
 @login_required
 def choose_policy_type(request):
     """
@@ -948,424 +968,130 @@ def choose_policy_type(request):
     Utils.load_templates("FilterModule")
     return render(request, "no-code/policytype.html")
 
-@login_required
-def design_custom_action(request):
-    """
-        help render the custom action page
-    """
-    from policyengine.models import PolicyActionKind, FilterModule
-
-    """
-        determine which action types to show in the dropdown
-        The resultant new_actions is a dictionary of app_name: [(action_code, action_name), ...]
-        The resultant filter_parameters is a dictionary of action_code: {parameter_name: filter_kind, ...}
-    """
-    filter_parameters = {}
-    new_actions = {}
-
-    user = get_user(request)
-    actions = Utils.get_action_types(user.community.community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])    
-    for app_name, action_list in actions.items():
-        new_action_list = []
-        for action_code, verbose_name in action_list:
-            parameter = Utils.get_filter_parameters(app_name, action_code)
-            # only show actions that have filter parameters
-            if parameter:
-                filter_parameters[action_code] = parameter
-                new_action_list.append((action_code, verbose_name))
-        # only show apps that have at least one action with filter parameters
-        if new_action_list:
-            new_actions[app_name] = new_action_list
-
-    """
-        For each app, get all filter modules available listed by kind (CommunityUser, Text, Channel, etc.)
-        The resultant filters is a dictionary of app_name: {kind: [filter_module, ...], ...}
-    """
-    filter_modules = {}
-    for app_name in new_actions:
-        filter_modules[app_name] = {}
-        filters_per_app = FilterModule.objects.filter(platform__in=[app_name, "All"])
-        # get distinct filter kinds for each app
-        filter_kinds = list(filters_per_app.values_list('kind', flat=True).distinct())
-        for kind in filter_kinds:
-            filter_modules[app_name][kind] = []
-            for filter in filters_per_app.filter(kind=kind):
-                filter_modules[app_name][kind].append({
-                    "pk": filter.pk, 
-                    "name": filter.name,
-                    "description": filter.description, 
-                    "variables": filter.loads("variables")
-                })
-
-    entities = Utils.load_entities(user.community)
-    trigger = request.GET.get("trigger", "false")
-    return render(request, "no-code/custom_action.html", {
-        "trigger": trigger,
-        "actions": new_actions, # this variable is only used in html template and therefore no dump is needed
-        "filter_parameters": json.dumps(filter_parameters), # this variable is used in javascript and therefore needs to be dumped
-        "filter_modules": json.dumps(filter_modules),
-        "entities": json.dumps(entities)
-    })
-
-@login_required
-def create_custom_action(request):
+def create_custom_action(filters, policytemplate):
     '''
-        create custom actions or action_types of a PolicyTemplate instance based on the request body.
+        create custom actions or action_types of a PolicyTemplate instance based on the filters.
         We create a new CustomAction instance if filters are specified; otherwise, we reference the action type 
 
-        We use trigger to determine whether the policy is an if-then rule (no procedure in between)
-        We then use is_platform_policy to determine whether the policy is a platform policy, that is, 
-        the triggering action will only be executed after the procedure succeeds.
-
-        However, we still need to adapt such conceptual differences to the current implementation of PolicyKit.
-        Therefore, we consider a policy as a "trigger policy" (in the old sense) if it is an if-then rule or 
-        if it is not a platform policy. Otherwise, it is a "platform/constitution policy" (in the old sense).
-
         parameters:
-            request.body: A Json object in the shape of 
-                {
-                    trigger: "true"/"false",
-                    is_platform_policy: "true"/"false",
-                    filters: [
-                        {
-                            "action_type": "slackpostmessage",
-                            "filter": {
-                                "message": {
-                                    "filter_pk": 1,
-                                    "platform": "slack",
-                                    "variables": {"word": "vote"}
-                                },
-                                "initiator": ...
-                            }
-                        },
-
-                        ...
-                    ]
-                    app_name: "slack",
-                }
-    '''
-
-    from policyengine.models import CustomAction, ActionType, PolicyTemplate, FilterModule
-
-    data = json.loads(request.body)
-    filters = data.get("filters", None)
-    # only create a new PolicyTemplate instance when there is at least one filter specified
-    if filters and len(filters) > 0:
-        is_trigger = data.get("trigger", "false") == "true"
-        is_platform_policy = data.get("is_platform_policy", "false") == "true"
-        if is_trigger or not is_platform_policy:
-            is_trigger = True
-
-        policy_kind = Utils.determine_policy_kind(is_trigger, data.get("app_name"))
-        
-        new_policy = PolicyTemplate.objects.create(kind=policy_kind, is_trigger=is_trigger)
-        for filter in filters:
-            action_type = filter.get("action_type")
-            action_type = ActionType.objects.filter(codename=action_type).first()
-            
-            action_specs = filter.get("filter")
-            '''
-                check whether the value of each action_specs is an empty string
-                create a new CustomAction instance for each selected action that has specified filter parameters
-                and only search the action_type for any selected action without specified filter parameters
-                an example of a action_specs:
+            filters: A Json object in the shape of 
+                [
                     {
-                        "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
-                        "text":{}
-                    }
-                    
-            '''
-            empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
-            filter_JSON = {}
-            if empty_filter:
-                new_policy.action_types.add(action_type)
-            else:
-                custom_action = CustomAction.objects.create(
-                    action_type=action_type, is_trigger=is_trigger
-                )
-                for field, filter_info in action_specs.items():
-                    if not filter_info:
-                        filter_JSON[field] = None
-                    else:
-                        filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
-                        # create a filter JSON object with the actual value specified for each variable
-                        filter_JSON[field] = filter_module.to_json(filter_info["variables"])
-                        # to faciliate the generation of codes for custom actions, we store the platform of each filter
-                        filter_JSON[field]["platform"] = filter_info["platform"]
-                custom_action.dumps("filter", filter_JSON)
-                custom_action.save()
-                new_policy.custom_actions.add(custom_action)                
-
-        new_policy.save()
-        return JsonResponse({"policy_id": new_policy.pk, "status": "success"})
-    else:
-        return JsonResponse({"status": "fail"})
-    
-@login_required  
-def design_procedure(request):
-    """
-        Help render the design procedure page
-    """  
-
-    from policyengine.models import Procedure, CheckModule      
-
-    # load all procedure templates
-    procedure_objects= Procedure.objects.all()
-    procedures = []
-    procedure_details = []
-    # keep variables in a different dict simply to avoid escaping problems of nested quotes
-    # the first is to use directly in template rendering, while the second is to use in javascript
-    for template in procedure_objects:
-        procedures.append({
-            "name": template.name, 
-            "pk": template.pk, 
-            "platform": template.platform,     
-        })
-            
-        procedure_details.append({
-            "name": template.name, 
-            "pk": template.pk, 
-            "variables": template.loads("variables")
-        })
-    
-    # get all platform names this community is using
-    user = get_user(request)
-    platforms = user.community.community.get_platform_communities()
-    platform_names = [platform.platform for platform in platforms]
-
-
-    trigger = request.GET.get("trigger", "false")
-    policy_id = request.GET.get("policy_id")
-    entities = Utils.load_entities(user.community)
-    return render(request, "no-code/design_procedure.html", {
-        "procedures": json.dumps(procedures),
-        "procedure_details": json.dumps(procedure_details),
-        "platforms": platform_names,
-        "trigger": trigger,
-        "policy_id": policy_id,
-        "entities": json.dumps(entities)
-    })
-
-@login_required  
-def create_procedure(request):
+                        "action_type": "slackpostmessage",
+                        "filter": {
+                            "message": {
+                                "filter_pk": 1,
+                                "platform": "slack",
+                                "variables": {"word": "vote"}
+                            },
+                            "initiator": ...
+                        }
+                    },
+                    ...
+                ]
     '''
-        Create the procedure field of a PolicyTemplate instance based on the request body.
+
+    from policyengine.models import CustomAction, ActionType,  FilterModule
+    for filter in filters:
+        action_type = filter.get("action_type")
+        action_type = ActionType.objects.filter(codename=action_type).first()
+        action_specs = filter.get("filter")
+        '''
+            check whether the value of each action_specs is an empty string
+            create a new CustomAction instance for each selected action that has specified filter parameters
+            and only search the action_type for any selected action without specified filter parameters
+            an example of a action_specs:
+                {
+                    "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
+                    "text":{}
+                }           
+        '''
+        empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
+        filter_JSON = {}
+        if empty_filter:
+            policytemplate.action_types.add(action_type)
+        else:
+            custom_action = CustomAction.objects.create(
+                action_type=action_type, is_trigger=policytemplate.is_trigger
+            )
+            for field, filter_info in action_specs.items():
+                if not filter_info:
+                    filter_JSON[field] = None
+                else:
+                    filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
+                    # create a filter JSON object with the actual value specified for each variable
+                    filter_JSON[field] = filter_module.to_json(filter_info["variables"])
+                    # to faciliate the generation of codes for custom actions, we store the platform of each filter
+                    filter_JSON[field]["platform"] = filter_info["platform"]
+            custom_action.dumps("filter", filter_JSON)
+            custom_action.save()
+            policytemplate.custom_actions.add(custom_action)                
+    policytemplate.save()
+    
+def create_procedure(procedure_data, policytemplate):
+    '''
+        Create the procedure field of a PolicyTemplate instance based on the procedure.
         We also add variables defined in the selected procedure to the new policytemplate instance
 
         Parameters:
-            request.body: 
+            procedure: 
                 A Json object in the shape of
                 {  
                     "procedure_index": an integer, which represents the primary key of the selected procedure;
-                    "policy_id": an integer, which represents the primary key of the policy that we are creating
                     "procedure_variables": a dict of variable names and their values
                 }
     '''
-    from policyengine.models import Procedure, PolicyTemplate
+    from policyengine.models import Procedure
 
-    data = json.loads(request.body)
-    procedure_index = data.get("procedure_index", None)
-    policy_id = data.get("policy_id", None)
-    if procedure_index and policy_id:
-        procedure = Procedure.objects.filter(pk=procedure_index).first()
-        new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
-        if new_policy and procedure:
-            logger.debug("creating variables for the new policy") 
-            new_policy.procedure = procedure
-            new_policy.add_variables(procedure.loads("variables"), data.get("procedure_variables", {}))
-            new_policy.add_descriptive_data(procedure.loads("data"))
-            new_policy.save()
-            return JsonResponse({"status": "success", "policy_id": new_policy.pk})
-    return JsonResponse({"status": "fail"})
+    procedure_index = procedure_data.get("procedure_index", None)
+    procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
+    if procedure:
+        logger.debug("creating variables for the new policy") 
+        policytemplate.procedure = procedure
+        policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
+        policytemplate.add_descriptive_data(procedure.loads("data"))
+        policytemplate.save()
 
-
-@login_required
-def customize_procedure(request):
-    """
-        Help render the customize procedure page
-    """
-
-    from policyengine.models import CheckModule, PolicyTemplate
-    
-    # prepare information about module templates
-    checkmodules_objects = CheckModule.objects.all()
-    checkmodules = []
-    checkmodules_details = []
-    for template in checkmodules_objects:
-        checkmodules.append((template.pk, template.name))
-        checkmodules_details.append({
-            "name": template.name, 
-            "pk": template.pk, 
-            "variables": template.loads("variables")
-        })
-
-    # prepare information about extra executions that are supported
-    user = get_user(request)
-    executable_actions, execution_variables = Utils.extract_executable_actions(user.community.community)
-
-    
-    trigger = request.GET.get("trigger", "false")
-    policy_id = request.GET.get("policy_id")
-    entities = Utils.load_entities(user.community)
-    data = {
-            "checkmodules": checkmodules,
-            "checkmodules_details": json.dumps(checkmodules_details),
-            "executions": executable_actions,
-            "execution_variables": json.dumps(execution_variables),
-            "trigger": trigger,
-            "policy_id": policy_id,
-            "entities": json.dumps(entities)
-        }
-
-    now_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
-    data["policy_variables"] = json.dumps(
-            now_policy.loads("variables") if now_policy else {}
-        )
-    return render(request, "no-code/customize_procedure.html", data)
-
-@login_required
-def create_customization(request):
+def create_customization(transformer_data, policytemplate):
     """
         Add extra check modules and extra actions to the policy template
-
         parameters:
-            request.body: e.g.,
-                {
-                    "policy_id": 1,
+            transformer_data: e.g.,
+                [ 
                     
-                    "module_index": 1,
-                    "module_data": {
-                        "duration": ...
-                    }
-
-                    "action_data": {
-                        "check"/"notify": {
-                            "action": "slackpostmessage",
-                            "channel": ...,
-                            "text": ...
+                    {
+                        "module_index": 1,
+                        "module_data": {
+                            "duration": ...
                         }
                     }
-                }
+                ]
     """
-    from policyengine.models import CheckModule, PolicyTemplate
-
-    data = json.loads(request.body)
+    from policyengine.models import CheckModule
     
-    policy_id = data.get("policy_id", None)
-    new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
-    if new_policy:
-        module_index = data.get("module_index", None)
+    for transformer in transformer_data:
+        module_index = transformer.get("module_index", None)
         module_template = CheckModule.objects.filter(pk=module_index).first()
         if module_template:
-            new_policy.add_check_module(module_template)
-            new_policy.add_variables(module_template.loads("variables"), data.get("module_data", {}))
-            new_policy.add_descriptive_data(module_template.loads("data"))
-        action_data = data.get("action_data", None)
-        if action_data:
-            new_policy.add_extra_actions(action_data)
-        new_policy.save()
-        return JsonResponse({"status": "success", "policy_id": new_policy.pk})
-    return JsonResponse({"status": "fail"})
-
-@login_required
-def design_execution(request):
-    """
-        Help render the design execution page
-
-        Ideally, we should put add executions at different stages all in this page
-    """
-    trigger = request.GET.get("trigger", "false")
-    policy_id = request.GET.get("policy_id", None)
-    exec_kind = request.GET.get("exec_kind", None) 
-    # "success" or "fail"
-
-    if policy_id:
-        user = get_user(request)
-        executable_actions, execution_variables = Utils.extract_executable_actions(user.community.community)
-        entities = Utils.load_entities(user.community)
-        return render(request, "no-code/design_execution.html", {
-            "trigger": trigger,
-            "policy_id": policy_id,
-            "exec_kind": exec_kind,
-            "executions": executable_actions,
-            "execution_variables": json.dumps(execution_variables),
-            "entities": json.dumps(entities)
-        })
+            policytemplate.add_check_module(module_template)
+            policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
+            policytemplate.add_descriptive_data(module_template.loads("data"))
+    policytemplate.save()
     
-def create_execution(request):
+def create_execution(execution_data, policytemplate):
     """
-        Add executions to success or fail blocks of the policytemplate instance
+        Add executions to success, fail, or notify blocks of the policytemplate instance
 
         parameters:
-            request.body: e.g.,
-                "action_data":  
-                    {
-                        "success"/"fail": {
-                            "action": "slackpostmessage",
-                            "channel": ...,
-                            "text": ...
-                        }
-                    }
-    """
-    from policyengine.models import PolicyTemplate
-
-    data = json.loads(request.body)
-    policy_id = data.get("policy_id", None)
-    new_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
-    if new_policy:
-        action_data = data.get("action_data", {})
-        if action_data:
-            new_policy.add_extra_actions(action_data)
-            new_policy.save()
-        return JsonResponse({"status": "success", "policy_id": new_policy.pk})
-    return JsonResponse({"status": "fail"})
-
-@login_required 
-def policy_overview(request):
-    """
-        help render the policy overview page where users can fill in the policy name and description,
-        and also see the policy template in json format
-    """
-    from policyengine.models import PolicyTemplate
-
-    trigger = request.GET.get("trigger", "false")
-    policy_id = request.GET.get("policy_id", None)
-    created_policy = PolicyTemplate.objects.filter(pk=policy_id).first()
-    if created_policy:
-        created_policy_json = created_policy.to_json()
-        return render(request, "no-code/policy_overview.html", {
-            "trigger": trigger,
-            "policy": json.dumps(created_policy_json),
-            "policy_id": policy_id,
-        })
-
-@login_required  
-def create_overview(request):
-    """
-        Add policy name and description to the policy template instance
-
-        parameters:
-            request.body: 
+            "execution_data":  
                 {
-                    "policy_id": 1,
-                    data: {
-                        "name": "policy name",
-                        "description": "policy description"
+                    "success"/"fail": {
+                        "action": "slackpostmessage",
+                        "channel": ...,
+                        "text": ...
                     }
                 }
     """
     from policyengine.models import PolicyTemplate
-    request_body = json.loads(request.body)
-    policy_id = int(request_body.get("policy_id", -1))
-    policy_template = PolicyTemplate.objects.filter(pk=int(policy_id)).first()
-    if policy_template :
-        data = request_body.get("data")
-        policy_template.name = data.get("name", "")
-        policy_template.description = data.get("description", "")
-        policy_template.save()
-
-        user = get_user(request)
-        new_policy = policy_template.create_policy(user.community.community)
-        return JsonResponse({"policy_id": new_policy.pk, "policy_type": (new_policy.kind).capitalize(), "status": "success"})
-    else:
-        return JsonResponse({"status": "fail"})
+    for stage, executions in execution_data.items():
+        policytemplate.add_extra_actions(stage, executions)

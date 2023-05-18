@@ -1527,7 +1527,7 @@ class PolicyTemplate(models.Model):
         self.dumps("extra_check", extra_check)
         self.save()
 
-    def add_extra_actions(self, extra_actions):
+    def add_extra_actions(self, stage, new_actions):
         """
             add extra actions to this policy template
 
@@ -1535,19 +1535,18 @@ class PolicyTemplate(models.Model):
             because the design of the frontend only allow users to specify one action for each stage
 
             parameters:
-                extra_actions: a dictionary from each stage to a list of actions
+                new_actions: a list of executions
                 e.g. 
-                    {
-                        "notify": []
-                        "success": [] 
-                        "fail": []
-                        "check": []
-                    }
+                    [
+                    
+                    ]
         """
         extra_executions = self.loads("extra_executions")
+        if stage not in extra_executions:
+            extra_executions[stage] = []
+        for execution in extra_ac
         for key in extra_actions:
-            if not extra_actions[key].get("action", None):
-                continue
+
             if key not in extra_executions:
                 extra_executions[key] = []
                 # perhaps we would like to use extend in case extra_actions[key] is a list
