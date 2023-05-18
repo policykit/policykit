@@ -280,7 +280,7 @@
         }
     }
 
-    var selected_procedure_pk = null;
+    var selected_procedure_value = null;
     const removeProcedureVariables = () => {
         selected_procedure_pk = null;
         let procedure_section = $("#design_procedure-section-body");
@@ -295,11 +295,11 @@
 
     }
 
-    const showProcedureVariables = (procedure_pk, app) => {
+    const showProcedureVariables = (procedure_value, app) => {
                
         let procedure_section = $("#design_procedure-section-body");
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_procedure_pk === null) {
+        if(selected_procedure_value === null) {
             procedure_section.removeClass("inactive");
             procedure_section.addClass("active");
             $("#design_procedure .section-bottom:first").append('<button class="button primary medium" id="design_procedure-next">Next</button>')
@@ -307,12 +307,12 @@
 
         procedure_section.empty();
 
-        selected_procedure_pk = procedure_pk;
-        let selected_procedure = procedures[app].find(item => item.pk == selected_procedure_pk);
+        selected_procedure_value = procedure_value;
+        let selected_procedure = procedures[app].find(item => item.value == selected_procedure_value);
 
         var procedure_div = document.createElement('div');
         procedure_div.classList.add('custom-group');
-        procedure_div.id = `custom-procedure-${procedure_pk}`;
+        procedure_div.id = `custom-procedure-${procedure_value}`;
 
         // add a label for this action in action_div
         var procedure_label = document.createElement('label');
@@ -330,12 +330,12 @@
     }
     
     const collectProcedureData = () => {
-        if(selected_procedure_pk === null) return false;
+        if(selected_procedure_value === null) return false;
 
         if(checkMissingVariable("design_procedure")) return;
         
         const procedure_data = {
-            procedure_index: selected_procedure_pk,
+            procedure_index: selected_procedure_value,
             procedure_variables: getVariableDataInStep("design_procedure"),
         }
         console.log("procedure_data " + JSON.stringify(procedure_data));
@@ -445,8 +445,8 @@
                 // if the checkbox is checked, then uncheck all other checkboxes
                 $('.procedures-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
                 let app = event.target.id.split(".")[1];
-                let procedure_pk = event.target.id.split(".")[2];
-                showProcedureVariables(procedure_pk, app);
+                let procedure_value = event.target.value;
+                showProcedureVariables(procedure_value, app);
             } else {
                 removeProcedureVariables();
             }
