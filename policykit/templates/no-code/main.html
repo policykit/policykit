@@ -347,7 +347,7 @@
 
         var execution_div = document.createElement('div');
         execution_div.classList.add('custom-group');
-        execution_div.id = `custom-execution-${stage}-${new_exe_codename}`;
+        execution_div.id = `custom-execution.${stage}.${new_exe_codename}`;
 
         // add a label for this action in action_div
         var execution_label = document.createElement('label');
@@ -367,7 +367,7 @@
     const removeExecutionVariables = (stage, execution_codename, app) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
 
-        $(`custom-execution-${stage}-${execution_codename}`).remove();
+        $(`custom-execution.${stage}.${execution_codename}`).remove();
         if(selected_executions[stage].length == 0) {
             // remove the next button if there are no actions selected
             let execution_section = $(`#design_${stage}-section-body`);
@@ -387,8 +387,21 @@
     const collectExecutionData = (stage) => {
         if(selected_executions[stage].length == 0) return false;
 
-        if(checkMissingVariable(`design_${stage}`)) return;
+        if(checkMissingVariable(`design_${stage}`)) return false;
 
+        let execution_data = [];
+        $(`design_${stage}-section-body`).children().each((index, element) => {
+            let id = element.id;
+            let execution_codename = id.split(".")[2];
+            let data = getVariableDataInStep(element);
+            console.log("execution data: " + JSON.stringify(data));
+            execution_data.push({
+                execution_codename: execution_codename,
+                execution_variables: data,
+            })
+        });
+        console.log("execution_data " + JSON.stringify(execution_data));
+        return execution_data;
     }
     
     const goCreateProcedure = async () => {
@@ -450,6 +463,8 @@
             let match = event.target.id.match(regex);
             let stage = match ? match[1] : "";
             if(!collectExecutionData(stage)) return;
+            $("#slider-panel").addClass("hidden");
+            $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
         }
     })
 
