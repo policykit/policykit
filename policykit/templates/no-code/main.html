@@ -516,8 +516,8 @@
             this_app_options.forEach(option => {
                 if(slidepanel_type === "actions" || slidepanel_type === "executions"){
                     innerHTML += `<div class='actions-checkbox-item'>
-                        <input type='checkbox' name='${option.name}' value='${option.value}' id="actions-checkbox.${option.value}">
-                        <label for='actions-checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                        <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${option.value}">
+                        <label for='${slidepanel_type}-checkbox.${option.value}' class='normal medium'>${option.name}</label>
                     </div>`;
                 } else if(slidepanel_type == "procedures"){
                     innerHTML += `<div class='procedures-checkbox-item'>
