@@ -78,18 +78,6 @@ urlpatterns = [
 
     # urls of no-code UI
     path('no-code/main', policyviews.main),
-    path('no-code/policytype', policyviews.choose_policy_type),
-    path('no-code/custom_action', policyviews.design_custom_action),
-    path('no-code/create_custom_action', policyviews.create_custom_action),
-    path('no-code/design_procedure', policyviews.design_procedure),
-    path('no-code/create_procedure', policyviews.create_procedure),
-    path('no-code/customize_procedure', policyviews.customize_procedure),
-    path('no-code/create_customization', policyviews.create_customization),
-    path('no-code/design_execution', policyviews.design_execution),
-    path('no-code/create_execution', policyviews.create_execution),
-    path('no-code/policy_overview', policyviews.policy_overview),
-    path('no-code/create_overview', policyviews.create_overview),
-
 ]
 
     
