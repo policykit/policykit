@@ -488,7 +488,8 @@
         executions: "Select one or more executions from the left sidebar"
     }
 
-    const showSliderPanel = (options, focus_section_id) => {
+    var focus_section_id = null;
+    const showSliderPanel = (options) => {
         let focus_section = document.getElementById(focus_section_id);
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
         let slidepanel_type = prompt_button.getAttribute("type");
@@ -532,6 +533,13 @@
     }
     
     const hideSliderPanel = () => {
+        let focus_section = document.getElementById(focus_section_id);
+        let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+        if(prompt_button){
+            prompt_button.classList.remove("prompt");
+            prompt_button.classList.add("info");
+            prompt_button.innerHTML = "+ Add";
+        }
         $("#slider-panel").addClass("hidden");
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
     }
@@ -544,10 +552,10 @@
             let slidepanel_type = button.getAttribute("type");
             if(slidepanel_type === "actions"){
                 focus_section_id = "design_custom_action";
-                showSliderPanel(base_actions, focus_section_id);
+                showSliderPanel(base_actions);
             } else if(slidepanel_type == "procedures"){
                 focus_section_id = "design_procedure";
-                showSliderPanel(procedures, focus_section_id);
+                showSliderPanel(procedures);
             } else if(slidepanel_type === "executions"){
                 let stage = button.getAttribute("stage");
                 focus_section_id = `design_${stage}`;
@@ -557,7 +565,7 @@
                         return {name: execution.name, value: `${stage}.${execution.value}`}
                     })
                 });
-                showSliderPanel(new_executions, focus_section_id);
+                showSliderPanel(new_executions);
             }
         });
     });
