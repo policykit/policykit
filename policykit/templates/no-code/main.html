@@ -55,7 +55,7 @@
                 <div class="section-bottom"></div>
             </section>
             <section id="design_success">
-                <div class="section-header">When Actions pass <span class="small prompt">&nbsp;&nbsp;(optional)</span></div>
+                <div class="section-header">When Actions pass <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_success-section-body">
                     <button class="section-inactive-button small-button small info" type="executions" stage="success">+ Add</button>
                 </div>
@@ -363,6 +363,34 @@
 
 
     }
+    
+    const removeExecutionVariables = (stage, execution_codename, app) => {
+        selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
+
+        $(`custom-execution-${stage}-${new_exe_codename}`).remove();
+        if(selected_executions[stage].length == 0) {
+            // remove the next button if there are no actions selected
+            let execution_section = $(`#design_${stage}-section-body`);
+            execution_section.removeClass("active");
+            execution_section.addClass("inactive");
+            execution_section.empty();
+            $(`#design_${stage} .section-bottom:first`).empty();
+            execution_sectio.append(
+                `<button class="section-inactive-button small-button small info" type="executions" stage="${stage}">+ Add</button>`
+            )
+        }
+
+
+
+    }
+
+    const collectExecutionData = (stage) => {
+        if(selected_executions[stage].length == 0) return false;
+
+        if(checkMissingVariable(`design_${stage}`)) return;
+        
+    }
+    
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
         console.log("custom action data: " + JSON.stringify(custom_action_data));
@@ -402,6 +430,8 @@
             let execution_codename = id.split(".")[3];
             if(event.target.checked){
                 showExecutionVariables(stage, execution_codename, app);
+            } else {
+                removeExecutionVariables(stage, execution_codename, app);
             }
         }
     });
@@ -415,6 +445,11 @@
             if(!collectProcedureData()) return;
             $("#slider-panel").addClass("hidden");
             $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+        } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(event.target.id)){
+            const regex = /design_(\w+)-next/;
+            let match = event.target.id.match(regex);
+            let stage = match ? match[1] : "";
+            if(!collectExecutionData(stage)) return;
         }
     })
 
