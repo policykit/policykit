@@ -286,3 +286,83 @@ def generate_check_codes(checks):
     check_codes += procedure_check["codes"]
 
     return check_codes
+
+def force_execution_variable_types(execution, variables_details):
+    """
+        a wrapper function for force_variable_types when generating codes for an execution
+    """
+
+    for name, value in execution.items():
+        if name in ["action", "platform"]:
+            continue
+        if value.startswith("variables") or value.startswith("proposal") or value.startswith("action"):
+            # We do nothing there as we also use the attribute style of variables
+            execution[name] = value
+        elif value.startswith("data"):
+            # value e.g., data.board_members
+            datum_name = value.split(".", 1)[1]
+            execution[name] = f"proposal.data.get(\"{datum_name}\")"
+        else:
+            """ 
+                if the value is not a PolicyVariable or data, we need to convert it to the expected type
+                Otherwise, this is not needed because we explictly force all PolicyVariables 
+                to be expected types in EvaluationContext before executing codes 
+            """
+            var_detail = [var for var in variables_details if var["name"] == name]
+            if len(var_detail) > 0:
+                execution[name] = force_variable_types(value, var_detail[0])
+
+    return execution
+
+def generate_execution_codes(executions):
+
+    """ 
+    Help generate codes for a list of executions. 
+    
+    some examples of executions:
+        [
+            {
+                "action": "initiate_vote",
+                "vote_message": "variables.vote_message",
+                "vote_type": "boolean",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            }
+        ]
+    or
+        [
+            {   
+                "action": "slackpostmessage",
+                "text": "LeijieWang",
+                "channel": "test-channel",
+                "frequency": "60"
+            }
+        ],
+    """
+    from policyengine.utils import find_action_cls
+    execution_codes = []
+    for execution in executions:
+        codes = ""
+        if "frequency" in execution:
+            # if the execution has a frequency, then it is a recurring execution
+            # we need to add the frequency to the execution
+            duration_variable = "last_time_" + execution["action"]
+            codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+
+        if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
+            execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
+            execution = force_execution_variable_types(execution, execute_variables)
+            codes += generate_initiate_votes(execution)
+        else:
+            # currently only support slackpostmessage
+            action_codename = execution["action"]
+            this_action = find_action_cls(action_codename)
+            if hasattr(this_action, "execution_codes"):
+                execute_variables = this_action.EXECUTE_VARIABLES
+                execution = force_execution_variable_types(execution, execute_variables)
+                codes += this_action.execution_codes(**execution)
+            else:
+                raise NotImplementedError
+        execution_codes.append(codes)
+    return "\n".join(execution_codes) + "\n"
