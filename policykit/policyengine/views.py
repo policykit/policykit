@@ -949,6 +949,7 @@ def create_policy(request):
         name=data.get("name", ""),
         description=data.get("description", "")
     )
+    
     create_custom_action(data.get("filters", {}), new_policy)
     create_procedure(data.get("procedure", {}), new_policy)
     create_customization(data.get("transformers", {}), new_policy)
