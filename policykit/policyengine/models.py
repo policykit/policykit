@@ -146,6 +146,12 @@ class CommunityPlatform(PolymorphicModel):
         """
         return self.community.get_roles()
 
+    def get_username_to_readable_name_dict(self):
+        """
+        Returns a dictionary mapping usernames to readable names. 
+        """
+        return {u.username: str(u) for u in self.get_users()}
+    
     def get_users(self, role_names=None):
         """
         Returns a QuerySet of all users in the community on this platform.
@@ -158,6 +164,18 @@ class CommunityPlatform(PolymorphicModel):
 
         return CommunityUser.objects.filter(community=self)
 
+    def get_users_with_permission(self, permission=None):
+        """
+        Returns a QuerySet of all users with the given permission
+        """
+        if permission:
+            from django.db.models import Q
+            return CommunityUser.objects.filter(
+                        Q(is_superuser=True) | 
+                        Q(user_permissions__codename=permission) |
+                        Q(groups__permissions__codename=permission)
+                ).distinct()
+        return CommunityUser.objects.filter(community=self)
 
     def _execute_platform_action(self):
         pass
@@ -766,7 +784,7 @@ class PolicyVariable(models.Model):
     """The label used in public facing forms."""
 
     default_value = models.CharField(blank=False, max_length=100)
-    """The deafult value assigned to the variable."""
+    """The default value assigned to the variable."""
 
     is_required = models.BooleanField(default=False)
     """Whether a value for this policy variable is required."""
