@@ -1337,6 +1337,7 @@ class Procedure(models.Model):
         
     data = models.TextField(blank=True, default='[]')
     """ 
+        TODO: we may still need to change the data design later
         a JSON object. We will use this field to store the descriptive data of the procedure, 
         such as the number of yes votes, the number of no votes (dynamic, codes used to calculate them are part of the check codes),
         or eligible voters of a specified role (statis, codes used to calculate them are in the initialize codes)
@@ -1451,6 +1452,7 @@ class PolicyTemplate(models.Model):
 
     data = models.TextField(blank=True, default='[]')
     """ 
+        TODO: we may still need to change the data design later
         data defined similarly to that in the Procedure model.
         It provides descriptive data that users can use to configure executions
     """
@@ -1536,6 +1538,7 @@ class PolicyTemplate(models.Model):
 
     def add_extra_executions(self, new_executions):
         """
+            TODO: we keep this implementation here to adapt to Nick's previous design
             add extra actions to this policy template
 
             Actually we now assume only one action is added at a time 
