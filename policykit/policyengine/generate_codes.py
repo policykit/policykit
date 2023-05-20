@@ -246,3 +246,43 @@ def generate_initialize_codes(data):
     if not initialize_codes:
         initialize_codes = "pass"
     return initialize_codes
+
+def generate_check_codes(checks):
+    """
+        a list of checks defined in JSON
+        We assume the last check is the one representing the referenced procedure, 
+        and we will use its name to find the procedure
+        e.g. 
+        [
+            {
+                "name": "Enforce procedure time restrictions",
+                "description": "..."
+            },
+            {
+                "name": "Consesus Voting",
+                "description": "..."
+            }
+        ],
+    """
+    from policyengine.models import Transformer, Procedure
+    # in cases when the user writes a policy without any checks (e.g., a if-then rules)
+    if(len(checks) == 0):
+        return "pass"
+    
+    check_codes = ""
+    for check in checks[:-1]:
+        check_module = Transformer.objects.filter(name=check["name"]).first()
+        if not check_module:
+            raise Exception(f"When generating check codes, Transformer {check['name']} not found")
+        check_codes += check_module.codes
+    
+    # the last check is the one representing the referenced procedure
+    procedure = Procedure.objects.filter(name=checks[-1]["name"]).first()
+    if not procedure:
+        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} not found")
+    procedure_check = procedure.loads("check")
+    if "codes" not in procedure_check:
+        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} does not have check codes")
+    check_codes += procedure_check["codes"]
+
+    return check_codes
