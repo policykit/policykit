@@ -287,6 +287,76 @@ def generate_check_codes(checks):
 
     return check_codes
 
+def generate_initiate_votes(execution):
+    codes = ""
+    
+    if execution["platform"] == "slack" and execution["action"] == "initiate_vote":
+        if execution.get("post_type") == "\"mpim\"":
+            execution["channel"] = "None"
+        
+        codes = "slack.initiate_vote(users={users}, text={text}, post_type={post_type}, channel={channel}, options={options})".format(
+                    users = execution["users"],
+                    text = execution["vote_message"],
+                    post_type = execution["post_type"],
+                    channel = execution["channel"],
+                    options = None
+                )
+    else:
+        raise NotImplementedError
+    return codes
+
+def initiate_execution_variables(platform, vote_type):
+    """
+        Ideally, we should create a new BaseAction for initating votes in each integration, 
+        and specify execution variables. But for now, we just hardcode them here, 
+        since an addition of a new BaseAction may involve other more fundamental changes
+    """
+    if platform == "slack" and vote_type == "initiate_vote":
+        return [
+            {
+                "name": "channel",
+                "label": "Channel to post the vote",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "users",
+                "label": "Eligible voters",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "post_type",
+                "label": "How to post the vote in Slack",
+                "entity": None,
+                "default_value": "channel",
+                "is_required": False,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            }
+        ]
+    else:
+        raise NotImplementedError
+    
 def force_execution_variable_types(execution, variables_details):
     """
         a wrapper function for force_variable_types when generating codes for an execution
