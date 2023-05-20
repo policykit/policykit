@@ -1,3 +1,49 @@
+def force_variable_types(value, variable):
+    """
+        when generating codes, we need to make sure the value specified by users (a string) are correctly embedded in the codes
+        in accordance with the variable type (e.g., string, number, list of string, list of number) 
+    """     
+    value_codes = ""
+    if not value:
+        """
+            For now we assume an empty string represents None in the execution codes 
+            as we do not know whether an empty string is no input or actually an empty string
+            
+            We do not need to replace value with the default value of this variable here,
+            as we load default values in the input box of the frontend, and if users make no change,
+            the value will automatically be the default value.
+        """
+        value_codes = "None"
+    else:
+        if variable["is_list"]:
+            if variable["type"] == "number" or variable["type"] == "float":
+                # e.g., value = "1, 2, 3", then codes should be "[1, 2, 3]"
+                value_codes = f"[{value}]"
+            elif variable["type"] == "string":
+                # e.g., value = "test1, test2, test3", then codes should be "[\"test1\", \"test2\", \"test3\"]"
+                value_list = value.split(",")
+                value_codes = "["
+                for value in value_list:
+                    value_codes += f"\"{value}\","
+                value_codes = value_codes[:-1] # remove the last comma
+                value_codes += "]"
+            else:
+                raise Exception(f"variable type {variable['type']} is not supported for list")
+        else:
+            if variable["type"] in ["number", "float", "timestamp"]:
+                # e.g., value = "1", then codes should be "1" and we treat timestamp as an integer
+                value_codes = f"{value}"
+            elif variable["type"] == "string":
+                # e.g., value = "test", then codes should be "\"test\""
+                # an additional f is included so that variables inside the string can be evaluated
+                
+                # add safety check to make sure the string does not contain any malicious codes
+                value, required_f_string = check_format_string(value)
+                value_codes = f"f\"{value}\"" if required_f_string else f"\"{value}\""
+            else:
+                raise NotImplementedError
+    return value_codes
+
 def extract_action_types(filters):
     """ 
     extract all ActionTypes defined in a list of CustomActions JSON
