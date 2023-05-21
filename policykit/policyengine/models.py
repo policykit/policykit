@@ -1142,6 +1142,24 @@ class CustomAction(models.Model):
 
 class FilterModule(models.Model):
 
+    SLACK = "Slack"
+    DISCORD = "Discord"
+    DISCOURSE = "Discourse"
+    GITHUB = "Github"
+    OPENCOLLECTIVE = "Opencollective"
+    REDDIT = "Reddit"
+    ALL = "All"
+    
+    PLATFORMS = [
+        (SLACK, "Slack"),
+        (DISCORD, "Discord"),
+        (DISCOURSE, "Discourse"),
+        (GITHUB, "Github"),
+        (OPENCOLLECTIVE, "OpenCollective"),
+        (REDDIT, "Reddit"),
+        (ALL, "All"),
+    ]
+
     JSON_FIELDS = ["variables"]
     """the fields that are stored as JSON dumps"""
 
@@ -1157,7 +1175,7 @@ class FilterModule(models.Model):
     description = models.TextField(blank=True, default="")
     """The description of the filter module e.g., users with a given permission """
 
-    platform = models.TextField(choices=Procedure.PLATFORMS, blank=True, default=Procedure.ALL)
+    platform = models.TextField(choices=PLATFORMS, blank=True, default=ALL)
     """ the platform this filter can apply to. 
         It could be specific to one platform or all platforms"""
 
@@ -1249,24 +1267,6 @@ class Procedure(models.Model):
     JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
-    SLACK = "Slack"
-    DISCORD = "Discord"
-    DISCOURSE = "Discourse"
-    GITHUB = "Github"
-    OPENCOLLECTIVE = "Opencollective"
-    REDDIT = "Reddit"
-    ALL = "All"
-    
-    PLATFORMS = [
-        (SLACK, "Slack"),
-        (DISCORD, "Discord"),
-        (DISCOURSE, "Discourse"),
-        (GITHUB, "Github"),
-        (OPENCOLLECTIVE, "OpenCollective"),
-        (REDDIT, "Reddit"),
-        (ALL, "All"),
-    ]
-
     class Meta:
         unique_together = ('name', 'platform')
         """
@@ -1280,7 +1280,7 @@ class Procedure(models.Model):
 
     description = models.TextField(blank=True, default='')
 
-    platform = models.TextField(choices=PLATFORMS, blank=True, default='')
+    platform = models.TextField(choices=FilterModule.PLATFORMS, blank=True, default='')
     """the platform where the procedure (in particular, the voting component) is expected to happen"""
 
     initialize = models.TextField(blank=True, default='[]')
