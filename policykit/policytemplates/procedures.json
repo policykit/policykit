@@ -1,7 +1,7 @@
 [
     {
         "name": "Peer Approval",
-        "description": "Just one eligible voter needs to approve an expense in order for it to pass (requires honor system: submitter should not vote)",
+        "description": "One eligible voter approves an expense in order for it to pass (requires honor system: submitter should not vote)",
         "platform": "Slack",
         "initialize": [], 
         "check": {
@@ -11,11 +11,17 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. | Based on our CollectiveVoice policy named {policy.name} (Peer approval), this expense requires one eligible voter to give a thumbs up for approval. See the expense on OpenCollective: {action.url}",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
                 "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Based on our CollectiveVoice policy named {policy.name} (Peer Approval), this expense requires one eligible voter to give a thumbs up for approval.",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             },
             {
                 "action": "slackpostmessage",
@@ -64,7 +70,7 @@
             },
             {
                 "name": "vote_message",
-                "label": "You can write a custom message here that will be posted when a vote is starte.",
+                "label": "You can write a custom message here that will be posted when a vote is started.",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
@@ -115,11 +121,23 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
                 "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Based on our CollectiveVoice policy named {policy.name} (Majority Vote), this expense requires a majority of eligible voters to give a thumbs up for approval.",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "success": [
@@ -127,6 +145,12 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "APPROVE",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "fail": [
@@ -134,13 +158,19 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "REJECT",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "variables": [
             {
                 "name": "users",
-                "label": "Who should be eligible to vote",
-                "entity": "CommunityUser",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
                 "default_value": "",
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
@@ -201,11 +231,23 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
                 "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Based on our CollectiveVoice policy named {policy.name} (Consensus), this expense all eligible voters to give a thumbs up for approval.",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "success": [
@@ -213,6 +255,12 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "APPROVE",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "fail": [
@@ -220,13 +268,19 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "REJECT",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "variables": [
             {
                 "name": "users",
-                "label": "Who should be eligible to vote",
-                "entity": "CommunityUser",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
                 "default_value": "",
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
@@ -287,11 +341,23 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
                 "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "This vote will be based on {policy.name} (Custom Voting)",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "success": [
@@ -299,6 +365,12 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "APPROVE",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "fail": [
@@ -306,13 +378,19 @@
                 "action": "opencollectiveprocessexpense",
                 "process_action": "REJECT",
                 "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
             }
         ],
         "variables": [
             {
                 "name": "users",
-                "label": "Who should be eligible to vote",
-                "entity": "CommunityUser",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
                 "default_value": "",
                 "is_required": false,
                 "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
