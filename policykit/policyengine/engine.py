@@ -20,7 +20,6 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-
 class EvaluationLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         kwargs["extra"] = self.extra
@@ -80,9 +79,10 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
+               
+         # Make policy variables available in the evaluation context
+        setattr(self, "variables", AttrDict({ variable.name : variable.get_variable_values() for variable in self.policy.variables.all() or []}))
 
-        # Make policy variables available in the evaluation context
-        setattr(self, "variables", AttrDict({ v.name : v.value for v in self.policy.variables.all() or []}))
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
