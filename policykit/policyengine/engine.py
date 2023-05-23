@@ -20,7 +20,6 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-
 class EvaluationLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         kwargs["extra"] = self.extra
