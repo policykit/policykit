@@ -154,7 +154,7 @@ class SlackCommunity(CommunityPlatform):
         if not values.get("method_name"):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
-
+    
     def get_conversations(self, types=["channel"]):
         """
             acceptable types are "im", "group", "channel"
@@ -184,65 +184,10 @@ class SlackCommunity(CommunityPlatform):
         return ret
 
 
-# NMV May 15, 2023. Double check this. may need to add update call to  
-# class SlackUpdateMessage(GovernableAction):
-#     ACTION = "chat.update"
-#     AUTH = "admin_bot"
-#     EXECUTE_PARAMETERS = ["text", "channel"]
-#     FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "ts": None}
-#     EXECUTE_VARIABLES = [
-#         {
-#             "name": "text",
-#             "label": "New message to be updated",
-#             "entity": None,
-#             "default_value": "",
-#             "is_required": True,
-#             "prompt": "",
-#             "type": "string",
-#             "is_list": False
-#         },
-#         {
-#             "name": "channel",
-#             "label": "Channel containing the message to be updated.",
-#             "entity": "SlackChannel",
-#             "default_value": "",
-#             "is_required": True,
-#             "prompt": "",
-#             "type": "string",
-#             "is_list": False
-#         },
-#         {
-#             "name": "ts",
-#             "label": "Timestamp of the message to be updated.",
-#             "entity": None,
-#             "default_value": "",
-#             "is_required": False,
-#             "prompt": "",
-#             "type": "string",
-#             "is_list": False
-#         }
-#     ]
-
-#     text = models.TextField()
-#     channel = models.CharField("channel", max_length=150)
-#     ts = models.CharField(max_length=32, blank=True)
-
-#     class Meta:
-#         permissions = (("can_execute_slackpostmessage", "Can execute slack post message"),)
-    
-#     def execution_codes(**kwargs):
-#         text = kwargs.get("text", "")
-#         channel = kwargs.get("channel", None)
-#         if not channel:
-#             channel = None
-#         ts =  kwargs.get("ts", None)
-#         return f"slack.update(text={text}, channel={channel}, ts={ts})"
-
-
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
-    EXECUTE_PARAMETERS = ["text", "channel"]
+    EXECUTE_PARAMETERS = ["text", "channel", "thread"]
     FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "timestamp": None}
     EXECUTE_VARIABLES = [
         {
@@ -293,14 +238,6 @@ class SlackPostMessage(GovernableAction):
             "channel": self.channel,
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
-    
-    def execution_codes(**kwargs):
-        text = kwargs.get("text", "")
-        channel = kwargs.get("channel", None)
-        if not channel:
-            channel = None
-        thread =  kwargs.get("thread", None)
-        return f"slack.post_message(text={text}, channel={channel}, thread_ts={thread})"
 
 
 class SlackRenameConversation(GovernableAction):
@@ -398,13 +335,10 @@ class SlackJoinConversation(GovernableAction):
 
 
 class SlackPinMessage(GovernableAction):
-    """
-        Slack API use the timestamp of the message (in string format) to identify which message should be pinned in this channel 
-    """
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": None}
+    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
@@ -442,7 +376,7 @@ class SlackPinMessage(GovernableAction):
 class SlackScheduleMessage(GovernableAction):
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
-    FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": None}
+    FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
     EXECUTE_VARIABLES = [
         {
             "name": "text",
