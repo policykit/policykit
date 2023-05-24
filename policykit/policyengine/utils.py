@@ -280,8 +280,6 @@ def _add_permissions_to_role(role, permission_sets, content_types):
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
 
-
-
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
         object[field] = json.dumps(object[field])
