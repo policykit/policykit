@@ -9,13 +9,44 @@ def check_format_string(string):
     """
     import re
     curley_pattern = r"\{(.+?)\}"
+    data_pattern = r"data\.([a-zA-Z_][a-zA-Z0-9_]*)"
+    variable_pattern = r"variables\.([a-zA-Z_][a-zA-Z0-9_]*)"
+    action_pattern = r"action\.([a-zA-Z_][a-zA-Z0-9_]*)"
+    proposal_pattern = r"proposal\.([a-zA-Z_][a-zA-Z0-9_]*)"
 
     required_f_string = False
     for match in re.finditer(curley_pattern, string):
         match_str = match.group(0)
         content = match.group(1)
         logger.debug(f"Matched string: {match_str}, content {content}")
-        required_f_string = True
+        
+        data_match = re.match(data_pattern, content)
+        if data_match and data_match.group(1).isidentifier():
+            # e.g., check whether the contents are of the shape of data.board_members
+            string  = string.replace(match_str, f"{{proposal.data.get(\"{data_match.group(1)}\")}}")
+            required_f_string = True
+        
+        variable_match = re.match(variable_pattern, content)
+        if variable_match:
+            if variable_match.group(1).isidentifier():
+                required_f_string = True
+            else:
+                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
+        
+        action_match = re.match(action_pattern, content)
+        if action_match:
+            if action_match.group(1).isidentifier():
+                required_f_string = True
+            else:
+                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
+        
+        proposal_match = re.match(proposal_pattern, content)
+        if proposal_match:
+            if proposal_match.group(1).isidentifier():
+                required_f_string = True
+            else:
+                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
+                
     return string, required_f_string
 
 def force_variable_types(value, variable):
@@ -63,6 +94,7 @@ def force_variable_types(value, variable):
             else:
                 raise NotImplementedError
     return value_codes
+
 def extract_action_types(filters):
     """ 
     extract all ActionTypes defined in a list of CustomActions JSON
@@ -137,7 +169,7 @@ def generate_filter_codes(filters):
         now_codes = []
         function_calls = [] # a list of names of filter functions we will call in the end for each action type
         
-        # only custom actions have the filter key; use get in case the filter key is not defined
+        # only custom actions have the filter key
         for field, field_filter in action_filter.get("filter", {}).items():
             """  e.g.,
                     "initiator": {
@@ -165,7 +197,6 @@ def generate_filter_codes(filters):
                 
                 field_filter["codes"] = filter.codes
                 parameters_codes = "object, " + ", ".join([var["name"]  for var in field_filter["variables"]])
-                
                 now_codes.append(
                     "def {kind}_{name}({parameters}):".format(
                         kind = field_filter["kind"], 
@@ -187,7 +218,7 @@ def generate_filter_codes(filters):
                 for var in field_filter["variables"]:
                     # we need to make sure the value specified by users (a string) are correctly embedded in the codes
                     parameters_called.append(force_variable_types(var["value"], var))
-                parameters_called = ", ".join(parameters_called) # "test", action.initiator
+                parameters_called = ", ".join(parameters_called) # action.initiator, "test"
                 function_calls.append(
                     "{kind}_{name}({parameters})".format(
                         kind = field_filter["kind"], 
@@ -233,16 +264,16 @@ def generate_check_codes(checks):
             }
         ],
     """
-    from policyengine.models import CheckModule, Procedure
+    from policyengine.models import Transformer, Procedure
     # in cases when the user writes a policy without any checks (e.g., a if-then rules)
     if(len(checks) == 0):
         return "pass"
     
     check_codes = ""
     for check in checks[:-1]:
-        check_module = CheckModule.objects.filter(name=check["name"]).first()
+        check_module = Transformer.objects.filter(name=check["name"]).first()
         if not check_module:
-            raise Exception(f"When generating check codes, CheckModule {check['name']} not found")
+            raise Exception(f"When generating check codes, Transformer {check['name']} not found")
         check_codes += check_module.codes
     
     # the last check is the one representing the referenced procedure
@@ -325,7 +356,7 @@ def initiate_execution_variables(platform, vote_type):
         ]
     else:
         raise NotImplementedError
-
+    
 def force_execution_variable_types(execution, variables_details):
     """
         a wrapper function for force_variable_types when generating codes for an execution
@@ -379,9 +410,7 @@ def generate_execution_codes(executions):
             }
         ],
     """
-    import re
     from policyengine.utils import find_action_cls
-
     execution_codes = []
     for execution in executions:
         codes = ""
@@ -391,7 +420,7 @@ def generate_execution_codes(executions):
             duration_variable = "last_time_" + execution["action"]
             codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
-        if execution["action"] == "initiate_vote":
+        if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
             execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
             execution = force_execution_variable_types(execution, execute_variables)
             codes += generate_initiate_votes(execution)

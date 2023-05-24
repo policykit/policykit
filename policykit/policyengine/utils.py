@@ -281,63 +281,6 @@ def _add_permissions_to_role(role, permission_sets, content_types):
         role.permissions.add(*execute_perms)
 
 
-def create_policy_from_json(community):
-    from policyengine.models import PolicyTemplate
-    load_templates("Procedure")
-    load_templates("CheckModule")
-    load_templates("FilterModule")
-    
-    PolicyTemplate.objects.all().delete()
-    cur_path = os.path.abspath(os.path.dirname(__file__))
-    template_path = os.path.join(cur_path, f"../policytemplates/policies.json")
-    with open(template_path) as f:
-        template_data = json.loads(f.read())
-        for template in template_data:
-            PolicyTemplate.create_policy(community, policy_json=template, is_template=True)
-
-def get_filter_parameters(app_name, action_codename):
-    """
-        Get the designated filter parameters for a GovernableAction
-    """
-    action_model = apps.get_model(app_name, action_codename)
-    if hasattr(action_model, "FILTER_PARAMETERS"):
-        return action_model.FILTER_PARAMETERS
-    else:
-        return []
-    
-def determine_policy_kind(is_trigger, app_name):
-    from policyengine.models import Policy
-    if is_trigger:
-        return Policy.TRIGGER
-    elif app_name == "constitution":
-        return Policy.CONSTITUTION
-    else:
-        return Policy.PLATFORM
-
-def get_execution_variables(app_name, action_codename):
-    action_model = apps.get_model(app_name, action_codename)
-    if hasattr(action_model, "execution_codes"):
-        return action_model.EXECUTE_VARIABLES
-    else:
-        return None
-
-def extract_executable_actions(community):
-    from policyengine.models import PolicyActionKind
-    actions = get_action_types(community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
-
-    executable_actions = dict()
-    execution_variables = dict()
-    for app_name, action_list in actions.items():
-        for action_code, action_name in action_list:
-            variables = get_execution_variables(app_name, action_code)
-            # only not None if the action has execution_codes function
-            if variables:
-                if app_name not in executable_actions:
-                    executable_actions[app_name] = []
-                executable_actions[app_name].append((action_code, action_name))
-                execution_variables[action_code] = variables
-    
-    return executable_actions, execution_variables
 
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
@@ -359,15 +302,15 @@ def load_templates(kind):
                 for procedure in procedure_data:
                     procedure = dump_to_JSON(procedure, Procedure.JSON_FIELDS)
                     Procedure.objects.create(**procedure)
-        elif kind == "CheckModule":
-            from policyengine.models import CheckModule
-            CheckModule.objects.all().delete()
+        elif kind == "Transformer":
+            from policyengine.models import Transformer
+            Transformer.objects.all().delete()
             checkmodule_path = os.path.join(cur_path, f"../policytemplates/modules.json")
             with open(checkmodule_path) as f:
                 checkmodule_data = json.loads(f.read())
                 for checkmodule in checkmodule_data:
-                    checkmodule = dump_to_JSON(checkmodule, CheckModule.JSON_FIELDS)
-                    CheckModule.objects.create(**checkmodule)
+                    checkmodule = dump_to_JSON(checkmodule, Transformer.JSON_FIELDS)
+                    Transformer.objects.create(**checkmodule)
         elif kind == "FilterModule":
             from policyengine.models import FilterModule
             FilterModule.objects.all().delete()
@@ -410,3 +353,14 @@ def load_entities(platform, get_slack_users=False):
     if get_slack_users:
         entities["SlackUser"] = platform.get_real_users()
     return entities
+
+
+def get_filter_parameters(app_name, action_codename):
+    """
+        Get the designated filter parameters for a GovernableAction
+    """
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "FILTER_PARAMETERS"):
+        return action_model.FILTER_PARAMETERS
+    else:
+        return []
