@@ -239,6 +239,12 @@ class SlackPostMessage(GovernableAction):
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
+    def execution_codes(**kwargs):
+        message = kwargs.get("message", None)
+        channel = kwargs.get("channel", None)
+        thread =  kwargs.get("thread", None)
+        return f"slack.post_message(text={message} channel={channel}, thread_ts={thread}"
+
 
 class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
