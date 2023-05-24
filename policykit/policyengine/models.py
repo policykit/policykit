@@ -886,9 +886,6 @@ class Policy(models.Model):
     is_active = models.BooleanField(default=True)
     """True if the policy is active. Default is True."""
 
-    is_template = models.BooleanField(default=False)
-    """True if the policy can be used as a template for other policies. Default is False."""
-
     modified_at = models.DateTimeField(auto_now=True)
     """Datetime object representing the last time the policy was modified."""
 
@@ -913,9 +910,6 @@ class Policy(models.Model):
         return self.member_of_bundle.count() > 0
 
     def save(self, *args, **kwargs):
-        if not self.is_template and self.community is None:
-            raise ValidationError('Non template policies must have a community')
-
         super(Policy, self).save(*args, **kwargs)
 
     def update_variables(self, variable_data = {}):
@@ -933,50 +927,6 @@ class Policy(models.Model):
 
             variable.save()
 
-    def copy_as_template(self, variable_data = {}):
-        """Make a copy of the policy object and designate it as a template"""
-
-        from copy import deepcopy
-
-        # Make a copy of the whole object
-        new_policy = deepcopy(self)
-
-        # Generate a new id
-        new_policy.pk = None
-
-        # Treat new policy as a template as to not requiring a community relationship yet
-        new_policy.is_template = True
-
-        # Save new policy
-        new_policy.save()
-
-        # Copy ActionType relationships
-        new_policy.action_types.set(self.action_types.all())
-
-        # Remove existing Policy Variable relationships
-        new_policy.variables.set([])
-
-        # Cast keys in variable_data to integars
-        variable_data = { int(k): v for k,v in variable_data.items() }
-
-        # Make copies of related PolicyVariables
-        for variable in self.variables.all():
-            new_variable = deepcopy(variable)
-            new_variable.pk = None
-            new_variable.policy = new_policy
-
-            # variable_data is an object in shape of { [pk] : [value] }
-            if variable.pk in variable_data:
-                # Set the value of the new variable based on variable_data
-                new_variable.value = variable_data[variable.pk]
-            else:
-                # Set the value of the new variable based on the original variable's default_value
-                new_variable.value = variable.default_value
-
-            new_variable.save()
-
-        return new_policy
-
     def copy_to_community(self, community = None, variable_data = {}):
         """Make a copy of the policy object and assign to a new community"""
 
@@ -989,9 +939,6 @@ class Policy(models.Model):
 
         # Generate a copy of the policy
         new_policy = self.copy_as_template(variable_data)
-
-        # Designate policy as not-a-template
-        new_policy.is_template = False
 
         # Assign copy to another community
         new_policy.community = community
