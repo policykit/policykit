@@ -1303,7 +1303,7 @@ def create_customization(request):
     return JsonResponse({"status": "fail"})
 
 
-    
+@login_required  
 def create_execution(request):
     """
         Add executions to success or fail blocks of the policytemplate instance

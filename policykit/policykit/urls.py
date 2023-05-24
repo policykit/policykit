@@ -61,15 +61,6 @@ urlpatterns = [
     path('collectivevoice/create_overview', policyviews.create_overview),
     path('collectivevoice/success', policyviews.collectivevoice_success),
 
-
-
-
-    # path('collectivevoice/select_template', policyviews.embed_select_template),
-    # path('collectivevoice/', policyviews.embed_initial),
-    # path('collectivevoice/setup', policyviews.embed_setup),
-    # path('collectivevoice/summary', policyviews.embed_summary),
-    # path('collectivevoice/update', policyviews.embed_update),
-    # path('collectivevoice/edit', policyviews.embed_edit),
     path('admin/', admin.site.urls),
 
     # urls of no-code UI
