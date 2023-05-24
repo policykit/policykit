@@ -1601,6 +1601,57 @@ class PolicyTemplate(models.Model):
             "variables": self.loads("variables"),
             "data": self.loads("data")
         }
+    @staticmethod
+    def create_policy_variables(policy, variables, variables_data={}):
+        """
+            create policy variables for a policy based on this policy template
+
+            parameters:
+                policy: the Policy instance that these policy variables are expected to belongs to
+
+                variables_data: a dictionary from each variable name to its value
+        """
+        for variable in variables:
+            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            if variable["name"] in variables_data:
+                new_variable.value = variables_data[variable["name"]]
+            new_variable.save()
+
+
+    @staticmethod
+    def create_policy(community, policytemplate, policy_json=None):
+        """
+            Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
+        """
+        import policyengine.generate_codes as CodesGenerator
+
+        if policytemplate:
+            policy_json = policytemplate.to_json()
+
+        policy = Policy.objects.create(
+            name=policy_json["name"], 
+            description=policy_json["description"], 
+            kind=policy_json["kind"], 
+            community=community
+        )
+        
+        action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 
+        for action_type in action_types:
+            policy.action_types.add(action_type)
+        
+        policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
+        policy.initialize = CodesGenerator.generate_initialize_codes(policy_json["data"])
+
+        check_executions = CodesGenerator.generate_execution_codes(policy_json["executions"]["check"])
+        policy.check = check_executions + CodesGenerator.generate_check_codes(policy_json["check"])
+
+        policy.notify = CodesGenerator.generate_execution_codes(policy_json["executions"]["notify"])
+        policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"])
+        policy.fail = CodesGenerator.generate_execution_codes(policy_json["executions"]["fail"])
+        
+        PolicyTemplate.create_policy_variables(policy, policy_json["variables"], {})
+        policy.save()
+        return policy
 ##### Pre-delete and post-delete signal receivers
 
 @receiver(pre_delete, sender=Community)
