@@ -14,7 +14,20 @@
     <div class="variable">
       <div class="variable-values">
         <label class="variable-label" for="variables[{{ variable.id }}]">{{ variable.label }}</label>
+        {% if "channel" in variable.name %}
+        <select class="variable-input text-small" name="variables[{{ variable.id }}]" data-id="{{ variable.id }}">
+            {% for option in channel_options %}
+              {% if variable.value == option.channel_id %}
+              <option value="{{ option.channel_id }}" selected>{{ option.name }}</option>
+              {% else %}
+              <option value="{{ option.channel_id }}">{{ option.name }}</option>
+              {% endif %}
+
+            {% endfor %}
+        </select>
+        {% else %}
         <input class="variable-input text-small" type="text" name="variables[{{ variable.id }}]" data-id="{{ variable.id }}" value="{{ variable.value }}" />
+        {% endif %}
       </div>
       <p class="variable-prompt text-small">
         {{ variable.prompt }}

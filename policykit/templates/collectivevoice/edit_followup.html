@@ -1,0 +1,98 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="edit_followup">
+    {% if trigger == "false" %}
+        {% if exec_kind == "success" %}
+            <h4 class="heading-4">When the procedure succeeds, what else do you want to have happen besides passing the action?</h4>
+        {% elif exec_kind == "fail" %}
+            <h4 class="heading-4">When the procedure fails, what do you want to have happen</h4>
+        {% endif %}
+    {% else %}
+    <h4 class="heading-4">What do you want to have happen after this trigger?</h4>
+    {% endif %}
+
+
+    <div class="selectpicker-group">
+        <label for="actionpicker">
+            Execution
+        </label>
+        <div>
+            <select id="actionpicker" name="actionpicker" class="selectpicker" title="Select an Execution">
+                <option value="none">None</option>
+                {% for app_name, execution_list in executions.items %}
+                    <optgroup label="{{app_name|upper}}">
+                        {% for codename, verbose_name in execution_list %}
+                            <option value={{codename}} selected>{{verbose_name}}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div>
+        <h4 class="heading-4">Please fill in the following information about this action.</h4>
+        <div id="action-specs-group" class="variables"></div>
+    </div>
+    <div class="button-group">
+        <button class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const execution_variables = JSON.parse('{{execution_variables | safe}}');
+    const entities = JSON.parse('{{entities|safe}}');
+
+    const showExecutionParameters = () => {
+        removeElementChildren('action-specs-group');
+
+        var new_action = document.getElementById("actionpicker").value;
+        if(!new_action || new_action == "none" || new_action == "default")
+            return;
+
+        const now_variables= execution_variables[new_action];
+        console.log("new val is: " + new_action + " filter parameters: " + now_variables);
+        var spec_group = document.getElementById('action-specs-group');
+        now_variables.forEach(variable => {
+            addVariableInputBox(variable=variable, id=variable["name"], parentDiv=spec_group, options=entities);
+        });
+    }
+
+    
+   
+    const goCreateExecution = async () => {
+
+        const is_trigger = "{{trigger}}"
+        const submit_data = {is_trigger: is_trigger, policy_id: parseInt("{{policy_id}}")}
+
+        const exec_kind = "{{exec_kind}}"
+        const now_actiontype = document.getElementById("actionpicker").value;
+        if(now_actiontype && now_actiontype != "none" && now_actiontype != "default" && now_actiontype != ""){
+            if(checkMissingVariable(stepElementIds.edit_followup)) return;
+            var data = getVariableDataInStep(stepElementIds.edit_followup);
+            data["action"] = now_actiontype;            
+            submit_data["action_data"] = {[exec_kind]: data};
+        }
+        console.log("before creating custom action, " + JSON.stringify(submit_data))
+        
+        const response = await submit('create_execution', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            redirect('home', {policy_id: response["policy_id"]})
+        }
+    }
+
+    // document.getElementById("actionpicker").addEventListener("change", showExecutionParameters);
+    showExecutionParameters();
+    document.getElementById(stepElementIds.edit_followup).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateExecution);
+</script>
+{% endblock %}

@@ -318,3 +318,47 @@ def load_templates(kind):
                 for filtermodule in filtermodule_data:
                     filtermodule = dump_to_JSON(filtermodule, FilterModule.JSON_FIELDS)
                     FilterModule.objects.create(**filtermodule)
+
+def load_entities(platform, get_slack_users=False):
+    SUPPORTED_ENTITIES = [
+        "CommunityUser", "Role", "Permission", "SlackChannel", "Expense", "SlackUser"
+    ]
+    
+    entities = {}
+    # extract all readable names of CommunityUsers on this platform
+    entities["CommunityUser"] = [{"name": user.readable_name, "value": user.username} for user in platform.get_users()]
+
+    # extract all roles on this platform
+    entities["Role"] = [{"name": role.role_name, "value": role.role_name } for role in platform.get_roles()]
+
+    # extract all permissions on this platform
+    entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
+
+    entities["Expense"] = [{"name": "Invoice", "value": "INVOICE"}, {"name": "Reimbursement", "value": "REIMBURSEMENT"}]
+    
+    # entities["Expense"] = [
+    #     {"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}
+    # ]
+
+    # extract all Slack channels in this platform
+    if platform.platform.upper() == "SLACK":
+        entities["SlackChannel"] = [
+                            {
+                                "name": channel.get("name", channel["id"]), 
+                                "value": channel["id"]
+                            } for channel in platform.get_conversations(types=["channel"])
+                        ]
+    if get_slack_users:
+        entities["SlackUser"] = platform.get_real_users()
+    return entities
+
+
+def get_filter_parameters(app_name, action_codename):
+    """
+        Get the designated filter parameters for a GovernableAction
+    """
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "FILTER_PARAMETERS"):
+        return action_model.FILTER_PARAMETERS
+    else:
+        return []

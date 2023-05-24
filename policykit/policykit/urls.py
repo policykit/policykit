@@ -48,13 +48,35 @@ urlpatterns = [
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
-    path('embed/', policyviews.embed_initial),
-    path('embed/setup', policyviews.embed_setup),
-    path('embed/summary', policyviews.embed_summary),
-    path('embed/update', policyviews.embed_update),
-    path('embed/edit', policyviews.embed_edit),
-    path('embed/success', policyviews.embed_success),
+
+    # COLLECTIVE VOICE
+    path('collectivevoice/home', policyviews.collectivevoice_home),
+    path('collectivevoice/edit_expenses', policyviews.collectivevoice_edit_expenses),
+    path('collectivevoice/create_custom_action', policyviews.create_custom_action),
+    path('collectivevoice/edit_voting', policyviews.collectivevoice_edit_voting),
+    path('collectivevoice/create_procedure', policyviews.create_procedure),
+    path('collectivevoice/edit_followup', policyviews.collectivevoice_edit_followup),
+    path('collectivevoice/create_execution', policyviews.create_execution),
+    path('collectivevoice/policy_overview', policyviews.policy_overview),
+    path('collectivevoice/create_overview', policyviews.create_overview),
+    path('collectivevoice/success', policyviews.collectivevoice_success),
+
+
+
+
+    # path('collectivevoice/select_template', policyviews.embed_select_template),
+    # path('collectivevoice/', policyviews.embed_initial),
+    # path('collectivevoice/setup', policyviews.embed_setup),
+    # path('collectivevoice/summary', policyviews.embed_summary),
+    # path('collectivevoice/update', policyviews.embed_update),
+    # path('collectivevoice/edit', policyviews.embed_edit),
     path('admin/', admin.site.urls),
+
+    # urls of no-code UI
+    
+    path('no-code/customize_procedure', policyviews.customize_procedure),
+    path('no-code/create_customization', policyviews.create_customization),
+    
 
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),
