@@ -942,7 +942,7 @@ def view_policy_json(request):
     from policyengine.models import PolicyTemplate
     policy = PolicyTemplate.objects.get(pk=policy_id)
     policy_json = policy.to_json()
-    return render(request, "no-code/view", {"policy_json": policy_json})
+    return render(request, "no-code/view.html", {"policy_json": policy_json})
 
 def create_policy(request):
     data = json.loads(request.body)
