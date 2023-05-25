@@ -1,0 +1,462 @@
+[
+    {
+        "name": "Peer Approval",
+        "description": "One eligible voter approves an expense in order for it to pass (requires honor system: submitter should not vote)",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= 1:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Based on our CollectiveVoice policy named {policy.name} (Peer Approval), this expense requires one eligible voter to give a thumbs up for approval.",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "You can write a custom message here that will be posted when a vote is started.",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to use",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
+    {
+        "name": "Majority Vote",
+        "description": "A majority of the eligible voters need to approve an expense in order for it to pass.",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= len(variables.user) / 2:\n  return PASSED\nelif no_votes >= len(variables.user) / 2:\n  return FAILED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Based on our CollectiveVoice policy named {policy.name} (Majority Vote), this expense requires a majority of eligible voters to give a thumbs up for approval.",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posted in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Majority vote started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to use",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
+    {
+        "name": "Consensus Approval",
+        "description": "All of the eligible voters need to approve an expense in order for it to pass.",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif no_votes >= 1:\n  return FAILED\nelif yes_votes >= len(variables.users):\n  return PASSED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Based on our CollectiveVoice policy named {policy.name} (Consensus), this expense all eligible voters to give a thumbs up for approval.",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Consensus approval started: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to use",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    },
+    {
+        "name": "Custom Voting",
+        "description": "Set your own thresholds for yes votes needed to approve or no votes needed to reject.",
+        "platform": "Slack",
+        "initialize": [], 
+        "check": {
+                "name": "main",
+                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables.minimum_yes_required:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\n\nreturn PROPOSED\n"
+        },
+        "notify": [
+            {
+                "action": "initiate_vote",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "post_type": "channel",
+                "users": "variables.users",
+                "channel": "variables.vote_channel",
+                "platform": "slack"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "This vote will be based on {policy.name} (Custom Voting)",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "variables.vote_message",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "success": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "APPROVE",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote passed, Expense was approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "fail": [
+            {
+                "action": "opencollectiveprocessexpense",
+                "process_action": "REJECT",
+                "expense_id": "action.expense_id"
+            },
+            {
+                "action": "slackpostmessage",
+                "text": "Vote failed, Expense was not approved!",
+                "channel": "variables.vote_channel",
+                "thread": "proposal.vote_post_id"
+            }
+        ],
+        "variables": [
+            {
+                "name": "users",
+                "label": "Select all users who are eligble to vote.",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "An empty value represents that all people in the channel are eligible to vote. If there are multiple users, separate them by commas",
+                "type": "string",
+                "is_list": true
+                
+            },
+            {
+                "name": "minimum_yes_required",
+                "label": "How many number of yes votes are required to reach success",
+                "entity": null,
+                "default_value": 1,
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            },
+            {
+                "name": "maximum_no_allowed",
+                "label": "How many number of no votes are allowed before we call a failure",
+                "entity": null,
+                "default_value": 1,
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            },
+            {
+                "name": "vote_message",
+                "label": "Message to be posed in the channel when the vote starts",
+                "entity": null,
+                "default_value": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
+                "is_required": true,
+                "prompt": "",
+                "type": "string"
+            },
+            {
+                "name": "vote_channel",
+                "label": "Channel to use",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": false,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
+    }
+]

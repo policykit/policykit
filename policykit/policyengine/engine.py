@@ -84,6 +84,7 @@ class EvaluationContext:
         setattr(self, "variables", AttrDict({ variable.name : variable.get_variable_values() for variable in self.policy.variables.all() or []}))
 
 
+
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
 
@@ -197,7 +198,7 @@ def evaluate_action(action):
 
 def create_prefiltered_proposals(action, policies, allow_multiple=False):
     """
-    Evaluate aciton against the Filter step in all provided policies, and return the Proposal
+    Evaluate action against the Filter step in all provided policies, and return the Proposal
     for the first Policy where the aciton passed the Filter.
 
     If allow_multiple is true, returns a *list* of all Proposals where the action passed the filter (used for Triggers).
@@ -266,6 +267,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
         raise
     except PolicyCodeError as e:
         # Log policy code exception to the db, so policy author can view it in the UI.
+        logger.debug(str(e))
         context.logger.error(str(e))
         raise
     except Exception as e:
@@ -280,6 +282,9 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     proposal = context.proposal
     action = proposal.action
     policy = proposal.policy
+
+    logger.debug('*')
+    logger.debug(action.__dict__)
 
     if not exec_code_block(policy.filter, context, Policy.FILTER):
         # logger.debug("does not pass filter")
@@ -298,6 +303,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         context.logger.debug(f"Evaluating Proposal {proposal.pk}, check returned {check_result.upper()}")
 
     if check_result == Proposal.PASSED:
+        logger.debug('Met PASS conditions!')
         # run "pass" block of policy
         exec_code_block(policy.success, context, Policy.SUCCESS)
         # mark proposal as 'passed'

@@ -154,6 +154,34 @@ class SlackCommunity(CommunityPlatform):
         if not values.get("method_name"):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
+    
+    def get_conversations(self, types=["channel"]):
+        """
+            acceptable types are "im", "group", "channel"
+        """
+        def get_channel_type(channel):
+            if channel.get("is_im", False):
+                return "im"
+            elif channel.get("is_group", False):
+                return "group"
+            elif channel.get("is_channel", False):
+                return "channel"
+            else:
+                return None
+        
+        # logger.debug("start getting conversations")
+        response = self.__make_generic_api_call("conversations.list", {})
+        #logger.debug("get_conversations response: " + str(response))
+        return [channel for channel in response["channels"] if get_channel_type(channel) in types]
+    
+    def get_real_users(self):
+        """
+        Get realname and id of all slack workspace members that are not bot and not slackbot
+        """
+        response = self.__make_generic_api_call("users.list", {})
+        members = response['members']
+        ret = [{'value': x['id'], 'name': x['real_name']} for x in members if x['is_bot'] is False and x['name'] != 'slackbot']
+        return ret
 
 
 class SlackPostMessage(GovernableAction):
@@ -210,6 +238,12 @@ class SlackPostMessage(GovernableAction):
             "channel": self.channel,
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
+
+    def execution_codes(**kwargs):
+        message = kwargs.get("message", None)
+        channel = kwargs.get("channel", None)
+        thread =  kwargs.get("thread", None)
+        return f"slack.post_message(text={message} channel={channel}, thread_ts={thread}"
 
 
 class SlackRenameConversation(GovernableAction):
