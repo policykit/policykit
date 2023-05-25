@@ -1,0 +1,192 @@
+[
+    {
+        "kind": "OpencollectiveExpenseType",
+        "name": "ExpenseType",
+        "description": "Only Expenses of a certain type",
+        "platform": "opencollective",
+        "codes": "return object.lower() == expensetype.lower()",
+        "variables":[
+            {
+                "name": "expensetype",
+                "label": "Which type should expense have?",
+                "entity": "Expense",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "OpencollectiveExpenseContent",
+        "name": "IncludesWords",
+        "description": "Vote on expenses with a particular word in the description",
+        "platform": "opencollective",
+        "codes": "return word.lower() in object.lower()",
+        "variables":[
+            {
+                "name": "word",
+                "label": "What word or phrase should CollectiveVoice look for?",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "OpencollectiveExpenseTag",
+        "name": "IncludesTag",
+        "description": "Vote on expenses with a particular tag",
+        "platform": "opencollective",
+        "codes": "return word.lower() in object",
+        "variables":[
+            {
+                "name": "word",
+                "label": "The tag",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "Permission",
+        "description": "Only users with the specified permission",
+        "platform": "All",
+        "codes": "all_usernames_with_permission = [user.username for user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
+        "variables":[
+            {
+                "name": "permission",
+                "label": "Which permission users should have?",
+                "entity": "Permission",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "Role",
+        "description": "Only users of the specified role",
+        "platform": "All",
+        "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn object.username in all_usernames_with_roles",
+        "variables":[
+            {
+                "name": "role",
+                "label": "Which role users should have?",
+                "entity": "Role",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "UserID",
+        "description": "Only users with the specified userIDs",
+        "platform": "All",
+        "codes": "return object.username in user_IDs",
+        "variables":[
+            {
+                "name": "user_IDs",
+                "label": "Which ID the user should have?",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
+            }
+        ]
+    },
+    {
+        "kind": "Text",
+        "name": "ExactMatch",
+        "description": "Filter only exact matches",
+        "platform": "All",
+        "codes": "return object == text",
+        "variables":[
+            {
+                "name": "text",
+                "label": "What is the exact text you hope to see?",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "Text",
+        "name": "Includes",
+        "description": "Must include the specified text (for instance: home will match #homeExpense and #homeCosts",
+        "platform": "All",
+        "codes": "return object in text",
+        "variables":[
+            {
+                "name": "text",
+                "label": "What do you expect the text to be",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "OpencollectiveAmount",
+        "name": "GreaterThan",
+        "description": "Only expenses greater than specified (in dollars)",
+        "platform": "All",
+        "codes": "return object > threshold * 100",
+        "variables":[
+            {
+                "name": "threshold",
+                "label": "Must be larger than threshold",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "OpencollectiveAmount",
+        "name": "LessThan",
+        "description": "Only expenses less than specified (in dollars)",
+        "platform": "All",
+        "codes": "return object < threshold * 100",
+        "variables":[
+            {
+                "name": "threshold",
+                "label": "Must be less than threshold",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            }
+        ]
+    }
+]
