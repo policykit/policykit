@@ -944,24 +944,28 @@ def view_policy_json(request):
     policy_json = policy.to_json()
     return render(request, "no-code/view.html", {"policy_json": json.dumps(policy_json)})
 
+@login_required
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
     
     is_trigger = data.get("policykind") in ["if-then rules", "triggering policies"]
     policy_kind = Utils.determine_policy_kind(is_trigger, data.get("app_name"))
-    new_policy = PolicyTemplate.objects.create(
+    new_policytemplate = PolicyTemplate.objects.create(
         is_trigger=is_trigger, 
         kind=policy_kind,
         name=data.get("name", ""),
         description=data.get("description", "")
     )
     
-    create_custom_action(data.get("filters", {}), new_policy)
-    create_procedure(data.get("procedure", {}), new_policy)
-    create_customization(data.get("transformers", {}), new_policy)
-    create_execution(data.get("executions", {}), new_policy)
-    return JsonResponse({"policy_id": new_policy.pk , "status": "success"})
+    create_custom_action(data.get("filters", {}), new_policytemplate)
+    create_procedure(data.get("procedure", {}), new_policytemplate)
+    create_customization(data.get("transformers", {}), new_policytemplate)
+    create_execution(data.get("executions", {}), new_policytemplate)
+
+    user = get_user(request)
+    new_policy = new_policytemplate.create_policy(user.community.community)
+    return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
 
 @login_required
