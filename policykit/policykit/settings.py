@@ -73,7 +73,8 @@ INSTALLED_APPS = [
     'metagov.plugins.example', #for testing
     'metagov.core',
     'policyengine',
-    'constitution'
+    'constitution',
+    'policybuilding_apps',
 ] + INTEGRATIONS
 
 SITE_ID = 1
