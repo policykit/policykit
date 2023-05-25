@@ -1,0 +1,28 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="policy_overview">
+    <pre id="policy-json">
+    </pre>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    var policy_json = `{{policy_json | safe}}`;
+    // replace all occurrences of variables["key"] with variables[\"key\"]
+    policy_json = policy_json.replace(/variables\["([\w_]*)"\]/gi, 'variables[\\"$1\\"]')
+    // replace all occurrences of \n with \\n
+    policy_json = policy_json.replaceAll("\n", "\\n");
+    // replace all occurrences of logger.debug(f"...") with logger.debug(f\"...\")
+    policy_json = policy_json.replace(/\(f"(.*)"\)/gi, '(f\\"$1\\")')
+    
+    policy_json = JSON.parse(policy_json);
+    // log each key-value pair of the policy_json, an json object, in turn
+
+    document.getElementById("policy-json").innerHTML = JSON.stringify(policy_json, null, 2);
+</script>
+</script>
+{% endblock %}

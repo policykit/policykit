@@ -937,6 +937,13 @@ def main(request):
         "entities": json.dumps(entities),
     })
 
+def view_policy_json(request):
+    policy_id = request.GET.get("id")
+    from policyengine.models import PolicyTemplate
+    policy = PolicyTemplate.objects.get(pk=policy_id)
+    policy_json = policy.to_json()
+    return render(request, "no-code/view", {"policy_json": policy_json})
+
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
@@ -955,8 +962,6 @@ def create_policy(request):
     create_customization(data.get("transformers", {}), new_policy)
     create_execution(data.get("executions", {}), new_policy)
     return JsonResponse({"policy_id": new_policy.pk , "status": "success"})
-
-
 
 
 @login_required

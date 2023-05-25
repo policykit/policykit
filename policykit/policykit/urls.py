@@ -79,6 +79,7 @@ urlpatterns = [
     # urls of no-code UI
     path('no-code/main', policyviews.main),
     path('no-code/create', policyviews.create_policy),
+    path('no-code/view', policyviews.view_policy_json),
 ]
 
     
