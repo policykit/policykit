@@ -721,7 +721,7 @@
                     }
                 }
         console.log("all data: " + JSON.stringify(all_data));
-        const response = await submit('create', submit_data);
+        const response = await submit('create', all_data);
         console.log("after creating custom action, " + JSON.stringify(response))
     }
 
