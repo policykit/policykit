@@ -558,6 +558,7 @@
         }
     });
 
+    // listen the events on the buttons in the nocode panel (including next and add buttons)
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
@@ -609,6 +610,7 @@
         }
     });
 
+    // listen to the event when users click the back button in the slider panel
     document.getElementById("slide-panel-back").addEventListener('click', (event) => {
         hideSliderPanel();
     });
@@ -679,6 +681,7 @@
         if(checkMissingVariable(`design_meta`)) return false;
         return getVariableDataInStep("design_meta");
     }
+
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
         if(custom_action_data === false) return;
@@ -718,7 +721,8 @@
                     }
                 }
         console.log("all data: " + JSON.stringify(all_data));
-
+        const response = await submit('create', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
     }
 
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);

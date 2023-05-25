@@ -954,6 +954,7 @@ def create_policy(request):
     create_procedure(data.get("procedure", {}), new_policy)
     create_customization(data.get("transformers", {}), new_policy)
     create_execution(data.get("executions", {}), new_policy)
+    return JsonResponse({"policy_id": new_policy.pk , "status": "success"})
 
 
 
