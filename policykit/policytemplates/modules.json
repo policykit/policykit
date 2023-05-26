@@ -6,11 +6,11 @@
         "variables":[
             {
                 "name": "duration",
-                "label": "When the vote is closed (in minutes)",
+                "label": "Procedure duration (in minutes)",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "When the vote is closed (in minutes)",
                 "type": "number",
                 "is_list": false
             }

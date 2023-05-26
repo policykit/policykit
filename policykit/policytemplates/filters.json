@@ -2,17 +2,17 @@
     {
         "kind": "CommunityUser",
         "name": "Permission",
-        "description": "Only users with the specified permission",
+        "description": "Only users with a specified permission",
         "platform": "All",
         "codes": "all_usernames_with_permission = [user.username for user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
         "variables":[
             {
                 "name": "permission",
-                "label": "Which permission users should have?",
+                "label": "User permission",
                 "entity": "Permission",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which permission users should have?",
                 "type": "string",
                 "is_list": false
             }
@@ -21,17 +21,17 @@
     {
         "kind": "CommunityUser",
         "name": "Role",
-        "description": "Only users of the specified roles",
+        "description": "Only users of a specified role",
         "platform": "All",
         "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn object.username in all_usernames_with_roles",
         "variables":[
             {
                 "name": "role",
-                "label": "Which role users should have?",
+                "label": "User role",
                 "entity": "Role",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which role users should have?",
                 "type": "string",
                 "is_list": false
             }
@@ -46,11 +46,11 @@
         "variables":[
             {
                 "name": "user_IDs",
-                "label": "Which ID the user should have?",
+                "label": "Usernames",
                 "entity": "CommunityUser",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which ID the user should have?",
                 "type": "string",
                 "is_list": true
             }
@@ -66,11 +66,11 @@
         "variables":[
             {
                 "name": "word",
-                "label": "Which word do you expect the message starts wtih?",
+                "label": "Starting word",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which word do you expect the message starts wtih?",
                 "type": "string",
                 "is_list": false
             }
@@ -85,11 +85,11 @@
         "variables":[
             {
                 "name": "text",
-                "label": "What do you expect the text to be",
+                "label": "Expected text",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "What do you expect the text to be",
                 "type": "string",
                 "is_list": false
             }
@@ -104,11 +104,11 @@
         "variables":[
             {
                 "name": "length",
-                "label": "Which maximum length do you expect the text to be of?",
+                "label": "Maximumn length",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which maximum length do you expect the text to be of?",
                 "type": "number",
                 "is_list": false
             }
@@ -123,21 +123,21 @@
         "variables":[
             {
                 "name": "start",
-                "label": "Which start time do you expect the timestamp to be after?",
+                "label": "Starting timestamp",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which start time do you expect the timestamp to be after?",
                 "type": "timestamp",
                 "is_list": false
             },
             {
                 "name": "end",
-                "label": "Which end time do you expect the timestamp to be before?",
+                "label": "Ending timestamp",
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "",
+                "prompt": "Which end time do you expect the timestamp to be before?",
                 "type": "timestamp",
                 "is_list": false
             }
