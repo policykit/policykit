@@ -200,7 +200,7 @@ class SlackPostMessage(GovernableAction):
     EXECUTE_VARIABLES = [
         {
             "name": "text",
-            "label": "Message to be posted",
+            "label": "Message",
             "entity": None,
             "default_value": "",
             "is_required": True,
@@ -210,7 +210,7 @@ class SlackPostMessage(GovernableAction):
         },
         {
             "name": "channel",
-            "label": "Channel to post message in",
+            "label": "Channel",
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
@@ -220,7 +220,7 @@ class SlackPostMessage(GovernableAction):
         },
         {
             "name": "thread",
-            "label": "Thread timestamp to post message in",
+            "label": "Thread",
             "entity": None,
             "default_value": "",
             "is_required": False,
@@ -264,7 +264,7 @@ class SlackRenameConversation(GovernableAction):
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel to rename",
+            "label": "Renaming channel",
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
@@ -274,7 +274,7 @@ class SlackRenameConversation(GovernableAction):
         },
         {
             "name": "name",
-            "label": "New name for the channel",
+            "label": "New channel name",
             "entity": None,
             "default_value": "",
             "is_required": True,
@@ -311,7 +311,7 @@ class SlackJoinConversation(GovernableAction):
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel to join",
+            "label": "Channel",
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
@@ -321,7 +321,7 @@ class SlackJoinConversation(GovernableAction):
         },
         {
             "name": "users",
-            "label": "Users that will join the channel",
+            "label": "New users",
             "entity": "SlackUser",
             "default_value": "",
             "is_required": True,
@@ -361,7 +361,7 @@ class SlackPinMessage(GovernableAction):
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel that the message is pinned to",
+            "label": "Channel",
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
@@ -371,7 +371,7 @@ class SlackPinMessage(GovernableAction):
         },
         {
             "name": "timestamp",
-            "label": "Timestamp of the message to pin",
+            "label": "Timestamp of the pinned message",
             "entity": None,
             "default_value": "",
             "is_required": True,
@@ -405,7 +405,7 @@ class SlackScheduleMessage(GovernableAction):
     EXECUTE_VARIABLES = [
         {
             "name": "text",
-            "label": "Text of the message to send",
+            "label": "Message",
             "entity": None,
             "default_value": "",
             "is_required": True,
@@ -415,7 +415,7 @@ class SlackScheduleMessage(GovernableAction):
         },
         {
             "name": "channel",
-            "label": "Channel that the message is scheduled to sent to",
+            "label": "Channel",
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
@@ -425,7 +425,7 @@ class SlackScheduleMessage(GovernableAction):
         },
         {
             "name": "post_at",
-            "label": "Timestamp when the message is scheduled to send",
+            "label": "Scheduled time",
             "entity": None,
             "default_value": "",
             "is_required": True,
@@ -450,7 +450,7 @@ class SlackKickConversation(GovernableAction):
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel to kick the user from",
+            "label": "Channel",
             "entity": "SlackChannel",
             "default_value": "",
             "is_required": True,
@@ -460,7 +460,7 @@ class SlackKickConversation(GovernableAction):
         },
         {
             "name": "user",
-            "label": "User to kick from the channel",
+            "label": "Kicked users",
             "entity": "SlackUser",
             "default_value": "",
             "is_required": True,
