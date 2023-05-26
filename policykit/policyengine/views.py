@@ -905,6 +905,12 @@ def embed_success (request):
 @login_required
 def main(request):
     import policyengine.frontend_utils as FrontendUtils
+    reload = request.GET.get("reload", "false")
+    if reload == "true":
+        Utils.load_templates("Procedure")
+        Utils.load_templates("Transformer")
+        Utils.load_templates("FilterModule")
+
     user = get_user(request)
     # get base actions and filter kinds when creating custom actions
     base_actions, action_filter_kinds = FrontendUtils.get_base_actions(user)
@@ -968,16 +974,6 @@ def create_policy(request):
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
 
-@login_required
-def choose_policy_type(request):
-    """
-        help render the policy type page
-    """
-    reload = request.GET.get("reload", "false")
-    Utils.load_templates("Procedure")
-    Utils.load_templates("CheckModule")
-    Utils.load_templates("FilterModule")
-    return render(request, "no-code/policytype.html")
 
 def create_custom_action(filters, policytemplate):
     '''

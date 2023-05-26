@@ -299,6 +299,7 @@ def load_templates(kind):
         """
             
         cur_path = os.path.abspath(os.path.dirname(__file__))
+        logger.debug(f"Loading {kind} templates from {cur_path}")
         if kind == "Procedure":
             from policyengine.models import Procedure
             Procedure.objects.all().delete()
