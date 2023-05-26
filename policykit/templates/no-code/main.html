@@ -19,7 +19,7 @@
                 </div>
                 <div class="column-variable-item">
                     <label for='description' class="medium normal">Description</label>
-                    <textarea data-id='description' class='variable-input' name='description' rows="5">
+                    <textarea data-id='description' class='variable-input' name='description' rows="5" required>
                     </textarea>
                 </div>
             </div>
@@ -703,6 +703,7 @@
         if(notify_data === false) return;
 
         let meta_data = collectMetadata();
+        if(meta_data === false) return;
 
         app_name = custom_action_data["app_name"];
         delete custom_action_data["app_name"];
