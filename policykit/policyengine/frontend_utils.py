@@ -85,10 +85,10 @@ def get_procedures(platforms):
 
 
 def get_transformers():
-    from policyengine.models import CheckModule
+    from policyengine.models import Transformer
     
     # prepare information about module templates
-    transformers_objects = CheckModule.objects.all()
+    transformers_objects = Transformer.objects.all()
     transformers = []
     for template in transformers_objects:
         transformers.append({

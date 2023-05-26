@@ -1328,7 +1328,7 @@ class Procedure(models.Model):
 
     description = models.TextField(blank=True, default='')
 
-    platform = models.TextField(choices=PLATFORMS, blank=True, default='')
+    platform = models.TextField(choices=FilterModule.PLATFORMS, blank=True, default='')
     """the platform where the procedure (in particular, the voting component) is expected to happen"""
 
     initialize = models.TextField(blank=True, default='[]')
