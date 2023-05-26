@@ -279,16 +279,6 @@ def _add_permissions_to_role(role, permission_sets, content_types):
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
 
-def get_filter_parameters(app_name, action_codename):
-    """
-        Get the designated filter parameters for a GovernableAction
-    """
-    action_model = apps.get_model(app_name, action_codename)
-    if hasattr(action_model, "FILTER_PARAMETERS"):
-        return action_model.FILTER_PARAMETERS
-    else:
-        return []
-    
 def determine_policy_kind(is_trigger, app_name):
     from policyengine.models import Policy
     if is_trigger:
@@ -318,15 +308,15 @@ def load_templates(kind):
                 for procedure in procedure_data:
                     procedure = dump_to_JSON(procedure, Procedure.JSON_FIELDS)
                     Procedure.objects.create(**procedure)
-        elif kind == "CheckModule":
-            from policyengine.models import CheckModule
-            CheckModule.objects.all().delete()
+        elif kind == "Transformer":
+            from policyengine.models import Transformer
+            Transformer.objects.all().delete()
             checkmodule_path = os.path.join(cur_path, f"../policytemplates/modules.json")
             with open(checkmodule_path) as f:
                 checkmodule_data = json.loads(f.read())
                 for checkmodule in checkmodule_data:
-                    checkmodule = dump_to_JSON(checkmodule, CheckModule.JSON_FIELDS)
-                    CheckModule.objects.create(**checkmodule)
+                    checkmodule = dump_to_JSON(checkmodule, Transformer.JSON_FIELDS)
+                    Transformer.objects.create(**checkmodule)
         elif kind == "FilterModule":
             from policyengine.models import FilterModule
             FilterModule.objects.all().delete()
@@ -336,4 +326,3 @@ def load_templates(kind):
                 for filtermodule in filtermodule_data:
                     filtermodule = dump_to_JSON(filtermodule, FilterModule.JSON_FIELDS)
                     FilterModule.objects.create(**filtermodule)
-

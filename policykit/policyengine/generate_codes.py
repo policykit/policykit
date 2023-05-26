@@ -197,7 +197,6 @@ def generate_filter_codes(filters):
                 
                 field_filter["codes"] = filter.codes
                 parameters_codes = "object, " + ", ".join([var["name"]  for var in field_filter["variables"]])
-                # in case the filter is used to filter out a list of entities
                 now_codes.append(
                     "def {kind}_{name}({parameters}):".format(
                         kind = field_filter["kind"], 
@@ -219,7 +218,7 @@ def generate_filter_codes(filters):
                 for var in field_filter["variables"]:
                     # we need to make sure the value specified by users (a string) are correctly embedded in the codes
                     parameters_called.append(force_variable_types(var["value"], var))
-                parameters_called = ", ".join(parameters_called) # "test", action.initiator
+                parameters_called = ", ".join(parameters_called) # action.initiator, "test"
                 function_calls.append(
                     "{kind}_{name}({parameters})".format(
                         kind = field_filter["kind"], 
@@ -265,16 +264,16 @@ def generate_check_codes(checks):
             }
         ],
     """
-    from policyengine.models import CheckModule, Procedure
+    from policyengine.models import Transformer, Procedure
     # in cases when the user writes a policy without any checks (e.g., a if-then rules)
     if(len(checks) == 0):
         return "pass"
     
     check_codes = ""
     for check in checks[:-1]:
-        check_module = CheckModule.objects.filter(name=check["name"]).first()
+        check_module = Transformer.objects.filter(name=check["name"]).first()
         if not check_module:
-            raise Exception(f"When generating check codes, CheckModule {check['name']} not found")
+            raise Exception(f"When generating check codes, Transformer {check['name']} not found")
         check_codes += check_module.codes
     
     # the last check is the one representing the referenced procedure
@@ -438,7 +437,7 @@ def force_execution_variable_types(execution, variables_details):
     for name, value in execution.items():
         if name in ["action", "platform"]:
             continue
-        if value.startswith("variables") or value.startswith("proposal"):
+        if value.startswith("variables") or value.startswith("proposal") or value.startswith("action"):
             # We do nothing there as we also use the attribute style of variables
             execution[name] = value
         elif value.startswith("data"):

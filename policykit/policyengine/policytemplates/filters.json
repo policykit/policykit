@@ -1,0 +1,117 @@
+[
+    {
+        "kind": "CommunityUser",
+        "name": "Permission",
+        "description": "Only users with the specified permission",
+        "platform": "All",
+        "codes": "all_usernames_with_permission = [user.username for user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
+        "variables":[
+            {
+                "name": "permission",
+                "label": "Which permission users should have?",
+                "entity": "Permission",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "Role",
+        "description": "Only users of the specified role",
+        "platform": "All",
+        "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn object.username in all_usernames_with_roles",
+        "variables":[
+            {
+                "name": "role",
+                "label": "Which role users should have?",
+                "entity": "Role",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "CommunityUser",
+        "name": "UserID",
+        "description": "Only users with the specified userIDs",
+        "platform": "All",
+        "codes": "return object.username in user_IDs",
+        "variables":[
+            {
+                "name": "user_IDs",
+                "label": "Which ID the user should have?",
+                "entity": "CommunityUser",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
+            }
+        ]
+    },
+
+    {
+        "kind": "Text",
+        "name": "Startswith",
+        "description": "Only texts that start with the specified word",
+        "platform": "All",
+        "codes": "return object.startswith(word)",
+        "variables":[
+            {
+                "name": "word",
+                "label": "Which word do you expect the message starts wtih?",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "Text",
+        "name": "Equals",
+        "description": "Only texts that equals the specified text",
+        "platform": "All",
+        "codes": "return object == text",
+        "variables":[
+            {
+                "name": "text",
+                "label": "What do you expect the text to be",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "Text",
+        "name": "LengthGreaterThan",
+        "description": "Only texts that have the length greater than the specified length",
+        "platform": "All",
+        "codes": "return len(object) > length",
+        "variables":[
+            {
+                "name": "length",
+                "label": "Which maximum length do you expect the text to be of?",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "number",
+                "is_list": false
+            }
+        ]
+    }
+]

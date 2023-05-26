@@ -58,7 +58,7 @@ class EvaluationContext:
             self.action = proposal.action
 
         self.policy = proposal.policy
-        self.variables = {}
+        self.variables = AttrDict()
         self.proposal = proposal
 
         # Can't use logger in filter step because proposal isn't saved yet
