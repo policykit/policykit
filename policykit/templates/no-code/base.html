@@ -833,7 +833,7 @@
       } else text.classList.add('variable-item');
       text.id = id;
 
-      let displayed_name = capitalize(variable.name);
+      let displayed_name = capitalize(variable.label);
       let label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`
       var input_validate = "";
       if(variable["is_required"] ?? true){
