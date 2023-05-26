@@ -12,7 +12,7 @@
                 "entity": "Permission",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which permission users should have?",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -31,7 +31,7 @@
                 "entity": "Role",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which role users should have?",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -50,7 +50,7 @@
                 "entity": "CommunityUser",
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which ID the user should have?",
+                "prompt": "",
                 "type": "string",
                 "is_list": true
             }
@@ -70,7 +70,7 @@
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which word do you expect the message starts wtih?",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -89,7 +89,7 @@
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "What do you expect the text to be",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -108,7 +108,7 @@
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which maximum length do you expect the text to be of?",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             }
@@ -127,7 +127,7 @@
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which start time do you expect the timestamp to be after?",
+                "prompt": "",
                 "type": "timestamp",
                 "is_list": false
             },
@@ -137,7 +137,7 @@
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "Which end time do you expect the timestamp to be before?",
+                "prompt": "",
                 "type": "timestamp",
                 "is_list": false
             }
