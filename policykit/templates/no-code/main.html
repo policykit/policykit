@@ -112,8 +112,12 @@
     const executions = JSON.parse('{{executions | safe}}');
     const entities = JSON.parse('{{entities|safe}}');
 
-    // remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
-    const activate_section = (section_id) => {
+    
+    function activate_section(section_id){
+        /**
+            remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
+            @param section_id: the id of the section, e.g. design_custom_action
+        */
         let section = $(`#${section_id}-section-body`)
         section.removeClass("inactive");
         section.addClass("active");
@@ -122,21 +126,29 @@
         $(`#${section_id} .section-bottom:first`).append(`<button class="button primary medium section-next" id="${section_id}-next">Next</button>`)
     }
 
+    function deactivate_section(section_id, type, stage=null){
+        /**
+            add back placeholder buttons (add buttons);
+            @param section_id: the id of the section, e.g. design_custom_action
+            @param types: the type of the section, e.g. actions, procedures, transformers, executions
+            @param 
+        */
+        let section = $(`#${section_id}-section-body`)
+        section.removeClass("active");
+        section.addClass("inactive");
+        section.empty();
+        section.append(`<button class="section-inactive-button small info" type="${type}">+ Add</button>`)
+        $(`#${section_id} .section-bottom:first`).empty(); // remove next buttons
+        $(`#${section_id} .section-bottom`).addClass("hidden");
+
+    }
+
     var selected_actions = {};
     const removeFilterParameters = (action, app) => {
         // remove the action from the selected actions
         delete selected_actions[action];
-        
         $(`#custom-action-${action}`).remove();
-        if(Object.keys(selected_actions).length == 0) {
-            let action_section = $("#design_custom_action-section-body");
-            action_section.removeClass("active");
-            action_section.addClass("inactive");
-            action_section.empty();
-            action_section.append('<button class="section-inactive-button small info" type="actions">+ Add</button>')
-            $("#design_custom_action .section-bottom:first").empty();
-            $("#design_custom_action .section-bottom").addClass("hidden");
-        }
+        if(Object.keys(selected_actions).length == 0) deactivate_section("design_custom_action", "actions");
     }
     
     const showFilterParameters = (action, app) => {
@@ -277,17 +289,7 @@
     var selected_procedure_value = null;
     const removeProcedureVariables = () => {
         selected_procedure_value = null;
-        let procedure_section = $("#design_procedure-section-body");
-        // remove the next button if there are no actions selected
-        procedure_section.removeClass("active");
-        procedure_section.addClass("inactive");
-        procedure_section.empty();
-        $("#design_procedure .section-bottom:first").empty();
-        $("#design_procedure .section-bottom").addClass("hidden");
-        procedure_section.append(` <button class="section-inactive-button small-button small info" type="procedures">+ Add</button>`)
-
-
-
+        deactivate_section("design_procedure", "procedures");
     }
 
     const showProcedureVariables = (procedure_value, app) => {
@@ -358,20 +360,8 @@
 
     const removeTransformerVariables = (transformer_value, app) => {
         selected_transformers = selected_transformers.filter(item => item !== transformer_value);
-
         $(`custom-transformer.${transformer_value}`).remove();
-        if(selected_transformers.length == 0) {
-            // remove the next button if there are no actions selected
-            let transformer_section = $(`#design_transformer-section-body`);
-            transformer_section.removeClass("active");
-            transformer_section.addClass("inactive");
-            transformer_section.empty();
-            $(`#design_transformer .section-bottom:first`).empty();
-            $(`#design_transformer .section-bottom`).addClass("hidden");
-            transformer_section.append(
-                `<button class="section-inactive-button small-button small info" type="transformers" stage="${stage}">+ Add</button>`
-            )
-        }
+        if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformers");
     }
     
     const collectTransformerData = () => {
@@ -423,23 +413,8 @@
     
     const removeExecutionVariables = (stage, execution_codename, app) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
-
         $(`custom-execution.${stage}.${execution_codename}`).remove();
-        if(selected_executions[stage].length == 0) {
-            // remove the next button if there are no actions selected
-            let execution_section = $(`#design_${stage}-section-body`);
-            execution_section.removeClass("active");
-            execution_section.addClass("inactive");
-            execution_section.empty();
-            $(`#design_${stage} .section-bottom:first`).empty();
-            $(`#design_${stage} .section-bottom`).addClass("hidden");
-            execution_section.append(
-                `<button class="section-inactive-button small-button small info" type="executions" stage="${stage}">+ Add</button>`
-            )
-        }
-
-
-
+        if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `executions.${stage}`);
     }
 
     const collectExecutionData = (stage) => {
@@ -546,9 +521,9 @@
                 if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_transformer";
                 showSliderPanel(transformers);
-            } else if(slidepanel_type === "executions"){
+            } else if(slidepanel_type.startsWith("executions")){
                 if(focus_section_id) hideSliderPanel();
-                let stage = button.getAttribute("stage");
+                let stage = slidepanel_type.split(".")[1];
                 focus_section_id = `design_${stage}`;
                 let new_executions = {};
                 Object.keys(executions).forEach(app => {
