@@ -546,7 +546,7 @@
         let children = document.getElementById(`design_transformer-section-body`).children;
         for(let i=0; i < children.length; i++) {
             let child = children[i];
-            let transformer_value = child.id;
+            let transformer_value = selected_transformers[i];
             let data = getVariableDataInStep(null, elements=child);
             transformers_data.push({
                 module_index: transformer_value,
