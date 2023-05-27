@@ -148,10 +148,10 @@
 
     }
 
-    function add_section_header(section_typem, module) {
+    function add_section_header(section_type, module) {
         let div = document.createElement('div');
         div.classList.add('custom-group');
-        div.id = `custom.${type}.${module.value}`;
+        div.id = `custom.${section_type,}.${module.value}`;
 
         var label_element = document.createElement('label');
         label_element.classList.add('custom-label');
