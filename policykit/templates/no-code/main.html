@@ -552,9 +552,9 @@
             let app = id.split(".")[2];
             let execution_codename = id.split(".")[3];
             if(event.target.checked){
-                showExecutionVariables(stage, app + "." + execution_codename, app);
+                showExecutionVariables(stage, execution_codename, app);
             } else {
-                removeExecutionVariables(stage, app + "." + execution_codename, app);
+                removeExecutionVariables(stage, execution_codename, app);
             }
         }
     });
