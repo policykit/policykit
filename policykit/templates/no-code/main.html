@@ -310,7 +310,7 @@
 
         let execution_div = add_section_header(`execution.${stage}`, execution);
         $(`#design_${stage}-section-body`).append(execution_div);
-        new_execution["variables"].forEach((variable, index) => {
+        execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
         })
     }
@@ -546,7 +546,7 @@
         let children = document.getElementById(`design_transformer-section-body`).children;
         for(let i=0; i < children.length; i++) {
             let child = children[i];
-            let transformer_value = child.id.split(".")[1];
+            let transformer_value = child.id;
             let data = getVariableDataInStep(null, elements=child);
             transformers_data.push({
                 module_index: transformer_value,
@@ -563,7 +563,7 @@
         if(checkMissingVariable("design_procedure")) return;
         
         const procedure_data = {
-            procedure_index: selected_procedure_value.split(".")[1],
+            procedure_index: selected_procedure_value,
             procedure_variables: getVariableDataInStep("design_procedure"),
         }
         console.log("procedure_data " + JSON.stringify(procedure_data));
