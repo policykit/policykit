@@ -439,6 +439,7 @@
     const showExecutionVariables = (stage, new_exe_value, app) => {
         let execution_section = $(`#design_${stage}-section-body`);
         // if there are no actions selected before, remove the inactive class and empty the section
+
         if(selected_executions[stage].includes(new_exe_value)) return;
 
         if(selected_executions[stage].length == 0) {
@@ -548,8 +549,9 @@
             
         } else if(event.target.id.includes("executions-checkbox")){
             let id = event.target.id;
-            let stage = id.split(".")[1];
-            let app = id.split(".")[2];
+            // "executions-checkbox.slack.notify.slackpostmessage"
+            let app = id.split(".")[1];
+            let stage = id.split(".")[2];
             let execution_codename = id.split(".")[3];
             if(event.target.checked){
                 showExecutionVariables(stage, execution_codename, app);
