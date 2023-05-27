@@ -10,7 +10,14 @@ def get_filter_parameters(app_name, action_codename):
         return action_model.FILTER_PARAMETERS
     else:
         return []
-    
+def remove_platform_prefix(action_name, appname):
+    """
+        Remove the platform prefix from an action name
+        For instance, Slack Post Message --> Post Message
+    """
+    action_name = action_name.replace(appname, "").replace(appname.capitalize(), "")
+    return action_name.strip()
+
 def get_base_actions(user):
     """
         determine a list of actions users can use as a base action of a custom action, 
@@ -32,7 +39,7 @@ def get_base_actions(user):
                 filter_kinds_dict[action_code] = parameter
                 base_action_list.append({
                     "value": app_name + "." + action_code,
-                    "name": verbose_name
+                    "name": remove_platform_prefix(verbose_name, app_name),
                 })
         # only show apps that have at least one action with filter parameters
         if base_action_list:
@@ -122,7 +129,7 @@ def extract_executable_actions(user):
                 executable_actions[app_name].append(
                     {
                         "value": app_name + "." + action_code,
-                        "name": action_name,
+                        "name": remove_platform_prefix(action_name, app_name),
                         "variables": variables
                     }
                 )

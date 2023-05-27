@@ -178,12 +178,13 @@
         action_div.classList.add('custom-group');
         action_div.id = `custom-action-${action}`;
 
+        let action_label = base_actions[app].find(item => item.value == action).name;
         // add a label for this action in action_div
-        var action_label = document.createElement('label');
-        action_label.classList.add('custom-label');
-        action_label.classList.add('large');
-        action_label.innerHTML = capitalize(action);
-        action_div.appendChild(action_label);
+        var action_label_element = document.createElement('label');
+        action_label_element.classList.add('custom-label');
+        action_label_element.classList.add('large');
+        action_label_element.innerHTML = `${capitalize(app)}: ${capitalize(action_label)}`;
+        action_div.appendChild(action_label_element);
         
         // then add the filter parameters for each action in this action_div
         const now_filter_kinds = action_filter_kinds[action]; // a dict of field: filter_kind
@@ -455,12 +456,12 @@
         var execution_div = document.createElement('div');
         execution_div.classList.add('custom-group');
         execution_div.id = `custom-execution.${stage}.${new_exe_value}`;
-
+        
         // add a label for this action in action_div
         var execution_label = document.createElement('label');
         execution_label.classList.add('custom-label');
         execution_label.classList.add('large');
-        execution_label.innerHTML = capitalize(new_execution.name);
+        execution_label.innerHTML = `${capitalize(app)}: ${capitalize(new_execution.name)}`;
         execution_div.appendChild(execution_label);
         
         execution_section.append(execution_div);
