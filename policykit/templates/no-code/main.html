@@ -71,21 +71,21 @@
             <section id="design_notify">
                 <div class="section-header">When Procedures start <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_notify-section-body">
-                    <button class="section-inactive-button small-button small info" type="executions" stage="notify">+ Add</button>
+                    <button class="section-inactive-button small-button small info" type="executions.notify">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
             <section id="design_success">
                 <div class="section-header">When Actions pass <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_success-section-body">
-                    <button class="section-inactive-button small-button small info" type="executions" stage="success">+ Add</button>
+                    <button class="section-inactive-button small-button small info" type="executions.success">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
             <section id="design_fail">
                 <div class="section-header">When Actions fail <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_fail-section-body">
-                    <button class="section-inactive-button small-button small info" type="executions" stage="fail">+ Add</button>
+                    <button class="section-inactive-button small-button small info" type="executions.fail">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -442,11 +442,8 @@
             let id = event.target.id;
             let action = id.split(".")[2];
             let app = id.split(".")[1];
-            if(event.target.checked){
-                showFilterParameters(action, app);
-            } else {
-                removeFilterParameters(action, app);
-            }
+            if(event.target.checked) showFilterParameters(action, app);
+            else removeFilterParameters(action, app);
         } else if( event.target.id.startsWith("select-") ){
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
@@ -481,8 +478,9 @@
         }
     });
 
-    // listen the events on the buttons in the nocode panel (including next and add buttons)
-    // so that we could display slider panels
+    /** listen the events on the buttons in the nocode panel (including next and add buttons)
+        so that we could display slider panels
+    */
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
