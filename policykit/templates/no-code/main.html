@@ -148,10 +148,23 @@
 
     }
 
+    function add_section_header(section_typem, module) {
+        let div = document.createElement('div');
+        div.classList.add('custom-group');
+        div.id = `custom.${type}.${module.value}`;
+
+        var label_element = document.createElement('label');
+        label_element.classList.add('custom-label');
+        label_element.classList.add('large');
+        label_element.innerHTML = module.name;
+        div.appendChild(label_element);
+        return div;
+    }
+
     const removeFilterParameters = (action, app) => {
         // remove the action from the selected actions
         delete selected_actions[action];
-        $(`#custom-action-${action}`).remove();
+        $(`#custom.action.${action}`).remove();
         if(Object.keys(selected_actions).length == 0) deactivate_section("design_action", "action");
     }
     
@@ -162,13 +175,13 @@
 
     const removeTransformerVariables = (transformer_value, app) => {
         selected_transformers = selected_transformers.filter(item => item !== transformer_value);
-        $(`custom-transformer.${transformer_value}`).remove();
+        $(`custom.transformer.${transformer_value}`).remove();
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
     }
 
     const removeExecutionVariables = (stage, execution_codename, app) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
-        $(`custom-execution.${stage}.${execution_codename}`).remove();
+        $(`custom.execution.${stage}.${execution_codename}`).remove();
         if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
     }
 
@@ -178,20 +191,12 @@
         if (action in selected_actions) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(Object.keys(selected_actions).length == 0) activate_section("design_action");
-
         selected_actions[action] = app;
-        // add filter parameters for the new action, iterating with action and index
-        var action_div = document.createElement('div');
-        action_div.classList.add('custom-group');
-        action_div.id = `custom-action-${action}`;
-
-        let action_label = base_actions[app].find(item => item.value == action).name;
-        // add a label for this action in action_div
-        var action_label_element = document.createElement('label');
-        action_label_element.classList.add('custom-label');
-        action_label_element.classList.add('large');
-        action_label_element.innerHTML = `${capitalize(app)} ${capitalize(action_label)}`;
-        action_div.appendChild(action_label_element);
+        let action = {...base_actions[app].find(item => item.value == action)};
+        action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
+        
+        // create action div and add action header to the action_div
+        let action_div = add_section_header("action", action);
         
         // then add the filter parameters for each action in this action_div
         const now_filter_kinds = action_filter_kinds[action]; // a dict of field: filter_kind
@@ -263,32 +268,19 @@
     
     }
 
-    const showProcedureVariables = (procedure_value, app) => {
-               
+    const showProcedureVariables = (procedure_value, app) => { 
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_procedure_value === null) activate_section("design_procedure");
-
         selected_procedure_value = procedure_value;
         // search for data about this selected procedure 
         let selected_procedure = procedures[app].find(item => item.value == selected_procedure_value);
-
-        var procedure_div = document.createElement('div');
-        procedure_div.classList.add('custom-group');
-        procedure_div.id = `custom-procedure-${procedure_value}`;
-
-        // add a label for this action in action_div
-        var procedure_label = document.createElement('label');
-        procedure_label.classList.add('custom-label');
-        procedure_label.classList.add('large');
-        procedure_label.innerHTML = capitalize(selected_procedure.name);
-        procedure_div.appendChild(procedure_label);
-
+        
+        let procedure_div = add_section_header("procedure", selected_procedure);
         $("#design_procedure-section-body").empty();
         $("#design_procedure-section-body").append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=null, column=true)
         })
-    
     }
         
     const showTransformerVariables = (new_transformer_value, app) => {
@@ -298,18 +290,8 @@
         selected_transformers.push(new_transformer_value);
         
         let selected_transformer = transformers[app].find(item => item.value == new_transformer_value);
-
-        var transformer_div = document.createElement('div');
-        transformer_div.classList.add('custom-group');
-        transformer_div.id = `custom-transformer.${new_transformer_value}`;
-
-        // add a label for this action in action_div
-        var transformer_label = document.createElement('label');
-        transformer_label.classList.add('custom-label');
-        transformer_label.classList.add('large');
-        transformer_label.innerHTML = capitalize(selected_transformer.name);
-        transformer_div.appendChild(transformer_label);
-
+    
+        let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-section-body").append(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, column=true)
@@ -323,19 +305,10 @@
 
         selected_executions[stage].push(new_exe_value);
 
-        let new_execution = executions[app].find(item => item.value === new_exe_value);
+        let new_execution ={...executions[app].find(item => item.value === new_exe_value)};
+        new_execution["name"] = `${capitalize(app)} ${capitalize(new_execution.name)}`;
 
-        var execution_div = document.createElement('div');
-        execution_div.classList.add('custom-group');
-        execution_div.id = `custom-execution.${stage}.${new_exe_value}`;
-        
-        // add a label for this action in action_div
-        var execution_label = document.createElement('label');
-        execution_label.classList.add('custom-label');
-        execution_label.classList.add('large');
-        execution_label.innerHTML = `${capitalize(app)} ${capitalize(new_execution.name)}`;
-        execution_div.appendChild(execution_label);
-        
+        let execution_div = add_section_header(`execution.${stage}`, new_execution);
         $(`#design_${stage}-section-body`).append(execution_div);
         new_execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
