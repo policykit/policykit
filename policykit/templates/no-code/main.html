@@ -171,7 +171,7 @@
         return div;
     }
 
-    const removeFilterParameters = (action, app) => {
+    const removeFilterParameters = (action) => {
         // remove the action from the selected actions
         delete selected_actions[action];
         $(`#custom.action.${action}`).remove();
@@ -183,13 +183,13 @@
         deactivate_section("design_procedure", "procedure");
     }
 
-    const removeTransformerVariables = (transformer_value, app) => {
+    const removeTransformerVariables = (transformer_value) => {
         selected_transformers = selected_transformers.filter(item => item !== transformer_value);
         $(`custom.transformer.${transformer_value}`).remove();
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
     }
 
-    const removeExecutionVariables = (stage, execution_codename, app) => {
+    const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
         $(`custom.execution.${stage}.${execution_codename}`).remove();
         if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
@@ -337,7 +337,7 @@
             let action = id.split(".")[2];
             let app = id.split(".")[1];
             if(event.target.checked) showFilterParameters(action, app);
-            else removeFilterParameters(action, app);
+            else removeFilterParameters(action);
         } else if( event.target.id.startsWith("select-") ){
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
@@ -356,7 +356,7 @@
             let app = "all"
             let transformer_value = event.target.value;
             if(event.target.checked) showTransformerVariables(transformer_value, app);
-            else removeTransformerVariables(transformer_value, app);
+            else removeTransformerVariables(transformer_value);
             
         } else if(event.target.id.includes("execution-checkbox")){
             let id = event.target.id;
@@ -367,11 +367,32 @@
             if(event.target.checked){
                 showExecutionVariables(stage, execution_codename, app);
             } else {
-                removeExecutionVariables(stage, execution_codename, app);
+                removeExecutionVariables(stage, execution_codename);
             }
         }
     });
+    document.getElementById("nocode-panel").addEventListener('click', (event) => {
+        let target = event.target.closest(".custom-group");
+        if(target){
+            let type = target.id.split(".")[1];
+            if(type == "action"){
+                // id: e.g., custom.action.slackpostmessage
+                removeFilterParameters(target.id.split(".")[2]);
+            } else if(type == "procedure"){
+                // id: e.g., custom.procedure.64
+                removeProcedureVariables();
+            } else if(type == "transformer"){
+                // id: e.g., custom.transformer.10
+                removeTransformerVariables(target.id.split(".")[2]);
+            } else if(type.startsWith("execution")){
+                // id: e.g., custom.execution.success.slackpostmessage
+                let stage = target.id.split(".")[2];
+                removeExecutionVariables(stage, target.id.split(".")[3]);
+            }
 
+        }
+
+    }
     /** 
      * listen the events on the buttons in the nocode panel (including next and add buttons)
      * so that we could display or hide slider panels
