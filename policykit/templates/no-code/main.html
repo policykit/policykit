@@ -507,15 +507,15 @@
             if(slidepanel_type === "actions"){
                 if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_custom_action";
-                showSliderPanel(base_actions);
+                showSliderPanel(base_actions, slidepanel_type);
             } else if(slidepanel_type == "procedures"){
                 if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_procedure";
-                showSliderPanel(procedures);
+                showSliderPanel(procedures, slidepanel_type);
             } else if(slidepanel_type == "transformers") {
                 if(focus_section_id) hideSliderPanel();
                 focus_section_id = "design_transformer";
-                showSliderPanel(transformers);
+                showSliderPanel(transformers, slidepanel_type);
             } else if(slidepanel_type.startsWith("executions")){
                 if(focus_section_id) hideSliderPanel();
                 let stage = slidepanel_type.split(".")[1];
@@ -526,7 +526,7 @@
                         return {name: execution.name, value: `${stage}.${execution.value}`}
                     })
                 });
-                showSliderPanel(new_executions);
+                showSliderPanel(new_executions, slidepanel_type.split(".")[0]);
             }
 
         }
@@ -545,10 +545,9 @@
     }
 
     var focus_section_id = null;
-    const showSliderPanel = (options) => {
+    const showSliderPanel = (options, slidepanel_type) => {
         let focus_section = document.getElementById(focus_section_id);
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
-        let slidepanel_type = prompt_button.getAttribute("type");
 
         // show prompt text in the focus section
         prompt_button.classList.remove("info");
