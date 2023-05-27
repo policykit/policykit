@@ -183,7 +183,7 @@
         var action_label_element = document.createElement('label');
         action_label_element.classList.add('custom-label');
         action_label_element.classList.add('large');
-        action_label_element.innerHTML = `${capitalize(app)}: ${capitalize(action_label)}`;
+        action_label_element.innerHTML = `${capitalize(app)} ${capitalize(action_label)}`;
         action_div.appendChild(action_label_element);
         
         // then add the filter parameters for each action in this action_div
@@ -462,7 +462,7 @@
         var execution_label = document.createElement('label');
         execution_label.classList.add('custom-label');
         execution_label.classList.add('large');
-        execution_label.innerHTML = `${capitalize(app)}: ${capitalize(new_execution.name)}`;
+        execution_label.innerHTML = `${capitalize(app)} ${capitalize(new_execution.name)}`;
         execution_div.appendChild(execution_label);
         
         execution_section.append(execution_div);
@@ -562,6 +562,7 @@
     });
 
     // listen the events on the buttons in the nocode panel (including next and add buttons)
+    // so that we could display slider panels
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
