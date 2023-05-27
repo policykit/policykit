@@ -462,14 +462,10 @@
                 removeProcedureVariables();
             }
         } else if(event.target.id.startsWith("transformers-checkbox")){
-            if(event.target.checked){
-                // if the checkbox is checked, then uncheck all other checkboxes
-                let app = "all"
-                let transformer_value = event.target.value;
-                showTransformerVariables(transformer_value, app);
-            } else {
-                removeTransformerVariables(transformer_value, app);
-            }
+            let app = "all"
+            let transformer_value = event.target.value;
+            if(event.target.checked) showTransformerVariables(transformer_value, app);
+            else removeTransformerVariables(transformer_value, app);
             
         } else if(event.target.id.includes("executions-checkbox")){
             let id = event.target.id;
