@@ -188,10 +188,10 @@
     const showFilterParameters = (action_value, app) => {
 
         // check if the action has already been selected
-        if (action in selected_actions) return;
+        if (action_value in selected_actions) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(Object.keys(selected_actions).length == 0) activate_section("design_action");
-        selected_actions[action] = app;
+        selected_actions[action_value] = app;
         let action = {...base_actions[app].find(item => item.value == action_value)};
         action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
         
