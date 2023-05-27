@@ -166,6 +166,7 @@
         let button_element = document.createElement('button');
         button_element.id = `remove.${section_type}.${module.value}`
         button_element.classList.add("small")
+        button_element.classList.add("custom-group-remove-button")
         button_element.innerHTML = '<i class="fa-regular fa-trash-can fa-sm" style="color: #4451b2;"></i>&nbsp;&nbsp;Remove'
         header.appendChild(button_element);                
         return div;
@@ -372,22 +373,23 @@
         }
     });
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
-        let target = event.target.closest(".custom-group");
+        let target = event.target.closest(".custom-group-remove-button");
         if(target){
-            let type = target.id.split(".")[1];
+            let id = target.parentNode.parentNode.id;
+            let type = id.split(".")[1];
             if(type == "action"){
                 // id: e.g., custom.action.slackpostmessage
-                removeFilterParameters(target.id.split(".")[2]);
+                removeFilterParameters(id.split(".")[2]);
             } else if(type == "procedure"){
                 // id: e.g., custom.procedure.64
                 removeProcedureVariables();
             } else if(type == "transformer"){
                 // id: e.g., custom.transformer.10
-                removeTransformerVariables(target.id.split(".")[2]);
+                removeTransformerVariables(id.split(".")[2]);
             } else if(type.startsWith("execution")){
                 // id: e.g., custom.execution.success.slackpostmessage
-                let stage = target.id.split(".")[2];
-                removeExecutionVariables(stage, target.id.split(".")[3]);
+                let stage = id.split(".")[2];
+                removeExecutionVariables(stage, id.split(".")[3]);
             }
 
         }
