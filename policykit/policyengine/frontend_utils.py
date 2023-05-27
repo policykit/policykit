@@ -38,7 +38,7 @@ def get_base_actions(user):
             if parameter:
                 filter_kinds_dict[action_code] = parameter
                 base_action_list.append({
-                    "value": app_name + "." + action_code,
+                    "value": action_code,
                     "name": remove_platform_prefix(verbose_name, app_name),
                 })
         # only show apps that have at least one action with filter parameters
@@ -85,7 +85,7 @@ def get_procedures(platforms):
         procedures[template.platform.lower()].append({
             "name": template.name, 
             "description": template.description,
-            "value": f"{template.platform.lower()}.{template.pk}", 
+            "value": template.pk, 
             "variables": template.loads("variables")   
         })
     return procedures
@@ -128,7 +128,7 @@ def extract_executable_actions(user):
                     executable_actions[app_name] = []
                 executable_actions[app_name].append(
                     {
-                        "value": app_name + "." + action_code,
+                        "value": action_code,
                         "name": remove_platform_prefix(action_name, app_name),
                         "variables": variables
                     }

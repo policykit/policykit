@@ -644,14 +644,14 @@
             this_app_options.forEach(option => {
                 if(slidepanel_type === "actions" || slidepanel_type === "executions"){
                     innerHTML += `<div class='actions-checkbox-item'>
-                        <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${option.value}">
-                        <label for='${slidepanel_type}-checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                        <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${app}.${option.value}">
+                        <label for='${slidepanel_type}-checkbox.${app}.${option.value}' class='normal medium'>${option.name}</label>
                     </div>`;
                 } else if(slidepanel_type == "procedures" || slidepanel_type == "transformers"){
                     innerHTML += `<div class='procedures-checkbox-item'>
-                            <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${option.value}">
+                            <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${app}.${option.value}">
                             <div class="procedures-label">
-                                <label for='${slidepanel_type}-checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                                <label for='${slidepanel_type}-checkbox.${app}.${option.value}' class='normal medium'>${option.name}</label>
                                 <div class="small prompt">${option.description}</div>
                             </div>
                         </div>`;
