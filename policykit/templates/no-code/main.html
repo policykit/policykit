@@ -118,17 +118,22 @@
     var selected_transformers = [];
     var selected_executions = {success: [], fail: [], notify: []};
 
-    function activate_section(section_id){
+    function activate_section(section_type){
         /**
             remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
             @param section_id: the id of the section, e.g. design_action
         */
-        let section = $(`#${section_id}-section-body`)
+        let section = $(`#design_${section_type}-section-body`)
         section.removeClass("inactive");
         section.addClass("active");
         section.empty();
-        $(`#${section_id} .section-bottom`).removeClass("hidden");
-        $(`#${section_id} .section-bottom:first`).append(`<button class="button primary medium section-next" id="${section_id}-next">Next</button>`)
+        $(`#design_${section_type} .section-bottom`).removeClass("hidden");
+        $(`#design_${section_type} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_type}-next">Next</button>`);
+
+        if(section_type !== "procedure"){
+            // add a button to add more components
+            section.append(`<button class="custom-group-add-button small" id="add.${section_type}">Add more ${section_type}s</button>`)
+        }
     }
 
     function deactivate_section(section_id, type, stage=null){
@@ -206,14 +211,13 @@
         // check if the action has already been selected
         if (selected_actions.some(item => item.value == action_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_actions.length == 0) activate_section("design_action");
+        if(selected_actions.length == 0) activate_section("action");
         let action = {...base_actions[app].find(item => item.value == action_value)};
         action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
         selected_actions.push(action);
 
         // create action div and add action header to the action_div
         let action_div = add_section_header("action", action);
-        
         // then add the filter parameters for each action in this action_div
         const now_filter_kinds = action_filter_kinds[action.value]; // a dict of field: filter_kind
         const filters_this_app = filter_modules[app]; // a dict of filter_kind: [filter_modules]
@@ -242,8 +246,10 @@
                 action_div.appendChild(field_div);
             }
         });
-        $("#design_action-section-body").append(action_div);
+        // insert the action before the add-more button
+        action_div.insertBefore($("#design_action-section-body :last-child"));
         $(".selectpicker").selectpicker('refresh');
+
     }
 
     const showFilterModuleVariables = (select_id) => {
@@ -286,7 +292,7 @@
 
     const showProcedureVariables = (procedure_value, app) => { 
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_procedure === null) activate_section("design_procedure");
+        if(selected_procedure === null) activate_section("procedure");
         
         // search for data about this selected procedure 
         selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
@@ -302,7 +308,7 @@
     const showTransformerVariables = (transformer_value, app) => {
         if(selected_transformers.some(item => item.value === transformer_value)) return;
 
-        if(selected_transformers.length === 0) activate_section("design_transformer");
+        if(selected_transformers.length === 0) activate_section("transformer");
 
         let selected_transformer = {...transformers[app].find(item => item.value == transformer_value)};
         selected_transformers.push(selected_transformer);
@@ -318,7 +324,7 @@
     const showExecutionVariables = (stage, execution_value, app) => {
         if(selected_executions[stage].find(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_executions[stage].length == 0) activate_section(`design_${stage}`);
+        if(selected_executions[stage].length == 0) activate_section(`${stage}`);
 
         
 
