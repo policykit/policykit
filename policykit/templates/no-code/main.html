@@ -68,23 +68,23 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_notify">
+            <section id="design_execution.notify">
                 <div class="section-header">When Procedures start <span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_notify-section-body">
+                <div class="section-body inactive" id="design_execution.notify-section-body">
                     <button class="section-inactive-button small-button small info" type="execution.notify">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_success">
+            <section id="design_execution.success">
                 <div class="section-header">When Actions pass <span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_success-section-body">
+                <div class="section-body inactive" id="design_execution.success-section-body">
                     <button class="section-inactive-button small-button small info" type="execution.success">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_fail">
+            <section id="design_execution.fail">
                 <div class="section-header">When Actions fail <span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_fail-section-body">
+                <div class="section-body inactive" id="design_execution.fail-section-body">
                     <button class="section-inactive-button small-button small info" type="execution.fail">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
@@ -121,14 +121,14 @@
     const add_button_text = {
         "action": "+ Add more Actions",
         "transformer": "+ Add more Transformers",
-        "notify": "+ Add more Executions",
-        "success": "+ Add more Executions",
-        "fail": "+ Add more Executions",
+        "execution.notify": "+ Add more Executions",
+        "execution.success": "+ Add more Executions",
+        "execution.fail": "+ Add more Executions",
     }
     function activate_section(section_name){
         /**
             remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
-            @param section_id: the id of the section, e.g. design_action
+            @param section_id: the name of the section, e.g., action, procedure, transformer, execution.notify, 
         */
         let section = $(`#design_${section_name}-section-body`)
         section.removeClass("inactive");
@@ -138,30 +138,24 @@
         $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
 
         if(section_name !== "procedure"){
-            // add a button to add more components, 
-            // users can only select one procedure so we do not add this button to procedure section
-            var section_type = section_name;
-            if(["notify", "success", "fail"].includes(section_name)){
-                var section_type = `execution.${section_name}` // this change is for the click event to parse out both execution and stage
-            } 
-            section.append(`<button class="custom-group-add-button small" type="${section_type}">${add_button_text[section_name]}</button>`)
+            section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
         }
     }
 
-    function deactivate_section(section_id, type, stage=null){
+    function deactivate_section(section_name){
         /**
             add back placeholder buttons (add buttons);
             @param section_id: the id of the section, e.g. design_action
             @param types: the type of the section, e.g. actions, procedures, transformers, executions
             @param 
         */
-        let section = $(`#${section_id}-section-body`)
+        let section = $(`#design_${section_name}-section-body`)
         section.removeClass("active");
         section.addClass("inactive");
         section.empty();
-        section.append(`<button class="section-inactive-button small info" type="${type}">+ Add</button>`)
-        $(`#${section_id} .section-bottom:first`).empty(); // remove next buttons
-        $(`#${section_id} .section-bottom`).addClass("hidden");
+        section.append(`<button class="section-inactive-button small info" type="${section_name}">+ Add</button>`)
+        $(`#design_${section_name} .section-bottom:first`).empty(); // remove next buttons
+        $(`#design_${section_name} .section-bottom`).addClass("hidden");
 
     }
 
@@ -217,8 +211,8 @@
     const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
         document.getElementById(`custom.execution.${stage}.${execution_codename}`).remove();
-        document.getElementById(`execution.checkbox.${stage}.${execution_codename}`).checked = false;
-        if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
+        document.getElementById(`execution.${stage}.checkbox.${execution_codename}`).checked = false;
+        if(selected_executions[stage].length == 0) deactivate_section(`design_execution.${stage}`);
     }
 
     const showFilterParameters = (action_value, app) => {
@@ -339,7 +333,7 @@
     const showExecutionVariables = (stage, execution_value, app) => {
         if(selected_executions[stage].find(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_executions[stage].length == 0) activate_section(`${stage}`);
+        if(selected_executions[stage].length == 0) activate_section(`execution.${stage}`);
 
         
 
@@ -348,7 +342,7 @@
         selected_executions[stage].push(execution);
 
         let execution_div = add_section_header(`execution.${stage}`, execution);
-        $(`#design_${stage}-section-body > :last-child`).before(execution_div);
+        $(`#design_execution.${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
         })
@@ -361,16 +355,17 @@
      * then we will show or remove the corresponding variable boxes in the nocode panel 
      * */
     document.body.addEventListener('change', (event) => {
-        if(event.target.id.startsWith("action.checkbox")){
+        let id = event.target.id;
+        if(id.startsWith("action.checkbox")){
             let action_value = event.target.value
             let app = event.target.getAttribute("platform");
             if(event.target.checked) showFilterParameters(action_value, app);
             else removeFilterParameters(action_value);
-        } else if( event.target.id.startsWith("select-") ){
+        } else if( id.startsWith("select-") ){
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
-            showFilterModuleVariables(event.target.id);
-        } else if(event.target.id.startsWith("procedure.checkbox")){
+            showFilterModuleVariables(id);
+        } else if(id.startsWith("procedure.checkbox")){
             let procedure_value = event.target.value;
             if(event.target.checked){
                 // if the checkbox is checked, then uncheck all other checkboxes
@@ -380,23 +375,22 @@
             } else {
                 removeProcedureVariables(procedure_value);
             }
-        } else if(event.target.id.startsWith("transformer.checkbox")){
+        } else if(id.startsWith("transformer.checkbox")){
             let app = event.target.getAttribute("platform");
             let transformer_value = event.target.value;
             if(event.target.checked) showTransformerVariables(transformer_value, app);
             else removeTransformerVariables(transformer_value);
             
-        } else if(event.target.id.includes("execution.checkbox")){
+        } else if(id.startsWith("execution.notify.checkbox") || id.startsWith("execution.success.checkbox") || id.startsWith("execution.fail.checkbox")){
             let id = event.target.id;
-            // "execution-checkbox.slack.notify.slackpostmessage"
+            // "execution.success.checkbox.slack.slackpostmessage"
             let app = event.target.getAttribute("platform");
-            let value = event.target.value;
-            let stage = value.split(".")[0];
-            let execution_codename = value.split(".")[1];
+            let stage = id.split(".")[1];
+            let execution_value = event.target.value;
             if(event.target.checked){
-                showExecutionVariables(stage, execution_codename, app);
+                showExecutionVariables(stage, execution_value, app);
             } else {
-                removeExecutionVariables(stage, execution_codename);
+                removeExecutionVariables(stage, execution_value);
             }
         }
     });
@@ -465,14 +459,8 @@
                 showSliderPanel(transformers, slidepanel_type, button_type);
             } else if(slidepanel_type.startsWith("execution")){
                 let stage = slidepanel_type.split(".")[1];
-                focus_section_id = `design_${stage}`;
-                let new_executions = {};
-                Object.keys(executions).forEach(app => {
-                    new_executions[app] = executions[app].map(execution => {
-                        return {name: execution.name, value: `${stage}.${execution.value}`}
-                    })
-                });
-                showSliderPanel(new_executions, slidepanel_type.split(".")[0], button_type);
+                focus_section_id = `design_${slidepanel_type}`;
+                showSliderPanel(new_executions, slidepanel_type, button_type);
             }
         }
     });
@@ -490,16 +478,7 @@
     }
  
     const showSliderPanel = (options, slidepanel_type, button_type) => {
-        let focus_section = document.getElementById(focus_section_id);
-        if(button_type === "start"){
-            // if this is the first time to show the slider panel, then we need to change the prompt button text
-            let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
-            // show prompt text in the focus section
-            prompt_button.classList.remove("info");
-            prompt_button.classList.add("prompt");
-            prompt_button.innerHTML = prompt_button_text[slidepanel_type];
-        }
-        
+        let focus_section = document.getElementById(focus_section_id);        
         // display checkboxes in the slider panel
         $("#slide-panel-body").empty();
         Object.keys(options).forEach(app => {
@@ -527,6 +506,33 @@
             $("#slide-panel-body").append(innerHTML);
         });
         $("#slider-panel").removeClass("hidden");
+        if(button_type === "start"){
+            // if this is the first time to show the slider panel, then we need to change the prompt button text
+            let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+            // show prompt text in the focus section
+            prompt_button.classList.remove("info");
+            prompt_button.classList.add("prompt");
+            prompt_button.innerHTML = prompt_button_text[slidepanel_type];
+        } else if(button_type === "add"){
+            // if this is not the first time to show the slider panel, 
+            // then we need to select checkboxes that have already been selected
+            if(slidepanel_type === "action"){
+                selected_actions.forEach(action => {
+                    document.getElementById(`action.checkbox.${action.value}`).checked = true;
+                });
+            } else if(slidepanel_type === "procedure"){
+                document.getElementById(`procedure.checkbox.${selected_procedure.value}`).checked = true;
+            } else if(slidepanel_type === "transformer"){
+                selected_transformers.forEach(transformer => {
+                    document.getElementById(`transformer.checkbox.${transformer.value}`).checked = true;
+                });
+            } else if(slidepanel_type.startsWith("execution")){
+                let stage = slidepanel_type.split(".")[1];
+                selected_executions[stage].forEach(execution => {
+                    document.getElementById(`${slidepanel_type}.checkbox.${execution.value}`).checked = true;
+                });
+            }
+        }
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
     }
     
