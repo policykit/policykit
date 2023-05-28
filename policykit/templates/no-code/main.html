@@ -380,11 +380,11 @@
             if(event.target.checked) showTransformerVariables(transformer_value, app);
             else removeTransformerVariables(transformer_value);
             
-        } else if(id.startsWith("execution.notify.checkbox") || id.startsWith("execution.success.checkbox") || id.startsWith("execution.fail.checkbox")){
+        } else if(id.startsWith("execution_notify.checkbox") || id.startsWith("execution_success.checkbox") || id.startsWith("execution_fail.checkbox")){
             let id = event.target.id;
             // "execution.success.checkbox.slackpostmessage"
             let app = event.target.getAttribute("platform");
-            let stage = id.split(".")[1];
+            let stage = id.split(".")[0].split("_")[1];
             let execution_value = event.target.value;
             if(event.target.checked){
                 showExecutionVariables(stage, execution_value, app);
