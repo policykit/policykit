@@ -451,7 +451,7 @@
             } 
         } else if(button || add_more_button) {
             // listen to the event when users clicks the add button in a section and we pop up the slide panel
-            let slidepanel_type = button.getAttribute("type");
+            let slidepanel_type = button ? button.getAttribute("type") : add_more_button.getAttribute("type");
             if(focus_section_id) hideSliderPanel();
             if(slidepanel_type === "action"){
                 focus_section_id = "design_action";
