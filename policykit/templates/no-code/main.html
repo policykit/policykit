@@ -182,7 +182,9 @@
         console.log("removing action: " + action_value)
         $(`#custom.action.${action_value}`).remove();
         document.getElementById(`action.checkbox.${action_value}`).checked = false;
+        console.log("selected actions before: " + JSON.stringify(selected_actions));
         selected_actions = selected_actions.filter(item => item.value !== action_value);
+        console.log("selected actions after: " + JSON.stringify(selected_actions));
         if(Object.keys(selected_actions).length == 0) deactivate_section("design_action", "action");
         
     }
