@@ -176,7 +176,7 @@
         // remove the action from the selected actions
         console.log("removing action: " + action_value);
         $(`#custom.action.${action_value}`).remove();
-        $(`#action.checkbox.${action_value}`).prop('checked', false);
+        document.getElementById(`action.checkbox.${action_value}`).checked = false;
         selected_actions = selected_actions.filter(item => item.value !== action_value);
         if(Object.keys(selected_actions).length == 0) deactivate_section("design_action", "action");
         
@@ -184,14 +184,13 @@
     
     const removeProcedureVariables = (procedure_value) => {
         selected_procedure = null;
-        $(`#procedure.checkbox.${procedure_value}`).prop('checked', false);
+        document.getElementById(`procedure.checkbox.${procedure_value}`).checked = false;
         deactivate_section("design_procedure", "procedure");
     }
 
     const removeTransformerVariables = (transformer_value) => {
         $(`#custom.transformer.${transformer_value}`).remove();
-        $(`#transformer.checkbox.${transformer_value}`).prop('checked', false);
-
+        document.getElementById(`transformer.checkbox.${transformer_value}`).checked = false;
         selected_transformers = selected_transformers.filter(item => item.value !== parseInt(transformer_value));
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
     }
@@ -199,7 +198,7 @@
     const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
         $(`#custom.execution.${stage}.${execution_codename}`).remove();
-        $(`#execution.checkbox.${stage}.${execution_codename}`).prop('checked', false);
+        document.getElementById(`execution.checkbox.${stage}.${execution_codename}`).checked = false;
         if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
     }
 
