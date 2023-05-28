@@ -247,7 +247,7 @@
             }
         });
         // insert the action before the add-more button
-        action_div.insertBefore($("#design_action-section-body :last-child"));
+        ("#design_action-section-body :last-child").before(action_div);
         $(".selectpicker").selectpicker('refresh');
 
     }
