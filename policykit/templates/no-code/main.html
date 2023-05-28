@@ -452,16 +452,17 @@
         } else if(button || add_more_button) {
             // listen to the event when users clicks the add button in a section and we pop up the slide panel
             let slidepanel_type = button ? button.getAttribute("type") : add_more_button.getAttribute("type");
+            let button_type = button ? "start" : "add"
             if(focus_section_id) hideSliderPanel();
             if(slidepanel_type === "action"){
                 focus_section_id = "design_action";
-                showSliderPanel(base_actions, slidepanel_type);
+                showSliderPanel(base_actions, slidepanel_type, button_type);
             } else if(slidepanel_type == "procedure"){
                 focus_section_id = "design_procedure";
-                showSliderPanel(procedures, slidepanel_type);
+                showSliderPanel(procedures, slidepanel_type, button_type);
             } else if(slidepanel_type == "transformer") {
                 focus_section_id = "design_transformer";
-                showSliderPanel(transformers, slidepanel_type);
+                showSliderPanel(transformers, slidepanel_type, button_type);
             } else if(slidepanel_type.startsWith("execution")){
                 let stage = slidepanel_type.split(".")[1];
                 focus_section_id = `design_${stage}`;
@@ -471,7 +472,7 @@
                         return {name: execution.name, value: `${stage}.${execution.value}`}
                     })
                 });
-                showSliderPanel(new_executions, slidepanel_type.split(".")[0]);
+                showSliderPanel(new_executions, slidepanel_type.split(".")[0], button_type);
             }
         }
     });
@@ -488,14 +489,16 @@
         execution: "Select one or more executions from the left sidebar"
     }
  
-    const showSliderPanel = (options, slidepanel_type) => {
+    const showSliderPanel = (options, slidepanel_type, button_type) => {
         let focus_section = document.getElementById(focus_section_id);
-        let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
-
-        // show prompt text in the focus section
-        prompt_button.classList.remove("info");
-        prompt_button.classList.add("prompt");
-        prompt_button.innerHTML = prompt_button_text[slidepanel_type];
+        if(button_type === "start"){
+            // if this is the first time to show the slider panel, then we need to change the prompt button text
+            let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+            // show prompt text in the focus section
+            prompt_button.classList.remove("info");
+            prompt_button.classList.add("prompt");
+            prompt_button.innerHTML = prompt_button_text[slidepanel_type];
+        }
         
         // display checkboxes in the slider panel
         $("#slide-panel-body").empty();
