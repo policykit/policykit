@@ -180,7 +180,7 @@
     const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
         console.log("removing action: " + action_value)
-        $(`#custom.action.${action_value}`).remove();
+        document.getElementById(`custom.action.${action_value}`).remove();
         document.getElementById(`action.checkbox.${action_value}`).checked = false;
         console.log("selected actions before: " + JSON.stringify(selected_actions));
         selected_actions = selected_actions.filter(item => item.value !== action_value);
