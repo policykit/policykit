@@ -973,8 +973,6 @@ def create_policy(request):
     new_policy = new_policytemplate.create_policy(user.community.community)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
-
-
 def create_custom_action(filters, policytemplate):
     '''
         create custom actions or action_types of a PolicyTemplate instance based on the filters.
@@ -1074,13 +1072,13 @@ def create_customization(transformer_data, policytemplate):
                     }
                 ]
     """
-    from policyengine.models import CheckModule
+    from policyengine.models import Transformer
     
     for transformer in transformer_data:
         module_index = transformer.get("module_index", None)
-        module_template = CheckModule.objects.filter(pk=module_index).first()
+        module_template = Transformer.objects.filter(pk=module_index).first()
         if module_template:
-            policytemplate.add_check_module(module_template)
+            policytemplate.add_add_transformer(module_template)
             policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
             policytemplate.add_descriptive_data(module_template.loads("data"))
     policytemplate.save()
