@@ -330,7 +330,6 @@
     }
 
     const showExecutionVariables = (stage, execution_value, app) => {
-        console.log("showing execution variables: " + stage + " " + execution_value + " " + app);
         if(selected_executions[stage].some(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_executions[stage].length == 0) activate_section(`execution_${stage}`);
@@ -340,7 +339,7 @@
         selected_executions[stage].push(execution);
 
         let execution_div = add_section_header(`execution_${stage}`, execution);
-        console.log("execution div: ", execution_div);
+        
         $(`#design_execution_${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
@@ -638,10 +637,10 @@
 
     const collectExecutionData = (stage) => {
         if(selected_executions[stage].length == 0) return [];
-        if(checkMissingVariable(`design_${stage}`)) return false;
+        if(checkMissingVariable(`design_execution_${stage}`)) return false;
 
         const execution_data = selected_executions[stage].map((execution, index) => {
-            let execution_div = document.getElementById(`custom.execution.${stage}.${execution.value}`);
+            let execution_div = document.getElementById(`custom.execution_${stage}.${execution.value}`);
             let data = getVariableDataInStep(null, elements=execution_div);
             data.action = execution.value;
             return data
