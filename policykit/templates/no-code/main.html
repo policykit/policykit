@@ -187,15 +187,14 @@
     }
 
     const removeTransformerVariables = (transformer_value) => {
-        console.log(`removing transformer: custom.transformer.${transformer_value}`);
         selected_transformers = selected_transformers.filter(item => item !== transformer_value);
-        $(`custom.transformer.${transformer_value}`).remove();
+        $(`#custom.transformer.${transformer_value}`).remove();
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
     }
 
     const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item !== execution_codename);
-        $(`custom.execution.${stage}.${execution_codename}`).remove();
+        $(`#custom.execution.${stage}.${execution_codename}`).remove();
         if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
     }
 
