@@ -487,7 +487,7 @@
                 <div class="checkbox-body">`
             let this_app_options = options[app];
             this_app_options.forEach(option => {
-                if(slidepanel_type === "action" || slidepanel_type === "execution"){
+                if(slidepanel_type === "action" || slidepanel_type.startsWith("execution")){
                     innerHTML += `<div class='action-checkbox-item'>
                         <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
                         <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
