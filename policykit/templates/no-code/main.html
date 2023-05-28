@@ -343,7 +343,7 @@
 
         let execution_div = add_section_header(`execution\.${stage}`, execution);
         console.log("execution div: ", execution_div);
-        $(`#design_execution\.${stage}-section-body > :last-child`).before(execution_div);
+        $(`#design_execution\\.${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
         })
