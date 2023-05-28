@@ -130,6 +130,7 @@
             remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
             @param section_id: the name of the section, e.g., action, procedure, transformer, execution.notify, 
         */
+       console.log("activating section: " + section_name);
         let section = $(`#design_${section_name}-section-body`)
         section.removeClass("inactive");
         section.addClass("active");
