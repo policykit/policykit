@@ -527,7 +527,7 @@
                     document.getElementById(`transformer.checkbox.${transformer.value}`).checked = true;
                 });
             } else if(slidepanel_type.startsWith("execution")){
-                let stage = slidepanel_type.split(".")[1];
+                let stage = slidepanel_type.split("_")[1];
                 selected_executions[stage].forEach(execution => {
                     document.getElementById(`${slidepanel_type}.checkbox.${execution.value}`).checked = true;
                 });
