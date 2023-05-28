@@ -410,10 +410,10 @@
             } else if(type === "transformer"){
                 // id: e.g., custom.transformer.10
                 removeTransformerVariables(module_value);
-            } else if(type === "execution"){
+            } else if(type.startsWith("execution")){
                 // id: e.g., custom.execution.notify.slackpostmessage
-                let stage = id.split(".")[2];
-                removeExecutionVariables(stage, id.split(".")[3]);
+                let stage = type.split("_")[1];
+                removeExecutionVariables(stage, module_value);
             }
         }
     });
