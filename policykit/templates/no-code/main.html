@@ -176,7 +176,7 @@
         // remove the action from the selected actions
         console.log("removing action: " + action_value);
         $(`#custom.action.${action_value}`).remove();
-        $(`action.checkbox.${action_value}`).prop('checked', false);
+        $(`#action.checkbox.${action_value}`).prop('checked', false);
         selected_actions = selected_actions.filter(item => item.value !== action_value);
         if(Object.keys(selected_actions).length == 0) deactivate_section("design_action", "action");
         
