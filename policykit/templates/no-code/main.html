@@ -125,21 +125,26 @@
         "success": "+ Add more Executions",
         "fail": "+ Add more Executions",
     }
-    function activate_section(section_type){
+    function activate_section(section_name){
         /**
             remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
             @param section_id: the id of the section, e.g. design_action
         */
-        let section = $(`#design_${section_type}-section-body`)
+        let section = $(`#design_${section_name}-section-body`)
         section.removeClass("inactive");
         section.addClass("active");
         section.empty();
-        $(`#design_${section_type} .section-bottom`).removeClass("hidden");
-        $(`#design_${section_type} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_type}-next">Next</button>`);
+        $(`#design_${section_name} .section-bottom`).removeClass("hidden");
+        $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
 
-        if(section_type !== "procedure"){
-            // add a button to add more components
-            section.append(`<button class="custom-group-add-button small" id="add.${section_type}">${add_button_text[section_type]}</button>`)
+        if(section_name !== "procedure"){
+            // add a button to add more components, 
+            // users can only select one procedure so we do not add this button to procedure section
+            var section_type = section_name;
+            if(["notify", "success", "fail"].includes(section_name)){
+                var section_type = `execution.${section_name}` // this change is for the click event to parse out both execution and stage
+            } 
+            section.append(`<button class="custom-group-add-button small" type="${section_type}">${add_button_text[section_name]}</button>`)
         }
     }
 
@@ -426,6 +431,7 @@
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
+        let add_more_button = event.target.closest(".custom-group-add-button");
         if(target){
             if(target.id === "design_action-next") {
                 if(!collectCustomActionData()) return;
@@ -443,7 +449,7 @@
                 if(!collectExecutionData(stage)) return;
                 hideSliderPanel();
             } 
-        } else if(button) {
+        } else if(button || add_more_button) {
             // listen to the event when users clicks the add button in a section and we pop up the slide panel
             let slidepanel_type = button.getAttribute("type");
             if(focus_section_id) hideSliderPanel();
