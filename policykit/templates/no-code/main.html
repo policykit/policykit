@@ -435,9 +435,7 @@
                 if(!collectTransformerData()) return;
                 hideSliderPanel();
             } else if(["design_execution_success-next", "design_execution_fail-next", "design_execution_notify-next"].includes(target.id)){
-                const regex = /design_(\w+)-next/;
-                let match = target.id.match(regex);
-                let stage = match ? match[1] : "";
+                let stage = target.id.split("-")[0].split("_")[2];
                 if(!collectExecutionData(stage)) return;
                 hideSliderPanel();
             } 
