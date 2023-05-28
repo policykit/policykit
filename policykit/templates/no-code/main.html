@@ -175,7 +175,8 @@
     const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
 
-        $(`#custom.action.${action.value}`).remove();
+        $(`#custom.action.${action_value}`).remove();
+        selected_actions = selected_actions.filter(item => item.value !== action_value);
         if(Object.keys(selected_actions).length == 0) deactivate_section("design_action", "action");
         
     }
@@ -186,6 +187,7 @@
     }
 
     const removeTransformerVariables = (transformer_value) => {
+        console.log(`removing transformer: custom.transformer.${transformer_value}`);
         selected_transformers = selected_transformers.filter(item => item !== transformer_value);
         $(`custom.transformer.${transformer_value}`).remove();
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
@@ -383,18 +385,18 @@
             let id = target.parentNode.parentNode.id;
             let type = id.split(".")[1];
             let module_value = id.split(".")[2];
-            if(type == "action"){
+            if(type === "action"){
                 // id: e.g., custom.action.slackpostmessage
                 removeFilterParameters(module_value);
-            } else if(type == "procedure"){
+            } else if(type === "procedure"){
                 // id: e.g., custom.procedure.64
                 removeProcedureVariables();
-            } else if(type == "transformer"){
+            } else if(type === "transformer"){
                 // id: e.g., custom.transformer.10
                 removeTransformerVariables(module_value);
             } else if(type.startsWith("execution")){
-                // id: e.g., custom.execution.success.slackpostmessage
-                let stage = id.split(".")[1];
+                // id: e.g., custom.execution.notify.slackpostmessage
+                let stage = id.split(".")[2];
                 removeExecutionVariables(stage, module_value);
             }
         }
