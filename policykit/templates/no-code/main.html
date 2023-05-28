@@ -484,15 +484,14 @@
     }
  
     const showSliderPanel = (options, slidepanel_type, button_type) => {
-        let focus_section = document.getElementById(focus_section_id);        
-        
-        
-        
-        
+        let focus_section = document.getElementById(focus_section_id);     
+        focus_section.classList.add("focus-section");   
         $("#slide-panel-body").empty();
+
         // display header in the slider panel
         $("#slide-panel-header > div:first-child > div:first-child").html(slider_panel_header[slidepanel_type][0]);
         $("#slide-panel-header > div:first-child > div:last-child").html(slider_panel_header[slidepanel_type][1]);
+        
         // display checkboxes in the slider panel
         Object.keys(options).forEach(app => {
             let innerHTML = `<div class='checkbox-section'>
@@ -518,7 +517,6 @@
             innerHTML += "</div></div>";
             $("#slide-panel-body").append(innerHTML);
         });
-        $("#slider-panel").removeClass("hidden");
         
         if(button_type === "start"){
             // if this is the first time to show the slider panel, then we need to change the prompt button text
@@ -547,11 +545,14 @@
                 });
             }
         }
+
+        $("#slider-panel").removeClass("hidden");
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
     }
     
     const hideSliderPanel = () => {
         let focus_section = document.getElementById(focus_section_id);
+        focus_section.classList.remove("focus-section");
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
         if(prompt_button){
             prompt_button.classList.remove("prompt");
