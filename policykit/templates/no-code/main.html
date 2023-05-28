@@ -486,7 +486,7 @@
     const showSliderPanel = (options, slidepanel_type, button_type) => {
         let focus_section = document.getElementById(focus_section_id);     
         focus_section.classList.add("focus-section");   
-        focus_section.scrollTop = 0;
+        focus_section.scroll({ top: 0, behavior: 'smooth'});
         $("#slide-panel-body").empty();
 
         // display header in the slider panel
