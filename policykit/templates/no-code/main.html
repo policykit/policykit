@@ -303,6 +303,7 @@
     }
         
     const showTransformerVariables = (transformer_value, app) => {
+        console.log("all transformers", transformers)
         if(selected_transformers.some(item => item.value === transformer_value)) return;
 
         if(selected_transformers.length === 0) activate_section("design_transformer");
