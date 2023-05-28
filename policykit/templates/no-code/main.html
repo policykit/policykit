@@ -346,7 +346,7 @@
             let action_value = event.target.value
             let app = event.target.getAttribute("platform");
             if(event.target.checked) showFilterParameters(action_value, app);
-            else removeFilterParameters(action);
+            else removeFilterParameters(action_value);
         } else if( event.target.id.startsWith("select-") ){
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
@@ -359,7 +359,7 @@
                 let app = event.target.getAttribute("platform");
                 showProcedureVariables(procedure_value, app);
             } else {
-                removeProcedureVariables();
+                removeProcedureVariables(procedure_value);
             }
         } else if(event.target.id.startsWith("transformer.checkbox")){
             let app = event.target.getAttribute("platform");
