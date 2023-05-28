@@ -174,7 +174,7 @@
 
     const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
-
+        console.log("removing action: " + action_value);
         $(`#custom.action.${action_value}`).remove();
         $(`action.checkbox.${action_value}`).prop('checked', false);
         selected_actions = selected_actions.filter(item => item.value !== action_value);
@@ -398,10 +398,10 @@
             } else if(type === "transformer"){
                 // id: e.g., custom.transformer.10
                 removeTransformerVariables(module_value);
-            } else if(type.startsWith("execution")){
+            } else if(type === "execution"){
                 // id: e.g., custom.execution.notify.slackpostmessage
                 let stage = id.split(".")[2];
-                removeExecutionVariables(stage, module_value);
+                removeExecutionVariables(stage, id.split(".")[3]);
             }
         }
     });
