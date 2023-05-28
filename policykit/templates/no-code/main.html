@@ -486,6 +486,7 @@
     const showSliderPanel = (options, slidepanel_type, button_type) => {
         let focus_section = document.getElementById(focus_section_id);     
         focus_section.classList.add("focus-section");   
+        focus_section.scrollTop = 0;
         $("#slide-panel-body").empty();
 
         // display header in the slider panel
@@ -553,6 +554,7 @@
     const hideSliderPanel = () => {
         let focus_section = document.getElementById(focus_section_id);
         focus_section.classList.remove("focus-section");
+        
         let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
         if(prompt_button){
             prompt_button.classList.remove("prompt");
