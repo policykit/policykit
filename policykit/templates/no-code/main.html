@@ -25,10 +25,10 @@
             </div>
         </section>
         <div id="slider-panel" class="hidden">
-            <div class="slide-panel-header">
+            <div class="slide-panel-header" id="slide-panel-header">
                 <div>
-                    <div class="large">Choose governed Actions</div>
-                    <div class="prompt medium">Select one or more actions that you want to govern by a policy</div>
+                    <div class="large"></div>
+                    <div class="prompt medium"></div>
                 </div>
                 <div>
                     <button id="slide-panel-back">
@@ -473,11 +473,27 @@
         execution_success: "Select one or more executions from the left sidebar",
         execution_fail: "Select one or more executions from the left sidebar",
     }
+
+    const slider_panel_header = {
+        action: ["Choose governed Actons", "Select one or more actions that you want to govern by a policy"],
+        procedure: ["Choose a governing Procedure", "Select a procedure that you want to govern the actions"],
+        transformer: ["Choose Transformers", "Select one or more transformers that you want to apply to the procedure"],
+        execution_notify: ["Choose Executions", "Select one or more executions that you want to have when the procedure starts"],
+        execution_success: ["Choose Executions", "Select one or more executions that you want to have when the actions pass"],
+        execution_fail: ["Choose Executions", "Select one or more executions that you want to have when the actions fail"],
+    }
  
     const showSliderPanel = (options, slidepanel_type, button_type) => {
         let focus_section = document.getElementById(focus_section_id);        
-        // display checkboxes in the slider panel
+        
+        
+        
+        
         $("#slide-panel-body").empty();
+        // display header in the slider panel
+        $("#slide-panel-header > div:first-child > div:first-child").html(slider_panel_header[slidepanel_type][0]);
+        $("#slide-panel-header > div:first-child > div:last-child").html(slider_panel_header[slidepanel_type][1]);
+        // display checkboxes in the slider panel
         Object.keys(options).forEach(app => {
             let innerHTML = `<div class='checkbox-section'>
                 <div class='checkbox-header large'>${capitalize(app)}</div>
@@ -503,6 +519,7 @@
             $("#slide-panel-body").append(innerHTML);
         });
         $("#slider-panel").removeClass("hidden");
+        
         if(button_type === "start"){
             // if this is the first time to show the slider panel, then we need to change the prompt button text
             let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
