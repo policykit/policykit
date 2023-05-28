@@ -339,7 +339,7 @@
         if(event.target.id.startsWith("action.checkbox")){
             let action_value = event.target.value
             let app = event.target.getAttribute("platform");
-            if(event.target.checked) showFilterParameters(action, app);
+            if(event.target.checked) showFilterParameters(action_value, app);
             else removeFilterParameters(action);
         } else if( event.target.id.startsWith("select-") ){
             // check whether the id starts with "select-", which we named all fields of the selected actions
