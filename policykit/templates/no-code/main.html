@@ -335,13 +335,13 @@
         console.log("showing execution variables: " + stage + " " + execution_value + " " + app);
         if(selected_executions[stage].some(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_executions[stage].length == 0) activate_section(`execution\.${stage}`);
+        if(selected_executions[stage].length == 0) activate_section(`execution\\.${stage}`);
 
         let execution ={...executions[app].find(item => item.value === execution_value)};
         execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
         selected_executions[stage].push(execution);
 
-        let execution_div = add_section_header(`execution\.${stage}`, execution);
+        let execution_div = add_section_header(`execution\\.${stage}`, execution);
         console.log("execution div: ", execution_div);
         $(`#design_execution\\.${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
