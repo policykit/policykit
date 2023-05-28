@@ -174,7 +174,6 @@
 
     const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
-        console.log("removing action: " + action_value);
         $(`#custom.action.${action_value}`).remove();
         document.getElementById(`action.checkbox.${action_value}`).checked = false;
         selected_actions = selected_actions.filter(item => item.value !== action_value);
@@ -182,9 +181,9 @@
         
     }
     
-    const removeProcedureVariables = (procedure_value) => {
-        selected_procedure = null;
+    const removeProcedureVariables = (procedure_value) => {   
         document.getElementById(`procedure.checkbox.${procedure_value}`).checked = false;
+        selected_procedure = null;
         deactivate_section("design_procedure", "procedure");
     }
 
@@ -351,10 +350,10 @@
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
             showFilterModuleVariables(event.target.id);
         } else if(event.target.id.startsWith("procedure.checkbox")){
+            let procedure_value = event.target.value;
             if(event.target.checked){
                 // if the checkbox is checked, then uncheck all other checkboxes
                 $('.procedure-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
-                let procedure_value = event.target.value;
                 let app = event.target.getAttribute("platform");
                 showProcedureVariables(procedure_value, app);
             } else {
