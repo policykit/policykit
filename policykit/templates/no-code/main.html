@@ -68,24 +68,24 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_execution.notify">
+            <section id="design_execution_notify">
                 <div class="section-header">When Procedures start <span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_execution.notify-section-body">
-                    <button class="section-inactive-button small-button small info" type="execution.notify">+ Add</button>
+                <div class="section-body inactive" id="design_execution_notify-section-body">
+                    <button class="section-inactive-button small-button small info" type="execution_notify">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_execution.success">
+            <section id="design_execution_success">
                 <div class="section-header">When Actions pass <span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_execution.success-section-body">
-                    <button class="section-inactive-button small-button small info" type="execution.success">+ Add</button>
+                <div class="section-body inactive" id="design_execution_success-section-body">
+                    <button class="section-inactive-button small-button small info" type="execution_success">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_execution.fail">
+            <section id="design_execution_fail">
                 <div class="section-header">When Actions fail <span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_execution.fail-section-body">
-                    <button class="section-inactive-button small-button small info" type="execution.fail">+ Add</button>
+                <div class="section-body inactive" id="design_execution_fail-section-body">
+                    <button class="section-inactive-button small-button small info" type="execution_fail">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -121,9 +121,9 @@
     const add_button_text = {
         "action": "+ Add more Actions",
         "transformer": "+ Add more Transformers",
-        "execution.notify": "+ Add more Executions",
-        "execution.success": "+ Add more Executions",
-        "execution.fail": "+ Add more Executions",
+        "execution_notify": "+ Add more Executions",
+        "execution_success": "+ Add more Executions",
+        "execution_fail": "+ Add more Executions",
     }
     function activate_section(section_name){
         /**
@@ -186,12 +186,10 @@
 
     const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
-        console.log("removing action: " + action_value)
+        
         document.getElementById(`custom.action.${action_value}`).remove();
         document.getElementById(`action.checkbox.${action_value}`).checked = false;
-        console.log("selected actions before: " + JSON.stringify(selected_actions));
         selected_actions = selected_actions.filter(item => item.value !== action_value);
-        console.log("selected actions after: " + JSON.stringify(selected_actions));
         if(Object.keys(selected_actions).length == 0) deactivate_section("action");
         
     }
@@ -213,7 +211,7 @@
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
         document.getElementById(`custom.execution.${stage}.${execution_codename}`).remove();
         document.getElementById(`execution.${stage}.checkbox.${execution_codename}`).checked = false;
-        if(selected_executions[stage].length == 0) deactivate_section(`execution.${stage}`);
+        if(selected_executions[stage].length == 0) deactivate_section(`execution_${stage}`);
     }
 
     const showFilterParameters = (action_value, app) => {
@@ -335,15 +333,15 @@
         console.log("showing execution variables: " + stage + " " + execution_value + " " + app);
         if(selected_executions[stage].some(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_executions[stage].length == 0) activate_section(`execution\\.${stage}`);
+        if(selected_executions[stage].length == 0) activate_section(`execution_${stage}`);
 
         let execution ={...executions[app].find(item => item.value === execution_value)};
         execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
         selected_executions[stage].push(execution);
 
-        let execution_div = add_section_header(`execution\\.${stage}`, execution);
+        let execution_div = add_section_header(`execution_${stage}`, execution);
         console.log("execution div: ", execution_div);
-        $(`#design_execution\\.${stage}-section-body > :last-child`).before(execution_div);
+        $(`#design_execution_${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
         })
@@ -437,7 +435,7 @@
             } else if(target.id === "design_transformer-next"){
                 if(!collectTransformerData()) return;
                 hideSliderPanel();
-            } else if(["design_success-next", "design_fail-next", "design_notify-next"].includes(target.id)){
+            } else if(["design_execution_success-next", "design_execution_fail-next", "design_execution_notify-next"].includes(target.id)){
                 const regex = /design_(\w+)-next/;
                 let match = target.id.match(regex);
                 let stage = match ? match[1] : "";
@@ -459,7 +457,6 @@
                 focus_section_id = "design_transformer";
                 showSliderPanel(transformers, slidepanel_type, button_type);
             } else if(slidepanel_type.startsWith("execution")){
-                let stage = slidepanel_type.split(".")[1];
                 focus_section_id = `design_${slidepanel_type}`;
                 showSliderPanel(executions, slidepanel_type, button_type);
             }
@@ -475,9 +472,9 @@
         action: "Select one or more actions from the left sidebar",
         procedure: "Select a procedure from the left sidebar",
         transformer: "Select one or more transformers from the left sidebar",
-        "execution.notify": "Select one or more executions from the left sidebar",
-        "execution.success": "Select one or more executions from the left sidebar",
-        "execution.fail": "Select one or more executions from the left sidebar",
+        execution_notify: "Select one or more executions from the left sidebar",
+        execution_success: "Select one or more executions from the left sidebar",
+        execution_fail: "Select one or more executions from the left sidebar",
     }
  
     const showSliderPanel = (options, slidepanel_type, button_type) => {
