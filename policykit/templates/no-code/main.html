@@ -535,11 +535,11 @@
     const collectCustomActionData = () => {
         // to collect user input about custom actions
         
-        console.log("new actions are: " +Object.keys(selected_actions));
+        console.log("new actions are: ", selected_actions.map(action => action.value));
         
         let missing_input = false;
-        const filters = Object.keys(selected_actions).map((action, index) => {
-            const action_div = document.getElementById(`custom.action.${action}`);
+        const filters = selected_actions.map((action, index) => {
+            const action_div = document.getElementById(`custom.action.${action.value}`);
             let action_field_divs = action_div.getElementsByClassName('custom-action-field');
             var filters_per_action = {}
             Array.from(action_field_divs).forEach((action_field_div => {
@@ -564,10 +564,10 @@
                             variables_dict[key.split(".").pop()] = filter_variable_input[key];
                         });
                     }
-                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: selected_actions[action], variables: variables_dict}
+                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: action.app, variables: variables_dict}
                 }
             }))
-            return {action_type: action, filter: filters_per_action, app_name: selected_actions[action]}
+            return {action_type: action.value, filter: filters_per_action, app_name: action.app}
         });
         // only submit the data if all variables are filled
         if(missing_input) return false; else {
