@@ -196,7 +196,7 @@
     }
 
     const removeTransformerVariables = (transformer_value) => {
-        $(`#custom.transformer.${transformer_value}`).remove();
+        document.getElementById(`custom.transformer.${transformer_value}`).remove();
         document.getElementById(`transformer.checkbox.${transformer_value}`).checked = false;
         selected_transformers = selected_transformers.filter(item => item.value !== parseInt(transformer_value));
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
@@ -204,7 +204,7 @@
 
     const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
-        $(`#custom.execution.${stage}.${execution_codename}`).remove();
+        document.getElementById(`#custom.execution.${stage}.${execution_codename}`).remove();
         document.getElementById(`execution.checkbox.${stage}.${execution_codename}`).checked = false;
         if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
     }
@@ -318,7 +318,7 @@
         
     
         let transformer_div = add_section_header("transformer", selected_transformer);
-        $("#design_transformer-section-body").append(transformer_div);
+        $("#design_transformer-section-body > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, column=true)
         })
@@ -336,7 +336,7 @@
         selected_executions[stage].push(execution);
 
         let execution_div = add_section_header(`execution.${stage}`, execution);
-        $(`#design_${stage}-section-body`).append(execution_div);
+        $(`#design_${stage}-section-body :last-child"`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
         })
