@@ -261,10 +261,11 @@
     }
 
     const showFilterModuleVariables = (select_id) => {
+        let select_box = document.getElementById(select_id);
         let filter_pk = parseInt(select_box.value);
 
         // remove filter variables always
-        var field_div = document.getElementById(select_id).closest(".custom-action-field"); 
+        var field_div = select_box.closest(".custom-action-field"); 
         // now at the level of the action-field div
         while (field_div.childNodes.length > 1) {
             field_div.removeChild(field_div.lastChild);
