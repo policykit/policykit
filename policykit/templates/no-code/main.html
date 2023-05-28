@@ -592,9 +592,7 @@
 
         if(checkMissingVariable(`design_transformer`)) return false;
 
-        let transformers_data = [];
-        let children = document.getElementById(`design_transformer-section-body`).children;
-        const transformer_data = selected_transformers.map((transformer, index) => {
+        const transformers_data = selected_transformers.map((transformer, index) => {
             let transformer_div = document.getElementById(`custom.transformer.${transformer.value}`);
             let data = getVariableDataInStep(null, elements=transformer_div);
             return {module_index: transformer.value, module_data: data}
