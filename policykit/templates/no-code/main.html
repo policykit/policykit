@@ -118,6 +118,13 @@
     var selected_transformers = [];
     var selected_executions = {success: [], fail: [], notify: []};
 
+    const add_button_text = {
+        "action": "+ Add more Actions",
+        "transformer": "+ Add more Transformers",
+        "notify": "+ Add more Executions",
+        "success": "+ Add more Executions",
+        "fail": "+ Add more Executions",
+    }
     function activate_section(section_type){
         /**
             remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
@@ -132,7 +139,7 @@
 
         if(section_type !== "procedure"){
             // add a button to add more components
-            section.append(`<button class="custom-group-add-button small" id="add.${section_type}">Add more ${section_type}s</button>`)
+            section.append(`<button class="custom-group-add-button small" id="add.${section_type}">${add_button_text[section_type]}</button>`)
         }
     }
 
