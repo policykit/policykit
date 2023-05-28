@@ -204,7 +204,7 @@
 
     const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
-        document.getElementById(`#custom.execution.${stage}.${execution_codename}`).remove();
+        document.getElementById(`custom.execution.${stage}.${execution_codename}`).remove();
         document.getElementById(`execution.checkbox.${stage}.${execution_codename}`).checked = false;
         if(selected_executions[stage].length == 0) deactivate_section(`design_${stage}`, `execution.${stage}`);
     }
