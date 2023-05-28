@@ -151,7 +151,7 @@
     function add_section_header(section_type, module) {
         let div = document.createElement('div');
         div.classList.add('custom-group');
-        div.id = `custom.${section_type}.${module.app}.${module.value}`;
+        div.id = `custom.${section_type}.${module.value}`;
 
         let header = document.createElement('div');
         header.classList.add('custom-group-header');
@@ -336,7 +336,7 @@
      * then we will show or remove the corresponding variable boxes in the nocode panel 
      * */
     document.body.addEventListener('change', (event) => {
-        if(event.target.id.startsWith("action-checkbox")){
+        if(event.target.id.startsWith("action.checkbox")){
             let action_value = event.target.value
             let app = event.target.getAttribute("platform");
             if(event.target.checked) showFilterParameters(action, app);
@@ -382,19 +382,20 @@
         if(target){
             let id = target.parentNode.parentNode.id;
             let type = id.split(".")[1];
+            let module_value = id.split(".")[2];
             if(type == "action"){
                 // id: e.g., custom.action.slackpostmessage
-                removeFilterParameters(id.split(".")[2]);
+                removeFilterParameters(module_value);
             } else if(type == "procedure"){
                 // id: e.g., custom.procedure.64
                 removeProcedureVariables();
             } else if(type == "transformer"){
                 // id: e.g., custom.transformer.10
-                removeTransformerVariables(id.split(".")[2]);
+                removeTransformerVariables(module_value);
             } else if(type.startsWith("execution")){
                 // id: e.g., custom.execution.success.slackpostmessage
-                let stage = id.split(".")[2];
-                removeExecutionVariables(stage, id.split(".")[3]);
+                let stage = id.split(".")[1];
+                removeExecutionVariables(stage, module_value);
             }
         }
     });
