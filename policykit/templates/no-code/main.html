@@ -594,15 +594,11 @@
 
         let transformers_data = [];
         let children = document.getElementById(`design_transformer-section-body`).children;
-        for(let i=0; i < children.length; i++) {
-            let child = children[i];
-            let transformer_value = selected_transformers[i].value;
-            let data = getVariableDataInStep(null, elements=child);
-            transformers_data.push({
-                module_index: transformer_value,
-                module_data: data,
-            })
-        }
+        const transformer_data = selected_transformers.map((transformer, index) => {
+            let transformer_div = document.getElementById(`custom.transformer.${transformer.value}`);
+            let data = getVariableDataInStep(null, elements=transformer_div);
+            return {module_index: transformer.value, module_data: data}
+        });
         console.log("transformers_data " + JSON.stringify(transformers_data));
         return transformers_data;
     }
@@ -624,15 +620,12 @@
         if(selected_executions[stage].length == 0) return [];
         if(checkMissingVariable(`design_${stage}`)) return false;
 
-        let execution_data = [];
-        let children = document.getElementById(`design_${stage}-section-body`).children;
-        for(let i=0; i<children.length; i++) {
-            let child = children[i];
-            let execution_codename = child.id.split(".")[3];
-            let data = getVariableDataInStep(null, elements=child);
-            data.action = execution_codename;   
-            execution_data.push(data);
-        }
+        const execution_data = selected_executions[stage].map((execution, index) => {
+            let execution_div = document.getElementById(`custom.execution.${stage}.${execution.value}`);
+            let data = getVariableDataInStep(null, elements=execution_div);
+            data.action = execution.value;
+            return data
+        });
         console.log("execution_data " + JSON.stringify(execution_data));
         return execution_data;
     }
