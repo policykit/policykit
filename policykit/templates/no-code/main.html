@@ -335,8 +335,6 @@
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_executions[stage].length == 0) activate_section(`execution.${stage}`);
 
-        
-
         let execution ={...executions[app].find(item => item.value === execution_value)};
         execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
         selected_executions[stage].push(execution);
@@ -345,7 +343,7 @@
         $(`#design_execution.${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
-        })
+        })、
     }
     
     /** 
@@ -383,7 +381,7 @@
             
         } else if(id.startsWith("execution.notify.checkbox") || id.startsWith("execution.success.checkbox") || id.startsWith("execution.fail.checkbox")){
             let id = event.target.id;
-            // "execution.success.checkbox.slack.slackpostmessage"
+            // "execution.success.checkbox.slackpostmessage"
             let app = event.target.getAttribute("platform");
             let stage = id.split(".")[1];
             let execution_value = event.target.value;
@@ -474,7 +472,9 @@
         action: "Select one or more actions from the left sidebar",
         procedure: "Select a procedure from the left sidebar",
         transformer: "Select one or more transformers from the left sidebar",
-        execution: "Select one or more executions from the left sidebar"
+        "execution.notify": "Select one or more executions from the left sidebar",
+        "execution.success": "Select one or more executions from the left sidebar",
+        "execution.fail": "Select one or more executions from the left sidebar",
     }
  
     const showSliderPanel = (options, slidepanel_type, button_type) => {
