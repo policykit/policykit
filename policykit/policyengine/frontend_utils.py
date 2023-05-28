@@ -40,6 +40,7 @@ def get_base_actions(user):
                 base_action_list.append({
                     "value": action_code,
                     "name": remove_platform_prefix(verbose_name, app_name),
+                    "app": app_name
                 })
         # only show apps that have at least one action with filter parameters
         if base_action_list:
@@ -65,7 +66,8 @@ def get_filter_modules(apps):
                     "pk": filter.pk, 
                     "name": filter.name,
                     "description": filter.description, 
-                    "variables": filter.loads("variables")
+                    "variables": filter.loads("variables"),
+                    "app": app_name
                 })
     return filter_modules
 
@@ -86,7 +88,8 @@ def get_procedures(platforms):
             "name": template.name, 
             "description": template.description,
             "value": template.pk, 
-            "variables": template.loads("variables")   
+            "variables": template.loads("variables"),
+            "app": template.platform.lower()
         })
     return procedures
 
@@ -102,7 +105,8 @@ def get_transformers():
             "name": template.name, 
             "value": template.pk, 
             "description": template.description,
-            "variables": template.loads("variables")
+            "variables": template.loads("variables"),
+            "app": "all"
         })
     return {"all": transformers}
 
@@ -130,7 +134,8 @@ def extract_executable_actions(user):
                     {
                         "value": action_code,
                         "name": remove_platform_prefix(action_name, app_name),
-                        "variables": variables
+                        "variables": variables,
+                        "app": app_name
                     }
                 )
     return executable_actions

@@ -113,8 +113,8 @@
     const entities = JSON.parse('{{entities|safe}}');
 
     var focus_section_id = null;
-    var selected_actions = {};
-    var selected_procedure_value = null;
+    var selected_actions = [];
+    var selected_procedure = null;
     var selected_transformers = [];
     var selected_executions = {success: [], fail: [], notify: []};
 
@@ -151,7 +151,7 @@
     function add_section_header(section_type, module) {
         let div = document.createElement('div');
         div.classList.add('custom-group');
-        div.id = `custom.${section_type}.${module.value}`;
+        div.id = `custom.${section_type}.${module.app}.${module.value}`;
 
         let header = document.createElement('div');
         header.classList.add('custom-group-header');
@@ -172,15 +172,16 @@
         return div;
     }
 
-    const removeFilterParameters = (action) => {
+    const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
-        delete selected_actions[action];
-        $(`#custom.action.${action}`).remove();
+
+        $(`#custom.action.${action.value}`).remove();
         if(Object.keys(selected_actions).length == 0) deactivate_section("design_action", "action");
+        
     }
     
-    const removeProcedureVariables = () => {
-        selected_procedure_value = null;
+    const removeProcedureVariables = (procedure_value) => {
+        selected_procedure = null;
         deactivate_section("design_procedure", "procedure");
     }
 
@@ -199,13 +200,13 @@
     const showFilterParameters = (action_value, app) => {
 
         // check if the action has already been selected
-        if (action_value in selected_actions) return;
+        if (selected_actions.some(item => item.value == action_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(Object.keys(selected_actions).length == 0) activate_section("design_action");
-        selected_actions[action_value] = app;
+        if(selected_actions.length == 0) activate_section("design_action");
         let action = {...base_actions[app].find(item => item.value == action_value)};
         action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
-        
+        selected_actions.push(action);
+
         // create action div and add action header to the action_div
         let action_div = add_section_header("action", action);
         
@@ -281,10 +282,10 @@
 
     const showProcedureVariables = (procedure_value, app) => { 
         // if there are no actions selected before, remove the inactive class and empty the section
-        if(selected_procedure_value === null) activate_section("design_procedure");
-        selected_procedure_value = procedure_value;
+        if(selected_procedure === null) activate_section("design_procedure");
+        
         // search for data about this selected procedure 
-        let selected_procedure = procedures[app].find(item => item.value == selected_procedure_value);
+        selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
         
         let procedure_div = add_section_header("procedure", selected_procedure);
         $("#design_procedure-section-body").empty();
@@ -295,12 +296,13 @@
     }
         
     const showTransformerVariables = (transformer_value, app) => {
-        if(selected_transformers.includes(transformer_value)) return;
+        if(selected_transformers.some(item => item.value === transformer_value)) return;
 
         if(selected_transformers.length === 0) activate_section("design_transformer");
-        selected_transformers.push(transformer_value);
+
+        let selected_transformer = {...transformers[app].find(item => item.value == transformer_value)};
+        selected_transformers.push(selected_transformer);
         
-        let selected_transformer = transformers[app].find(item => item.value == transformer_value);
     
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-section-body").append(transformer_div);
@@ -310,14 +312,15 @@
     }
 
     const showExecutionVariables = (stage, execution_value, app) => {
-        if(selected_executions[stage].includes(execution_value)) return;
+        if(selected_executions[stage].find(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_executions[stage].length == 0) activate_section(`design_${stage}`);
 
-        selected_executions[stage].push(execution_value);
+        
 
         let execution ={...executions[app].find(item => item.value === execution_value)};
         execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
+        selected_executions[stage].push(execution);
 
         let execution_div = add_section_header(`execution.${stage}`, execution);
         $(`#design_${stage}-section-body`).append(execution_div);
@@ -334,37 +337,37 @@
      * */
     document.body.addEventListener('change', (event) => {
         if(event.target.id.startsWith("action-checkbox")){
-            let id = event.target.id;
-            let action = id.split(".")[2];
-            let app = id.split(".")[1];
+            let action_value = event.target.value
+            let app = event.target.getAttribute("platform");
             if(event.target.checked) showFilterParameters(action, app);
             else removeFilterParameters(action);
         } else if( event.target.id.startsWith("select-") ){
             // check whether the id starts with "select-", which we named all fields of the selected actions
             // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
             showFilterModuleVariables(event.target.id);
-        } else if(event.target.id.startsWith("procedure-checkbox")){
+        } else if(event.target.id.startsWith("procedure.checkbox")){
             if(event.target.checked){
                 // if the checkbox is checked, then uncheck all other checkboxes
                 $('.procedure-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
-                let app = event.target.id.split(".")[1];
                 let procedure_value = event.target.value;
+                let app = event.target.getAttribute("platform");
                 showProcedureVariables(procedure_value, app);
             } else {
                 removeProcedureVariables();
             }
-        } else if(event.target.id.startsWith("transformer-checkbox")){
-            let app = "all"
+        } else if(event.target.id.startsWith("transformer.checkbox")){
+            let app = event.target.getAttribute("platform");
             let transformer_value = event.target.value;
             if(event.target.checked) showTransformerVariables(transformer_value, app);
             else removeTransformerVariables(transformer_value);
             
-        } else if(event.target.id.includes("execution-checkbox")){
+        } else if(event.target.id.includes("execution.checkbox")){
             let id = event.target.id;
             // "execution-checkbox.slack.notify.slackpostmessage"
-            let app = id.split(".")[1];
-            let stage = id.split(".")[2];
-            let execution_codename = id.split(".")[3];
+            let app = event.target.getAttribute("platform");
+            let value = event.target.value;
+            let stage = value.split(".")[0];
+            let execution_codename = value.split(".")[1];
             if(event.target.checked){
                 showExecutionVariables(stage, execution_codename, app);
             } else {
@@ -372,6 +375,8 @@
             }
         }
     });
+   
+    // remove modules from the section when users click the remove button inside the section
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".custom-group-remove-button");
         if(target){
@@ -391,7 +396,6 @@
                 let stage = id.split(".")[2];
                 removeExecutionVariables(stage, id.split(".")[3]);
             }
-
         }
     });
     /** 
@@ -476,14 +480,14 @@
             this_app_options.forEach(option => {
                 if(slidepanel_type === "action" || slidepanel_type === "execution"){
                     innerHTML += `<div class='action-checkbox-item'>
-                        <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${app}.${option.value}">
-                        <label for='${slidepanel_type}-checkbox.${app}.${option.value}' class='normal medium'>${option.name}</label>
+                        <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
+                        <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
                     </div>`;
                 } else if(slidepanel_type == "procedure" || slidepanel_type == "transformer"){
                     innerHTML += `<div class='procedure-checkbox-item'>
-                            <input type='checkbox' name='${option.name}' value='${option.value}' id="${slidepanel_type}-checkbox.${app}.${option.value}">
+                            <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
                             <div class="procedure-label">
-                                <label for='${slidepanel_type}-checkbox.${app}.${option.value}' class='normal medium'>${option.name}</label>
+                                <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
                                 <div class="small prompt">${option.description}</div>
                             </div>
                         </div>`;
@@ -578,7 +582,7 @@
         let children = document.getElementById(`design_transformer-section-body`).children;
         for(let i=0; i < children.length; i++) {
             let child = children[i];
-            let transformer_value = selected_transformers[i];
+            let transformer_value = selected_transformers[i].value;
             let data = getVariableDataInStep(null, elements=child);
             transformers_data.push({
                 module_index: transformer_value,
@@ -590,12 +594,12 @@
     }
 
     const collectProcedureData = () => {
-        if(selected_procedure_value === null) return false;
+        if(selected_procedure === null) return false;
 
         if(checkMissingVariable("design_procedure")) return;
         
         const procedure_data = {
-            procedure_index: selected_procedure_value,
+            procedure_index: selected_procedure.value,
             procedure_variables: getVariableDataInStep("design_procedure"),
         }
         console.log("procedure_data " + JSON.stringify(procedure_data));
