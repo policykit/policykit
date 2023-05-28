@@ -420,6 +420,14 @@
      * listen the events on the buttons in the nocode panel (including next and add buttons)
      * so that we could display or hide slider panels
     */
+   let sections_order = {
+        "design_action": "design_procedure",
+        "design_procedure": "design_transformer",
+        "design_transformer": "design_execution_success",
+        "design_execution_notify": "design_execution_success",
+        "design_execution_success": "design_execution_fail",
+        "design_execution_fail": null
+   }
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
@@ -427,18 +435,21 @@
         if(target){
             if(target.id === "design_action-next") {
                 if(!collectCustomActionData()) return;
-                hideSliderPanel();
             } else if(target.id === "design_procedure-next"){
                 if(!collectProcedureData()) return;
-                hideSliderPanel();
             } else if(target.id === "design_transformer-next"){
                 if(!collectTransformerData()) return;
-                hideSliderPanel();
             } else if(["design_execution_success-next", "design_execution_fail-next", "design_execution_notify-next"].includes(target.id)){
                 let stage = target.id.split("-")[0].split("_")[2];
                 if(!collectExecutionData(stage)) return;
-                hideSliderPanel();
             } 
+            hideSliderPanel();
+            focus_section_id = sections_order[focus_section_id];
+            if(focus_section_id){
+                let focus_section = document.getElementById(focus_section_id); 
+                focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+            }
+
         } else if(button || add_more_button) {
             // listen to the event when users clicks the add button in a section and we pop up the slide panel
             let slidepanel_type = button ? button.getAttribute("type") : add_more_button.getAttribute("type");
