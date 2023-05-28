@@ -190,11 +190,14 @@
 
     const removeTransformerVariables = (transformer_value) => {
         console.log(`removing transformer: #custom.transformer.${transformer_value}`);
-        console.log("now transformers: ", selected_transformers);
+        console.log("transformers before: ", selected_transformers);
+        console.log("type of transformer_value: ", typeof transformer_value);
         $(`#custom.transformer.${transformer_value}`).remove();
         $(`#transformer.checkbox.${transformer_value}`).prop('checked', false);
 
         selected_transformers = selected_transformers.filter(item => item.value !== transformer_value);
+
+        console.log("transformers after: ", selected_transformers);
         if(selected_transformers.length == 0) deactivate_section("design_transformer", "transformer");
     }
 
