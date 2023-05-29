@@ -58,20 +58,20 @@
             </section>
             <div class="collapse-section">
                 <div class="vertical-line"></div>
-                <button class="collapse-section-button">+</button>
+                <button class="collapse-section-button" type="transformer">+</button>
                 <div class="vertical-line"></div>
             </div>
+            <section id="design_transformer" class="hidden">
+                <div class="section-header medium">Choose Transformers<span class="small prompt">&nbsp;(optional)</span></div>
+                <div class="section-body inactive" id="design_transformer-section-body">
+                    <button class="section-inactive-button small-button small info" type="transformer">+ Add</button>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section>
             <section id="design_procedure">
                 <div class="section-header medium">Choose governing Procedures</div>
                 <div class="section-body inactive" id="design_procedure-section-body">
                     <button class="section-inactive-button small-button small info" type="procedure">+ Add</button>
-                </div>
-                <div class="section-bottom hidden"></div>
-            </section>
-            <section id="design_transformer">
-                <div class="section-header medium">Choose Transformers<span class="small prompt">&nbsp;(optional)</span></div>
-                <div class="section-body inactive" id="design_transformer-section-body">
-                    <button class="section-inactive-button small-button small info" type="transformer">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -132,6 +132,7 @@
         "execution_success": "+ Add more Executions",
         "execution_fail": "+ Add more Executions",
     }
+
     function activate_section(section_name){
         /**
             remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
@@ -424,10 +425,13 @@
             }
         }
     });
+    
+    
     /** 
      * listen the events on the buttons in the nocode panel (including next and add buttons)
      * so that we could display or hide slider panels
     */
+
    let sections_order = {
         "design_action": "design_procedure",
         "design_procedure": "design_transformer",
@@ -436,6 +440,7 @@
         "design_execution_success": "design_execution_fail",
         "design_execution_fail": null
    }
+
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
@@ -479,6 +484,17 @@
         }
     });
 
+    document.getElementById("nocode-panel").addEventListener("click", (event) => {
+        let target = event.target.closest(".collapse-section-button");
+        if(target){
+            let section_type = target.getAttribute("type");
+            if(section_type === "transformer"){
+                let collapse_section = target.closest(".collapse-section");
+                collapse_section.classList.add("hidden");
+                $("#design_transformer").removeClass("hidden");
+            }
+        }
+    })
     // listen to the event when users click the back button in the slider panel
     document.getElementById("slide-panel-back").addEventListener('click', (event) => {
         hideSliderPanel();
