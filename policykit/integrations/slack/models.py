@@ -244,7 +244,7 @@ class SlackPostMessage(GovernableAction):
         message = kwargs.get("message", None)
         channel = kwargs.get("channel", None)
         thread =  kwargs.get("thread", None)
-        return f"slack.post_message(text={message} channel={channel}, thread_ts={thread}"
+        return f"slack.post_message(text={message}, channel={channel}, thread_ts={thread})"
 
 
 class SlackRenameConversation(GovernableAction):
