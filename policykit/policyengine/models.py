@@ -1278,7 +1278,7 @@ class FilterModule(models.Model):
         }
 
 class Transformer(models.Model):
-
+    
     JSON_FIELDS = ["variables", "data"]
     """the fields that are stored as JSON dumps"""
 
@@ -1297,6 +1297,7 @@ class Transformer(models.Model):
     data = models.TextField(blank=True, default='[]')
     """the data used in the  transformer defined in a similar way to data in a Procedure"""
 
+    type = models.TextField(blank=True, default='')
     def loads(self, attr):
         return json.loads(getattr(self, attr))
 

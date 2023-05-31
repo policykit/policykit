@@ -201,21 +201,24 @@
         // remove the action from the selected actions
         
         document.getElementById(`custom.action.${action_value}`).remove();
-        document.getElementById(`action.checkbox.${action_value}`).checked = false;
+        let checkbox = document.getElementById(`action.checkbox.${action_value}`);
+        if(checkbox != null) checkbox.checked = false;
         selected_actions = selected_actions.filter(item => item.value !== action_value);
         if(Object.keys(selected_actions).length == 0) deactivate_section("action");
         
     }
     
     const removeProcedureVariables = (procedure_value) => {   
-        document.getElementById(`procedure.checkbox.${procedure_value}`).checked = false;
+        let checkbox = document.getElementById(`procedure.checkbox.${procedure_value}`);
+        if(checkbox != null) checkbox.checked = false;
         selected_procedure = null;
         deactivate_section("procedure");
     }
 
     const removeTransformerVariables = (transformer_value) => {
         document.getElementById(`custom.transformer.${transformer_value}`).remove();
-        document.getElementById(`transformer.checkbox.${transformer_value}`).checked = false;
+        let checkbox = document.getElementById(`transformer.checkbox.${transformer_value}`);
+        if(checkbox != null) checkbox.checked = false;
         selected_transformers = selected_transformers.filter(item => item.value !== parseInt(transformer_value));
         if(selected_transformers.length == 0) deactivate_section("transformer");
     }
@@ -223,7 +226,8 @@
     const removeExecutionVariables = (stage, execution_codename) => {
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
         document.getElementById(`custom.execution_${stage}.${execution_codename}`).remove();
-        document.getElementById(`execution_${stage}.checkbox.${execution_codename}`).checked = false;
+        let checkbox = document.getElementById(`execution_${stage}.checkbox.${execution_codename}`);
+        if(checkbox != null) checkbox.checked = false;
         if(selected_executions[stage].length == 0) deactivate_section(`execution_${stage}`);
     }
 
