@@ -509,6 +509,12 @@ class Proposal(models.Model):
             return BooleanVote.objects.filter(proposal=self, user__in=users)
         return BooleanVote.objects.filter(proposal=self)
 
+    def get_all_select_votes(self):
+        """
+        For Select voting. Returns all select votes as a QuerySet.
+        """
+        return SelectVote.objects.filter(proposal=self)
+    
     def get_select_votes_by_users(self):
         """ Returns all select votes by a given user """
         select_votes = SelectVote.objects.filter(proposal=self)
@@ -522,7 +528,6 @@ class Proposal(models.Model):
 
     def get_select_votes_by_candidates(self, users=None):
         if users:
-
             select_votes = SelectVote.objects.filter(proposal=self, user__username__in=users)
         else:
             select_votes = SelectVote.objects.filter(proposal=self)
@@ -539,6 +544,27 @@ class Proposal(models.Model):
         """ get usernames of all users who have voted on this proposal"""
         return SelectVote.objects.filter(proposal=self).values_list('user', flat=True).distinct()
     
+    def get_active_votes(self):
+        """ help call the appropriate votes function as we do not store which type of vote is cast """
+
+        boolean_votes = self.get_all_boolean_votes()
+        if boolean_votes.count() > 0:
+            return boolean_votes
+        
+        choice_votes = self.get_choice_votes()
+        if choice_votes.count() > 0:
+            return choice_votes
+        
+        number_votes = self.get_all_number_votes()
+        if number_votes.count() > 0:
+            return number_votes
+        
+        select_votes = self.get_all_select_votes()
+        if select_votes.count() > 0:
+            return select_votes
+
+        return None
+
     def get_choice_votes(self, value=None):
         if value:
             return ChoiceVote.objects.filter(proposal=self, value=value)
