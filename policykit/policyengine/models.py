@@ -546,23 +546,14 @@ class Proposal(models.Model):
     
     def get_active_votes(self):
         """ help call the appropriate votes function as we do not store which type of vote is cast """
-
-        boolean_votes = self.get_all_boolean_votes()
-        if boolean_votes.count() > 0:
-            return boolean_votes
-        
-        choice_votes = self.get_choice_votes()
-        if choice_votes.count() > 0:
-            return choice_votes
-        
-        number_votes = self.get_all_number_votes()
-        if number_votes.count() > 0:
-            return number_votes
-        
-        select_votes = self.get_all_select_votes()
-        if select_votes.count() > 0:
-            return select_votes
-
+        if self.governance_process.name == "advanced-vote":
+            return self.get_all_select_votes()
+        elif self.governance_process == "emoji-vote":
+            poll_type = self.governance_process.state.get("poll_type", {})
+            if poll_type == "boolean":
+                return self.get_all_boolean_votes()
+            elif poll_type == "choice":
+                return self.get_choice_votes()
         return None
 
     def get_choice_votes(self, value=None):
