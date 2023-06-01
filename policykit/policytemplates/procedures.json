@@ -6,7 +6,7 @@
         "initialize": [], 
         "check": {
                 "name": "main",
-                "codes": "if not proposal.vote_post_id:\n  return None\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nif yes_votes >= variables.minimum_yes_required:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\n\nreturn PROPOSED\n"
+                "codes": "if not proposal.vote_post_id:\n\t# initialize stage, use default value for variables that are not specified by users\n\tif not variables.vote_channel:\n\t\tproposal.data.set(\"vote_channel\", action.channel)\n\telse:\n\t\tproposal.data.set(\"vote_channel\", variables.vote_channel)\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users(variables.vote_channel)])\n\t\tlogger.debug(f\"eligible users are {[str(user) for user in slack.get_users(variables.vote_channel)]}\")\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n\treturn None\n\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables.minimum_yes_required:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\n\nreturn PROPOSED\n"
         },
         "notify": [
             {
@@ -22,7 +22,7 @@
         "fail": [],
         "variables": [
             {
-                "name": "users",
+                "name": "eligible_voters",
                 "label": "Eligible voters",
                 "entity": "CommunityUser",
                 "default_value": "",
@@ -73,7 +73,26 @@
                 "is_list": false
             }
         ],
-        "data": []
+        "data": [
+            {
+                "name": "yes_votes_num",
+                "label": "Number of Yes Votes",
+                "prompt": "How many yes votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            },
+            {
+                "name": "no_votes_num",
+                "label": "Number of No Votes",
+                "prompt": "How many no votes are there for this proposal",
+                "entity": null,
+                "type": "number",
+                "is_list": false,
+                "dynamic": true
+            }
+        ]
     },
     {
         "name": "Benevolent Dictator",
