@@ -246,15 +246,16 @@
         // then add the filter parameters for each action in this action_div
         const now_filter_kinds = action_filter_kinds[action.value]; // a dict of field: filter_kind
         const filters_this_app = filter_modules[app]; // a dict of filter_kind: [filter_modules]
-        Object.keys(now_filter_kinds).forEach(field => {
-            const filter_kind = now_filter_kinds[field];
+        now_filter_kinds.forEach(filter_schema => {
+            const filter_kind = now_filter_kinds[filter_schema.entity];
+            const field_name = filter_schema.name;
             if(filter_kind){ // only show fields of which the filter we support
                 var field_div = document.createElement('div');
                 field_div.classList.add('custom-action-field');
 
-                select_id = `select-${action.value}.${field}`
-                let field_html = `<div class='variable-item' id='${action.value}.${field}'>
-                            <label for='${select_id}' class="normal">${capitalize(field)}</label>
+                select_id = `select-${action.value}.${field_name}`
+                let field_html = `<div class='variable-item' id='${action.value}.${field_name}'>
+                            <label for='${select_id}' class="normal">${capitalize(filter_schema.label)}</label>
                             <div class='selectpicker-wrapper'>
                             <select id='${select_id}' class="selectpicker" title="Select a filter">
                             <option value="none">None</option>`

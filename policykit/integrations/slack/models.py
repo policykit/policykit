@@ -207,12 +207,37 @@ class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel", "thread"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": "SlackChannel", "timestamp": "Timestamp"}
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who posted a message on Slack"
+        },
+        {
+            "name": "text",
+            "label": "Message",
+            "entity": "Text",
+            "prompt": "the message that was posted on Slack"
+        }, 
+        { 
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where the message was posted"
+        }, 
+        {
+            "name": "timestamp",
+            "label": "Timestamp",
+            "entity": "Timestamp",
+            "prompt": "the timestamp of the posted message"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "text",
             "label": "Message",
-            "entity": None,
+            "entity": "Text",
             "default_value": "",
             "is_required": True,
             "prompt": "",
@@ -271,7 +296,33 @@ class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "name": "Text", "previous_name": "Text", "channel": None}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "name": "Text", "previous_name": "Text", "channel": None}
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who renamed a channel on Slack"
+        },
+        {
+            "name": "text",
+            "label": "New Channel Name",
+            "entity": "Text",
+            "prompt": "the new name of the channel"
+        }, 
+        {
+            "name": "previous_name",
+            "label": "Old Channel Name",
+            "entity": "Text",
+            "prompt": "the old name of the channel before being renamed"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel that was renamed"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
@@ -318,7 +369,21 @@ class SlackJoinConversation(GovernableAction):
     ACTION = "conversations.invite"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "users"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "users": None}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "users": None}
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who invited new users to a channel on Slack"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where new users were invited to join"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
@@ -368,7 +433,21 @@ class SlackPinMessage(GovernableAction):
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who pinned a message on Slack"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where a message was pinned"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
@@ -412,7 +491,33 @@ class SlackScheduleMessage(GovernableAction):
     """
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
-    FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
+    # FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who scheduled a message on Slack"
+        },
+        {
+            "name": "text",
+            "label": "Message",
+            "entity": "Text",
+            "prompt": "the message that was scheduled"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where the message was scheduled"
+        },
+        {
+            "name": "post_at",
+            "label": "Scheduled time",
+            "entity": "Timestamp",
+            "prompt": "the time when the message was scheduled"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "text",
@@ -457,7 +562,27 @@ class SlackKickConversation(GovernableAction):
     ACTION = "conversations.kick"
     AUTH = "user"
     EXECUTE_PARAMETERS = ["user", "channel"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "user": "CommunityUser"}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "user": "CommunityUser"}
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who kicked another user from a channel on Slack"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where a user was kicked from"
+        },
+        {
+            "name": "user",
+            "label": "Kicked users",
+            "entity": "CommunityUser",
+            "prompt": "the user who was kicked from the channel"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
