@@ -28,7 +28,7 @@
                 "entity": null,
                 "default_value": "",
                 "is_required": true,
-                "prompt": "How often to notify people who haven't voted yet (in minutes)",
+                "prompt": "How often to notify people who have not voted yet (in minutes)",
                 "type": "number",
                 "is_list": false
             }
