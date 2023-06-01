@@ -56,7 +56,6 @@
             }
         ]
     },
-
     {
         "kind": "Text",
         "name": "Startswith",
@@ -140,6 +139,25 @@
                 "prompt": "",
                 "type": "timestamp",
                 "is_list": false
+            }
+        ]
+    },
+    {
+        "kind": "SlackChannel",
+        "name": "ChannelNames",
+        "description": "Only channels with the specified IDs",
+        "platform": "All",
+        "codes": "return channel in channel_IDs",
+        "variables":[
+            {
+                "name": "channel_IDs",
+                "label": "Channel IDs",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
             }
         ]
     }

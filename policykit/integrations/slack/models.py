@@ -207,7 +207,7 @@ class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel", "thread"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "timestamp": None}
+    FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": "SlackChannel", "timestamp": "Timestamp"}
     EXECUTE_VARIABLES = [
         {
             "name": "text",
