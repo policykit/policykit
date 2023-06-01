@@ -548,7 +548,7 @@ class Proposal(models.Model):
         """ help call the appropriate votes function as we do not store which type of vote is cast """
         if self.governance_process.name == "advanced-vote":
             return self.get_all_select_votes()
-        elif self.governance_process == "emoji-vote":
+        elif self.governance_process.name == "emoji-vote":
             poll_type = self.governance_process.state.get("poll_type", {})
             if poll_type == "boolean":
                 return self.get_all_boolean_votes()
