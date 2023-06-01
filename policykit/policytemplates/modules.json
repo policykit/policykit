@@ -50,6 +50,7 @@
                 "type": "number",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     }
 ]
