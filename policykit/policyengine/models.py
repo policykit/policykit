@@ -550,7 +550,7 @@ class Proposal(models.Model):
         if self.governance_process.name == "advanced-vote":
             return self.get_all_select_votes()
         elif self.governance_process.name == "emoji-vote":
-            poll_type = self.governance_process.state.get("poll_type", {})
+            poll_type = self.governance_process.state.get("poll_type")
             logger.debug(f"get_active_votes: {poll_type}")
             if poll_type == "boolean":
                 return self.get_all_boolean_votes()
