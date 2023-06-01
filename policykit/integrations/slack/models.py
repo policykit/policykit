@@ -185,10 +185,21 @@ class SlackCommunity(CommunityPlatform):
             else:
                 return None
         
-        logger.debug("start getting conversations")
         response = self.__make_generic_api_call("conversations.list", {})
-        logger.debug("get_conversations response: " + str(response))
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
+
+    def get_users(self, channel):
+        from policyengine.models import CommunityUser
+        if channel:
+            response = self.__make_generic_api_call("conversations.members", {"channel": channel})
+            users = []
+            for member in response["members"]:
+                user = CommunityUser.objects.filter(community=self, username=member).first()
+                if user:
+                    users.append(user)
+            return users
+        else:
+            return CommunityUser.objects.filter(community=self)
 
 
 
