@@ -1078,7 +1078,7 @@ def create_customization(transformer_data, policytemplate):
         module_index = transformer.get("module_index", None)
         module_template = Transformer.objects.filter(pk=module_index).first()
         if module_template:
-            policytemplate.add_add_transformer(module_template)
+            policytemplate.add_transformer(module_template)
             policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
             policytemplate.add_descriptive_data(module_template.loads("data"))
     policytemplate.save()
