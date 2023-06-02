@@ -153,7 +153,7 @@
         if(selected_procedure){
             selected_procedure["variables"].forEach((variable, index) => {
                 let datum = {
-                    value: `procedure.${variable.name}`,
+                    value: `variables.${variable.name}`,
                     name: variable.label,
                     entity: variable.entity,
                     is_list: variable.is_list,
