@@ -151,14 +151,16 @@
                     // if already in the global datalist, then only append names
                     let added_datum = global_datalist.find(item => item.value === `action.${variable.name}` && item.from === "action");
                     if(added_datum) added_datum.name += ` or ${variable.prompt}`;
-                    // else add new datum
-                    global_datalist.push({
-                        value: `action.${variable.name}`,
-                        name: variable.prompt,
-                        entity: variable.entity,
-                        is_list: variable.is_list,
-                        from: "action"
-                    });
+                    else {
+                        // else add new datum
+                            global_datalist.push({
+                                value: `action.${variable.name}`,
+                                name: variable.prompt,
+                                entity: variable.entity,
+                                is_list: variable.is_list,
+                                from: "action"
+                            });
+                    }
             });
             });
 
