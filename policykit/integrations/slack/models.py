@@ -265,7 +265,7 @@ class SlackPostMessage(GovernableAction):
         {
             "name": "thread",
             "label": "Thread",
-            "entity": None,
+            "entity": "Thread",
             "default_value": "",
             "is_required": False,
             "prompt": "",

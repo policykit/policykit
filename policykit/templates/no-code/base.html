@@ -907,11 +907,12 @@
         let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
                       <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
         
-        datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
-          item => {
-              innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
-          }
-        );
+        if(datalist)
+          datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
+            item => {
+                innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
+            }
+          );
 
         // add entities in this community
         options[variable["entity"]].forEach(entity => {

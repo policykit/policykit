@@ -91,6 +91,15 @@
                 "type": "number",
                 "is_list": false,
                 "dynamic": true
+            },
+            {
+                "name": "thread_post_id",
+                "label": "Thread of the Vote Procedure",
+                "prompt": "What is the thread post id of the vote procedure",
+                "entity": null,
+                "type": "string",
+                "is_list": false,
+                "dynamic": true
             }
         ]
     },
