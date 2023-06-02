@@ -947,10 +947,8 @@
         } else {
           if(variable["default_value"]) // if it is a select input, then a default value is actually not much needed
             input_validate += `  value='${variable.default_value}'`;
-          // if there is a datalist, then we need to add the datalist to the parent div
-          text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate} ${datalist ? 'list="variable-options"' : ''}/>
+          text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
                             ${prompt}
-                            ${datalist ? datalist : ""}
                         </div>`;
         }
       }
