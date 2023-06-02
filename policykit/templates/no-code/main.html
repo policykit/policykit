@@ -216,7 +216,7 @@
         section.empty();
         $(`#design_${section_name} .section-bottom`).removeClass("hidden");
         $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
-
+        $(`#design_${section_name} .section-header .source-code-button`).removeClass("hidden");
         if(section_name !== "procedure"){
             section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
         }
@@ -236,6 +236,7 @@
         section.append(`<button class="section-inactive-button small info" type="${section_name}">+ Add</button>`)
         $(`#design_${section_name} .section-bottom:first`).empty(); // remove next buttons
         $(`#design_${section_name} .section-bottom`).addClass("hidden");
+        $(`#design_${section_name} .section-header .source-code-button`).addClass("hidden");
 
     }
 
