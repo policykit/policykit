@@ -915,7 +915,7 @@
         });
 
 
-        innerHTML += `</select>${prompt}</div></div>`;
+        innerHTML += `</select></div></div>`;
         text.innerHTML = innerHTML;
       } else {
         // determine the type of input requirement is needed
@@ -942,13 +942,11 @@
         
         if(variable["type"] === "string"){ // use textarea for variables of the string type
           text.innerHTML = label_html + `<textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default_value ? variable.default_value.trim() : ""}</textarea>
-                              ${prompt}
                           </div>`;
         } else {
           if(variable["default_value"]) // if it is a select input, then a default value is actually not much needed
             input_validate += `  value='${variable.default_value}'`;
           text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
-                            ${prompt}
                         </div>`;
         }
       }
