@@ -364,14 +364,14 @@
         
         // search for data about this selected procedure 
         selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
-        update_data_from_procedures();
-
         let procedure_div = add_section_header("procedure", selected_procedure);
         $("#design_procedure-section-body").empty();
         $("#design_procedure-section-body").append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, column=true)
         })
+
+        update_data_from_procedures();
     }
         
     const showTransformerVariables = (transformer_value, app) => {
