@@ -56,11 +56,6 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <div class="collapse-section">
-                <div class="vertical-line"></div>
-                <button class="collapse-section-button" type="transformer">+</button>
-                <div class="vertical-line"></div>
-            </div>
             <section id="design_procedure">
                 <div class="section-header medium">Choose governing Procedures</div>
                 <div class="section-body inactive" id="design_procedure-section-body">
@@ -68,6 +63,11 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
+            <div class="collapse-section">
+                <div class="vertical-line"></div>
+                <button class="collapse-section-button" type="transformer">+</button>
+                <div class="vertical-line"></div>
+            </div>
             <section id="design_transformer" class="hidden">
                 <div class="section-header medium">Customize your governing Procedures<span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_transformer-section-body">
@@ -75,7 +75,7 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <div class="collapse-section">
+            <!-- <div class="collapse-section">
                 <div class="vertical-line"></div>
                 <button class="collapse-section-button" type="execution_notify">+</button>
                 <div class="vertical-line"></div>
@@ -86,7 +86,7 @@
                     <button class="section-inactive-button small-button small info" type="execution_notify">+ Add</button>
                 </div>
                 <div class="section-bottom hidden"></div>
-            </section>
+            </section> -->
             <section id="design_execution_success">
                 <div class="section-header medium">Choose actions when the Actions pass <span class="small prompt">&nbsp;(optional)</span></div>
                 <div class="section-body inactive" id="design_execution_success-section-body">
@@ -786,8 +786,8 @@
         let fail_data = collectExecutionData("fail");
         if(fail_data === false) return;
 
-        let notify_data = collectExecutionData("notify");
-        if(notify_data === false) return;
+        // let notify_data = collectExecutionData("notify");
+        // if(notify_data === false) return;
 
         let meta_data = collectMetadata();
         if(meta_data === false) return;
@@ -803,7 +803,7 @@
                     procedure: procedure_data,
                     transformers: transformer_data,
                     executions: {
-                        notify: notify_data,
+                        // notify: notify_data,
                         success: success_data,
                         fail: fail_data,
                     }
