@@ -132,9 +132,8 @@
 
     var global_datalist = []
     function update_data_from_actions(){
-        if(selected_actions.length == 0) {
-            global_data = global_data.filter(item => item.from !== "action");
-        } else {
+        global_datalist = global_datalist.filter(item => item.from !== "action");
+        if(selected_actions.length > 0) {
             let datalist = []
             selected_actions.forEach((action, index) => {
                 let variable_names = action_filter_kinds[action.value].map(item => item.name);
@@ -161,11 +160,8 @@
                                 from: "action"
                             });
                     }
-            });
-            });
-
-            
-            
+                });
+            });    
         }
     }
 
