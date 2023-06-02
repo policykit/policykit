@@ -905,10 +905,10 @@
         
         datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
           item => {
-              innerHTML += `<option value='${{item.value}}'>${item.name}</option>`;
+              innerHTML += `<option value='{${item.value}}'>${item.name}</option>`;
           }
         );
-        
+
         // add entities in this community
         options[variable["entity"]].forEach(entity => {
           innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
