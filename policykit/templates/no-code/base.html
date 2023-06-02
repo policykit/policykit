@@ -772,6 +772,10 @@
     return word.charAt(0).toUpperCase() + word.slice(1);
   }
 
+  const decapitalize = (word) => {
+    return word.charAt(0).toLowerCase() + word.slice(1);
+  }
+
   // Reference of class names defined here to avoid repetition
   const classnames = {
     visible: 'active',
@@ -905,7 +909,7 @@
         
         datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
           item => {
-              innerHTML += `<option value='{${item.value}}'>${item.name}</option>`;
+              innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
           }
         );
 

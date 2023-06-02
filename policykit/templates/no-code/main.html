@@ -134,18 +134,36 @@
     function update_data_from_actions(){
         if(selected_actions.length == 0) {
             global_data = global_data.filter(item => item.from !== "action");
-        } else if(selected_actions.length == 1){
-            let action_variables = action_filter_kinds[selected_actions[0].value];
-            action_variables.forEach((variable, index) => {
-                let datum = {
-                    value: `action.${variable.name}`,
-                    name: variable.prompt,
-                    entity: variable.entity,
-                    is_list: variable.is_list,
-                    from: "action"
-                }
-                global_datalist.push(datum);
+        } else {
+            let datalist = []
+            selected_actions.forEach((action, index) => {
+                let variable_names = action_filter_kinds[action.value].map(item => item.name);
+                datalist.push(variable_names)
             });
+
+            shared_variable_names = datalist.reduce((a, b) => a.filter(variable => b.includes(variable)));
+
+            selected_actions.forEach((action, index) => {
+                let action_variables = action_filter_kinds[action.value];
+                action_variables.forEach((variable, index) => {
+                    // if not shared, then skip
+                    if(!shared_variable_names.includes(variable.name)) return;
+                    // if already in the global datalist, then only append names
+                    let added_datum = global_datalist.find(item => item.value === `action.${variable.name}` && item.from === "action");
+                    if(added_datum) added_datum.name += ` or ${variable.prompt}`;
+                    // else add new datum
+                    global_datalist.push({
+                        value: `action.${variable.name}`,
+                        name: variable.prompt,
+                        entity: variable.entity,
+                        is_list: variable.is_list,
+                        from: "action"
+                    });
+            });
+            });
+
+            
+            
         }
     }
 
