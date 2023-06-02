@@ -166,6 +166,7 @@
     }
 
     function update_data_from_procedures(){ 
+        global_datalist = global_datalist.filter(item => item.from !== "procedure");
         if(selected_procedure){
             selected_procedure["variables"].forEach((variable, index) => {
                 let datum = {
@@ -177,8 +178,6 @@
                 }
                 global_datalist.push(datum);
             });
-        } else {
-            global_datalist = global_datalist.filter(item => item.from !== "procedure");
         }
     }
 
