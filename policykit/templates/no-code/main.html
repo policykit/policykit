@@ -130,7 +130,7 @@
     var selected_transformers = [];
     var selected_executions = {success: [], fail: [], notify: []};
 
-    var global_data = []
+    var global_datalist = []
     function update_data_from_actions(){
         if(selected_actions.length == 0) {
             global_data = global_data.filter(item => item.from !== "action");
@@ -144,7 +144,7 @@
                     is_list: variable.is_list,
                     from: "action"
                 }
-                global_data.push(datum);
+                global_datalist.push(datum);
             });
         }
     }
@@ -160,10 +160,10 @@
                     from: "procedure"
                 }
                 datum.name = `variables.${variable.label}`;
-                global_data.push(datum);
+                global_datalist.push(datum);
             });
         } else {
-            global_data = global_data.filter(item => item.from !== "procedure");
+            global_datalist = global_datalist.filter(item => item.from !== "procedure");
         }
     }
 
@@ -403,7 +403,7 @@
         
         $(`#design_execution_${stage}-section-body > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=null, column=false)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, column=false)
         })
     }
     
