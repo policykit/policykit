@@ -258,7 +258,6 @@
                 "entity": "CommunityUser",
                 "type": "string",
                 "is_list": true,
-                "codes": "board_members = [user.username for user in slack.get_users(role_names=[variables.board_role])]\n",
                 "dynamic": false
             },
             {
