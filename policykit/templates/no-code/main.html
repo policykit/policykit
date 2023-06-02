@@ -130,6 +130,43 @@
     var selected_transformers = [];
     var selected_executions = {success: [], fail: [], notify: []};
 
+    var global_data = []
+    function update_data_from_actions(){
+        if(selected_actions.length == 0) {
+            global_data = global_data.filter(item => item.from !== "action");
+        } else if(selected_actions.length == 1){
+            let action_variables = action_filter_kinds[selected_actions[0].value];
+            action_variables.forEach((variable, index) => {
+                let datum = {
+                    value: `action.${variable.name}`,
+                    name: variable.prompt,
+                    entity: variable.entity,
+                    is_list: variable.is_list,
+                    from: "action"
+                }
+                global_data.push(datum);
+            });
+        }
+    }
+
+    function update_data_from_procedures(){ 
+        if(selected_procedure){
+            selected_procedure["variables"].forEach((variable, index) => {
+                let datum = {
+                    value: `procedure.${variable.name}`,
+                    name: variable.label,
+                    entity: variable.entity,
+                    is_list: variable.is_list,
+                    from: "procedure"
+                }
+                datum.name = `variables.${variable.label}`;
+                global_data.push(datum);
+            });
+        } else {
+            global_data = global_data.filter(item => item.from !== "procedure");
+        }
+    }
+
     const add_button_text = {
         "action": "+ Add more Actions",
         "transformer": "+ Add more Transformers",
@@ -205,6 +242,7 @@
         if(checkbox != null) checkbox.checked = false;
         selected_actions = selected_actions.filter(item => item.value !== action_value);
         if(Object.keys(selected_actions).length == 0) deactivate_section("action");
+        update_data_from_actions();
         
     }
     
@@ -212,6 +250,7 @@
         let checkbox = document.getElementById(`procedure.checkbox.${procedure_value}`);
         if(checkbox != null) checkbox.checked = false;
         selected_procedure = null;
+        update_data_from_procedures();
         deactivate_section("procedure");
     }
 
@@ -240,13 +279,14 @@
         let action = {...base_actions[app].find(item => item.value == action_value)};
         action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
         selected_actions.push(action);
+        update_data_from_actions();
 
         // create action div and add action header to the action_div
         let action_div = add_section_header("action", action);
         // then add the filter parameters for each action in this action_div
         const now_filter_kinds = action_filter_kinds[action.value]; // a dict of field: filter_kind
         const filters_this_app = filter_modules[app]; // a dict of filter_kind: [filter_modules]
-        console.log("now_filter_kinds: ", now_filter_kinds);
+
         now_filter_kinds.forEach(filter_schema => {
             const filter_kind = filter_schema.entity;
             const field_name = filter_schema.name;
@@ -324,7 +364,8 @@
         
         // search for data about this selected procedure 
         selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
-        
+        update_data_from_procedures();
+
         let procedure_div = add_section_header("procedure", selected_procedure);
         $("#design_procedure-section-body").empty();
         $("#design_procedure-section-body").append(procedure_div);

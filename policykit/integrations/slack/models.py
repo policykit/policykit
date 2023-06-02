@@ -212,25 +212,33 @@ class SlackPostMessage(GovernableAction):
             "name": "initiator",
             "label": "Initiator",
             "entity": "CommunityUser",
-            "prompt": "the user who posted a message on Slack"
+            "prompt": "the user who posted a message on Slack",
+            "is_list": False,
+            "type": "string",
         },
         {
             "name": "text",
             "label": "Message",
             "entity": "Text",
-            "prompt": "the message that was posted on Slack"
+            "prompt": "the message that was posted on Slack",
+            "is_list": False,
+            "type": "string"
         }, 
         { 
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
-            "prompt": "the channel where the message was posted"
+            "prompt": "the channel where the message was posted",
+            "is_list": False,
+            "type": "string"
         }, 
         {
             "name": "timestamp",
             "label": "Timestamp",
             "entity": "Timestamp",
-            "prompt": "the timestamp of the posted message"
+            "prompt": "the timestamp of the posted message",
+            "is_list": False,
+            "type": "string"
         }
     ]
     EXECUTE_VARIABLES = [
@@ -302,25 +310,33 @@ class SlackRenameConversation(GovernableAction):
             "name": "initiator",
             "label": "Initiator",
             "entity": "CommunityUser",
-            "prompt": "the user who renamed a channel on Slack"
+            "prompt": "the user who renamed a channel on Slack",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "text",
-            "label": "New Channel Name",
+            "label": "New Name",
             "entity": "Text",
-            "prompt": "the new name of the channel"
+            "prompt": "the new name of the channel",
+            "is_list": False,
+            "type": "string"
         }, 
         {
             "name": "previous_name",
-            "label": "Old Channel Name",
+            "label": "Old Name",
             "entity": "Text",
-            "prompt": "the old name of the channel before being renamed"
+            "prompt": "the old name of the channel before being renamed",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
-            "prompt": "the channel that was renamed"
+            "prompt": "the channel that was renamed",
+            "is_list": False,
+            "type": "string"
         }
     ]
     EXECUTE_VARIABLES = [
@@ -375,13 +391,25 @@ class SlackJoinConversation(GovernableAction):
             "name": "initiator",
             "label": "Initiator",
             "entity": "CommunityUser",
-            "prompt": "the user who invited new users to a channel on Slack"
+            "prompt": "the user who invited new users to a channel on Slack",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
-            "prompt": "the channel where new users were invited to join"
+            "prompt": "the channel where new users were invited to join",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "users",
+            "label": "Joined Users",
+            "entity": "CommunityUser",
+            "prompt": "the users who were invited to join the channel",
+            "is_list": True,
+            "type": "string"
         }
     ]
     EXECUTE_VARIABLES = [
@@ -439,13 +467,17 @@ class SlackPinMessage(GovernableAction):
             "name": "initiator",
             "label": "Initiator",
             "entity": "CommunityUser",
-            "prompt": "the user who pinned a message on Slack"
+            "prompt": "the user who pinned a message on Slack",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
-            "prompt": "the channel where a message was pinned"
+            "prompt": "the channel where a message was pinned",
+            "is_list": False,
+            "type": "string"
         }
     ]
     EXECUTE_VARIABLES = [
@@ -497,25 +529,33 @@ class SlackScheduleMessage(GovernableAction):
             "name": "initiator",
             "label": "Initiator",
             "entity": "CommunityUser",
-            "prompt": "the user who scheduled a message on Slack"
+            "prompt": "the user who scheduled a message on Slack",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "text",
             "label": "Message",
             "entity": "Text",
-            "prompt": "the message that was scheduled"
+            "prompt": "the message that was scheduled",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
-            "prompt": "the channel where the message was scheduled"
+            "prompt": "the channel where the message was scheduled",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "post_at",
             "label": "Scheduled time",
             "entity": "Timestamp",
-            "prompt": "the time when the message was scheduled"
+            "prompt": "the time when the message was scheduled",
+            "is_list": False,
+            "type": "timestamp"
         }
     ]
     EXECUTE_VARIABLES = [
@@ -568,19 +608,25 @@ class SlackKickConversation(GovernableAction):
             "name": "initiator",
             "label": "Initiator",
             "entity": "CommunityUser",
-            "prompt": "the user who kicked another user from a channel on Slack"
+            "prompt": "the user who kicked another user from a channel on Slack",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
-            "prompt": "the channel where a user was kicked from"
+            "prompt": "the channel where a user was kicked from",
+            "is_list": False,
+            "type": "string"
         },
         {
             "name": "user",
             "label": "Kicked users",
             "entity": "CommunityUser",
-            "prompt": "the user who was kicked from the channel"
+            "prompt": "the user who was kicked from the channel",
+            "is_list": False,
+            "type": "string"
         }
     ]
     EXECUTE_VARIABLES = [
