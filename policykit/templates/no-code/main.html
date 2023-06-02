@@ -309,8 +309,8 @@
                 field_div.classList.add('custom-action-field');
 
                 select_id = `select-${action.value}.${field_name}`
-                let field_html = `<div class='variable-item' id='${action.value}.${field_name}'>
-                            <label for='${select_id}' class="normal">${capitalize(filter_schema.label)}</label>
+                let field_html = `<div class='variable-item small normal' id='${action.value}.${field_name}'>
+                            <label for='${select_id}' class="small normal">${capitalize(filter_schema.label)}</label>
                             <div class='selectpicker-wrapper'>
                             <select id='${select_id}' class="selectpicker" title="Select a filter">
                             <option value="none">None</option>`
