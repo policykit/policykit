@@ -114,7 +114,7 @@ def get_transformers():
             "description": template.description,
             "variables": template.loads("variables"),
             "app": "all",
-            "codes": sanitize_code(template.loads("codes"))
+            "codes": sanitize_code(template.codes)
         })
     return {"all": transformers}
 
