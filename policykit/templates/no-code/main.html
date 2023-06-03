@@ -560,17 +560,21 @@
              
                 if(!codes) return;
                 var codeArea = document.getElementById(`design_${type}-codeview`).firstElementChild;
-                editors[type] = CodeMirror.fromTextArea(codeArea, {
-                    mode: 'python',
-                    autoRefresh: true,
-                    lineNumbers: true,
-                    lineWrapping: true,
-                    theme: 'eclipse',
-                    extraKeys: {"Ctrl-Space": "autocomplete"},
-                    matchBrackets: true,
-                    gutters: ['warnings'],
-                });
+                if(editors[type] == null){
+                    editors[type] = CodeMirror.fromTextArea(codeArea, {
+                        mode: 'python',
+                        autoRefresh: true,
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        theme: 'eclipse',
+                        extraKeys: {"Ctrl-Space": "autocomplete"},
+                        matchBrackets: true,
+                        gutters: ['warnings'],
+                    });
+                }
                 editors[type].setValue(decodeHtml(codes));
+
+
                 $(`#design_${type}-formview`).addClass("hidden");
                 $(`#design_${type}-codeview`).removeClass("hidden");
                 target.setAttribute("view", "formview");
