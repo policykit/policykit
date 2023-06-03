@@ -79,6 +79,9 @@ def get_all_platforms(user):
     platform_names = [platform.platform for platform in platforms]
     return platform_names
 
+def sanitize_code(code):
+    # code.replace("\n", "\\n").replace("\t", "\\t")
+    return code 
 def get_procedures(platforms):
     from policyengine.models import Procedure
     # load all procedure templates
@@ -93,7 +96,7 @@ def get_procedures(platforms):
             "variables": template.loads("variables"),
             "data": template.loads("data"),
             "app": template.platform.lower(),
-            "codes": json.dumps(template.loads("check")["codes"][1:-1]) # remove outer quotes
+            "codes": sanitize_code(template.loads("check")["codes"])
         })
     return procedures
 
