@@ -80,7 +80,7 @@ def get_all_platforms(user):
     return platform_names
 
 def sanitize_code(code):
-    return code.replace("\n", "\\n").replace("\t", "\\t") 
+    return code.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"')
 
 def get_procedures(platforms):
     from policyengine.models import Procedure
