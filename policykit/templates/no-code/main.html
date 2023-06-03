@@ -557,8 +557,7 @@
                         codes = selected_procedure["codes"];
                         break;
                 }
-            
-                
+             
                 if(!codes) return;
                 var codeArea = document.getElementById(`design_${type}-codeview`).firstElementChild;
                 editors[type] = CodeMirror.fromTextArea(codeArea, {
@@ -576,6 +575,11 @@
                 $(`#design_${type}-codeview`).removeClass("hidden");
                 target.setAttribute("view", "formview");
                 target.innerHTML = '<i class="fa-regular fa-pen-to-square" style="color: #4451b2;"></i>&nbsp;No-code';
+            } else {
+                $(`#design_${type}-formview`).removeClass("hidden");
+                $(`#design_${type}-codeview`).addClass("hidden");
+                target.setAttribute("view", "codeview");
+                target.innerHTML = '{} Source Code';
             }
         }
     })
