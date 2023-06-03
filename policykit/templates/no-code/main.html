@@ -58,7 +58,9 @@
                     <div id="design_action-formview" class="section-formview inactive">
                         <button class="section-inactive-button small-button small info" type="action">+ Add</button>
                     </div>
-                    <div id="design_action-codeview" class="section-codeview hidden"></div>
+                    <div id="design_action-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -71,7 +73,9 @@
                     <div id="design_procedure-formview" class="section-formview inactive">
                         <button class="section-inactive-button small-button small info" type="procedure">+ Add</button>
                     </div>
-                    <div id="design_procedure-codeview" class="section-codeview hidden"></div>
+                    <div id="design_procedure-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -89,7 +93,9 @@
                     <div id="design_transformer-formview" class="section-formview inactive">
                         <button class="section-inactive-button small-button small info" type="transformer">+ Add</button>
                     </div>
-                    <div id="design_transformer-codeview" class="section-codeview hidden"></div>
+                    <div id="design_transformer-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -114,7 +120,9 @@
                     <div id="design_execution_success-formview" class="section-formview inactive">
                         <button class="section-inactive-button small-button small info" type="execution_success">+ Add</button>
                     </div>
-                    <div id="design_execution_success-codeview" class="section-codeview hidden" ></div>
+                    <div id="design_execution_success-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
                 </div>
                 <div class="section-bottom hidden "></div>
             </section>
@@ -127,7 +135,9 @@
                     <div id="design_execution_fail-formview" class="section-formview inactive">
                         <button class="section-inactive-button small-button small info" type="execution_fail">+ Add</button>
                     </div>
-                    <div id="design_execution_fail-codeview" class="section-codeview hidden"></div>
+                    <div id="design_execution_fail-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
@@ -144,6 +154,10 @@
 {% endblock %}
 
 {% block step_scripts %}
+<script src="{% static "codemirror/lib/codemirror.js" %}"></script>
+<script src="{% static "codemirror/mode/python/python.js" %}"></script>
+<script src="{% static "codemirror/addon/hint/show-hint.js" %}"></script>
+<script src="{% static "codemirror/addon/display/autorefresh.js" %}"></script>
 <script>
     const base_actions = JSON.parse('{{base_actions | safe}}');
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
@@ -161,6 +175,14 @@
     var selected_executions = {success: [], fail: [], notify: []};
 
     var global_datalist = []
+    var editors = {
+        "filter": null, 
+        "procedure": null, 
+        "transformer": null, 
+        "execution.pass": null, 
+        "execution.fail": null
+    };
+
     function update_data_from_actions(){
         global_datalist = global_datalist.filter(item => item.from !== "action");
         if(selected_actions.length > 0) {
@@ -531,11 +553,20 @@
             if(type === "procedure"){
                 if(selected_procedure){
                     let codes = selected_procedure["codes"];
-                    console.debug("codes: ", codes);
-                    let codeview = document.getElementById("design_procedure-codeview");
-                    codeview.innerHTML = `<pre><code class="language-python">${codes}</code></pre>`;
-                    codeview.classList.remove("hidden");
+                    var codeArea = document.getElementById(`design_${type}-codeview`).firstElementChild;
+                    editors[type] = CodeMirror.fromTextArea(codeArea, {
+                        mode: 'python',
+                        autoRefresh: true,
+                        lineNumbers: true,
+                        theme: 'eclipse',
+                        extraKeys: {"Ctrl-Space": "autocomplete"},
+                        matchBrackets: true,
+                        gutters: ['warnings'],
+                        functionName: code_id
+                    });
+                    editors[type].setValue(decodeHtml(codes));
                     $("#design_procedure-formview").addClass("hidden");
+                    $("#design_procedure-codeview").removeClass("hidden");
                 }
             }
         }
