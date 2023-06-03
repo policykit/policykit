@@ -561,8 +561,9 @@
                 }
              
                 if(!codes) return;
-                var codeArea = document.getElementById(`design_${type}-codeview`).firstElementChild;
+                
                 if(editors[type] == null){
+                    var codeArea = $(`design_${type}-codeview > .textarea`);
                     editors[type] = CodeMirror.fromTextArea(codeArea, {
                         mode: 'python',
                         autoRefresh: true,
@@ -577,7 +578,7 @@
                
                 editors[type].setValue(decodeHtml(codes));
                 // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
-                setTimeout(function() { editors[type].refresh(); },1);
+                setTimeout(() => editors[type].refresh(), 1);
 
 
                 $(`#design_${type}-formview`).addClass("hidden");
