@@ -52,7 +52,7 @@
             <section id="design_action">
                 <div class="section-header medium">
                     <div>Choose governed Actions</div>
-                    <button class="source-code-button hidden small" type="action">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="action" view="codeview">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_action-section-body">
                     <div id="design_action-formview" class="section-formview inactive">
@@ -67,7 +67,7 @@
             <section id="design_procedure">
                 <div class="section-header medium">
                     <div>Choose governing Procedures</div>
-                    <button class="source-code-button hidden small" type="procedure">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="procedure" view="codeview">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_procedure-section-body">
                     <div id="design_procedure-formview" class="section-formview inactive">
@@ -87,7 +87,7 @@
             <section id="design_transformer" class="hidden">
                 <div class="section-header medium">
                     <div>Customize your governing Procedures<span class="small prompt">&nbsp;(optional)</span></div>
-                    <button class="source-code-button hidden small" type="transformer">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="transformer" view="codeview">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_transformer-section-body">
                     <div id="design_transformer-formview" class="section-formview inactive">
@@ -114,7 +114,7 @@
             <section id="design_execution_success">
                 <div class="section-header medium">
                     <div>Choose actions when the Actions pass <span class="small prompt">&nbsp;(optional)</span></div>
-                    <button class="source-code-button hidden small" type="execution_success">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="execution_success" view="codeview">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_execution_success-section-body">
                     <div id="design_execution_success-formview" class="section-formview inactive">
@@ -129,7 +129,7 @@
             <section id="design_execution_fail">
                 <div class="section-header medium">
                     <div>Choose actions when the Actions fail <span class="small prompt">&nbsp;(optional)</span></div>
-                    <button class="source-code-button hidden small" type="execution_fail">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="execution_fail" view="codeview">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_execution_fail-section-body">
                     <div id="design_execution_fail-formview" class="section-formview inactive">
@@ -542,31 +542,45 @@
         }
     });
     
+    function toggleSourceCodeButton(button){
+
+    }
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".source-code-button");
         if(target){
             let type = target.getAttribute("type");
-            if(type === "procedure"){
-                if(selected_procedure){
-                    let codes = selected_procedure["codes"];
-                    var codeArea = document.getElementById(`design_${type}-codeview`).firstElementChild;
-                    editors[type] = CodeMirror.fromTextArea(codeArea, {
-                        mode: 'python',
-                        autoRefresh: true,
-                        lineNumbers: true,
-                        lineWrapping: true,
-                        theme: 'eclipse',
-                        extraKeys: {"Ctrl-Space": "autocomplete"},
-                        matchBrackets: true,
-                        gutters: ['warnings'],
-                    });
-                    editors[type].setValue(decodeHtml(codes));
-                    $("#design_procedure-formview").addClass("hidden");
-                    $("#design_procedure-codeview").removeClass("hidden");
+            let view = target.getAttribute("view");
+            let codes = null;
+            if(view == "codeview"){
+                switch(type){
+                    case "procedure": 
+                        codes = selected_procedure["codes"];
+                        break;
                 }
+            
+                
+                if(!codes) return;
+                var codeArea = document.getElementById(`design_${type}-codeview`).firstElementChild;
+                editors[type] = CodeMirror.fromTextArea(codeArea, {
+                    mode: 'python',
+                    autoRefresh: true,
+                    lineNumbers: true,
+                    lineWrapping: true,
+                    theme: 'eclipse',
+                    extraKeys: {"Ctrl-Space": "autocomplete"},
+                    matchBrackets: true,
+                    gutters: ['warnings'],
+                });
+                editors[type].setValue(decodeHtml(codes));
+                $(`#design_${type}-formview`).addClass("hidden");
+                $(`#design_${type}-codeview`).removeClass("hidden");
+                target.setAttribute("view", "formview");
+                target.innerHTML = '<i class="fa-thin fa-scroll" style="color: #4451b2;"></i>No-code View';
             }
         }
     })
+
+
     /** 
      * listen the events on the buttons in the nocode panel (including next and add buttons)
      * so that we could display or hide slider panels
