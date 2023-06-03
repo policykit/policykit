@@ -576,7 +576,8 @@
                 }
                
                 editors[type].setValue(decodeHtml(codes));
-                editors[type].refresh();
+                // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+                setTimeout(function() { editors[type].refresh(); },1);
 
 
                 $(`#design_${type}-formview`).addClass("hidden");
