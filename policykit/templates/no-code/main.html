@@ -530,10 +530,10 @@
             let type = target.getAttribute("type");
             if(type === "procedure"){
                 if(selected_procedure){
-                    let code = selected_procedure["code"];
-                    console.debug("codes: ", code);
+                    let codes = selected_procedure["codes"];
+                    console.debug("codes: ", codes);
                     let codeview = document.getElementById("design_procedure-codeview");
-                    codeview.innerHTML = `<pre><code class="language-python">${code}</code></pre>`;
+                    codeview.innerHTML = `<pre><code class="language-python">${codes}</code></pre>`;
                     codeview.classList.remove("hidden");
                     $("#design_procedure-formview").addClass("hidden");
                 }
