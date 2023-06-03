@@ -65,7 +65,7 @@
             <section id="design_procedure">
                 <div class="section-header medium">
                     <div>Choose governing Procedures</div>
-                    <button class="source-code-button hidden small" type=procedure">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="procedure">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_procedure-section-body">
                     <div id="design_procedure-formview" class="section-formview inactive">
@@ -83,7 +83,7 @@
             <section id="design_transformer" class="hidden">
                 <div class="section-header medium">
                     <div>Customize your governing Procedures<span class="small prompt">&nbsp;(optional)</span></div>
-                    <button class="source-code-button hidden small" type=transformer">{} Source Code</button>
+                    <button class="source-code-button hidden small" type="transformer">{} Source Code</button>
                 </div>
                 <div class="section-body" id="design_transformer-section-body">
                     <div id="design_transformer-formview" class="section-formview inactive">
@@ -529,7 +529,6 @@
         if(target){
             let type = target.getAttribute("type");
             if(type === "procedure"){
-                console.log("selected_procedure: ", selected_procedure);
                 if(selected_procedure){
                     let code = selected_procedure["code"];
                     logger.debug("codes: ", code);
