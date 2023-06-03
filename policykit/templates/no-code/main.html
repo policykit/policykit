@@ -537,13 +537,14 @@
         }
     });
     
+    // listen to the events when users click the source-code/no-code buttons
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".source-code-button");
 
         if(target){
             let type = target.getAttribute("type");
             let view = target.getAttribute("view");
-            let codes = ;
+            let codes = null;
             hideSliderPanel(); // so that users cannot change procedures in the code view
             if(view == "codeview"){
                 switch(type){
