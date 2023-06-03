@@ -114,7 +114,7 @@
                     <div id="design_execution_success-formview" class="section-formview inactive">
                         <button class="section-inactive-button small-button small info" type="execution_success">+ Add</button>
                     </div>
-                    <div id="design_execution_success-codeview" class="section-codeview hidden"></div>
+                    <div id="design_execution_success-codeview" class="section-codeview hidden" ></div>
                 </div>
                 <div class="section-bottom hidden "></div>
             </section>
@@ -525,6 +525,7 @@
     
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".source-code-button");
+        console.log("target: ", target);
         if(target){
             let type = target.getAttribute("type");
             if(type === "procedure"){
