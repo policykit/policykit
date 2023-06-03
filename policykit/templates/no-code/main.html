@@ -571,6 +571,7 @@
                     });
 
                     editors[type].on('change', (cm, change) => {
+                        console.log("changed code: ", change);
                         editor_status[type] = "changed";
                     });
                 }
@@ -582,8 +583,9 @@
                         Once you change the code, you cannot further customize this procedure using no-code view.
                     </div>`
                 )
-                editor_status[type] = "unchanged";
+                
                 editors[type].setValue(decodeHtml(codes));
+                editor_status[type] = "unchanged";
                 // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
                 setTimeout(() => editors[type].refresh(), 1);
 
