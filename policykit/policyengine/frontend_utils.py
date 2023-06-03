@@ -93,7 +93,7 @@ def get_procedures(platforms):
             "variables": template.loads("variables"),
             "data": template.loads("data"),
             "app": template.platform.lower(),
-            "codes": template.loads("check")["codes"]
+            "codes": json.dumps(template.loads("check")["codes"][1:-1]) # remove outer quotes
         })
     return procedures
 
