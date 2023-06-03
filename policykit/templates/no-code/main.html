@@ -529,6 +529,7 @@
         if(target){
             let type = target.getAttribute("type");
             if(type === "procedure"){
+                console.log("selected_procedure: ", selected_procedure);
                 if(selected_procedure){
                     let code = selected_procedure["code"];
                     logger.debug("codes: ", code);
