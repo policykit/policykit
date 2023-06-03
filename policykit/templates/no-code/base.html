@@ -395,7 +395,8 @@
     height: 100px;
   }
 
-  .section-codeview {
+  .section-codeview.hidden {
+    display: none;
   }
 
   .section-inactive-button {
@@ -1001,6 +1002,14 @@
       $(".selectpicker").selectpicker("refresh");
       
   }
+
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+
 </script>
 {% endblock %}
 
