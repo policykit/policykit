@@ -225,7 +225,7 @@
             @param section_id: the name of the section, e.g., action, procedure, transformer, execution.notify, 
         */
        
-        let section = $(`#design_${section_name}-section-formview`);
+        let section = $(`#design_${section_name}-formview`);
         section.removeClass("inactive");
         section.addClass("active");
         section.empty();
@@ -244,7 +244,7 @@
             @param types: the type of the section, e.g. actions, procedures, transformers, executions
             @param 
         */
-        let section = $(`#design_${section_name}-section-formview`)
+        let section = $(`#design_${section_name}-formview`)
         section.removeClass("active");
         section.addClass("inactive");
         section.empty();
@@ -359,7 +359,7 @@
             }
         });
         // insert the action before the add-more button
-        $("#design_action-section-formview > :last-child").before(action_div);
+        $("#design_action-formview > :last-child").before(action_div);
         $(".selectpicker").selectpicker('refresh');
 
     }
@@ -410,8 +410,8 @@
         // search for data about this selected procedure 
         selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
         let procedure_div = add_section_header("procedure", selected_procedure);
-        $("#design_procedure-section-formview").empty();
-        $("#design_procedure-section-formview").append(procedure_div);
+        $("#design_procedure-formview").empty();
+        $("#design_procedure-formview").append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, column=true)
         })
@@ -429,7 +429,7 @@
         
     
         let transformer_div = add_section_header("transformer", selected_transformer);
-        $("#design_transformer-section-formview > :last-child").before(transformer_div);
+        $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, column=true)
         })
@@ -446,7 +446,7 @@
 
         let execution_div = add_section_header(`execution_${stage}`, execution);
         
-        $(`#design_execution_${stage}-section-formview > :last-child`).before(execution_div);
+        $(`#design_execution_${stage}-formview > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, column=false)
         })
