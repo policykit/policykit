@@ -531,7 +531,7 @@
             if(type === "procedure"){
                 if(selected_procedure){
                     let code = selected_procedure["code"];
-                    logger.debug("codes: ", code);
+                    console.debug("codes: ", code);
                     let codeview = document.getElementById("design_procedure-codeview");
                     codeview.innerHTML = `<pre><code class="language-python">${code}</code></pre>`;
                     codeview.classList.remove("hidden");
