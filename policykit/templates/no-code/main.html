@@ -574,8 +574,9 @@
                         gutters: ['warnings'],
                     });
                 }
-                console.log(codes);
+               
                 editors[type].setValue(decodeHtml(codes));
+                editors[type].refresh();
 
 
                 $(`#design_${type}-formview`).addClass("hidden");
