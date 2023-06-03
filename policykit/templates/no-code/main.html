@@ -537,9 +537,6 @@
         }
     });
     
-    function toggleSourceCodeButton(button){
-
-    }
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".source-code-button");
 
@@ -669,10 +666,12 @@
         }
     });
 
+    // listen to the event when users click the + button to unfold a collapsed section
     document.getElementById("nocode-panel").addEventListener("click", (event) => {
         let target = event.target.closest(".collapse-section-button");
         if(target){
             let section_type = target.getAttribute("type");
+            console.log("collapse section: ", section_type);
             if(section_type === "transformer" || section_type.startsWith("execution")){
                 let collapse_section = target.closest(".collapse-section");
                 collapse_section.classList.add("hidden");
@@ -680,6 +679,7 @@
             }
         }
     })
+    
     // listen to the event when users click the back button in the slider panel
     document.getElementById("slide-panel-back").addEventListener('click', (event) => {
         hideSliderPanel();
