@@ -577,10 +577,11 @@
                 }
                 $(`#design_${type}-codeview`).before(
                     `<div class="section-codeview-warning small normal">
-                        <i class="fa-solid fa-info" style="color: #a72a11;"></i>nbsp;
+                        <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;
                         Once you change the code, you cannot further customize this procedure using no-code view.
                     </div>`
                 )
+
                 editors[type].setValue(decodeHtml(codes));
                 // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
                 setTimeout(() => editors[type].refresh(), 1);
@@ -593,6 +594,7 @@
             } else {
                 $(`#design_${type}-formview`).removeClass("hidden");
                 $(`#design_${type}-codeview`).addClass("hidden");
+                $(`#design_${type}-codeview`).prev().remove();
                 target.setAttribute("view", "codeview");
                 target.innerHTML = '{} Source Code';
             }
