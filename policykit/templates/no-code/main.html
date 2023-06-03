@@ -546,13 +546,17 @@
         if(target){
             let type = target.getAttribute("type");
             let view = target.getAttribute("view");
-            let codes = null;
+            let codes = ;
             hideSliderPanel(); // so that users cannot change procedures in the code view
             if(view == "codeview"){
                 switch(type){
                     case "procedure": 
                         codes = selected_procedure["codes"];
                         break;
+                    case "transformer":
+                        codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
+                        break;
+                        
                 }
              
                 if(!codes) return;
@@ -571,7 +575,6 @@
                     });
 
                     editors[type].on('change', (cm, change) => {
-                        console.log("changed code: ", change);
                         editor_status[type] = "changed";
                     });
                 }
@@ -580,7 +583,7 @@
                 $(`#design_${type}-codeview`).before(
                     `<div class="section-codeview-warning small normal">
                         <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;
-                        Once you change the code, you cannot further customize this procedure using no-code view.
+                        Once you change the code, you cannot further customize this ${type} using no-code view.
                     </div>`
                 )
                 
@@ -596,7 +599,7 @@
                 target.innerHTML = '<i class="fa-regular fa-pen-to-square" style="color: #4451b2;"></i>&nbsp;No-code';
             } else {
                 if(editor_status[type] == "changed"){
-                    let confirm = window.confirm("You have changed the code. Are you sure you want to switch to no-code view?");
+                    let confirm = window.confirm("Are you sure you want to switch to no-code view? If so, all you changes will be discarded.");
                     if(!confirm) return;
                 }
                 $(`#design_${type}-formview`).removeClass("hidden");
