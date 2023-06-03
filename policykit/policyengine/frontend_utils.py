@@ -1,5 +1,6 @@
 import policyengine.utils as Utils
 from django.apps import apps
+import json
 
 def get_filter_parameters(app_name, action_codename):
     """
@@ -91,7 +92,7 @@ def get_procedures(platforms):
             "variables": template.loads("variables"),
             "data": template.loads("data"),
             "app": template.platform.lower(),
-            "codes": template.loads("check")["codes"]
+            "codes": json.dumps(template.loads("check")["codes"])
         })
     return procedures
 
