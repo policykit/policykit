@@ -90,7 +90,8 @@ def get_procedures(platforms):
             "value": template.pk, 
             "variables": template.loads("variables"),
             "data": template.loads("data"),
-            "app": template.platform.lower()
+            "app": template.platform.lower(),
+            "codes": template.loads("codes")["codes"]
         })
     return procedures
 
