@@ -91,7 +91,7 @@ def get_procedures(platforms):
             "variables": template.loads("variables"),
             "data": template.loads("data"),
             "app": template.platform.lower(),
-            "codes": template.loads("codes")["codes"]
+            "codes": template.loads("check")["codes"]
         })
     return procedures
 
