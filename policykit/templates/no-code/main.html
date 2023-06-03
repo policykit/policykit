@@ -154,10 +154,7 @@
 {% endblock %}
 
 {% block step_scripts %}
-<script src="{% static "codemirror/lib/codemirror.js" %}"></script>
-<script src="{% static "codemirror/mode/python/python.js" %}"></script>
-<script src="{% static "codemirror/addon/hint/show-hint.js" %}"></script>
-<script src="{% static "codemirror/addon/display/autorefresh.js" %}"></script>
+
 <script>
     const base_actions = JSON.parse('{{base_actions | safe}}');
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
@@ -557,6 +554,7 @@
                         mode: 'python',
                         autoRefresh: true,
                         lineNumbers: true,
+                        lineWrapping: true,
                         theme: 'eclipse',
                         extraKeys: {"Ctrl-Space": "autocomplete"},
                         matchBrackets: true,
