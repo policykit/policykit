@@ -547,7 +547,6 @@
     
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".source-code-button");
-        console.log("target: ", target);
         if(target){
             let type = target.getAttribute("type");
             if(type === "procedure"){
@@ -562,7 +561,6 @@
                         extraKeys: {"Ctrl-Space": "autocomplete"},
                         matchBrackets: true,
                         gutters: ['warnings'],
-                        functionName: code_id
                     });
                     editors[type].setValue(decodeHtml(codes));
                     $("#design_procedure-formview").addClass("hidden");
