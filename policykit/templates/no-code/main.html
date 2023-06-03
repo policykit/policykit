@@ -575,7 +575,12 @@
                         gutters: ['warnings'],
                     });
                 }
-               
+                $(`#design_${type}-codeview`).before(
+                    `<div class="section-codeview-warning small normal">
+                        <i class="fa-solid fa-info" style="color: #a72a11;"></i> 
+                        Please be warned that once you change the code of this procedure, you cannot further customize this procedure using no-code view.
+                    </div>`
+                )
                 editors[type].setValue(decodeHtml(codes));
                 // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
                 setTimeout(() => editors[type].refresh(), 1);
