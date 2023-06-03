@@ -172,13 +172,8 @@
     var selected_executions = {success: [], fail: [], notify: []};
 
     var global_datalist = []
-    var editors = {
-        "filter": null, 
-        "procedure": null, 
-        "transformer": null, 
-        "execution.pass": null, 
-        "execution.fail": null
-    };
+    var editors = {}; // a list of codemirror editors
+    var editor_status = {};
 
     function update_data_from_actions(){
         global_datalist = global_datalist.filter(item => item.from !== "action");
@@ -574,14 +569,20 @@
                         matchBrackets: true,
                         gutters: ['warnings'],
                     });
+
+                    editors[type].on('change', (cm, change) => {
+                        editor_status[type] = "changed";
+                    });
                 }
+
+
                 $(`#design_${type}-codeview`).before(
                     `<div class="section-codeview-warning small normal">
                         <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;
                         Once you change the code, you cannot further customize this procedure using no-code view.
                     </div>`
                 )
-
+                editor_status[type] = "unchanged";
                 editors[type].setValue(decodeHtml(codes));
                 // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
                 setTimeout(() => editors[type].refresh(), 1);
@@ -592,6 +593,10 @@
                 target.setAttribute("view", "formview");
                 target.innerHTML = '<i class="fa-regular fa-pen-to-square" style="color: #4451b2;"></i>&nbsp;No-code';
             } else {
+                if(editor_status[type] == "changed"){
+                    let confirm = window.confirm("You have changed the code. Are you sure you want to switch to no-code view?");
+                    if(!confirm) return;
+                }
                 $(`#design_${type}-formview`).removeClass("hidden");
                 $(`#design_${type}-codeview`).addClass("hidden");
                 $(`#design_${type}-codeview`).prev().remove();
