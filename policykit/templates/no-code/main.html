@@ -672,7 +672,6 @@
         let target = event.target.closest(".collapse-section-button");
         if(target){
             let section_type = target.getAttribute("type");
-            console.log("collapse section: ", section_type);
             if(section_type === "transformer" || section_type.startsWith("execution")){
                 let collapse_section = target.closest(".collapse-section");
                 collapse_section.classList.add("hidden");
