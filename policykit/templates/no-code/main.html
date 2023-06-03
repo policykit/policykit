@@ -563,7 +563,7 @@
                 if(!codes) return;
                 
                 if(editors[type] == null){
-                    var codeArea = $(`design_${type}-codeview > textarea`).first();
+                    var codeArea = $(`#design_${type}-codeview > textarea`).first();
                     editors[type] = CodeMirror.fromTextArea(codeArea, {
                         mode: 'python',
                         autoRefresh: true,
