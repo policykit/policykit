@@ -95,7 +95,7 @@ def get_procedures(platforms):
             "app": template.platform.lower(),
             "codes": template.loads("check")["codes"]
         })
-        logger.info("codes: \n", template.loads("check")["codes"])
+        logger.debug("codes: \n", template.loads("check")["codes"])
     return procedures
 
 
