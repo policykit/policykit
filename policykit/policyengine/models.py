@@ -1450,7 +1450,7 @@ class PolicyTemplate(models.Model):
 
     description = models.TextField(null=True, blank=True)
 
-    template_kind = models.CharField(choices=POLICY_TEMPLATE_KIND, max_length=30)
+    template_kind = models.CharField(choices=POLICY_TEMPLATE_KIND, max_length=30, default=COMMUNITY_POLICIES)
     """Kind of policy template (platform, constitution, or trigger)."""
 
     custom_actions = models.ManyToManyField(CustomAction)
