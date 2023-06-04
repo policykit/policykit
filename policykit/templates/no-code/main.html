@@ -898,7 +898,6 @@
                 data = collectExecutionData("fail");
                 break;
         } 
-        console.log("data: ", data);
         if(!data) return false;
 
         let result = await submit('generate_code', {
