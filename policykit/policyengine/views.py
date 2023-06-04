@@ -1007,7 +1007,6 @@ def create_custom_action(filters, is_trigger=False):
     custom_action_JSON = []
     for filter in filters:
         action_type = filter.get("action_type")
-        action_type = ActionType.objects.filter(codename=action_type).first()
         action_specs = filter.get("filter")
         '''
             check whether the value of each action_specs is an empty string
