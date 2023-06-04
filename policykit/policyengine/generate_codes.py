@@ -230,6 +230,8 @@ def generate_filter_codes(filters):
             filter_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
         else:
             filter_codes += "return True\n"
+    if not filter_codes:
+        filter_codes = "pass"
     return filter_codes
 
 def generate_initialize_codes(data):
