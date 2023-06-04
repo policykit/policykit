@@ -950,6 +950,15 @@ def view_policy_json(request):
     policy_json = policy.to_json()
     return render(request, "no-code/view.html", {"policy_json": json.dumps(policy_json)})
 
+def generate_code(request):
+    body = json.loads(request.body)
+    stage = body.get("stage", None)
+    data = body.get("data", None)
+    if(stage == "filter"){
+        
+    }
+    return JsonResponse({"code": code})
+
 @login_required
 def create_policy(request):
     data = json.loads(request.body)
@@ -964,7 +973,9 @@ def create_policy(request):
         description=data.get("description", "")
     )
     
-    create_custom_action(data.get("filters", {}), new_policytemplate)
+    custom_actions_JSON = create_custom_action(data.get("filters", {}), new_policytemplate.is_trigger)
+    new_policytemplate.add_custom_actions(custom_actions_JSON)
+
     create_procedure(data.get("procedure", {}), new_policytemplate)
     create_customization(data.get("transformers", {}), new_policytemplate)
     create_execution(data.get("executions", {}), new_policytemplate)
@@ -973,7 +984,7 @@ def create_policy(request):
     new_policy = new_policytemplate.create_policy(user.community.community)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
-def create_custom_action(filters, policytemplate):
+def create_custom_action(filters, is_trigger=False):
     '''
         create custom actions or action_types of a PolicyTemplate instance based on the filters.
         We create a new CustomAction instance if filters are specified; otherwise, we reference the action type 
@@ -997,11 +1008,12 @@ def create_custom_action(filters, policytemplate):
     '''
 
     from policyengine.models import CustomAction, ActionType,  FilterModule
+    custom_action_JSON = []
     for filter in filters:
         action_type = filter.get("action_type")
         action_type = ActionType.objects.filter(codename=action_type).first()
         action_specs = filter.get("filter")
-        '''
+        '''/
             check whether the value of each action_specs is an empty string
             create a new CustomAction instance for each selected action that has specified filter parameters
             and only search the action_type for any selected action without specified filter parameters
@@ -1014,24 +1026,22 @@ def create_custom_action(filters, policytemplate):
         empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
         filter_JSON = {}
         if empty_filter:
-            policytemplate.action_types.add(action_type)
+            filter_JSON["action_type"] = action_type
         else:
-            custom_action = CustomAction.objects.create(
-                action_type=action_type, is_trigger=policytemplate.is_trigger
-            )
+            filter_JSON["action_type"] = action_type
+            filter_JSON["is_trigger"] = is_trigger
+            filter_JSON["filter"] = {}
             for field, filter_info in action_specs.items():
                 if not filter_info:
-                    filter_JSON[field] = None
+                    filter_JSON["filter"][field] = None
                 else:
                     filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
                     # create a filter JSON object with the actual value specified for each variable
-                    filter_JSON[field] = filter_module.to_json(filter_info["variables"])
+                    filter_JSON["filter"][field] = filter_module.to_json(filter_info["variables"])
                     # to faciliate the generation of codes for custom actions, we store the platform of each filter
-                    filter_JSON[field]["platform"] = filter_info["platform"]
-            custom_action.dumps("filter", filter_JSON)
-            custom_action.save()
-            policytemplate.custom_actions.add(custom_action)                
-    policytemplate.save()
+                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]       
+        custom_action_JSON.append(filter_JSON)
+    return custom_action_JSON
     
 def create_procedure(procedure_data, policytemplate):
     '''

@@ -80,6 +80,7 @@ urlpatterns = [
     path('no-code/main', policyviews.main),
     path('no-code/create', policyviews.create_policy),
     path('no-code/view', policyviews.view_policy_json),
+    path('no-code/generate_code', policyviews.generate_code),
 ]
 
     

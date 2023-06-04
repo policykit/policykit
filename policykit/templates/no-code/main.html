@@ -293,6 +293,12 @@
         return div;
     }
 
+    function showWarningMessage(message){
+        return  `<div class="section-codeview-warning small normal">
+                    <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;${message}
+                </div>`
+    }
+
     const removeFilterParameters = (action_value) => {
         // remove the action from the selected actions
         
@@ -554,6 +560,9 @@
                     case "transformer":
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
+                    case "filter":
+
+                        break;
                         
                 }
              
@@ -579,10 +588,7 @@
 
 
                 $(`#design_${type}-codeview`).before(
-                    `<div class="section-codeview-warning small normal">
-                        <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;
-                        Once you change the code, you cannot further customize this ${type} using no-code view.
-                    </div>`
+                    showWarningMessage("Once you change the code, you cannot further customize this ${type} using no-code view.")
                 )
                 
                 editors[type].setValue(decodeHtml(codes));
@@ -602,7 +608,7 @@
                 }
                 $(`#design_${type}-formview`).removeClass("hidden");
                 $(`#design_${type}-codeview`).addClass("hidden");
-                $(`#design_${type}-codeview`).prev().remove();
+                $(`#design_${type}-codeview`).prev().remove(); // remove the warning message
                 target.setAttribute("view", "codeview");
                 target.innerHTML = '{} Source Code';
             }
@@ -786,14 +792,6 @@
     }
 
 
-
-
-
-
-
-
-
-
     /**
      * Code related to collect data from each section and submit to the backend
     */
@@ -887,6 +885,31 @@
         return execution_data;
     }
 
+    const generateSourceCode = async (stage) => {
+        let data = null;
+        switch(stag){
+            case "filter":
+                data = collectCustomActionData();
+                break;
+            case "execution_success":
+                data = collectExecutionData("success");
+                break;
+            case "execution_fail":
+                data = collectExecutionData("fail");
+                break;
+        } 
+        if(!data) return false;
+
+
+        let code = await submit('generate_code', {
+            stage: stage,
+            data: data,
+        });
+        console.log("code: " + code);
+        return code;
+    }
+
+    
     const goCreateProcedure = async () => {
         let custom_action_data = collectCustomActionData();
         if(custom_action_data === false) return;
