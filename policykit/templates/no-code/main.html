@@ -561,7 +561,10 @@
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
                     case "ation":
-                        generateSourceCode("action").then(result => codes = result);
+                        generateSourceCode("action").then(result => {
+                            codes = result;
+                            console.log(codes);
+                        });
                         break;
                         
                 }
@@ -898,6 +901,7 @@
                 data = collectExecutionData("fail");
                 break;
         } 
+        console.log("data: ", data);
         if(!data) return false;
 
 
