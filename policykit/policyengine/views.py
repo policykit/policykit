@@ -956,7 +956,7 @@ def generate_code(request):
     data = body.get("data", None)
     import policyengine.generate_codes as CodesGenerator
     code = ""
-    if(stage == "filter"):
+    if(stage == "action"):
         custom_action_json = create_custom_action(data)
         code = CodesGenerator.generate_filter_codes(custom_action_json)
     return JsonResponse({"status": True, "code": code})
