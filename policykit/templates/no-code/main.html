@@ -561,10 +561,7 @@
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
                     case "action":
-                        generateSourceCode("action").then(result => {
-                            codes = result;
-                            console.log(codes);
-                        });
+                        code = generateSourceCode("action");
                         break;
                         
                 }
@@ -903,7 +900,6 @@
         } 
         console.log("data: ", data);
         if(!data) return false;
-
 
         let result = await submit('generate_code', {
             stage: stage,
