@@ -1101,4 +1101,4 @@ def create_execution(execution_data, policytemplate):
     """
     from policyengine.models import PolicyTemplate
     for stage, executions in execution_data.items():
-        policytemplate.add_extra_actions(stage, executions)
+        policytemplate.add_executions(stage, executions)
