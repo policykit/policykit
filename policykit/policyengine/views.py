@@ -964,7 +964,7 @@ def create_policy(request):
     from policyengine.models import PolicyTemplate
     
     new_policytemplate = PolicyTemplate.objects.create(
-        kind=data.get("policykind"),
+        template_kind=data.get("policykind"),
         name=data.get("name", ""),
         description=data.get("description", "")
     )
