@@ -561,7 +561,7 @@
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
                     case "action":
-                        code = await generateSourceCode("action");
+                        codes = await generateSourceCode("action");
                         break;
                         
                 }
