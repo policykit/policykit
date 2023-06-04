@@ -1100,11 +1100,14 @@ def create_execution(execution_data, policytemplate):
         parameters:
             "execution_data":  
                 {
-                    "success"/"fail": {
-                        "action": "slackpostmessage",
-                        "channel": ...,
-                        "text": ...
-                    }
+                    "success": [
+                        {
+                            "action": "slackpostmessage",
+                            "channel": ...,
+                            "text": ...
+                        }
+                    ],
+                    "fail": [{...}]
                 }
     """
     from policyengine.models import PolicyTemplate

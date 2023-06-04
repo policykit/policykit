@@ -1331,7 +1331,7 @@ class Transformer(models.Model):
 
 class Procedure(models.Model):
 
-    JSON_FIELDS = ["initialize", "notify", "check", "success", "fail", "variables", "data"]
+    JSON_FIELDS = ["initialize", "notify", "check", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     class Meta:
@@ -1394,12 +1394,6 @@ class Procedure(models.Model):
 
     """
 
-    success =  models.TextField(blank=True, default='[]')
-    """ in a similar structure to the "notify" field  """
-
-    fail =  models.TextField(blank=True, default='[]')
-    """ in a similar structure to the "notify" field  """
-
     variables = models.TextField(blank=True, default='[]')
     """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
         
@@ -1450,9 +1444,7 @@ class Procedure(models.Model):
             "description": self.description,
             "initialize": self.loads("initialize"),
             "notify": self.loads("notify"),
-            "check": check,
-            "success": self.loads("success"),
-            "fail": self.loads("fail"),
+            "check": check
         }
 
 class PolicyTemplate(models.Model):
@@ -1487,25 +1479,15 @@ class PolicyTemplate(models.Model):
     procedure = models.ForeignKey(Procedure, on_delete=models.CASCADE, null=True)
     """the procedure that this policy template is based on"""
 
-    extra_executions = models.TextField(blank=True, default='{}')
+    executions = models.TextField(blank=True, default='{}')
     """
-        A JSON object representing extra actions that are expected to be executed in each stage of this policy
-        in addition to thoes defined in the referenced procedure.
+        A JSON object representing actions that are expected to be executed in each stage of this policy
+        in addition to the execution at the stage of notify, as defined in the referenced procedure.
         
-        While the action item is defined in a similar way to those in the Procedure, 
-        we expect to add a new field called "frequency" to actions in the "check" stage 
-        to specify how often this action should be executed.
 
         e.g.,
             {
                 "notify": a list of actions,
-                "check": [
-                    {
-                        "action": "slackpostmessage",
-                        "text": "we are still waiting for the dictator to make a decision",
-                        "frequency": 60,
-                    }
-                ],
                 "success": [],
                 "fail": []
             }
@@ -1604,28 +1586,19 @@ class PolicyTemplate(models.Model):
         self.transformers.add(transformer)
         self.save()
 
-    def add_extra_actions(self, stage, new_executions):
+    def add_executions(self, stage, new_executions):
         """
-            add extra actions to this policy template
-
-            Actually we now assume only one action is added at a time 
-            because the design of the frontend only allow users to specify one action for each stage
+            add executions to this policy template
 
             parameters:
-                new_executions: a dictionary from each stage to a list of actions
-                e.g. 
-                    {
-                        "notify": []
-                        "success": [] 
-                        "fail": []
-                        "check": []
-                    }
+                stage: the stage where the executions are expected to be added to
+                new_executions: a list of executions
         """
-        extra_executions = self.loads("extra_executions")
-        if stage not in extra_executions:
-            extra_executions[stage] = []
-        extra_executions[stage].extend(new_executions)
-        self.dumps("extra_executions", extra_executions)
+        executions = self.loads("executions")
+        if stage not in executions:
+            executions[stage] = []
+        executions[stage].extend(new_executions)
+        self.dumps("executions", executions)
         self.save()
 
     def to_json(self):
@@ -1639,16 +1612,14 @@ class PolicyTemplate(models.Model):
 
          # add actions defined in the Procedure isntance to the extra_executions
         procedure = self.procedure.to_json()
-        executions = self.loads("extra_executions") 
+        executions = self.loads("executions") 
         for key in ["notify", "success", "fail"]:
             if key not in executions:
                 executions[key] = []
             # prepend the procedure actions to the extra_executions
-            if key in procedure:
+            if key in procedure: # only in this case of the notify stage
                 # We assume extra executions are appended to the procedure actions
                 executions[key] = procedure[key] + executions[key]
-        if "check" not in executions: # the check in procedure is the check logic instead of executions
-            executions["check"] = []
 
         checks = [transformer.to_json() for transformer in self.transformers.all()]
         checks.append(procedure["check"])
@@ -1699,8 +1670,7 @@ class PolicyTemplate(models.Model):
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
         policy.initialize = CodesGenerator.generate_initialize_codes(self.loads("data"))
  
-        check_executions = CodesGenerator.generate_execution_codes(policy_json["executions"]["check"])
-        policy.check = check_executions + CodesGenerator.generate_check_codes(policy_json["check"])
+        policy.check = CodesGenerator.generate_check_codes(policy_json["check"])
 
         policy.notify = CodesGenerator.generate_execution_codes(policy_json["executions"]["notify"])
         policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"])
