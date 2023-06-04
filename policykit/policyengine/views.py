@@ -955,11 +955,13 @@ def generate_code(request):
     stage = body.get("stage", None)
     data = body.get("data", None)
     import policyengine.generate_codes as CodesGenerator
-    code = ""
+    codes = ""
     if(stage == "action"):
         custom_action_json = create_custom_action(data)
-        code = CodesGenerator.generate_filter_codes(custom_action_json)
-    return JsonResponse({"status": True, "code": code})
+        codes = CodesGenerator.generate_filter_codes(custom_action_json)
+    elif(stage == "execution_success"):
+        codes = CodesGenerator.generate_execution_codes(data)
+    return JsonResponse({"status": True, "code": codes})
 
 @login_required
 def create_policy(request):
