@@ -544,7 +544,7 @@
     });
     
     // listen to the events when users click the source-code/no-code buttons
-    document.getElementById("nocode-panel").addEventListener('click', (event) => {
+    document.getElementById("nocode-panel").addEventListener('click', async (event) => {
         let target = event.target.closest(".source-code-button");
 
         if(target){
@@ -561,7 +561,7 @@
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
                     case "action":
-                        code = generateSourceCode("action");
+                        code = await generateSourceCode("action");
                         break;
                         
                 }
