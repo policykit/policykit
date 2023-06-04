@@ -563,7 +563,12 @@
                     case "action":
                         codes = await generateSourceCode("action");
                         break;
-                        
+                    case "execution_success":
+                        codes = await generateSourceCode("execution_success");
+                        break;
+                    case "execution_fail":
+                        codes = await generateSourceCode("execution_fail");
+                        break;
                 }
                 console.log(codes);
                 if(!codes) return;
@@ -588,7 +593,7 @@
 
 
                 $(`#design_${type}-codeview`).before(
-                    showWarningMessage("Once you change the code, you cannot further customize this ${type} using no-code view.")
+                    showWarningMessage(`Once you change the code, you cannot further customize this ${type} using no-code view.`)
                 )
                 
                 editors[type].setValue(decodeHtml(codes));
