@@ -561,7 +561,7 @@
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
                     case "filter":
-
+                        codes = generateSourceCode("filter");
                         break;
                         
                 }
@@ -887,7 +887,7 @@
 
     const generateSourceCode = async (stage) => {
         let data = null;
-        switch(stag){
+        switch(stage){
             case "filter":
                 data = collectCustomActionData();
                 break;
@@ -901,12 +901,12 @@
         if(!data) return false;
 
 
-        let code = await submit('generate_code', {
+        let result = await submit('generate_code', {
             stage: stage,
             data: data,
         });
-        console.log("code: " + code);
-        return code;
+        console.log("result: ", result);
+        if(result.status) return result.code; else return false;
     }
 
     

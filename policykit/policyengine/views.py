@@ -954,9 +954,12 @@ def generate_code(request):
     body = json.loads(request.body)
     stage = body.get("stage", None)
     data = body.get("data", None)
+    import policyengine.generate_codes as CodesGenerator
+    code = ""
     if(stage == "filter"):
-        pass
-    
+        custom_action_json = create_custom_action(data.get("filters", {}))
+        code = CodesGenerator.generate_filter_codes(custom_action_json)
+    return JsonResponse({"status": True, "code": code})
 
 @login_required
 def create_policy(request):
@@ -980,7 +983,7 @@ def create_policy(request):
     new_policy = new_policytemplate.create_policy(user.community.community)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
-def create_custom_action(filters, is_trigger=False):
+def create_custom_action(filters):
     '''
         convert the frontend data to the custom actions JSON object;
         speciallly, replace all filter_pk with more details about each filter module
