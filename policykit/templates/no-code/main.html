@@ -561,7 +561,7 @@
                         codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                         break;
                     case "ation":
-                        codes = generateSourceCode("filter");
+                        generateSourceCode("action").then(result => codes = result);
                         break;
                         
                 }
@@ -888,7 +888,7 @@
     const generateSourceCode = async (stage) => {
         let data = null;
         switch(stage){
-            case "filter":
+            case "action":
                 data = collectCustomActionData();
                 break;
             case "execution_success":
