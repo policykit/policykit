@@ -954,26 +954,22 @@ def generate_code(request):
     body = json.loads(request.body)
     stage = body.get("stage", None)
     data = body.get("data", None)
-    if(stage == "filter"){
-        
-    }
-    return JsonResponse({"code": code})
+    if(stage == "filter"):
+        pass
+    
 
 @login_required
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
     
-    is_trigger = data.get("policykind") in ["if-then rules", "triggering policies"]
-    policy_kind = Utils.determine_policy_kind(is_trigger, data.get("app_name"))
     new_policytemplate = PolicyTemplate.objects.create(
-        is_trigger=is_trigger, 
-        kind=policy_kind,
+        kind=data.get("policykind"),
         name=data.get("name", ""),
         description=data.get("description", "")
     )
     
-    custom_actions_JSON = create_custom_action(data.get("filters", {}), new_policytemplate.is_trigger)
+    custom_actions_JSON = create_custom_action(data.get("filters", {}))
     new_policytemplate.add_custom_actions(custom_actions_JSON)
 
     create_procedure(data.get("procedure", {}), new_policytemplate)
@@ -986,8 +982,8 @@ def create_policy(request):
 
 def create_custom_action(filters, is_trigger=False):
     '''
-        create custom actions or action_types of a PolicyTemplate instance based on the filters.
-        We create a new CustomAction instance if filters are specified; otherwise, we reference the action type 
+        convert the frontend data to the custom actions JSON object;
+        speciallly, replace all filter_pk with more details about each filter module
 
         parameters:
             filters: A Json object in the shape of 
@@ -1007,16 +1003,14 @@ def create_custom_action(filters, is_trigger=False):
                 ]
     '''
 
-    from policyengine.models import CustomAction, ActionType,  FilterModule
+    from policyengine.models import ActionType,  FilterModule
     custom_action_JSON = []
     for filter in filters:
         action_type = filter.get("action_type")
         action_type = ActionType.objects.filter(codename=action_type).first()
         action_specs = filter.get("filter")
-        '''/
+        '''
             check whether the value of each action_specs is an empty string
-            create a new CustomAction instance for each selected action that has specified filter parameters
-            and only search the action_type for any selected action without specified filter parameters
             an example of a action_specs:
                 {
                     "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
@@ -1025,21 +1019,18 @@ def create_custom_action(filters, is_trigger=False):
         '''
         empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
         filter_JSON = {}
-        if empty_filter:
+        filter_JSON["action_type"] = action_type
+        
+        if not empty_filter:
             filter_JSON["action_type"] = action_type
-        else:
-            filter_JSON["action_type"] = action_type
-            filter_JSON["is_trigger"] = is_trigger
             filter_JSON["filter"] = {}
             for field, filter_info in action_specs.items():
-                if not filter_info:
-                    filter_JSON["filter"][field] = None
-                else:
+                if filter_info:
                     filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
                     # create a filter JSON object with the actual value specified for each variable
                     filter_JSON["filter"][field] = filter_module.to_json(filter_info["variables"])
                     # to faciliate the generation of codes for custom actions, we store the platform of each filter
-                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]       
+                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]      
         custom_action_JSON.append(filter_JSON)
     return custom_action_JSON
     

@@ -279,6 +279,16 @@ def _add_permissions_to_role(role, permission_sets, content_types):
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
 
+def determine_action_kind(codename):
+    """ get the corresponding action kind: PLATFORM, CONSTITUTION"""
+    from policyengine.models import Policy
+    action_class = find_action_cls(codename)
+    app_label = action_class._meta.app_label
+    if app_label == "constitution":
+        return Policy.CONSTITUTION
+    else:
+        return Policy.PLATFORM
+    
 def determine_policy_kind(is_trigger, app_name):
     from policyengine.models import Policy
     if is_trigger:

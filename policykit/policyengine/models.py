@@ -1093,9 +1093,6 @@ class CustomAction(models.Model):
     action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
     """actions that this custom action is built upon"""
 
-    is_trigger = models.BooleanField(default=False)
-    """ whether this action should be treated as triggers or governable actions """
-
     filter = models.TextField(blank=True, default="[]")
     """
         a JSON object. For each custom action, we only allow filters that apply to the filter parameters 
@@ -1140,20 +1137,7 @@ class CustomAction(models.Model):
         When it is null it means that users do not think it is frequently used;
         We require it to be unique so that their permission codenames won't be the same
     """
-        
-    @property
-    def action_kind(self):
-        """ get the corresponding policy kind: PLATFORM, CONSTITUTION or TRIGGER """
-        if self.is_trigger:
-            return Policy.TRIGGER
-        else:
-            action_class = Utils.find_action_cls(self.action_type.codename)
-            app_label = action_class._meta.app_label
-            if app_label == "constitution":
-                return Policy.CONSTITUTION
-            else:
-                return Policy.PLATFORM
-                
+                        
     def loads(self, attr):
         """ load a field that is stored as a JSON dump """
         return json.loads(getattr(self, attr))
@@ -1452,11 +1436,21 @@ class PolicyTemplate(models.Model):
     JSON_FIELDS = ["extra_executions", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
+    IF_THEN_RULES = "if_then_rules"
+    COMMUNITY_POLICIES = "community_policies"
+    TRIGGERING_POLICIES = "triggering_policies"
+    
+    POLICY_TEMPLATE_KIND = [
+        (IF_THEN_RULES, "if_then_rules"),
+        (COMMUNITY_POLICIES, "community_policies"),
+        (TRIGGERING_POLICIES, "triggering_policies")
+    ]
+
     name = models.CharField(max_length=100)
 
     description = models.TextField(null=True, blank=True)
 
-    kind = models.CharField(choices=Policy.POLICY_KIND, max_length=30)
+    template_kind = models.CharField(choices=POLICY_TEMPLATE_KIND, max_length=30)
     """Kind of policy template (platform, constitution, or trigger)."""
 
     custom_actions = models.ManyToManyField(CustomAction)
@@ -1464,14 +1458,6 @@ class PolicyTemplate(models.Model):
     
     action_types = models.ManyToManyField(ActionType)
     """The governable actions (with no additional filters specified) that this policy template applies to."""
-
-    is_trigger = models.BooleanField(default=False)
-    """
-        Whether these actions are treated as triggers;
-        this attribute is used together with action_types 
-        when users do not create custom actions (which themselves store the trigger information).
-        But a policy template can have both custom actions and action types.
-    """
 
     transformers = models.ManyToManyField(Transformer)
     """  Extra check logic that are preapended to the check logic of the procedure. """
@@ -1512,6 +1498,18 @@ class PolicyTemplate(models.Model):
 
     def dumps(self, attr, value):
         setattr(self, attr, json.dumps(value))
+
+    @property
+    def policy_kind(self):
+        if self.template_kind == PolicyTemplate.IF_THEN_RULES or self.template_kind == PolicyTemplate.TRIGGERING_POLICIES:
+            return Policy.TRIGGER
+        else:
+            codename = None
+            if self.custom_actions.first():
+                codename = self.custom_actions.first().action_type.codename
+            elif self.action_types.first():
+                codename = self.action_types.first().codename
+            return Utils.determine_action_kind(codename)            
 
     def add_variables(self, new_variables, values={}):
         """
@@ -1564,6 +1562,21 @@ class PolicyTemplate(models.Model):
             else:
                 data.append(datum)
         self.dumps("data", data)
+        self.save()
+
+    def add_custom_actions(self, actions_json):
+        """
+            add custom actions to this policy template based on a fully specified JSON object
+        """
+        for action_json in actions_json:
+            action_type = ActionType.objects.filter(codename=action_json["action_type"]).first()
+            if not action_json.get("filter", {}):
+                self.action_types.add(action_type)
+            else:
+                custom_action = CustomAction.objects.create(action_type=action_type)
+                custom_action.dumps("filter", action_json["filter"])
+                custom_action.save()
+                self.custom_actions.add(custom_action)
         self.save()
 
     def add_transformer(self, transformer):
@@ -1628,8 +1641,7 @@ class PolicyTemplate(models.Model):
         return {
             "name": self.name,
             "description": self.description,
-            "kind": self.kind,
-            "is_trigger": self.is_trigger,
+            "kind": self.template_kind,
             "filter": filters,
             "check": checks,
             "executions": executions,
@@ -1653,7 +1665,6 @@ class PolicyTemplate(models.Model):
                 new_variable.value = variables_data[variable["name"]]
             new_variable.save()
 
-
     def create_policy(self, community):
         """
             Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
@@ -1661,7 +1672,8 @@ class PolicyTemplate(models.Model):
         import policyengine.generate_codes as CodesGenerator
 
         policy_json = self.to_json()
-        policy = Policy.objects.create(name=self.name, description=self.description, kind=self.kind, community=community)
+
+        policy = Policy.objects.create(name=self.name, description=self.description, kind=self.policy_kind, community=community)
         
         action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 
         for action_type in action_types:
