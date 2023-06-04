@@ -1377,6 +1377,8 @@ class Procedure(models.Model):
             ],
 
     """
+    success = models.TextField(blank=True, default='[]')
+    fail = models.TextField(blank=True, default='[]')
 
     variables = models.TextField(blank=True, default='[]')
     """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
@@ -1428,6 +1430,8 @@ class Procedure(models.Model):
             "description": self.description,
             "initialize": self.loads("initialize"),
             "notify": self.loads("notify"),
+            "success": self.loads("success"),
+            "fail": self.loads("fail"),
             "check": check
         }
 
@@ -1630,7 +1634,7 @@ class PolicyTemplate(models.Model):
             if key not in executions:
                 executions[key] = []
             # prepend the procedure actions to the extra_executions
-            if key in procedure: # only in this case of the notify stage
+            if key in procedure:
                 # We assume extra executions are appended to the procedure actions
                 executions[key] = procedure[key] + executions[key]
 
