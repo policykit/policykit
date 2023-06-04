@@ -911,6 +911,10 @@
 
     
     const goCreateProcedure = async () => {
+        hideSliderPanel();
+        let meta_data = collectMetadata();
+        if(meta_data === false) return;
+
         let custom_action_data = collectCustomActionData();
         if(custom_action_data === false) return;
         
@@ -929,9 +933,6 @@
 
         // let notify_data = collectExecutionData("notify");
         // if(notify_data === false) return;
-
-        let meta_data = collectMetadata();
-        if(meta_data === false) return;
 
         app_name = custom_action_data["app_name"];
         delete custom_action_data["app_name"];

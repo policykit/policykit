@@ -1569,6 +1569,8 @@ class PolicyTemplate(models.Model):
         self.save()
 
     def add_custom_actions(self, actions_json):
+        logger.debug("add custom actions to this policy template based on a fully specified JSON object")
+        logger.debug(actions_json)
         """
             add custom actions to this policy template based on a fully specified JSON object
         """
