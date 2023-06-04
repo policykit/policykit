@@ -973,7 +973,7 @@ def create_policy(request):
     new_policytemplate.add_custom_actions(custom_actions_JSON)
 
     create_procedure(data.get("procedure", {}), new_policytemplate)
-    create_customization(data.get("transformers", {}), new_policytemplate)
+    create_transformers(data.get("transformers", {}), new_policytemplate)
     create_execution(data.get("executions", {}), new_policytemplate)
 
     user = get_user(request)
@@ -1052,13 +1052,12 @@ def create_procedure(procedure_data, policytemplate):
     procedure_index = procedure_data.get("procedure_index", None)
     procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
     if procedure:
-        logger.debug("creating variables for the new policy") 
         policytemplate.procedure = procedure
         policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
         policytemplate.add_descriptive_data(procedure.loads("data"))
         policytemplate.save()
 
-def create_customization(transformer_data, policytemplate):
+def create_transformers(transformer_data, policytemplate):
     """
         Add extra check modules and extra actions to the policy template
         parameters:
