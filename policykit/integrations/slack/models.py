@@ -155,9 +155,12 @@ class SlackCommunity(CommunityPlatform):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
     
-    def get_conversations(self, types=["channel"]):
+    def get_conversations(self, types=["channel"], types_arg="public_channel"):
         """
             acceptable types are "im", "group", "channel"
+
+            types_arg is the exact `types` arg that's passed to list.conversations
+                Allows for asking for private_channel only
         """
         def get_channel_type(channel):
             if channel.get("is_im", False):
@@ -169,9 +172,7 @@ class SlackCommunity(CommunityPlatform):
             else:
                 return None
         
-        # logger.debug("start getting conversations")
-        response = self.__make_generic_api_call("conversations.list", {})
-        #logger.debug("get_conversations response: " + str(response))
+        response = self.__make_generic_api_call("conversations.list", {"types": types_arg})
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
     
     def get_real_users(self):
@@ -180,7 +181,7 @@ class SlackCommunity(CommunityPlatform):
         """
         response = self.__make_generic_api_call("users.list", {})
         members = response['members']
-        ret = [{'value': x['id'], 'name': x['real_name']} for x in members if x['is_bot'] is False and x['name'] != 'slackbot']
+        ret = [{'value': x['id'], 'name': x.get('real_name', '')} for x in members if x['is_bot'] is False and x['name'] != 'slackbot']
         return ret
 
 
@@ -243,7 +244,7 @@ class SlackPostMessage(GovernableAction):
         message = kwargs.get("message", None)
         channel = kwargs.get("channel", None)
         thread =  kwargs.get("thread", None)
-        return f"slack.post_message(text={message} channel={channel}, thread_ts={thread}"
+        return f"slack.post_message(text={message}, channel={channel}, thread_ts={thread})"
 
 
 class SlackRenameConversation(GovernableAction):

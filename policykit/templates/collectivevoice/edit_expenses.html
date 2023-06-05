@@ -85,7 +85,7 @@
     const filter_parameters_dict = JSON.parse('{{filter_parameters | safe}}');
     const filters_per_app = JSON.parse('{{filter_modules | safe}}');
     console.log(filters_per_app)
-    const entities = JSON.parse('{{entities|safe}}');
+    const entities = JSON.parse('{{entities|safe|addslashes}}');
     const showFilterParameters = () => {
         var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
         selected_options = selected_options.filter(option => option.value != "none");

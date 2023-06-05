@@ -11,7 +11,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Username of payee: {action.expense_user_slug} | Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. {action.url} to see the expense on OpenCollective.",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -19,13 +19,13 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Based on our CollectiveVoice policy named {policy.name} (Peer Approval), this expense requires one eligible voter to give a thumbs up for approval.",
+                "message": "Based on our CollectiveVoice policy named {policy.name} (Peer Approval), this expense requires one eligible voter to give a thumbs up for approval.",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             },
             {
                 "action": "slackpostmessage",
-                "text": "variables.vote_message",
+                "message": "variables.vote_message",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -38,7 +38,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote passed, Expense was approved!",
+                "message": "Vote passed, Expense was approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -51,7 +51,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote failed, Expense was not approved!",
+                "message": "Vote failed, Expense was not approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -121,7 +121,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Username of payee: {action.expense_user_slug} | Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. {action.url} to see the expense on OpenCollective.",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -129,13 +129,13 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Based on our CollectiveVoice policy named {policy.name} (Majority Vote), this expense requires a majority of eligible voters to give a thumbs up for approval.",
+                "message": "Based on our CollectiveVoice policy named {policy.name} (Majority Vote), this expense requires a majority of eligible voters to give a thumbs up for approval.",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             },
             {
                 "action": "slackpostmessage",
-                "text": "variables.vote_message",
+                "message": "variables.vote_message",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -148,7 +148,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote passed, Expense was approved!",
+                "message": "Vote passed, Expense was approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -161,7 +161,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote failed, Expense was not approved!",
+                "message": "Vote failed, Expense was not approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -231,7 +231,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Username of payee: {action.expense_user_slug} | Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. {action.url} to see the expense on OpenCollective.",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -239,13 +239,13 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Based on our CollectiveVoice policy named {policy.name} (Consensus), this expense all eligible voters to give a thumbs up for approval.",
+                "message": "Based on our CollectiveVoice policy named {policy.name} (Consensus), this expense all eligible voters to give a thumbs up for approval.",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             },
             {
                 "action": "slackpostmessage",
-                "text": "variables.vote_message",
+                "message": "variables.vote_message",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -258,7 +258,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote passed, Expense was approved!",
+                "message": "Vote passed, Expense was approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -271,7 +271,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote failed, Expense was not approved!",
+                "message": "Vote failed, Expense was not approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -341,7 +341,7 @@
         "notify": [
             {
                 "action": "initiate_vote",
-                "vote_message": "An expense was submitted to Open Collective and requires a vote. Expense description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Payee (OC username): {action.expense_user_slug} |             Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. See the expense on OpenCollective: {action.url}",
+                "vote_message": "An expense was submitted to Open Collective and requires a vote. Description: {action.description} | Amount: {action.formatted_amount} {action.currency} | Tags: {action.tags} | Username of payee: {action.expense_user_slug} | Eligible voters please react with :thumbsup: or :thumbsdown: on this post to vote. {action.url} to see the expense on OpenCollective.",
                 "post_type": "channel",
                 "users": "variables.users",
                 "channel": "variables.vote_channel",
@@ -349,13 +349,13 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "This vote will be based on {policy.name} (Custom Voting)",
+                "message": "This vote will be based on {policy.name} (Custom Voting)",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             },
             {
                 "action": "slackpostmessage",
-                "text": "variables.vote_message",
+                "message": "variables.vote_message",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -368,7 +368,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote passed, Expense was approved!",
+                "message": "Vote passed, Expense was approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
@@ -381,7 +381,7 @@
             },
             {
                 "action": "slackpostmessage",
-                "text": "Vote failed, Expense was not approved!",
+                "message": "Vote failed, Expense was not approved!",
                 "channel": "variables.vote_channel",
                 "thread": "proposal.vote_post_id"
             }
