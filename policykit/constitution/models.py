@@ -171,16 +171,8 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
 
 class PolicykitRecoverCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-    FILTER_PARAMETERS = [
-        {
-            "name": "doc",
-            "label": "Document",
-            "entity": "CommunityDoc",
-            "prompt": "the community document that is recovered",
-            "is_list": False,
-            "type": "string"
-        }
-    ]
+
+    # this action seems to be quite useless as a governable action
     def __str__(self):
         if self.doc:
             return "Recover Document: " + self.doc.name

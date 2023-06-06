@@ -356,6 +356,8 @@
             const filter_kind = filter_schema.entity;
             const field_name = filter_schema.name;
             if(filter_kind){ // only show fields of which the filter we support
+                const filters_this_kind = filters_this_app[filter_kind]
+                if(!filters_this_kind || filters_this_kind.length == 0) return;
                 var field_div = document.createElement('div');
                 field_div.classList.add('custom-action-field');
 
@@ -368,7 +370,6 @@
                 
                 // add filter modules as options for this select
 
-                const filters_this_kind = filters_this_app[filter_kind]
                 // console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
                 filters_this_kind.forEach(filter => {
                     field_html   += `<option value=${filter.pk}>${filter.description}</option>`
