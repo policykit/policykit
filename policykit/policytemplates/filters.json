@@ -28,7 +28,7 @@
             {
                 "name": "role",
                 "label": "User role",
-                "entity": "Role",
+                "entity": "CommunityRole",
                 "default_value": "",
                 "is_required": true,
                 "prompt": "",
@@ -166,12 +166,50 @@
         "name": "ChannelNames",
         "description": "Only channels with the specified IDs",
         "platform": "All",
-        "codes": "return channel in channel_IDs",
+        "codes": "return object in channel_IDs",
         "variables":[
             {
                 "name": "channel_IDs",
                 "label": "Channel IDs",
                 "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
+            }
+        ]
+    },
+    {
+        "kind": "CommunityRole",
+        "name": "Roles",
+        "description": "Only specified roles",
+        "platform": "All",
+        "codes": "return object.role_name in role_names",
+        "variables":[
+            {
+                "name": "role_names",
+                "label": "Roles",
+                "entity": "CommunityRole",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
+            }
+        ]
+    },
+    {
+        "kind": "CommunityDoc",
+        "name": "CommunityDocs",
+        "description": "Only specified documents",
+        "platform": "All",
+        "codes": "return object.name in community_docs",
+        "variables": [
+            {
+                "name": "community_docs",
+                "label": "Community Documents",
+                "entity": "CommunityDoc",
                 "default_value": "",
                 "is_required": true,
                 "prompt": "",

@@ -159,11 +159,13 @@ def load_entities(platform):
     entities["CommunityUser"] = [{"name": user.readable_name, "value": user.username} for user in platform.get_users()]
 
     # extract all roles on this platform
-    entities["Role"] = [{"name": role.role_name, "value": role.role_name } for role in platform.get_roles()]
+    entities["CommunityRole"] = [{"name": role.role_name, "value": role.role_name } for role in platform.get_roles()]
 
     # extract all permissions on this platform
     entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
 
+    # extract all community documents on this platform
+    entities["CommunityDoc"] = [{"name": document.name, "value": document.name } for document in platform.community.get_documents()]
     # extract all Slack channels in this platform
     if platform.platform.upper() == "SLACK":
         entities["SlackChannel"] = [
