@@ -760,8 +760,7 @@
     border: 1px solid #F3F5F7;
     border-radius: 4px;
     background-color: rgba(241, 244, 246, 1);
-    white-space: normal;
-  }
+    white-space: pre-line; /*To avoid too long options when multiple options are selected*/
 
   .selectpicker + button {
     border: 1px solid #ced4da;
@@ -769,6 +768,7 @@
     background-color: #ffffff;
   }
 
+   /*to avoid too long a single option*/
   div.dropdown-menu.open { width: 100%; } 
   ul.dropdown-menu.inner>li>a { white-space: initial; }
 
