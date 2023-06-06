@@ -114,6 +114,25 @@
         ]
     },
     {
+        "kind": "Text",
+        "name": "Contains",
+        "description": "Only texts that contain the specified word",
+        "platform": "All",
+        "codes": "return word in object",
+        "variables":[
+            {
+                "name": "word",
+                "label": "Contained word",
+                "entity": null,
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": false
+            }
+        ]
+    },
+    {
         "kind": "Timestamp",
         "name": "BetweenStartAndEnd",
         "description": "Only timestamps that are between the specified start and end",

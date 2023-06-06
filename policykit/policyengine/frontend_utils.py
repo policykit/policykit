@@ -17,6 +17,8 @@ def remove_platform_prefix(action_name, appname):
         Remove the platform prefix from an action name
         For instance, Slack Post Message --> Post Message
     """
+    if appname == "constitution":
+        appname = "policykit" # as constitution actions start with the word "policykit" instead of "constitution"
     action_name = action_name.replace(appname, "").replace(appname.capitalize(), "")
     return action_name.strip()
 
