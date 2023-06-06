@@ -217,5 +217,25 @@
                 "is_list": true
             }
         ]
+    },
+    {
+        "kind": "Permission",
+        "name": "Permissions",
+        "description": "Includes any of the specified permissions",
+        "platform": "All",
+        "codes": "return any(permission.codename in  permission_codenames for permission in object.permissions.all())",
+        "variables": [
+            {
+                "name": "permission_codenames",
+                "label": "Included Permissions",
+                "entity": "Permission",
+                "default_value": "",
+                "is_required": true,
+                "prompt": "",
+                "type": "string",
+                "is_list": true
+            }
+        ]
+
     }
 ]
