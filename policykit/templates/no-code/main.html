@@ -288,13 +288,14 @@
         label_element.innerHTML = module.name;
         header.appendChild(label_element);
 
-        let button_element = document.createElement('button');
-        if(module.required) button_element.disabled = true; // if it is a required module
-        button_element.id = `remove.${section_type}.${module.value}`
-        button_element.classList.add("small")
-        button_element.classList.add("custom-group-remove-button")
-        button_element.innerHTML = '<i class="fa-regular fa-trash-can fa-sm" style="color: #4451b2;"></i>&nbsp;&nbsp;Remove'
-        header.appendChild(button_element);                
+        if(!module.required){
+            let button_element = document.createElement('button');
+            button_element.id = `remove.${section_type}.${module.value}`
+            button_element.classList.add("small")
+            button_element.classList.add("custom-group-remove-button")
+            button_element.innerHTML = '<i class="fa-regular fa-trash-can fa-sm" style="color: #4451b2;"></i>&nbsp;&nbsp;Remove'
+            header.appendChild(button_element);         
+        }       
         return div;
     }
 
@@ -984,5 +985,6 @@
 
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
     showSectionsForPolicyKinds();
+
 </script>
 {% endblock %}
