@@ -201,7 +201,9 @@ class SlackCommunity(CommunityPlatform):
         else:
             return CommunityUser.objects.filter(community=self)
 
-
+    def rename_conversation(self, channel, name):
+        self.metagov_plugin.method("conversations.rename", channel=channel, name=name)
+    
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
@@ -294,7 +296,7 @@ class SlackPostMessage(GovernableAction):
     def execution_codes(**kwargs):
         text = kwargs.get("text", "")
         channel = kwargs.get("channel", None)
-        if not channel:
+        if not channel: # when the channel is an empty string
             channel = None
         thread =  kwargs.get("thread", None)
         return f"slack.post_message(text={text}, channel={channel}, thread_ts={thread})"
@@ -379,6 +381,16 @@ class SlackRenameConversation(GovernableAction):
             "token": self.initiator.access_token or self.community.__get_admin_user_token(),
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
+    
+    def execution_codes(**kwargs):
+        name = kwargs.get("name", None)
+        channel = kwargs.get("channel", None)
+        if name and channel:
+            return f"slack.rename_conversation(channel={channel}, name={name})"
+        else:
+            logger.error(f"When generating code for SlackRenameConversation: missing name or channel: {name}, {channel}")
+
+
 
 
 class SlackJoinConversation(GovernableAction):
