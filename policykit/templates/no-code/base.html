@@ -998,9 +998,10 @@
       
       if(datalist || variable.default !== ""){
         innerHTML += ` <optgroup label="Variables">`
-        if(typeof variable.default === "string")
+        
+        if(typeof variable.default === "string" && variable.default !== "")
           innerHTML += `<option value='${variable.default}' selected>${decapitalize(variable.default)}</option>`;
-        else if(variable.default instanceof Object)
+        else if(variable.default instanceof Object && variable.default.value !== "")
           innerHTML += `<option value='{${variable.default.value}}' selected>${decapitalize(variable.default.name)}</option>`;
         
         if(datalist){
@@ -1010,7 +1011,7 @@
             }
           );
         }
-        
+
         innerHTML += `</optgroup>`;
       }
 
