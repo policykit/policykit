@@ -41,7 +41,7 @@
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "How many number of yes votes are required to reach success",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             },
@@ -51,7 +51,7 @@
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "How many number of no votes are allowed before we call a failure",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             },
@@ -61,7 +61,7 @@
                 "entity": null,
                 "default": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": false,
-                "prompt": "Message to be posed in the channel when the vote starts",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -71,7 +71,7 @@
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
-                "prompt": "Channel where post the vote message.",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -204,10 +204,10 @@
             {
                 "name": "board_role",
                 "label": "Role of board members",
-                "entity": "Role",
+                "entity": "CommunityRole",
                 "default": "",
                 "is_required": true,
-                "prompt": "Which role do board members have",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
