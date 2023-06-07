@@ -163,7 +163,10 @@
     const procedures = JSON.parse(`{{procedures | safe}}`);
     const transformers = JSON.parse(`{{transformers | safe}}`);
     const executions = JSON.parse('{{executions | safe}}');
+    const SPECIAL_EXECUTION_APP = " "; // for revert the action and execute the action these two types of executions
     const entities = JSON.parse('{{entities|safe}}');
+
+    var select_policy_kind = "community_policies"; // other choices: triggering_policies
 
     var focus_section_id = null;
     var selected_actions = [];
@@ -175,6 +178,7 @@
     var editors = {}; // a list of codemirror editors
     var editor_status = {};
 
+    
     function update_data_from_actions(){
         global_datalist = global_datalist.filter(item => item.from !== "action");
         if(selected_actions.length > 0) {
@@ -285,6 +289,7 @@
         header.appendChild(label_element);
 
         let button_element = document.createElement('button');
+        if(module.required) button_element.disabled = true; // if it is a required module
         button_element.id = `remove.${section_type}.${module.value}`
         button_element.classList.add("small")
         button_element.classList.add("custom-group-remove-button")
@@ -328,6 +333,9 @@
     }
 
     const removeExecutionVariables = (stage, execution_codename) => {
+        let removed_execution = selected_executions[stage].find(item => item.value == execution_codename);
+        if(removed_execution.required) return; // if it is a required execution, do not remove it
+        
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
         document.getElementById(`custom.execution_${stage}.${execution_codename}`).remove();
         let checkbox = document.getElementById(`execution_${stage}.checkbox.${execution_codename}`);
@@ -358,6 +366,7 @@
             if(filter_kind){ // only show fields of which the filter we support
                 const filters_this_kind = filters_this_app[filter_kind]
                 if(!filters_this_kind || filters_this_kind.length == 0) return;
+
                 var field_div = document.createElement('div');
                 field_div.classList.add('custom-action-field');
 
@@ -456,13 +465,15 @@
         })
     }
 
-    const showExecutionVariables = (stage, execution_value, app) => {
+    const showExecutionVariables = (stage, execution_value, app, required=false) => {
         if(selected_executions[stage].some(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_executions[stage].length == 0) activate_section(`execution_${stage}`);
 
         let execution ={...executions[app].find(item => item.value === execution_value)};
         execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
+        execution["required"] = required;
+
         selected_executions[stage].push(execution);
 
         let execution_div = add_section_header(`execution_${stage}`, execution);
@@ -636,6 +647,8 @@
         "design_execution_fail": null
    }
 
+    /** listen to the events when users click the next button of each section and then hide the slider panel
+   or when users click the add buttons or add more buttons to show the slider panel */
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
@@ -679,7 +692,7 @@
         }
     });
 
-    // listen to the event when users click the + button to unfold a collapsed section
+    // listen to the event when users click the + button to unfold a collapsed section (transformer section)
     document.getElementById("nocode-panel").addEventListener("click", (event) => {
         let target = event.target.closest(".collapse-section-button");
         if(target){
@@ -795,6 +808,15 @@
         }
         $("#slider-panel").addClass("hidden");
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+    }
+
+
+    /** Code related to policy kinds */
+
+    function showSectionsForPolicyKinds(){
+        if(select_policy_kind === "community_policies"){
+            showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
+        }
     }
 
 
