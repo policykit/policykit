@@ -475,8 +475,7 @@ class SlackJoinConversation(GovernableAction):
         channel = kwargs.get("channel", None)
         users = kwargs.get("users", None)
         if channel and users:
-            users = ",".join(users)
-            return f"slack.join_conversation(channel={channel}, users={users})"
+            return f"slack.join_conversation(channel={channel}, users=\",\".join({users}))"
         else:
             logger.error(f"When generating code for SlackJoinConversation: missing channel or users: {channel}, {users}")
 
