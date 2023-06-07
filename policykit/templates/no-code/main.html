@@ -789,6 +789,8 @@
                 let stage = slidepanel_type.split("_")[1];
                 selected_executions[stage].forEach(execution => {
                     document.getElementById(`${slidepanel_type}.checkbox.${execution.value}`).checked = true;
+                    if(execution.required) 
+                        document.getElementById(`${slidepanel_type}.checkbox.${execution.value}`).disabled = true;
                 });
             }
         }
