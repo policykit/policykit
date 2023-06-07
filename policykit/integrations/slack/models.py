@@ -211,6 +211,7 @@ class SlackCommunity(CommunityPlatform):
 
     def join_conversation(self, channel, users):
         admin_user_token = SlackUtils.get_admin_user_token(community=self)
+        users = ",".join(users)
         self.metagov_plugin.method("conversations.join", channel=channel, users=users, token=admin_user_token)
 
 class SlackPostMessage(GovernableAction):
@@ -475,7 +476,7 @@ class SlackJoinConversation(GovernableAction):
         channel = kwargs.get("channel", None)
         users = kwargs.get("users", None)
         if channel and users:
-            return f"slack.join_conversation(channel={channel}, users=\",\".join({users}))"
+            return f"slack.join_conversation(channel={channel}, users={users})"
         else:
             logger.error(f"When generating code for SlackJoinConversation: missing channel or users: {channel}, {users}")
 
