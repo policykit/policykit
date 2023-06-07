@@ -335,7 +335,7 @@
     const removeExecutionVariables = (stage, execution_codename) => {
         let removed_execution = selected_executions[stage].find(item => item.value == execution_codename);
         if(removed_execution.required) return; // if it is a required execution, do not remove it
-        
+
         selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
         document.getElementById(`custom.execution_${stage}.${execution_codename}`).remove();
         let checkbox = document.getElementById(`execution_${stage}.checkbox.${execution_codename}`);
@@ -983,6 +983,6 @@
     }
 
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
-
+    showSectionsForPolicyKinds();
 </script>
 {% endblock %}
