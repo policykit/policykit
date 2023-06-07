@@ -1522,7 +1522,7 @@ class PolicyTemplate(models.Model):
                             {
                                 "name": "duration",
                                 "label": "When the vote is closed (in minutes)",
-                                "default_value": 0,
+                                "default": 0,
                                 "is_required": false,
                                 "prompt": "An empty value represents that the vote is closed as long as the success or failure is reached",
                                 "type": "number"
@@ -1546,7 +1546,10 @@ class PolicyTemplate(models.Model):
             else:
                 # set the value of this variable; 
                 # the value should match the expected type of this variable because we enforce it in the frontend
-                var["value"] = values[var["name"]] if var["name"] in values else var["default_value"]
+                if var["name"] in values:
+                    var["value"] = values[var["name"]]
+                else:
+                    var["value"] = var["default"]["value"] if isinstance(var["default"], dict) else var["default"] 
                 variables.append(var)
         self.dumps("variables", variables)
         self.save()
@@ -1659,7 +1662,12 @@ class PolicyTemplate(models.Model):
         """
         variables = self.loads("variables")
         for variable in variables:
+            # as in the data models, we allow two ways to specify the default value of a variable
+            variable["default_value"] = variable["default"]["value"] if isinstance(variable["default"], dict) else variable["default"]
+            del variable["default"] 
+            
             new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+
             if variable["name"] in variables_data:
                 new_variable.value = variables_data[variable["name"]]
             new_variable.save()
