@@ -212,7 +212,7 @@ class SlackCommunity(CommunityPlatform):
     def join_conversation(self, channel, users):
         admin_user_token = SlackUtils.get_admin_user_token(community=self)
         users = ",".join(users)
-        self.metagov_plugin.method("conversations.join", channel=channel, users=users, token=admin_user_token)
+        self.metagov_plugin.method("conversations.invite", channel=channel, users=users, token=admin_user_token)
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
