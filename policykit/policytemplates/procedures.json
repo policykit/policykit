@@ -18,8 +18,6 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
         "variables": [
             {
                 "name": "eligible_voters",
@@ -129,8 +127,6 @@
                 "channel": "variables.notify_channel"
             }
         ],
-        "success": [],
-        "fail": [],
         "variables": [
             {
                 "name": "dictator",
@@ -198,8 +194,6 @@
                 "channel": "variables.notify_channel"
             }
         ],
-        "success": [],
-        "fail": [],
         "variables": [
             {
                 "name": "board_role",
@@ -313,8 +307,6 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
         "variables": [
             {
                 "name": "vote_budget",
@@ -403,8 +395,6 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
         "variables": [
             {
                 "name": "eligible_voters",
@@ -483,8 +473,6 @@
                 "platform": "slack"
             }
         ],
-        "success": [],
-        "fail": [],
         "variables": [
             {
                 "name": "max_rank",

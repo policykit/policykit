@@ -1377,8 +1377,6 @@ class Procedure(models.Model):
             ],
 
     """
-    success = models.TextField(blank=True, default='[]')
-    fail = models.TextField(blank=True, default='[]')
 
     variables = models.TextField(blank=True, default='[]')
     """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
@@ -1400,7 +1398,6 @@ class Procedure(models.Model):
                 "entity": "CommunityUser",
                 "type": "string",
                 "is_list": true,
-                "codes": "board_members = [user.username for user in slack.get_users(role_names=[variables[\"board_role\"]])]\n",
                 "dynamic": false
             },
             {
@@ -1437,7 +1434,7 @@ class Procedure(models.Model):
 
 class PolicyTemplate(models.Model):
 
-    JSON_FIELDS = ["extra_executions", "variables", "data"]
+    JSON_FIELDS = ["executions", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
     IF_THEN_RULES = "if_then_rules"
