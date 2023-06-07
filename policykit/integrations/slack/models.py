@@ -440,7 +440,7 @@ class SlackJoinConversation(GovernableAction):
         {
             "name": "users",
             "label": "New users",
-            "entity": "SlackUser",
+            "entity": "CommunityUser",
             "default": "",
             "is_required": True,
             "prompt": "",
@@ -657,7 +657,7 @@ class SlackKickConversation(GovernableAction):
         {
             "name": "user",
             "label": "Kicked users",
-            "entity": "SlackUser",
+            "entity": "CommunityUser",
             "default": "",
             "is_required": True,
             "prompt": "",
