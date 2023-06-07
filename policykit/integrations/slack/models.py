@@ -202,7 +202,8 @@ class SlackCommunity(CommunityPlatform):
             return CommunityUser.objects.filter(community=self)
 
     def rename_conversation(self, channel, name):
-        self.metagov_plugin.method("conversations.rename", channel=channel, name=name)
+        admin_user_token = SlackUtils.get_admin_user_token(community=self)
+        self.metagov_plugin.method("conversations.rename", channel=channel, name=name, token=admin_user_token)
     
 
 class SlackPostMessage(GovernableAction):
