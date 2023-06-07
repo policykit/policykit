@@ -314,8 +314,8 @@
   }
 
   .vertical-line {
-      border: 1px solid #CDD3FF;
-      height: 16px; /* Adjust the height as needed */
+    border: 1px solid #CDD3FF;
+    height: 16px; /* Adjust the height as needed */
   }
 
   .collapse-section-button {
@@ -776,7 +776,7 @@
   }
 
   /*
-      to avoid too long a single option 
+    to avoid too long a single option 
   */
 
   /* div.dropdown-menu.open { 
@@ -795,49 +795,49 @@
     font-size: 19px;
   }
 
-   .description {
+  .description {
     margin: 0 0 32px;
   }
   
   .selectpicker-group {
-      display: flex;
-      justify-content: center;
-      line-height: 50px;
+    display: flex;
+    justify-content: center;
+    line-height: 50px;
   }
 
   .selectpicker-group label {
-      margin-right: 10px;
+    margin-right: 10px;
   }
 
   .action-picker div {
-      margin: 0px 0px 10px 24px;
+    margin: 0px 0px 10px 24px;
   }
 
 
   
 
   .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
 
   .button {
-      border: none;
-      padding: 12px;
-      cursor: pointer;
-      border-radius: 20px;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 20px;
   }
 
   .secondary {
-      background:rgba(242, 244, 255, 1);
-      color: #4451B2;
+    background:rgba(242, 244, 255, 1);
+    color: #4451B2;
   }
 
   .primary {
-      background: rgba(68, 81, 178, 1);
-      color: #FFFFFF; 
+    background: rgba(68, 81, 178, 1);
+    color: #FFFFFF; 
   }
 
   .wrong {
@@ -968,89 +968,97 @@
   }
 
   const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, column=false) => {
-      var text = document.createElement('div');
-      text.id = id;
-      let displayed_name = capitalize(variable.label); // which name to display for this variable input box
+    var text = document.createElement('div');
+    text.id = id;
+    let displayed_name = capitalize(variable.label); // which name to display for this variable input box
 
-      // if it is a column variable, then we use the column variable style
-      if(column === true){
-          text.classList.add('column-variable-item');
-      } else text.classList.add('variable-item');
+    // if it is a column variable, then we use the column variable style
+    if(column === true){
+      text.classList.add('column-variable-item');
+    } else text.classList.add('variable-item');
+    
+    let input_validate = "";
+
+    let label_html = "";
+    if(variable.is_required ?? true){
+      input_validate += " required";
+      label_html = `<label for='${id}' class="small normal">${displayed_name}<span>*</span></label>`
+    } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
+
+    var prompt = "";  // display the prompt if exists 
+    if(Boolean(variable.prompt) == true) prompt = `<p class='prompt smaller'>${variable.prompt}</p>`;
+
+    // use select picker if possible
+    if(options && variable.entity && (variable.entity in options)){
+      // if it is, then we use a select as the input box
+      if(variable.is_list ?? false) input_validate += "  multiple";
+
+      let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
+        <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
       
-      let input_validate = "";
-
-      let label_html = "";
-      if(variable.is_required ?? true){
-            input_validate += " required";
-            label_html = `<label for='${id}' class="small normal">${displayed_name}<span>*</span></label>`
-      } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
-
-      var prompt = "";  // display the prompt if exists 
-      if(Boolean(variable.prompt) == true) prompt = `<p class='prompt smaller'>${variable.prompt}</p>`;
-
-      // use select picker if possible
-      if(options && variable.entity && (variable.entity in options)){
-        // if it is, then we use a select as the input box
-        if(variable.is_list ?? false) input_validate += "  multiple";
-
-        let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
-                      <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
+      if(datalist || variable.default !== ""){
+        innerHTML += ` <optgroup label="Variables">`
+        if(typeof variable.default === "string")
+          innerHTML += `<option value='${variable.default}' selected>${decapitalize(variable.default)}</option>`;
+        else if(variable.default instanceof Object)
+          innerHTML += `<option value='{${variable.default.value}}' selected>${decapitalize(variable.default.name)}</option>`;
         
         if(datalist){
-          innerHTML += ` <optgroup label="Variables">`
           datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
             item => {
-                innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
+              innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
             }
           );
-          innerHTML += `</optgroup>`;
         }
-
-        innerHTML += `<optgroup label="${variable.entity}">`;
-        // add entities in this community
-        options[variable.entity].forEach(entity => {
-          innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
-        });
-        innerHTML += `</optgroup>`;
-
-        innerHTML += `</select></div></div>`;
-        text.innerHTML = innerHTML;
-      } else {
-        // determine the type of input requirement is needed
-        if(variable["is_list"] ?? false){
-            if(variable["type"] === "string")
-              input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
-            else if(variable["type"] === "number")
-              input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
-            else if(variable["type"] === "float")
-              input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
-            else if(variable["type"] === "timestamp")
-              console.warn("We do not support a variable as a list of timestamps yet");
-        } else {
-            if(variable["type"] === "string")
-              input_validate += ' type="text"';
-            else if(variable["type"] === "number")
-              input_validate += ' type="number"';
-            else if(variable["type"] === "float")
-              input_validate += ' type="number" step="0.01"';
-            else if(variable["type"] === "timestamp")
-              input_validate += ' type="datetime-local"';
-        }
-
         
-        if(variable["type"] === "string"){ // use textarea for variables of the string type
-          text.innerHTML = label_html + `<textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default_value ? variable.default_value.trim() : ""}</textarea>
-                          </div>`;
-        } else {
-          if(variable["default_value"]) // if it is a select input, then a default value is actually not much needed
-            input_validate += `  value='${variable.default_value}'`;
-          text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
-                        </div>`;
-        }
+        innerHTML += `</optgroup>`;
       }
 
-      parentDiv.appendChild(text);
-      $(".selectpicker").selectpicker("refresh");
+      innerHTML += `<optgroup label="${variable.entity}">`;
+      // add entities in this community
+      options[variable.entity].forEach(entity => {
+        innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
+      });
+      innerHTML += `</optgroup>`;
+
+      innerHTML += `</select></div></div>`;
+      text.innerHTML = innerHTML;
+    } else {
+      // determine the type of input requirement is needed
+      if(variable["is_list"] ?? false){
+          if(variable["type"] === "string")
+            input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+          else if(variable["type"] === "number")
+            input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
+          else if(variable["type"] === "float")
+            input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
+          else if(variable["type"] === "timestamp")
+            console.warn("We do not support a variable as a list of timestamps yet");
+      } else {
+          if(variable["type"] === "string")
+            input_validate += ' type="text"';
+          else if(variable["type"] === "number")
+            input_validate += ' type="number"';
+          else if(variable["type"] === "float")
+            input_validate += ' type="number" step="0.01"';
+          else if(variable["type"] === "timestamp")
+            input_validate += ' type="datetime-local"';
+      }
+
+      
+      if(variable["type"] === "string"){ // use textarea for variables of the string type
+        text.innerHTML = label_html + `<textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default ? variable.default.trim() : ""}</textarea>
+                        </div>`;
+      } else {
+        if(variable.default) // if it is a select input, then a default value is actually not much needed
+          input_validate += `  value='${variable.default}'`;
+        text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
+                      </div>`;
+      }
+    }
+
+    parentDiv.appendChild(text);
+    $(".selectpicker").selectpicker("refresh");
       
   }
 
