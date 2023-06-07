@@ -996,18 +996,22 @@
         let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
                       <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
         
-        if(datalist)
+        if(datalist){
+          innerHTML += ` <optgroup label="Variables">`
           datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
             item => {
                 innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
             }
           );
+          innerHTML += `</optgroup>`;
+        }
 
+        innerHTML += `<optgroup label="${variable.entity}">`;
         // add entities in this community
-        options[variable["entity"]].forEach(entity => {
+        options[variable.entity].forEach(entity => {
           innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
         });
-
+        innerHTML += `</optgroup>`;
 
         innerHTML += `</select></div></div>`;
         text.innerHTML = innerHTML;
