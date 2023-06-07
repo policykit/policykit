@@ -508,7 +508,7 @@
                 // if the checkbox is checked, then uncheck all other checkboxes
                 // $('.procedure-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
                 let app = event.target.getAttribute("platform");
-                removeProcedureVariables(selected_procedure.value);
+                if(selected_procedure) removeProcedureVariables(selected_procedure.value);
                 showProcedureVariables(procedure_value, app);
             } else {
                 removeProcedureVariables(procedure_value);
