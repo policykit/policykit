@@ -1427,8 +1427,6 @@ class Procedure(models.Model):
             "description": self.description,
             "initialize": self.loads("initialize"),
             "notify": self.loads("notify"),
-            "success": self.loads("success"),
-            "fail": self.loads("fail"),
             "check": check
         }
 
