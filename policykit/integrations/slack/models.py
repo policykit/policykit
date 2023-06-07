@@ -205,6 +205,9 @@ class SlackCommunity(CommunityPlatform):
         admin_user_token = SlackUtils.get_admin_user_token(community=self)
         self.metagov_plugin.method("conversations.rename", channel=channel, name=name, token=admin_user_token)
     
+    def kick_conversation(self, channel, user):
+        admin_user_token = SlackUtils.get_admin_user_token(community=self)
+        self.metagov_plugin.method("conversations.kick", channel=channel, user=user, token=admin_user_token)
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
@@ -390,8 +393,6 @@ class SlackRenameConversation(GovernableAction):
             return f"slack.rename_conversation(channel={channel}, name={name})"
         else:
             logger.error(f"When generating code for SlackRenameConversation: missing name or channel: {name}, {channel}")
-
-
 
 
 class SlackJoinConversation(GovernableAction):
@@ -670,3 +671,11 @@ class SlackKickConversation(GovernableAction):
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
+
+    def execution_codes(**kwargs):
+        channel = kwargs.get("channel")
+        user = kwargs.get("user")
+        if channel and user:
+            return f"slack.kick_conversation(channel={channel}, user={user})"
+        else:
+            logger.error(f"When generating codes for SlackKickConversation, missing channel or user: {channel}, {user}")
