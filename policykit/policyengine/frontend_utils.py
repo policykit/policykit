@@ -148,6 +148,13 @@ def extract_executable_actions(user):
                         "app": app_name
                     }
                 )
+    executable_actions["others"] = [{
+        "value": "revert_community_action",
+        "name": "Revert Community Action",
+        "variables": [],
+        "app": "others"
+
+    }]
     return executable_actions
 
 def load_entities(platform):
