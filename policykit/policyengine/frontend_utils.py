@@ -133,6 +133,19 @@ def extract_executable_actions(user):
     actions = get_action_types(user.community.community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
 
     executable_actions = dict()
+    executable_actions[" "] = [{
+        "value": "revert_action",
+        "name": "Revert the Triggering Actions",
+        "variables": [],
+        "app": "special"
+    }]
+
+    executable_actions[" "].append({
+        "value": "execute_actions",
+        "name": "Execute the Governed Actions",
+        "variables": [],
+        "app": " "
+    })
     for app_name, action_list in actions.items():
         for action_code, action_name in action_list:
             variables = get_execution_variables(app_name, action_code)
@@ -148,13 +161,7 @@ def extract_executable_actions(user):
                         "app": app_name
                     }
                 )
-    executable_actions["others"] = [{
-        "value": "revert_community_action",
-        "name": "Revert Community Action",
-        "variables": [],
-        "app": "others"
 
-    }]
     return executable_actions
 
 def load_entities(platform):
