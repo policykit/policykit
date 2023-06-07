@@ -67,8 +67,8 @@
                 "label": "Vote channel",
                 "entity": "SlackChannel",
                 "default_value": "",
-                "is_required": false,
-                "prompt": "Channel where post the vote message. If empty, the vote message will be posted in the same channel as the action",
+                "is_required": true,
+                "prompt": "Channel where post the vote message.",
                 "type": "string",
                 "is_list": false
             }
@@ -358,8 +358,8 @@
                 "label": "Vote channel",
                 "entity": "SlackChannel",
                 "default_value": "",
-                "is_required": false,
-                "prompt": "Channel to post the vote message. If empty, the vote message will be posted in the same channel as the action",
+                "is_required": true,
+                "prompt": "Channel to post the vote message.",
                 "type": "string",
                 "is_list": false
             },
@@ -425,8 +425,8 @@
                 "label": "Procedure channel",
                 "entity": "SlackChannel",
                 "default_value": "",
-                "is_required": false,
-                "prompt": "Channel where the procedure happens. If empty, the vote message will be posted in the same channel as the action",
+                "is_required": true,
+                "prompt": "Channel where the procedure happens.",
                 "type": "string",
                 "is_list": false
             },
@@ -532,8 +532,8 @@
                 "label": "Vote channel",
                 "entity": "SlackChannel",
                 "default_value": "",
-                "is_required": false,
-                "prompt": "Channel to post the vote message. If empty, the vote message will be posted in the same channel as the action",
+                "is_required": true,
+                "prompt": "Channel to post the vote message.",
                 "type": "string",
                 "is_list": false
             },
