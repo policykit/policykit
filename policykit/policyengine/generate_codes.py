@@ -513,4 +513,6 @@ def generate_execution_codes(executions):
             else:
                 raise NotImplementedError
         execution_codes.append(codes)
+    if len(execution_codes) == 0:
+        return "pass\n"
     return "\n".join(execution_codes) + "\n"
