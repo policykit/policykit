@@ -188,7 +188,7 @@ class SlackCommunity(CommunityPlatform):
         response = self.__make_generic_api_call("conversations.list", {})
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
 
-    def get_users(self, channel=None):
+    def get_users_in_channel(self, channel=None):
         from policyengine.models import CommunityUser
         if channel:
             response = self.__make_generic_api_call("conversations.members", {"channel": channel})

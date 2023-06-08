@@ -961,6 +961,8 @@ def generate_code(request):
         codes = CodesGenerator.generate_filter_codes(custom_action_json)
     elif(stage == "execution_success"):
         codes = CodesGenerator.generate_execution_codes(data)
+    elif(stage == "execution_fail"):
+        codes = CodesGenerator.generate_execution_codes(data)
     return JsonResponse({"status": True, "code": codes})
 
 @login_required
