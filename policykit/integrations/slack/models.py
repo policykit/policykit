@@ -408,7 +408,7 @@ class SlackJoinConversation(GovernableAction):
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
-            "label": "Initiator",
+            "label": "Invitor",
             "entity": "CommunityUser",
             "prompt": "the user who invited new users to a channel on Slack",
             "is_list": False,
@@ -424,7 +424,7 @@ class SlackJoinConversation(GovernableAction):
         },
         {
             "name": "users",
-            "label": "Joined Users",
+            "label": "Invited Users",
             "entity": "CommunityUser",
             "prompt": "the users who were invited to join the channel",
             "is_list": True,

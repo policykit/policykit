@@ -58,6 +58,14 @@ def _guarded_import(mname, globals=None, locals=None, fromlist=None, level=None)
         return __import__(mname, globals or {}, locals or {}, fromlist or ())
     raise SyntaxError(f"Restricted, cannot import '{mname}'")
 
+def _guarded_getattr(obj, attr):
+    """ not to raise exception AttributeError"""
+    try:
+        return safer_getattr(obj, attr)
+    except AttributeError:
+        return None
+    except Exception as e:
+        raise e
 
 def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
     """
@@ -93,7 +101,7 @@ def execute_user_code(user_code: str, user_func: str, *args, **kwargs):
             "_getiter_": default_guarded_getiter,
             "_unpack_sequence_": guarded_unpack_sequence,
             "_iter_unpack_sequence_": guarded_iter_unpack_sequence,
-            "_getattr_": safer_getattr,
+            "_getattr_": _guarded_getattr,
             "_inplacevar_": lambda op, val, expr: val + expr,  # permit +=
             "_write_": _hook_writable,
             # to access args and kwargs
