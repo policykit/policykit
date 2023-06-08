@@ -444,13 +444,13 @@ class SlackJoinConversation(GovernableAction):
         },
         {
             "name": "users",
-            "label": "New users",
+            "label": "Invited user",
             "entity": "CommunityUser",
             "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
-            "is_list": True
+            "is_list": False
         }
     ]
 
