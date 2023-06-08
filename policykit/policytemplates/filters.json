@@ -23,7 +23,7 @@
         "name": "Role",
         "description": "Only users of a specified role",
         "platform": "All",
-        "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn object.username in all_usernames_with_roles",
+        "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn (object.username if hasattr(object, \"username\") else object) in all_usernames_with_roles",
         "variables":[
             {
                 "name": "role",
