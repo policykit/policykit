@@ -387,7 +387,7 @@ class SlackRenameConversation(GovernableAction):
             "name": self.previous_name,
             "channel": self.channel,
             # Use the initiators access token if we have it (since they already successfully renamed)
-            "token": self.initiator.access_token or self.community.__get_admin_user_token(),
+            "token": self.initiator.access_token or SlackUtils.get_admin_user_token(community=self.community),
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
     
@@ -467,7 +467,7 @@ class SlackJoinConversation(GovernableAction):
         except Exception:
             # Whether or not bot can kick is based on workspace settings
             logger.error(f"kick with bot token failed, attempting with admin token")
-            values["token"] = self.community.__get_admin_user_token()
+            values["token"] = SlackUtils.get_admin_user_token(community=self.community)
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
             super()._revert(values=values, call=SLACK_METHOD_ACTION)
