@@ -337,3 +337,8 @@ def load_templates(kind):
                 for filtermodule in filtermodule_data:
                     filtermodule = dump_to_JSON(filtermodule, FilterModule.JSON_FIELDS)
                     FilterModule.objects.create(**filtermodule)
+
+def check_code_variables(string):
+    import re
+    pattern = r'\{.*?\}'
+    return re.search(pattern, string) is not None

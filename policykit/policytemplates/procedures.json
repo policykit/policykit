@@ -56,7 +56,7 @@
             {
                 "name": "vote_message",
                 "label": "Vote message",
-                "entity": null,
+                "entity": "Text",
                 "default": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": false,
                 "prompt": "",
@@ -141,7 +141,7 @@
             {
                 "name": "decision_message",
                 "label": "Vote message for the dictator",
-                "entity": null,
+                "entity": "Text",
                 "default": "Please make a decision on this proposal by yes-or-no voting",
                 "is_required": false,
                 "prompt": "What messages the dictator should be prompted with to make a decision",
@@ -151,7 +151,7 @@
             {
                 "name": "notify_message",
                 "label": "Notification message for community members",
-                "entity": null,
+                "entity": "Text",
                 "default": "We have asked the dictator to make a decision on this proposal",
                 "is_required": false,
                 "prompt": "What messages should we notify other community members when the dictator is asked to make a decision",
@@ -208,7 +208,7 @@
             {
                 "name": "decision_message",
                 "label": "Vote message for board members",
-                "entity": null,
+                "entity": "Text",
                 "default": "Please make a decision on this proposal by yes-or-no voting",
                 "is_required": false,
                 "prompt": "",
@@ -218,7 +218,7 @@
             {
                 "name": "notify_message",
                 "label": "Notification message for other community members",
-                "entity": null,
+                "entity": "Text",
                 "default": "We have asked the board to make a decision on this proposal",
                 "is_required": false,
                 "prompt": "What messages should we notify other community members when board members is asked to make a decision",
@@ -344,7 +344,7 @@
             {
                 "name": "vote_message",
                 "label": "Vote message",
-                "entity": null,
+                "entity": "Text",
                 "default": "Please assign your votes to express the degree of your preferences on each candidate",
                 "is_required": false,
                 "prompt": "Message to be posed in the channel when the vote starts",
@@ -412,7 +412,7 @@
             {
                 "name": "delegate_message",
                 "label": "Delegation message",
-                "entity": null,
+                "entity": "Text",
                 "default": "Before deciding on this proposal, people have the opportunity to delegate their votes to another individual who will then be asked to make decisions for this proposal on their behalf. People who have not select their delegates or select themselves as delegates will then need to decide this proposal by themselves",
                 "is_required": false,
                 "prompt": "Message to be posed at the delegation stage",
@@ -520,7 +520,7 @@
             {
                 "name": "vote_message",
                 "label": "Vote message",
-                "entity": null,
+                "entity": "Text",
                 "default": "Please assign your votes to express the degree of your preferences on each candidate",
                 "is_required": false,
                 "prompt": "Message to be posed in the channel when the vote starts",
