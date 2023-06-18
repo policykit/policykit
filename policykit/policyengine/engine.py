@@ -100,11 +100,11 @@ class EvaluationContext:
                     it is unlikely that users will use another variable as their values 
                     as there are actually no integer or float parameters for any Slack actions or executions. 
                 """
-                logger.debug(f"Initializing variable {variable.name} with value {variable.value}")
+                logger.debug(f"no entity: Initializing variable {variable.name} with value {variable.value}")
                 variables[variable.name] = variable.get_variable_values()
             else:
                 if not Utils.check_code_variables(variable.value):
-                    logger.debug(f"Initializing variable {variable.name} with value {variable.value}")
+                    logger.debug(f"has entity: Initializing variable {variable.name} with value {variable.value}")
                     # if the variable value is not a code snippet or f-strings, we can directly parse it as well
                     variables[variable.name] = variable.get_variable_values()
                 else:
