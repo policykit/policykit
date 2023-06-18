@@ -117,6 +117,7 @@ class EvaluationContext:
         
         # Make policy variables available in the evaluation context
         setattr(self, "variables", AttrDict(variables))
+        logger.debug(f"Initialized variables codes: {initialize_codes}")
         variables = exec_code_block(initialize_codes, self, "initialize_variables")
         logger.debug(f"Initialized variables: {variables}")
         setattr(self, "variables", variables)
