@@ -342,3 +342,9 @@ def check_code_variables(string):
     import re
     pattern = r'\{.*?\}'
     return re.search(pattern, string) is not None
+
+def validate_fstrings(string):
+    import re
+    pattern = r'{\s*}'  
+    # Regular expression pattern to match empty curly brackets
+    return re.sub(pattern, '', string)
