@@ -106,7 +106,8 @@ class EvaluationContext:
                     # if the variable value is not a code snippet or f-strings, we can directly parse it as well
                     variables[variable.name] = variable.get_variable_values()
                 else:
-                    code = f"variables.{variable.name} = f\"{variable.value}\""
+                    validated_value = Utils.validate_fstrings(variable.value)
+                    code = f"variables.{variable.name} = f\"{validated_value}\""
                     intialize_weight = 2 if variable.entity == "Text" else 1 
                     # we first initialize other entities in case users embed other variables in creating the context of a Text variable
                     initialize_codes.append((code, intialize_weight))
