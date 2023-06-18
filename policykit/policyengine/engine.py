@@ -113,7 +113,7 @@ class EvaluationContext:
 
         initialize_codes.sort(key=lambda x: x[1])
         initialize_codes = "\n".join([code for code, weight in initialize_codes])
-        initialize_codes += "return variables\n"
+        initialize_codes += "\nreturn variables\n"
         
         # Make policy variables available in the evaluation context
         setattr(self, "variables", AttrDict(variables))
