@@ -66,7 +66,7 @@
             {
                 "name": "word",
                 "label": "Starting word",
-                "entity": null,
+                "entity": "Text",
                 "default": "",
                 "is_required": true,
                 "prompt": "",
@@ -85,7 +85,7 @@
             {
                 "name": "text",
                 "label": "Expected text",
-                "entity": null,
+                "entity": "Text",
                 "default": "",
                 "is_required": true,
                 "prompt": "",
@@ -123,7 +123,7 @@
             {
                 "name": "word",
                 "label": "Contained word",
-                "entity": null,
+                "entity": "Text",
                 "default": "",
                 "is_required": true,
                 "prompt": "",
@@ -142,7 +142,7 @@
             {
                 "name": "start",
                 "label": "Starting timestamp",
-                "entity": null,
+                "entity": "Timestamp",
                 "default": "",
                 "is_required": true,
                 "prompt": "",
@@ -152,7 +152,7 @@
             {
                 "name": "end",
                 "label": "Ending timestamp",
-                "entity": null,
+                "entity": "Timestamp",
                 "default": "",
                 "is_required": true,
                 "prompt": "",

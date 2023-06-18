@@ -364,7 +364,7 @@ class SlackRenameConversation(GovernableAction):
         {
             "name": "name",
             "label": "New channel name",
-            "entity": None,
+            "entity": "Text",
             "default": "",
             "is_required": True,
             "prompt": "",
@@ -520,7 +520,7 @@ class SlackPinMessage(GovernableAction):
         {
             "name": "timestamp",
             "label": "Timestamp of the pinned message",
-            "entity": None,
+            "entity": "Timestamp",
             "default": "",
             "is_required": True,
             "prompt": "",
@@ -608,7 +608,7 @@ class SlackScheduleMessage(GovernableAction):
         {
             "name": "post_at",
             "label": "Scheduled time",
-            "entity": None,
+            "entity": "Timestamp",
             "default": "",
             "is_required": True,
             "prompt": "",
