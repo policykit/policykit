@@ -79,9 +79,47 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
-               
-         # Make policy variables available in the evaluation context
-        setattr(self, "variables", AttrDict({ variable.name : variable.get_variable_values() for variable in self.policy.variables.all() or []}))
+        logger.debug(f"Initialized evaluation context for proposal {proposal}")
+        self.initialize_variables()
+
+    def initialize_variables(self):
+        """
+        Initialize policy variables according to their default values or codes.
+        """
+        
+        variables = {}
+        initialize_codes = []
+        """ 
+            put the initialize codes for non-string type variables before others, 
+            as people could potentially embed these variables in a string
+        """
+        for variable in self.policy.variables.all() or []:
+            if not variable.entity:
+                """       
+                    Integer and float variables are literal values so we can directly parse their values.
+                    it is unlikely that users will use another variable as their values 
+                    as there are actually no integer or float parameters for any Slack actions or executions. 
+                """
+                variables[variable.name] = variable.get_variable_values()
+            else:
+                if not Utils.check_code_variables(variable.value):
+                    # if the variable value is not a code snippet or f-strings, we can directly parse it as well
+                    variables[variable.name] = variable.get_variable_values()
+                else:
+                    code = f"variables.{variable.name} = f\"{variable.value}\""
+                    intialize_weight = 2 if variable.entity == "Text" else 1 
+                    # we first initialize other entities in case users embed other variables in creating the context of a Text variable
+                    initialize_codes.append((code, intialize_weight))
+
+        initialize_codes.sort(key=lambda x: x[1])
+        initialize_codes = "\n".join([code for code, weight in initialize_codes])
+        initialize_codes += "return variables\n"
+        
+        # Make policy variables available in the evaluation context
+        setattr(self, "variables", AttrDict(variables))
+        variables = exec_code_block(initialize_codes, self, "initialize_variables")
+        logger.debug(f"Initialized variables: {variables}")
+        setattr(self, "variables", variables)
 
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
