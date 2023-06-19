@@ -226,6 +226,16 @@
                 }
                 global_datalist.push(datum);
             });
+            selected_procedure["data"].forEach((datum, index) => {
+                let datum = {
+                    value: `proposal.data.get("${datum.name}")`,
+                    name: datum.label,
+                    entity: datum.entity,
+                    is_list: datum.is_list,
+                    from: "procedure"
+                }
+                global_datalist.push(datum);
+            });
         }
     }
 
