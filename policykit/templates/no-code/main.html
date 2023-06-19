@@ -893,7 +893,7 @@
     const collectProcedureData = () => {
         if(selected_procedure === null) return false;
 
-        if(checkMissingVariable("design_procedure")) return;
+        if(checkMissingVariable("design_procedure")) return false;
         
         const procedure_data = {
             procedure_index: selected_procedure.value,
@@ -949,7 +949,6 @@
         let custom_action_data = collectCustomActionData();
         if(custom_action_data === false) return;
         
-
         let procedure_data = collectProcedureData();
         if(procedure_data === false) return;
 
