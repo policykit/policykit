@@ -81,8 +81,7 @@
                 "prompt": "How many yes votes are there for this proposal",
                 "entity": null,
                 "type": "number",
-                "is_list": false,
-                "dynamic": true
+                "is_list": false
             },
             {
                 "name": "no_votes_num",
@@ -90,8 +89,7 @@
                 "prompt": "How many no votes are there for this proposal",
                 "entity": null,
                 "type": "number",
-                "is_list": false,
-                "dynamic": true
+                "is_list": false
             },
             {
                 "name": "thread_post_id",
@@ -99,8 +97,7 @@
                 "prompt": "What is the thread post id of the vote procedure",
                 "entity": null,
                 "type": "string",
-                "is_list": false,
-                "dynamic": true
+                "is_list": false
             }
         ]
     },
@@ -263,8 +260,7 @@
                 "prompt": "Given the board role, who are the board members",
                 "entity": "CommunityUser",
                 "type": "string",
-                "is_list": true,
-                "dynamic": false
+                "is_list": true
             },
             {
                 "name": "yes_votes_num",
@@ -272,8 +268,7 @@
                 "prompt": "How many yes votes are there for this proposal",
                 "entity": null,
                 "type": "number",
-                "is_list": false,
-                "dynamic": true
+                "is_list": false
             },
             {
                 "name": "no_votes_num",
@@ -281,8 +276,7 @@
                 "prompt": "How many no votes are there for this proposal",
                 "entity": null,
                 "type": "number",
-                "is_list": false,
-                "dynamic": true
+                "is_list": false
             }
         ]
     },

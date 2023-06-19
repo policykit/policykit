@@ -1687,7 +1687,8 @@ class PolicyTemplate(models.Model):
             policy.action_types.add(action_type)
         
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
-        policy.initialize = CodesGenerator.generate_initialize_codes(self.loads("data"))
+        policy.initialize = "pass" # for now we do not have any initialize codes, we put all of them in the check module
+        # CodesGenerator.generate_initialize_codes(self.loads("data"))
  
         policy.check = CodesGenerator.generate_check_codes(policy_json["check"])
 
