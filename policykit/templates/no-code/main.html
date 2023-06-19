@@ -217,7 +217,7 @@
         global_datalist = global_datalist.filter(item => item.from !== "procedure");
         if(selected_procedure){
             selected_procedure["variables"].forEach((variable, index) => {
-                let datum = {
+                var datum = {
                     value: `variables.${variable.name}`,
                     name: variable.label,
                     entity: variable.entity,
@@ -227,7 +227,7 @@
                 global_datalist.push(datum);
             });
             selected_procedure["data"].forEach((datum, index) => {
-                let datum = {
+                var datum = {
                     value: `proposal.data.get("${datum.name}")`,
                     name: datum.label,
                     entity: datum.entity,
