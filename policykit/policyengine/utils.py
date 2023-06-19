@@ -339,6 +339,10 @@ def load_templates(kind):
                     FilterModule.objects.create(**filtermodule)
 
 def check_code_variables(string):
+    """
+        Check whether the string contains any embedded variables or data, and format it accordingly 
+        TODO: check whether the referenced variables or data are defined
+    """
     import re
     pattern = r'\{.*?\}'
     return re.search(pattern, string) is not None
