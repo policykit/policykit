@@ -118,6 +118,10 @@
       {% endif %}
 
       <a href="/{{name}}/disable_integration?id={{data.id}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
+      {% if name == "opencollective" %}
+      <a href="/{{name}}/disable_integration_without_deletion?id={{data.id}}" class="btn btn-sm btn-outline-danger">Disable Integration</a>
+      {{data}}
+      {% endif %}
     </div>
   </div>
   {% empty %}
