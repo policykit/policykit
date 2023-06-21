@@ -9,7 +9,39 @@
       <label><input type="radio" name="option" value="check">If-Then Rule</label>
     </div>
 </section> -->
-<div class="nocode-container">
+<div class="policykind-container">  
+    <div class="header prompt normal">New Policy</div>
+    <div class="body">
+        <div class="large normal">What kind of Policy would you like to author?</div>
+        <div class="policykind-group">
+            <div class="policykind-box">
+                <div class="policykind-icon"><i class="fa-solid fa-scroll fa-lg"></i></div>
+                <div class="large">Platform Policy</div>
+                <div class="medium">
+                    Community actions that trigger a policy are also governed by this policy. 
+                    Example: renaming channels requires a majority vote in the channel
+                </div>
+            </div>
+            <div class="policykind-box">
+                <div class="policykind-icon"><i class="fa-solid fa-link fa-lg"></i></div>
+                <div class="large">Trigger Policy</div>
+                <div class="medium">
+                    Community actions that trigger a policy are not governed by this policy. 
+                    Example: posting a message "vote for admin" in a channel will trigger a majority vote in the channel to decide who will be the new channel administrator.
+                </div>
+            </div>
+            <div class="policykind-box">
+                <div class="policykind-icon"><i class="fa-solid fa-ruler-combined fa-lg"></i></div>
+                <div class="large">If-then Rule</div>
+                <div class="medium">
+                    Shortcuts that help automate some actions. 
+                    Example: help forward the message in the #anouncement channel to the #general channel.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="nocode-container hidden">
     <div class="nocode-sidebar">
         <section>
             <div class="section-body" id="design_meta">

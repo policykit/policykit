@@ -114,11 +114,57 @@
     flex-grow: 1;
   }
 
+  .policykind-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
+    gap: 32px;
+  }
+
+  .policykind-container > .body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 0px 0px 64px;
+    gap: 32px;
+  }
+
+  .policykind-group {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 16px 16px 24px;
+    gap: 16px;
+
+    background: #F8F9FA;
+    border-radius: 8px;
+
+    align-self: stretch;
+  }
+
+  .policykind-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 24px;
+
+    background: #FFFFFF;
+    border: 1px solid #F8F9FA;
+    border-radius: 8px;
+  }
+
+  
   /*For the overall panel layout 3:7 */
   .nocode-container {
     display: flex;
     width: 100%;
     justify-content: space-between;
+  }
+
+  .nocode-container.hidden {
+    display: none;
   }
   .nocode-sidebar {
     flex-basis: 35vw;;
