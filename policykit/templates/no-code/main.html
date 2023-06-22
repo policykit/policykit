@@ -9,7 +9,7 @@
       <label><input type="radio" name="option" value="check">If-Then Rule</label>
     </div>
 </section> -->
-<div class="policykind-container">  
+<div class="policykind-container" id="policykind-container">  
     <div class="header">
         <div class="prompt medium">New Policy</div>
     </div>
@@ -49,7 +49,7 @@
         </div>
     </div>
 </div>
-<div class="nocode-container hidden">
+<div class="nocode-container hidden" id="nocode-container">
     <div class="nocode-sidebar">
         <section>
             <div class="section-body" id="design_meta">
@@ -867,9 +867,26 @@
 
     /** Code related to policy kinds */
 
+    document.getElementById("policykind-container").addEventListener("click", (event)=>{
+        let target = event.target.closest(".policykind-box");
+        if(target){
+            let policy_kind = target.getAttribute("kind");
+            select_policy_kind = policy_kind;
+            showSectionsForPolicyKinds();
+        }
+
+    })
     function showSectionsForPolicyKinds(){
+        // hide policykind containers and show the authoring interface
+        $("#nocode-container").removeClass("hidden");
+        $("#policykind-container").addClass("hidden");
+
         if(select_policy_kind === "community_policies"){
             showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
+        } else if(select_policy_kind == "triggering_policies"){
+            return;
+        } else if(select_policy_kind == "if_then_rules"){
+            return;
         }
     }
 
