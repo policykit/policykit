@@ -119,7 +119,7 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <div class="collapse-section">
+            <div class="collapse-section" id="transformer-collapse-section">
                 <div class="vertical-line"></div>
                 <button class="collapse-section-button" type="transformer">+</button>
                 <div class="vertical-line"></div>
@@ -206,7 +206,7 @@
     const SPECIAL_EXECUTION_APP = " "; // for revert the action and execute the action these two types of executions
     const entities = JSON.parse('{{entities|safe}}');
 
-    var select_policy_kind = "community_policies"; // other choices: triggering_policies
+    var selected_policy_kind = "community_policies"; // other choices: triggering_policies
 
     var focus_section_id = null;
     var selected_actions = [];
@@ -871,7 +871,7 @@
         let target = event.target.closest(".policykind-box");
         if(target){
             let policy_kind = target.getAttribute("kind");
-            select_policy_kind = policy_kind;
+            selected_policy_kind = policy_kind;
             showSectionsForPolicyKinds();
         }
 
@@ -881,11 +881,14 @@
         $("#nocode-container").removeClass("hidden");
         $("#policykind-container").addClass("hidden");
         $(".wizard").css("background", "rgba(248, 249, 250, 1)")
-        if(select_policy_kind === "community_policies"){
+        if(selected_policy_kind === "community_policies"){
             showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
-        } else if(select_policy_kind == "triggering_policies"){
+        } else if(selected_policy_kind == "triggering_policies"){
+            $("#design_procedure").addClass("hidden");
+            $("#transformer-collapse-section").addClass("hidden");
             return;
-        } else if(select_policy_kind == "if_then_rules"){
+        } else if(selected_policy_kind == "if_then_rules"){
+
             return;
         }
     }
@@ -1016,35 +1019,37 @@
         let custom_action_data = collectCustomActionData();
         if(custom_action_data === false) return;
         
-        let procedure_data = collectProcedureData();
-        if(procedure_data === false) return;
-
-        let transformer_data = collectTransformerData();
-        if(transformer_data === false) return;
-
         let success_data = collectExecutionData("success");
         if(success_data === false) return;
 
-        let fail_data = collectExecutionData("fail");
-        if(fail_data === false) return;
+        if(selected_policy_kind !== "if_then_rules"){
+            let procedure_data = collectProcedureData();
+            if(procedure_data === false) return;
 
-        // let notify_data = collectExecutionData("notify");
-        // if(notify_data === false) return;
+            let transformer_data = collectTransformerData();
+            if(transformer_data === false) return;
 
+            // let notify_data = collectExecutionData("notify");
+            // if(notify_data === false) return;
+            
+            let fail_data = collectExecutionData("fail");
+            if(fail_data === false) return;
+        }
+        
         app_name = custom_action_data["app_name"];
         delete custom_action_data["app_name"];
         all_data = {
                     name: meta_data.name,
                     description: meta_data.description,
-                    policykind: "community_policies",   // "if_then_rules", "community_policies", "triggering_policies"
+                    policykind: selected_policy_kind,   // "if_then_rules", "community_policies", "triggering_policies"
                     app_name: app_name,
                     filters: custom_action_data,
-                    procedure: procedure_data,
-                    transformers: transformer_data,
+                    procedure: procedure_data || null,
+                    transformers: transformer_data || null,
                     executions: {
                         // notify: notify_data,
                         success: success_data,
-                        fail: fail_data,
+                        fail: fail_data || null,
                     }
                 }
         console.log("all data: " + JSON.stringify(all_data));
