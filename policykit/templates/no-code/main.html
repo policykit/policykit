@@ -880,7 +880,7 @@
         // hide policykind containers and show the authoring interface
         $("#nocode-container").removeClass("hidden");
         $("#policykind-container").addClass("hidden");
-
+        $(".wizard").css("background", "rgba(248, 249, 250, 1)")
         if(select_policy_kind === "community_policies"){
             showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
         } else if(select_policy_kind == "triggering_policies"){
@@ -1053,7 +1053,6 @@
     }
 
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
-    showSectionsForPolicyKinds();
 
 </script>
 {% endblock %}
