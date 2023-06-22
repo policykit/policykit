@@ -1054,13 +1054,16 @@ def create_procedure(procedure_data, policytemplate):
                 }
     '''
     from policyengine.models import Procedure
-
-    procedure_index = procedure_data.get("procedure_index", None)
-    procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
-    if procedure:
-        policytemplate.procedure = procedure
-        policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
-        policytemplate.add_descriptive_data(procedure.loads("data"))
+    if procedure_data:
+        procedure_index = procedure_data.get("procedure_index", None)
+        procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
+        if procedure:
+            policytemplate.procedure = procedure
+            policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
+            policytemplate.add_descriptive_data(procedure.loads("data"))
+            policytemplate.save()
+    else:
+        policytemplate.procedure = None
         policytemplate.save()
 
 def create_transformers(transformer_data, policytemplate):
@@ -1080,7 +1083,7 @@ def create_transformers(transformer_data, policytemplate):
     """
     from policyengine.models import Transformer
     
-    for transformer in transformer_data:
+    for transformer in transformer_data or []:
         module_index = transformer.get("module_index", None)
         module_template = Transformer.objects.filter(pk=module_index).first()
         if module_template:

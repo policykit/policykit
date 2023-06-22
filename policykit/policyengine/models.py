@@ -1609,12 +1609,13 @@ class PolicyTemplate(models.Model):
                 stage: the stage where the executions are expected to be added to
                 new_executions: a list of executions
         """
-        executions = self.loads("executions")
-        if stage not in executions:
-            executions[stage] = []
-        executions[stage].extend(new_executions)
-        self.dumps("executions", executions)
-        self.save()
+        if new_executions:
+            executions = self.loads("executions")
+            if stage not in executions:
+                executions[stage] = []
+            executions[stage].extend(new_executions)
+            self.dumps("executions", executions)
+            self.save()
 
     def to_json(self):
         """
@@ -1687,7 +1688,8 @@ class PolicyTemplate(models.Model):
             policy.action_types.add(action_type)
         
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
-        policy.initialize = "pass" # for now we do not have any initialize codes, we put all of them in the check module
+        policy.initialize = "pass" 
+        # for now we do not have any initialize codes, we put all of them in the check module
         # CodesGenerator.generate_initialize_codes(self.loads("data"))
  
         policy.check = CodesGenerator.generate_check_codes(policy_json["check"])
