@@ -49,25 +49,7 @@ urlpatterns = [
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
 
-    # COLLECTIVE VOICE
-    path('collectivevoice/home', policyviews.collectivevoice_home),
-    path('collectivevoice/edit_expenses', policyviews.collectivevoice_edit_expenses),
-    path('collectivevoice/create_custom_action', policyviews.create_custom_action),
-    path('collectivevoice/edit_voting', policyviews.collectivevoice_edit_voting),
-    path('collectivevoice/create_procedure', policyviews.create_procedure),
-    path('collectivevoice/edit_followup', policyviews.collectivevoice_edit_followup),
-    path('collectivevoice/create_execution', policyviews.create_execution),
-    path('collectivevoice/policy_overview', policyviews.policy_overview),
-    path('collectivevoice/create_overview', policyviews.create_overview),
-    path('collectivevoice/success', policyviews.collectivevoice_success),
-
-    path('admin/', admin.site.urls),
-
-    # urls of no-code UI
-    
-    path('no-code/customize_procedure', policyviews.customize_procedure),
-    path('no-code/create_customization', policyviews.create_customization),
-    
+    path('admin/', admin.site.urls),    
 
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),
@@ -76,6 +58,9 @@ urlpatterns = [
     path('discourse/', include('integrations.discourse.urls')),
     path('github/', include('integrations.github.urls')),
     path('opencollective/', include('integrations.opencollective.urls')),
+
+    # custom views for policybuilding apps
+    path('collectivevoice/', include('policybuilding_apps.urls')),
 
     # default enable/disable views
     path('<slug:integration>/enable_integration', policyviews.enable_integration),

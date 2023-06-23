@@ -346,7 +346,7 @@ def load_entities(platform, get_slack_users=False):
                             {
                                 "name": channel.get("name", channel["id"]), 
                                 "value": channel["id"]
-                            } for channel in platform.get_conversations(types=["channel"])
+                            } for channel in platform.get_conversations(types=["channel"], types_arg="private_channel")
                         ]
     if get_slack_users:
         entities["SlackUser"] = platform.get_real_users()

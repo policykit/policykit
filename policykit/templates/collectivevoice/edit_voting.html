@@ -80,7 +80,7 @@
 <script>
     const procedure_details = JSON.parse('{{procedure_details|safe}}');
     const procedures = JSON.parse('{{procedures|safe}}');
-    const entities = JSON.parse('{{entities|safe}}');
+    const entities = JSON.parse('{{entities|safe|addslashes}}');
 
     const showProcedureDetails = () => {
         var cur_index = parseInt(document.getElementById("procedure-picker").value);

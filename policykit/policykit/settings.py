@@ -73,7 +73,8 @@ INSTALLED_APPS = [
     'metagov.plugins.example', #for testing
     'metagov.core',
     'policyengine',
-    'constitution'
+    'constitution',
+    'policybuilding_apps',
 ] + INTEGRATIONS
 
 SITE_ID = 1
@@ -275,16 +276,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "policyengine.tasks.evaluate_pending_proposals",
         "schedule": CELERY_BEAT_FREQUENCY,
     },
-    # Poll reddit for updates
-    "reddit-listener-beat": {
-        "task": "integrations.reddit.tasks.reddit_listener_actions",
-        "schedule": CELERY_BEAT_FREQUENCY,
-    },
-    # Poll discourse for updates
-    "discourse-listener-beat": {
-        "task": "integrations.discourse.tasks.discourse_listener_actions",
-        "schedule": CELERY_BEAT_FREQUENCY,
-    },
+    # # Poll reddit for updates
+    # "reddit-listener-beat": {
+    #     "task": "integrations.reddit.tasks.reddit_listener_actions",
+    #     "schedule": CELERY_BEAT_FREQUENCY,
+    # },
+    # # Poll discourse for updates
+    # "discourse-listener-beat": {
+    #     "task": "integrations.discourse.tasks.discourse_listener_actions",
+    #     "schedule": CELERY_BEAT_FREQUENCY,
+    # },
     # Metagov task for polling external platforms
     "metagov-plugins-beat": {
         "task": "metagov.core.tasks.execute_plugin_tasks",
