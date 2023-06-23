@@ -844,9 +844,7 @@
   }
 
   .variable-item textarea {
-    flex-basis: 85%;
-    flex-grow: 1;
-    flex-shrink: 5;
+
 
     background: rgba(241, 244, 246, 1);
     border-radius: 4px;
@@ -858,8 +856,12 @@
     overflow-y: auto;
   }
 
-  .variable-item textarea:focus {
-    background: ;
+  .variable-item .textarea-div {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 85%;
+    flex-grow: 1;
+    flex-shrink: 5;
   }
 
 
