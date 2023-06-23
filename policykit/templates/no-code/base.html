@@ -768,9 +768,28 @@
     border-radius: 4px;
   }
   
+  .column-variable-item .textarea-div:focus-within {
+    background: rgba(241, 244, 246, 1);
+    border-color: #4451B2;
+    /* background: #F8F9FA;
+    border: 1px solid #F2F4FF;
+    border-radius: 4px;
+     */
+    align-self: stretch;
+    text-align:left;
+    resize: vertical;
+    overflow-y: auto;
+
+  }
   .textarea-div textarea {
     padding-left: 8px;
     padding-top: 2px;
+  }
+
+  .textarea-div textarea:focus {
+    padding-left: 8px;
+    padding-top: 2px;
+    border: none;
   }
   .column-variable-item .selectpicker-wrapper {
     min-width: 50%;
@@ -1222,6 +1241,8 @@
     txt.innerHTML = html;
     return txt.value;
   }
+
+  document.
 
 
 </script>
