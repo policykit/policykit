@@ -762,6 +762,11 @@
     overflow-y: auto;
   }
 
+  .column-variable-item .textarea-div {
+    display: flex;
+    flex-direction: column;
+  }
+
   .column-variable-item .selectpicker-wrapper {
     min-width: 50%;
   }
@@ -852,6 +857,12 @@
     resize: vertical;
     overflow-y: auto;
   }
+
+  .variable-item textarea:focus {
+    background: ;
+  }
+
+
   
   .variable-item .selectpicker-wrapper {
     flex-basis: 85%;
@@ -1179,10 +1190,12 @@
                 </div>`
         } else var variables_dropdowm = "";
         text.innerHTML = label_html + `
-                    <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>
-                              ${variable.default ? variable.default.trim() : ""}
-                    </textarea>
-                    ${variables_dropdowm}
+                    <div class="textarea-div">
+                      <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>
+                                ${variable.default ? variable.default.trim() : ""}
+                      </textarea>
+                      ${variables_dropdowm}
+                    <div>
                   </div>`;
         
       } else {
