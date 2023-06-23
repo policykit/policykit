@@ -1246,7 +1246,7 @@
     let target = event.target.closest(".variables-dropdown-item");
     if(target){
       let textarea = target.closest(".textarea-div").querySelector("textarea");
-      textarea.value += target.querySelector(".code").innerHTML;
+      textarea.value += ` ${target.querySelector(".code").innerHTML}`;
     }
   })
 
