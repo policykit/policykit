@@ -1137,8 +1137,24 @@
 
       
       if(variable["type"] === "string"){ // use textarea for variables of the string type
-        text.innerHTML = label_html + `<textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default ? variable.default.trim() : ""}</textarea>
-                        </div>`;
+        text.innerHTML = label_html + `
+                    <div>
+                          <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>
+                              ${variable.default ? variable.default.trim() : ""}
+                          </textarea>
+                          <div class="dropdown">
+                              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                + Insert Variables
+                              </button>
+                              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                              </div>
+                          </div>
+                    </div>
+                  </div>`;
+        
       } else {
         if(variable.default) // if it is a select input, then a default value is actually not much needed
           input_validate += `  value='${variable.default}'`;
