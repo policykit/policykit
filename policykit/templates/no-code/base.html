@@ -1145,7 +1145,7 @@
     }
 
     // use select picker if possible
-    if(variable.entity && variable.entity != "Text" && (options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0)){
+    if(variable.entity && variable.entity !== "Text" && ((options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0))){
       // if it is, then we use a select as the input box
       if(variable.is_list ?? false) input_validate += "  multiple";
 
