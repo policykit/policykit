@@ -1195,7 +1195,7 @@
 
       
       if(variable["type"] === "string"){ // use textarea for variables of the string type
-        if(column === true && datalist) {
+        if(column === true && datalist.length > 0) {
           let variables_list = "";
           datalist.forEach(
             item => {
@@ -1241,6 +1241,14 @@
     txt.innerHTML = html;
     return txt.value;
   }
+
+  document.body.addEventListener("click", (event) => {
+    let target = event.target.closest(".variables-dropdown-item");
+    if(target){
+      let textarea = target.closest(".textarea-div").querySelector("textarea");
+      textarea.value += target.querySelector(".code").innerHTML;
+    }
+  })
 
 
 
