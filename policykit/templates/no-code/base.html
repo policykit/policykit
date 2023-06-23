@@ -783,14 +783,12 @@
     align-items: flex-start;
     padding: 8px 0 8px 16px;
     gap: 4px;
+    border: none;
+  }
+  .variables-dropdown-toggle {
     background: #FFFFFF;
     /* new/focus background */
     border-bottom: 1px solid #F1F4F6;
-  }
-  .btn-secondary {
-    color: transparent;
-    background-color: transparent;
-    border-color: transparent;
   }
 
   .variable-item {
@@ -1171,7 +1169,7 @@
           );
           var variables_dropdowm = `
                 <div class="dropdown variables-dropdown">
-                  <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <button class="dropdown-toggle variables-dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     + Insert Variables
                   </button>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
