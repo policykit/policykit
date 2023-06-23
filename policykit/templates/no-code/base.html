@@ -746,7 +746,7 @@
     border-radius: 4px;
   }
 
-  .column-variable-item .textarea-div {
+  .column-variable-item textarea {
     background: rgba(241, 244, 246, 1);
     border-radius: 4px;
     border: none;
@@ -759,7 +759,7 @@
     align-self: stretch;
     text-align:left;
     resize: vertical;
-    overflow: auto;
+    overflow-y: auto;
   }
 
   .column-variable-item .selectpicker-wrapper {
@@ -818,7 +818,7 @@
     text-align: center;
   }
 
-  .variable-item .textarea-div {
+  .variable-item textarea {
     flex-basis: 85%;
     flex-grow: 1;
     flex-shrink: 5;
@@ -830,8 +830,10 @@
     
     text-align:left;
     resize: vertical;
-    overflow: auto;
+    overflow-y: auto;
   }
+
+  .
 
   .variable-item .selectpicker-wrapper {
     flex-basis: 85%;
@@ -1137,22 +1139,24 @@
 
       
       if(variable["type"] === "string"){ // use textarea for variables of the string type
+        if(column === true) {
+          var variables_dropdowm = `
+                <div class="dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    + Insert Variables
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#">Action</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else here</a>
+                  </div>
+                </div>`
+        } else var variables_dropdowm = "";
         text.innerHTML = label_html + `
-                    <div class="textarea-div">
-                          <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>
+                    <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>
                               ${variable.default ? variable.default.trim() : ""}
-                          </textarea>
-                          <div class="dropdown">
-                              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                + Insert Variables
-                              </button>
-                              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <a class="dropdown-item" href="#">Action</a>
-                                <a class="dropdown-item" href="#">Another action</a>
-                                <a class="dropdown-item" href="#">Something else here</a>
-                              </div>
-                          </div>
-                    </div>
+                    </textarea>
+                    ${variables_dropdowm}
                   </div>`;
         
       } else {
