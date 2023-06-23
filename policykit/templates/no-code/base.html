@@ -1202,7 +1202,7 @@
       if(variable["type"] === "string"){ // use textarea for variables of the string type
         if(column === true && datalist.length > 0) {
           let variables_list = "";
-          datalist.forEach(
+          datalist.filter(item => item.name !== variable.label).forEach(
             item => {
               variables_list += `
                 <button class="dropdown-item variables-dropdown-item">
