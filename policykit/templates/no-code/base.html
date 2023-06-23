@@ -1142,10 +1142,10 @@
           datalist.forEach(
             item => {
               variables_list += `
-                <div class="dropdown-item variables-dropdown-item">
+                <button class="dropdown-item variables-dropdown-item">
                   <label class="header">${decapitalize(item.name)}</label>
                   <label class="code">{${item.value}}</label>
-                </div>`;
+                </button>`;
             }
           );
           var variables_dropdowm = `
