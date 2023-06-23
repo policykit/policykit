@@ -772,6 +772,16 @@
     padding-left: 2px;
   }
 
+  .variables-dropdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+    background: #FFFFFF;
+    /* new/focus background */
+    border-bottom: 1px solid #F1F4F6;
+  }
+
   .variable-item {
     display: flex;
     flex-direction: row;
@@ -832,7 +842,7 @@
     resize: vertical;
     overflow-y: auto;
   }
-
+  
   .variable-item .selectpicker-wrapper {
     flex-basis: 85%;
     flex-grow: 1;
@@ -1143,8 +1153,8 @@
             item => {
               variables_list += `
                 <button class="dropdown-item variables-dropdown-item">
-                  <label class="header">${decapitalize(item.name)}</label>
-                  <label class="code">{${item.value}}</label>
+                  <label class="header small normal">${decapitalize(item.name)}</label>
+                  <label class="code small prompt">{${item.value}}</label>
                 </button>`;
             }
           );
