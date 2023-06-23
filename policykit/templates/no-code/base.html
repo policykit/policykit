@@ -746,7 +746,7 @@
     border-radius: 4px;
   }
 
-  .column-variable-item textarea {
+  .column-variable-item .textarea-div {
     background: rgba(241, 244, 246, 1);
     border-radius: 4px;
     border: none;
@@ -818,7 +818,7 @@
     text-align: center;
   }
 
-  .variable-item textarea {
+  .variable-item .textarea-div {
     flex-basis: 85%;
     flex-grow: 1;
     flex-shrink: 5;
@@ -1138,7 +1138,7 @@
       
       if(variable["type"] === "string"){ // use textarea for variables of the string type
         text.innerHTML = label_html + `
-                    <div>
+                    <div class="textarea-div">
                           <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>
                               ${variable.default ? variable.default.trim() : ""}
                           </textarea>
