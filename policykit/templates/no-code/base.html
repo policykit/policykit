@@ -1140,8 +1140,12 @@
     var prompt = "";  // display the prompt if exists 
     if(Boolean(variable.prompt) == true) prompt = `<p class='prompt smaller'>${variable.prompt}</p>`;
 
+    const matched_variables = (item) => {
+      return item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label;
+    }
+
     // use select picker if possible
-    if(options && variable.entity && (variable.entity in options)){
+    if(variable.entity && (options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0)){
       // if it is, then we use a select as the input box
       if(variable.is_list ?? false) input_validate += "  multiple";
 
@@ -1157,22 +1161,23 @@
           innerHTML += `<option value='{${variable.default.value}}' selected>${decapitalize(variable.default.name)}</option>`;
         
         if(datalist){
-          datalist.filter(item => item.entity === variable.entity && item.is_list == variable.is_list).forEach(
+          datalist.filter(matched_variables).forEach(
             item => {
               innerHTML += `<option value='{${item.value}}'>${decapitalize(item.name)}</option>`;
             }
           );
         }
-
         innerHTML += `</optgroup>`;
       }
 
-      innerHTML += `<optgroup label="${variable.entity}">`;
-      // add entities in this community
-      options[variable.entity].forEach(entity => {
-        innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
-      });
-      innerHTML += `</optgroup>`;
+      if(variable.entity in options){
+        innerHTML += `<optgroup label="${variable.entity}">`;
+        // add entities in this community
+        options[variable.entity].forEach(entity => {
+          innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
+        });
+        innerHTML += `</optgroup>`;
+      }
 
       innerHTML += `</select></div></div>`;
       text.innerHTML = innerHTML;
