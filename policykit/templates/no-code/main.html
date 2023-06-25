@@ -485,7 +485,7 @@
         variables.forEach(variable => {
             const variable_id = `${select_id}.${variable.name}`;
             // select-${action}.${field}.${variable.name}
-            addVariableInputBox(variable=variable, id=variable_id, parentDiv=variable_div, options=entities)
+            addVariableInputBox(variable=variable, id=variable_id, parentDiv=variable_div, options=entities, type="filter")
         });
 
         
@@ -496,17 +496,15 @@
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_procedure === null) activate_section("procedure");
         
-        
-
         // search for data about this selected procedure 
         selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
         update_data_from_procedures();
-        
+
         let procedure_div = add_section_header("procedure", selected_procedure);
         $("#design_procedure-formview").empty();
         $("#design_procedure-formview").append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, column=true)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, type="procedure")
         })
 
         
@@ -524,7 +522,7 @@
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, column=true)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
         })
     }
 
@@ -543,7 +541,7 @@
         
         $(`#design_execution_${stage}-formview > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, column=false)
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, type="transformer")
         })
     }
     
