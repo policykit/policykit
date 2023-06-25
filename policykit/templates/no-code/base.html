@@ -760,7 +760,7 @@
     overflow-y: auto;
   }
 
-  .column-variable-item .textarea-div {
+  .textarea-div {
     display: flex;
     flex-direction: column;
     align-self: stretch;
@@ -768,7 +768,7 @@
     border-radius: 4px;
   }
   
-  .column-variable-item .textarea-div:focus-within {
+  .textarea-div:focus-within {
     background: rgba(241, 244, 246, 1);
     border-color: #4451B2;
     /* background: #F8F9FA;
@@ -778,8 +778,8 @@
     align-self: stretch;
     text-align:left;
     resize: vertical;
-
   }
+
   .textarea-div textarea {
     padding-left: 8px;
     padding-top: 2px;
@@ -1126,13 +1126,13 @@
     return missing_variables;
   }
 
-  const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, column=false) => {
+  const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
     var text = document.createElement('div');
     text.id = id;
     let displayed_name = capitalize(variable.label); // which name to display for this variable input box
 
     // if it is a column variable, then we use the column variable style
-    if(column === true){
+    if(type === "procedure" || type === "transformer"){
       text.classList.add('column-variable-item');
     } else text.classList.add('variable-item');
     
@@ -1212,7 +1212,7 @@
 
       
       if(variable["type"] === "string"){ // use textarea for variables of the string type
-        if(column === true && datalist.length > 0) {
+        if(type !== "filter" && datalist.length > 0) {
           let variables_list = "";
           datalist.filter(item => item.name !== variable.label).forEach(
             item => {
