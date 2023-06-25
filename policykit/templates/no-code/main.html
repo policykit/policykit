@@ -541,7 +541,7 @@
         
         $(`#design_execution_${stage}-formview > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
-            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, type="transformer")
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, type="execution")
         })
     }
     
