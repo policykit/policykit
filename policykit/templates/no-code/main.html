@@ -485,7 +485,7 @@
         variables.forEach(variable => {
             const variable_id = `${select_id}.${variable.name}`;
             // select-${action}.${field}.${variable.name}
-            addVariableInputBox(variable=variable, id=variable_id, parentDiv=variable_div, options=entities, type="filter")
+            addVariableInputBox(variable=variable, id=variable_id, parentDiv=variable_div, options=entities, datalist=null, type="filter")
         });
 
         
