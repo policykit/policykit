@@ -119,10 +119,10 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <div class="collapse-section" id="transformer-collapse-section">
+            <div class="collapse-section hidden" id="transformer-collapse-section">
                 <div class="vertical-line"></div>
-                <button class="collapse-section-button" type="transformer">+</button>
-                <div class="vertical-line"></div>
+                <!-- <button class="collapse-section-button" type="transformer">+</button>
+                <div class="vertical-line"></div> -->
             </div>
             <section id="design_transformer" class="hidden">
                 <div class="section-header medium">
@@ -305,12 +305,16 @@
         section.removeClass("inactive");
         section.addClass("active");
         section.empty();
+        if(section_name !== "procedure"){
+            section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
+        } else {
+            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure">More Customization</button>`);
+
+        }
         $(`#design_${section_name} .section-bottom`).removeClass("hidden");
         $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
         $(`#design_${section_name} .section-header .source-code-button`).removeClass("hidden");
-        if(section_name !== "procedure"){
-            section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
-        }
+
     }
 
     function deactivate_section(section_name){
@@ -756,14 +760,19 @@
 
     // listen to the event when users click the + button to unfold a collapsed section (transformer section)
     document.getElementById("nocode-panel").addEventListener("click", (event) => {
-        let target = event.target.closest(".collapse-section-button");
+        // let target = event.target.closest(".collapse-section-button");
+        // if(target){
+        //     let section_type = target.getAttribute("type");
+        //     if(section_type === "transformer" || section_type.startsWith("execution")){
+        //         let collapse_section = target.closest(".collapse-section");
+        //         collapse_section.classList.add("hidden");
+        //         $(`#design_${section_type}`).removeClass("hidden");
+        //     }
+        // }
+        let target = event.target.closest(".customize-procedure-button");
         if(target){
-            let section_type = target.getAttribute("type");
-            if(section_type === "transformer" || section_type.startsWith("execution")){
-                let collapse_section = target.closest(".collapse-section");
-                collapse_section.classList.add("hidden");
-                $(`#design_${section_type}`).removeClass("hidden");
-            }
+            $(`#design_transformer`).removeClass("hidden");
+            $(`transformer-collapse-section`).removeClass("hidden");
         }
     })
     
