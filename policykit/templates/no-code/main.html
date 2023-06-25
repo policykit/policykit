@@ -1053,8 +1053,11 @@
         let success_data = collectExecutionData("success");
         if(success_data === false) return;
 
+        let procedure_data = null;
+        let transformer_data = null;
+        let fail_data = null;
         if(selected_policy_kind !== "if_then_rules"){
-            let procedure_data = collectProcedureData();
+            procedure_data = collectProcedureData();
             if(procedure_data === false) return;
 
             let transformer_data = collectTransformerData();
@@ -1075,12 +1078,12 @@
                     policykind: selected_policy_kind,   // "if_then_rules", "community_policies", "triggering_policies"
                     app_name: app_name,
                     filters: custom_action_data,
-                    procedure: procedure_data || null,
-                    transformers: transformer_data || null,
+                    procedure: procedure_data,
+                    transformers: transformer_data,
                     executions: {
                         // notify: notify_data,
                         success: success_data,
-                        fail: fail_data || null,
+                        fail: fail_data,
                     }
                 }
         console.log("all data: " + JSON.stringify(all_data));
