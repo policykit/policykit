@@ -308,7 +308,7 @@
         if(section_name !== "procedure"){
             section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
         } else {
-            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure">More Customization</button>`);
+            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure">Customize</button>`);
 
         }
         $(`#design_${section_name} .section-bottom`).removeClass("hidden");
@@ -772,7 +772,7 @@
         let target = event.target.closest(".customize-procedure-button");
         if(target){
             $(`#design_transformer`).removeClass("hidden");
-            $(`transformer-collapse-section`).removeClass("hidden");
+            $(`#transformer-collapse-section`).removeClass("hidden");
         }
     })
     
