@@ -363,6 +363,8 @@ class PolicykitAddUserRole(ConstitutionAction):
         platform = kwargs.get("platform", None)
         if role and user and platform:
             return f"{platform}.assign_role(user={user}, role={role})"
+        else:
+            return ""
         
 
 
@@ -424,11 +426,13 @@ class PolicykitRemoveUserRole(ConstitutionAction):
         permissions = (("can_execute_policykitremoveuserrole", "Can execute policykit remove user role"),)
 
     def execution_codes(**kwargs):
-        role = kwargs.get("channel", None)
+        role = kwargs.get("role", None)
         user = kwargs.get("user", None)
         platform = kwargs.get("platform", None)
         if role and user and platform:
             return f"{platform}.remove_role(user={user}, role={role})"
+        else:
+            return ""
 
 class EditorModel(ConstitutionAction):
     name = models.CharField(max_length=100)
