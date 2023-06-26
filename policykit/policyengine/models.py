@@ -194,6 +194,22 @@ class CommunityPlatform(PolymorphicModel):
 
         super(CommunityPlatform, self).save(*args, **kwargs)
 
+    def assign_role(self, user, role):
+        user = CommunityUser.objects.filter(community=self, user=user)
+        role = CommunityRole.objects.filter(community=self, role_name=role)
+        if user.exists() and role.exists():
+            user = user.first()
+            role = role.first()
+            role.user_set.add(user)
+
+    def remove_role(self, user, role):
+        user = CommunityUser.objects.filter(community=self, user=user)
+        role = CommunityRole.objects.filter(community=self.community, role_name=role)
+        if user.exists() and role.exists():
+            user = user.first()
+            role = role.first()
+            role.user_set.remove(user)
+
 class CommunityRole(Group):
     """CommunityRole"""
 
