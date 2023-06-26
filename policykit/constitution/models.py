@@ -318,6 +318,29 @@ class PolicykitAddUserRole(ConstitutionAction):
             "type": "string"
         }
     ]
+    EXECUTE_VARIABLES = [
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "default": "",
+            "is_required": True,
+            "prompt": "the role that is granted to the user",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "user",
+            "label": "User",
+            "entity": "CommunityUser",
+            "default": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
+
     def __str__(self):
         first_user = self.users.first()
         if self.role and first_user:
@@ -333,6 +356,13 @@ class PolicykitAddUserRole(ConstitutionAction):
 
     class Meta:
         permissions = (("can_execute_policykitadduserrole", "Can execute policykit add user role"),)
+
+    def execution_codes(**kwargs):
+        role = kwargs.get("channel", None)
+        user = kwargs.get("user", None)
+        if role and user:
+            return f"{{platform}}.assign_role(user={user}, role={role})"
+        
 
 
 class PolicykitRemoveUserRole(ConstitutionAction):
@@ -356,6 +386,29 @@ class PolicykitRemoveUserRole(ConstitutionAction):
             "type": "string"
         }
     ]
+    EXECUTE_VARIABLES = [
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "default": "",
+            "is_required": True,
+            "prompt": "the role that is removed from the user",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "user",
+            "label": "User",
+            "entity": "CommunityUser",
+            "default": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        }
+    ]
+
     def __str__(self):
         if self.role and self.users.all().count() > 0:
             return "Remove User: " + str(self.users.all()[0]) + " from Role: " + self.role.role_name
@@ -369,6 +422,11 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     class Meta:
         permissions = (("can_execute_policykitremoveuserrole", "Can execute policykit remove user role"),)
 
+    def execution_codes(**kwargs):
+        role = kwargs.get("channel", None)
+        user = kwargs.get("user", None)
+        if role and user:
+            return f"{{platform}}.remove_role(user={user}, role={role})"
 
 class EditorModel(ConstitutionAction):
     name = models.CharField(max_length=100)
