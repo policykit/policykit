@@ -467,10 +467,7 @@ def generate_execution_codes(executions):
             this_action = find_action_cls(action_codename)
             if hasattr(this_action, "execution_codes"):
                 execute_variables = this_action.EXECUTE_VARIABLES
-                logger.debug(f"execute_variables: {execute_variables}")
                 execution = force_execution_variable_types(execution, execute_variables)
-                logger.debug(f"execution: {execution}")
-                logger.debug(f"this_action: {this_action}")
                 codes += this_action.execution_codes(**execution)
             else:
                 raise NotImplementedError
