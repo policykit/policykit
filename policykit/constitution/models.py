@@ -358,7 +358,7 @@ class PolicykitAddUserRole(ConstitutionAction):
         permissions = (("can_execute_policykitadduserrole", "Can execute policykit add user role"),)
 
     def execution_codes(**kwargs):
-        role = kwargs.get("channel", None)
+        role = kwargs.get("role", None)
         user = kwargs.get("user", None)
         if role and user:
             return f"{{platform}}.assign_role(user={user}, role={role})"
