@@ -57,9 +57,9 @@
                 "name": "vote_message",
                 "label": "Vote message",
                 "entity": "Text",
-                "default": "Start a yes-no vote: vote with :thumbsup: or :thumbsdown: on this post.",
+                "default": "",
                 "is_required": false,
-                "prompt": "",
+                "prompt": "Only approve the action when at least  {variables.minimum_yes_required} people approve and at most {variables.maximum_no_allowed} disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
                 "type": "string",
                 "is_list": false
             },
