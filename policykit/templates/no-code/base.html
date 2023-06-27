@@ -1239,12 +1239,14 @@
                       <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default ? variable.default.trim() : ""}</textarea>
                       ${variables_dropdowm}
                     <div>
+                    ${prompt}
                   </div>`;
         
       } else {
         if(variable.default) // if it is a select input, then a default value is actually not much needed
           input_validate += `  value='${variable.default}'`;
         text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
+                    ${prompt}
                       </div>`;
       }
     }
