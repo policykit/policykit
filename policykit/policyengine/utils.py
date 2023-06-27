@@ -352,3 +352,12 @@ def validate_fstrings(string):
     pattern = r'{\s*}'  
     # Regular expression pattern to match empty curly brackets
     return re.sub(pattern, '', string)
+
+def determine_user(platform, username):
+    from policyengine.models import CommunityUser
+    if CommunityUser.objects.filter(username=username, community=platform).exists():
+        return CommunityUser.objects.get(username=username, community=platform)
+    elif CommunityUser.objects.filter(readable_name=username, community=platform).exists():
+        return CommunityUser.objects.get(readable_name=username, community=platform)
+    else:
+        return None
