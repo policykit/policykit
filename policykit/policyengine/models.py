@@ -200,7 +200,7 @@ class CommunityPlatform(PolymorphicModel):
         role = CommunityRole.objects.filter(community=self.community, role_name=role)
         if user and role.exists():
             role = role.first()
-            # role.user_set.add(user)
+            role.user_set.add(user)
 
     def remove_role(self, user, role):
         # user might be username or readable names
