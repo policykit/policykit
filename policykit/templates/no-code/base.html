@@ -1152,8 +1152,11 @@
     if(Boolean(variable.prompt) == true) prompt = `<p class='variable-prompt'>${variable.prompt}</p>`;
 
     const matched_variables = (item) => {
+      if(item.entity === "undefined"){
+        console.log(item, variable);
+      }
       return (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
-        (item.entity === "undefined" && item.type === variable.type && item.is_list == variable.is_list && item.name !== variable.label);
+        (item.entity === "undefined" && item.type === variable.type && item.is_list === variable.is_list && item.name !== variable.label);
     }
 
     // use select picker if possible
