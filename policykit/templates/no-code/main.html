@@ -1077,13 +1077,13 @@
             procedure_data = collectProcedureData();
             if(procedure_data === false) return;
 
-            let transformer_data = collectTransformerData();
+            transformer_data = collectTransformerData();
             if(transformer_data === false) return;
 
             // let notify_data = collectExecutionData("notify");
             // if(notify_data === false) return;
             
-            let fail_data = collectExecutionData("fail");
+            fail_data = collectExecutionData("fail");
             if(fail_data === false) return;
         }
         
