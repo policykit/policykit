@@ -270,7 +270,7 @@
             });
             selected_procedure["data"].forEach((datum, index) => {
                 var datum = {
-                    value: `proposal.data.get(\'${datum.name}\')`,
+                    value: `proposal.data.get("${datum.name}")`,
                     name: datum.label,
                     entity: datum.entity,
                     is_list: datum.is_list,
