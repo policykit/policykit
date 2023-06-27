@@ -101,6 +101,13 @@
     font-weight: 300;
   }
 
+  .variable-prompt {
+    color: #52677A;
+    font-weight: 300;
+    font-size: 12px;
+    
+  }
+
   .info {
     color: #4451B2;
   }
@@ -1146,7 +1153,7 @@
     } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
 
     var prompt = "";  // display the prompt if exists 
-    if(Boolean(variable.prompt) == true) prompt = `<p class='prompt smaller'>${variable.prompt}</p>`;
+    if(Boolean(variable.prompt) == true) prompt = `<p class='variable-prompt'>${variable.prompt}</p>`;
 
     const matched_variables = (item) => {
       return item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label;
@@ -1238,7 +1245,7 @@
                     <div class="textarea-div">
                       <textarea class='variable-input small normal' data-id='${id}' ${input_validate}>${variable.default ? variable.default.trim() : ""}</textarea>
                       ${variables_dropdowm}
-                    <div>
+                    </div>
                     ${prompt}
                   </div>`;
         
