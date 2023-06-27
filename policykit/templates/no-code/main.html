@@ -263,6 +263,7 @@
                     name: variable.label,
                     entity: variable.entity,
                     is_list: variable.is_list,
+                    type: variable.type,
                     from: "procedure"
                 }
                 global_datalist.push(datum);
@@ -273,7 +274,8 @@
                     name: datum.label,
                     entity: datum.entity,
                     is_list: datum.is_list,
-                    from: "procedure"
+                    from: "procedure",
+                    type: datum.type
                 }
                 global_datalist.push(datum);
             });
