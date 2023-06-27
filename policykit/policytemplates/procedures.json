@@ -55,17 +55,17 @@
             },
             {
                 "name": "vote_message",
-                "label": "Vote message",
+                "label": "Voting message",
                 "entity": "Text",
-                "default": "",
+                "default": "Only approve the action when at least  {variables.minimum_yes_required} people approve and at most {variables.maximum_no_allowed} disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": false,
-                "prompt": "Only approve the action when at least  {variables.minimum_yes_required} people approve and at most {variables.maximum_no_allowed} disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
             {
                 "name": "vote_channel",
-                "label": "Vote channel",
+                "label": "Voting channel",
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
@@ -78,7 +78,7 @@
             {
                 "name": "yes_votes_num",
                 "label": "Number of Yes Votes",
-                "prompt": "How many yes votes are there for this proposal",
+                "prompt": "",
                 "entity": null,
                 "type": "number",
                 "is_list": false
@@ -86,15 +86,15 @@
             {
                 "name": "no_votes_num",
                 "label": "Number of No Votes",
-                "prompt": "How many no votes are there for this proposal",
+                "prompt": "",
                 "entity": null,
                 "type": "number",
                 "is_list": false
             },
             {
                 "name": "thread_post_id",
-                "label": "Thread of the Vote Procedure",
-                "prompt": "What is the thread post id of the vote procedure",
+                "label": "Thread ID of the Vote Procedure",
+                "prompt": "",
                 "entity": null,
                 "type": "string",
                 "is_list": false
@@ -131,17 +131,17 @@
                 "entity": "CommunityUser",
                 "default": "",
                 "is_required": true,
-                "prompt": "Who is the benevolent dictator",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
             {
                 "name": "decision_message",
-                "label": "Vote message for the dictator",
+                "label": "Voting message for the dictator",
                 "entity": "Text",
                 "default": "Please make a decision on this proposal by yes-or-no voting",
                 "is_required": false,
-                "prompt": "What messages the dictator should be prompted with to make a decision",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -151,7 +151,7 @@
                 "entity": "Text",
                 "default": "We have asked the dictator to make a decision on this proposal",
                 "is_required": false,
-                "prompt": "What messages should we notify other community members when the dictator is asked to make a decision",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -204,7 +204,7 @@
             },
             {
                 "name": "decision_message",
-                "label": "Vote message for board members",
+                "label": "Voting message for board members",
                 "entity": "Text",
                 "default": "Please make a decision on this proposal by yes-or-no voting",
                 "is_required": false,
@@ -218,7 +218,7 @@
                 "entity": "Text",
                 "default": "We have asked the board to make a decision on this proposal",
                 "is_required": false,
-                "prompt": "What messages should we notify other community members when board members is asked to make a decision",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -228,7 +228,7 @@
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
-                "prompt": "Which channel should we notify other community members about the decision",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -238,7 +238,7 @@
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "How many number of yes votes are required to reach success",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             },
@@ -248,7 +248,7 @@
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "How many number of no votes are allowed before we call a failure",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             }
@@ -257,7 +257,7 @@
             {
                 "name": "board_members",
                 "label": "Board Members",
-                "prompt": "Given the board role, who are the board members",
+                "prompt": "",
                 "entity": "CommunityUser",
                 "type": "string",
                 "is_list": true
@@ -273,7 +273,7 @@
             {
                 "name": "no_votes_num",
                 "label": "Number of No Votes",
-                "prompt": "How many no votes are there for this proposal",
+                "prompt": "",
                 "entity": null,
                 "type": "number",
                 "is_list": false
@@ -308,7 +308,7 @@
                 "entity": null,
                 "default": "100",
                 "is_required": true,
-                "prompt": "How many vote credits each eligible voter has",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             },
@@ -318,7 +318,7 @@
                 "entity": null,
                 "default": "",
                 "is_required": true,
-                "prompt": "Who are the candidates? If there are multiple candidates, separate them by commas",
+                "prompt": "If there are multiple candidates, separate them by commas. If candidates are users, please use their usernames as shown in the policykit interface.",
                 "type": "string",
                 "is_list": true
             },
@@ -337,31 +337,31 @@
             },
             {
                 "name": "vote_message",
-                "label": "Vote message",
+                "label": "Voting message",
                 "entity": "Text",
                 "default": "Please assign your votes to express the degree of your preferences on each candidate",
                 "is_required": false,
-                "prompt": "Message to be posed in the channel when the vote starts",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
             {
                 "name": "vote_channel",
-                "label": "Vote channel",
+                "label": "Voting channel",
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
-                "prompt": "Channel to post the vote message.",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
             {
                 "name": "vote_duration",
-                "label": "Vote duration (in seconds)",
+                "label": "Voting duration (in seconds)",
                 "entity": null,
                 "default": "60",
                 "is_required": true,
-                "prompt": "Duration for the voting process (in seconds)",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             }
@@ -409,7 +409,7 @@
                 "entity": "Text",
                 "default": "Before deciding on this proposal, people have the opportunity to delegate their votes to another individual who will then be asked to make decisions for this proposal on their behalf. People who have not select their delegates or select themselves as delegates will then need to decide this proposal by themselves",
                 "is_required": false,
-                "prompt": "Message to be posed at the delegation stage",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -419,7 +419,7 @@
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
-                "prompt": "Channel where the procedure happens.",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
@@ -429,17 +429,17 @@
                 "entity": null,
                 "default": "60",
                 "is_required": true,
-                "prompt": "Duration for the delegation process (in seconds)",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             },
             {
                 "name": "vote_duration",
-                "label": "Duration for the official voting process (in seconds)",
+                "label": "Duration for the voting process (in seconds)",
                 "entity": null,
                 "default": "60",
                 "is_required": true,
-                "prompt": "Duration for the official voting process (in seconds)",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             }
@@ -470,11 +470,11 @@
         "variables": [
             {
                 "name": "max_rank",
-                "label": "Maximumn rank",
+                "label": "Maximumn rank assigned to candidates",
                 "entity": null,
                 "default": "3",
                 "is_required": true,
-                "prompt": "The maximum rank that a voter can assign to a candidate (start from 1)",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             },
@@ -484,17 +484,17 @@
                 "entity": null,
                 "default": "3,2,1",
                 "is_required": true,
-                "prompt": "It should have the length of Maximumn Rank. Please separate the scores by commas",
+                "prompt": "It should have the length equal to the maximumn rank. Please separate the scores by commas",
                 "type": "number",
                 "is_list": true
             },
             {
                 "name": "candidates",
-                "label": "Candidates",
+                "label": "Candidates / Options",
                 "entity": null,
                 "default": "",
                 "is_required": true,
-                "prompt": "Candidates or issues to be voted on. If there are multiple candidates, separate them by commas",
+                "prompt": "If there are multiple candidates, separate them by commas. If candidates are users, please use their usernames as shown in the policykit interface.",
                 "type": "string",
                 "is_list": true
             },
@@ -513,31 +513,31 @@
             },
             {
                 "name": "vote_message",
-                "label": "Vote message",
+                "label": "Voting message",
                 "entity": "Text",
                 "default": "Please assign your votes to express the degree of your preferences on each candidate",
                 "is_required": false,
-                "prompt": "Message to be posed in the channel when the vote starts",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
             {
                 "name": "vote_channel",
-                "label": "Vote channel",
+                "label": "Voting channel",
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
-                "prompt": "Channel to post the vote message.",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             },
             {
                 "name": "vote_duration",
-                "label": "Vote duration (in seconds)",
+                "label": "Voting duration (in seconds)",
                 "entity": null,
                 "default": "60",
                 "is_required": true,
-                "prompt": "Duration for the voting process (in seconds)",
+                "prompt": "",
                 "type": "number",
                 "is_list": false
             }
