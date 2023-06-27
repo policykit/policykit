@@ -874,13 +874,15 @@
     
     const hideSliderPanel = () => {
         let focus_section = document.getElementById(focus_section_id);
-        if(focus_section) focus_section.classList.remove("focus-section");
+        if(focus_section) {
+            focus_section.classList.remove("focus-section");
         
-        let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
-        if(prompt_button){
-            prompt_button.classList.remove("prompt");
-            prompt_button.classList.add("info");
-            prompt_button.innerHTML = "+ Add";
+            let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+            if(prompt_button){
+                prompt_button.classList.remove("prompt");
+                prompt_button.classList.add("info");
+                prompt_button.innerHTML = "+ Add";
+            }
         }
         $("#slider-panel").addClass("hidden");
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
