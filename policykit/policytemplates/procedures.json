@@ -13,7 +13,7 @@
                 "action": "initiate_vote",
                 "vote_message": "variables.vote_message",
                 "post_type": "channel",
-                "users": "variables.users",
+                "users": "variables.eligible_voters",
                 "channel": "variables.vote_channel",
                 "platform": "slack"
             }
@@ -460,7 +460,7 @@
                 "action": "initiate_advanced_vote",
                 "candidates": "variables.candidates",
                 "options": "data.options",
-                "users": "variables.eligible_voters",
+                "users": "data.eligible_voters",
                 "channel": "variables.vote_channel",
                 "title": "variables.vote_message",
                 "details": "Each voter should rank candidates, who will then be assigned a score based on their ranking. The candidate with the highest overall score is the winner; if there are more than one winners, we consider this procedure as failed.",
