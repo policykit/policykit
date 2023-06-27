@@ -196,7 +196,8 @@ class CommunityPlatform(PolymorphicModel):
 
     def assign_role(self, user, role):
         # user might be username or readable names
-        user = Utils.determine_user(self, user)
+        # user = Utils.determine_user(self, user)
+        user = CommunityUser.objects.filter(community=self, readable_name=user).first()
         role = CommunityRole.objects.filter(community=self.community, role_name=role)
         if user and role.exists():
             role = role.first()
