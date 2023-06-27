@@ -270,7 +270,7 @@
             });
             selected_procedure["data"].forEach((datum, index) => {
                 var datum = {
-                    value: `proposal.data.get('${datum.name}')`,
+                    value: `proposal.data.get(\'${datum.name}\')`,
                     name: datum.label,
                     entity: datum.entity,
                     is_list: datum.is_list,
@@ -674,7 +674,7 @@
 
 
                 $(`#design_${type}-codeview`).before(
-                    showWarningMessage(`Once you change the code, you cannot edit this ${type} using no-code view.`)
+                    showWarningMessage(`Once you change the code, you cannot edit this section using no-code view.`)
                 )
                 
                 editors[type].setValue(decodeHtml(codes));
