@@ -79,7 +79,6 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
-        logger.debug(f"Initialized evaluation context for proposal {proposal}")
         self.initialize_variables()
 
     def initialize_variables(self):
