@@ -133,14 +133,14 @@ def extract_executable_actions(user):
     actions = get_action_types(user.community.community, kinds=[PolicyActionKind.PLATFORM, PolicyActionKind.CONSTITUTION])
 
     executable_actions = dict()
-    executable_actions["General"] = [{
+    executable_actions[" "] = [{
         "value": "revert_action",
         "name": "Revert the Trigger Actions",
         "variables": [],
         "app": "special"
     }]
 
-    executable_actions["General"].append({
+    executable_actions[" "].append({
         "value": "execute_actions",
         "name": "Execute the Governed Actions",
         "variables": [],
