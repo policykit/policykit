@@ -1,15 +1,14 @@
 import logging
-import requests
 import urllib
 
-from django.conf import settings
-from django.contrib.auth import authenticate, login
-from django.shortcuts import redirect, render
+from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required, permission_required
+
+from django.shortcuts import redirect
 from integrations.opencollective.models import (
     OpencollectiveCommunity,
 )
 from policyengine.models import Community
-from policyengine.utils import render_starterkit_view
 from policyengine.metagov_app import metagov
 
 logger = logging.getLogger(__name__)
@@ -61,3 +60,28 @@ def opencollective_install(request):
     else:
         logger.debug("OC community already exists")
         return redirect(f"{redirect_route}?success=true")
+
+
+
+@login_required
+@permission_required("constitution.can_remove_integration", raise_exception=True)
+def disable_integration_without_deletion(request):
+    """
+    Disable OpenCollective integration 
+    without deleting the OpencollectiveCommunity object
+    so we can re-add integration and get a fresh
+    OAuth token.
+    """
+    integration = "opencollective"
+    id = int(request.GET.get("id")) # id of the plugin
+    user = get_user(request)
+    community = user.community.community
+    logger.debug(f"Disabling plugin {integration} {id} for community {community}")
+
+    # Disable the Metagov Plugin
+    metagov.get_community(community.metagov_slug).disable_plugin(integration, id=id)
+
+    # Unlike the generic disable_integration function, 
+    # we don't delete the platform community here
+
+    return redirect("/main/settings")
