@@ -822,7 +822,18 @@
     overflow-x: hidden;
   }
 
-  .dropdown-header {
+  .dropdown-header:not(:first-child) {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-size: 16px;
+    font-weight: 600;
+    padding-left: 16px;
+    padding-right: 0px;
+    color: #4451B2;
+    border-top: #4451B2 1px dashed;
+  }
+
+  .dropdown-header:first-child {
     font-family: 'Nunito';
     font-style: normal;
     font-size: 16px;
@@ -831,6 +842,8 @@
     padding-right: 0px;
     color: #4451B2;
   }
+
+
   .variables-dropdown-item {
     display: flex;
     flex-direction: column;
