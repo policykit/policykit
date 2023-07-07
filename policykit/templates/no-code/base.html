@@ -1171,14 +1171,14 @@
         innerHTML += ` <optgroup label="Variables">`
         
         if(typeof variable.default === "string" && variable.default !== "")
-          innerHTML += `<option value='${variable.default}' selected>${decapitalize(variable.default)}</option>`;
+          innerHTML += `<option class="default-option" value='${variable.default}' selected><span class="prompt">default: </span>${decapitalize(variable.default)}</option>`;
         else if(variable.default instanceof Object)
-          innerHTML += `<option value='{${variable.default.value}}' selected>${decapitalize(variable.default.name)}</option>`;
+          innerHTML += `<option class="default-option" value='{${variable.default.value}}' selected><span class="prompt">default: </span>${decapitalize(variable.default.name)}</option>`;
         
         if(datalist){
           datalist.filter(matched_variables).forEach(
             item => {
-              innerHTML += `<option value="{${item.value}}">${decapitalize(item.name)}</option>`;
+              innerHTML += `<option class="${item.from}-option" value="{${item.value}}"><span class="prompt">from ${item.from}: </span>${decapitalize(item.name)}</option>`;
             }
           );
         }
