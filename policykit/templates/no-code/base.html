@@ -1222,15 +1222,34 @@
       if(variable["type"] === "string"){ // use textarea for variables of the string type
         if(type !== "filter" && datalist.length > 0) {
           let variables_list = "";
-          datalist.filter(item => item.name !== variable.label).forEach(
-            item => {
-              variables_list += `
-                <button class="dropdown-item variables-dropdown-item">
-                  <label class="header small normal">${decapitalize(item.name)}</label>
-                  <label class="code small prompt">{${item.value}}</label>
-                </button>`;
-            }
-          );
+          let action_data = datalist.filter(item => item.name !== variable.label && item.from === "action");
+          if(action_data.length > 0){
+            variables_list += `<div class="dropdown-header">Action</div>`;
+            action_data.forEach(
+              item => {
+                variables_list += `
+                  <button class="dropdown-item variables-dropdown-item">
+                    <label class="header small normal">${decapitalize(item.name)}</label>
+                    <label class="code small prompt">{${item.value}}</label>
+                  </button>`;
+              }
+            );
+          }
+
+          let procedure_data = datalist.filter(item => item.name !== variable.label && item.from === "procedure");
+          if(procedure_data.length > 0){
+            variables_list += `<div class="dropdown-header">Procedure</div>`;
+            procedure_data.forEach(
+              item => {
+                variables_list += `
+                  <button class="dropdown-item variables-dropdown-item">
+                    <label class="header small normal">${decapitalize(item.name)}</label>
+                    <label class="code small prompt">{${item.value}}</label>
+                  </button>`;
+              }
+            );
+          }
+          
           var variables_dropdowm = `
                 <div class="dropdown variables-dropdown">
                   <button class="dropdown-toggle variables-dropdown-toggle small " type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
