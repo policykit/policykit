@@ -408,10 +408,16 @@
         return div;
     }
 
-    function showWarningMessage(message){
-        return  `<div class="section-codeview-warning small normal">
-                    <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;${message}
-                </div>`
+    function showWarningMessage(message, type="warning"){
+        if(type == "warning"){
+            return  `<div class="section-warning-banner small normal">
+                        <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;${message}
+                    </div>`
+        } else if(type == "info"){
+            return  `<div class="section-info-banner small normal">
+                <i class="fa-solid fa-robot" style="color: #4451b2;"></i>&nbsp;${message}
+                    </div>`
+        }
     }
 
     const removeFilterParameters = (action_value) => {
@@ -968,7 +974,10 @@
         $("#design-action-instruct").html(trigger_action_instruct[selected_policy_kind]);
 
         if(selected_policy_kind === "community_policies"){
-            showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
+            // showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
+            $(`#design_execution_success-formview`).before(
+                showWarningMessage(`The governed actions will be automatically executed at this stage.`, "info")
+            )
         } else if(selected_policy_kind == "triggering_policies"){
             return;
         } else if(selected_policy_kind == "if_then_rules"){
