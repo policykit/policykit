@@ -184,13 +184,14 @@
         </div>
         <div class="panel-bottom">
             <div>
-                <button class="button secondary"> Discard </button>
+                <button class="button secondary" id="discard_policy"> Discard </button>
                 <button class="button primary" id="save_policy"> Save </button>
             </div>
         </div>
     </div>
 
     <!-- pop up windows -->
+    <!-- when save the policy -->
     <div class="modal fade" id="end-popup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
@@ -206,6 +207,26 @@
             <div class="modal-footer ">
               <button type="button" id="inspect-code-button" class="button secondary medium" data-dismiss="modal">Inspect Code</button>
               <button type="button" id="author-new-button" class="button primary medium">Continue</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- when discard the policy -->
+    <div class="modal fade" id="discard-popup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title prompt small">Discard the Policy</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body normal">
+                Are you sure you want to discard the policy? All the changes will be lost.
+            </div>
+            <div class="modal-footer ">
+              <button type="button" id="close-discard-button" class="button secondary medium" data-dismiss="modal">Back</button>
+              <button type="button" id="continue-discard-button" class="button primary medium">Continue</button>
             </div>
           </div>
         </div>
@@ -1137,16 +1158,29 @@
     }
 
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
+    document.getElementById("discard_policy").addEventListener('click', function(){
+        $("#discard-popup").modal("show");
+    });
+
     document.getElementById("inspect-code-button").addEventListener('click', function(){
         if(created_policy_pk !== null){
             window.location.href = `/main/editor?policy=${created_policy_pk}`;
         }
     });
-
     document.getElementById("author-new-button").addEventListener('click', function(){
         // go back to the page where choosing policy kind by refreshing the page
         location.reload();
     });
+
+    document.getElementById("close-discard-button").addEventListener('click', function(){
+        $("#discard-popup").modal("hide");
+    });
+
+    document.getElementById("continue-discard-button").addEventListener('click', function(){
+        $("#discard-popup").modal("hide");
+        window.location.href = "/main";
+    });
+
 
 
 </script>
