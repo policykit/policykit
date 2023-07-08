@@ -1643,7 +1643,7 @@ class PolicyTemplate(models.Model):
         filters += [{"action_type": action.codename} for action in self.action_types.all()]
 
          # add actions defined in the Procedure isntance to the extra_executions
-        procedure = self.procedure.to_json()
+        procedure = self.procedure.to_json() if self.procedure else {}
         executions = self.loads("executions") 
         for key in ["notify", "success", "fail"]:
             if key not in executions:
@@ -1654,7 +1654,8 @@ class PolicyTemplate(models.Model):
                 executions[key] = procedure[key] + executions[key]
 
         checks = [transformer.to_json() for transformer in self.transformers.all()]
-        checks.append(procedure["check"])
+        if "check" in procedure:
+            checks.append(procedure["check"])
 
         
         return {
