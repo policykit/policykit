@@ -978,7 +978,9 @@
             $(`#design_execution_success-formview`).before(
                 showWarningMessage(`The governed actions will be automatically executed at this stage.`, "info")
             )
-            executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "revert_action");
+
+            // remove the revert_action
+            delete executions[SPECIAL_EXECUTION_APP];
         } else if(selected_policy_kind == "triggering_policies"){
             return;
         } else if(selected_policy_kind == "if_then_rules"){
