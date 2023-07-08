@@ -137,15 +137,15 @@ def extract_executable_actions(user):
         "value": "revert_action",
         "name": "Revert the Trigger Actions",
         "variables": [],
-        "app": "special"
+        "app": " "
     }]
 
-    executable_actions[" "].append({
-        "value": "execute_actions",
-        "name": "Execute the Governed Actions",
-        "variables": [],
-        "app": " "
-    })
+    # executable_actions[" "].append({
+    #     "value": "execute_actions",
+    #     "name": "Execute the Governed Actions",
+    #     "variables": [],
+    #     "app": " "
+    # })
     for app_name, action_list in actions.items():
         for action_code, action_name in action_list:
             variables = get_execution_variables(app_name, action_code)
