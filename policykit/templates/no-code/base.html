@@ -822,7 +822,7 @@
     overflow-x: hidden;
   }
 
-  .dropdown-header:not(:first-child) {
+  .textarea-dropdown-header:not(:first-child) {
     font-family: 'Nunito';
     font-style: normal;
     font-size: 16px;
@@ -833,7 +833,7 @@
     border-top: #4451B2 1px solid;
   }
 
-  .dropdown-header:first-child {
+  .textarea-dropdown-header:first-child {
     font-family: 'Nunito';
     font-style: normal;
     font-size: 16px;
@@ -1266,7 +1266,7 @@
           let variables_list = "";
           let action_data = datalist.filter(item => item.name !== variable.label && item.from === "action");
           if(action_data.length > 0){
-            variables_list += `<div class="dropdown-header">Action</div>`;
+            variables_list += `<div class="textarea-dropdown-header">Action</div>`;
             action_data.forEach(
               item => {
                 variables_list += `
@@ -1280,7 +1280,7 @@
 
           let procedure_data = datalist.filter(item => item.name !== variable.label && item.from === "procedure");
           if(procedure_data.length > 0){
-            variables_list += `<div class="dropdown-header">Procedure</div>`;
+            variables_list += `<div class="textarea-dropdown-header">Procedure</div>`;
             procedure_data.forEach(
               item => {
                 variables_list += `
