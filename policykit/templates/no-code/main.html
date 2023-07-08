@@ -244,7 +244,7 @@
     const platforms = JSON.parse('{{platforms | safe}}');
     const procedures = JSON.parse(`{{procedures | safe}}`);
     const transformers = JSON.parse(`{{transformers | safe}}`);
-    const executions = JSON.parse('{{executions | safe}}');
+    var executions = JSON.parse('{{executions | safe}}');
     const SPECIAL_EXECUTION_APP = " "; // for revert the action and execute the action these two types of executions
     const entities = JSON.parse('{{entities|safe}}');
 
@@ -978,6 +978,7 @@
             $(`#design_execution_success-formview`).before(
                 showWarningMessage(`The governed actions will be automatically executed at this stage.`, "info")
             )
+            executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "revert_action");
         } else if(selected_policy_kind == "triggering_policies"){
             return;
         } else if(selected_policy_kind == "if_then_rules"){
