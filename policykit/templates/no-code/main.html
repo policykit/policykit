@@ -204,8 +204,8 @@
               You have successfully authored a policy for your community. Would you like to inspect the code or continue to author another one?
             </div>
             <div class="modal-footer ">
-              <button type="button" class="button secondary medium" data-dismiss="modal">Inspect Code</button>
-              <button type="button" class="button primary medium">Continue</button>
+              <button type="button" id="inspect-code-button" class="button secondary medium" data-dismiss="modal">Inspect Code</button>
+              <button type="button" id="author-new-button" class="button primary medium">Continue</button>
             </div>
           </div>
         </div>
@@ -239,6 +239,8 @@
     var editors = {}; // a list of codemirror editors
     var editor_status = {};
     var selected_platform = "slack";
+
+    var created_policy_pk = null;
 
     
     function update_data_from_actions(){
@@ -1081,7 +1083,7 @@
 
     
     const goCreateProcedure = async () => {
-        $("#end-popup").modal("show");
+        
         hideSliderPanel();
         let meta_data = collectMetadata();
         if(meta_data === false) return;
@@ -1128,9 +1130,24 @@
         console.log("all data: " + JSON.stringify(all_data));
         const response = await submit('create', all_data);
         console.log("after creating custom action, " + JSON.stringify(response))
+        if(response.status === "success"){
+            created_policy_pk = response.policy;
+            $("#end-popup").modal("show");
+        }
     }
 
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
+    document.getElementById("inspect-code-button").addEventListener('click', function(){
+        if(created_policy_pk !== null){
+            window.location.href = `/main/editor?policy=${created_policy_pk}`;
+        }
+    });
+
+    document.getElementById("author-new-button").addEventListener('click', function(){
+        // go back to the page where choosing policy kind by refreshing the page
+        location.reload();
+    });
+
 
 </script>
 {% endblock %}
