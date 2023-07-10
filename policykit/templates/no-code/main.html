@@ -355,7 +355,7 @@
         if(section_name !== "procedure"){
             section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
         } else {
-            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure">Customize</button>`);
+            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure" status="closed">Customize</button>`);
 
         }
         $(`#design_${section_name} .section-bottom`).removeClass("hidden");
@@ -824,8 +824,17 @@
         // }
         let target = event.target.closest(".customize-procedure-button");
         if(target){
-            $(`#design_transformer`).removeClass("hidden");
-            $(`#transformer-collapse-section`).removeClass("hidden");
+            if(target.getAttribute("status") === "closed"){
+                $(`#design_transformer`).removeClass("hidden");
+                $(`#transformer-collapse-section`).removeClass("hidden");
+                target.innerHTML = "Hide";
+                target.setAttribute("status", "open");
+            } else if(target.getAttribute("status") === "open"){
+                $(`#design_transformer`).addClass("hidden");
+                $(`#transformer-collapse-section`).addClass("hidden");
+                target.innerHTML = "Customize";
+                target.setAttribute("status", "closed");
+            }
         }
     })
     
