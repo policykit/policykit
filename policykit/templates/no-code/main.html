@@ -759,7 +759,7 @@
 
    let sections_order = {
         "design_action": "design_procedure",
-        "design_procedure": "design_transformer",
+        "design_procedure": "design_execution_success",
         "design_transformer": "design_execution_success",
         "design_execution_notify": "design_execution_success",
         "design_execution_success": "design_execution_fail",
@@ -768,6 +768,18 @@
 
     /** listen to the events when users click the next button of each section and then hide the slider panel
    or when users click the add buttons or add more buttons to show the slider panel */
+
+    function changeFocusSection(next_section=null){
+        hideSliderPanel();
+        if(next_section === null)
+            focus_section_id = sections_order[focus_section_id];
+        else 
+            focus_section_id = next_section;
+        if(focus_section_id){
+            let focus_section = document.getElementById(focus_section_id); 
+            focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+        }
+    }
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
@@ -783,12 +795,7 @@
                 let stage = target.id.split("-")[0].split("_")[2];
                 if(!collectExecutionData(stage)) return;
             } 
-            hideSliderPanel();
-            focus_section_id = sections_order[focus_section_id];
-            if(focus_section_id){
-                let focus_section = document.getElementById(focus_section_id); 
-                focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
-            }
+            changeFocusSection();
 
         } else if(button || add_more_button) {
             // listen to the event when users clicks the add button in a section and we pop up the slide panel
@@ -829,6 +836,7 @@
                 $(`#transformer-collapse-section`).removeClass("hidden");
                 target.innerHTML = "Hide";
                 target.setAttribute("status", "open");
+                changeFocusSection("design_transformer");
             } else if(target.getAttribute("status") === "open"){
                 $(`#design_transformer`).addClass("hidden");
                 $(`#transformer-collapse-section`).addClass("hidden");
