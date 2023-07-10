@@ -491,7 +491,7 @@
                             <label for='${select_id}' class="small normal">${capitalize(filter_schema.label)}</label>
                             <div class='selectpicker-wrapper'>
                             <select id='${select_id}' class="selectpicker" title="Select a filter">
-                            <option value="none">None</option>`
+                            <option value="none">No filters applied</option>`
                 
                 // add filter modules as options for this select
 
@@ -837,7 +837,7 @@
     const prompt_button_text = {
         action: "Select one or more actions from the left sidebar",
         procedure: "Select a procedure from the left sidebar",
-        transformer: "Select one or more transformers from the left sidebar",
+        transformer: "Select one or more customization options from the left sidebar",
         execution_notify: "Select one or more executions from the left sidebar",
         execution_success: "Select one or more executions from the left sidebar",
         execution_fail: "Select one or more executions from the left sidebar",
@@ -846,7 +846,7 @@
     const slider_panel_header = {
         action: ["Choose governed Actons", "Select one or more actions that you want to govern by a policy"],
         procedure: ["Choose a governing Procedure", "Select a procedure that you want to govern the actions"],
-        transformer: ["Choose Transformers", "Select one or more transformers that you want to apply to the procedure"],
+        transformer: ["Choose options", "Select one or more options to customize the procedure"],
         execution_notify: ["Choose Executions", "Select one or more executions that you want to have when the procedure starts"],
         execution_success: ["Choose Executions", "Select one or more executions that you want to have when the actions pass"],
         execution_fail: ["Choose Executions", "Select one or more executions that you want to have when the actions fail"],
@@ -974,14 +974,15 @@
         $("#design-action-instruct").html(trigger_action_instruct[selected_policy_kind]);
 
         if(selected_policy_kind === "community_policies"){
-            // showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
-            $(`#design_execution_success-formview`).before(
-                showWarningMessage(`The governed actions will be automatically executed at this stage.`, "info")
-            )
+            showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
+            // $(`#design_execution_success-formview`).before(
+            //     showWarningMessage(`The governed actions will be automatically executed at this stage.`, "info")
+            // )
 
             // remove the revert_action
-            delete executions[SPECIAL_EXECUTION_APP];
+            executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "revert_action");
         } else if(selected_policy_kind == "triggering_policies"){
+            executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "execute_actions");
             return;
         } else if(selected_policy_kind == "if_then_rules"){
 
