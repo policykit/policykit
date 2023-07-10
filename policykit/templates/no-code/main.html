@@ -104,7 +104,7 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section>
-            <section id="design_procedure">
+            <section id="design_procedure" class="opaque-section">
                 <div class="section-header medium">
                     <div>Choose the governing Procedure</div>
                     <button class="source-code-button hidden small" type="procedure" view="codeview">{} Source Code</button>
@@ -151,7 +151,7 @@
                 </div>
                 <div class="section-bottom hidden"></div>
             </section> -->
-            <section id="design_execution_success">
+            <section id="design_execution_success" class="opaque-section">
                 <div class="section-header medium">
                     <div id="design_execution_success-instruct">Choose actions when the Procedure passes <span class="small prompt">&nbsp;(optional)</span></div>
                     <button class="source-code-button hidden small" type="execution_success" view="codeview">{} Source Code</button>
@@ -166,7 +166,7 @@
                 </div>
                 <div class="section-bottom hidden "></div>
             </section>
-            <section id="design_execution_fail">
+            <section id="design_execution_fail" class="opaque-section">
                 <div class="section-header medium">
                     <div id="design_execution_fail-instruct">Choose actions when the Procedure fails <span class="small prompt">&nbsp;(optional)</span></div>
                     <button class="source-code-button hidden small" type="execution_fail" view="codeview">{} Source Code</button>
@@ -776,7 +776,9 @@
         else 
             focus_section_id = next_section;
         if(focus_section_id){
-            let focus_section = document.getElementById(focus_section_id); 
+            let focus_section = document.getElementById(focus_section_id);
+            if(focus_section.classList.contains("opaque-section"))
+                focus_section.classList.remove("opaque-section");
             focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
         }
     }
