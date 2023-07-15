@@ -1276,7 +1276,7 @@
       if(variable["type"] === "string"){ // use textarea for variables of the string type
         if(type !== "filter" && datalist.length > 0) {
           let variables_list = "";
-          let action_data = datalist.filter(item => item.name !== variable.label && item.from === "action");
+          let action_data = datalist.filter(item => item.name !== variable.label && (item.from === "action" || item.from === "filter"));
           if(action_data.length > 0){
             variables_list += `<div class="textarea-dropdown-header">Action</div>`;
             action_data.forEach(
