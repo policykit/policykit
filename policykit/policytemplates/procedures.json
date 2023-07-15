@@ -546,7 +546,7 @@
                 "prompt": "It should have the length equal to the maximumn rank. Please separate the scores by commas",
                 "type": "number",
                 "is_list": true
-            },
+            }
         ],
         "data": [
             {
