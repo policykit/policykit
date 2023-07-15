@@ -1265,9 +1265,9 @@
           if(variable["type"] === "string")
             input_validate += ' type="text"';
           else if(variable["type"] === "number")
-            input_validate += ' type="number"';
+            input_validate += ' type="number" min="0"';
           else if(variable["type"] === "float")
-            input_validate += ' type="number" step="0.01"';
+            input_validate += ' type="number" step="0.01", min="0"';
           else if(variable["type"] === "timestamp")
             input_validate += ' type="datetime-local"';
       }
