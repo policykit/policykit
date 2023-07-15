@@ -81,10 +81,10 @@
     },
     {
         "kind": "Text",
-        "name": "SlashCommand",
-        "description": "Only texts that match the specified slash command format",
+        "name": "TextCommand",
+        "description": "Only texts that start with % + the specified command (e.g., %vote). The rest of the text is then considered as the command parameter that can be used later.",
         "platform": "All",
-        "codes": "return object.startswith(word)",
+        "codes": "command = f\"%{variables.command} \"\nif action.text.startswith(command):\n\tif proposal.data: \n\t# when the filter is first run at the pre-filtered stage, the proposal.data is not initialized\n\t\tproposal.data.set(\"command_parameter\", action.text[command:].strip())\n\treturn True\nelse:\n\treturn False\n",
         "variables":[
             {
                 "name": "command",
