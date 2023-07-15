@@ -771,6 +771,9 @@
 
     function changeFocusSection(next_section=null){
         hideSliderPanel();
+        let pre_focus_section = document.getElementById(focus_section_id);
+        if(pre_focus_section.classList.contains("focus-section"))
+            pre_focus_section.classList.remove("focus-section");
         if(next_section === null)
             focus_section_id = sections_order[focus_section_id];
         else 
@@ -780,6 +783,7 @@
             if(focus_section.classList.contains("opaque-section"))
                 focus_section.classList.remove("opaque-section");
             focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+            focus_section.classList.add("focus-section");   
         }
     }
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
