@@ -1323,8 +1323,11 @@
                   </div>`;
         
       } else {
-        if(variable.default) // if it is a select input, then a default value is actually not much needed
-          input_validate += `  value='${variable.default}'`;
+        if(variable.default){// if it is a select input, then a default value is actually not much needed
+          var default_value = variable.default;
+          if(variable.default instanceof Object) default_value = variable.default.value;
+          input_validate += `  value='${default_value}'`;
+        }
         text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
                     ${prompt}
                       </div>`;
