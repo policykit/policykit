@@ -303,7 +303,7 @@
         if(selected_actions.length > 1) return; // do not consider complicated cases when there are more than one action
         let filters = selected_actions[0].filters;
         global_datalist = global_datalist.filter(item => item.from !== "filter");
-        object.keys(filters).forEach((field, index) => {
+        Object.keys(filters).forEach((field, index) => {
             let filter = filters[field];
             filter["data"].forEach((variable, index) => {
                 var datum = {
