@@ -43,7 +43,7 @@ def get_base_actions(user):
                 filter_kinds_dict[action_code] = parameter
                 base_action_list.append({
                     "value": action_code,
-                    "name": remove_platform_prefix(verbose_name, app_name),
+                    "name": get_action_name(app_name, action_code),
                     "app": app_name
                 })
         # only show apps that have at least one action with filter parameters
