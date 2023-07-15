@@ -127,6 +127,13 @@ def get_execution_variables(app_name, action_codename):
     else:
         return None
     
+def get_action_name(app_name, action_codename):
+    action_model = apps.get_model(app_name, action_codename)
+    if hasattr(action_model, "ACTION_NAME"):
+        return action_model.ACTION_NAME
+    else:
+        logger.error("ACTION_NAME not found for %s.%s" % (app_name, action_codename))
+    
 def extract_executable_actions(user):
     from policyengine.models import PolicyActionKind
     from policyengine.utils import get_action_types
@@ -146,7 +153,7 @@ def extract_executable_actions(user):
         "variables": [],
         "app": " "
     })
-    
+
     for app_name, action_list in actions.items():
         for action_code, action_name in action_list:
             variables = get_execution_variables(app_name, action_code)
@@ -157,7 +164,7 @@ def extract_executable_actions(user):
                 executable_actions[app_name].append(
                     {
                         "value": action_code,
-                        "name": remove_platform_prefix(action_name, app_name),
+                        "name": get_action_name(app_name, action_code),
                         "variables": variables,
                         "app": app_name
                     }

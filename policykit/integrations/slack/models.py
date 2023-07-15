@@ -218,6 +218,7 @@ class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel", "thread"]
+    ACTION_NAME = "Post Message"
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
@@ -316,6 +317,7 @@ class SlackRenameConversation(GovernableAction):
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
     # FILTER_PARAMETERS = {"initiator": "CommunityUser", "name": "Text", "previous_name": "Text", "channel": None}
+    ACTION_NAME = "Rename Channel"
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
@@ -405,6 +407,7 @@ class SlackJoinConversation(GovernableAction):
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "users"]
     # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "users": None}
+    ACTION_NAME = "Invite User to Channel"
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
@@ -488,6 +491,7 @@ class SlackPinMessage(GovernableAction):
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
     # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
+    ACTION_NAME = "Pin Message "
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
@@ -550,6 +554,7 @@ class SlackScheduleMessage(GovernableAction):
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
     # FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
+    ACTION_NAME = "Schedule Message"
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
@@ -629,6 +634,7 @@ class SlackKickConversation(GovernableAction):
     AUTH = "user"
     EXECUTE_PARAMETERS = ["user", "channel"]
     # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "user": "CommunityUser"}
+    ACTION_NAME = "Kick User from Channel"
     FILTER_PARAMETERS = [
         {
             "name": "initiator",
