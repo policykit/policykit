@@ -71,6 +71,7 @@ def get_filter_modules(apps):
                     "name": filter.name,
                     "description": filter.description, 
                     "variables": filter.loads("variables"),
+                    "data": filter.loads("data"),
                     "app": app_name
                 })
     return filter_modules
