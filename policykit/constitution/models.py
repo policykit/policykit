@@ -73,6 +73,7 @@ class PolicykitRemoveIntegration(models.Model):
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
+    ACTION_NAME = "Add Community Document"
     FILTER_PARAMETERS = [
         {
             "name": "name",
@@ -106,6 +107,7 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
     name = models.TextField()
     text = models.TextField()
+    ACTION_NAME = "Edit Community Document"
     FILTER_PARAMETERS = [
         {
             "name": "name",
@@ -146,6 +148,7 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 
 class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
+    ACTION_NAME = "Delete Community Document"
     FILTER_PARAMETERS = [
         {
             "name": "doc",
@@ -190,6 +193,7 @@ class PolicykitAddRole(ConstitutionAction):
     name = models.CharField("name", max_length=300)
     description = models.TextField(null=True, blank=True, default="")
     permissions = models.ManyToManyField(Permission)
+    ACTION_NAME = "Create User Role"
     FILTER_PARAMETERS = [
         {
             "name": "name",
@@ -225,6 +229,7 @@ class PolicykitAddRole(ConstitutionAction):
 
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
+    ACTION_NAME = "Delete User Role"
     FILTER_PARAMETERS = [
         {
             "name": "role",
@@ -256,6 +261,7 @@ class PolicykitEditRole(ConstitutionAction):
     name = models.CharField("name", max_length=300)
     description = models.TextField(null=True, blank=True, default="")
     permissions = models.ManyToManyField(Permission)
+    ACTION_NAME = "Edit User Role"
     FILTER_PARAMETERS = [
         {
             "name": "name",
@@ -300,6 +306,7 @@ class PolicykitEditRole(ConstitutionAction):
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     users = models.ManyToManyField(CommunityUser)
+    ACTION_NAME = "Grant Role to User"
     FILTER_PARAMETERS = [
         {
             "name": "role",
@@ -371,6 +378,7 @@ class PolicykitAddUserRole(ConstitutionAction):
 class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     users = models.ManyToManyField(CommunityUser)
+    ACTION_NAME = "Revoke Role from User"
     FILTER_PARAMETERS = [
         {
             "name": "role",
