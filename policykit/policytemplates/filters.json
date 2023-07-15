@@ -16,7 +16,8 @@
                 "type": "string",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "CommunityUser",
@@ -35,7 +36,8 @@
                 "type": "string",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "CommunityUser",
@@ -54,7 +56,8 @@
                 "type": "string",
                 "is_list": true
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "Text",
@@ -72,6 +75,37 @@
                 "prompt": "",
                 "type": "string",
                 "is_list": false
+            }
+        ],
+        "data": []
+    },
+    {
+        "kind": "Text",
+        "name": "SlashCommand",
+        "description": "Only texts that match the specified slash command format",
+        "platform": "All",
+        "codes": "return object.startswith(word)",
+        "variables":[
+            {
+                "name": "command",
+                "label": "Command",
+                "entity": "Text",
+                "default": "",
+                "is_required": true,
+                "prompt": "Only allow alphabets and numbers",
+                "type": "string",
+                "is_list": false
+            }
+        ],
+        "data": [
+            {
+                "name": "command_parameter",
+                "label": "Command parameter",
+                "prompt": "",
+                "entity": "Text",
+                "type": "string",
+                "is_list": false
+
             }
         ]
     },
@@ -92,7 +126,8 @@
                 "type": "string",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "Text",
@@ -111,7 +146,8 @@
                 "type": "number",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "Text",
@@ -130,7 +166,8 @@
                 "type": "string",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "Timestamp",
@@ -159,7 +196,8 @@
                 "type": "timestamp",
                 "is_list": false
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "SlackChannel",
@@ -178,7 +216,8 @@
                 "type": "string",
                 "is_list": true
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "CommunityRole",
@@ -197,7 +236,8 @@
                 "type": "string",
                 "is_list": true
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "CommunityDoc",
@@ -216,7 +256,8 @@
                 "type": "string",
                 "is_list": true
             }
-        ]
+        ],
+        "data": []
     },
     {
         "kind": "Permission",
@@ -235,7 +276,7 @@
                 "type": "string",
                 "is_list": true
             }
-        ]
-
+        ],
+        "data": []
     }
 ]

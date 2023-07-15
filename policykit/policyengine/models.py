@@ -1227,7 +1227,7 @@ class FilterModule(models.Model):
         (ALL, "All"),
     ]
 
-    JSON_FIELDS = ["variables"]
+    JSON_FIELDS = ["variables", "data"]
     """the fields that are stored as JSON dumps"""
 
     kind = models.TextField(blank=True, default="")
@@ -1271,6 +1271,9 @@ class FilterModule(models.Model):
         pass in parameters "object" and all names defined in variables. 
         We will take care of the type of these variables before passing them to these functions
     """
+
+    data = models.TextField(blank=True, default='[]')
+    """the data used in the filters defined in a similar way to data in a Procedure"""
 
     def loads(self, attr):
         return json.loads(getattr(self, attr))
