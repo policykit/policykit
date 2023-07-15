@@ -766,8 +766,7 @@
     border-radius: 4px;
   }
 
-  .column-variable-item .variable-textarea {
-    
+  .column-variable-item textarea {
     background: rgba(241, 244, 246, 1);
     border: none;
     /* background: #F8F9FA;
@@ -778,6 +777,13 @@
     text-align:left;
     resize: vertical;
     overflow-y: auto;
+
+  }
+  .column-variable-item .variable-textarea {
+    border: none;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
   }
 
   .textarea-div {
