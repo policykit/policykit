@@ -1146,26 +1146,41 @@
         if(meta_data === false) return;
 
         let custom_action_data = collectCustomActionData();
-        if(custom_action_data === false) return;
+        if(custom_action_data === false) {
+            changeFocusSection("design_action");
+            return;
+        }
         
         let success_data = collectExecutionData("success");
-        if(success_data === false) return;
+        if(success_data === false) {
+            changeFocusSection("design_execution_success");
+            return;
+        }
 
         let procedure_data = null;
         let transformer_data = null;
         let fail_data = null;
         if(selected_policy_kind !== "if_then_rules"){
             procedure_data = collectProcedureData();
-            if(procedure_data === false) return;
+            if(procedure_data === false) {
+                changeFocusSection("design_procedure");
+                return;
+            }
 
             transformer_data = collectTransformerData();
-            if(transformer_data === false) return;
+            if(transformer_data === false){
+                changeFocusSection("design_transformer");
+                return;
+            }
 
             // let notify_data = collectExecutionData("notify");
             // if(notify_data === false) return;
             
             fail_data = collectExecutionData("fail");
-            if(fail_data === false) return;
+            if(fail_data === false){
+                changeFocusSection("design_execution_fail");
+                return;
+            }
         }
         
         app_name = custom_action_data["app_name"];
