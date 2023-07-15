@@ -299,6 +299,7 @@
     }
 
     function update_data_from_filters(){
+        console.log("update data from filters", selected_actions);
         if(selected_actions.length > 1) return; // do not consider complicated cases when there are more than one action
         let filters = selected_actions[0].filters;
         global_datalist = global_datalist.filter(item => item.from !== "filter");
@@ -316,7 +317,6 @@
                 global_datalist.push(datum);
             });
         });
-
     }
 
     function update_data_from_procedures(){ 
