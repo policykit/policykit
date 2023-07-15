@@ -305,8 +305,8 @@
         global_datalist = global_datalist.filter(item => item.from !== "filter");
         Object.keys(filters).forEach((field, index) => {
             let filter = filters[field];
-            filter["data"].forEach((variable, index) => {
-                var datum = {
+            filter["data"].forEach((datum, index) => {
+                var newdatum = {
                     value: `proposal.data.get('${datum.name}')`,
                     name: datum.label,
                     entity: datum.entity,
@@ -314,7 +314,7 @@
                     from: "filter",
                     type: datum.type
                 }
-                global_datalist.push(datum);
+                global_datalist.push(newdatum);
             });
         });
     }
