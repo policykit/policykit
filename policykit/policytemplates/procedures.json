@@ -525,12 +525,9 @@
                 "name": "max_rank",
                 "label": "Maximumn rank assigned to candidates",
                 "entity": null,
-                "default": {
-                    "name": "Equal to the number of candidates",
-                    "value": ""
-                },
-                "is_required": true,
-                "prompt": "",
+                "default": "",
+                "is_required": false,
+                "prompt": "By default it is equal to the number of candidates",
                 "type": "number",
                 "is_list": false
             },
@@ -538,12 +535,9 @@
                 "name": "rank_scores",
                 "label": "Scores for each rank",
                 "entity": null,
-                "default": {
-                    "name": "A countdown sequence from Max Rank to 1",
-                    "value": ""
-                },
-                "is_required": true,
-                "prompt": "It should have the length equal to the maximumn rank. Please separate the scores by commas",
+                "default": "",
+                "is_required": false,
+                "prompt": "By default, it is a countdown sequence from the maximum rank to 1. Please separate the scores by commas",
                 "type": "number",
                 "is_list": true
             }
