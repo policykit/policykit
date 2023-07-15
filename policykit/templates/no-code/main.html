@@ -298,6 +298,27 @@
         }
     }
 
+    function update_data_from_filters(){
+        if(selected_actions.length > 1) return; // do not consider complicated cases when there are more than one action
+        let filters = selected_actions[0].filters;
+        global_datalist = global_datalist.filter(item => item.from !== "filter");
+        object.keys(filters).forEach((field, index) => {
+            let filter = filters[field];
+            filter["data"].forEach((variable, index) => {
+                var datum = {
+                    value: `proposal.data.get('${datum.name}')`,
+                    name: datum.label,
+                    entity: datum.entity,
+                    is_list: datum.is_list,
+                    from: "filter",
+                    type: datum.type
+                }
+                global_datalist.push(datum);
+            });
+        });
+
+    }
+
     function update_data_from_procedures(){ 
         global_datalist = global_datalist.filter(item => item.from !== "procedure");
         if(selected_procedure){
@@ -467,6 +488,7 @@
         if(selected_actions.length == 0) activate_section("action");
         let action = {...base_actions[app].find(item => item.value == action_value)};
         action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
+        action["filter"] = {};
         selected_actions.push(action);
         update_data_from_actions();
 
@@ -533,6 +555,14 @@
             }
             if(filter) break;
         }
+
+        if (!filter) return;
+        
+        // select-id select-slackpostmessage.text
+        let action_value = select_id.split(".")[0].split("-")[1];
+        let filed_name = select_id.split(".")[1];
+        selected_actions.find(item => item.value == action_value)["filter"][filed_name] = filter;
+        update_data_from_filters();
 
         const variables = filter.variables;
         var variable_div = document.createElement('div');
