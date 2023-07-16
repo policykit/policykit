@@ -895,12 +895,25 @@ class PolicyVariable(models.Model):
             
     def get_variable_values(self):
         values = None
-        if(self.is_list) and self.value:
+        if self.is_list and self.value:
             values = [PolicyVariable.convert_variable_types(val, self.type) for val in self.value.split(",")]
         elif not self.is_list:
             values = PolicyVariable.convert_variable_types(self.value, self.type)
         return values
 
+    def validate_value(self, value):
+        if self.is_list:
+            if value is None:
+                return value # this is allowed as this represents the use of default values
+            elif not isinstance(value, list):
+                values = value.split(",")
+                values = [PolicyVariable.convert_variable_types(value, self.type) for value in values]
+                return values
+            else:
+                return value
+        else:
+            return PolicyVariable.convert_variable_types(value, self.type)
+        
 class Policy(models.Model):
     """Policy"""
 

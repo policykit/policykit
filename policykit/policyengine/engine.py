@@ -84,7 +84,8 @@ class EvaluationContext:
         """
         Initialize policy variables according to their default values or codes.
         """
-        
+        from models import PolicyVariable
+
         variables = {}
         initialize_codes = []
         """ 
@@ -120,6 +121,11 @@ class EvaluationContext:
         setattr(self, "variables", AttrDict(variables))
         logger.debug(f"Initialized variables codes: {initialize_codes}")
         variables = exec_code_block(initialize_codes, self, "initialize_variables")
+        for variable in self.policy.variables.all() or []:
+            if variable.entity and Utils.check_code_variables(variable.value):
+                # make sure variables value after the initialization is still valid
+                variables[variable.name] = variable.validate_value(variables[variable.name])
+
         logger.debug(f"Initialized variables: {variables}")
         setattr(self, "variables", variables)
 
