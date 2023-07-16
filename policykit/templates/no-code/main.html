@@ -519,7 +519,9 @@
 
                 // console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
                 filters_this_kind.forEach(filter => {
-                    field_html   += `<option value=${filter.pk}> data-content="${filter.description}<span class='variable-prompt'>${filter.prompt}</span>"></option>`
+                    let prompt = "";
+                    if(filter.prompt) prompt = "<span class='variable-prompt'>${filter.prompt}</span>"
+                    field_html   += `<option value=${filter.pk} data-content="${filter.description}${prompt}"></option>`
                 });
                 field_html  += `</select></div></div>`; 
                 field_div.innerHTML = field_html; 
