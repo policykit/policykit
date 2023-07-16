@@ -193,7 +193,7 @@
             {
                 "name": "candidates",
                 "label": "Candidates / Options",
-                "entity": null,
+                "entity": "Text",
                 "default": "",
                 "is_required": true,
                 "prompt": "If there are multiple candidates, separate them by commas. If candidates are users, please use their usernames as shown in the policykit interface.",
