@@ -120,7 +120,7 @@ class EvaluationContext:
         setattr(self, "variables", AttrDict(variables))
         logger.debug(f"Initialized variables codes: {initialize_codes}")
         variables = exec_code_block(initialize_codes, self, "initialize_variables")
-        # logger.debug(f"Initialized variables: {variables}")
+        logger.debug(f"Initialized variables: {variables}")
         setattr(self, "variables", variables)
 
 class PolicyEngineError(Exception):
@@ -324,10 +324,11 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         # logger.debug("does not pass filter")
         raise PolicyDoesNotPassFilter
 
-    context.initialize_variables()
     
+
     # If policy is being evaluated for the first time, run "initialize" block
     if is_first_evaluation:
+        context.initialize_variables()
         exec_code_block(policy.initialize, context, Policy.INITIALIZE)
 
     # Run "check" block of policy
