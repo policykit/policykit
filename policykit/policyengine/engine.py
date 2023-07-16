@@ -79,7 +79,6 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
-        self.initialize_variables()
 
     def initialize_variables(self):
         """
@@ -325,6 +324,8 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         # logger.debug("does not pass filter")
         raise PolicyDoesNotPassFilter
 
+    context.initialize_variables()
+    
     # If policy is being evaluated for the first time, run "initialize" block
     if is_first_evaluation:
         exec_code_block(policy.initialize, context, Policy.INITIALIZE)
