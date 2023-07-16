@@ -3,6 +3,7 @@
         "kind": "CommunityUser",
         "name": "Permission",
         "description": "Only users with a specified permission",
+        "prompt": "",
         "platform": "All",
         "codes": "all_usernames_with_permission = [user.username for user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
         "variables":[
@@ -23,6 +24,7 @@
         "kind": "CommunityUser",
         "name": "Role",
         "description": "Only users of a specified role",
+        "prompt": "",
         "platform": "All",
         "codes": "all_usernames_with_roles = [user.username for user in {platform}.get_users(role_names=[role])]\nreturn (object.username if hasattr(object, \"username\") else object) in all_usernames_with_roles",
         "variables":[
@@ -43,6 +45,7 @@
         "kind": "CommunityUser",
         "name": "UserID",
         "description": "Only users with the specified userIDs",
+        "prompt": "",
         "platform": "All",
         "codes": "return object.username in user_IDs",
         "variables":[
@@ -63,6 +66,7 @@
         "kind": "Text",
         "name": "Startswith",
         "description": "Only texts that start with the specified word",
+        "prompt": "",
         "platform": "All",
         "codes": "return object.startswith(word)",
         "variables":[
@@ -82,7 +86,8 @@
     {
         "kind": "Text",
         "name": "TextCommand",
-        "description": "Only texts that start with % + the specified command (e.g., %vote). The rest of the text is then considered as the command parameter that can be used later.",
+        "description": "Only texts that start with the specified command.",
+        "prompt": "such as %vote. The rest of the text is then considered as the command parameter that can be used later.",
         "platform": "All",
         "codes": "command = f\"%{variables.command} \"\nif action.text.startswith(command):\n\tif proposal.data: \n\t# when the filter is first run at the pre-filtered stage, the proposal.data is not initialized\n\t\tproposal.data.set(\"command_parameter\", action.text[command:].strip())\n\treturn True\nelse:\n\treturn False\n",
         "variables":[
@@ -113,6 +118,7 @@
         "kind": "Text",
         "name": "Equals",
         "description": "Only texts that equals the specified text",
+        "prompt": "",
         "platform": "All",
         "codes": "return object == text",
         "variables":[
@@ -133,6 +139,7 @@
         "kind": "Text",
         "name": "LengthGreaterThan",
         "description": "Only texts that have the length greater than the specified length",
+        "prompt": "",
         "platform": "All",
         "codes": "return len(object) > length",
         "variables":[
@@ -153,6 +160,7 @@
         "kind": "Text",
         "name": "Contains",
         "description": "Only texts that contain the specified word",
+        "prompt": "",
         "platform": "All",
         "codes": "return word in object",
         "variables":[
@@ -173,6 +181,7 @@
         "kind": "Timestamp",
         "name": "BetweenStartAndEnd",
         "description": "Only timestamps that are between the specified start and end",
+        "prompt": "",
         "platform": "All",
         "codes": "return start <= int(object) and int(object) <= end",
         "variables":[
@@ -203,6 +212,7 @@
         "kind": "SlackChannel",
         "name": "ChannelNames",
         "description": "Only channels with the specified IDs",
+        "prompt": "",
         "platform": "All",
         "codes": "return object in channel_IDs",
         "variables":[
@@ -223,6 +233,7 @@
         "kind": "CommunityRole",
         "name": "Roles",
         "description": "Only specified roles",
+        "prompt": "",
         "platform": "All",
         "codes": "return object.role_name in role_names",
         "variables":[
@@ -243,6 +254,7 @@
         "kind": "CommunityDoc",
         "name": "CommunityDocs",
         "description": "Only specified documents",
+        "prompt": "",
         "platform": "All",
         "codes": "return object.name in community_docs",
         "variables": [
@@ -263,6 +275,7 @@
         "kind": "Permission",
         "name": "Permissions",
         "description": "Includes any of the specified permissions",
+        "prompt": "",
         "platform": "All",
         "codes": "return any(permission.codename in  permission_codenames for permission in object.permissions.all())",
         "variables": [

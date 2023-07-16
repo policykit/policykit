@@ -1242,6 +1242,9 @@ class FilterModule(models.Model):
     description = models.TextField(blank=True, default="")
     """The description of the filter module e.g., users with a given permission """
 
+    prompt = models.TextField(blank=True, default="")
+    """The prompt of the filter module, further explaining the filter module """
+
     platform = models.TextField(choices=PLATFORMS, blank=True, default=ALL)
     """ the platform this filter can apply to. 
         It could be specific to one platform or all platforms"""
