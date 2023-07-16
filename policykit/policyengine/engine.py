@@ -84,7 +84,6 @@ class EvaluationContext:
         """
         Initialize policy variables according to their default values or codes.
         """
-        from models import PolicyVariable
 
         variables = {}
         initialize_codes = []
