@@ -552,5 +552,18 @@
             }
         ],
         "data": []
+    },
+    {
+        "name": "Placeholder Procedure",
+        "description": "As a placeholder, it will always pass",
+        "platform": "Slack",
+        "initialize": [],
+        "check": {
+                "name": "main", 
+                "codes": "\nreturn PASSED"
+        },
+        "notify": [],
+        "variables": [],
+        "data": []
     }
 ]
