@@ -70,6 +70,7 @@ def get_filter_modules(apps):
                     "pk": filter.pk, 
                     "name": filter.name,
                     "description": filter.description, 
+                    "prompt": filter.prompt,
                     "variables": filter.loads("variables"),
                     "data": filter.loads("data"),
                     "app": app_name
