@@ -120,6 +120,7 @@ class EvaluationContext:
         setattr(self, "variables", AttrDict(variables))
         logger.debug(f"Initialized variables codes: {initialize_codes}")
         variables = exec_code_block(initialize_codes, self, "initialize_variables")
+        logger.debug(f"Initialized variables before: {variables}")
         for variable in self.policy.variables.all() or []:
             if variable.entity and Utils.check_code_variables(variable.value):
                 # make sure variables value after the initialization is still valid
