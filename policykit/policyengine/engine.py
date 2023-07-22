@@ -128,6 +128,7 @@ class EvaluationContext:
                 # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
 
         logger.debug(f"Initialized variables: {variables}")
+        logger.debug(f"type of varaibles {type(variables)}")
         setattr(self, "variables", variables)
 
 class PolicyEngineError(Exception):
