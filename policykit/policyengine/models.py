@@ -903,7 +903,7 @@ class PolicyVariable(models.Model):
 
     def validate_value(self, value):
         if self.is_list:
-            if value is None:
+            if not value: # value is None or an empty string
                 return value # this is allowed as this represents the use of default values
             elif not isinstance(value, list):
                 values = value.split(",")
