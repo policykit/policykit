@@ -18,7 +18,7 @@
         "data": []
     },
     {
-        "name": "Enforce minimum procedure duration",
+        "name": "Delayed voting checks",
         "description": "Only start to check the status of a procedure after a given time. Afterwards, the procedure will continue being checked until it passes or fails",
         "codes": "if proposal.vote_post_id and variables.duration > 0:\n  time_elapsed = proposal.get_time_elapsed()\n  if time_elapsed < datetime.timedelta(minutes=variables.duration):\n    return None\n\n",
         "variables":[
