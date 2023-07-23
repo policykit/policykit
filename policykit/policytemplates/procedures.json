@@ -49,7 +49,7 @@
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "",
+                "prompt": "The proposal will be approved if the number of yes votes is greater than or equal to this number",
                 "type": "number",
                 "is_list": false
             },
@@ -59,7 +59,7 @@
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "",
+                "prompt": "The proposal will be rejected if the number of no votes is greater than or equal to this number",
                 "type": "number",
                 "is_list": false
             },
