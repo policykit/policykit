@@ -112,23 +112,25 @@ class EvaluationContext:
                     # we first initialize other entities in case users embed other variables in creating the context of a Text variable
                     initialize_codes.append((code, intialize_weight))
 
-        initialize_codes.sort(key=lambda x: x[1])
-        initialize_codes = "\n".join([code for code, weight in initialize_codes])
-        initialize_codes += "\nreturn variables\n"
-        
-        # Make policy variables available in the evaluation context
-        setattr(self, "variables", AttrDict(variables))
-        logger.debug(f"Initialized variables codes: {initialize_codes}")
-        variables = exec_code_block(initialize_codes, self, "initialize_variables")
-        for variable in self.policy.variables.all() or []:
-            # logger.debug(f"variable name: {variable.name}, value: {variable.value}")
-            if variable.entity and Utils.check_code_variables(variable.value):
-                # make sure variables value after the initialization is still valid
-                variables[variable.name] = variable.validate_value(variables[variable.name])
-                # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
+        if len(initialize_codes) > 0:
+            initialize_codes.sort(key=lambda x: x[1])
+            initialize_codes = "\n".join([code for code, weight in initialize_codes])
+            initialize_codes += "\nreturn variables\n"
 
-        logger.debug(f"Initialized variables: {variables}")
-        logger.debug(f"type of varaibles {type(variables)}")
+            # Make policy variables available in the evaluation context
+            setattr(self, "variables", AttrDict(variables))
+            logger.debug(f"Initialized variables codes: {initialize_codes}")
+            variables = exec_code_block(initialize_codes, self, "initialize_variables")
+            logger.debug(f"Initialized variables for putting into code running: {variables}")
+
+            for variable in self.policy.variables.all() or []:
+                # logger.debug(f"variable name: {variable.name}, value: {variable.value}")
+                if variable.entity and Utils.check_code_variables(variable.value):
+                    # make sure variables value after the initialization is still valid
+                    variables[variable.name] = variable.validate_value(variables[variable.name])
+                    # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
+
+        logger.debug(f"All initialized variables: {variables}")
         setattr(self, "variables", variables)
 
 class PolicyEngineError(Exception):
