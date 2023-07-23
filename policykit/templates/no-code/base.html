@@ -1215,8 +1215,10 @@
       // if(item.entity === "undefined"){
       //   console.log(item, variable);
       // }
-      return (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
+      let prelim_filter = (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
         (item.entity === "undefined" && item.type === variable.type && item.is_list === variable.is_list && item.name !== variable.label);
+      if(type == "procedure") return (prelim_filter && item.from != "procedure"); // do not need to show variables from the same procedure in the select dropdown list.
+      else return prelim_filter;
     }
 
     // use select picker if possible
