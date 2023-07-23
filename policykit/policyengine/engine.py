@@ -132,9 +132,11 @@ class EvaluationContext:
                     variables[variable.name] = variable.validate_value(variables[variable.name])
                     # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
 
-        logger.debug(f"All initialized variables: {variables}")
-        setattr(self, "variables", variables)
-
+            
+            setattr(self, "variables", variables)
+        else:
+            setattr(self, "variables", AttrDict(variables))
+        logger.debug(f"All initialized variables: {self.variables}")
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
 
