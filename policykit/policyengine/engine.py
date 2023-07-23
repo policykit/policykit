@@ -48,7 +48,7 @@ class EvaluationContext:
         variables (Policy.variables): Dict with policy variables keys and values
     """
 
-    def __init__(self, proposal):
+    def __init__(self, proposal, is_first_evaluation=False):
         from policyengine.metagov_client import Metagov
         from policyengine.models import ExecutedActionTriggerAction
 
@@ -79,6 +79,8 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
+        if not is_first_evaluation:
+            self.initialize_variables()
 
     def initialize_variables(self):
         """
@@ -306,7 +308,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
     if not proposal.policy.is_active:
         raise PolicyIsNotActive
 
-    context = EvaluationContext(proposal)
+    context = EvaluationContext(proposal, is_first_evaluation=is_first_evaluation)
 
     try:
         return evaluate_proposal_inner(context, is_first_evaluation)
