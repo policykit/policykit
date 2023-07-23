@@ -445,6 +445,7 @@ def generate_execution_codes(executions):
     """
     from policyengine.utils import find_action_cls
     execution_codes = []
+    comment_only = True
     for execution in executions:
         codes = ""
         # if "frequency" in execution:
@@ -457,8 +458,10 @@ def generate_execution_codes(executions):
             execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
             execution = force_execution_variable_types(execution, execute_variables)
             codes += generate_initiate_votes(execution)
+            comment_only = False
         elif execution["action"] == "revert_actions":
             codes += "action.revert()"
+            comment_only = False
         elif execution["action"] == "execute_actions":
             codes += "# actions are reverted in the policy engine by default\n"
         else:
@@ -469,9 +472,12 @@ def generate_execution_codes(executions):
                 execute_variables = this_action.EXECUTE_VARIABLES
                 execution = force_execution_variable_types(execution, execute_variables)
                 codes += this_action.execution_codes(**execution)
+                comment_only = False
             else:
                 raise NotImplementedError
         execution_codes.append(codes)
-    if len(execution_codes) == 0:
-        return "pass\n"
+    if comment_only:
+        return "\n".join(execution_codes) + "pass\n"
+
+    
     return "\n".join(execution_codes) + "\n"
