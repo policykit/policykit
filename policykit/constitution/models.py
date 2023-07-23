@@ -327,16 +327,6 @@ class PolicykitAddUserRole(ConstitutionAction):
     ]
     EXECUTE_VARIABLES = [
         {
-            "name": "role",
-            "label": "Role",
-            "entity": "CommunityRole",
-            "default": "",
-            "is_required": True,
-            "prompt": "the role that is granted to the user",
-            "is_list": False,
-            "type": "string"
-        },
-        {
             "name": "user",
             "label": "User",
             "entity": "CommunityUser",
@@ -345,6 +335,16 @@ class PolicykitAddUserRole(ConstitutionAction):
             "prompt": "",
             "type": "string",
             "is_list": False
+        },
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "default": "",
+            "is_required": True,
+            "prompt": "the role that is granted to the user",
+            "is_list": False,
+            "type": "string"
         }
     ]
 
