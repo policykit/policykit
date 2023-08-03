@@ -260,7 +260,7 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
     proposals = []
     for policy in policies:
         proposal = Proposal(policy=policy, action=action, status=Proposal.PROPOSED)
-        context = EvaluationContext(proposal)
+        context = EvaluationContext(proposal, is_first_evaluation=True)
         try:
             passed_filter = exec_code_block(policy.filter, context, Policy.FILTER)
         except Exception as e:
