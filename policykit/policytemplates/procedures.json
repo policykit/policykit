@@ -169,7 +169,7 @@
         "data": []
     },
     {
-        "name": "Ranked Voting",
+        "name": "Ranked Voting for Community Users",
         "description": "Each voter is asked to rank candidates, who will then be assigned a socre based on their ranking. The candidate with the highest overall score is the winner.",
         "platform": "Slack",
         "initialize": [],
