@@ -273,11 +273,13 @@
 
     function update_data_from_actions(){
         global_datalist = global_datalist.filter(item => item.from !== "action");
-        if(selected_actions.length == 1 && selected_policy_kind == "community_policies"){
+        if(selected_policy_kind == "community_policies"){
             let execute_actions_div = document.getElementById("custom.execution_success.execute_actions");
             let execute_actions_label = execute_actions_div.querySelector(".custom-label");
-            if(execute_actions_label){
+            if(execute_actions_label && selected_actions.length == 1){
                 execute_actions_label.textContent = "Execute the Governed Action: " + selected_actions[0].name;
+            } else if(execute_actions_label && selected_actions.length > 1){
+                execute_actions_label.textContent = "Execute the Governed Actions";
             }
         }
         if(selected_actions.length > 0) {
