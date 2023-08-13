@@ -192,11 +192,11 @@
         "variables": [
             {
                 "name": "candidates",
-                "label": "Candidates / Options",
-                "entity": "Text",
+                "label": "Candidates",
+                "entity": "CommunityUser",
                 "default": "",
                 "is_required": true,
-                "prompt": "If there are multiple candidates, separate them by commas. If candidates are users, please use their usernames as shown in the policykit interface.",
+                "prompt": "",
                 "type": "string",
                 "is_list": true
             },
