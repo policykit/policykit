@@ -898,7 +898,7 @@
         execution_fail: "Select one or more executions from the left sidebar",
     }
 
-    const slider_panel_header = {
+    var slider_panel_header = {
         action: ["Choose governed Actons", "Select one or more actions that you want to govern by a policy"],
         procedure: ["Choose a governing Procedure", "Select a procedure that you want to govern the actions"],
         transformer: ["Choose options", "Select one or more options to customize the procedure"],
@@ -906,7 +906,7 @@
         execution_success: ["Choose Executions", "Select one or more executions that you want to have when the actions pass"],
         execution_fail: ["Choose Executions", "Select one or more executions that you want to have when the actions fail"],
     }
- 
+
     const showSliderPanel = (options, slidepanel_type, button_type) => {
         let focus_section = document.getElementById(focus_section_id);     
         focus_section.classList.add("focus-section");   
@@ -1038,6 +1038,7 @@
             executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "revert_action");
         } else if(selected_policy_kind == "triggering_policies"){
             executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "execute_actions");
+            slider_panel_header["action"] = ["Choose trigger Actons", "Select one or more actions that you want to trigger a policy"];
             return;
         } else if(selected_policy_kind == "if_then_rules"){
 
