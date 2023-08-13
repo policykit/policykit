@@ -1,27 +1,6 @@
 [
     {
         "kind": "CommunityUser",
-        "name": "Permission",
-        "description": "Only users with a specified permission",
-        "prompt": "",
-        "platform": "All",
-        "codes": "all_usernames_with_permission = [user.username for user in {platform}.get_users_with_permission(permission)]\nreturn object.username in all_usernames_with_permission",
-        "variables":[
-            {
-                "name": "permission",
-                "label": "User permission",
-                "entity": "Permission",
-                "default": "",
-                "is_required": true,
-                "prompt": "",
-                "type": "string",
-                "is_list": false
-            }
-        ],
-        "data": []
-    },
-    {
-        "kind": "CommunityUser",
         "name": "Role",
         "description": "Only users of a specified role",
         "prompt": "",
@@ -128,10 +107,10 @@
     {
         "kind": "Text",
         "name": "TextCommand",
-        "description": "Only texts that begin with %command.",
-        "prompt": "The rest of the text is then considered as the command parameter that can be used later.",
+        "description": "Only texts that begin with command.",
+        "prompt": "The rest of the text, if separated by commas, will be considered as a list of community users.",
         "platform": "All",
-        "codes": "command = \"%\" + command + \" \"\nif object.startswith(command):\n\tif proposal.data: \n\t# when the filter is first run at the pre-filtered stage, the proposal.data is not initialized\n\t\tproposal.data.set(\"command_parameter\", object[len(command):].strip())\n\treturn True\nelse:\n\treturn False\n",
+        "codes": "command = \"%\" + command + \" \"\nif object.startswith(command):\n\tif proposal.data: \n\t# when the filter is first run at the pre-filtered stage, the proposal.data is not initialized\n\t\tproposal.data.set(\"command_users\", object[len(command):].strip().split(\",\"))\n\treturn True\nelse:\n\treturn False\n",
         "variables":[
             {
                 "name": "command",
@@ -146,12 +125,12 @@
         ],
         "data": [
             {
-                "name": "Command Text",
-                "label": "Command text extracted from the matched text",
+                "name": "command_users",
+                "label": "Users from the triggered command",
                 "prompt": "",
-                "entity": "Text",
+                "entity": "CommunityUser",
                 "type": "string",
-                "is_list": false
+                "is_list": true
 
             }
         ]
