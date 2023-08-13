@@ -269,7 +269,7 @@
                 "name": "winner",
                 "label": "Winner of the vote",
                 "prompt": "",
-                "entity": "undefined",
+                "entity": "CommunityUser",
                 "type": "string",
                 "is_list": false
             }
