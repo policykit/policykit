@@ -273,6 +273,13 @@
 
     function update_data_from_actions(){
         global_datalist = global_datalist.filter(item => item.from !== "action");
+        if(selected_actions.length == 1 && selected_policy_kind == "community_policies"){
+            let execute_actions_div = document.getElementById("custom.execution_success.execute_actions");
+            let execute_actions_label = execute_actions_div.querySelector(".custom-label");
+            if(execute_actions_label){
+                execute_actions_label.textContent = "Execute the Governed Action: " + selected_actions[0].label;
+            }
+        }
         if(selected_actions.length > 0) {
             let datalist = []
             selected_actions.forEach((action, index) => {
@@ -395,7 +402,10 @@
 
         }
         $(`#design_${section_name} .section-bottom`).removeClass("hidden");
-        $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
+        if(section_name !== "execution_fail"){ // as this is the end of all sections
+            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
+        }
+        
         $(`#design_${section_name} .section-header .source-code-button`).removeClass("hidden");
 
     }
