@@ -245,7 +245,7 @@
             },
             {
                 "name": "max_rank",
-                "label": "Maximumn rank assigned to candidates",
+                "label": "Maximum rank assigned to candidates",
                 "entity": null,
                 "default": "",
                 "is_required": false,

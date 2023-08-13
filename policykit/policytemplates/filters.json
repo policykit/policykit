@@ -131,7 +131,7 @@
         "description": "Only texts that begin with %command.",
         "prompt": "The rest of the text is then considered as the command parameter that can be used later.",
         "platform": "All",
-        "codes": "command = \"%\" + command + \" \"\nif action.text.startswith(command):\n\tif proposal.data: \n\t# when the filter is first run at the pre-filtered stage, the proposal.data is not initialized\n\t\tproposal.data.set(\"command_parameter\", action.text[len(command):].strip())\n\treturn True\nelse:\n\treturn False\n",
+        "codes": "command = \"%\" + command + \" \"\nif object.startswith(command):\n\tif proposal.data: \n\t# when the filter is first run at the pre-filtered stage, the proposal.data is not initialized\n\t\tproposal.data.set(\"command_parameter\", object[len(command):].strip())\n\treturn True\nelse:\n\treturn False\n",
         "variables":[
             {
                 "name": "command",
@@ -146,8 +146,8 @@
         ],
         "data": [
             {
-                "name": "command_parameter",
-                "label": "Command parameter extracted by the text",
+                "name": "Command Text",
+                "label": "Command text extracted from the matched text",
                 "prompt": "",
                 "entity": "Text",
                 "type": "string",
