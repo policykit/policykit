@@ -290,7 +290,8 @@
                                 name: variable.prompt,
                                 entity: variable.entity,
                                 is_list: variable.is_list,
-                                from: "action"
+                                from: "action",
+                                category: "setting",
                             });
                     }
                 });
@@ -312,7 +313,8 @@
                     entity: datum.entity,
                     is_list: datum.is_list,
                     from: "filter",
-                    type: datum.type
+                    type: datum.type,
+                    category: "variable",
                 }
                 global_datalist.push(newdatum);
             });
@@ -329,7 +331,8 @@
                     entity: variable.entity,
                     is_list: variable.is_list,
                     type: variable.type,
-                    from: "procedure"
+                    from: "procedure",
+                    category: "setting",
                 }
                 global_datalist.push(datum);
             });
@@ -340,7 +343,8 @@
                     entity: datum.entity,
                     is_list: datum.is_list,
                     from: "procedure",
-                    type: datum.type
+                    type: datum.type,
+                    category: "variable",
                 }
                 global_datalist.push(datum);
             });

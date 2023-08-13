@@ -873,10 +873,15 @@
     border-bottom: 1px solid #F1F4F6;
   }
 
+  .variable-dropdown-button {
+    background-color: #7282F9;
+  }
+
   .variables-dropdown-item label {
     font-weight: 500;
     font-size: 14px;
   }
+
   .variables-dropdown-toggle {
     background: #F2F4FF;
     border: none;
@@ -1290,7 +1295,7 @@
             action_data.forEach(
               item => {
                 variables_list += `
-                  <button class="dropdown-item variables-dropdown-item">
+                  <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
                     <label class="header small normal">${decapitalize(item.name)}</label>
                     <label class="code small prompt">{${item.value}}</label>
                   </button>`;
@@ -1305,7 +1310,7 @@
               item => {
                 variables_list += `
                   <button class="dropdown-item variables-dropdown-item">
-                    <label class="header small normal">${decapitalize(item.name)}</label>
+                    <label class="header small normal ${item.category}-dropdown-item">${decapitalize(item.name)}</label>
                     <label class="code small prompt">{${item.value}}</label>
                   </button>`;
               }
