@@ -263,7 +263,14 @@
 
     var created_policy_pk = null;
 
-    
+    function sort_datalist(){
+        global_datalist.sort((a, b) => {
+            if (a.category === 'variable' && b.category === 'setting') return -1;
+            if (a.category === 'setting' && b.category === 'variable') return 1;
+            return 0;
+        });
+    }
+
     function update_data_from_actions(){
         global_datalist = global_datalist.filter(item => item.from !== "action");
         if(selected_actions.length > 0) {
@@ -295,7 +302,8 @@
                             });
                     }
                 });
-            });    
+            });
+            sort_datalist();   
         }
     }
 
@@ -319,6 +327,7 @@
                 global_datalist.push(newdatum);
             });
         });
+        sort_datalist();
     }
 
     function update_data_from_procedures(){ 
@@ -355,7 +364,9 @@
                 entity: "Thread",
                 is_list: false,
                 from: "procedure"
-            })
+            });
+
+            sort_datalist();
         }
     }
 

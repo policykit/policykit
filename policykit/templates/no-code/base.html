@@ -874,7 +874,7 @@
   }
 
   .variable-dropdown-button {
-    background-color: #7282F9;
+    background-color:#fff2f5; 
   }
 
   .variables-dropdown-item label {
@@ -1309,7 +1309,7 @@
             procedure_data.forEach(
               item => {
                 variables_list += `
-                  <button class="dropdown-item variables-dropdown-item">
+                  <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
                     <label class="header small normal ${item.category}-dropdown-item">${decapitalize(item.name)}</label>
                     <label class="code small prompt">{${item.value}}</label>
                   </button>`;
