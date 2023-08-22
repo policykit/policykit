@@ -197,7 +197,7 @@
         "variables":[
             {
                 "name": "channel_IDs",
-                "label": "Channel Names",
+                "label": "Channel Name",
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
