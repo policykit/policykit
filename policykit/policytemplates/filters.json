@@ -118,7 +118,7 @@
                 "entity": "Text",
                 "default": "",
                 "is_required": true,
-                "prompt": "Only allow alphabets and numbers",
+                "prompt": "",
                 "type": "string",
                 "is_list": false
             }
@@ -190,14 +190,14 @@
     {
         "kind": "SlackChannel",
         "name": "ChannelNames",
-        "description": "Only channels with the specified IDs",
+        "description": "Only channels with the specified channel names",
         "prompt": "",
         "platform": "All",
         "codes": "return object in channel_IDs",
         "variables":[
             {
                 "name": "channel_IDs",
-                "label": "Channel IDs",
+                "label": "Channel Names",
                 "entity": "SlackChannel",
                 "default": "",
                 "is_required": true,
