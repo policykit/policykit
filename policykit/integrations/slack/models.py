@@ -246,7 +246,7 @@ class SlackPostMessage(GovernableAction):
         }, 
         {
             "name": "timestamp",
-            "label": "Timestamp",
+            "label": "Time",
             "entity": "Timestamp",
             "prompt": "the timestamp of the posted message",
             "is_list": False,

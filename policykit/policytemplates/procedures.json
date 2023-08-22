@@ -185,7 +185,7 @@
                 "users": "data.eligible_voters",
                 "channel": "variables.vote_channel",
                 "title": "variables.vote_message",
-                "details": "Each voter should rank candidates, who will then be assigned a score based on their ranking. The candidate with the highest overall score is the winner; if there are more than one winners, we consider this procedure as failed.",
+                "details": "",
                 "platform": "slack"
             }
         ],
@@ -227,7 +227,7 @@
                 "name": "vote_message",
                 "label": "Voting message",
                 "entity": "Text",
-                "default": "Please assign your votes to express the degree of your preferences on each candidate",
+                "default": "Each voter should rank candidates, who will then be assigned a score based on their ranking. The candidate with the highest overall score is the winner; if there are more than one winners, we consider this procedure as failed. Please assign your votes to express the degree of your preferences on each candidate. The vote will be closed in {variables.vote_duration} min(s).",
                 "is_required": false,
                 "prompt": "",
                 "type": "string",
