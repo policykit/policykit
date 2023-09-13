@@ -1,6 +1,6 @@
 [
     {
-        "name": "Consensus Voting",
+        "name": "Majority Voting",
         "description": "A simple yes-no vote procedure: if the number of yes votes is greater than or equal to the minimum required, the proposal is passed. If the number of no votes is greater than or equal to the maximum allowed, the proposal is failed. Otherwise, the proposal is still in progress.",
         "platform": "Slack",
         "initialize": [], 
