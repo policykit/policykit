@@ -67,7 +67,7 @@
                 "name": "vote_message",
                 "label": "Voting message",
                 "entity": "Text",
-                "default": "Only approve the action when at least  {variables.minimum_yes_required} people approve and at most {variables.maximum_no_allowed} disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
+                "default": "Only approve the action when at least  {variables.minimum_yes_required}% people approve and at most {variables.maximum_no_allowed}% disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": false,
                 "prompt": "",
                 "type": "string",
@@ -76,16 +76,16 @@
         ],
         "data": [
             {
-                "name": "yes_votes_num",
-                "label": "Number of Yes Votes",
+                "name": "yes_votes_percent",
+                "label": "Percentage of Yes Votes",
                 "prompt": "",
                 "entity": null,
                 "type": "number",
                 "is_list": false
             },
             {
-                "name": "no_votes_num",
-                "label": "Number of No Votes",
+                "name": "no_votes_percent",
+                "label": "Percentage of No Votes",
                 "prompt": "",
                 "entity": null,
                 "type": "number",
