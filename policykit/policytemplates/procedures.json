@@ -45,21 +45,21 @@
             },
             {
                 "name": "minimum_yes_required",
-                "label": "Minimum number of yes votes required",
+                "label": "Minimum percentage of yes votes required",
                 "entity": null,
-                "default": 1,
+                "default": 51,
                 "is_required": true,
-                "prompt": "The proposal will be approved if the number of yes votes is greater than or equal to this number",
+                "prompt": "The proposal will be approved if the percentage of yes votes is greater than or equal to this",
                 "type": "number",
                 "is_list": false
             },
             {
                 "name": "maximum_no_allowed",
-                "label": "Maximum number of no votes allowed",
+                "label": "Maximum percentage of no votes allowed",
                 "entity": null,
                 "default": 1,
                 "is_required": true,
-                "prompt": "The proposal will be rejected if the number of no votes is greater than or equal to this number",
+                "prompt": "The proposal will be rejected if the percentage of no votes is greater than or equal to this",
                 "type": "number",
                 "is_list": false
             },
