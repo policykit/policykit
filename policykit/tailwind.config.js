@@ -7,6 +7,10 @@ module.exports = {
         sans: ["var(--font-nunito)"],
       },
     },
+    container: {
+      padding: "1.5rem",
+      center: true,
+    },
     colors: {
       white: "#FFFFFF",
       background: {
@@ -46,6 +50,7 @@ module.exports = {
         background: "#FDF4F2",
       },
       burgundy: "#7F0055",
+      slack: "#4A154B",
     },
     boxShadow: {
       light: "",

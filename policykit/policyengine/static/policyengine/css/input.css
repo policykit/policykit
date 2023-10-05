@@ -57,7 +57,8 @@ p.focussed {
   line-height: 124%; /* 19.84px */
 }
 
-p.small {
+p.small,
+span.small {
   font-size: 0.875rem;
   font-style: normal;
   font-weight: 400;
@@ -80,11 +81,19 @@ p.small.focussed {
 
 /* button */
 
-button.primary {
+.button {
+  @apply block;
+}
+
+.button.primary {
   @apply bg-primary-dark text-white hover:bg-primary;
 }
 
-button.large {
+/* button.primary svg {
+  @apply stroke-white;
+} */
+
+.button.large {
   @apply px-10 py-2 rounded-[20px];
   font-size: 1.1875rem;
   font-style: normal;
@@ -92,50 +101,98 @@ button.large {
   line-height: 120%; /* 22.8px */
 }
 
-button.large.secondary {
+.button.large.secondary {
   @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
 }
 
-button.medium,
-button.small,
-button.tiny {
+/* button.large.secondary svg {
+  @apply stroke-primary-dark;
+} */
+
+.button.medium,
+.button.small,
+.button.tiny {
   @apply rounded-[3.5px];
 }
 
-button.medium {
-  @apply px-8 py-2;
+.button.medium {
+  @apply px-8 py-2 gap-2;
   font-size: 1rem;
   font-style: normal;
   font-weight: 600;
   line-height: 120%; /* 19.2px */
 }
 
-button.small {
+.button.medium.primary svg.external-link-icon {
+  @apply fill-white;
+}
+
+.button.small {
   @apply px-4 py-2;
 }
 
-button.small,
-button.tiny {
+.button.small,
+.button.tiny {
   font-size: 0.875rem;
   font-style: normal;
   font-weight: 600;
   line-height: 120%; /* 16.8px */
 }
 
-button.small,
-button.medium.secondary,
-button.tiny.secondary {
-  @apply border border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+.button.small,
+.button.medium.secondary,
+.button.tiny.secondary {
+  @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
 }
 
-button.tiny {
+.button.small svg,
+.button.medium.secondary svg,
+.button.tiny.secondary svg {
+  @apply stroke-primary-dark;
+}
+
+.button.small svg.external-link-icon,
+.button.medium.secondary svg.external-link-icon,
+.button.tiny.secondary svg.external-link-icon {
+  @apply fill-primary-dark stroke-none;
+}
+
+.button.tiny {
   @apply px-3 py-1.5;
 }
 
-button.error {
+.button.error {
   @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
 }
 
-button:disabled {
-  @apply cursor-not-allowed !bg-grey !text-white;
+.button:disabled {
+  @apply !cursor-not-allowed
+   /* !bg-grey !text-white; */;
+}
+
+.button.icon-only {
+  @apply px-2 rounded-full w-[34px] h-[34px];
+}
+
+.button.icon-only svg {
+  @apply w-full h-full;
+}
+
+.button.slack {
+  @apply bg-slack py-3 rounded-[4px];
+}
+
+/* search input */
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  display: none;
+}
+
+/* links */
+
+a {
+  @apply text-primary-dark;
 }
