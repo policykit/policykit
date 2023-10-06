@@ -753,6 +753,11 @@ video {
   font-style: italic;
 }
 
+.text-primary {
+  --tw-text-opacity: 1;
+  color: rgb(114 130 249 / var(--tw-text-opacity));
+}
+
 .underline {
   text-decoration-line: underline;
 }

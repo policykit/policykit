@@ -1,4 +1,4 @@
-name: Quote Block
+name: Input
 context:
-  quote: What is love?
-  attribution: Haddaway
+  label: Label
+  placeholder: Placeholder
