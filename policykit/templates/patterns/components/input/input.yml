@@ -1,0 +1,4 @@
+name: Input
+context:
+  label: Label
+  placeholder: Placeholder

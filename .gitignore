@@ -9,3 +9,5 @@ docs/source/generated_policy_examples.inc
 src
 policykit/policykit_venv/
 policykit_venv
+policykit/node_modules
+policykit/package-lock.json

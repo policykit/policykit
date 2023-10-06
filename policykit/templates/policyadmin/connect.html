@@ -6,15 +6,18 @@
 {% block content_title %}{% endblock %}
 {% block breadcrumbs %}{% endblock %}
 {% block content %}
-  <main class="flex min-h-screen items-center justify-between">
-    <div class="w-2/5 h-full min-h-screen"
+  <main class="flex-col md:flex-row flex min-h-screen items-center justify-between">
+    <div class="h-[25vh] w-full md:w-1/5 lg:w-2/5 md:h-full md:min-h-screen"
          style="background: linear-gradient(243deg, rgba(222, 195, 252, 0.57) 1.25%, rgba(196, 196, 252, 0.68) 45.36%, #99C4FC 97.5%)">
     </div>
-    <div class="grow">
-      <div class="max-w-sm mb-32 mx-auto">
+    <div class="md:grow container">
+      <div class="max-w-sm mb-16 md:mb-32 mx-auto">
         <h1 class="mb-8">Connect PolicyKit to your home platform</h1>
         <p class="large mb-16">Note that only Admins (Moderators) can connect PolicyKit to community platforms.</p>
-        <a href="/authorize_platform?platform=slack&type=app">Install PolicyKit to Slack</a>
+        <a href="/authorize_platform?platform=slack&type=app"
+           class="button slack mb-16">
+          <img class="mx-auto h-6" height="24px" width="160px" src="{% static "policyengine/img/slack-add.svg" %}" alt="Add to Slack" />
+        </a>
         {% if request.GET.success %}Successfully added PolicyKit!{% endif %}
         {% if request.GET.error %}
           <div class="error">
