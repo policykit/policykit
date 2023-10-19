@@ -210,7 +210,7 @@
     @apply space-y-4;
   }
 
-  .radio-group label {
+  .radio-group-item {
     @apply flex items-start gap-4 px-6 py-4 cursor-pointer rounded-lg border-2 border-background-focus focus:outline focus:outline-primary hover:shadow-focus hover:border-primary;
   }
 

@@ -879,7 +879,7 @@ input[type="radio"] {
   margin-bottom: calc(1rem * var(--tw-space-y-reverse));
 }
 
-.radio-group label {
+.radio-group-item {
   display: flex;
   cursor: pointer;
   align-items: flex-start;
@@ -894,7 +894,7 @@ input[type="radio"] {
   padding-bottom: 1rem;
 }
 
-.radio-group label:hover {
+.radio-group-item:hover {
   --tw-border-opacity: 1;
   border-color: rgb(114 130 249 / var(--tw-border-opacity));
   --tw-shadow: 0px 2px 4px 0px #CDD3FF;
@@ -902,7 +902,7 @@ input[type="radio"] {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-.radio-group label:focus {
+.radio-group-item:focus {
   outline-style: solid;
   outline-color: #7282F9;
 }
