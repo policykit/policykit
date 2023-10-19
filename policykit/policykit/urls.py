@@ -34,7 +34,7 @@ urlpatterns = [
         template_name='policyadmin/connect.html',
     )),
     path('onboarding/', views.LoginView.as_view(
-        template_name='policyadmin/onboarding/onboarding.html',
+        template_name='policyadmin/onboarding.html',
     )),
     path('authorize_platform/', policyviews.authorize_platform),
     path('authenticate_user/', policyviews.authenticate_user),

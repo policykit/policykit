@@ -6,11 +6,7 @@
 {% block content_title %}{% endblock %}
 {% block breadcrumbs %}{% endblock %}
 {% block content %}
-  <header class="fixed flex gap-2 justify-center bg-white top-0 left-0 w-screen py-6 lg:pt-[25.5px] lg:pb-[17.5px] border-b-2 border-background-focus"
-          style="box-shadow: 0px 4px 4px 0px #F1F4F7">
-    <img class="h-5" height="20px" width="15px" src="{% static "policyengine/icon/logo.svg" %}" alt="" />
-    <p class="text-center inline">Getting started</p>
-  </header>
+  {% include "patterns/components/headers/policy_header.html" with title="Getting started" icon=True %}
   <main>
     <form x-data="{ formStep: 0 }">
       <!-- step 0 - info -->
@@ -154,53 +150,12 @@
               </legend>
             </div>
             <div class="lg:col-span-6 lg:col-start-7">
-              {% for kit in starterkits %}
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ kit.name }}</h5>
-                    <p class="card-text">{{ kit.description }}</p>
-                    <a href="/main/policyengine/initialize_starterkit?kit={{ kit.id }}"
-                       class="stretched-link"></a>
-                  </div>
-                </div>
-              {% endfor %}
               <fieldset class="radio-group">
-                <label>
-                  <div class="flex gap-6 items-start justify-between">
-                    <div>
-                      <input type="checkbox" class="sr-only peer" name="policy" />
-                      <span class="p large mb-4 block">Template title</span>
-                      <span class="p text-grey-dark block mb-6">Description</span>
-                      <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
-                      <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
-                    </div>
-                    <img class="mx-auto h-6" height="18px" width="18px" src="{% static "policyengine/icon/slack.svg" %}" alt="" />
-                  </div>
-                </label>
-                <label>
-                  <div class="flex gap-6 items-start justify-between">
-                    <div>
-                      <input type="checkbox" class="sr-only peer" name="policy" />
-                      <span class="p large mb-4 block">Template title</span>
-                      <span class="p text-grey-dark block mb-6">Description</span>
-                      <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
-                      <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
-                    </div>
-                    <img class="mx-auto h-6" height="18px" width="18px" src="{% static "policyengine/icon/slack.svg" %}" alt="" />
-                  </div>
-                </label>
-                <label>
-                  <div class="flex gap-6 items-start justify-between">
-                    <div>
-                      <input type="checkbox" class="sr-only peer" name="policy" />
-                      <span class="p large mb-4 block">Template title</span>
-                      <span class="p text-grey-dark block mb-6">Description</span>
-                      <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
-                      <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
-                    </div>
-                    <img class="mx-auto h-6" height="18px" width="18px" src="{% static "policyengine/icon/slack.svg" %}" alt="" />
-                  </div>
-                </label>
+                {% for kit in starterkits %}
+                  {% include "patterns/components/policy_template/policy-template.html" with title=kit.name description=kit.description id=kit.id %}
+                {% endfor %}
+                {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+                {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
               </fieldset>
             </div>
           </fieldset>
@@ -218,31 +173,9 @@
               </legend>
             </div>
             <div class="lg:col-span-6 lg:col-start-7">
-              {% for kit in starterkits %}
-                <label class="card">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ kit.name }}</h5>
-                    <p class="card-text">{{ kit.description }}</p>
-                    <a href="/main/policyengine/initialize_starterkit?kit={{ kit.id }}"
-                       class="stretched-link"></a>
-                  </div>
-                </label>
-              {% endfor %}
               <fieldset class="radio-group">
-                <label>
-                  <input type="radio" name="policy" />
-                  <div>
-                    <span class="p large mb-4 block">Testing</span>
-                    <span class="p text-grey-dark">All Base members have full permission to make changes to policies.</span>
-                  </div>
-                </label>
-                <label>
-                  <input type="radio" name="policy" />
-                  <div>
-                    <span class="p large mb-4 block">Testing</span>
-                    <span class="p text-grey-dark">All Base members have full permission to make changes to policies.</span>
-                  </div>
-                </label>
+                {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %}
+                {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %}
               </fieldset>
             </div>
           </fieldset>

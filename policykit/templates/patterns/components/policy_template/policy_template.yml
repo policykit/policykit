@@ -1,0 +1,5 @@
+name: Policy template
+context:
+  id: Title
+  title: Title
+  description: Description
