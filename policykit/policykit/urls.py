@@ -33,6 +33,9 @@ urlpatterns = [
     path('connect/', views.LoginView.as_view(
         template_name='policyadmin/connect.html',
     )),
+    path('onboarding/', views.LoginView.as_view(
+        template_name='policyadmin/onboarding/onboarding.html',
+    )),
     path('authorize_platform/', policyviews.authorize_platform),
     path('authenticate_user/', policyviews.authenticate_user),
     path('auth/<str:plugin_name>/callback', plugin_auth_callback),
@@ -51,6 +54,7 @@ urlpatterns = [
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
+
 
     path('admin/', admin.site.urls),    
 
