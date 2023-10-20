@@ -978,6 +978,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   position: relative;
 }
 
+.inset-0 {
+  inset: 0px;
+}
+
 .bottom-0 {
   bottom: 0px;
 }
@@ -1320,7 +1324,7 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .bg-background-popup {
   --tw-bg-opacity: 1;
-  background-color: rgb(56 68 80 / var(--tw-bg-opacity));
+  background-color: rgb(102 124 147 / var(--tw-bg-opacity));
 }
 
 .bg-grey-darkest {
@@ -1346,6 +1350,14 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
+.bg-background-popup\/40 {
+  background-color: rgb(102 124 147 / 0.4);
+}
+
+.bg-opacity-40 {
+  --tw-bg-opacity: 0.4;
 }
 
 .stroke-grey-light {
@@ -1468,16 +1480,16 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
 .transition {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-all {
+  transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -1490,7 +1502,15 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .hover\:bg-background-popup:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(56 68 80 / var(--tw-bg-opacity));
+  background-color: rgb(102 124 147 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-background-popup\/40:hover {
+  background-color: rgb(102 124 147 / 0.4);
+}
+
+.hover\:bg-opacity-40:hover {
+  --tw-bg-opacity: 0.4;
 }
 
 .focus\:outline:focus {
