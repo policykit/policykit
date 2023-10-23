@@ -33,7 +33,7 @@
   <body>
     <div class="lg:flex">
       {% include "patterns/components/navigation/navigation.html" with user=user %}
-      <main class="grow">
+      <main class="grow relative">
         {% block content %}{% endblock %}
       </main>
     </div>
