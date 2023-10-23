@@ -1,373 +1,310 @@
-{% extends "./dashboard_base.html" %} {% load static %} {% load dashboard_extras
-%} {% block content %} {% include "patterns/components/headers/page.html" with
-title="Home" %}
-<div class="lg:grid lg:grid-cols-10 relative">
-  <div class="p-6 lg:col-span-7">
-    <section
-      x-show="welcome"
-      class="px-8 py-7 bg-primary-lightest rounded-lg"
-      x-data="{welcome: true}"
-    >
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="h4">
-          Welcome to {{ user.community.community_name }}'s governance dashboard
-        </h2>
-        <button @click="welcome = false">
-          {% include "patterns/icons/cancel.html" with
-          class="stroke-primary-dark" %}
-        </button>
-      </div>
-      <p class="mb-6">
-        If you have any questions or need help getting started, don't hesitate
-        to reach out. We're here to help you build and evolve a thriving online
-        community.
-      </p>
-      <div class="flex justify-end">
-        <a href="#" class="button primary medium">Share your feedback</a>
+{% extends "./dashboard_base.html" %}
+{% load static %}
+{% load dashboard_extras %}
+{% block content %}
+  {% include "patterns/components/headers/page.html" with title="Home" %}
+  <div class="lg:grid lg:grid-cols-10 relative">
+    <div class="p-6 lg:col-span-7">
+      <section x-show="welcome"
+               class="px-8 py-7 bg-primary-lightest rounded-lg"
+               x-data="{welcome: true}">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="h4 ">Welcome to {{ user.community.community_name }}'s governance dashboard</h2>
+          <button @click="welcome = false">{% include "patterns/icons/cancel.html" with class="stroke-primary-dark" %}</button>
+        </div>
+        <p class="mb-6">
+          If you have any questions or need help getting started, don't hesitate to reach out. We're here to help you build and evolve a thriving online community.
+        </p>
+        <div class="flex justify-end ">
+          <a href="#" class="button primary medium">Share your feedback</a>
+        </div>
+      </section>
+      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="h5">Community guidelines</h3>
+          <a href="#" class="button primary medium">Add</a>
+        </div>
+        <div class="flex flex-col items-center justify-center gap-4 h-32">
+          {% include "patterns/icons/guidelines_empty.html" %}
+          <p class="text-grey-dark">No Guidelines yet</p>
+        </div>
+      </section>
+      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="h5">Policies</h3>
+          <a href="#" class="button primary medium">Add</a>
+        </div>
+        <div class="flex flex-col items-center justify-center gap-4 h-32">
+          {% include "patterns/icons/policies_empty.html" %}
+          <p class="text-grey-dark">No Policies yet</p>
+        </div>
+      </section>
+      <div class="h-80"></div>
+    </div>
+    <section class="px-5 py-4 lg:col-span-3 border-l border-background-focus">
+      <div class="lg:sticky lg:top-32">
+        <h3 class="h5">Governance history</h3>
+        <div class="flex flex-col items-center justify-center h-60 gap-4">
+          {% include "patterns/icons/activity_log_empty.html" %}
+          <p class="text-grey-dark">No actions yet</p>
+        </div>
       </div>
     </section>
-    <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="h5">Community guidelines</h3>
-        <a href="#" class="button primary medium">Add</a>
-      </div>
-      <div class="flex flex-col items-center justify-center gap-4 h-32">
-        {% include "patterns/icons/guidelines_empty.html" %}
-        <p class="text-grey-dark">No Guidelines yet</p>
-      </div>
-    </section>
-    <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="h5">Policies</h3>
-        <a href="#" class="button primary medium">Add</a>
-      </div>
-      <div class="flex flex-col items-center justify-center gap-4 h-32">
-        {% include "patterns/icons/policies_empty.html" %}
-        <p class="text-grey-dark">No Policies yet</p>
-      </div>
-    </section>
-    <div class="h-80"></div>
   </div>
-  <section class="px-5 py-4 lg:col-span-3 border-l border-background-focus">
-    <div class="lg:sticky lg:top-32">
-      <h3 class="h5">Governance history</h3>
-      <div class="flex flex-col items-center justify-center h-60 gap-4">
-        {% include "patterns/icons/activity_log_empty.html" %}
-        <p class="text-grey-dark">No actions yet</p>
+  <div class="body">
+    <div class="leftCol">
+      <!--<input type="text" class="searchBar" placeholder="Search">-->
+      <div class="actionPanel">
+        <h3 class="actionPanelTitle">Pending actions</h3>
+        <div class="actionPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for proposal in pending_proposals %}
+                <tr class="sidebarItem">
+                  <td>{{ proposal.action|capfirst }} governed by '{{ proposal.policy }}'</td>
+                  <td>{{ proposal.proposal_time|timesince }} ago</td>
+                </tr>
+              {% empty %}
+                <tr class="sidebarItem">
+                  <td>No pending actions.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="actionPanel">
+        <h3 class="actionPanelTitle">Recent actions</h3>
+        <div class="actionPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for action in action_log %}
+                <tr class="sidebarItem">
+                  <td>{{ action.actor|capfirst }} {{ action.verb|default_if_none:"" }}</td>
+                  <td>{{ action.timesince }} ago</td>
+                </tr>
+              {% empty %}
+                <tr class="sidebarItem">
+                  <td>No recent actions.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </section>
-</div>
-<div class="body">
-  <div class="leftCol">
-    <!--<input type="text" class="searchBar" placeholder="Search">-->
-    <div class="actionPanel">
-      <h3 class="actionPanelTitle">Pending actions</h3>
-      <div class="actionPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for proposal in pending_proposals %}
-            <tr class="sidebarItem">
-              <td>
-                {{ proposal.action|capfirst }} governed by '{{ proposal.policy
-                }}'
-              </td>
-              <td>{{ proposal.proposal_time|timesince }} ago</td>
-            </tr>
-            {% empty %}
-            <tr class="sidebarItem">
-              <td>No pending actions.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <div class="rightCol">
+      <input type="button"
+             class="proposeButton"
+             value="Propose action"
+             id="proposeAction">
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Users</h4>
+        <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for u in users %}
+                <tr class="sidebarItem">
+                  <td>
+                    {% if u.avatar %}
+                      <img class="sidebarPicture" src="{{ u.avatar }}">
+                    {% else %}
+                      <img class="sidebarPicture"
+                           src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                    {% endif %}
+                  </td>
+                  <td>{{ u.readable_name|default_if_none:u.username }}</td>
+                  <td>
+                    {% with roles=u|user_roles %}
+                      {% for r in roles %}
+                        {% if forloop.last %}
+                          {{ r }}
+                        {% else %}
+                          {{ r }},
+                        {% endif %}
+                      {% endfor %}
+                    {% endwith %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    <div class="actionPanel">
-      <h3 class="actionPanelTitle">Recent actions</h3>
-      <div class="actionPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for action in action_log %}
-            <tr class="sidebarItem">
-              <td>
-                {{ action.actor|capfirst }} {{ action.verb|default_if_none:"" }}
-              </td>
-              <td>{{ action.timesince }} ago</td>
-            </tr>
-            {% empty %}
-            <tr class="sidebarItem">
-              <td>No recent actions.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Roles</h4>
+        <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for role in roles %}
+                <tr class="sidebarItem">
+                  <td>{{ role.role_name }}</td>
+                  <td>{{ role|role_users_string }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="rightCol">
-    <input
-      type="button"
-      class="proposeButton"
-      value="Propose action"
-      id="proposeAction"
-    />
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Users</h4>
-      <div class="sidebarPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for u in users %}
-            <tr class="sidebarItem">
-              <td>
-                {% if u.avatar %}
-                <img class="sidebarPicture" src="{{ u.avatar }}" />
-                {% else %}
-                <img
-                  class="sidebarPicture"
-                  src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp"
-                />
-                {% endif %}
-              </td>
-              <td>{{ u.readable_name|default_if_none:u.username }}</td>
-              <td>
-                {% with roles=u|user_roles %} {% for r in roles %} {% if
-                forloop.last %} {{ r }} {% else %} {{ r }}, {% endif %} {%
-                endfor %} {% endwith %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Community documents</h4>
+        <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for doc in docs %}
+                <tr id="document_{{ doc.pk }}" class="sidebarItem">
+                  <td>{{ doc.name }}</td>
+                </tr>
+              {% empty %}
+                <tr class="sidebarItem">
+                  <td>No documents.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Roles</h4>
-      <div class="sidebarPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for role in roles %}
-            <tr class="sidebarItem">
-              <td>{{ role.role_name }}</td>
-              <td>{{ role|role_users_string }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Platform policies</h4>
+        <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for policy in platform_policies %}
+                <tr id="platform_{{ policy.pk }}" class="sidebarItem">
+                  <td>{{ policy.name }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Community documents</h4>
-      <div class="sidebarPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for doc in docs %}
-            <tr id="document_{{ doc.pk }}" class="sidebarItem">
-              <td>{{ doc.name }}</td>
-            </tr>
-            {% empty %}
-            <tr class="sidebarItem">
-              <td>No documents.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Constitution policies</h4>
+        <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for policy in constitution_policies %}
+                <tr id="constitution_{{ policy.pk }}" class="sidebarItem">
+                  <td>{{ policy.name }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Platform policies</h4>
-      <div class="sidebarPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for policy in platform_policies %}
-            <tr id="platform_{{ policy.pk }}" class="sidebarItem">
-              <td>{{ policy.name }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Constitution policies</h4>
-      <div class="sidebarPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for policy in constitution_policies %}
-            <tr id="constitution_{{ policy.pk }}" class="sidebarItem">
-              <td>{{ policy.name }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Trigger policies</h4>
-      <div class="sidebarPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for policy in trigger_policies %}
-            <tr id="trigger_{{ policy.pk }}" class="sidebarItem">
-              <td>{{ policy.name }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Trigger policies</h4>
+        <div class="sidebarPanelContent">
+          <table class="table table-hover">
+            <tbody>
+              {% for policy in trigger_policies %}
+                <tr id="trigger_{{ policy.pk }}" class="sidebarItem">
+                  <td>{{ policy.name }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-</div>
-<div id="modal_code" class="modal">
-  <div class="modal-content">
-    <div class="close">&times;</div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="doc_name">Name:</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control name" id="doc_name" readonly />
+  <div id="modal_code" class="modal">
+    <div class="modal-content">
+      <div class="close">&times;</div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="doc_name">Name:</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control name" id="doc_name" readonly>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="doc_text">Text:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control description"
-          id="doc_text"
-          readonly
-          rows="10"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="doc_text">Text:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="doc_text" readonly rows="10"></textarea>
+        </div>
       </div>
     </div>
   </div>
-</div>
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <div class="close">&times;</div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="name">Name:</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control name" id="name" readonly />
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="close">&times;</div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="name">Name:</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control name" id="name" readonly>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="description"
-        >Description:</label
-      >
-      <div class="col-sm-10">
-        <textarea
-          class="form-control description"
-          id="description"
-          readonly
-          rows="6"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="description">Description:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="description" readonly rows="6"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="action_types"
-        >Action Types:</label
-      >
-      <div class="col-sm-10">
-        <textarea
-          class="form-control description"
-          id="action_types"
-          readonly
-          rows="1"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="action_types">Action Types:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="action_types" readonly rows="1"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row" id="variables-field-container">
-      <label class="control-label col-sm-2" for="variables">Variables:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control description"
-          id="variables"
-          readonly
-          rows="1"
-        ></textarea>
+      <div class="form-row" id="variables-field-container">
+        <label class="control-label col-sm-2" for="variables">Variables:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="variables" readonly rows="1"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="filter">Filter:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control code"
-          id="filter"
-          readonly
-          rows="3"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="filter">Filter:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="filter" readonly rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="initialize">Initialize:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control code"
-          id="initialize"
-          readonly
-          rows="3"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="initialize">Initialize:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="initialize" readonly rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="notify">Notify:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control code"
-          id="notify"
-          readonly
-          rows="3"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="notify">Notify:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="notify" readonly rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="check">Check:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control code"
-          id="check"
-          readonly
-          rows="3"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="check">Check:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="check" readonly rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="pass">Pass:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control code"
-          id="pass"
-          readonly
-          rows="3"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="pass">Pass:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="pass" readonly rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="fail">Fail:</label>
-      <div class="col-sm-10">
-        <textarea
-          class="form-control code"
-          id="fail"
-          readonly
-          rows="3"
-        ></textarea>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="fail">Fail:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="fail" readonly rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <button type="button" class="btn" id="download">Download policy</button>
+      <div class="form-row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          <button type="button" class="btn" id="download">Download policy</button>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <button type="button" class="btn" id="editpolicy">Edit policy</button>
+      <div class="form-row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          <button type="button" class="btn" id="editpolicy">Edit policy</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-{% endblock %} {% block scripts %}
-<script>
+{% endblock %}
+{% block scripts %}
+  <script>
   document.getElementById("download").addEventListener("click", download);
   document.getElementById("editpolicy").addEventListener("click", editPolicy);
   document.getElementById("proposeAction").addEventListener("click", navActions);
@@ -522,5 +459,5 @@ title="Home" %}
     const data = $("#modal").data()
     window.location.href = `/main/editor?type=${data.kind}&operation=Change&policy=${data.pk}`;
   }
-</script>
+  </script>
 {% endblock %}
