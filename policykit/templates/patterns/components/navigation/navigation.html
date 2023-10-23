@@ -37,23 +37,23 @@
         {% if user.is_authenticated %}
           {% with request.resolver_match.url_name as url_name %}
             <nav>
-              <ul>
+              <ul class="space-y-2">
                 <li>
-                  <a href="/dashboard"
+                  <a href="{% url 'dashboard' %}"
                      class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'dashboard' %}bg-background-popup/40{% endif %}">
                     <div class="h-4 w-4">{% include "patterns/icons/home.html" with class="stroke-grey-light" %}</div>
                     Home
                   </a>
                 </li>
                 <li>
-                  <a href="/dashboard/members"
+                  <a href="{% url 'members' %}"
                      class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'members' %}bg-background-popup/40{% endif %}">
                     <div class="h-4 w-4">{% include "patterns/icons/group.html" with class="stroke-grey-light" %}</div>
                     Members
                   </a>
                 </li>
                 <li>
-                  <a href="/dashboard/settings"
+                  <a href="{% url 'settings' %}"
                      class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'settings' %}bg-background-popup/40{% endif %}">
                     <div class="h-4 w-4">{% include "patterns/icons/settings.html" with class="stroke-grey-light" %}</div>
                     Settings
