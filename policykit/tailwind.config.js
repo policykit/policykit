@@ -16,6 +16,7 @@ module.exports = {
       background: {
         light: "#F8F9FA",
         focus: "#F1F4F6",
+        popup: "#667C93",
       },
       grey: {
         darkest: "#191F24",
@@ -57,6 +58,7 @@ module.exports = {
       focus: "0px 2px 4px 0px #CDD3FF",
       dark: "",
       disabled: "0px 0px 4px 0px rgba(39, 39, 39, 0.35)",
+      header: "0px 4px 4px 0px #F1F4F7",
     },
   },
   plugins: [],

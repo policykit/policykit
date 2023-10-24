@@ -8,191 +8,251 @@
 
 /* typography */
 
-h1 {
-  font-size: 2rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 120%; /* 38.4px */
-}
+@layer components {
+  h1,
+  .h1 {
+    font-size: 2rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 38.4px */
+  }
 
-h2 {
-  font-size: 1.8125;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 120%; /* 34.8px */
-}
+  h2,
+  .h2 {
+    font-size: 1.8125;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 34.8px */
+  }
 
-h3 {
-  font-size: 1.5625rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 120%; /* 30px */
-}
+  h3,
+  .h3 {
+    font-size: 1.5625rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 30px */
+  }
 
-h4 {
-  font-size: 1.375rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 120%; /* 26.4px */
-}
+  h4,
+  .h4 {
+    font-size: 1.375rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 26.4px */
+  }
 
-p.large {
-  font-size: 1.1875rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 132%; /* 25.08px */
-}
+  p.large,
+  .p.large {
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 25.08px */
+  }
 
-p {
-  font-size: 1rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 132%; /* 21.12px */
-}
+  p,
+  .p {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 21.12px */
+  }
 
-p.focussed {
-  font-size: 1rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 124%; /* 19.84px */
-}
+  p.focussed,
+  .p.focussed {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
 
-p.small,
-span.small {
-  font-size: 0.875rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 120%; /* 16.8px */
-}
+  p.small,
+  span.small,
+  .p.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
 
-p.small.focussed {
-  font-size: 0.875rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 120%; /* 16.8px */
-}
+  p.small.focussed,
+  .p.small.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
 
-.subtext {
-  font-size: 0.75rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 120%; /* 14.4px */
-}
+  .subtext {
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 14.4px */
+  }
 
-/* button */
+  /* button */
 
-.button {
-  @apply block;
-}
+  .button.primary {
+    @apply bg-primary-dark text-white hover:bg-primary;
+  }
 
-.button.primary {
-  @apply bg-primary-dark text-white hover:bg-primary;
-}
+  .button.large {
+    @apply px-10 py-2 rounded-[20px];
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 22.8px */
+  }
 
-/* button.primary svg {
-  @apply stroke-white;
-} */
+  .button.large.secondary {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
 
-.button.large {
-  @apply px-10 py-2 rounded-[20px];
-  font-size: 1.1875rem;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 120%; /* 22.8px */
-}
+  .button.medium,
+  .button.small,
+  .button.tiny {
+    @apply rounded-[3.5px];
+  }
 
-.button.large.secondary {
-  @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
-}
+  .button.medium {
+    @apply px-8 py-2 gap-2;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
+  }
 
-/* button.large.secondary svg {
-  @apply stroke-primary-dark;
-} */
+  .button.medium.primary svg.external-link-icon {
+    @apply fill-white;
+  }
 
-.button.medium,
-.button.small,
-.button.tiny {
-  @apply rounded-[3.5px];
-}
+  .button.small {
+    @apply px-4 py-2;
+  }
 
-.button.medium {
-  @apply px-8 py-2 gap-2;
-  font-size: 1rem;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 120%; /* 19.2px */
-}
+  .button.small,
+  .button.tiny {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
 
-.button.medium.primary svg.external-link-icon {
-  @apply fill-white;
-}
+  .button.small,
+  .button.medium.secondary,
+  .button.tiny.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
 
-.button.small {
-  @apply px-4 py-2;
-}
+  .button.small svg,
+  .button.medium.secondary svg,
+  .button.tiny.secondary svg {
+    @apply stroke-primary-dark;
+  }
 
-.button.small,
-.button.tiny {
-  font-size: 0.875rem;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 120%; /* 16.8px */
-}
+  .button.small svg.external-link-icon,
+  .button.medium.secondary svg.external-link-icon,
+  .button.tiny.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
 
-.button.small,
-.button.medium.secondary,
-.button.tiny.secondary {
-  @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
-}
+  .button.tiny {
+    @apply px-3 py-1.5;
+  }
 
-.button.small svg,
-.button.medium.secondary svg,
-.button.tiny.secondary svg {
-  @apply stroke-primary-dark;
-}
+  .button.error {
+    @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
+  }
 
-.button.small svg.external-link-icon,
-.button.medium.secondary svg.external-link-icon,
-.button.tiny.secondary svg.external-link-icon {
-  @apply fill-primary-dark stroke-none;
-}
-
-.button.tiny {
-  @apply px-3 py-1.5;
-}
-
-.button.error {
-  @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
-}
-
-.button:disabled {
-  @apply !cursor-not-allowed
+  .button:disabled {
+    @apply !cursor-not-allowed
    /* !bg-grey !text-white; */;
+  }
+
+  .button.icon-only {
+    @apply px-2 rounded-full w-[34px] h-[34px];
+  }
+
+  .button.icon-only svg {
+    @apply w-full h-full;
+  }
+
+  .button.slack {
+    @apply bg-slack py-3 rounded-[4px];
+  }
+
+  /* search input */
+
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+  }
+
+  /* text input */
+
+  input[type="text"],
+  textarea {
+    @apply bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary w-full;
+  }
+
+  /* radio */
+
+  input[type="radio"] {
+    @apply border-primary-dark disabled:border-grey rounded-sm checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
+  }
+
+  input[type="radio"] {
+    @apply mt-1;
+  }
+
+  .radio-group {
+    @apply space-y-4;
+  }
+
+  .radio-group-item {
+    @apply flex items-start gap-4 px-6 py-4 cursor-pointer rounded-lg border-2 border-background-focus focus:outline focus:outline-primary hover:shadow-focus hover:border-primary;
+  }
+
+  .radio-group label:has(input:checked) {
+    @apply border-primary shadow-focus;
+  }
+
+  /* checkbox */
+
+  input[type="checkbox"] {
+    @apply absolute opacity-0 w-4 h-4;
+  }
+
+  .checkbox {
+    @apply stroke-primary-dark;
+  }
+
+  .checkbox-label:hover .checkbox-bg {
+    @apply fill-primary-light;
+  }
+
+  input[type="checkbox"]:checked + svg .checkbox-bg {
+    @apply fill-primary-dark;
+  }
+
+  /* links */
+
+  /* a {
+    @apply text-primary-dark;
+  } */
 }
 
-.button.icon-only {
-  @apply px-2 rounded-full w-[34px] h-[34px];
-}
+/* alpine js */
 
-.button.icon-only svg {
-  @apply w-full h-full;
-}
-
-.button.slack {
-  @apply bg-slack py-3 rounded-[4px];
-}
-
-/* search input */
-
-input[type="search"]::-webkit-search-decoration,
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-results-button,
-input[type="search"]::-webkit-search-results-decoration {
+/* fix blip with on initial load with elements using x-cloak */
+[x-cloak=""] {
   display: none;
 }
 
-/* links */
-
-a {
-  @apply text-primary-dark;
+/* mobile only x-cloak */
+@media screen and (max-width: 768px) {
+  [x-cloak="mobile"] {
+    display: none;
+  }
 }

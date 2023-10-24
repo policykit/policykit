@@ -15,7 +15,7 @@
         <h1 class="mb-8">Connect PolicyKit to your home platform</h1>
         <p class="large mb-16">Note that only Admins (Moderators) can connect PolicyKit to community platforms.</p>
         <a href="/authorize_platform?platform=slack&type=app"
-           class="button slack mb-16">
+           class="button slack block mb-16">
           <img class="mx-auto h-6" height="24px" width="160px" src="{% static "policyengine/img/slack-add.svg" %}" alt="Add to Slack" />
         </a>
         {% if request.GET.success %}Successfully added PolicyKit!{% endif %}
