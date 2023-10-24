@@ -242,3 +242,17 @@
     @apply text-primary-dark;
   } */
 }
+
+/* alpine js */
+
+/* fix blip with on initial load with elements using x-cloak */
+[x-cloak=""] {
+  display: none;
+}
+
+/* mobile only x-cloak */
+@media screen and (max-width: 768px) {
+  [x-cloak="mobile"] {
+    display: none;
+  }
+}

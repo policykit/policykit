@@ -4,7 +4,7 @@
 {% block content %}
   {% include "patterns/components/headers/page.html" with title="Home" %}
   <div class="lg:grid lg:grid-cols-10 relative">
-    <div class="p-6 lg:col-span-7">
+    <div class="lg:p-6 lg:col-span-7">
       <section x-show="welcome"
                class="px-8 py-7 bg-primary-lightest rounded-lg"
                x-data="{welcome: true}">
@@ -44,10 +44,17 @@
     <section class="px-5 py-4 lg:col-span-3 border-l border-background-focus">
       <div class="lg:sticky lg:top-32">
         <h3 class="h5">Governance history</h3>
-        <div class="flex flex-col items-center justify-center h-60 gap-4">
-          {% include "patterns/icons/activity_log_empty.html" %}
-          <p class="text-grey-dark">No actions yet</p>
-        </div>
+        {% for action in action_log %}
+          <tr class="sidebarItem">
+            <td>{{ action.actor|capfirst }} {{ action.verb|default_if_none:"" }}</td>
+            <td>{{ action.timesince }} ago</td>
+          </tr>
+        {% empty %}
+          <div class="flex flex-col items-center justify-center h-60 gap-4">
+            {% include "patterns/icons/activity_log_empty.html" %}
+            <p class="text-grey-dark">No actions yet</p>
+          </div>
+        {% endfor %}
       </div>
     </section>
   </div>
@@ -67,25 +74,6 @@
               {% empty %}
                 <tr class="sidebarItem">
                   <td>No pending actions.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="actionPanel">
-        <h3 class="actionPanelTitle">Recent actions</h3>
-        <div class="actionPanelContent">
-          <table class="table table-hover">
-            <tbody>
-              {% for action in action_log %}
-                <tr class="sidebarItem">
-                  <td>{{ action.actor|capfirst }} {{ action.verb|default_if_none:"" }}</td>
-                  <td>{{ action.timesince }} ago</td>
-                </tr>
-              {% empty %}
-                <tr class="sidebarItem">
-                  <td>No recent actions.</td>
                 </tr>
               {% endfor %}
             </tbody>
