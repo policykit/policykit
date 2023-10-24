@@ -28,11 +28,13 @@
     <link rel="icon" href="{% static "policyengine/img/favicon_io/favicon.ico" %}" type="image/x-icon">
     <!-- JS -->
     <script defer
+            src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer
             src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body>
     <div class="lg:flex">
-      {% include "patterns/components/navigation/navigation.html" with user=user %}
+      {% include "patterns/components/navigation/navigation.html" %}
       <main class="grow relative">
         {% block content %}{% endblock %}
       </main>
