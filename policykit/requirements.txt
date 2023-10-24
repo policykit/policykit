@@ -58,7 +58,7 @@ psycopg2-binary==2.8.6
 ptyprocess==0.6.0
 pycodestyle==2.7.0
 pycryptodome==3.10.1
-Pygments==2.5.2
+Pygments==2.7.4
 PyJWT==2.3.0
 PyNaCl==1.4.0
 pylint==2.8.2
