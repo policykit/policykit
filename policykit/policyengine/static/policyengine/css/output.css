@@ -1045,6 +1045,14 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   margin-bottom: 6rem;
 }
 
+.-mt-0 {
+  margin-top: -0px;
+}
+
+.-mt-0\.5 {
+  margin-top: -0.125rem;
+}
+
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -1099,18 +1107,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .mt-6 {
   margin-top: 1.5rem;
-}
-
-.-mt-1 {
-  margin-top: -0.25rem;
-}
-
-.-mt-0 {
-  margin-top: -0px;
-}
-
-.-mt-0\.5 {
-  margin-top: -0.125rem;
 }
 
 .block {
@@ -1289,6 +1285,16 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.translate-y-0 {
+  --tw-translate-y: 0px;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.translate-y-full {
+  --tw-translate-y: 100%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
@@ -1313,8 +1319,20 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   flex-wrap: wrap;
 }
 
+.place-items-end {
+  place-items: end;
+}
+
+.content-end {
+  align-content: flex-end;
+}
+
 .items-start {
   align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
 }
 
 .items-center {
@@ -1387,6 +1405,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .overflow-hidden {
   overflow: hidden;
+}
+
+.overflow-ellipsis {
+  text-overflow: ellipsis;
 }
 
 .rounded-\[3\.5px\] {
@@ -1775,10 +1797,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   outline-style: solid;
 }
 
-.peer:focus-visible ~ .peer-focus-visible\:outline-2 {
-  outline-width: 2px;
-}
-
 .peer:focus-visible ~ .peer-focus-visible\:outline-primary {
   outline-color: #7282F9;
 }
@@ -1891,8 +1909,17 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
     width: auto;
   }
 
+  .lg\:grow {
+    flex-grow: 1;
+  }
+
   .lg\:translate-x-0 {
     --tw-translate-x: 0px;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  }
+
+  .lg\:translate-y-0 {
+    --tw-translate-y: 0px;
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   }
 
@@ -1906,6 +1933,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
   .lg\:grid-cols-12 {
     grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .lg\:items-center {
+    align-items: center;
   }
 
   .lg\:gap-x-6 {
@@ -1941,5 +1972,13 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
   .lg\:pt-\[25\.5px\] {
     padding-top: 25.5px;
+  }
+
+  .lg\:opacity-0 {
+    opacity: 0;
+  }
+
+  .lg\:opacity-100 {
+    opacity: 1;
   }
 }
