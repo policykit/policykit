@@ -31,11 +31,12 @@
   </div>
 </div>
 <script>
-     // remove content of modal when we close it
-     function handleModalToggle(modal) {
-          console.log(modal)
-          if (!modal){
-               document.getElementById("modal-content").innerHTML = ""
-          }
-     }
+  // remove content of modal when we close it
+  function handleModalToggle(modal) {  
+    if (!modal){
+      setTimeout(function(){
+        document.getElementById("modal-content").innerHTML = ""
+      }, 300);
+    }
+  }
 </script>
