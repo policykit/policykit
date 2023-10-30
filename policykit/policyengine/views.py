@@ -436,7 +436,7 @@ def documenteditor(request):
         data['name'] = doc.name
         data['text'] = doc.text
 
-    return render(request, 'policyadmin/dashboard/document_editor.html', data)
+    return render(request, 'policyadmin/dashboard/modals/document_editor.html', data)
 
 @login_required
 def actions(request):

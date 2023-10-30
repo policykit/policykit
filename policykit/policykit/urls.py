@@ -57,6 +57,7 @@ urlpatterns = [
 
     # admin modals
     path('main/modal/policynew/', policyviews.policynew),
+    path('main/modal/documenteditor/', policyviews.documenteditor),
 
     path('admin/', admin.site.urls),    
 
