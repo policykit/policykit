@@ -25,7 +25,13 @@
       <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
         <div class="flex items-center justify-between mb-4">
           <h3 class="h5">Community guidelines</h3>
-          <a href="#" class="button primary medium">Add</a>
+          <button href="#"
+                  class="button primary medium"
+                  x-data
+                  @click="$dispatch('toggle_modal')"
+                  hx-get="/main/modal/policynew/"
+                  hx-target="#modal-content"
+                  hx-swap="innerHTML">Add</button>
         </div>
         <div class="flex flex-col items-center justify-center gap-4 h-32">
           {% include "patterns/icons/guidelines_empty.html" %}

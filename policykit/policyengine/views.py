@@ -520,6 +520,10 @@ def error_check(request):
     return JsonResponse({'errors': errors})
 
 @login_required
+def policynew(request):
+    return render(request, 'policyadmin/dashboard/modals/policy_new.html')
+
+@login_required
 def policy_action_save(request):
     from constitution.models import (ActionType, PolicyActionKind,
                                      PolicykitAddConstitutionPolicy,

@@ -986,6 +986,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   position: relative;
 }
 
+.sticky {
+  position: sticky;
+}
+
 .inset-0 {
   inset: 0px;
 }
@@ -1109,6 +1113,14 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   margin-top: 1.5rem;
 }
 
+.mt-20 {
+  margin-top: 5rem;
+}
+
+.mt-8 {
+  margin-top: 2rem;
+}
+
 .block {
   display: block;
 }
@@ -1193,6 +1205,26 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   height: 100vh;
 }
 
+.h-full {
+  height: 100%;
+}
+
+.max-h-screen {
+  max-height: 100vh;
+}
+
+.max-h-\[75vh\] {
+  max-height: 75vh;
+}
+
+.max-h-\[80vh\] {
+  max-height: 80vh;
+}
+
+.max-h-\[85vh\] {
+  max-height: 85vh;
+}
+
 .min-h-screen {
   min-height: 100vh;
 }
@@ -1246,12 +1278,24 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   width: 100vw;
 }
 
+.w-\[1030px\] {
+  width: 1030px;
+}
+
 .max-w-\[580px\] {
   max-width: 580px;
 }
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
+}
+
+.max-w-\[782px\] {
+  max-width: 782px;
 }
 
 .flex-none {
@@ -1403,6 +1447,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   border-color: rgb(248 249 250 / var(--tw-divide-opacity));
 }
 
+.overflow-auto {
+  overflow: auto;
+}
+
 .overflow-hidden {
   overflow: hidden;
 }
@@ -1532,6 +1580,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .p-4 {
   padding: 1rem;
+}
+
+.p-8 {
+  padding: 2rem;
 }
 
 .px-2 {
@@ -1889,6 +1941,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
     margin-top: 10rem;
   }
 
+  .lg\:block {
+    display: block;
+  }
+
   .lg\:flex {
     display: flex;
   }
@@ -1952,6 +2008,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
     padding: 1.5rem;
   }
 
+  .lg\:p-0 {
+    padding: 0px;
+  }
+
   .lg\:px-8 {
     padding-left: 2rem;
     padding-right: 2rem;
@@ -1960,6 +2020,11 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   .lg\:py-8 {
     padding-top: 2rem;
     padding-bottom: 2rem;
+  }
+
+  .lg\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
   }
 
   .lg\:pb-\[17\.5px\] {
