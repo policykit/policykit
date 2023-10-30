@@ -1,0 +1,70 @@
+<div x-data="{ shareModal: false }">
+  <button @click="shareModal = true" class="button secondary large icon-only">
+    {% include "patterns/icons/share.html" with class="stroke-primary-dark" %}
+    <span class="sr-only">Share to public</span>
+  </button>
+  <template x-teleport="body">
+    <div role="dialog"
+         aria-labelledby="modal1_label"
+         aria-modal="true"
+         tabindex="0"
+         x-show="shareModal"
+         x-trap.noscroll.inert="shareModal"
+         @click="shareModal = false"
+         @click.away="shareModal = false"
+         @keydown.window.escape="shareModal = false"
+         class="fixed top-0 left-0 w-full h-screen flex justify-center items-end lg:items-center z-30">
+      <div aria-hidden="true"
+           class="absolute top-0 left-0 w-full h-screen bg-background-popup/40 transition duration-300"
+           x-cloak
+           x-show="shareModal"
+           x-transition.opacity
+           x-transition:leave="delay-150"></div>
+      <div data-modal-document
+           @click.stop=""
+           x-show="shareModal"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="transform lg:opacity-0 translate-y-full lg:translate-y-0"
+           x-transition:enter-end="transform lg:opacity-100 translate-y-0"
+           x-transition:leave="transition ease-out duration-300"
+           x-transition:leave-start="transform lg:opacity-100 translate-y-0"
+           x-transition:leave-end="transform lg:opacity-0 translate-y-full lg:translate-y-0"
+           class="flex flex-col rounded-lg shadow-lg overflow-hidden bg-white w-[640px] h-auto z-40">
+        <div class="px-8 pt-8 pb-6 flex justify-between">
+          <h2 id="modal_label" class="p">Share</h2>
+          <button @click="shareModal = false">
+            {% include "patterns/icons/cancel.html" with class="stroke-grey-darkest" %}
+          </button>
+        </div>
+        <div class="px-8 grid grid-cols-1 divide-y gap-1 divide-background-focus">
+          <div class="pb-5">
+            <h3 class="h4 mb-4">Make your governance public</h3>
+            <p>
+              Share a view-only link to your <span class="text-bold">PolicyKit Home page</span> or its parts. The names of your community Members will be hidden.
+            </p>
+          </div>
+          <form>
+            {% include "patterns/components/input/toggle.html" with name="governance" label="Governance History" %}
+            {% include "patterns/components/input/toggle.html" with name="platform-policies" label="Platform Policies" %}
+            {% include "patterns/components/input/toggle.html" with name="constitution-policies" label="Constitutional Policies" %}
+            {% include "patterns/components/input/toggle.html" with name="roles" label="Roles" %}
+            {% include "patterns/components/input/toggle.html" with name="community-documents" label="Community Documents" %}
+          </form>
+        </div>
+        <div class="flex justify-between gap-4 px-8 py-6 border-t border-background-focus">
+          <p class="bg-background-light px-4 py-2 lg:grow overflow-ellipsis">policykit.org/xyz101pu/placeholder</p>
+          <button class="button primary large icon-only shrink-0"
+                  @click="copyShareURL('policykit.org/xyz101pu/placeholder')">
+            {% include "patterns/icons/copy.html" with class="stroke-white" %}
+            <span class="sr-only">Copy to clipboard</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>
+<script>
+  copyShareURL = (url) => {
+    return subject => navigator.clipboard.writeText(url)
+  }
+</script>
