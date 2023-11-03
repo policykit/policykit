@@ -1973,6 +1973,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
     width: auto;
   }
 
+  .lg\:w-1\/2 {
+    width: 50%;
+  }
+
   .lg\:grow {
     flex-grow: 1;
   }
