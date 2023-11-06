@@ -1,0 +1,40 @@
+<div class="rounded-lg border border-background-focus w-full max-w-[306px] p-4 hover:border-primary hover:shadow-focus transition">
+  <div class="mb-5">{% include "patterns/icons/slack.html" %}</div>
+  <h3 class="p large mb-2">
+    {% if data.readable_name %}
+      {{ data.readable_name }}
+    {% else %}
+      {{ name }}
+    {% endif %}
+  </h3>
+  <!-- <p class="small mb-6">{{ data.description }}</p> -->
+  <!-- {% if data.config and not data.hide_config %}
+    <p class="card-text">
+      <ul class="configList">
+        {% for k,v in data.config %}<li class="configListItem">{{ v }}</li>{% endfor %}
+      </ul>
+    </p>
+  {% endif %} -->
+  <!-- {% if data.webhook_url %}
+    <p class="card-text">
+      {% if data.webhook_instructions %}
+        <p>
+          <b>Webhook Instructions: </b>{{ data.webhook_instructions }}
+        </p>
+      {% endif %}
+      <code id="{{ name }}-webhook">{{ data.webhook_url }}</code>
+      <a class="copyToClipboard" onClick="copyToClipboard('{{ name }}-webhook')" href="javascript:void(0);">Copy Webhook URL</a>
+    </p>
+  {% endif %} -->
+  {% if home_base_integration %}
+    <p class="small text-primary-dark">Home base integration</p>
+  {% else %}
+    <a href="/{{ name }}/disable_integration?id={{ data.id }}"
+       class="ml-auto mr-0 small">Delete Integration</a>
+    {% if name == "opencollective" %}
+      <a href="/{{ name }}/disable_integration_without_deletion?id={{ data.id }}"
+         class="ml-auto mr-0 small">Disable Integration</a>
+      {{ data }}
+    {% endif %}
+  {% endif %}
+</div>

@@ -96,7 +96,7 @@
   }
 
   .button.large {
-    @apply px-10 py-2 rounded-[20px];
+    @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
     font-size: 1.1875rem;
     font-style: normal;
     font-weight: 600;
@@ -114,7 +114,7 @@
   }
 
   .button.medium {
-    @apply px-8 py-2 gap-2;
+    @apply px-8 py-2 flex gap-2 items-center;
     font-size: 1rem;
     font-style: normal;
     font-weight: 600;
@@ -126,7 +126,7 @@
   }
 
   .button.small {
-    @apply px-4 py-2;
+    @apply px-4 py-2 flex gap-2 items-center;
   }
 
   .button.small,
@@ -156,7 +156,7 @@
   }
 
   .button.tiny {
-    @apply px-3 py-1.5;
+    @apply px-3 py-1.5 flex gap-2 items-center;
   }
 
   .button.error {
