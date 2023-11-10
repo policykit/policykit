@@ -1,7 +1,6 @@
 {
     "platform_policies": [
     {
-      "id": 1,
       "name": "All Platform Actions Pass",
       "description": "All platform actions pass automatically",
       "filter": "return True",
@@ -14,7 +13,6 @@
   ],
   "constitution_policies": [
     {
-      "id": 2,
       "name": "All Constitution Actions Pass",
       "description": "All constitution actions pass automatically",
       "filter": "return True",
@@ -25,7 +23,6 @@
       "fail": "pass"
     },
     {
-        "id": 3,
         "name": "Constitution Actions Voted In",
         "description": "All constitution actions must be approved by voters",
         "filter": "return True",
