@@ -117,8 +117,11 @@ def onboarding(request):
     data = json.loads(startkit.read())
 
     platform_policies = data.get("platform_policies", [])
+    constitution_policies = data.get("constitution_policies", [])
     return render(request, "policyadmin/onboarding.html", {
-        'community_members': users
+        'community_members': users,
+        'platform_policies': platform_policies,
+        'constitution_policies': constitution_policies,
     })
 
 @login_required
