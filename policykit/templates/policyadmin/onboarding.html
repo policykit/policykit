@@ -154,11 +154,11 @@
             </div>
             <div class="lg:col-span-6 lg:col-start-7">
               <fieldset class="radio-group">
-                {% for kit in starterkits %}
-                  {% include "patterns/components/policy_template/policy-template.html" with title=kit.name description=kit.description id=kit.id %}
+                {% for policy in platform_policies %}
+                  {% include "patterns/components/policy_template/policy-template.html" with title=policy.name description=policy.description id=policy.id %}
                 {% endfor %}
-                {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
-                {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+                <!-- {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+                {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %} -->
               </fieldset>
             </div>
           </fieldset>
@@ -177,8 +177,11 @@
             </div>
             <div class="lg:col-span-6 lg:col-start-7">
               <fieldset class="radio-group">
-                {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %}
-                {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %}
+                {% for policy in constitution_policies %}
+                  {% include "patterns/components/input/radio.html" with name="policy" title=policy.name description=policy.description %}
+                {% endfor %}
+                <!-- {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %}
+                {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %} -->
               </fieldset>
             </div>
           </fieldset>
