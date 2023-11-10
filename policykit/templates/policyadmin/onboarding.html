@@ -82,7 +82,6 @@
               </legend>
             </div>
             <div class="lg:col-span-6 lg:col-start-7">
-              {% for member in community_members %}<!-- members go in here -->{% endfor %}
               <div class="border border-background-focus rounded-lg">
                 <div class="bg-background-focus rounded-t-lg px-4 py-2 mb-4">
                   <label class="flex items-center gap-4 px-4 py-2 cursor-pointer checkbox-label"
@@ -102,8 +101,28 @@
                     <span>Select all</span>
                   </label>
                 </div>
-                <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
-                  <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+              <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
+              {% for member in community_members %}<!-- members go in here -->
+                <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+                  <input type="checkbox" class="member-checkbox" />
+                  <svg width="16"
+                       height="16"
+                       viewBox="0 0 16 16"
+                       fill="none"
+                       xmlns="http://www.w3.org/2000/svg"
+                       aria-hidden="true"
+                       focusable="false"
+                       class="checkbox">
+                    <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                    <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                  </svg>
+                  <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
+                  <span>{{member.readable_name }}</span>
+                </label>
+              {% endfor %}
+              
+                
+                  <!-- <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
                     <input type="checkbox" class="member-checkbox" />
                     <svg width="16"
                          height="16"
@@ -118,23 +137,7 @@
                     </svg>
                     <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.profile.image_72 }} alt="" />
                     <span>Name of member</span>
-                  </label>
-                  <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
-                    <input type="checkbox" class="member-checkbox" />
-                    <svg width="16"
-                         height="16"
-                         viewBox="0 0 16 16"
-                         fill="none"
-                         xmlns="http://www.w3.org/2000/svg"
-                         aria-hidden="true"
-                         focusable="false"
-                         class="checkbox">
-                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
-                      <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
-                    </svg>
-                    <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.profile.image_72 }} alt="" />
-                    <span>Name of member</span>
-                  </label>
+                  </label> -->
                 </div>
               </div>
             </div>

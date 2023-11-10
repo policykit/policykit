@@ -103,6 +103,19 @@ def initialize_starterkit(request):
     return redirect("/login?success=true")
 
 @login_required
+def onboarding(request):
+    from policyengine.models import CommunityUser
+    user = get_user(request)
+    community = user.community.community
+
+    # List all CommunityUsers across all platforms connected to this community
+    users = CommunityUser.objects.filter(community__community=community)
+
+    return render(request, "policyadmin/onboarding.html", {
+        'community_members': users
+    })
+
+@login_required
 def dashboard(request):
     from policyengine.models import CommunityPlatform, CommunityUser, Proposal
     user = get_user(request)

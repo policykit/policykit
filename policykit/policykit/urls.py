@@ -33,9 +33,10 @@ urlpatterns = [
     path('connect/', views.LoginView.as_view(
         template_name='policyadmin/connect.html',
     )),
-    path('onboarding/', views.LoginView.as_view(
-        template_name='policyadmin/onboarding.html',
-    )),
+    # path('onboarding/', views.LoginView.as_view(
+    #     template_name='policyadmin/onboarding.html',
+    # )),
+    path('onboarding/', policyviews.onboarding),
     path('authorize_platform/', policyviews.authorize_platform),
     path('authenticate_user/', policyviews.authenticate_user),
     path('auth/<str:plugin_name>/callback', plugin_auth_callback),
