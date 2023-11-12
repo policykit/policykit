@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 DASHBOARD_MAX_USERS = 50
 DASHBOARD_MAX_ACTIONS = 20
-
+DASHBOARD_BASE = "policyadmin/dashboard/dashboard_base.html"
+DASHBOARD_AJAX_BASE = "policyadmin/dashboard/dashboard_base_ajax.html"
 
 def homepage(request):
     """PolicyKit splash page"""
@@ -421,10 +422,10 @@ def documenteditor(request):
     user = get_user(request)
     operation = request.GET.get('operation')
     doc_id = request.GET.get('doc')
-    base = "policyadmin/dashboard/dashboard_base.html"
+    base = DASHBOARD_BASE 
 
     if request.META.get('HTTP_HX_REQUEST'):
-        base = "policyadmin/dashboard/dashboard_base_ajax.html"
+        base = DASHBOARD_AJAX_BASE
         
     data = {
         'user': user,
