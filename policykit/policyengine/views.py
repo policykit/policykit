@@ -421,10 +421,15 @@ def documenteditor(request):
     user = get_user(request)
     operation = request.GET.get('operation')
     doc_id = request.GET.get('doc')
+    base = "policyadmin/dashboard/dashboard_base.html"
 
+    if request.META.get('HTTP_HX_REQUEST'):
+        base = "policyadmin/dashboard/dashboard_base_ajax.html"
+        
     data = {
         'user': user,
-        'operation': operation
+        'operation': operation,
+        'base': base
     }
 
     if doc_id:
@@ -436,7 +441,7 @@ def documenteditor(request):
         data['name'] = doc.name
         data['text'] = doc.text
 
-    return render(request, 'policyadmin/dashboard/modals/document_editor.html', data)
+    return render(request, 'policyadmin/dashboard/document_editor.html', data)
 
 @login_required
 def actions(request):

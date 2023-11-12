@@ -27,15 +27,19 @@
          x-transition:leave-start="transform lg:opacity-100 translate-y-0"
          x-transition:leave-end="transform lg:opacity-0 translate-y-full lg:translate-y-0"
          class="flex flex-col rounded-lg shadow-lg overflow-auto bg-white w-[1030px] h-auto z-40 max-h-[85vh] relative"
-         id="modal-content"></div>
+         id="modal-content">
+      <!-- To do: add loading state -->
+    </div>
   </div>
 </div>
 <script>
-  // remove content of modal when we close it
   function handleModalToggle(modal) {  
     if (!modal){
       setTimeout(function(){
+        // remove content of modal when we close it
         document.getElementById("modal-content").innerHTML = ""
+        // change browser url to previous state
+        window.history.back();
       }, 300);
     }
   }
