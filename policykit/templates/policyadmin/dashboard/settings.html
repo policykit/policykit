@@ -226,6 +226,8 @@
     document.execCommand("Copy");
     textArea.remove();
   }
+  // force full page reload when navigating back and forward when page url has been changed using history API
+  window.addEventListener("popstate", function (event) { window.location.reload(); });
   </script>
   <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
 {% endblock %}
