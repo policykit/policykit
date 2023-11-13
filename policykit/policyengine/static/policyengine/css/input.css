@@ -130,7 +130,8 @@
   }
 
   .button.small,
-  .button.tiny {
+  .button.tiny,
+  .link.small {
     font-size: 0.875rem;
     font-style: normal;
     font-weight: 600;
@@ -178,6 +179,17 @@
 
   .button.slack {
     @apply bg-slack py-3 rounded-[4px];
+  }
+
+  /* links */
+
+  .link {
+    @apply px-2 py-1 rounded-[3.5px] text-primary-dark hover:bg-primary-lightest;
+
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
   }
 
   /* search input */
@@ -235,12 +247,6 @@
   input[type="checkbox"]:checked + svg .checkbox-bg {
     @apply fill-primary-dark;
   }
-
-  /* links */
-
-  /* a {
-    @apply text-primary-dark;
-  } */
 }
 
 /* alpine js */
