@@ -31,8 +31,6 @@
             src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
     <script defer
             src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
   </head>
   <body>
     <div class="lg:flex">
@@ -42,12 +40,15 @@
       </main>
     </div>
     {% block scripts %}{% endblock %}
-  </body>
-  <!-- tooltip  -->
-  <!-- to do: move to static one merged with branch that has static in more sensible directory -->
-  <script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script>
+      // tooltip
+      // to do: move to static one merged with branch that has static in more sensible directory
     tippy('.tooltip', {
-      theme: 'policykit',
+      theme: 'custom',
+      arrow: tippy.roundArrow,
     });
-  </script>
+    </script>
+  </body>
 </html>

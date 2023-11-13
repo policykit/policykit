@@ -271,6 +271,10 @@
   padding: 18px;
 }
 
-.tippy-tooltip.policykit-theme {
+.tippy-box[data-theme~="custom"] {
   @apply bg-background-focus text-grey-darkest shadow-dark;
+}
+
+.tippy-tooltip.custom-theme .tippy-roundarrow {
+  @apply fill-background-focus;
 }
