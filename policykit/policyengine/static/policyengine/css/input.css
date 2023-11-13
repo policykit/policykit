@@ -262,3 +262,15 @@
     display: none;
   }
 }
+
+/* tippy js tooltip styling */
+
+.tippy-content {
+  border-radius: 3px;
+  max-width: 201px;
+  padding: 18px;
+}
+
+.tippy-tooltip.policykit-theme {
+  @apply bg-background-focus text-grey-darkest shadow-dark;
+}
