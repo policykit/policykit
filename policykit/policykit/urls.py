@@ -55,9 +55,9 @@ urlpatterns = [
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
 
-    # admin modals
-    path('main/modal/policynew/', policyviews.policynew),
-    path('main/modal/documenteditor/', policyviews.documenteditor),
+    # # admin modals
+    # path('main/modal/policynew/', policyviews.policynew),
+    # path('main/modal/documenteditor/', policyviews.documenteditor),
 
     path('admin/', admin.site.urls),    
 
