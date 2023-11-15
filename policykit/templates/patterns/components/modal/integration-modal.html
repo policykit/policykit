@@ -29,7 +29,7 @@
            x-transition:leave="transition ease-out duration-300"
            x-transition:leave-start="transform lg:opacity-100 translate-y-0"
            x-transition:leave-end="transform lg:opacity-0 translate-y-full lg:translate-y-0"
-           class="flex flex-col rounded-lg shadow-lg overflow-hidden bg-white w-[1030px] h-auto z-40">
+           class="flex flex-col rounded-lg shadow-lg overflow-auto bg-white w-[1030px] h-auto z-40 max-h-[85vh] relative">
         <div class="px-8 pt-8 pb-6 flex justify-between">
           <h2 id="modal_label" class="p">New Integration</h2>
           <button @click="shareModal = false">

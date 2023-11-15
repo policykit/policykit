@@ -1252,6 +1252,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   height: 100vh;
 }
 
+.max-h-\[85vh\] {
+  max-height: 85vh;
+}
+
 .min-h-\[204px\] {
   min-height: 204px;
 }
@@ -1482,6 +1486,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 .divide-background-light > :not([hidden]) ~ :not([hidden]) {
   --tw-divide-opacity: 1;
   border-color: rgb(248 249 250 / var(--tw-divide-opacity));
+}
+
+.overflow-auto {
+  overflow: auto;
 }
 
 .overflow-hidden {
