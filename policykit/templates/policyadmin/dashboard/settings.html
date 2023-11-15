@@ -131,9 +131,9 @@
         {% if request.GET.success %}<div class="alert alert-success" role="alert">Integration added!</div>{% endif %}
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {% for name, data in enabled_integrations %}
-            <a class="group" href="/{{ name }}/disable_integration?id={{ data.id }}">
-              {% include "patterns/components/integration_widget/integration_widget.html" with name=name data=data enabled=True home_base_integration=True %}
-            </a>
+            <!-- <a class="group" href="/{{ name }}/disable_integration?id={{ data.id }}"> -->
+            {% include "patterns/components/integration_widget/integration_widget.html" with name=name data=data enabled=True home_base_integration=True %}
+            <!-- </a> -->
           {% empty %}
             <h3>No integrations enabled.</h3>
           {% endfor %}

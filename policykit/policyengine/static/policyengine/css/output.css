@@ -1892,6 +1892,28 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   fill: #F1F4F6;
 }
 
+/* .tippy-box[x-placement^="right"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-right: 7px solid;
+}
+.tippy-box[x-placement^="left"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-left: 7px solid;
+}
+.tippy-box[x-placement^="top"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-top: 7px solid;
+}
+.tippy-box[x-placement^="bottom"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-bottom: 7px solid;
+} */
+
+.tippy-arrow {
+  --tw-text-opacity: 1;
+  color: rgb(241 244 246 / var(--tw-text-opacity));
+}
+
 .hover\:bg-background-popup\/40:hover {
   background-color: rgb(102 124 147 / 0.4);
 }

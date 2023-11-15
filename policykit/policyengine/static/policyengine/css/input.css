@@ -278,3 +278,24 @@
 .tippy-tooltip.custom-theme .tippy-roundarrow {
   @apply fill-background-focus;
 }
+
+/* .tippy-box[x-placement^="right"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-right: 7px solid;
+}
+.tippy-box[x-placement^="left"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-left: 7px solid;
+}
+.tippy-box[x-placement^="top"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-top: 7px solid;
+}
+.tippy-box[x-placement^="bottom"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-bottom: 7px solid;
+} */
+
+.tippy-arrow {
+  @apply text-background-focus;
+}
