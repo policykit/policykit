@@ -8,7 +8,10 @@
 {% block content %}
   {% include "patterns/components/headers/policy_header.html" with title="Getting started" icon=True %}
   <main>
-    <form x-data="{ formStep: 0 }">
+    <form x-data="{ formStep: 0 }"
+          action="/onboarding-submit-url/"
+          method="post">
+      {% csrf_token %}
       <!-- step 0 - info -->
       <div x-cloak
            x-show="formStep === 0"
@@ -101,37 +104,29 @@
                     <span>Select all</span>
                   </label>
                 </div>
-              <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
-              {% for member in community_members %}<!-- members go in here -->
-                <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
-                  <input type="checkbox" class="member-checkbox" />
-                  <svg width="16"
-                       height="16"
-                       viewBox="0 0 16 16"
-                       fill="none"
-                       xmlns="http://www.w3.org/2000/svg"
-                       aria-hidden="true"
-                       focusable="false"
-                       class="checkbox">
-                    <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
-                    <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
-                  </svg>
-                  <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
-                  <span>{{member.readable_name }}</span>
-                </label>
-              {% endfor %}
-              
-                
+                <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
+                  {% for member in community_members %}
+                    <!-- members go in here -->
+                    <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+                      <input type="checkbox" class="member-checkbox" />
+                      <svg width="16"
+                           height="16"
+                           viewBox="0 0 16 16"
+                           fill="none"
+                           xmlns="http://www.w3.org/2000/svg"
+                           aria-hidden="true"
+                           focusable="false"
+                           class="checkbox">
+                        <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                        <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                      </svg>
+                      <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
+                      <span>{{ member.readable_name }}</span>
+                    </label>
+                  {% endfor %}
                   <!-- <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
                     <input type="checkbox" class="member-checkbox" />
-                    <svg width="16"
-                         height="16"
-                         viewBox="0 0 16 16"
-                         fill="none"
-                         xmlns="http://www.w3.org/2000/svg"
-                         aria-hidden="true"
-                         focusable="false"
-                         class="checkbox">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class="checkbox">
                       <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
                       <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
                     </svg>
