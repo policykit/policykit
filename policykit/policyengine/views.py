@@ -112,7 +112,7 @@ def onboarding(request):
     users = CommunityUser.objects.filter(community__community=community)
 
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    startkit_path = os.path.join(cur_path, f"../starterkits/onboarding.json")
+    startkit_path = os.path.join(cur_path, f"../onboarding/onboarding.json")
     startkit = open(startkit_path)
     data = json.loads(startkit.read())
 
