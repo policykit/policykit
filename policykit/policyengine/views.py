@@ -283,12 +283,19 @@ def editor(request):
     action_types = [a.codename for a in policy.action_types.all()] if policy else None
     autocompletes = Utils.get_autocompletes(community, action_types=action_types, policy=policy)
 
+    # determine whether the page should be displayed as modal or full page
+    base = DASHBOARD_BASE 
+
+    if request.META.get('HTTP_HX_REQUEST'):
+        base = DASHBOARD_BASE_AJAX
+
     data = {
         'user': get_user(request),
         'type': kind.capitalize(),
         'operation': operation,
         'actions': actions.items(),
-        'autocompletes': json.dumps(autocompletes)
+        'autocompletes': json.dumps(autocompletes),
+        'base': base
     }
 
     if policy:
