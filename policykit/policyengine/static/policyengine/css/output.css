@@ -656,7 +656,10 @@ p.small.focussed,
 
 /* button */
 
+/* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
 .button.primary {
+  cursor: pointer;
   --tw-bg-opacity: 1;
   background-color: rgb(68 81 178 / var(--tw-bg-opacity));
   --tw-text-opacity: 1;
@@ -1162,6 +1165,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .mt-8 {
   margin-top: 2rem;
+}
+
+.mt-16 {
+  margin-top: 4rem;
 }
 
 .block {
@@ -1996,6 +2003,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
     margin-bottom: 8rem;
   }
 
+  .md\:block {
+    display: block;
+  }
+
   .md\:h-full {
     height: 100%;
   }
@@ -2010,6 +2021,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
   .md\:grow {
     flex-grow: 1;
+  }
+
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .md\:flex-row {

@@ -91,8 +91,10 @@
 
   /* button */
 
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
   .button.primary {
-    @apply bg-primary-dark text-white hover:bg-primary;
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
   }
 
   .button.large {
