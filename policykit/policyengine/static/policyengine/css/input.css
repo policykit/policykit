@@ -301,3 +301,29 @@
 .tippy-arrow {
   @apply text-background-focus;
 }
+
+/* tables */
+
+.table-container {
+  @apply border border-background-light p-4 rounded-[4px];
+}
+
+table {
+  @apply table-auto w-full;
+}
+
+th {
+  @apply bg-background-light text-left;
+}
+
+th {
+  @apply px-4 py-2;
+}
+
+tr {
+  @apply border-t border-background-light;
+}
+
+td {
+  @apply p-4;
+}

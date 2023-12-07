@@ -1155,6 +1155,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   margin-right: 0px;
 }
 
+.mt-16 {
+  margin-top: 4rem;
+}
+
 .mt-4 {
   margin-top: 1rem;
 }
@@ -1165,10 +1169,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .mt-8 {
   margin-top: 2rem;
-}
-
-.mt-16 {
-  margin-top: 4rem;
 }
 
 .block {
@@ -1927,6 +1927,41 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 .tippy-arrow {
   --tw-text-opacity: 1;
   color: rgb(241 244 246 / var(--tw-text-opacity));
+}
+
+/* tables */
+
+.table-container {
+  border-radius: 4px;
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(248 249 250 / var(--tw-border-opacity));
+  padding: 1rem;
+}
+
+table {
+  width: 100%;
+  table-layout: auto;
+}
+
+th {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 249 250 / var(--tw-bg-opacity));
+  text-align: left;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+tr {
+  border-top-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(248 249 250 / var(--tw-border-opacity));
+}
+
+td {
+  padding: 1rem;
 }
 
 .hover\:bg-background-popup\/40:hover {
