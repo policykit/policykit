@@ -91,12 +91,14 @@
 
   /* button */
 
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
   .button.primary {
-    @apply bg-primary-dark text-white hover:bg-primary;
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
   }
 
   .button.large {
-    @apply px-10 py-2 rounded-[20px];
+    @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
     font-size: 1.1875rem;
     font-style: normal;
     font-weight: 600;
@@ -114,7 +116,7 @@
   }
 
   .button.medium {
-    @apply px-8 py-2 gap-2;
+    @apply px-8 py-2 flex gap-2 items-center;
     font-size: 1rem;
     font-style: normal;
     font-weight: 600;
@@ -126,11 +128,12 @@
   }
 
   .button.small {
-    @apply px-4 py-2;
+    @apply px-4 py-2 flex gap-2 items-center;
   }
 
   .button.small,
-  .button.tiny {
+  .button.tiny,
+  .link.small {
     font-size: 0.875rem;
     font-style: normal;
     font-weight: 600;
@@ -156,7 +159,7 @@
   }
 
   .button.tiny {
-    @apply px-3 py-1.5;
+    @apply px-3 py-1.5 flex gap-2 items-center;
   }
 
   .button.error {
@@ -178,6 +181,17 @@
 
   .button.slack {
     @apply bg-slack py-3 rounded-[4px];
+  }
+
+  /* links */
+
+  .link {
+    @apply px-2 py-1 rounded-[3.5px] text-primary-dark hover:bg-primary-lightest;
+
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
   }
 
   /* search input */
@@ -235,12 +249,6 @@
   input[type="checkbox"]:checked + svg .checkbox-bg {
     @apply fill-primary-dark;
   }
-
-  /* links */
-
-  /* a {
-    @apply text-primary-dark;
-  } */
 }
 
 /* alpine js */
@@ -255,4 +263,67 @@
   [x-cloak="mobile"] {
     display: none;
   }
+}
+
+/* tippy js tooltip styling */
+
+.tippy-content {
+  border-radius: 3px;
+  max-width: 201px;
+  padding: 18px;
+}
+
+.tippy-box[data-theme~="custom"] {
+  @apply bg-background-focus text-grey-darkest shadow-dark;
+}
+
+.tippy-tooltip.custom-theme .tippy-roundarrow {
+  @apply fill-background-focus;
+}
+
+/* .tippy-box[x-placement^="right"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-right: 7px solid;
+}
+.tippy-box[x-placement^="left"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-left: 7px solid;
+}
+.tippy-box[x-placement^="top"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-top: 7px solid;
+}
+.tippy-box[x-placement^="bottom"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-bottom: 7px solid;
+} */
+
+.tippy-arrow {
+  @apply text-background-focus;
+}
+
+/* tables */
+
+.table-container {
+  @apply border border-background-light p-4 rounded-[4px];
+}
+
+table {
+  @apply table-auto w-full;
+}
+
+th {
+  @apply bg-background-light text-left;
+}
+
+th {
+  @apply px-4 py-2;
+}
+
+tr {
+  @apply border-t border-background-light;
+}
+
+td {
+  @apply p-4;
 }
