@@ -533,8 +533,17 @@ def error_check(request):
     return JsonResponse({'errors': errors})
 
 @login_required
-def policynew(request):
-    return render(request, 'policyadmin/dashboard/modals/policy_new.html')
+def policynew(request): 
+    base = DASHBOARD_BASE 
+
+    if request.META.get('HTTP_HX_REQUEST'):
+        base = DASHBOARD_BASE_AJAX
+        
+    data = {
+        'base': base
+    }
+
+    return render(request, 'policyadmin/dashboard/policy_new.html', data)
 
 @login_required
 def policy_action_save(request):
