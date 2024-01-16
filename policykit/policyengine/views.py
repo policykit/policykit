@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 DASHBOARD_MAX_USERS = 50
 DASHBOARD_MAX_ACTIONS = 20
-
+DASHBOARD_BASE = "policyadmin/dashboard/dashboard_base.html"
+DASHBOARD_BASE_AJAX = "policyadmin/dashboard/dashboard_base_ajax.html"
 
 def homepage(request):
     """PolicyKit splash page"""
@@ -304,12 +305,19 @@ def editor(request):
     action_types = [a.codename for a in policy.action_types.all()] if policy else None
     autocompletes = Utils.get_autocompletes(community, action_types=action_types, policy=policy)
 
+    # determine whether the page should be displayed as modal or full page
+    base = DASHBOARD_BASE 
+
+    if request.META.get('HTTP_HX_REQUEST'):
+        base = DASHBOARD_BASE_AJAX
+
     data = {
         'user': get_user(request),
         'type': kind.capitalize(),
         'operation': operation,
         'actions': actions.items(),
-        'autocompletes': json.dumps(autocompletes)
+        'autocompletes': json.dumps(autocompletes),
+        'base': base
     }
 
     if policy:
@@ -443,10 +451,15 @@ def documenteditor(request):
     user = get_user(request)
     operation = request.GET.get('operation')
     doc_id = request.GET.get('doc')
+    base = DASHBOARD_BASE 
 
+    if request.META.get('HTTP_HX_REQUEST'):
+        base = DASHBOARD_BASE_AJAX
+        
     data = {
         'user': user,
-        'operation': operation
+        'operation': operation,
+        'base': base
     }
 
     if doc_id:
@@ -540,6 +553,19 @@ def error_check(request):
     function_name = data['function_name']
     errors = _lint_check(code, function_name)
     return JsonResponse({'errors': errors})
+
+@login_required
+def policynew(request): 
+    base = DASHBOARD_BASE 
+
+    if request.META.get('HTTP_HX_REQUEST'):
+        base = DASHBOARD_BASE_AJAX
+        
+    data = {
+        'base': base
+    }
+
+    return render(request, 'policyadmin/dashboard/policy_new.html', data)
 
 @login_required
 def policy_action_save(request):

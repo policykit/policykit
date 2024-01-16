@@ -42,6 +42,7 @@ urlpatterns = [
     path('auth/<str:plugin_name>/callback', plugin_auth_callback),
     path('logout/', policyviews.logout, name="logout"),
     path('main/', policyviews.dashboard, name="dashboard"),
+    path('main/policynew', policyviews.policynew),
     path('main/editor/', policyviews.editor),
     path('main/selectrole/', policyviews.selectrole),
     path('main/roleusers/', policyviews.roleusers, name="members"),
@@ -56,6 +57,9 @@ urlpatterns = [
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
     path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
 
+    # # admin modals
+    # path('main/modal/policynew/', policyviews.policynew),
+    # path('main/modal/documenteditor/', policyviews.documenteditor),
 
     path('admin/', admin.site.urls),    
 

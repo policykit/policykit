@@ -1,0 +1,7 @@
+<div class="px-8 pt-8 pb-6 flex justify-between border-b border-background-focus bg-white sticky top-0">
+  <h2 id="modal_label" class="p">{{ title }}</h2>
+  <button x-data @click="$dispatch('toggle_modal')">
+    <div class="hidden lg:block">{% include "patterns/icons/cancel.html" with class="stroke-grey-darkest" %}</div>
+    <div class="lg:hidden">{% include "patterns/icons/nav_arrow_down.html" with class="stroke-grey-darkest" %}</div>
+  </button>
+</div>

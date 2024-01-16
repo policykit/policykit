@@ -1,52 +1,5 @@
-{% extends base %}
-{% load static %}
-{% block styles %}
-  <style>
-  .body {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .headerText {
-    font-family: "Nunito", sans-serif;
-    font-size: 2em;
-  }
-
-  .name {
-    width: 40%;
-  }
-
-  .text {
-    resize: none;
-    width: 60%;
-  }
-
-  .form-row {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-  }
-
-  .control-label {
-    font-family: "Nunito", sans-serif;
-    font-size: 1.2em;
-  }
-
-  .btn {
-    padding: 0.5em 2vw;
-    font-family: "Nunito", sans-serif;
-    font-size: 1.2em;
-    background-color: #4451b2;
-    color: #ffffff;
-  }
-
-  .btn:hover {
-    background-color: #3b4699;
-    color: #ffffff;
-  }
-  </style>
-{% endblock %}
-{% block content %}
-  {% include "patterns/components/headers/modal.html" with title="Community document" %}
+{% include "patterns/components/headers/modal.html" with title="Community document" %}
+<form>
   <div class="p-8 h-full overflow-auto">
     <div class="mb-4 lg:w-1/2">
       <label class="block small mb-2">Name</label>
@@ -69,7 +22,7 @@
     <button type="button" class="button secondary large" id="propose">Delete</button>
     <button type="submit" class="button primary large" id="propose">Save</button>
   </div>
-{% endblock %}
+</form>
 {% block scripts %}
   <script>
   document.getElementById("propose").addEventListener("click", propose);
@@ -90,7 +43,6 @@
   {% endif %}
 
   function propose() {
-    console.log('adding document')
     const urlParams = new URLSearchParams(window.location.search);
     const operation = urlParams.get('operation');
     const doc = urlParams.get('doc');
@@ -100,7 +52,7 @@
 
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    fetch('/main/policyengine/document_action_save', {
+    fetch('../../../main/policyengine/document_action_save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
