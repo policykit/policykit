@@ -1041,6 +1041,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   left: 0px;
 }
 
+.right-0 {
+  right: 0px;
+}
+
 .start-0 {
   inset-inline-start: 0px;
 }
@@ -1175,6 +1179,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   margin-top: 2rem;
 }
 
+.ml-\[241px\] {
+  margin-left: 241px;
+}
+
 .block {
   display: block;
 }
@@ -1287,6 +1295,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   width: 0.5rem;
 }
 
+.w-2\/3 {
+  width: 66.666667%;
+}
+
 .w-3 {
   width: 0.75rem;
 }
@@ -1350,6 +1362,14 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-4xl {
+  max-width: 56rem;
+}
+
+.max-w-none {
+  max-width: none;
 }
 
 .flex-none {
@@ -1670,6 +1690,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   padding: 2rem;
 }
 
+.p-6 {
+  padding: 1.5rem;
+}
+
 .px-2 {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -1759,6 +1783,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .pt-8 {
   padding-top: 2rem;
+}
+
+.pl-\[241px\] {
+  padding-left: 241px;
 }
 
 .text-center {
@@ -1969,13 +1997,16 @@ table {
 }
 
 th {
-  --tw-bg-opacity: 1;
-  background-color: rgb(248 249 250 / var(--tw-bg-opacity));
-  text-align: left;
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  text-align: left;
+}
+
+thead th {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 249 250 / var(--tw-bg-opacity));
 }
 
 tr {
@@ -2187,6 +2218,10 @@ td {
 
   .lg\:w-auto {
     width: auto;
+  }
+
+  .lg\:w-\[calc\(100vw-241px\)\] {
+    width: calc(100vw - 241px);
   }
 
   .lg\:grow {

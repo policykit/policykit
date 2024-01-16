@@ -1,8 +1,7 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
-
 {% block styles %}
-<style>
+  <style>
   .body {
     display: flex;
     flex-direction: column;
@@ -40,64 +39,170 @@
   button.btn.dropdown-toggle {
       border: 1px solid black;
   }
-</style>
+  </style>
 {% endblock %}
-
 {% block content %}
-<div class="body">
-  <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
-      {% if operation == "Add" %}
-        <h3 class="headerText">Grant a role to a user</h3>
-      {% elif operation == "Remove" %}
-        <h3 class="headerText">Revoke a role from a user</h3>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="form-row">
-    <label class="control-label col-sm-1" for="role">Role</label>
-    <div class="col-sm-8">
-      <select id="rolepicker" class="selectpicker form-control" title="Select role...">
-        {% for role in roles %}
-          <option value="{{role.name}}">{{role.role_name}}</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <label class="control-label col-sm-1" for="user">User</label>
-    <div class="col-sm-8">
-      <select id="userpicker" class="selectpicker form-control" data-live-search="true" title="Select user...">
-        {% for app_name, user_list in users %}
-          <optgroup label="{{app_name|upper}}">
+  {% include "patterns/components/headers/page.html" with title="Members" border="true" %}
+  <div x-data="members">
+    <div class="table-container">
+      <table class="table max-w-4xl">
+        <thead>
+          <tr>
+            <th>
+              <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label"
+                     @click="handleSelectAll">
+                <input type="checkbox" id="select-all-checkbox" class="cursor-pointer" />
+                <svg width="16"
+                     height="16"
+                     viewBox="0 0 16 16"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-hidden="true"
+                     focusable="false"
+                     class="checkbox">
+                  <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                  <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                </svg>
+              </label>
+            </th>
+            <th class="w-2/3">Name</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app_name, user_list in users %}
             {% for user in user_list %}
-              <option value="{{user.username}}">{{user.readable_name|default_if_none:user.username}}</option>
+              <tr>
+                <th class="w-4">
+                  <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+                    <input type="checkbox"
+                           class="member-checkbox cursor-pointer"
+                           value="{{ user.id }}"
+                           x-model="selectedMembers" />
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="none"
+                         xmlns="http://www.w3.org/2000/svg"
+                         aria-hidden="true"
+                         focusable="false"
+                         class="checkbox">
+                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                      <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                    </svg>
+                  </label>
+                </th>
+                <th class="flex items-center gap-4">
+                  <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
+                  <span>{{ user.readable_name|default_if_none:user.username }}</span>
+                </th>
+                <th>
+                  <!-- <select id="rolepicker" class="selectpicker form-control" title="Select role...">
+                  <option disabled selected value>None</option>
+                  {% for role in roles %}<option value="{{ role.name }}">{{ role.role_name }}</option>{% endfor %}
+                </select> -->
+                  Role
+                </th>
+              </tr>
             {% endfor %}
-          </optgroup>
-        {% endfor %}
-      </select>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div x-cloak
+         x-show="selectedMembers.length > 0"
+         class="fixed w-screen lg:w-[calc(100vw-241px)] bg-white bottom-0 right-0 p-6 lg:px-16 lg:pt-[25.5px] lg:pb-[17.5px] border-t-2 border-background-focus flex justify-between items-center">
+      <p class="hidden lg:block">
+        <span x-text="selectedMembers.length"></span> selected
+      </p>
+      <div x-cloak
+           x-show="selectedMembers.length > 1"
+           class="flex items-center gap-4">
+        <button type="button" class="button large primary block w-fit ml-auto mr-0">Bulk-assign</button>
+        <button type="submit" class="button large primary block w-fit ml-auto mr-0">Bulk-revoke</button>
+      </div>
+      <div x-cloak
+           x-show="selectedMembers.length == 1"
+           class="flex items-center gap-4">
+        <button type="button" class="button large primary block w-fit ml-auto mr-0">Assign Role</button>
+        <button type="submit" class="button large primary block w-fit ml-auto mr-0">Revoke Role(s)</button>
+      </div>
     </div>
   </div>
-
-  <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
-      {% csrf_token %}
-      {% if operation == "Add" %}
-        <button type="button" class="btn" id="submit">Grant role</button>
-      {% elif operation == "Remove" %}
-        <button type="button" class="btn" id="submit">Revoke role</button>
-      {% endif %}
+  <!-- <div class="body">
+    <div class="form-row">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-11">
+        {% if operation == "Add" %}
+          <h3 class="headerText">Grant a role to a user</h3>
+        {% elif operation == "Remove" %}
+          <h3 class="headerText">Revoke a role from a user</h3>
+        {% endif %}
+      </div>
     </div>
-  </div>
-</div>
+    <div class="form-row">
+      <label class="control-label col-sm-1" for="role">Role</label>
+      <div class="col-sm-8">
+        <select id="rolepicker" class="selectpicker form-control" title="Select role...">
+          {% for role in roles %}<option value="{{ role.name }}">{{ role.role_name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="control-label col-sm-1" for="user">User</label>
+      <div class="col-sm-8">
+        <select id="userpicker" class="selectpicker form-control" data-live-search="true" title="Select user...">
+          {% for app_name, user_list in users %}
+            <optgroup label="{{ app_name|upper }}">
+              {% for user in user_list %}
+                <option value="{{ user.username }}">{{ user.readable_name|default_if_none:user.username }}</option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-11">
+        {% csrf_token %}
+        {% if operation == "Add" %}
+          <button type="button" class="btn" id="submit">Grant role</button>
+        {% elif operation == "Remove" %}
+          <button type="button" class="btn" id="submit">Revoke role</button>
+        {% endif %}
+      </div>
+    </div>
+  </div> -->
 {% endblock %}
-
 {% block scripts %}
-<script>
+  <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('members', () => ({
+            selectAll: false,
+            selectedMembers: [],
+
+            handleSelectAll() {
+                this.selectAll = !this.selectAll
+
+                let checkboxes = document.getElementsByClassName("member-checkbox")
+                let allValues = [];
+
+                if (this.selectAll){
+                  [...checkboxes].map((el) => {
+                  allValues.push(el.value)
+
+                  this.selectedMembers = allValues
+                })
+                } else {
+                  this.selectedMembers = []
+                }
+                
+            }
+        }))
+    })
+  </script>
+  <!-- <script>
   document.getElementById('submit').addEventListener("click", submit);
   const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
@@ -125,5 +230,5 @@
       }
     });
   }
-</script>
+  </script> -->
 {% endblock %}

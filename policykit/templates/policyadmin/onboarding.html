@@ -101,37 +101,29 @@
                     <span>Select all</span>
                   </label>
                 </div>
-              <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
-              {% for member in community_members %}<!-- members go in here -->
-                <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
-                  <input type="checkbox" class="member-checkbox" />
-                  <svg width="16"
-                       height="16"
-                       viewBox="0 0 16 16"
-                       fill="none"
-                       xmlns="http://www.w3.org/2000/svg"
-                       aria-hidden="true"
-                       focusable="false"
-                       class="checkbox">
-                    <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
-                    <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
-                  </svg>
-                  <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
-                  <span>{{member.readable_name }}</span>
-                </label>
-              {% endfor %}
-              
-                
+                <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
+                  {% for member in community_members %}
+                    <!-- members go in here -->
+                    <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+                      <input type="checkbox" class="member-checkbox" />
+                      <svg width="16"
+                           height="16"
+                           viewBox="0 0 16 16"
+                           fill="none"
+                           xmlns="http://www.w3.org/2000/svg"
+                           aria-hidden="true"
+                           focusable="false"
+                           class="checkbox">
+                        <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                        <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                      </svg>
+                      <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
+                      <span>{{ member.readable_name }}</span>
+                    </label>
+                  {% endfor %}
                   <!-- <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
                     <input type="checkbox" class="member-checkbox" />
-                    <svg width="16"
-                         height="16"
-                         viewBox="0 0 16 16"
-                         fill="none"
-                         xmlns="http://www.w3.org/2000/svg"
-                         aria-hidden="true"
-                         focusable="false"
-                         class="checkbox">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class="checkbox">
                       <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
                       <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
                     </svg>
@@ -231,12 +223,14 @@
     </form>
   </main>
   <script>
-    const memberCheckboxes = document.getElementsByClassName("member-checkbox")
-    const selectAllCheckbox = document.getElementById("select-all-checkbox")
-    function handleSelectAll() {
-      for (let checkbox of memberCheckboxes) {
-        checkbox.checked = selectAllCheckbox.checked
-      };
-    }
+    document.addEventListener('alpine:init', () => {
+      const memberCheckboxes = document.getElementsByClassName("member-checkbox")
+      const selectAllCheckbox = document.getElementById("select-all-checkbox")
+      function handleSelectAll() {
+        for (let checkbox of memberCheckboxes) {
+          checkbox.checked = selectAllCheckbox.checked
+        };
+      }
+    })
   </script>
 {% endblock %}

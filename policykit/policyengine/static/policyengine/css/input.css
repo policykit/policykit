@@ -313,11 +313,11 @@ table {
 }
 
 th {
-  @apply bg-background-light text-left;
+  @apply text-left px-4 py-2;
 }
 
-th {
-  @apply px-4 py-2;
+thead th {
+  @apply bg-background-light;
 }
 
 tr {
