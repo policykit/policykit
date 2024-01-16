@@ -56,7 +56,7 @@ module.exports = {
     boxShadow: {
       light: "",
       focus: "0px 2px 4px 0px #CDD3FF",
-      dark: "",
+      dark: "0px 8px 20px 0px rgba(0, 0, 0, 0.08);",
       disabled: "0px 0px 4px 0px rgba(39, 39, 39, 0.35)",
       header: "0px 4px 4px 0px #F1F4F7",
     },

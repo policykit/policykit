@@ -1,0 +1,34 @@
+<div class="radio-group-item group-focus:shadow-focus group-focus:outline-primary max-w-[306px] w-full h-full min-h-[204px] transition flex flex-col justify-between">
+  <div>
+    <div class="mb-5">{% include "patterns/icons/external.html" with icon=data.readable_name %}</div>
+    <h3 class="p large mb-2">
+      {% if data.readable_name %}
+        {{ data.readable_name }}
+      {% else %}
+        {{ name }}
+      {% endif %}
+    </h3>
+    <p class="small mb-6">{{ data.description }}</p>
+  </div>
+  <div class="w-full">
+    {% if home_base_integration %}
+      <p class="small text-primary-dark flex items-center gap-2">
+        Home base integration
+        <button class="tooltip"
+                data-tippy-content="A home base Integration can’t be disconnected or changed"
+                data-tippy-placement="bottom-start">
+          {% include "patterns/icons/info.html" with class="stroke-primary-dark" %}
+        </button>
+      </p>
+    {% elif enabled and new_integration %}
+      <p class="small text-success-dark float-right flex items-center gap-2">
+        {% include "patterns/icons/checked_permission.html" %}
+        <span>Connected</span>
+      </p>
+    {% elif enabled %}
+      <span class="link small float-right group-hover:bg-primary-lightest group-focus:bg-primary-lightest">Disconnect</span>
+    {% else %}
+      <span class="link small float-right mr-0 group-hover:bg-primary-lightest group-focus:bg-primary-lightest">Connect</span>
+    {% endif %}
+  </div>
+</div>
