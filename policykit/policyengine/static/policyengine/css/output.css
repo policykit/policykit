@@ -1269,6 +1269,7 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .max-h-\[90vh\] {
   max-height: 90vh;
+}
 
 .min-h-\[204px\] {
   min-height: 204px;
