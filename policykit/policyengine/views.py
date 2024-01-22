@@ -361,7 +361,10 @@ def roleusers(request):
     roles = community.get_roles()
     users = {}
     for cp in community.get_platform_communities():
-        users[cp.platform] = CommunityUser.objects.filter(community=cp).order_by('readable_name', 'username')
+        u = CommunityUser.objects.filter(community=cp).order_by('readable_name', 'username')
+        for user in u:
+            user.roles = user.get_roles()
+        users[cp.platform] = u
 
     return render(request, 'policyadmin/dashboard/role_users.html', {
         'roles': roles,

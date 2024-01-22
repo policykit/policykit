@@ -1301,10 +1301,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   width: 0.5rem;
 }
 
-.w-2\/3 {
-  width: 66.666667%;
-}
-
 .w-3 {
   width: 0.75rem;
 }
@@ -1315,6 +1311,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .w-4 {
   width: 1rem;
+}
+
+.w-4\/6 {
+  width: 66.666667%;
 }
 
 .w-8 {
@@ -1354,8 +1354,12 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   width: 100vw;
 }
 
-.max-w-4xl {
-  max-width: 56rem;
+.w-3\/6 {
+  width: 50%;
+}
+
+.max-w-5xl {
+  max-width: 64rem;
 }
 
 .max-w-\[306px\] {
@@ -2342,5 +2346,11 @@ td {
 
   .lg\:opacity-100 {
     opacity: 1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .xl\:w-2\/3 {
+    width: 66.666667%;
   }
 }

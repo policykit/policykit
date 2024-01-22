@@ -47,11 +47,11 @@
 {% endblock %}
 {% block content %}
   {% include "patterns/components/headers/page.html" with title="Members" border="true" %}
-  <form x-data="members">
+  <form x-data="members" hx-post="/main/policyengine/members_edit" hx-target="#tbody">
     {% csrf_token %}
     <input x-model="operation" name="operation" hidden />
     <div class="table-container">
-      <table id="members-table" class="table max-w-4xl">
+      <table id="members-table" class="table max-w-5xl">
         <thead>
           <tr>
             <th data-sortable="false">
@@ -71,11 +71,11 @@
                 </svg>
               </label>
             </th>
-            <th class="w-2/3">Name</th>
+            <th class="w-3/6">Name</th>
             <th>Role</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="tbody">
           {% for app_name, user_list in users %}
             {% for user in user_list %}
               <tr>
@@ -104,7 +104,7 @@
                   <span>{{ user.readable_name|default_if_none:user.username }}</span>
                 </th>
                 <th>
-                  Role
+                  {{ user.roles|join:', ' }}
                 </th>
               </tr>
             {% endfor %}
@@ -251,6 +251,11 @@
       paging: false,
       searchable: false
     });
+
+    htmx.on("htmx:afterSwap", (e) => {
+      // Hide dialog after success edit / once htmx has swapped in updated members table.
+      assignModal = false
+    })
   </script>
   <!-- <script>
   document.getElementById('submit').addEventListener("click", submit);

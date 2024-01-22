@@ -1,0 +1,35 @@
+<tbody id="tbody">
+  {% for app_name, user_list in users %}
+    {% for user in user_list %}
+      <tr>
+        <th class="w-4">
+          <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+            <input type="checkbox"
+                   class="member-checkbox cursor-pointer"
+                   name="user"
+                   value="{{ user.id }}"
+                   x-model="selectedUsers" />
+            <svg width="16"
+                 height="16"
+                 viewBox="0 0 16 16"
+                 fill="none"
+                 xmlns="http://www.w3.org/2000/svg"
+                 aria-hidden="true"
+                 focusable="false"
+                 class="checkbox">
+              <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+              <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+            </svg>
+          </label>
+        </th>
+        <th class="flex items-center gap-4">
+          <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
+          <span>{{ user.readable_name|default_if_none:user.username }}</span>
+        </th>
+        <th>
+          Role
+        </th>
+      </tr>
+    {% endfor %}
+  {% endfor %}
+</tbody>
