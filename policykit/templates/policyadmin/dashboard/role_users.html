@@ -1,5 +1,6 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
+{% load slippers %}
 {% block styles %}
   <style>
   .body {
@@ -43,7 +44,9 @@
 {% endblock %}
 {% block content %}
   {% include "patterns/components/headers/page.html" with title="Members" border="true" %}
-  <div x-data="members">
+  <form  hx-target="#message" x-data="members">
+    {% csrf_token %}
+    <input x-model="operation" name="operation" hidden />
     <div class="table-container">
       <table class="table max-w-4xl">
         <thead>
@@ -77,8 +80,9 @@
                   <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
                     <input type="checkbox"
                            class="member-checkbox cursor-pointer"
+                           name="user"
                            value="{{ user.id }}"
-                           x-model="selectedMembers" />
+                           x-model="selectedUsers" />
                     <svg width="16"
                          height="16"
                          viewBox="0 0 16 16"
@@ -97,10 +101,6 @@
                   <span>{{ user.readable_name|default_if_none:user.username }}</span>
                 </th>
                 <th>
-                  <!-- <select id="rolepicker" class="selectpicker form-control" title="Select role...">
-                  <option disabled selected value>None</option>
-                  {% for role in roles %}<option value="{{ role.name }}">{{ role.role_name }}</option>{% endfor %}
-                </select> -->
                   Role
                 </th>
               </tr>
@@ -110,25 +110,65 @@
       </table>
     </div>
     <div x-cloak
-         x-show="selectedMembers.length > 0"
+         x-show="selectedUsers.length > 0"
          class="fixed w-screen lg:w-[calc(100vw-241px)] bg-white bottom-0 right-0 p-6 lg:px-16 lg:pt-[25.5px] lg:pb-[17.5px] border-t-2 border-background-focus flex justify-between items-center">
       <p class="hidden lg:block">
-        <span x-text="selectedMembers.length"></span> selected
+        <span x-text="selectedUsers.length"></span> selected
       </p>
-      <div x-cloak
-           x-show="selectedMembers.length > 1"
+      <div
            class="flex items-center gap-4">
-        <button type="button" class="button large primary block w-fit ml-auto mr-0">Bulk-assign</button>
-        <button type="submit" class="button large primary block w-fit ml-auto mr-0">Bulk-revoke</button>
+        <button @click="assignModal = true, operation = 'assign'"
+          type="button"
+          class="button large primary block w-fit ml-auto mr-0">
+          <span x-cloak x-show="selectedUsers.length == 1">
+            Assign Role(s)
+          </span>
+          <span x-cloak x-show="selectedUsers.length > 1">
+            Bulk-assign
+          </span>
+        </button>
+        <button @click="assignModal = true, operation = 'revoke'" class="button large primary block w-fit ml-auto mr-0">
+          <span x-cloak x-show="selectedUsers.length == 1">
+            Revoke Role(s)
+          </span>
+          <span x-cloak x-show="selectedUsers.length > 1">
+            Bulk-revoke
+          </span>
+        </button>
       </div>
-      <div x-cloak
-           x-show="selectedMembers.length == 1"
-           class="flex items-center gap-4">
-        <button type="button" class="button large primary block w-fit ml-auto mr-0">Assign Role</button>
-        <button type="submit" class="button large primary block w-fit ml-auto mr-0">Revoke Role(s)</button>
-      </div>
+      {% #modal data="assignModal" %}
+        <div class="px-8 pt-8 pb-6 flex justify-between border-b border-background-focus bg-white sticky top-0">
+          <h2 class="p"><span x-text="operation" class="capitalize"></span> role(s)</h2>
+          <button x-data @click="assignModal = false">
+            <div class="hidden lg:block">{% include "patterns/icons/cancel.html" with class="stroke-grey-darkest" %}</div>
+            <div class="lg:hidden">{% include "patterns/icons/nav_arrow_down.html" with class="stroke-grey-darkest" %}</div>
+          </button>
+        </div>
+        <div class="p-8 space-y-4">
+          {% for role in roles %}
+          <label class="radio-group-item bg-white">
+            <div class="flex gap-6 items-start justify-between">
+              <div>
+                <input type="checkbox" class="sr-only peer" x-modal="roles" name="role" value={{ role.id }} />
+                <span class="p large mb-4 block">{{ role }}</span>
+                <span class="p text-grey-dark block mb-6">{{ role.description }}</span>
+                <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
+                <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
+              </div>
+            </div>
+          </label>
+        {% endfor %}
+        </div>
+        <div class="px-8 pt-8 pb-6 border-t-2 border-background-focus flex items-center justify-end gap-4">
+          <button @click="assignModal = false, roles = []" class="button large primary block ">
+            Cancel
+          </button>
+          <button @click="assignModal = true" type="submit" class="button large secondary block capitalize" x-text="operation">
+          </button>
+        </div>
+      {% /modal %}
     </div>
-  </div>
+  </form>
   <!-- <div class="body">
     <div class="form-row">
       <div class="col-sm-1"></div>
@@ -180,8 +220,10 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('members', () => ({
             selectAll: false,
-            selectedMembers: [],
-
+            assignModal: false,
+            selectedUsers: [],
+            operation: '',
+    
             handleSelectAll() {
                 this.selectAll = !this.selectAll
 
@@ -192,10 +234,10 @@
                   [...checkboxes].map((el) => {
                   allValues.push(el.value)
 
-                  this.selectedMembers = allValues
+                  this.selectedUsers = allValues
                 })
                 } else {
-                  this.selectedMembers = []
+                  this.selectedUsers = []
                 }
                 
             }
@@ -211,7 +253,7 @@
     const user = $("#userpicker").val();
     const role = $("#rolepicker").val();
 
-    fetch('../../../main/policyengine/role_action_users', {
+    fetch('../../../main/policyengine/role_operation_users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

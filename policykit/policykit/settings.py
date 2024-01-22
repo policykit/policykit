@@ -75,7 +75,8 @@ INSTALLED_APPS = [
     'policyengine',
     'constitution',
     'policybuilding_apps',
-    'pattern_library'
+    'pattern_library',
+    'slippers'
 ] + INTEGRATIONS
 
 SITE_ID = 1
