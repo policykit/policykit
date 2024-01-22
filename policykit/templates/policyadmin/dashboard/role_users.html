@@ -139,38 +139,38 @@
           </span>
         </button>
       </div>
-      {% #modal data="assignModal" %}
-        <div class="px-8 pt-8 pb-6 flex justify-between border-b border-background-focus bg-white sticky top-0">
-          <h2 class="p"><span x-text="operation" class="capitalize"></span> role(s)</h2>
-          <button x-data @click="assignModal = false">
-            <div class="hidden lg:block">{% include "patterns/icons/cancel.html" with class="stroke-grey-darkest" %}</div>
-            <div class="lg:hidden">{% include "patterns/icons/nav_arrow_down.html" with class="stroke-grey-darkest" %}</div>
-          </button>
-        </div>
-        <div class="p-8 space-y-4">
-          {% for role in roles %}
-          <label class="radio-group-item bg-white">
-            <div class="flex gap-6 items-start justify-between">
-              <div>
-                <input type="checkbox" class="sr-only peer" x-modal="roles" name="role" value={{ role.id }} />
-                <span class="p large mb-4 block">{{ role }}</span>
-                <span class="p text-grey-dark block mb-6">{{ role.description }}</span>
-                <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
-                <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
-              </div>
-            </div>
-          </label>
-        {% endfor %}
-        </div>
-        <div class="px-8 pt-8 pb-6 border-t-2 border-background-focus flex items-center justify-end gap-4">
-          <button @click="assignModal = false, roles = []" class="button large primary block ">
-            Cancel
-          </button>
-          <button @click="assignModal = true" type="submit" class="button large secondary block capitalize" x-text="operation">
-          </button>
-        </div>
-      {% /modal %}
     </div>
+    {% #modal data="assignModal" %}
+      <div class="px-8 pt-8 pb-6 flex justify-between border-b border-background-focus bg-white sticky top-0">
+        <h2 class="p"><span x-text="operation" class="capitalize"></span> role(s)</h2>
+        <button x-data @click="assignModal = false">
+          <div class="hidden lg:block">{% include "patterns/icons/cancel.html" with class="stroke-grey-darkest" %}</div>
+          <div class="lg:hidden">{% include "patterns/icons/nav_arrow_down.html" with class="stroke-grey-darkest" %}</div>
+        </button>
+      </div>
+      <div class="p-8 space-y-4">
+        {% for role in roles %}
+        <label class="radio-group-item bg-white">
+          <div class="flex gap-6 items-start justify-between">
+            <div>
+              <input type="checkbox" class="sr-only peer" x-modal="roles" name="role" value={{ role.id }} />
+              <span class="p large mb-4 block">{{ role }}</span>
+              <span class="p text-grey-dark block mb-6">{{ role.description }}</span>
+              <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
+              <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
+            </div>
+          </div>
+        </label>
+      {% endfor %}
+      </div>
+      <div class="px-8 pt-8 pb-6 border-t-2 border-background-focus flex items-center justify-end gap-4">
+        <button @click="assignModal = false, roles = []" class="button large primary block ">
+          Cancel
+        </button>
+        <button @click="assignModal = true" type="submit" class="button large secondary block capitalize" x-text="operation">
+        </button>
+      </div>
+    {% /modal %}
   </form>
   <!-- <div class="body">
     <div class="form-row">
