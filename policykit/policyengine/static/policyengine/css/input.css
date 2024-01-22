@@ -327,3 +327,15 @@ tr {
 td {
   @apply p-4;
 }
+
+.datatable-ascending .datatable-sorter::after {
+  @apply inline-block h-2 w-4 ml-2 mb-0.5;
+  content: "";
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='9' viewBox='0 0 16 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.69784 7.82011C8.30953 8.19844 7.69047 8.19844 7.30217 7.82011L2.83337 3.46626C2.19074 2.84016 2.634 1.75 3.5312 1.75H12.4688C13.366 1.75 13.8093 2.84016 13.1666 3.46626L8.69784 7.82011Z' fill='%2352677A'/%3E%3C/svg%3E%0A");
+}
+
+.datatable-descending .datatable-sorter::after {
+  @apply inline-block h-2 w-4 ml-2 rotate-180;
+  content: "";
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='9' viewBox='0 0 16 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.69784 7.82011C8.30953 8.19844 7.69047 8.19844 7.30217 7.82011L2.83337 3.46626C2.19074 2.84016 2.634 1.75 3.5312 1.75H12.4688C13.366 1.75 13.8093 2.84016 13.1666 3.46626L8.69784 7.82011Z' fill='%2352677A'/%3E%3C/svg%3E%0A");
+}

@@ -1,6 +1,9 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
 {% load slippers %}
+{% block head_tag %}
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+{% endblock %}
 {% block styles %}
   <style>
   .body {
@@ -44,14 +47,14 @@
 {% endblock %}
 {% block content %}
   {% include "patterns/components/headers/page.html" with title="Members" border="true" %}
-  <form  hx-target="#message" x-data="members">
+  <form x-data="members">
     {% csrf_token %}
     <input x-model="operation" name="operation" hidden />
     <div class="table-container">
-      <table class="table max-w-4xl">
+      <table id="members-table" class="table max-w-4xl">
         <thead>
           <tr>
-            <th>
+            <th data-sortable="false">
               <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label"
                      @click="handleSelectAll">
                 <input type="checkbox" id="select-all-checkbox" class="cursor-pointer" />
@@ -243,6 +246,11 @@
             }
         }))
     })
+
+    let dataTable = new simpleDatatables.DataTable("#members-table", {
+      paging: false,
+      searchable: false
+    });
   </script>
   <!-- <script>
   document.getElementById('submit').addEventListener("click", submit);

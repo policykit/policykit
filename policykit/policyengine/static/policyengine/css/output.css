@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.3.3 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -32,9 +32,11 @@
 4. Use the user's configured `sans` font-family by default.
 5. Use the user's configured `sans` font-feature-settings by default.
 6. Use the user's configured `sans` font-variation-settings by default.
+7. Disable tap highlights on iOS
 */
 
-html {
+html,
+:host {
   line-height: 1.5;
   /* 1 */
   -webkit-text-size-adjust: 100%;
@@ -50,6 +52,8 @@ html {
   /* 5 */
   font-variation-settings: normal;
   /* 6 */
+  -webkit-tap-highlight-color: transparent;
+  /* 7 */
 }
 
 /*
@@ -121,8 +125,10 @@ strong {
 }
 
 /*
-1. Use the user's configured `mono` font family by default.
-2. Correct the odd `em` font sizing in all browsers.
+1. Use the user's configured `mono` font-family by default.
+2. Use the user's configured `mono` font-feature-settings by default.
+3. Use the user's configured `mono` font-variation-settings by default.
+4. Correct the odd `em` font sizing in all browsers.
 */
 
 code,
@@ -131,8 +137,12 @@ samp,
 pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   /* 1 */
-  font-size: 1em;
+  font-feature-settings: normal;
   /* 2 */
+  font-variation-settings: normal;
+  /* 3 */
+  font-size: 1em;
+  /* 4 */
 }
 
 /*
@@ -1179,10 +1189,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   margin-top: 2rem;
 }
 
-.ml-\[241px\] {
-  margin-left: 241px;
-}
-
 .block {
   display: block;
 }
@@ -1348,6 +1354,10 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   width: 100vw;
 }
 
+.max-w-4xl {
+  max-width: 56rem;
+}
+
 .max-w-\[306px\] {
   max-width: 306px;
 }
@@ -1362,14 +1372,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .max-w-sm {
   max-width: 24rem;
-}
-
-.max-w-4xl {
-  max-width: 56rem;
-}
-
-.max-w-none {
-  max-width: none;
 }
 
 .flex-none {
@@ -1686,12 +1688,12 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
   padding: 1rem;
 }
 
-.p-8 {
-  padding: 2rem;
-}
-
 .p-6 {
   padding: 1.5rem;
+}
+
+.p-8 {
+  padding: 2rem;
 }
 
 .px-2 {
@@ -1783,10 +1785,6 @@ input[type="checkbox"]:checked + svg .checkbox-bg {
 
 .pt-8 {
   padding-top: 2rem;
-}
-
-.pl-\[241px\] {
-  padding-left: 241px;
 }
 
 .text-center {
@@ -2019,6 +2017,27 @@ td {
   padding: 1rem;
 }
 
+.datatable-ascending .datatable-sorter::after {
+  margin-left: 0.5rem;
+  margin-bottom: 0.125rem;
+  display: inline-block;
+  height: 0.5rem;
+  width: 1rem;
+  content: "";
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='9' viewBox='0 0 16 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.69784 7.82011C8.30953 8.19844 7.69047 8.19844 7.30217 7.82011L2.83337 3.46626C2.19074 2.84016 2.634 1.75 3.5312 1.75H12.4688C13.366 1.75 13.8093 2.84016 13.1666 3.46626L8.69784 7.82011Z' fill='%2352677A'/%3E%3C/svg%3E%0A");
+}
+
+.datatable-descending .datatable-sorter::after {
+  margin-left: 0.5rem;
+  display: inline-block;
+  height: 0.5rem;
+  width: 1rem;
+  --tw-rotate: 180deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  content: "";
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='9' viewBox='0 0 16 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.69784 7.82011C8.30953 8.19844 7.69047 8.19844 7.30217 7.82011L2.83337 3.46626C2.19074 2.84016 2.634 1.75 3.5312 1.75H12.4688C13.366 1.75 13.8093 2.84016 13.1666 3.46626L8.69784 7.82011Z' fill='%2352677A'/%3E%3C/svg%3E%0A");
+}
+
 .hover\:bg-background-popup\/40:hover {
   background-color: rgb(102 124 147 / 0.4);
 }
@@ -2216,12 +2235,12 @@ td {
     width: 40%;
   }
 
-  .lg\:w-auto {
-    width: auto;
-  }
-
   .lg\:w-\[calc\(100vw-241px\)\] {
     width: calc(100vw - 241px);
+  }
+
+  .lg\:w-auto {
+    width: auto;
   }
 
   .lg\:grow {
