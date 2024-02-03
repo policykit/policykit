@@ -775,12 +775,16 @@ def role_action_users(request):
         action = PolicykitRemoveUserRole()
     else:
         return HttpResponseBadRequest()
-
+    
+    if not isinstance(data['user'], list):
+        usernames = [data['user']]
+    else:
+        usernames = data['user']
     action.community = user.constitution_community
     action.initiator = user
     action.role = CommunityRole.objects.filter(name=data['role'])[0]
     action.save(evaluate_action=False)
-    action.users.set(CommunityUser.objects.filter(username=data['user']))
+    action.users.set(CommunityUser.objects.filter(username__in=usernames))
     action.save(evaluate_action=True)
 
     return HttpResponse()
