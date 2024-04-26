@@ -29,8 +29,8 @@ django-tables2==2.3.4
 django-timezone-field==4.1.2
 djangorestframework==3.12.4
 docutils==0.16
-gevent==20.6.2
-greenlet==0.4.17
+gevent==24.2.1
+greenlet==3.0.3
 idna==2.9
 imagesize==1.2.0
 importlib-metadata==1.4.0
@@ -54,7 +54,7 @@ pathspec==0.8.1
 pexpect==4.7.0
 pickleshare==0.7.5
 prompt-toolkit==3.0.2
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.9
 ptyprocess==0.6.0
 pycodestyle==2.7.0
 pycryptodome==3.10.1
@@ -68,8 +68,8 @@ python-crontab==2.4.0
 python-dateutil==2.8.1
 pytz==2019.3
 regex==2021.3.17
-requests==2.23.0
-RestrictedPython==5.2
+requests==2.31.0
+RestrictedPython==7.0
 six==1.15.0
 snowballstemmer==2.1.0
 Sphinx==3.5.4
@@ -83,7 +83,7 @@ sphinxcontrib-serializinghtml==1.1.4
 sqlparse==0.3.0
 toml==0.10.2
 traitlets==4.3.3
-typed-ast==1.4.2
+typed-ast==1.5.5
 typing-extensions==3.7.4.3
 urllib3==1.25.8
 vine==1.3.0
