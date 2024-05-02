@@ -11,7 +11,7 @@ class APIViewsTestCase(APITestCase):
         self.community = self.slack_community.community
         self.constitution_community = self.community.constitution_community
 
-        # immediately pass all actions so we can assert that their results immediately
+        # immediately pass all actions so we can assert their results immediately
         Policy.objects.create(
             **TestUtils.ALL_ACTIONS_PASS,
             kind=Policy.CONSTITUTION,
@@ -32,7 +32,7 @@ class APIViewsTestCase(APITestCase):
         self.assertEqual(len(user_0['roles']), 1)
         self.assertEqual(user_0['roles'][0]['name'], 'fake role')
 
-    def test_put_members_can_assign_member_roles(self):
+    def test_put_members_can_add_member_roles(self):
         self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
         role = CommunityRole.objects.create(
             role_name="test role", community=self.community)
@@ -42,7 +42,7 @@ class APIViewsTestCase(APITestCase):
         # when a request is made to add 2 users to a role they do not have
         response = self.client.put(
             '/api/members',
-            data={'action': 'assign', 'role': role.id, 'members': [user_2.pk, user_3.pk]},
+            data={'action': 'Add', 'role': role.id, 'members': [user_2.pk, user_3.pk]},
             format='multipart'
         )
         self.assertEqual(response.status_code, 200)
@@ -61,7 +61,7 @@ class APIViewsTestCase(APITestCase):
         user_3_role_ids = [r['id'] for r in user_3_resp['roles']]
         self.assertTrue(set(user_3_role_ids).issuperset({role.id}))
 
-    def test_put_members_can_revoke_member_roles(self):
+    def test_put_members_can_remove_member_roles(self):
         self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
         role = CommunityRole.objects.create(
             role_name="test role", community=self.community)
@@ -71,15 +71,15 @@ class APIViewsTestCase(APITestCase):
         # given users have the roles
         fixture_resp = self.client.put(
             '/api/members',
-            data={'action': 'assign', 'role': role.id, 'members': [user_2.pk, user_3.pk]},
+            data={'action': 'Add', 'role': role.id, 'members': [user_2.pk, user_3.pk]},
             format='multipart'
         )
         self.assertEqual(fixture_resp.status_code, 200)
 
-        # when they are revoked
+        # when they are removed 
         resp = self.client.put(
             '/api/members',
-            data={'action': 'revoke', 'role': role.id, 'members': [user_2.pk, user_3.pk]},
+            data={'action': 'Remove', 'role': role.id, 'members': [user_2.pk, user_3.pk]},
             format='multipart'
         )
         self.assertEqual(fixture_resp.status_code, 200)
@@ -102,7 +102,7 @@ class APIViewsTestCase(APITestCase):
         self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
         response = self.client.put(
             '/api/members',
-            data={'action': 'foobar', 'role': 1, 'members': [1]},  # action is not 'assign' or 'revoke'
+            data={'action': 'foobar', 'role': 1, 'members': [1]},  # action is not 'Add' or 'Remove'
             format='multipart'
         )
         self.assertEqual(response.status_code, 400)
@@ -117,7 +117,7 @@ class APIViewsTestCase(APITestCase):
         # when a request is made to add 2 users to a role they do not have
         response = self.client.put(
             '/api/members',
-            data={'action': 'assign', 'role': role.id, 'members': [user_2.pk]},
+            data={'action': 'Add', 'role': role.id, 'members': [user_2.pk]},
             format='multipart'
         )
         self.assertEqual(response.status_code, 404)
@@ -132,7 +132,7 @@ class APIViewsTestCase(APITestCase):
         # when a request is made to add 2 users to a role they do not have
         response = self.client.put(
             '/api/members',
-            data={'action': 'assign', 'role': role.id, 'members': [other_user.pk]},
+            data={'action': 'Add', 'role': role.id, 'members': [other_user.pk]},
             format='multipart'
         )
         self.assertEqual(response.status_code, 404)
@@ -140,7 +140,7 @@ class APIViewsTestCase(APITestCase):
     def test_put_members_responds_403_on_anon_user(self):
         response = self.client.put(
             '/api/members',
-            data={'action': 'assign', 'role': 1, 'members': [1]},  # action is missing
+            data={'action': 'Add', 'role': 1, 'members': [1]},  # action is missing
             format='multipart'
         )
         self.assertEqual(response.status_code, 403)

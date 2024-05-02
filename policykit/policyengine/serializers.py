@@ -12,8 +12,8 @@ class MemberSummarySerializer(serializers.Serializer):
     roles = CommunityRoleSummarySerializer(many=True, source='get_roles')
 
 def validate_action_field(value):
-    if value not in ['assign', 'revoke']:
-        raise ValidationError("Action must be 'assign' or 'revoke'")
+    if value not in ['Add', 'Remove']:
+        raise ValidationError("Action must be 'Add' or 'Remove'")
 
 class PutMembersRequestSerializer(serializers.Serializer):
     action = serializers.CharField(validators=[validate_action_field])

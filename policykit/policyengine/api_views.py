@@ -38,9 +38,9 @@ def put_members(user, action, role, members):
     from policyengine.models import CommunityRole, CommunityUser
 
     action_model = None
-    if action == 'assign':
+    if action == 'Add':
         action_model = PolicykitAddUserRole()
-    elif action == 'revoke':
+    elif action == 'Remove':
         action_model = PolicykitRemoveUserRole()
     else:
         raise ValueError('Invalid action')
