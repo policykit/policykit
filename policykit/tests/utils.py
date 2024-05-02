@@ -56,3 +56,6 @@ def create_slack_and_discord_community():
     DiscordCommunity.objects.create(
         community_name="discord test community", community=slack_comm.community, team_id="123"
     )
+
+def create_user_in_slack_community(community: SlackCommunity, username: str):
+    return SlackUser.objects.create(username=username, community=community)

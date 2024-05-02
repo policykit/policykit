@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
-from policyengine import views as policyviews
+from policyengine import views as policyviews, api_views as policyapiviews
 from policyengine.metagov_app import metagov_handler
 
 # from schema_graph.views import Schema
@@ -85,6 +85,7 @@ urlpatterns = [
     path('api/hooks/<slug:plugin_name>/<slug:community_slug>', handle_incoming_webhook),
     path('api/hooks/<slug:plugin_name>/<slug:community_slug>/<slug:community_platform_id>', handle_incoming_webhook),
     # path("schema/", Schema.as_view()),
+    path('api/members', policyapiviews.members),
 ]
 
 if apps.is_installed("pattern_library"):
