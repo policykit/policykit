@@ -73,9 +73,24 @@ class Community(models.Model):
         return CommunityDoc.objects.filter(community=self, is_active=is_active)
 
     @property
+    def community_doc(self):
+        """
+        The community doc is the most recent active document associated with
+        the comunity
+        """
+        return CommunityDoc.objects.filter(community=self).last()
+
+    @property
     def constitution_community(self):
         from constitution.models import ConstitutionCommunity
         return ConstitutionCommunity.objects.filter(community=self).first()
+
+    @property
+    def proposals(self):
+        """
+        Returns a QuerySet of all proposals in the community.
+        """
+        return Proposal.objects.filter(policy__community=self)
 
     def get_platform_communities(self):
         constitution_community = self.constitution_community

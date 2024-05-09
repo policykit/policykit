@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound 
 from django.contrib.auth import get_user
 from django.db import transaction
-from policyengine.serializers import MemberSummarySerializer, PutMembersRequestSerializer
+from policyengine.serializers import MemberSummarySerializer, PutMembersRequestSerializer, CommunityDashboardSerializer
 
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
@@ -25,6 +25,12 @@ def members(request):
         return Response({}, status=200)
 
     raise NotImplemented
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard(request):
+    user = get_user(request)
+    return Response(CommunityDashboardSerializer(user.community.community).data)
 
 def get_members(user):
     from policyengine.models import CommunityUser
@@ -57,3 +63,4 @@ def put_members(user, action, role, members):
     if len(action_model.users.all()) != len(members):
         raise NotFound('User not found')
     action_model.save(evaluate_action=True)
+

@@ -2,22 +2,22 @@ from rest_framework.test import APITestCase
 
 import tests.utils as TestUtils
 
-from policyengine.models import CommunityRole, Policy
+from policyengine.models import CommunityRole, Policy, CommunityDoc
 
-class APIViewsTestCase(APITestCase):
+class MembersAPITestCase(APITestCase):
 
-    def setUp(self):
-        self.slack_community, self.user = TestUtils.create_slack_community_and_user()
-        self.community = self.slack_community.community
-        self.constitution_community = self.community.constitution_community
+    @classmethod
+    def setUpTestData(cls):
+        cls.slack_community, cls.user = TestUtils.create_slack_community_and_user()
+        cls.community = cls.slack_community.community
+        cls.constitution_community = cls.community.constitution_community
 
         # immediately pass all actions so we can assert their results immediately
         Policy.objects.create(
             **TestUtils.ALL_ACTIONS_PASS,
             kind=Policy.CONSTITUTION,
-            community=self.community,
+            community=cls.community,
         )
-
 
     def test_get_members(self):
         self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
@@ -144,3 +144,163 @@ class APIViewsTestCase(APITestCase):
             format='multipart'
         )
         self.assertEqual(response.status_code, 403)
+
+
+class DashboardAPITestCase(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.slack_community, cls.user = TestUtils.create_slack_community_and_user()
+        cls.community = cls.slack_community.community
+        cls.constitution_community = cls.community.constitution_community
+
+    def test_get_dashboard_handles_initial_community(self):
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        response = self.client.get('/api/dashboard')
+
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+
+        self.assertEqual(len(body['roles']), 2)
+        self.assertEqual(body['roles'][0]['number_of_members'], 1)
+        self.assertEqual(len(body['platform_policies']), 0)
+        self.assertEqual(len(body['constitution_policies']), 0)
+        self.assertEqual(len(body['proposals']), 0)
+        self.assertEqual(body['community_doc'], None)
+
+    def test_get_dashboard_renders_platform_policy(self):
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.PLATFORM,
+            community=self.community,
+        )
+
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        response = self.client.get('/api/dashboard')
+
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+
+        self.assertEqual(len(body['constitution_policies']), 0)
+        self.assertEqual(len(body['platform_policies']), 1)
+        self.assertEquals(body['platform_policies'][0]['name'], 'all actions pass')
+        self.assertEquals(body['platform_policies'][0]['id'], policy.id)
+        self.assertEquals(body['platform_policies'][0]['description'], None)
+
+    def test_get_dashboard_renders_constitution_policy(self):
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        response = self.client.get('/api/dashboard')
+
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+
+        self.assertEqual(len(body['platform_policies']), 0)
+        self.assertEqual(len(body['constitution_policies']), 1)
+        self.assertEquals(body['constitution_policies'][0]['name'], 'all actions pass')
+        self.assertEquals(body['constitution_policies'][0]['id'], policy.id)
+        self.assertEquals(body['constitution_policies'][0]['description'], None)
+
+    def test_get_dashboard_renders_passed_proposal_and_updates_member_count_of_role(self):
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PASS,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+        self._create_proposal()
+
+        response = self.client.get('/api/dashboard')
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+        
+        self.assertEqual(len(body['proposals']), 1)
+        self.assertEqual(body['proposals'][0]['status'], 'passed')
+        self.assertEqual(body['proposals'][0]['is_vote_closed'], True)
+        self.assertEqual(body['proposals'][0]['action']['action_type'], 'policykitadduserrole')
+
+        self.assertEqual(body['roles'][0]['number_of_members'], 2)
+
+    def test_get_dashboard_renders_proposed_proposal(self):
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_PROPOSED,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+        self._create_proposal()
+
+        response = self.client.get('/api/dashboard')
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+        
+        self.assertEqual(len(body['proposals']), 1)
+        self.assertEqual(body['proposals'][0]['status'], 'proposed')
+        self.assertEqual(body['proposals'][0]['is_vote_closed'], False)
+        self.assertEqual(body['proposals'][0]['action']['action_type'], 'policykitadduserrole')
+
+    def test_get_dashboard_renders_failed_proposal(self):
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        policy = Policy.objects.create(
+            **TestUtils.ALL_ACTIONS_FAIL,
+            kind=Policy.CONSTITUTION,
+            community=self.community,
+        )
+        self._create_proposal()
+
+        response = self.client.get('/api/dashboard')
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+        
+        self.assertEqual(len(body['proposals']), 1)
+        self.assertEqual(body['proposals'][0]['status'], 'failed')
+        self.assertEqual(body['proposals'][0]['is_vote_closed'], True)
+        self.assertEqual(body['proposals'][0]['action']['action_type'], 'policykitadduserrole')
+
+    def test_get_dashboard_renders_community_doc(self):
+        self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
+        CommunityDoc.objects.create(
+            name="test doc",
+            text="""Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
+                interdum sodales vehicula. Vivamus quis ex sagittis, congue risus
+                eget, efficitur justo. Maecenas posuere turpis eget laoreet
+                suscipit. Ut ut venenatis sem. Ut vel orci ornare, tempor leo
+                vitae, molestie nibh. Aliquam eget nulla dictum, mollis elit eu,
+                ullamcorper ipsum. Morbi placerat malesuada justo, at consectetur
+                neque ultrices eget. Nam dolor augue, rhoncus sit amet est id,
+                faucibus pretium velit. Maecenas enim tellus, varius sed leo a,
+                scelerisque consectetur nunc. Ut ipsum ligula, blandit eu augue et,
+                viverra consectetur velit. In at tempor erat, a pulvinar orci. Ut
+                vitae justo ut erat accumsan efficitur. Sed efficitur bibendum
+                congue. Fusce nisi eros, pretium eget tellus at, vehicula pulvinar
+                eros. Proin eu justo ac nibh tincidunt imperdiet eu sagittis augue. 
+            """,
+            community=self.community,
+            is_active=True,
+        )
+        
+        response = self.client.get('/api/dashboard')
+        self.assertEqual(response.status_code, 200)
+        body = response.data
+
+        self.assertEqual(body['community_doc'][0:5], "Lorem")
+
+    def _create_proposal(self):
+        role = self.community.get_roles()[0]
+
+        # create a user and give them a role
+        user_2 = TestUtils.create_user_in_slack_community(self.slack_community, "user_2")
+        fixture_resp = self.client.put(
+            '/api/members',
+            data={'action': 'Add', 'role': role.id, 'members': [user_2.pk]},
+            format='multipart'
+        )
+        self.assertEqual(fixture_resp.status_code, 200)
+
+
+
