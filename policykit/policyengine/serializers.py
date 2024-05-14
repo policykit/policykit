@@ -49,9 +49,14 @@ class ProposalSummarySerializer(serializers.Serializer):
     initiator = InitiatorSummarySerializer(source='action.initiator')
     policy = PolicySummarySerializer()
 
+class CommunityDocSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    text = serializers.CharField()
+
 class CommunityDashboardSerializer(serializers.Serializer):
     roles = DashboardRoleSummarySerializer(many=True, source='get_roles')
-    community_doc = serializers.CharField(source='community_doc.text', allow_null=True)
+    community_docs = CommunityDocSerializer(source='get_documents', many=True)
     platform_policies = PolicySummarySerializer(many=True, source='get_platform_policies')
     constitution_policies = PolicySummarySerializer(many=True, source='get_constitution_policies')
     proposals = ProposalSummarySerializer(many=True)

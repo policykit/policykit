@@ -166,7 +166,7 @@ class DashboardAPITestCase(APITestCase):
         self.assertEqual(len(body['platform_policies']), 0)
         self.assertEqual(len(body['constitution_policies']), 0)
         self.assertEqual(len(body['proposals']), 0)
-        self.assertEqual(body['community_doc'], None)
+        self.assertEqual(len(body['community_docs']), 0)
 
     def test_get_dashboard_renders_platform_policy(self):
         policy = Policy.objects.create(
@@ -264,9 +264,7 @@ class DashboardAPITestCase(APITestCase):
 
     def test_get_dashboard_renders_community_doc(self):
         self.client.force_login(user=self.user, backend="integrations.slack.auth_backends.SlackBackend")
-        CommunityDoc.objects.create(
-            name="test doc",
-            text="""Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
+        test_text = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
                 interdum sodales vehicula. Vivamus quis ex sagittis, congue risus
                 eget, efficitur justo. Maecenas posuere turpis eget laoreet
                 suscipit. Ut ut venenatis sem. Ut vel orci ornare, tempor leo
@@ -279,7 +277,10 @@ class DashboardAPITestCase(APITestCase):
                 vitae justo ut erat accumsan efficitur. Sed efficitur bibendum
                 congue. Fusce nisi eros, pretium eget tellus at, vehicula pulvinar
                 eros. Proin eu justo ac nibh tincidunt imperdiet eu sagittis augue. 
-            """,
+            """ 
+        CommunityDoc.objects.create(
+            name="test doc",
+            text=test_text,
             community=self.community,
             is_active=True,
         )
@@ -288,12 +289,13 @@ class DashboardAPITestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         body = response.data
 
-        self.assertEqual(body['community_doc'][0:5], "Lorem")
+        self.assertEqual(len(body['community_docs']), 1)
+        self.assertEqual(body['community_docs'][0]['name'], 'test doc')
+        self.assertEqual(body['community_docs'][0]['text'], test_text)
 
     def _create_proposal(self):
-        role = self.community.get_roles()[0]
-
         # create a user and give them a role
+        role = self.community.get_roles()[0]
         user_2 = TestUtils.create_user_in_slack_community(self.slack_community, "user_2")
         fixture_resp = self.client.put(
             '/api/members',
