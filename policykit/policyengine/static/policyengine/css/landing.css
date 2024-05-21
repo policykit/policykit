@@ -1606,3 +1606,112 @@ td {
     padding-left: calc((100vw - 1280px) / 2);
   }
 }
+
+
+
+
+/* login/connect pages */
+
+.container {
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
+.static {
+  position: static;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.mb-16 {
+  margin-bottom: 4rem;
+}
+.mb-8 {
+  margin-bottom: 2rem;
+}
+.ml-2 {
+  margin-left: 0.5rem;
+}
+.ml-2\.5 {
+  margin-left: 0.625rem;
+}
+.block {
+  display: block;
+}
+.flex {
+  display: flex;
+}
+.h-6 {
+  height: 1.5rem;
+}
+.h-\[25vh\] {
+  height: 25vh;
+}
+.min-h-screen {
+  min-height: 100vh;
+}
+.w-full {
+  width: 100%;
+}
+.max-w-sm {
+  max-width: 24rem;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+@media (min-width: 768px) {
+  .md\:mb-32 {
+    margin-bottom: 8rem;
+  }
+  .md\:h-full {
+    height: 100%;
+  }
+  .md\:min-h-screen {
+    min-height: 100vh;
+  }
+  .md\:w-1\/5 {
+    width: 20%;
+  }
+  .md\:grow {
+    flex-grow: 1;
+  }
+  .md\:flex-row {
+    flex-direction: row;
+  }
+}
+@media (min-width: 1024px) {
+  .lg\:w-2\/5 {
+    width: 40%;
+  }
+}

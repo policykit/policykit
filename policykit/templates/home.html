@@ -13,8 +13,16 @@
 		<link rel="icon" type="image/png" sizes="16x16" href={% static "policyengine/img/favicon_io/favicon-16x16.png" %}>
 		<link rel="manifest" href={% static "policyengine/img/favicon_io/site.webmanifest" %}>
 		<link rel="icon" href={% static "policyengine/img/favicon_io/favicon.ico" %} type="image/x-icon">
-    <link rel="preconnect" href="https://fonts.googleapis.com/" />
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+      rel="stylesheet"
+    />
     <title>PolicyKit</title>
     <link rel="stylesheet" href={% static "policyengine/css/landing.css" %} />
   </head>
@@ -388,7 +396,7 @@
         <p class="max-w-prose mx-auto mb-3 text-grey-dark">
           Collaborating institutions
         </p>
-        <div class="flex justify-center items-center gap-6 mb-8">
+        <div class="flex flex-wrap justify-center items-center gap-6 mb-8">
           <img
 						src={% static "policyengine/img/metagov-logo.png" %}
             alt="Metagov"
