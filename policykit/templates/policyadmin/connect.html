@@ -25,22 +25,23 @@
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
     rel="stylesheet"
   />
-  <title>PolicyKit - Signin</title>
+  <title>PolicyKit - Connect</title>
   <link rel="stylesheet" href={% static "policyengine/css/landing.css" %} />
 </head>
 <body>
   <main class="flex-col md:flex-row flex min-h-screen items-center justify-between">
     <div class="h-[25vh] w-full md:w-1/5 lg:w-2/5 md:h-full md:min-h-screen"
-          style="background: linear-gradient(243deg, rgba(222, 195, 252, 0.57) 1.25%, rgba(196, 196, 252, 0.68) 45.36%, #99C4FC 97.5%)">
+         style="background: linear-gradient(243deg, rgba(222, 195, 252, 0.57) 1.25%, rgba(196, 196, 252, 0.68) 45.36%, #99C4FC 97.5%)">
     </div>
     <div class="md:grow container">
       <div class="max-w-sm mb-16 md:mb-32 mx-auto">
-        <h1 class="mb-8">Sign in</h1>
-        <p class="large mb-16">Sign in to PolicyKit using your community's home base platform.</p>
-        <a href="/authorize_platform?platform=slack&type=user"
-            class="button slack block mb-16">
-          <img class="mx-auto h-6" height="24px" width="160px" src="{% static "policyengine/img/slack-sign-in.svg" %}" alt="Sign in with slack" />
+        <h1 class="mb-8">Connect PolicyKit to your home platform</h1>
+        <p class="large mb-16">Note that only Admins (Moderators) can connect PolicyKit to community platforms.</p>
+        <a href="/authorize_platform?platform=slack&type=app"
+           class="button slack block mb-16">
+          <img class="mx-auto h-6" height="24px" width="160px" src="{% static "policyengine/img/slack-add.svg" %}" alt="Add to Slack" />
         </a>
+        {% if request.GET.success %}Successfully added PolicyKit!{% endif %}
         {% if request.GET.error %}
           <div class="error">
             {% if request.GET.error == 'slack_wrong_community' %}
@@ -59,8 +60,8 @@
           </div>
         {% endif %}
         <p>
-          Not connected to PolicyKit?
-          <a class="ml-2.5" href="/connect">Connect</a>
+          Already connected?
+          <a class="ml-2.5" href="/login">Sign in</a>
         </p>
       </div>
     </div>
