@@ -77,6 +77,13 @@ class Community(models.Model):
         from constitution.models import ConstitutionCommunity
         return ConstitutionCommunity.objects.filter(community=self).first()
 
+    @property
+    def proposals(self):
+        """
+        Returns a QuerySet of all proposals in the community.
+        """
+        return Proposal.objects.filter(policy__community=self)
+
     def get_platform_communities(self):
         constitution_community = self.constitution_community
         return CommunityPlatform.objects.filter(community=self).exclude(pk=constitution_community.pk)

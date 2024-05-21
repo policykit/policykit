@@ -86,6 +86,7 @@ urlpatterns = [
     path('api/hooks/<slug:plugin_name>/<slug:community_slug>/<slug:community_platform_id>', handle_incoming_webhook),
     # path("schema/", Schema.as_view()),
     path('api/members', policyapiviews.members),
+    path('api/dashboard', policyapiviews.dashboard),
 ]
 
 if apps.is_installed("pattern_library"):
