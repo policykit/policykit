@@ -8,6 +8,7 @@ from celery import Celery
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
 
 app = Celery('policykit',
+             broker='amqp://guest:guest@rabbitmq:5672/',
              include=['policyengine.tasks',
                       'integrations.reddit.tasks',
                       'integrations.discourse.tasks'])
