@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./policykit:/app
+    ports:
+      - "8000:8000"
+
+  celery:
+    build: .
+    user: django-user
+    command: ["celery", "-A", "policykit", "worker", "--loglevel=info"]
+    volumes:
+      - ./policykit:/app
+    depends_on:
+      - rabbitmq
+
+  celerybeat:
+    build: .
+    user: django-user
+    command: ["celery", "-A", "policykit", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    volumes:
+      - ./policykit:/app
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./rabbitmq_data:/var/lib/rabbitmq
