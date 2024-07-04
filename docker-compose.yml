@@ -1,9 +1,7 @@
 services:
   web:
     build: ./policykit/
-    command: bash -c "python3 manage.py makemigrations &&
-      python3 manage.py migrate &&
-      python3 manage.py runserver 0.0.0.0:8000"
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./policykit:/app
     ports:
@@ -15,7 +13,7 @@ services:
   celery:
     build: ./policykit/
     user: django-user
-    command: ["celery", "-A", "policykit", "worker", "--loglevel=info"]
+    command: "celery -A policykit worker --loglevel=info"
     volumes:
       - ./policykit:/app
     depends_on:
@@ -25,7 +23,7 @@ services:
   celerybeat:
     build: ./policykit/
     user: django-user
-    command: ["celery", "-A", "policykit", "beat", "--loglevel=info"]
+    command: "celery -A policykit beat --loglevel=info"
     volumes:
       - ./policykit:/app
     depends_on:
