@@ -1,6 +1,6 @@
 # PolicyKit
 
-Consider the platforms we use for online communities today. These platforms only offer governance options that are top-down, autocratic, and punitive, involving admins and mods. But what if platforms could provide other types of governance, such as more democratic ones? What if communities could <i>build for themselves</i> the governance that suits their needs and values?
+Consider the platforms we use for online communities today. These platforms only offer governance options that are top-down, autocratic, and punitive, involving admins and mods. But what if platforms could provide other types of governance, such as more democratic ones? What if communities could <i>build for themselves</i> the governance that suits their needs and values?  
 
 PolicyKit is a governance-authoring application built with [PolicyKit](https://policykit.org/) that leverages [Metagov Gateway's](https://gateway.metagov.org/) open-source API gateway.
 
