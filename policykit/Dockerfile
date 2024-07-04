@@ -1,6 +1,6 @@
 FROM python:3.6
 
-WORKDIR /app
+WORKDIR app
 
 COPY requirements.txt .
 
@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt && \
         --no-create-home \
         django-user
 
-COPY . .
+COPY policykit app
 
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 

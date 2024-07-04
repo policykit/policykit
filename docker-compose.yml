@@ -3,11 +3,20 @@ version: "3.8"
 services:
   web:
     build: .
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python3 manage.py makemigrations &&
+      python3 manage.py migrate &&
+      python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./policykit:/app
     ports:
       - "8000:8000"
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      # - DATABASE_URL=sqlite:///db.sqlite3
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
+    depends_on:
+      - rabbit
+      - postgres
 
   celery:
     build: .
@@ -15,23 +24,42 @@ services:
     command: ["celery", "-A", "policykit", "worker", "--loglevel=info"]
     volumes:
       - ./policykit:/app
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      # - DATABASE_URL=sqlite:///db.sqlite3
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
     depends_on:
-      - rabbitmq
+      - rabbit
+      - postgres
 
   celerybeat:
     build: .
     user: django-user
-    command: ["celery", "-A", "policykit", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    command: ["celery", "-A", "policykit", "beat", "--loglevel=info"]
     volumes:
       - ./policykit:/app
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      # - DATABASE_URL=sqlite:///db.sqlite3
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
     depends_on:
-      - rabbitmq
+      - rabbit
+      - postgres
 
-  rabbitmq:
+  rabbit:
     image: rabbitmq:3-management
-    container_name: rabbitmq
     ports:
       - 5672:5672
       - 15672:15672
+
+  postgres:
+    container_name: postgresql
+    image: postgres:alpine
+    environment:
+      - POSTGRES_DB=policykit
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
     volumes:
-      - ./rabbitmq_data:/var/lib/rabbitmq
+      - ./postgres_data:/var/lib/postgresql/data
