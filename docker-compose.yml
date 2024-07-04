@@ -25,7 +25,7 @@ services:
       - postgres
 
   celerybeat:
-    build: .
+    build: ./policykit/
     user: django-user
     command: ["celery", "-A", "policykit", "beat", "--loglevel=info"]
     volumes:
