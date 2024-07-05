@@ -9,6 +9,9 @@ services:
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=supersecretkey
+      - SERVER_URL=localhost:8000
     depends_on:
       - rabbit
       - postgres
