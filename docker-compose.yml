@@ -6,6 +6,9 @@ services:
       - ./policykit:/app
     ports:
       - "8000:8000"
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
     depends_on:
       - rabbit
       - postgres
@@ -16,6 +19,9 @@ services:
     command: "celery -A policykit worker --loglevel=info"
     volumes:
       - ./policykit:/app
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
     depends_on:
       - rabbit
       - postgres
@@ -26,6 +32,9 @@ services:
     command: "celery -A policykit beat --loglevel=info"
     volumes:
       - ./policykit:/app
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
     depends_on:
       - rabbit
       - postgres
