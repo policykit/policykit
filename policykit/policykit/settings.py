@@ -24,7 +24,7 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     SERVER_URL=(str, "http://127.0.0.1:8000"),
     LOG_FILE=(str, "debug.log"),
-    DATABASE_URL=(str, "sqlite://" + os.path.join(BASE_DIR, 'db.sqlite3')),
+    DATABASE_URL=(str, "sqlite:///" + os.path.join(BASE_DIR, 'db.sqlite3')),
     CELERY_BROKER_URL=(str, "amqp://guest:guest@localhost:5672/"),
 
     # DEV SECRET! override by setting DJANGO_SECRET_KEY in .env file
