@@ -68,6 +68,29 @@ There is an open issue to support logging in without any third-party platform: `
 To log in to PolicyKit, you'll need to install it on a server and set up at least 1 of the auth-enabled integrations.
 
 
+Local Development (with docker)
+-----------------
+
+You can also deploy PolicyKit using Docker.
+
+1. Make sure to have Docker and Docker Compose installed.
+
+2. Clone the repo, navigate to the root and create an ``.env`` file as on the previous guide:
+
+3. Next, to create and set up the database run the following commands:
+
+.. code-block:: shell
+
+	docker compose run web python3 manage.py makemigrations
+        docker compose run web python3 manage.py migrate
+
+4. Finally, to run PolicyKit and all its services run:
+
+.. code-block:: shell
+
+	docker compose up
+
+
 Running PolicyKit on a Server
 -----------------------------
 

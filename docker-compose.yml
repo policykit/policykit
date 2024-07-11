@@ -1,0 +1,61 @@
+services:
+  web:
+    build: ./policykit/
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./policykit:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=supersecretkey
+      - SERVER_URL=localhost:8000
+    depends_on:
+      - rabbit
+      - postgres
+
+  celery:
+    build: ./policykit/
+    user: django-user
+    command: "celery -A policykit worker --loglevel=info"
+    volumes:
+      - ./policykit:/app
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
+    depends_on:
+      - rabbit
+      - postgres
+
+  celerybeat:
+    build: ./policykit/
+    user: django-user
+    command: "celery -A policykit beat --loglevel=info"
+    volumes:
+      - ./policykit:/app
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - DATABASE_URL=postgres://user:password@postgres:5432/policykit
+    depends_on:
+      - rabbit
+      - postgres
+
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  postgres:
+    container_name: postgresql
+    image: postgres:alpine
+    environment:
+      - POSTGRES_DB=policykit
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
