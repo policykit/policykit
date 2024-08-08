@@ -61,7 +61,7 @@ urlpatterns = [
     # path('main/modal/policynew/', policyviews.policynew),
     # path('main/modal/documenteditor/', policyviews.documenteditor),
 
-    path('admin/', admin.site.urls),    
+    path('admin/', admin.site.urls),
 
     # custom enable/disable views for integrations that use OAuth
     path('slack/', include('integrations.slack.urls')),
