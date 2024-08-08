@@ -1,4 +1,5 @@
 {
+    "name": "Onboarding",
     "platform_policies": [
     {
       "name": "All Platform Actions Pass",
