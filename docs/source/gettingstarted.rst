@@ -75,20 +75,27 @@ You can also deploy PolicyKit using Docker.
 
 1. Make sure to have Docker and Docker Compose installed.
 
-2. Clone the repo, navigate to the root and create an ``.env`` file as on the previous guide:
+2. Clone the repo, navigate to the root and create an ``policykit/policykit/.env`` file as on the previous guide.
 
-3. Next, to create and set up the database run the following commands:
+3. Choose a subdomain for your PolicyKit instance. This is neccessary for Slack integration and for signin.
+   Add `SUBDOMAIN=yoursubdomain` to the .env file.
+
+4. Next, to create and set up the database run the following commands:
 
 .. code-block:: shell
 
 	docker compose run web python3 manage.py makemigrations
         docker compose run web python3 manage.py migrate
 
-4. Finally, to run PolicyKit and all its services run:
+5. Finally, to run PolicyKit and all its services run:
 
 .. code-block:: shell
 
 	docker compose up
+
+6. Then you can access PolicyKit in the browser at ``http://localhost:8000`` or ``https://<subdomain>.loca.lt``.
+
+7. To be able to sign in, follow the steps below for setting up Slack. Use ``https://<subdomain>.loca.lt`` as your web address.
 
 
 Running PolicyKit on a Server

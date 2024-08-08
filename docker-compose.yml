@@ -6,15 +6,23 @@ services:
       - ./policykit:/app
     ports:
       - "8000:8000"
+    env_file: "policykit/policykit/.env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
-      - DEBUG=True
       - DJANGO_SECRET_KEY=supersecretkey
-      - SERVER_URL=localhost:8000
+      - SERVER_URL=https://${SUBDOMAIN}.loca.lt
+      - ALLOWED_HOSTS=web
     depends_on:
       - rabbit
       - postgres
+
+  localtunnel:
+    env_file: "policykit/policykit/.env"
+    build: ./policykit/localtunnel/
+    command: lt --port 8000 --local-host web --subdomain ${SUBDOMAIN}
+    depends_on:
+      - web
 
   celery:
     build: ./policykit/
@@ -22,6 +30,7 @@ services:
     command: "celery -A policykit worker --loglevel=info"
     volumes:
       - ./policykit:/app
+    env_file: "policykit/policykit/.env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
@@ -33,6 +42,7 @@ services:
     build: ./policykit/
     user: django-user
     command: "celery -A policykit beat --loglevel=info"
+    env_file: "policykit/policykit/.env"
     volumes:
       - ./policykit:/app
     environment:
