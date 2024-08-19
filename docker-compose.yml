@@ -12,7 +12,7 @@ services:
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
       - DJANGO_SECRET_KEY=supersecretkey
       - SERVER_URL=https://${SUBDOMAIN}.loca.lt
-      - ALLOWED_HOSTS=web
+      - ALLOWED_HOSTS=web,.localhost,127.0.0.1,[::1]
     depends_on:
       - rabbit
       - postgres
@@ -59,7 +59,6 @@ services:
       - 15672:15672
 
   postgres:
-    container_name: postgresql
     image: postgres:alpine
     environment:
       - POSTGRES_DB=policykit
@@ -68,4 +67,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data:
