@@ -148,10 +148,10 @@ class CommunityPlatform(PolymorphicModel):
 
     def get_username_to_readable_name_dict(self):
         """
-        Returns a dictionary mapping usernames to readable names. 
+        Returns a dictionary mapping usernames to readable names.
         """
         return {u.username: str(u) for u in self.get_users()}
-    
+
     def get_users(self, role_names=None):
         """
         Returns a QuerySet of all users in the community on this platform.
@@ -171,7 +171,7 @@ class CommunityPlatform(PolymorphicModel):
         if permission:
             from django.db.models import Q
             return CommunityUser.objects.filter(
-                        Q(is_superuser=True) | 
+                        Q(is_superuser=True) |
                         Q(user_permissions__codename=permission) |
                         Q(groups__permissions__codename=permission)
                 ).distinct()
@@ -530,7 +530,7 @@ class Proposal(models.Model):
         For Select voting. Returns all select votes as a QuerySet.
         """
         return SelectVote.objects.filter(proposal=self)
-    
+
     def get_select_votes_by_users(self):
         """ Returns all select votes by a given user """
         select_votes = SelectVote.objects.filter(proposal=self)
@@ -553,13 +553,13 @@ class Proposal(models.Model):
                 outcomes[vote.candidate] = {}
             if vote.option not in outcomes[vote.candidate]:
                 outcomes[vote.candidate][vote.option] = []
-            outcomes[vote.candidate][vote.option].append(vote.user.username) 
+            outcomes[vote.candidate][vote.option].append(vote.user.username)
         return outcomes
-    
+
     def get_select_voters(self):
         """ get usernames of all users who have voted on this proposal"""
         return SelectVote.objects.filter(proposal=self).values_list('user', flat=True).distinct()
-    
+
     def get_active_votes(self):
         """ help call the appropriate votes function as we do not store which type of vote is cast """
         logger.debug(f"get_active_votes: {self.governance_process.name}")
@@ -572,6 +572,7 @@ class Proposal(models.Model):
                 return self.get_all_boolean_votes()
             elif poll_type == "choice":
                 return self.get_choice_votes()
+
         return None
 
     def get_choice_votes(self, value=None):
@@ -841,13 +842,15 @@ class PolicyVariable(models.Model):
     STRING = 'string'
     FLOAT = 'float'
     TIMESTAMP = 'timestamp'
-    
+
     POLICY_VARIABLE_TYPE = [
         (NUMBER, 'number'),
         (STRING, 'string'),
         (FLOAT, 'float'),
         (TIMESTAMP, 'timestamp')
     ]
+
+    # TODO: add a SELECT type
 
     name = models.CharField(blank=False, max_length=100)
     """The name of the variable."""
@@ -881,7 +884,7 @@ class PolicyVariable(models.Model):
     def clean(self):
         if self.is_required and not self.value:
             raise ValidationError('Variable value is required')
-    
+
     @staticmethod
     def convert_variable_types(value, type):
         if not value:
@@ -892,7 +895,7 @@ class PolicyVariable(models.Model):
             return float(value)
         elif type == PolicyVariable.TIMESTAMP or type == PolicyVariable.STRING:
             return value.strip()
-            
+
     def get_variable_values(self):
         values = None
         if self.is_list and self.value:
@@ -900,6 +903,7 @@ class PolicyVariable(models.Model):
         elif not self.is_list:
             values = PolicyVariable.convert_variable_types(self.value, self.type)
         return values
+
 
     def validate_value(self, value):
         if self.is_list:
@@ -913,7 +917,7 @@ class PolicyVariable(models.Model):
                 return value
         else:
             return PolicyVariable.convert_variable_types(value, self.type)
-        
+
 class Policy(models.Model):
     """Policy"""
 
@@ -1013,7 +1017,6 @@ class Policy(models.Model):
     def copy_to_community(self, community = None, variable_data = {}):
         """Make a copy of the policy object and assign to a new community"""
 
-
         # TODO NMV Feb 1: revert this after a UI is added to make Template Policies
         # if not self.is_template:
         #     raise Exception("Policy is not a template")
@@ -1053,6 +1056,7 @@ class UserVote(models.Model):
         """
         return datetime.now(timezone.utc) - self.vote_time
 
+
 class SelectVote(UserVote):
     """ where a user assigns a option to a candidate"""
     candidate = models.CharField(max_length=100)
@@ -1063,7 +1067,7 @@ class SelectVote(UserVote):
 
     def __str__(self):
         return str(self.user) + ' : selected ' + str(self.option) + " for  " + str(self.candidate)
-    
+
 class BooleanVote(UserVote):
     """BooleanVote"""
 
@@ -1115,7 +1119,7 @@ class GovernableActionForm(ModelForm):
         self.label_suffix = ''
 
 class CustomAction(models.Model):
-    
+
     JSON_FIELDS = ["filter"]
     """fields that are stored as JSON dumps"""
 
@@ -1124,13 +1128,13 @@ class CustomAction(models.Model):
 
     filter = models.TextField(blank=True, default="[]")
     """
-        a JSON object. For each custom action, we only allow filters that apply to the filter parameters 
+        a JSON object. For each custom action, we only allow filters that apply to the filter parameters
         defined in the referenced governable action. We do not store the codes of each filter here.
         See examples of filter modules in policytemplates/filters.json
         e.g.,
         {
             "initiator": {
-                "kind": "CommunityUser", 
+                "kind": "CommunityUser",
                 "name": "permission",
                 "platform": "slack"
                 "variables": [
@@ -1142,7 +1146,7 @@ class CustomAction(models.Model):
                 ],
             },
             "text": {
-                "kind": "Text", 
+                "kind": "Text",
                 "name": "startsWtih",
                 "platform": "slack"
                 "variables": [
@@ -1160,21 +1164,35 @@ class CustomAction(models.Model):
 
     community_name = models.TextField(null=True, unique=True)
     """
-        If users think this ActionFilter is frequently used, then they can name this filter 
+        If users think this ActionFilter is frequently used, then they can name this filter
             and we would show it in the CustomAction tab on the interface.
-        
+
         When it is null it means that users do not think it is frequently used;
         We require it to be unique so that their permission codenames won't be the same
     """
-                        
+
+    @property
+    def action_kind(self):
+        """ get the corresponding policy kind: PLATFORM, CONSTITUTION or TRIGGER """
+        if self.is_trigger:
+            return Policy.TRIGGER
+        else:
+            action_class = Utils.find_action_cls(self.action_type.codename)
+            app_label = action_class._meta.app_label
+            if app_label == "constitution":
+                return Policy.CONSTITUTION
+            else:
+                return Policy.PLATFORM
+
+
     def loads(self, attr):
         """ load a field that is stored as a JSON dump """
         return json.loads(getattr(self, attr))
-    
+
     def dumps(self, attr, value):
         """ set a field, which is stored as a JSON dump, as the given value """
         setattr(self, attr, json.dumps(value))
-    
+
     def to_json(self):
         """ return a json object that represents this filter """
         return {
@@ -1182,7 +1200,7 @@ class CustomAction(models.Model):
             "filter": self.loads("filter"),
             "community_name": self.community_name
         }
-    
+
     @property
     def permissions(self):
         if self.community_name:
@@ -1192,13 +1210,13 @@ class CustomAction(models.Model):
             from django.contrib.auth.models import Permission
             from django.contrib.contenttypes.models import ContentType
 
-            # Otherwise, this permission for this new CustomAction is the same as the GovernableAction it builts upon 
-            action_content_type = ContentType.objects.filter(model=self.action_type)     
+            # Otherwise, this permission for this new CustomAction is the same as the GovernableAction it builts upon
+            action_content_type = ContentType.objects.filter(model=self.action_type)
             all_permissions = Permission.objects.filter(content_type__in=action_content_type)
             # Search for all permissions related to this GovernableAction
             permissions = [(perm.codename, perm.name) for perm in all_permissions if perm.codename.startswith("can_execute") ]
-            
-            # While it is obvious that the permission codename is f"can_execute_{self.action_type}", 
+
+            # While it is obvious that the permission codename is f"can_execute_{self.action_type}",
             # We actually do not know exactly the corresponding permisson name
             # That is why we take such trouble to extract it
         return permissions
@@ -1229,7 +1247,7 @@ class FilterModule(models.Model):
     OPENCOLLECTIVE = "Opencollective"
     REDDIT = "Reddit"
     ALL = "All"
-    
+
     PLATFORMS = [
         (SLACK, "Slack"),
         (DISCORD, "Discord"),
@@ -1259,14 +1277,14 @@ class FilterModule(models.Model):
     """The prompt of the filter module, further explaining the filter module """
 
     platform = models.TextField(choices=PLATFORMS, blank=True, default=ALL)
-    """ the platform this filter can apply to. 
+    """ the platform this filter can apply to.
         It could be specific to one platform or all platforms"""
 
     variables = models.TextField(blank=True, default='[]')
     """
         variables needed in this filter module e.g., permission users are asked to specify
-        But we will not create a policy variable for these variables 
-        because we asume users may not change which governable actions a policy should be applied to 
+        But we will not create a policy variable for these variables
+        because we asume users may not change which governable actions a policy should be applied to
         after the policy is created
     """
 
@@ -1274,17 +1292,17 @@ class FilterModule(models.Model):
     """
         How to generate codes for this filter module?
 
-        It should be a block of codes that takes an object and variables as parameters and then 
-        returns a boolean value indicating whether the object passes the filter, 
+        It should be a block of codes that takes an object and variables as parameters and then
+        returns a boolean value indicating whether the object passes the filter,
         We used a placeholder platform to represent the actual platform designated by the user when creating a policy
 
         For instance, a text.startswith filter should have codes like this: "return object.startswith(word)"
         a communityUser.role filter should have codes like this：
             all_usernames_with_roles = [_user.username for _user in {platform}.get_users(role_names=[role])]\n
             return object.username in all_usernames_with_roles\n
-        
-        Finally, when generating codes, we will put these codes under a function named kind.name (Text_startsWith or CommunityUser_Role) and 
-        pass in parameters "object" and all names defined in variables. 
+
+        Finally, when generating codes, we will put these codes under a function named kind.name (Text_startsWith or CommunityUser_Role) and
+        pass in parameters "object" and all names defined in variables.
         We will take care of the type of these variables before passing them to these functions
     """
 
@@ -1293,13 +1311,13 @@ class FilterModule(models.Model):
 
     def loads(self, attr):
         return json.loads(getattr(self, attr))
-    
+
     def to_json(self, variables_value=None):
-        """ 
-            parameters: 
+        """
+            parameters:
                 variables_value
-                    {"role": "test" ....} 
-        
+                    {"role": "test" ....}
+
         """
         variables = self.loads("variables")
         # whether the value satisfies the schema of the variable has alreadly been guaranteed by the frontend
@@ -1316,7 +1334,7 @@ class FilterModule(models.Model):
         }
 
 class Transformer(models.Model):
-    
+
     JSON_FIELDS = ["variables", "data"]
     """the fields that are stored as JSON dumps"""
 
@@ -1340,7 +1358,7 @@ class Transformer(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def to_json(self):
         # we do not need to include codes for a  transformer here, as we use its name as the identifier
         return {
@@ -1373,7 +1391,7 @@ class Procedure(models.Model):
     """ where we put the initialization codes of each policy data/variable here """
 
     check = models.TextField(blank=True, default='\{\}')
-    """        
+    """
         Code blocks used to check whether the proposal passes the policy.
         To make the procedure template simple, we do not support adding new actions at this stage,
         as procedure authors can put them in the codes without specifying them as an execution object.
@@ -1390,11 +1408,11 @@ class Procedure(models.Model):
 
     notify = models.TextField(blank=True, default='[]')
     """
-        a JSON object. Each list element represents an action that will be executed in the "notify" stage, 
-        and its parameters tells us its expected behavior, 
-        In partucilar, we could here use variables defined in the "variables/data" field 
+        a JSON object. Each list element represents an action that will be executed in the "notify" stage,
+        and its parameters tells us its expected behavior,
+        In partucilar, we could here use variables defined in the "variables/data" field
         to specify the parameters of the action in an attribute style
-        
+
         e.g.,
             "notify": [
                 {
@@ -1406,7 +1424,7 @@ class Procedure(models.Model):
                 },
                 {
                     "action": "slackpostmessage",
-                    "text": "variables.notify_message",    
+                    "text": "variables.notify_message",
                     "platform": "slack",
                 }
             ],
@@ -1415,11 +1433,11 @@ class Procedure(models.Model):
 
     variables = models.TextField(blank=True, default='[]')
     """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
-        
+
     data = models.TextField(blank=True, default='[]')
-    """ 
+    """
         TODO: we may still need to change the data design later
-        a JSON object. We will use this field to store the descriptive data of the procedure, 
+        a JSON object. We will use this field to store the descriptive data of the procedure,
         such as the number of yes votes, the number of no votes (dynamic, codes used to calculate them are part of the check codes),
         or eligible voters of a specified role (statis, codes used to calculate them are in the initialize codes)
 
@@ -1448,7 +1466,7 @@ class Procedure(models.Model):
 
     def loads(self, attr):
         return json.loads(getattr(self, attr))
-    
+
     def to_json(self):
         check = self.loads("check")
         check["name"] = self.name
@@ -1470,10 +1488,11 @@ class PolicyTemplate(models.Model):
     JSON_FIELDS = ["executions", "variables", "data"]
     """fields that are stored as JSON dumps"""
 
+
     IF_THEN_RULES = "if_then_rules"
     COMMUNITY_POLICIES = "community_policies"
     TRIGGERING_POLICIES = "triggering_policies"
-    
+
     POLICY_TEMPLATE_KIND = [
         (IF_THEN_RULES, "if_then_rules"),
         (COMMUNITY_POLICIES, "community_policies"),
@@ -1489,7 +1508,7 @@ class PolicyTemplate(models.Model):
 
     custom_actions = models.ManyToManyField(CustomAction)
     """governable actions with filters specified this policy template applies to. """
-    
+
     action_types = models.ManyToManyField(ActionType)
     """The governable actions (with no additional filters specified) that this policy template applies to."""
 
@@ -1501,27 +1520,37 @@ class PolicyTemplate(models.Model):
 
     executions = models.TextField(blank=True, default='{}')
     """
-        A JSON object representing actions that are expected to be executed in each stage of this policy
-        in addition to the execution at the stage of notify, as defined in the referenced procedure.
-        
+        A JSON object representing extra actions that are expected to be executed in each stage of this policy
+        in addition to thoes defined in the referenced procedure.
+
+        While the action item is defined in a similar way to those in the Procedure,
+        we expect to add a new field called "frequency" to actions in the "check" stage
+        to specify how often this action should be executed.
 
         e.g.,
             {
                 "notify": a list of actions,
+                "check": [
+                    {
+                        "action": "slackpostmessage",
+                        "text": "we are still waiting for the dictator to make a decision",
+                        "frequency": 60,
+                    }
+                ],
                 "success": [],
                 "fail": []
             }
     """
-    
+
     variables = models.TextField(blank=True, default='[]')
-    """ 
+    """
         Varaibles used in all codes of the policy template
-        Whenever we add a new module (such as Procedure and Transformer) 
+        Whenever we add a new module (such as Procedure and Transformer)
         that defines its own variables, we will add them here.
     """
 
     data = models.TextField(blank=True, default='[]')
-    """ 
+    """
         TODO: we may still need to change the data design later
         data defined similarly to that in the Procedure model.
         It provides descriptive data that users can use to configure executions
@@ -1543,16 +1572,16 @@ class PolicyTemplate(models.Model):
                 codename = self.custom_actions.first().action_type.codename
             elif self.action_types.first():
                 codename = self.action_types.first().codename
-            return Utils.determine_action_kind(codename)            
+            return Utils.determine_action_kind(codename)
 
     def add_variables(self, new_variables, values={}):
         """
             add new policy variables from other modules or the referenced procedure to this policy template
-            
+
             parameters:
                 new_variables:
-                    a list of variables to be added, 
-                    e.g., 
+                    a list of variables to be added,
+                    e.g.,
                         [
                             {
                                 "name": "duration",
@@ -1563,12 +1592,12 @@ class PolicyTemplate(models.Model):
                                 "type": "number"
                             }
                         ]
-    
-                values: 
+
+                values:
                     a dictionary from each variable name to its specified value if any
-                    e.g. 
+                    e.g.
                         {
-                            "duraction": 10, 
+                            "duraction": 10,
                             ...
                         }
         """
@@ -1579,12 +1608,13 @@ class PolicyTemplate(models.Model):
             if var["name"] in added_names:
                 logging.error("variable with name {} already exists".format(var["name"]))
             else:
-                # set the value of this variable; 
+                # set the value of this variable;
                 # the value should match the expected type of this variable because we enforce it in the frontend
                 if var["name"] in values:
                     var["value"] = values[var["name"]]
                 else:
-                    var["value"] = var["default"]["value"] if isinstance(var["default"], dict) else var["default"] 
+                    var["value"] = var["default"]["value"] if isinstance(var["default"], dict) else var["default"]
+
                 variables.append(var)
         self.dumps("variables", variables)
         self.save()
@@ -1619,7 +1649,7 @@ class PolicyTemplate(models.Model):
     def add_transformer(self, transformer):
         """
             add a transformer to this policy template
-            
+
             Currently, the variables belonging to this transformer is added by calling add_variables explictly
             perhaps we should put them together in the future
 
@@ -1657,13 +1687,14 @@ class PolicyTemplate(models.Model):
             reduce this PolicyTemplate object to a JSON object
         """
 
-        # combine the custom actions and the action types together as a filter of this Procedure    
+        # combine the custom actions and the action types together as a filter of this Procedure
         filters = [action.to_json() for action in self.custom_actions.all()]
         filters += [{"action_type": action.codename} for action in self.action_types.all()]
 
          # add actions defined in the Procedure isntance to the extra_executions
         procedure = self.procedure.to_json() if self.procedure else {}
-        executions = self.loads("executions") 
+        executions = self.loads("executions")
+
         for key in ["notify", "success", "fail"]:
             if key not in executions:
                 executions[key] = []
@@ -1676,7 +1707,7 @@ class PolicyTemplate(models.Model):
         if "check" in procedure:
             checks.append(procedure["check"])
 
-        
+
         return {
             "name": self.name,
             "description": self.description,
@@ -1687,7 +1718,7 @@ class PolicyTemplate(models.Model):
             "variables": self.loads("variables"),
             "data": self.loads("data")
         }
-    
+
     def create_policy_variables(self, policy, variables_data):
         """
             create policy variables for a policy based on this policy template
@@ -1701,8 +1732,8 @@ class PolicyTemplate(models.Model):
         for variable in variables:
             # as in the data models, we allow two ways to specify the default value of a variable
             variable["default_value"] = variable["default"]["value"] if isinstance(variable["default"], dict) else variable["default"]
-            del variable["default"] 
-            
+            del variable["default"]
+
             new_variable = PolicyVariable.objects.create(policy=policy, **variable)
 
             if variable["name"] in variables_data:
@@ -1718,22 +1749,22 @@ class PolicyTemplate(models.Model):
         policy_json = self.to_json()
 
         policy = Policy.objects.create(name=self.name, description=self.description, kind=self.policy_kind, community=community)
-        
-        action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 
+
+        action_types = CodesGenerator.extract_action_types(policy_json["filter"])
         for action_type in action_types:
             policy.action_types.add(action_type)
-        
+
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
-        policy.initialize = "pass" 
+        policy.initialize = "pass"
         # for now we do not have any initialize codes, we put all of them in the check module
         # CodesGenerator.generate_initialize_codes(self.loads("data"))
- 
+
         policy.check = CodesGenerator.generate_check_codes(policy_json["check"])
 
         policy.notify = CodesGenerator.generate_execution_codes(policy_json["executions"]["notify"])
         policy.success = CodesGenerator.generate_execution_codes(policy_json["executions"]["success"])
         policy.fail = CodesGenerator.generate_execution_codes(policy_json["executions"]["fail"])
-        
+
         self.create_policy_variables(policy, {})
         policy.save()
         return policy

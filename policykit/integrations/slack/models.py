@@ -1,5 +1,4 @@
 import logging
-import inspect
 
 from django.db import models
 import integrations.slack.utils as SlackUtils
@@ -171,9 +170,12 @@ class SlackCommunity(CommunityPlatform):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
 
-    def get_conversations(self, types=["channel"]):
+    def get_conversations(self, types=["channel"], types_arg="public_channel"):
         """
             acceptable types are "im", "group", "channel"
+
+            types_arg is the exact `types` arg that's passed to list.conversations
+                Allows for asking for private_channel only
         """
         def get_channel_type(channel):
             if channel.get("is_im", False):
@@ -184,9 +186,18 @@ class SlackCommunity(CommunityPlatform):
                 return "channel"
             else:
                 return None
-        
-        response = self.__make_generic_api_call("conversations.list", {})
+
+        response = self.__make_generic_api_call("conversations.list", {"types": types_arg})
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
+
+    def get_real_users(self):
+        """
+        Get realname and id of all slack workspace members that are not bot and not slackbot
+        """
+        response = self.__make_generic_api_call("users.list", {})
+        members = response['members']
+        ret = [{'value': x['id'], 'name': x.get('real_name', '')} for x in members if x['is_bot'] is False and x['name'] != 'slackbot']
+        return ret
 
     def get_users_in_channel(self, channel=None):
         from policyengine.models import CommunityUser
@@ -204,7 +215,7 @@ class SlackCommunity(CommunityPlatform):
     def rename_conversation(self, channel, name):
         admin_user_token = SlackUtils.get_admin_user_token(community=self)
         self.metagov_plugin.method("conversations.rename", channel=channel, name=name, token=admin_user_token)
-    
+
     def kick_conversation(self, channel, user):
         admin_user_token = SlackUtils.get_admin_user_token(community=self)
         self.metagov_plugin.method("conversations.kick", channel=channel, user=user, token=admin_user_token)
@@ -235,15 +246,15 @@ class SlackPostMessage(GovernableAction):
             "prompt": "the message that was posted on Slack",
             "is_list": False,
             "type": "string"
-        }, 
-        { 
+        },
+        {
             "name": "channel",
             "label": "Channel",
             "entity": "SlackChannel",
             "prompt": "the channel where the message was posted",
             "is_list": False,
             "type": "string"
-        }, 
+        },
         {
             "name": "timestamp",
             "label": "Time",
@@ -302,7 +313,7 @@ class SlackPostMessage(GovernableAction):
             "channel": self.channel,
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
-    
+
     def execution_codes(**kwargs):
         text = kwargs.get("text", "")
         channel = kwargs.get("channel", None)
@@ -310,7 +321,6 @@ class SlackPostMessage(GovernableAction):
             channel = None
         thread =  kwargs.get("thread", None)
         return f"slack.post_message(text={text}, channel={channel}, thread_ts={thread})"
-
 
 class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
@@ -334,7 +344,7 @@ class SlackRenameConversation(GovernableAction):
             "prompt": "the new name of the channel",
             "is_list": False,
             "type": "string"
-        }, 
+        },
         {
             "name": "previous_name",
             "label": "Old Name",
@@ -392,7 +402,7 @@ class SlackRenameConversation(GovernableAction):
             "token": self.initiator.access_token or SlackUtils.get_admin_user_token(community=self.community),
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
-    
+
     def execution_codes(**kwargs):
         name = kwargs.get("name", None)
         channel = kwargs.get("channel", None)
@@ -469,7 +479,7 @@ class SlackJoinConversation(GovernableAction):
             super()._revert(values=values, call=SLACK_METHOD_ACTION)
         except Exception:
             # Whether or not bot can kick is based on workspace settings
-            logger.error(f"kick with bot token failed, attempting with admin token")
+            logger.error("kick with bot token failed, attempting with admin token")
             values["token"] = SlackUtils.get_admin_user_token(community=self.community)
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
@@ -485,7 +495,7 @@ class SlackJoinConversation(GovernableAction):
 
 class SlackPinMessage(GovernableAction):
     """
-        Slack API use the timestamp of the message (in string format) to identify which message should be pinned in this channel 
+        Slack API use the timestamp of the message (in string format) to identify which message should be pinned in this channel
     """
     ACTION = "pins.add"
     AUTH = "bot"
@@ -546,7 +556,7 @@ class SlackPinMessage(GovernableAction):
 
 class SlackScheduleMessage(GovernableAction):
     """
-        Slack API use the timestamp of the message (an integer) here, 
+        Slack API use the timestamp of the message (an integer) here,
         in contrast to the timestamp (in string format) in SlackPinMessage.
         For the simplicity, we treat all of them as integer by default
         We will convert the timestamp to string when we generate codes for this SlackPinMessage action

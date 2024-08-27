@@ -24,6 +24,8 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     SERVER_URL=(str, "http://127.0.0.1:8000"),
     LOG_FILE=(str, "debug.log"),
+    DATABASE_URL=(str, "sqlite:///" + os.path.join(BASE_DIR, 'db.sqlite3')),
+    CELERY_BROKER_URL=(str, "amqp://guest:guest@localhost:5672/"),
 
     # DEV SECRET! override by setting DJANGO_SECRET_KEY in .env file
     DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-')
@@ -73,7 +75,8 @@ INSTALLED_APPS = [
     'metagov.plugins.example', #for testing
     'metagov.core',
     'policyengine',
-    'constitution'
+    'constitution',
+    'policybuilding_apps',
 ] + INTEGRATIONS
 
 SITE_ID = 1
@@ -156,11 +159,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    },
-
+    'default': env.db('DATABASE_URL')
 }
 
 
@@ -273,16 +272,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "policyengine.tasks.evaluate_pending_proposals",
         "schedule": CELERY_BEAT_FREQUENCY,
     },
-    # Poll reddit for updates
-    "reddit-listener-beat": {
-        "task": "integrations.reddit.tasks.reddit_listener_actions",
-        "schedule": CELERY_BEAT_FREQUENCY,
-    },
-    # Poll discourse for updates
-    "discourse-listener-beat": {
-        "task": "integrations.discourse.tasks.discourse_listener_actions",
-        "schedule": CELERY_BEAT_FREQUENCY,
-    },
+    # # Poll reddit for updates
+    # "reddit-listener-beat": {
+    #     "task": "integrations.reddit.tasks.reddit_listener_actions",
+    #     "schedule": CELERY_BEAT_FREQUENCY,
+    # },
+    # # Poll discourse for updates
+    # "discourse-listener-beat": {
+    #     "task": "integrations.discourse.tasks.discourse_listener_actions",
+    #     "schedule": CELERY_BEAT_FREQUENCY,
+    # },
     # Metagov task for polling external platforms
     "metagov-plugins-beat": {
         "task": "metagov.core.tasks.execute_plugin_tasks",

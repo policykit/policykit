@@ -1,0 +1,184 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="design_voting_procedure">
+    
+    <h4 class="heading-4">Configure Voting Rules</h4>
+    <p> Choose how many votes are needed to approve or reject expenses via Slack Voting. </p>
+    <!-- <div class="selectpicker-group">
+        <label for="platform-picker">Platform</label>
+        <div>
+            <select id="platform-picker" class="selectpicker" title="Select a Platform">
+                {% for name in platforms %}
+                    <option value={{name|capfirst}}>{{name | capfirst }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div> -->
+
+    <div class="d-flex justify-content-center">
+
+    <button class="button"  type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+        Show Recommendations
+    </button>
+</div>
+    <div class="collapse" id="collapseExample">
+      <div class="card card-body">
+        Here, you can select voting rules: how many votes are needed to approve an expense?
+
+        While the best choice will depend on your community's preferences, we have some recommendations below:
+
+        <ul>
+          
+          <li>
+            Peer approval: Recommended if your policy is meant to handle smaller, reoccurring, or non-controversial expenses (for instance, monthly invoices from a trusted community member or reimbursements for purchases of communal items). Works well for groups of any size.
+          </li>
+          <li>
+            Consensus (all yes): Recommended for larger, one-off, non-essential, or unexpected expenses that might invoke deliberation. Works well for small or mid-size groups where the number of eligible voters is approx. 2 - 8 people.
+        </li>
+        <li>
+            Majority vote: Recommended for larger, one-off, non-essential, or unexpected expenses that might invoke deliberation. Works well for small or mid-size groups where the number of eligible voters exceeds 8.
+        </li><li>
+            Custom: Define your own voting rules.
+        </li>
+      </ul>
+
+      </div>
+    </div>
+    
+
+
+    <div class="selectpicker-group">
+        <label for="procedure-picker">Procedures</label>
+        <div>
+            <select id="procedure-picker" class="selectpicker" title="Select a Procedure">
+            </select>
+        </div>
+    </div>
+    <div class="variables-list">
+        <h4 class="heading-4" id="procedure-name"></h4>
+        <div id="procedure-variables" class="variables">
+        </div>
+    </div>
+
+    <div>
+        
+    </div>
+    <div class="actions">
+        <button id="back" class="button secondary">
+            Go back
+          </button>
+        <button class="button primary">
+            Continue
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const procedure_details = JSON.parse('{{procedure_details|safe}}');
+    const procedures = JSON.parse('{{procedures|safe}}');
+    const entities = JSON.parse('{{entities|safe|addslashes}}');
+
+    const showProcedureDetails = () => {
+        var cur_index = parseInt(document.getElementById("procedure-picker").value);
+        // remove previously shown procedure details
+        removeElementChildren('procedure-variables')
+        document.getElementById("procedure-name").innerHTML = '';
+        
+        // if the "none" option is selected, return
+        if(Number.isNaN(cur_index)) return;
+        var variables_div = document.getElementById('procedure-variables');
+
+        var cur_detail = procedure_details.find(item => item.pk == cur_index);
+        
+        document.getElementById("procedure-name").innerHTML = cur_detail["name"];
+        
+        /*
+            The expected html structure is as follows:
+
+             <div id="procedure-variables" class="variables">
+                <div class="variable">
+                    <div class='variable-values'>
+                        <label class='variable-label' for='${item.name}'>${item.label}</label>
+                        <input class='variable-input' type='text' value='${item.default_value}' data-id='${item.name}' name='${item.name}'/>
+                    </div>
+                    <p class='variable-prompt text-small'>${item.prompt}</p>`
+                </div>
+                <div class="variable"> ... </div>
+            </div>
+        */
+        cur_detail["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=variables_div, options=entities)
+        })
+    }
+
+    const showPlatformProcedures = () => {
+        //var cur_platform = document.getElementById("platform-picker").value;
+        const cur_platform = "Slack";
+
+        removeElementChildren('procedure-picker')
+        if(cur_platform == "none") return;
+
+        var procedure_dropdown = document.getElementById('procedure-picker');
+        // filter out procedures of which the platform is cur_platform
+        // insert a dict for "none" option in the beginning of the now_procedures
+        var now_procedures = procedures.filter(item => item.platform == cur_platform);  
+
+        $(".selectpicker").selectpicker();
+        now_procedures.forEach((item, index)  => {
+            console.log("now item is: " + JSON.stringify(item));
+            var new_option = document.createElement('option');
+            if(index == 0) new_option.selected = true;
+            new_option.value = item.pk;
+            new_option.innerHTML = item.name;
+            procedure_dropdown.appendChild(new_option);
+            info_option = document.createElement('option');
+            info_option.disabled = true;
+            info_option.innerHTML = item.description;
+            info_option.style = "font:italic; font-size:0.8em"
+            procedure_dropdown.appendChild(info_option);
+        })
+        $('.selectpicker').selectpicker('refresh');
+
+    }
+        
+    const createProcedure = async (next) => {
+        
+        const procedure_index = parseInt(document.getElementById("procedure-picker").value);
+        if(Number.isNaN(procedure_index)) {
+            alert("Please select a procedure");
+            return;
+        }
+        if(checkMissingVariable(stepElementIds.procedure)) return;
+        
+        const data = getVariableDataInStep(stepElementIds.procedure);
+        const submit_data = {
+                            policy_id: parseInt("{{policy_id}}"),
+                            procedure_index: procedure_index,
+                            procedure_variables: data,
+                        }
+        console.log("submit data " + JSON.stringify(submit_data));
+        
+        const response = await submit('create_procedure', submit_data);
+        console.log("after creating procedures, " + JSON.stringify(response))
+
+        if(response["status"] == "success"){
+            redirect('home', {policy_id: response["policy_id"]});
+        }
+    }
+
+    document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.primary}`).addEventListener('click', (event) => createProcedure("execution"));
+    // document.getElementById(stepElementIds.procedure).querySelector(`.${classnames.secondary}`).addEventListener('click', (event) => createProcedure("customize"));
+
+    document.getElementById("procedure-picker").addEventListener("change", showProcedureDetails);
+    //document.getElementById("platform-picker").addEventListener("change", showPlatformProcedures);
+    showPlatformProcedures()
+    showProcedureDetails();
+    
+    const goBack = () => redirect('home', { policy_id: '{{ policy_id }}' })
+    document.getElementById("back").addEventListener('click', goBack)
+</script>
+{% endblock %}

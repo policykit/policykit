@@ -307,7 +307,6 @@ def editor(request):
 
 @login_required
 def selectrole(request):
-    from policyengine.models import CommunityRole
 
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -322,7 +321,7 @@ def selectrole(request):
 
 @login_required
 def roleusers(request):
-    from policyengine.models import CommunityRole, CommunityUser
+    from policyengine.models import CommunityUser
 
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -529,7 +528,7 @@ def policy_action_save(request):
                                      PolicykitChangePlatformPolicy,
                                      PolicykitChangeTriggerPolicy)
 
-    from policyengine.models import Policy, PolicyVariable
+    from policyengine.models import Policy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -969,13 +968,13 @@ def generate_code(request):
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
-    
+
     new_policytemplate = PolicyTemplate.objects.create(
         template_kind=data.get("policykind"),
         name=data.get("name", ""),
         description=data.get("description", "")
     )
-    
+
     custom_actions_JSON = create_custom_action(data.get("filters", {}))
     new_policytemplate.add_custom_actions(custom_actions_JSON)
 
@@ -993,7 +992,7 @@ def create_custom_action(filters):
         speciallly, replace all filter_pk with more details about each filter module
 
         parameters:
-            filters: A Json object in the shape of 
+            filters: A Json object in the shape of
                 [
                     {
                         "action_type": "slackpostmessage",
@@ -1010,7 +1009,7 @@ def create_custom_action(filters):
                 ]
     '''
 
-    from policyengine.models import ActionType,  FilterModule
+    from policyengine.models import FilterModule
     custom_action_JSON = []
     for filter in filters:
         action_type = filter.get("action_type")
@@ -1021,12 +1020,12 @@ def create_custom_action(filters):
                 {
                     "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
                     "text":{}
-                }           
+                }
         '''
         empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
         filter_JSON = {}
         filter_JSON["action_type"] = action_type
-        
+
         if not empty_filter:
             filter_JSON["action_type"] = action_type
             filter_JSON["filter"] = {}
@@ -1036,19 +1035,19 @@ def create_custom_action(filters):
                     # create a filter JSON object with the actual value specified for each variable
                     filter_JSON["filter"][field] = filter_module.to_json(filter_info["variables"])
                     # to faciliate the generation of codes for custom actions, we store the platform of each filter
-                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]      
+                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]
         custom_action_JSON.append(filter_JSON)
     return custom_action_JSON
-    
+
 def create_procedure(procedure_data, policytemplate):
     '''
         Create the procedure field of a PolicyTemplate instance based on the procedure.
         We also add variables defined in the selected procedure to the new policytemplate instance
 
         Parameters:
-            procedure: 
+            procedure:
                 A Json object in the shape of
-                {  
+                {
                     "procedure_index": an integer, which represents the primary key of the selected procedure;
                     "procedure_variables": a dict of variable names and their values
                 }
@@ -1071,8 +1070,8 @@ def create_transformers(transformer_data, policytemplate):
         Add extra check modules and extra actions to the policy template
         parameters:
             transformer_data: e.g.,
-                [ 
-                    
+                [
+
                     {
                         "module_index": 1,
                         "module_data": {
@@ -1082,7 +1081,7 @@ def create_transformers(transformer_data, policytemplate):
                 ]
     """
     from policyengine.models import Transformer
-    
+
     for transformer in transformer_data or []:
         module_index = transformer.get("module_index", None)
         module_template = Transformer.objects.filter(pk=module_index).first()
@@ -1091,13 +1090,13 @@ def create_transformers(transformer_data, policytemplate):
             policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
             policytemplate.add_descriptive_data(module_template.loads("data"))
     policytemplate.save()
-    
+
 def create_execution(execution_data, policytemplate):
     """
         Add executions to success, fail, or notify blocks of the policytemplate instance
 
         parameters:
-            "execution_data":  
+            "execution_data":
                 {
                     "success": [
                         {
@@ -1109,6 +1108,5 @@ def create_execution(execution_data, policytemplate):
                     "fail": [{...}]
                 }
     """
-    from policyengine.models import PolicyTemplate
     for stage, executions in execution_data.items():
         policytemplate.add_executions(stage, executions)

@@ -1,0 +1,114 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step" id="policy_summary">
+  {% if not opencollective_community.community_name %}
+  Warning: it seems like you're using CollectiveVoice without having connected to an OpenCollective. See the docs for help.
+  {% endif %}
+  <p> <i> Slack Name: {{slack_community.community_name}} / OpenCollective Name: {{opencollective_community.community_name}}</i></p>
+  <h2 class="heading-2">
+    CollectiveVoice Summary
+  </h2>
+  <p class="description heading-5">
+    Expenses submitted by your community to Open Collective will be sent to Slack for an approval voting process.
+  </p>
+
+  <div>
+    Expense Type:
+
+    {% if expenses_set %}
+    <span class="set">Expenses set</span>
+    {% else %}
+    <span class="not-set">Not Set</span>
+    {% endif %}
+  </div>
+  <div>
+    <button id="editExpenses" class="button secondary">
+      Edit
+    </button>
+
+  </div>
+
+  <div>
+    Voting Template:
+    {% if voting_set %}
+    <span class="set">Set: {{procedure_name}}</span>
+    {% else %}
+    <span class="not-set">Not set</span>
+    {% endif %}
+  </div>
+
+  <div>
+
+    <button id="editVoting" class="button secondary">
+      Edit
+    </button>
+
+  </div>
+
+  <!-- <div>
+    Follow up action:
+    {% if followup_set %}
+    <span class="set">Set</span>
+    {% else %}
+    <span class="not-set">Not set</span>
+    {% endif %}
+
+  </div>
+  <div>
+  <button id="editFollowup" class="button secondary">
+    Edit
+  </button>
+  </div> -->
+
+  <!-- <div>
+    Preview:
+    </div>
+    <div>
+    <img style="width:300px" src="{% static 'policyengine/img/collectivevoice_preview.png' %}"
+      alt="Image showing what the vote will look like in Slack">
+
+  </div> -->
+
+  <br>
+  <div>
+    {% if expenses_set and voting_set %}
+    <button id="save" class="button secondary">
+      Continue to Name and Save Your Policy
+    </button>
+    {% else %}
+    <button class="button secondary" disabled>
+      Continue to Name and Save Your Policy
+    </button>
+    {% endif %}
+  </div>
+
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+  const handleEditExpenses = () => redirect('edit_expenses', { policy_id: '{{ policy_id }}' })
+  const handleEditVoting = () => redirect('edit_voting', { policy_id: '{{ policy_id }}' })
+  const handleEditFollowup = () => redirect('edit_followup', { policy_id: '{{ policy_id }}' })
+  const handleSave = () => redirect('overview', { policy_id: '{{ policy_id }}' })
+
+  // Event handlers for steps
+  document.getElementById("editExpenses").addEventListener('click', handleEditExpenses)
+  document.getElementById("editVoting").addEventListener('click', handleEditVoting)
+  //document.getElementById("editFollowup").addEventListener('click', handleEditFollowup)
+  
+  try {
+    document.getElementById("save").addEventListener('click', handleSave)
+  } catch {
+    console.log('Complete the expenses and voting forms before saving!');
+  }
+  
+
+
+  //const policytemplate = JSON.parse('{{policytemplate | safe}}');
+  //console.log(policytemplate);
+
+</script>
+{% endblock %}
