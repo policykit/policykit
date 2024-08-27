@@ -4,13 +4,11 @@ import integrations.slack.utils as SlackUtils
 from django.dispatch import receiver
 from integrations.slack.models import SlackCommunity, SlackUser
 from metagov.core.signals import governance_process_updated, platform_event_created
-from metagov.plugins.slack.models import Slack, SlackEmojiVote, SlackAdvancedVote
+from metagov.plugins.slack.models import Slack, SlackEmojiVote
 from policyengine.models import (
     BooleanVote,
-    NumberVote,
     Proposal,
     ChoiceVote,
-    SelectVote,
 )
 
 logger = logging.getLogger(__name__)
@@ -99,47 +97,4 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
                     logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
                     existing_vote.value = vote_option
                     existing_vote.save()
-
-
-@receiver(governance_process_updated, sender=SlackAdvancedVote)
-def slack_advanced_vote_updated_receiver(sender, instance, status, outcome, errors, **kwargs):
-    """
-    Handle a change to an ongoing Metagov slack.emoji-vote GovernanceProcess.
-    This function gets called any time a slack.emoji-vote gets updated (e.g. if a vote was cast).
-    """
-
-
-    try:
-        proposal = Proposal.objects.get(governance_process=instance)
-    except Proposal.DoesNotExist:
-        # Proposal not saved yet, ignore
-        return
-
-    if proposal.status in [Proposal.PASSED, Proposal.FAILED]:
-        logger.debug(f"Ignoring signal from {instance}, proposal {proposal.pk} has been completed")
-        return
-
-    logger.debug(f"Received vote update from {instance} - {instance.plugin.community_platform_id}")
-    logger.debug(outcome)
-
-    try:
-        slack_community = SlackCommunity.objects.get(
-            team_id=instance.plugin.community_platform_id, community__metagov_slug=instance.plugin.community.slug
-        )
-    except SlackCommunity.DoesNotExist:
-        logger.warn(f"No SlackCommunity matches {instance}")
-        return
-
-    outcomes = outcome["votes"]
-    for username, votes in outcomes.items():
-        user, _ = SlackUser.objects.get_or_create(username=username, community=slack_community)
-        for candidate, option in votes.items():
-            existing_vote = SelectVote.objects.filter(proposal=proposal, user=user, candidate=candidate).first()
-            if existing_vote is None:
-                logger.debug(f"Counting select vote {option} for {candidate} by {user}")
-                SelectVote.objects.create(proposal=proposal, user=user, candidate=candidate, option=option)
-            elif existing_vote.option != option:
-                logger.debug(f"Counting select vote for {candidate} by {user} (vote changed to from {existing_vote.option} to {option})")
-                existing_vote.option = option
-                existing_vote.save()
 
