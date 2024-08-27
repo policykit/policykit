@@ -15,3 +15,6 @@ COPY policykit app
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 USER django-user
+
+# https://stackoverflow.com/a/67832444
+ENV PYTHONUNBUFFERED=1
