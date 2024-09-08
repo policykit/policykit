@@ -6,15 +6,27 @@ services:
       - ./policykit:/app
     ports:
       - "8000:8000"
+    env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
-      - DEBUG=True
       - DJANGO_SECRET_KEY=supersecretkey
-      - SERVER_URL=localhost:8000
+      - SERVER_URL=https://${DOMAIN}
+      - ALLOWED_HOSTS=web,.localhost,127.0.0.1,[::1],${DOMAIN}
     depends_on:
       - rabbit
       - postgres
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    depends_on:
+      - web
+    command:
+      - "http"
+      - "http://host.docker.internal:8000"
+      - "--domain=${DOMAIN}"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
 
   celery:
     build: ./policykit/
@@ -22,6 +34,7 @@ services:
     command: "celery -A policykit worker --loglevel=info"
     volumes:
       - ./policykit:/app
+    env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
@@ -33,6 +46,7 @@ services:
     build: ./policykit/
     user: django-user
     command: "celery -A policykit beat --loglevel=info"
+    env_file: ".env"
     volumes:
       - ./policykit:/app
     environment:
@@ -49,7 +63,6 @@ services:
       - 15672:15672
 
   postgres:
-    container_name: postgresql
     image: postgres:alpine
     environment:
       - POSTGRES_DB=policykit
@@ -58,4 +71,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data:
