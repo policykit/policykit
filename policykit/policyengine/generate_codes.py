@@ -1,53 +1,6 @@
 import logging
-
+import policyengine.utils as Utils
 logger = logging.getLogger(__name__)
-
-def check_format_string(string):
-    """ 
-        Check whether the string contains any embedded variables or data, and format it accordingly 
-        TODO: check whether the referenced variables or data are defined
-    """
-    import re
-    curley_pattern = r"\{(.+?)\}"
-    data_pattern = r"data\.([a-zA-Z_][a-zA-Z0-9_]*)"
-    variable_pattern = r"variables\.([a-zA-Z_][a-zA-Z0-9_]*)"
-    action_pattern = r"action\.([a-zA-Z_][a-zA-Z0-9_]*)"
-    proposal_pattern = r"proposal\.([a-zA-Z_][a-zA-Z0-9_]*)"
-
-    required_f_string = False
-    for match in re.finditer(curley_pattern, string):
-        match_str = match.group(0)
-        content = match.group(1)
-        logger.debug(f"Matched string: {match_str}, content {content}")
-        
-        data_match = re.match(data_pattern, content)
-        if data_match and data_match.group(1).isidentifier():
-            # e.g., check whether the contents are of the shape of data.board_members
-            string  = string.replace(match_str, f"{{proposal.data.get(\"{data_match.group(1)}\")}}")
-            required_f_string = True
-        
-        variable_match = re.match(variable_pattern, content)
-        if variable_match:
-            if variable_match.group(1).isidentifier():
-                required_f_string = True
-            else:
-                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-        
-        action_match = re.match(action_pattern, content)
-        if action_match:
-            if action_match.group(1).isidentifier():
-                required_f_string = True
-            else:
-                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-        
-        proposal_match = re.match(proposal_pattern, content)
-        if proposal_match:
-            if proposal_match.group(1).isidentifier():
-                required_f_string = True
-            else:
-                logger.warning(f"Embedded codes in a f-string {match_str} is not a valid identifier")
-                
-    return string, required_f_string
 
 def force_variable_types(value, variable):
     """
@@ -89,8 +42,11 @@ def force_variable_types(value, variable):
                 # an additional f is included so that variables inside the string can be evaluated
                 
                 # add safety check to make sure the string does not contain any malicious codes
-                value, required_f_string = check_format_string(value)
-                value_codes = f"f\"{value}\"" if required_f_string else f"\"{value}\""
+                if not Utils.check_code_variables(value):
+                    value_codes = f"\"{value}\""
+                else:
+                    value = Utils.validate_fstrings(value)
+                    value_codes = f"f\"{value}\""
             else:
                 raise NotImplementedError
     return value_codes
@@ -230,8 +186,11 @@ def generate_filter_codes(filters):
             filter_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
         else:
             filter_codes += "return True\n"
+    if not filter_codes:
+        filter_codes = "pass"
     return filter_codes
 
+'''
 def generate_initialize_codes(data):
     """
         Help generate codes for calculating static data, as codes for dynamic data have already been included in check codes
@@ -246,6 +205,8 @@ def generate_initialize_codes(data):
     if not initialize_codes:
         initialize_codes = "pass"
     return initialize_codes
+'''
+
 
 def generate_check_codes(checks):
     """
@@ -301,6 +262,15 @@ def generate_initiate_votes(execution):
                     channel = execution["channel"],
                     options = None
                 )
+    elif execution["platform"] == "slack" and execution["action"] == "initiate_advanced_vote":
+        codes = "slack.initiate_advanced_vote(candidates={candidates}, options={options}, users={users}, channel={channel}, title={title}, details={details})".format(
+                    candidates = execution["candidates"],
+                    options = execution["options"],
+                    users = execution["users"],
+                    channel = execution["channel"],
+                    title=execution["title"],
+                    details = execution["details"]
+                )
     else:
         raise NotImplementedError
     return codes
@@ -354,9 +324,72 @@ def initiate_execution_variables(platform, vote_type):
                 "is_list": False
             }
         ]
+    elif platform == "slack" and vote_type == "initiate_advanced_vote":
+        return [
+            {
+                "name": "candidates",
+                "label": "Candidates that users can vote for",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "options",
+                "label": "Options that users can select for each candidate",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "users",
+                "label": "Eligible voters",
+                "entity": "SlackUser",
+                "default_value": "",
+                "is_required": False,
+                "prompt": "",
+                "type": "string",
+                "is_list": True
+            },
+            {
+                "name": "channel",
+                "label": "Channel to post the vote",
+                "entity": "SlackChannel",
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "title",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
+                "is_required": True,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            },
+            {
+                "name": "details",
+                "label": "Message to be posted when initiating the vote",
+                "entity": None,
+                "default_value": "",
+                "is_required": False,
+                "prompt": "",
+                "type": "string",
+                "is_list": False
+            }
+        ]
     else:
         raise NotImplementedError
-    
+
 def force_execution_variable_types(execution, variables_details):
     """
         a wrapper function for force_variable_types when generating codes for an execution
@@ -412,18 +445,25 @@ def generate_execution_codes(executions):
     """
     from policyengine.utils import find_action_cls
     execution_codes = []
+    comment_only = True
     for execution in executions:
         codes = ""
-        if "frequency" in execution:
-            # if the execution has a frequency, then it is a recurring execution
-            # we need to add the frequency to the execution
-            duration_variable = "last_time_" + execution["action"]
-            codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+        # if "frequency" in execution:
+        #     # if the execution has a frequency, then it is a recurring execution
+        #     # we need to add the frequency to the execution
+        #     duration_variable = "last_time_" + execution["action"]
+        #     codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
         if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
             execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
             execution = force_execution_variable_types(execution, execute_variables)
             codes += generate_initiate_votes(execution)
+            comment_only = False
+        elif execution["action"] == "revert_actions":
+            codes += "action.revert()"
+            comment_only = False
+        elif execution["action"] == "execute_actions":
+            codes += "# actions are reverted in the policy engine by default\n"
         else:
             # currently only support slackpostmessage
             action_codename = execution["action"]
@@ -432,7 +472,12 @@ def generate_execution_codes(executions):
                 execute_variables = this_action.EXECUTE_VARIABLES
                 execution = force_execution_variable_types(execution, execute_variables)
                 codes += this_action.execution_codes(**execution)
+                comment_only = False
             else:
                 raise NotImplementedError
         execution_codes.append(codes)
+    if comment_only:
+        return "\n".join(execution_codes) + "pass\n"
+
+    
     return "\n".join(execution_codes) + "\n"

@@ -7,7 +7,6 @@ from metagov.core.signals import governance_process_updated, platform_event_crea
 from metagov.plugins.slack.models import Slack, SlackEmojiVote
 from policyengine.models import (
     BooleanVote,
-    NumberVote,
     Proposal,
     ChoiceVote,
 )
@@ -98,3 +97,4 @@ def slack_vote_updated_receiver(sender, instance, status, outcome, errors, **kwa
                     logger.debug(f"Counting vote for {vote_option} by {user} for proposal {proposal} (vote changed)")
                     existing_vote.value = vote_option
                     existing_vote.save()
+

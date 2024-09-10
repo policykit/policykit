@@ -131,6 +131,8 @@ def infer_channel(proposal):
 
 
 def construct_vote_params(proposal, users=None, post_type="channel", text=None, channel=None, options=None):
+    from policyengine.models import CommunityUser
+    
     if post_type not in ["channel", "mpim"]:
         raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
     if post_type == "mpim" and not users:
@@ -138,7 +140,10 @@ def construct_vote_params(proposal, users=None, post_type="channel", text=None, 
 
     params = {}
 
-    if users is not None and len(users) > 0:
+    if users is not None:
+        if isinstance(users, str) or isinstance(users, CommunityUser):
+            users = [users]
+
         if isinstance(users[0], str):
             params["eligible_voters"] = users
         else:
@@ -155,6 +160,39 @@ def construct_vote_params(proposal, users=None, post_type="channel", text=None, 
         params["poll_type"] = "boolean"
         params["title"] = text or default_boolean_vote_message(policy)
 
+    if post_type == "channel":
+        params["channel"] = channel or infer_channel(proposal)
+
+        if not params["channel"]:
+            raise Exception("Failed to determine which channel to post in")
+
+    return params
+
+def construct_select_vote_params(proposal, candidates, options, users=None, post_type="channel", title=None, channel=None, details=None):
+    from policyengine.models import CommunityUser
+    
+    if post_type not in ["channel", "mpim"]:
+        raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
+    if post_type == "mpim" and not users:
+        raise Exception(f"Must pass users for 'mpim' vote")
+
+    params = {}
+
+    if users is not None:
+        if isinstance(users, str) or isinstance(users, CommunityUser):
+            users = [users]
+
+        if isinstance(users[0], str):
+            params["eligible_voters"] = users
+        elif isinstance(users[0], CommunityUser):
+            params["eligible_voters"] = [u.username for u in users]
+
+    params["options"] = options
+    params["candidates"] = candidates
+
+    params["title"] = title or "Please vote"
+    params["details"] = details or ""
+    
     if post_type == "channel":
         params["channel"] = channel or infer_channel(proposal)
 

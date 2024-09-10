@@ -48,7 +48,7 @@ class EvaluationContext:
         variables (Policy.variables): Dict with policy variables keys and values
     """
 
-    def __init__(self, proposal):
+    def __init__(self, proposal, is_first_evaluation=False):
         from policyengine.metagov_client import Metagov
         from policyengine.models import ExecutedActionTriggerAction
 
@@ -79,10 +79,64 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
-               
-         # Make policy variables available in the evaluation context
-        setattr(self, "variables", AttrDict({ variable.name : variable.get_variable_values() for variable in self.policy.variables.all() or []}))
+        if not is_first_evaluation:
+            self.initialize_variables()
 
+    def initialize_variables(self):
+        """
+        Initialize policy variables according to their default values or codes.
+        """
+
+        variables = {}
+        initialize_codes = []
+        """
+            put the initialize codes for non-string type variables before others,
+            as people could potentially embed these variables in a string
+        """
+        for variable in self.policy.variables.all() or []:
+            if not variable.entity:
+                """
+                    Integer and float variables are literal values so we can directly parse their values.
+                    it is unlikely that users will use another variable as their values
+                    as there are actually no integer or float parameters for any Slack actions or executions.
+                """
+                variables[variable.name] = variable.get_variable_values()
+            else:
+                if not Utils.check_code_variables(variable.value):
+                    # if the variable value is not a code snippet or f-strings, we can directly parse it as well
+                    variables[variable.name] = variable.get_variable_values()
+                else:
+                    validated_value = Utils.validate_fstrings(variable.value)
+                    # remove empty curly bracket pairs to avoid errors when executing the code
+                    code = f"variables.{variable.name} = f\"{validated_value}\""
+                    # this is safe because for now all variables are string type
+                    intialize_weight = 2 if variable.entity == "Text" else 1
+                    # we first initialize other entities in case users embed other variables in creating the context of a Text variable
+                    initialize_codes.append((code, intialize_weight))
+
+        if len(initialize_codes) > 0:
+            initialize_codes.sort(key=lambda x: x[1])
+            initialize_codes = "\n".join([code for code, weight in initialize_codes])
+            initialize_codes += "\nreturn variables\n"
+
+            # Make policy variables available in the evaluation context
+            setattr(self, "variables", AttrDict(variables))
+            logger.debug(f"Initialized variables codes: {initialize_codes}")
+            variables = exec_code_block(initialize_codes, self, "initialize_variables")
+            logger.debug(f"Initialized variables for putting into code running: {variables}")
+
+            for variable in self.policy.variables.all() or []:
+                # logger.debug(f"variable name: {variable.name}, value: {variable.value}")
+                if variable.entity and Utils.check_code_variables(variable.value):
+                    # make sure variables value after the initialization is still valid
+                    variables[variable.name] = variable.validate_value(variables[variable.name])
+                    # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
+
+
+            setattr(self, "variables", variables)
+        else:
+            setattr(self, "variables", AttrDict(variables))
+        logger.debug(f"All initialized variables: {self.variables}")
 
 
 class PolicyEngineError(Exception):
@@ -208,7 +262,7 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
     proposals = []
     for policy in policies:
         proposal = Proposal(policy=policy, action=action, status=Proposal.PROPOSED)
-        context = EvaluationContext(proposal)
+        context = EvaluationContext(proposal, is_first_evaluation=True)
         try:
             passed_filter = exec_code_block(policy.filter, context, Policy.FILTER)
         except Exception as e:
@@ -258,7 +312,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
     if not proposal.policy.is_active:
         raise PolicyIsNotActive
 
-    context = EvaluationContext(proposal)
+    context = EvaluationContext(proposal, is_first_evaluation=is_first_evaluation)
 
     try:
         return evaluate_proposal_inner(context, is_first_evaluation)
@@ -290,8 +344,11 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         # logger.debug("does not pass filter")
         raise PolicyDoesNotPassFilter
 
+
+
     # If policy is being evaluated for the first time, run "initialize" block
     if is_first_evaluation:
+        context.initialize_variables()
         exec_code_block(policy.initialize, context, Policy.INITIALIZE)
 
     # Run "check" block of policy
@@ -326,7 +383,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     )
 
     if should_revert:
-        context.logger.debug(f"Reverting action")
+        context.logger.debug("Reverting action")
         action._revert()
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)
