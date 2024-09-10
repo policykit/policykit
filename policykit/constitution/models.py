@@ -73,6 +73,25 @@ class PolicykitRemoveIntegration(models.Model):
 class PolicykitAddCommunityDoc(ConstitutionAction):
     name = models.TextField()
     text = models.TextField()
+    ACTION_NAME = "Add Community Document"
+    FILTER_PARAMETERS = [
+        {
+            "name": "name",
+            "label": "Name",
+            "entity": "Text",
+            "prompt": "the name of the community document",
+            "is_list": False,
+            "type": "string",
+        },
+        {
+            "name": "text",
+            "label": "Document Content",
+            "entity": "Text",
+            "prompt": "the content of the community document",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
 
     def __str__(self):
         return "Add Document: " + self.name
@@ -88,7 +107,33 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
     name = models.TextField()
     text = models.TextField()
-
+    ACTION_NAME = "Edit Community Document"
+    FILTER_PARAMETERS = [
+        {
+            "name": "name",
+            "label": "Name",
+            "entity": "Text",
+            "prompt": "the name of the community document",
+            "is_list": False,
+            "type": "string",
+        },
+        {
+            "name": "text",
+            "label": "Document Content",
+            "entity": "Text",
+            "prompt": "the content of the community document",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "doc",
+            "label": "Document",
+            "entity": "CommunityDoc",
+            "prompt": "the community document that is edited",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     def __str__(self):
         return "Edit Document: " + self.name
 
@@ -103,7 +148,17 @@ class PolicykitChangeCommunityDoc(ConstitutionAction):
 
 class PolicykitDeleteCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
-
+    ACTION_NAME = "Delete Community Document"
+    FILTER_PARAMETERS = [
+        {
+            "name": "doc",
+            "label": "Document",
+            "entity": "CommunityDoc",
+            "prompt": "the community document that is deleted",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     def __str__(self):
         if self.doc:
             return "Delete Document: " + self.doc.name
@@ -120,6 +175,7 @@ class PolicykitDeleteCommunityDoc(ConstitutionAction):
 class PolicykitRecoverCommunityDoc(ConstitutionAction):
     doc = models.ForeignKey(CommunityDoc, models.SET_NULL, null=True)
 
+    # this action seems to be quite useless as a governable action
     def __str__(self):
         if self.doc:
             return "Recover Document: " + self.doc.name
@@ -137,7 +193,25 @@ class PolicykitAddRole(ConstitutionAction):
     name = models.CharField("name", max_length=300)
     description = models.TextField(null=True, blank=True, default="")
     permissions = models.ManyToManyField(Permission)
-
+    ACTION_NAME = "Create User Role"
+    FILTER_PARAMETERS = [
+        {
+            "name": "name",
+            "label": "Role Name",
+            "entity": "Text",
+            "prompt": "the name of the role",
+            "is_list": False,
+            "type": "string",
+        },
+        {
+            "name": "permissions",
+            "label": "Permissions",
+            "entity": "Permission",
+            "prompt": "the permissions of the role",
+            "is_list": True,
+            "type": "string"
+        }
+    ]
     def __str__(self):
         return "Add Role: " + self.name
 
@@ -155,7 +229,17 @@ class PolicykitAddRole(ConstitutionAction):
 
 class PolicykitDeleteRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
-
+    ACTION_NAME = "Delete User Role"
+    FILTER_PARAMETERS = [
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "prompt": "the deleted role",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     def __str__(self):
         if self.role:
             return "Delete Role: " + self.role.role_name
@@ -177,7 +261,33 @@ class PolicykitEditRole(ConstitutionAction):
     name = models.CharField("name", max_length=300)
     description = models.TextField(null=True, blank=True, default="")
     permissions = models.ManyToManyField(Permission)
-
+    ACTION_NAME = "Edit User Role"
+    FILTER_PARAMETERS = [
+        {
+            "name": "name",
+            "label": "Role Name",
+            "entity": "Text",
+            "prompt": "the name of the role",
+            "is_list": False,
+            "type": "string",
+        },
+        {
+            "name": "permissions",
+            "label": "Permissions",
+            "entity": "Permission",
+            "prompt": "the permissions of the role",
+            "is_list": True,
+            "type": "string"
+        },
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "prompt": "the role that is edited",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     def __str__(self):
         return "Edit Role: " + self.name
 
@@ -196,6 +306,47 @@ class PolicykitEditRole(ConstitutionAction):
 class PolicykitAddUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     users = models.ManyToManyField(CommunityUser)
+    ACTION_NAME = "Grant Role to User"
+    FILTER_PARAMETERS = [
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "prompt": "the role that is granted to users",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "users",
+            "label": "Users",
+            "entity": "CommunityUser",
+            "prompt": "the users that the role is granted to",
+            "is_list": True,
+            "type": "string"
+        }
+    ]
+    EXECUTE_VARIABLES = [
+        {
+            "name": "user",
+            "label": "User",
+            "entity": "CommunityUser",
+            "default": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "default": "",
+            "is_required": True,
+            "prompt": "the role that is granted to the user",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
 
     def __str__(self):
         first_user = self.users.first()
@@ -213,10 +364,61 @@ class PolicykitAddUserRole(ConstitutionAction):
     class Meta:
         permissions = (("can_execute_policykitadduserrole", "Can execute policykit add user role"),)
 
+    def execution_codes(**kwargs):
+        role = kwargs.get("role", None)
+        user = kwargs.get("user", None)
+        platform = kwargs.get("platform", None)
+        if role and user and platform:
+            return f"{platform}.assign_role(user={user}, role={role})"
+        else:
+            return ""
+        
+
 
 class PolicykitRemoveUserRole(ConstitutionAction):
     role = models.ForeignKey(CommunityRole, models.SET_NULL, null=True)
     users = models.ManyToManyField(CommunityUser)
+    ACTION_NAME = "Revoke Role from User"
+    FILTER_PARAMETERS = [
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "prompt": "the role that is removed from users",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "users",
+            "label": "Users",
+            "entity": "CommunityUser",
+            "prompt": "the users that the role is removed from",
+            "is_list": True,
+            "type": "string"
+        }
+    ]
+    EXECUTE_VARIABLES = [
+        {
+            "name": "user",
+            "label": "User",
+            "entity": "CommunityUser",
+            "default": "",
+            "is_required": True,
+            "prompt": "",
+            "type": "string",
+            "is_list": False
+        },
+        {
+            "name": "role",
+            "label": "Role",
+            "entity": "CommunityRole",
+            "default": "",
+            "is_required": True,
+            "prompt": "the role that is removed from the user",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
 
     def __str__(self):
         if self.role and self.users.all().count() > 0:
@@ -231,6 +433,14 @@ class PolicykitRemoveUserRole(ConstitutionAction):
     class Meta:
         permissions = (("can_execute_policykitremoveuserrole", "Can execute policykit remove user role"),)
 
+    def execution_codes(**kwargs):
+        role = kwargs.get("role", None)
+        user = kwargs.get("user", None)
+        platform = kwargs.get("platform", None)
+        if role and user and platform:
+            return f"{platform}.remove_role(user={user}, role={role})"
+        else:
+            return ""
 
 class EditorModel(ConstitutionAction):
     name = models.CharField(max_length=100)

@@ -1,0 +1,1297 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<!-- <section class="step active" id="choose_policy_type">
+    <h4 class="section-title"> Would you like to create a <b>Governance Policy</b> or a <b>If-Then Rule</b>?</h4>
+    <div>
+      <label><input type="radio" name="option" value="notify" checked>Governance Policy</label>
+      <label><input type="radio" name="option" value="check">If-Then Rule</label>
+    </div>
+</section> -->
+<div class="policykind-container" id="policykind-container">  
+    <div class="header">
+        <div class="prompt medium">New Policy</div>
+    </div>
+    <div class="body">
+        <div class="huge normal">What kind of Policy would you like to author?</div>
+        <div class="policykind-group">
+            <button class="policykind-box" kind="community_policies">
+                <div class="policykind-icon"><i class="fa-solid fa-scroll fa-lg"></i></div>
+                <div class="large">Community Policy</div>
+                <div class="medium">
+                    Govern when people try to do something in the community
+                    <span class="medium prompt">
+                        such as renaming channels requires a majority vote in the channel
+                    <span>
+                </div>
+            </button>
+            <button class="policykind-box" kind="triggering_policies">
+                <div class="policykind-icon"><i class="fa-solid fa-link fa-lg"></i></div>
+                <div class="large">Trigger Policy</div>
+                <div class="medium">
+                    Govern when people have already done something in the community
+                    <span class="medium prompt">
+                        such as posting a "vote for admin" message will trigger an election for new admins
+                    </span>
+                </div>
+            </button>
+            <!-- <button class="policykind-box" kind="if_then_rules">
+                <div class="policykind-icon"><i class="fa-solid fa-ruler-combined fa-lg"></i></div>
+                <div class="large">If-then Rule</div>
+                <div class="medium">
+                    Shortcuts that automate some rules in the community
+                    <span class="medium prompt">
+                        such as forwarding the message in the #anouncement channel to the #general channel
+                    </span>
+                </div>
+            </button> -->
+        </div>
+    </div>
+</div>
+<div class="nocode-container hidden" id="nocode-container">
+    <div class="nocode-sidebar">
+        <section>
+            <div class="section-body" id="design_meta">
+                <div class="column-variable-item">
+                    <label for='name' class="medium normal">Policy Name<span>*</span></label>
+                    <input type='text'  data-id='name' class='variable-input' name='name' required/>
+                </div>
+                <div class="column-variable-item">
+                    <label for='description' class="medium normal">Description</label>
+                    <textarea data-id='description' class='variable-input' name='description' rows="5" required></textarea>
+                </div>
+            </div>
+        </section>
+        <div id="slider-panel" class="hidden">
+            <div class="slide-panel-header" id="slide-panel-header">
+                <div>
+                    <div class="large"></div>
+                    <div class="prompt medium"></div>
+                </div>
+                <div>
+                    <button id="slide-panel-back">
+                        <i class="fa-solid fa-angle-left fa-2xl" style="color: #52677a;"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="slide-panel-body" id="slide-panel-body">
+            </div>
+        </div>
+        <div class="slide-panel">
+            <div class="slide-panel-header"></div>
+            <div class="slide-panel-body"></div>
+        </div>
+    </div>
+    <div class="nocode-panel" id="nocode-panel"> 
+        <div class="panel-header medium" id="nocode-panel-header">
+            Author a New Policy
+        </div>
+        <div class="panel-body">
+            <section id="design_action">
+                <div class="section-header medium">
+                    <div id="design-action-instruct">Choose governed Actions</div>
+                    <button class="source-code-button hidden small" type="action" view="codeview">{} Source Code</button>
+                </div>
+                <div class="section-body" id="design_action-section-body">
+                    <div id="design_action-formview" class="section-formview inactive">
+                        <button class="section-inactive-button small-button small info" type="action">+ Add</button>
+                    </div>
+                    <div id="design_action-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section>
+            <section id="design_procedure" class="opaque-section">
+                <div class="section-header medium">
+                    <div>Choose the governing Procedure</div>
+                    <button class="source-code-button hidden small" type="procedure" view="codeview">{} Source Code</button>
+                </div>
+                <div class="section-body" id="design_procedure-section-body">
+                    <div id="design_procedure-formview" class="section-formview inactive">
+                        <button class="section-inactive-button small-button small info" type="procedure">+ Add</button>
+                    </div>
+                    <div id="design_procedure-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section>
+            <div class="collapse-section hidden" id="transformer-collapse-section">
+                <div class="vertical-line"></div>
+                <!-- <button class="collapse-section-button" type="transformer">+</button>
+                <div class="vertical-line"></div> -->
+            </div>
+            <section id="design_transformer" class="hidden">
+                <div class="section-header medium">
+                    <div>Customize your the governing Procedure<span class="small prompt">&nbsp;(optional)</span></div>
+                    <button class="source-code-button hidden small" type="transformer" view="codeview">{} Source Code</button>
+                </div>
+                <div class="section-body" id="design_transformer-section-body">
+                    <div id="design_transformer-formview" class="section-formview inactive">
+                        <button class="section-inactive-button small-button small info" type="transformer">+ Add</button>
+                    </div>
+                    <div id="design_transformer-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section>
+            <!-- <div class="collapse-section">
+                <div class="vertical-line"></div>
+                <button class="collapse-section-button" type="execution_notify">+</button>
+                <div class="vertical-line"></div>
+            </div>
+            <section id="design_execution_notify" class="hidden">
+                <div class="section-header medium">Choose actions when the Procedure starts <span class="small prompt">&nbsp;(optional)</span></div>
+                <div class="section-body inactive" id="design_execution_notify-section-body">
+                    <button class="section-inactive-button small-button small info" type="execution_notify">+ Add</button>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section> -->
+            <section id="design_execution_success" class="opaque-section">
+                <div class="section-header medium">
+                    <div id="design_execution_success-instruct">Choose actions when the Procedure passes <span class="small prompt">&nbsp;(optional)</span></div>
+                    <button class="source-code-button hidden small" type="execution_success" view="codeview">{} Source Code</button>
+                </div>
+                <div class="section-body" id="design_execution_success-section-body">
+                    <div id="design_execution_success-formview" class="section-formview inactive">
+                        <button class="section-inactive-button small-button small info" type="execution_success">+ Add</button>
+                    </div>
+                    <div id="design_execution_success-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
+                </div>
+                <div class="section-bottom hidden "></div>
+            </section>
+            <section id="design_execution_fail" class="opaque-section">
+                <div class="section-header medium">
+                    <div id="design_execution_fail-instruct">Choose actions when the Procedure fails <span class="small prompt">&nbsp;(optional)</span></div>
+                    <button class="source-code-button hidden small" type="execution_fail" view="codeview">{} Source Code</button>
+                </div>
+                <div class="section-body" id="design_execution_fail-section-body">
+                    <div id="design_execution_fail-formview" class="section-formview inactive">
+                        <button class="section-inactive-button small-button small info" type="execution_fail">+ Add</button>
+                    </div>
+                    <div id="design_execution_fail-codeview" class="section-codeview hidden">
+                        <textarea></textarea>
+                    </div>
+                </div>
+                <div class="section-bottom hidden"></div>
+            </section>
+        </div>
+        <div class="panel-bottom">
+            <div>
+                <button class="button secondary" id="discard_policy"> Discard </button>
+                <button class="button primary" id="save_policy"> Save </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- pop up windows -->
+    <!-- when save the policy -->
+    <div class="modal fade" id="end-popup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title prompt small">Save the Policy</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body normal">
+              You have successfully authored a policy for your community. Would you like to inspect the code or continue to author another one?
+            </div>
+            <div class="modal-footer ">
+              <button type="button" id="inspect-code-button" class="button secondary medium" data-dismiss="modal">Inspect Code</button>
+              <button type="button" id="author-new-button" class="button primary medium">Continue</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- when discard the policy -->
+    <div class="modal fade" id="discard-popup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title prompt small">Discard the Policy</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body normal">
+                Are you sure you want to discard the policy? All the changes will be lost.
+            </div>
+            <div class="modal-footer ">
+              <button type="button" id="close-discard-button" class="button secondary medium" data-dismiss="modal">Cancel</button>
+              <button type="button" id="continue-discard-button" class="button primary medium">Discard</button>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block step_scripts %}
+
+<script>
+    const base_actions = JSON.parse('{{base_actions | safe}}');
+    const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
+    const filter_modules = JSON.parse('{{filter_modules | safe}}');
+    const platforms = JSON.parse('{{platforms | safe}}');
+    const procedures = JSON.parse(`{{procedures | safe}}`);
+    const transformers = JSON.parse(`{{transformers | safe}}`);
+    var executions = JSON.parse('{{executions | safe}}');
+    const SPECIAL_EXECUTION_APP = " "; // for revert the action and execute the action these two types of executions
+    const entities = JSON.parse('{{entities|safe}}');
+
+    var selected_policy_kind = "community_policies"; // other choices: triggering_policies
+
+    var focus_section_id = null;
+    var selected_actions = [];
+    var selected_procedure = null;
+    var selected_transformers = [];
+    var selected_executions = {success: [], fail: [], notify: []};
+
+    var global_datalist = []
+    var editors = {}; // a list of codemirror editors
+    var editor_status = {};
+    var selected_platform = "slack";
+
+    var created_policy_pk = null;
+
+    function sort_datalist(){
+        global_datalist.sort((a, b) => {
+            if (a.category === 'variable' && b.category === 'setting') return -1;
+            if (a.category === 'setting' && b.category === 'variable') return 1;
+            return 0;
+        });
+    }
+
+    function update_data_from_actions(){
+        global_datalist = global_datalist.filter(item => item.from !== "action");
+        if(selected_policy_kind == "community_policies"){
+            let execute_actions_div = document.getElementById("custom.execution_success.execute_actions");
+            let execute_actions_label = execute_actions_div.querySelector(".custom-label");
+            if(execute_actions_label && selected_actions.length == 1){
+                execute_actions_label.textContent = "Execute the Governed Action: " + selected_actions[0].name;
+            } else if(execute_actions_label && selected_actions.length > 1){
+                execute_actions_label.textContent = "Execute the Governed Actions";
+            }
+        }
+        if(selected_actions.length > 0) {
+            let datalist = []
+            selected_actions.forEach((action, index) => {
+                let variable_names = action_filter_kinds[action.value].map(item => item.name);
+                datalist.push(variable_names)
+            });
+
+            shared_variable_names = datalist.reduce((a, b) => a.filter(variable => b.includes(variable)));
+
+            selected_actions.forEach((action, index) => {
+                let action_variables = action_filter_kinds[action.value];
+                action_variables.forEach((variable, index) => {
+                    // if not shared, then skip
+                    if(!shared_variable_names.includes(variable.name)) return;
+                    // if already in the global datalist, then only append names
+                    let added_datum = global_datalist.find(item => item.value === `action.${variable.name}` && item.from === "action");
+                    if(added_datum) added_datum.name += ` or ${variable.prompt}`;
+                    else {
+                        // else add new datum
+                            global_datalist.push({
+                                value: `action.${variable.name}`,
+                                name: variable.prompt,
+                                entity: variable.entity,
+                                is_list: variable.is_list,
+                                from: "action",
+                                category: "setting",
+                            });
+                    }
+                });
+            });
+            sort_datalist();   
+        }
+    }
+
+    function update_data_from_filters(){
+        console.log("update data from filters", selected_actions);
+        if(selected_actions.length > 1) return; // do not consider complicated cases when there are more than one action
+        let filters = selected_actions[0].filter;
+        global_datalist = global_datalist.filter(item => item.from !== "filter");
+        Object.keys(filters).forEach((field, index) => {
+            let filter = filters[field];
+            filter["data"].forEach((datum, index) => {
+                var newdatum = {
+                    value: `proposal.data.get('${datum.name}')`,
+                    name: datum.label,
+                    entity: datum.entity,
+                    is_list: datum.is_list,
+                    from: "filter",
+                    type: datum.type,
+                    category: "variable",
+                }
+                global_datalist.push(newdatum);
+            });
+        });
+        sort_datalist();
+    }
+
+    function update_data_from_procedures(){ 
+        global_datalist = global_datalist.filter(item => item.from !== "procedure");
+        if(selected_procedure){
+            selected_procedure["variables"].forEach((variable, index) => {
+                var datum = {
+                    value: `variables.${variable.name}`,
+                    name: variable.label,
+                    entity: variable.entity,
+                    is_list: variable.is_list,
+                    type: variable.type,
+                    from: "procedure",
+                    category: "setting",
+                }
+                global_datalist.push(datum);
+            });
+            selected_procedure["data"].forEach((datum, index) => {
+                var datum = {
+                    value: `proposal.data.get('${datum.name}')`,
+                    name: datum.label,
+                    entity: datum.entity,
+                    is_list: datum.is_list,
+                    from: "procedure",
+                    type: datum.type,
+                    category: "variable",
+                }
+                global_datalist.push(datum);
+            });
+
+            global_datalist.push({
+                value: `proposal.vote_post_id`,
+                name: "Thread of the proposal",
+                entity: "Thread",
+                is_list: false,
+                from: "procedure"
+            });
+
+            sort_datalist();
+        }
+    }
+
+    const add_button_text = {
+        "action": "+ Select more Actions",
+        "transformer": "+ Select more Options",
+        "execution_notify": "+ Select more Executions",
+        "execution_success": "+ Select more Executions",
+        "execution_fail": "+ Select more Executions",
+    }
+
+    function activate_section(section_name){
+        /**
+            remove placeholder buttons (add buttons) as a preparation for loading all variable boxes for a component
+            @param section_id: the name of the section, e.g., action, procedure, transformer, execution.notify, 
+        */
+       
+        let section = $(`#design_${section_name}-formview`);
+        section.removeClass("inactive");
+        section.addClass("active");
+        section.empty();
+        if(section_name !== "procedure"){
+            section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
+        } else {
+            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure" status="closed">Customize</button>`);
+
+        }
+        $(`#design_${section_name} .section-bottom`).removeClass("hidden");
+        if(section_name !== "execution_fail"){ // as this is the end of all sections
+            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button primary medium section-next" id="design_${section_name}-next">Next</button>`);
+        }
+        
+        $(`#design_${section_name} .section-header .source-code-button`).removeClass("hidden");
+
+    }
+
+    function deactivate_section(section_name){
+        /**
+            add back placeholder buttons (add buttons);
+            @param section_id: the id of the section, e.g. design_action
+            @param types: the type of the section, e.g. actions, procedures, transformers, executions
+            @param 
+        */
+        let section = $(`#design_${section_name}-formview`)
+        section.removeClass("active");
+        section.addClass("inactive");
+        section.empty();
+        section.append(`<button class="section-inactive-button small info" type="${section_name}">+ Add</button>`)
+        $(`#design_${section_name} .section-bottom:first`).empty(); // remove next buttons
+        $(`#design_${section_name} .section-bottom`).addClass("hidden");
+        $(`#design_${section_name} .section-header .source-code-button`).addClass("hidden");
+
+    }
+
+    function add_section_header(section_type, module) {
+        let div = document.createElement('div');
+        div.classList.add('custom-group');
+        div.id = `custom.${section_type}.${module.value}`;
+
+        let header = document.createElement('div');
+        header.classList.add('custom-group-header');
+        div.appendChild(header);
+
+        let label_element = document.createElement('label');
+        label_element.classList.add('custom-label');
+        label_element.classList.add('large');
+        label_element.innerHTML = module.name;
+        header.appendChild(label_element);
+
+        if(!module.required){
+            let button_element = document.createElement('button');
+            button_element.id = `remove.${section_type}.${module.value}`
+            button_element.classList.add("small")
+            button_element.classList.add("custom-group-remove-button")
+            button_element.innerHTML = '<i class="fa-regular fa-trash-can fa-sm" style="color: #4451b2;"></i>&nbsp;&nbsp;Remove'
+            header.appendChild(button_element);         
+        }       
+        return div;
+    }
+
+    function showWarningMessage(message, type="warning"){
+        if(type == "warning"){
+            return  `<div class="section-warning-banner small normal">
+                        <i class="fa-solid fa-info" style="color: #a72a11;"></i>&nbsp;${message}
+                    </div>`
+        } else if(type == "info"){
+            return  `<div class="section-info-banner small normal">
+                <i class="fa-solid fa-robot" style="color: #4451b2;"></i>&nbsp;${message}
+                    </div>`
+        }
+    }
+
+    const removeFilterParameters = (action_value) => {
+        // remove the action from the selected actions
+        
+        document.getElementById(`custom.action.${action_value}`).remove();
+        let checkbox = document.getElementById(`action.checkbox.${action_value}`);
+        if(checkbox != null) checkbox.checked = false;
+        selected_actions = selected_actions.filter(item => item.value !== action_value);
+        if(Object.keys(selected_actions).length == 0) deactivate_section("action");
+        update_data_from_actions();
+        
+    }
+    
+    const removeProcedureVariables = (procedure_value) => {   
+        let checkbox = document.getElementById(`procedure.checkbox.${procedure_value}`);
+        if(checkbox != null) checkbox.checked = false;
+        selected_procedure = null;
+        update_data_from_procedures();
+        deactivate_section("procedure");
+    }
+
+    const removeTransformerVariables = (transformer_value) => {
+        document.getElementById(`custom.transformer.${transformer_value}`).remove();
+        let checkbox = document.getElementById(`transformer.checkbox.${transformer_value}`);
+        if(checkbox != null) checkbox.checked = false;
+        selected_transformers = selected_transformers.filter(item => item.value !== parseInt(transformer_value));
+        if(selected_transformers.length == 0) deactivate_section("transformer");
+    }
+
+    const removeExecutionVariables = (stage, execution_codename) => {
+        let removed_execution = selected_executions[stage].find(item => item.value == execution_codename);
+        if(removed_execution.required) return; // if it is a required execution, do not remove it
+
+        selected_executions[stage] = selected_executions[stage].filter(item => item.value !== execution_codename);
+        document.getElementById(`custom.execution_${stage}.${execution_codename}`).remove();
+        let checkbox = document.getElementById(`execution_${stage}.checkbox.${execution_codename}`);
+        if(checkbox != null) checkbox.checked = false;
+        if(selected_executions[stage].length == 0) deactivate_section(`execution_${stage}`);
+    }
+
+    const showFilterParameters = (action_value, app) => {
+
+        // check if the action has already been selected
+        if (selected_actions.some(item => item.value == action_value)) return;
+        // if there are no actions selected before, remove the inactive class and empty the section
+        if(selected_actions.length == 0) activate_section("action");
+        let action = {...base_actions[app].find(item => item.value == action_value)};
+        action["name"] = `${capitalize(app)} ${capitalize(action.name)}`;
+        action["filter"] = {};
+        selected_actions.push(action);
+        update_data_from_actions();
+
+        // create action div and add action header to the action_div
+        let action_div = add_section_header("action", action);
+        // then add the filter parameters for each action in this action_div
+        const now_filter_kinds = action_filter_kinds[action.value]; // a dict of field: filter_kind
+        const filters_this_app = filter_modules[app]; // a dict of filter_kind: [filter_modules]
+
+        now_filter_kinds.forEach(filter_schema => {
+            const filter_kind = filter_schema.entity;
+            const field_name = filter_schema.name;
+            if(filter_kind){ // only show fields of which the filter we support
+                const filters_this_kind = filters_this_app[filter_kind]
+                if(!filters_this_kind || filters_this_kind.length == 0) return;
+
+                var field_div = document.createElement('div');
+                field_div.classList.add('custom-action-field');
+
+                select_id = `select-${action.value}.${field_name}`
+                let field_html = `<div class='variable-item small normal' id='${action.value}.${field_name}'>
+                            <label for='${select_id}' class="small normal">${capitalize(filter_schema.label)}</label>
+                            <div class='selectpicker-wrapper'>
+                            <select id='${select_id}' class="selectpicker" title="Select a filter">
+                            <option value="none">No filters applied</option>`
+                
+                // add filter modules as options for this select
+
+                // console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
+                filters_this_kind.forEach(filter => {
+                    let prompt = "";
+                    if(filter.prompt) prompt = `<br><span class='variable-prompt'>${filter.prompt}</span>`
+                    field_html   += `<option value=${filter.pk} data-content="${filter.description}${prompt}"></option>`
+                });
+                field_html  += `</select></div></div>`; 
+                field_div.innerHTML = field_html; 
+                action_div.appendChild(field_div);
+            }
+        });
+        // insert the action before the add-more button
+        $("#design_action-formview > :last-child").before(action_div);
+        $(".selectpicker").selectpicker('refresh');
+
+    }
+
+    const showFilterModuleVariables = (select_id) => {
+        let select_box = document.getElementById(select_id);
+        let filter_pk = parseInt(select_box.value);
+
+        // remove filter variables always
+        var field_div = select_box.closest(".custom-action-field"); 
+        // now at the level of the action-field div
+        while (field_div.childNodes.length > 1) {
+            field_div.removeChild(field_div.lastChild);
+            // remove previously displayed filter variables except the action-field div
+        } 
+
+        if(Number.isNaN(filter_pk)) return; // when no filter is selected, the value is "none" (NaN after parseInt)
+
+        // search for a filter with this pk by iterating through filter_per_app
+        let filter = null;
+        for(let app in filter_modules){
+            for(let kind in filter_modules[app]){
+                filter = filter_modules[app][kind].find(filter => filter.pk == filter_pk);
+                if(filter) break;
+            }
+            if(filter) break;
+        }
+
+        if (!filter) return;
+        
+        // select-id select-slackpostmessage.text
+        let action_value = select_id.split(".")[0].split("-")[1];
+        let filed_name = select_id.split(".")[1];
+        selected_actions.find(item => item.value == action_value)["filter"][filed_name] = filter;
+        update_data_from_filters();
+
+        const variables = filter.variables;
+        var variable_div = document.createElement('div');
+        variable_div.classList.add('custom-action-filter-variable');
+        field_div.appendChild(variable_div);
+
+        variables.forEach(variable => {
+            const variable_id = `${select_id}.${variable.name}`;
+            // select-${action}.${field}.${variable.name}
+            addVariableInputBox(variable=variable, id=variable_id, parentDiv=variable_div, options=entities, datalist=null, type="filter")
+        });
+
+        
+    
+    }
+
+    const showProcedureVariables = (procedure_value, app) => { 
+        // if there are no actions selected before, remove the inactive class and empty the section
+        if(selected_procedure === null) activate_section("procedure");
+        
+        // search for data about this selected procedure 
+        selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
+        update_data_from_procedures();
+
+        let procedure_div = add_section_header("procedure", selected_procedure);
+        $("#design_procedure-formview").empty();
+        $("#design_procedure-formview").append(procedure_div);
+        selected_procedure["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, type="procedure")
+        })
+
+        
+    }
+        
+    const showTransformerVariables = (transformer_value, app) => {
+        if(selected_transformers.some(item => item.value === transformer_value)) return;
+
+        if(selected_transformers.length === 0) activate_section("transformer");
+
+        let selected_transformer = {...transformers[app].find(item => item.value == transformer_value)};
+        selected_transformers.push(selected_transformer);
+        
+    
+        let transformer_div = add_section_header("transformer", selected_transformer);
+        $("#design_transformer-formview > :last-child").before(transformer_div);
+        selected_transformer["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
+        })
+    }
+
+    const showExecutionVariables = (stage, execution_value, app, required=false) => {
+        if(selected_executions[stage].some(item => item.value == execution_value)) return;
+        // if there are no actions selected before, remove the inactive class and empty the section
+        if(selected_executions[stage].length == 0) activate_section(`execution_${stage}`);
+
+        let execution ={...executions[app].find(item => item.value === execution_value)};
+        execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
+        execution["required"] = required;
+
+        selected_executions[stage].push(execution);
+
+        let execution_div = add_section_header(`execution_${stage}`, execution);
+        
+        $(`#design_execution_${stage}-formview > :last-child`).before(execution_div);
+        execution["variables"].forEach((variable, index) => {
+            addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, type="execution")
+        })
+    }
+    
+    /** 
+     * listen to events on the checkboxes in the slide panel
+     * We will determine the type of the checkbox by the id of the checkbox
+     * e.g. "actions-checkbox.slack.slackpostmessage"
+     * then we will show or remove the corresponding variable boxes in the nocode panel 
+     * */
+    document.body.addEventListener('change', (event) => {
+        let id = event.target.id;
+        if(id.startsWith("action.checkbox")){
+            let action_value = event.target.value
+            let app = event.target.getAttribute("platform");
+            if(event.target.checked) showFilterParameters(action_value, app);
+            else removeFilterParameters(action_value);
+        } else if( id.startsWith("select-") ){
+            // check whether the id starts with "select-", which we named all fields of the selected actions
+            // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
+            showFilterModuleVariables(id);
+        } else if(id.startsWith("procedure.checkbox")){
+            let procedure_value = event.target.value;
+            if(event.target.checked){
+                // if the checkbox is checked, then uncheck all other checkboxes
+                // $('.procedure-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
+                let app = event.target.getAttribute("platform");
+                if(selected_procedure) removeProcedureVariables(selected_procedure.value);
+                showProcedureVariables(procedure_value, app);
+            } else {
+                removeProcedureVariables(procedure_value);
+            }
+        } else if(id.startsWith("transformer.checkbox")){
+            let app = event.target.getAttribute("platform");
+            let transformer_value = event.target.value;
+            if(event.target.checked) showTransformerVariables(transformer_value, app);
+            else removeTransformerVariables(transformer_value);
+            
+        } else if(id.startsWith("execution_notify.checkbox") || id.startsWith("execution_success.checkbox") || id.startsWith("execution_fail.checkbox")){
+            let id = event.target.id;
+            // "execution.success.checkbox.slackpostmessage"
+            let app = event.target.getAttribute("platform");
+            let stage = id.split(".")[0].split("_")[1];
+            let execution_value = event.target.value;
+            if(event.target.checked){
+                showExecutionVariables(stage, execution_value, app);
+            } else {
+                removeExecutionVariables(stage, execution_value);
+            }
+        }
+    });
+   
+    // remove modules from the section when users click the remove button inside the section
+    document.getElementById("nocode-panel").addEventListener('click', (event) => {
+        let target = event.target.closest(".custom-group-remove-button");
+        if(target){
+            let id = target.parentNode.parentNode.id;
+            let type = id.split(".")[1];
+            let module_value = id.split(".")[2];
+            if(type === "action"){
+                // id: e.g., custom.action.slackpostmessage
+                removeFilterParameters(module_value);
+            } else if(type === "procedure"){
+                // id: e.g., custom.procedure.64
+                removeProcedureVariables(module_value);
+            } else if(type === "transformer"){
+                // id: e.g., custom.transformer.10
+                removeTransformerVariables(module_value);
+            } else if(type.startsWith("execution")){
+                // id: e.g., custom.execution.notify.slackpostmessage
+                let stage = type.split("_")[1];
+                removeExecutionVariables(stage, module_value);
+            }
+        }
+    });
+    
+    // listen to the events when users click the source-code/no-code buttons
+    document.getElementById("nocode-panel").addEventListener('click', async (event) => {
+        let target = event.target.closest(".source-code-button");
+
+        if(target){
+            let type = target.getAttribute("type");
+            let view = target.getAttribute("view");
+            let codes = null;
+            hideSliderPanel(); // so that users cannot change procedures in the code view
+            if(view == "codeview"){
+                switch(type){
+                    case "procedure": 
+                        codes = selected_procedure["codes"];
+                        break;
+                    case "transformer":
+                        codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
+                        break;
+                    case "action":
+                        codes = await generateSourceCode("action");
+                        break;
+                    case "execution_success":
+                        codes = await generateSourceCode("execution_success");
+                        break;
+                    case "execution_fail":
+                        codes = await generateSourceCode("execution_fail");
+                        break;
+                }
+                console.log(codes);
+                if(!codes) return;
+                
+                if(editors[type] == null){
+                    var codeArea = document.querySelector(`#design_${type}-codeview > textarea`);
+                    editors[type] = CodeMirror.fromTextArea(codeArea, {
+                        mode: 'python',
+                        autoRefresh: true,
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        theme: 'eclipse',
+                        extraKeys: {"Ctrl-Space": "autocomplete"},
+                        matchBrackets: true,
+                        gutters: ['warnings'],
+                    });
+
+                    editors[type].on('change', (cm, change) => {
+                        editor_status[type] = "changed";
+                    });
+                }
+
+
+                $(`#design_${type}-codeview`).before(
+                    showWarningMessage(`Once you change the code, you cannot edit this section using no-code view.`)
+                )
+                
+                editors[type].setValue(decodeHtml(codes));
+                editor_status[type] = "unchanged";
+                // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+                setTimeout(() => editors[type].refresh(), 1);
+
+
+                $(`#design_${type}-formview`).addClass("hidden");
+                $(`#design_${type}-codeview`).removeClass("hidden");
+                target.setAttribute("view", "formview");
+                target.innerHTML = '<i class="fa-regular fa-pen-to-square" style="color: #4451b2;"></i>&nbsp;No-code';
+            } else {
+                if(editor_status[type] == "changed"){
+                    let confirm = window.confirm("Are you sure you want to switch to no-code view? If so, all you changes will be discarded.");
+                    if(!confirm) return;
+                }
+                $(`#design_${type}-formview`).removeClass("hidden");
+                $(`#design_${type}-codeview`).addClass("hidden");
+                $(`#design_${type}-codeview`).prev().remove(); // remove the warning message
+                target.setAttribute("view", "codeview");
+                target.innerHTML = '{} Source Code';
+            }
+        }
+    })
+
+
+    /** 
+     * listen the events on the buttons in the nocode panel (including next and add buttons)
+     * so that we could display or hide slider panels
+    */
+
+   let sections_order = {
+        "design_action": "design_procedure",
+        "design_procedure": "design_execution_success",
+        "design_transformer": "design_execution_success",
+        "design_execution_notify": "design_execution_success",
+        "design_execution_success": "design_execution_fail",
+        "design_execution_fail": null
+   }
+
+    /** listen to the events when users click the next button of each section and then hide the slider panel
+   or when users click the add buttons or add more buttons to show the slider panel */
+
+    function changeFocusSection(next_section=null){
+        hideSliderPanel();
+        let pre_focus_section = document.getElementById(focus_section_id);
+        if(pre_focus_section.classList.contains("focus-section"))
+            pre_focus_section.classList.remove("focus-section");
+        if(next_section === null)
+            focus_section_id = sections_order[focus_section_id];
+        else 
+            focus_section_id = next_section;
+        if(focus_section_id){
+            let focus_section = document.getElementById(focus_section_id);
+            if(focus_section.classList.contains("opaque-section"))
+                focus_section.classList.remove("opaque-section");
+            focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+            focus_section.classList.add("focus-section");   
+        }
+    }
+    document.getElementById("nocode-panel").addEventListener('click', (event) => {
+        let target = event.target.closest(".section-next");
+        let button = event.target.closest(".section-inactive-button");
+        let add_more_button = event.target.closest(".custom-group-add-button");
+        if(target){
+            if(target.id === "design_action-next") {
+                if(!collectCustomActionData()) return;
+            } else if(target.id === "design_procedure-next"){
+                if(!collectProcedureData()) return;
+            } else if(target.id === "design_transformer-next"){
+                if(!collectTransformerData()) return;
+            } else if(["design_execution_success-next", "design_execution_fail-next", "design_execution_notify-next"].includes(target.id)){
+                let stage = target.id.split("-")[0].split("_")[2];
+                if(!collectExecutionData(stage)) return;
+            } 
+            changeFocusSection();
+
+        } else if(button || add_more_button) {
+            // listen to the event when users clicks the add button in a section and we pop up the slide panel
+            let slidepanel_type = button ? button.getAttribute("type") : add_more_button.getAttribute("type");
+            let button_type = button ? "start" : "add"
+            if(focus_section_id) hideSliderPanel();
+            if(slidepanel_type === "action"){
+                focus_section_id = "design_action";
+                showSliderPanel(base_actions, slidepanel_type, button_type);
+            } else if(slidepanel_type == "procedure"){
+                focus_section_id = "design_procedure";
+                showSliderPanel(procedures, slidepanel_type, button_type);
+            } else if(slidepanel_type == "transformer") {
+                focus_section_id = "design_transformer";
+                showSliderPanel(transformers, slidepanel_type, button_type);
+            } else if(slidepanel_type.startsWith("execution")){
+                focus_section_id = `design_${slidepanel_type}`;
+                showSliderPanel(executions, slidepanel_type, button_type);
+            }
+        }
+    });
+
+    // listen to the event when users click the + button to unfold a collapsed section (transformer section)
+    document.getElementById("nocode-panel").addEventListener("click", (event) => {
+        // let target = event.target.closest(".collapse-section-button");
+        // if(target){
+        //     let section_type = target.getAttribute("type");
+        //     if(section_type === "transformer" || section_type.startsWith("execution")){
+        //         let collapse_section = target.closest(".collapse-section");
+        //         collapse_section.classList.add("hidden");
+        //         $(`#design_${section_type}`).removeClass("hidden");
+        //     }
+        // }
+        let target = event.target.closest(".customize-procedure-button");
+        if(target){
+            if(target.getAttribute("status") === "closed"){
+                $(`#design_transformer`).removeClass("hidden");
+                $(`#transformer-collapse-section`).removeClass("hidden");
+                target.innerHTML = "Hide";
+                target.setAttribute("status", "open");
+                changeFocusSection("design_transformer");
+            } else if(target.getAttribute("status") === "open"){
+                $(`#design_transformer`).addClass("hidden");
+                $(`#transformer-collapse-section`).addClass("hidden");
+                target.innerHTML = "Customize";
+                target.setAttribute("status", "closed");
+            }
+        }
+    })
+    
+    // listen to the event when users click the back button in the slider panel
+    document.getElementById("slide-panel-back").addEventListener('click', (event) => {
+        hideSliderPanel();
+    });
+
+    const prompt_button_text = {
+        action: "Select one or more actions from the left sidebar",
+        procedure: "Select a procedure from the left sidebar",
+        transformer: "Select one or more customization options from the left sidebar",
+        execution_notify: "Select one or more executions from the left sidebar",
+        execution_success: "Select one or more executions from the left sidebar",
+        execution_fail: "Select one or more executions from the left sidebar",
+    }
+
+    var slider_panel_header = {
+        action: ["Choose governed Actons", "Select one or more actions that you want to govern by a policy"],
+        procedure: ["Choose a governing Procedure", "Select a procedure that you want to govern the actions"],
+        transformer: ["Choose options", "Select one or more options to customize the procedure"],
+        execution_notify: ["Choose Executions", "Select one or more executions that you want to have when the procedure starts"],
+        execution_success: ["Choose Executions", "Select one or more executions that you want to have when the actions pass"],
+        execution_fail: ["Choose Executions", "Select one or more executions that you want to have when the actions fail"],
+    }
+
+    const showSliderPanel = (options, slidepanel_type, button_type) => {
+        let focus_section = document.getElementById(focus_section_id);     
+        focus_section.classList.add("focus-section");   
+        focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+        $("#slide-panel-body").empty();
+
+        // display header in the slider panel
+        $("#slide-panel-header > div:first-child > div:first-child").html(slider_panel_header[slidepanel_type][0]);
+        $("#slide-panel-header > div:first-child > div:last-child").html(slider_panel_header[slidepanel_type][1]);
+        
+        // display checkboxes in the slider panel
+        Object.keys(options).forEach(app => {
+            let innerHTML = `<div class='checkbox-section'>
+                <div class='checkbox-header large'>${capitalize(app)}</div>
+                <div class="checkbox-body">`
+            let this_app_options = options[app];
+            this_app_options.forEach(option => {
+                if(slidepanel_type === "action" || slidepanel_type.startsWith("execution")){
+                    innerHTML += `<div class='action-checkbox-item'>
+                        <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
+                        <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                    </div>`;
+                } else if(slidepanel_type == "procedure" || slidepanel_type == "transformer"){
+                    innerHTML += `<div class='procedure-checkbox-item'>
+                            <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
+                            <div class="procedure-label">
+                                <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                                <div class="small prompt">${option.description}</div>
+                            </div>
+                        </div>`;
+                }
+            });
+            innerHTML += "</div></div>";
+            $("#slide-panel-body").append(innerHTML);
+        });
+        
+        if(button_type === "start"){
+            // if this is the first time to show the slider panel, then we need to change the prompt button text
+            let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+            // show prompt text in the focus section
+            prompt_button.classList.remove("info");
+            prompt_button.classList.add("prompt");
+            prompt_button.innerHTML = prompt_button_text[slidepanel_type];
+        } else if(button_type === "add"){
+            // if this is not the first time to show the slider panel, 
+            // then we need to select checkboxes that have already been selected
+            if(slidepanel_type === "action"){
+                selected_actions.forEach(action => {
+                    document.getElementById(`action.checkbox.${action.value}`).checked = true;
+                });
+            } else if(slidepanel_type === "procedure"){
+                document.getElementById(`procedure.checkbox.${selected_procedure.value}`).checked = true;
+            } else if(slidepanel_type === "transformer"){
+                selected_transformers.forEach(transformer => {
+                    document.getElementById(`transformer.checkbox.${transformer.value}`).checked = true;
+                });
+            } else if(slidepanel_type.startsWith("execution")){
+                let stage = slidepanel_type.split("_")[1];
+                selected_executions[stage].forEach(execution => {
+                    document.getElementById(`${slidepanel_type}.checkbox.${execution.value}`).checked = true;
+                    if(execution.required) 
+                        document.getElementById(`${slidepanel_type}.checkbox.${execution.value}`).disabled = true;
+                });
+            }
+        }
+
+        $("#slider-panel").removeClass("hidden");
+        $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
+    }
+    
+    const hideSliderPanel = () => {
+        let focus_section = document.getElementById(focus_section_id);
+        if(focus_section) {
+            focus_section.classList.remove("focus-section");
+        
+            let prompt_button = focus_section.getElementsByClassName("section-inactive-button")[0];
+            if(prompt_button){
+                prompt_button.classList.remove("prompt");
+                prompt_button.classList.add("info");
+                prompt_button.innerHTML = "+ Add";
+            }
+        }
+        $("#slider-panel").addClass("hidden");
+        $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
+    }
+
+
+    /** Code related to policy kinds */
+
+    document.getElementById("policykind-container").addEventListener("click", (event)=>{
+        let target = event.target.closest(".policykind-box");
+        if(target){
+            let policy_kind = target.getAttribute("kind");
+            selected_policy_kind = policy_kind;
+            showSectionsForPolicyKinds();
+        }
+
+    })
+
+    let panel_header_title = {
+        "community_policies": "Author a New Community Policy",
+        "triggering_policies": "Author a New Trigger Policy",
+        "if_then_rules": "Author a New If-then Rule"
+    }
+
+    let trigger_action_instruct = {
+        "community_policies": "Choose the governed Actions",
+        "triggering_policies": "Choose the trigger Actions",
+        "if_then_rules": "If this Action happens"
+    }
+
+
+    function showSectionsForPolicyKinds(){
+        // hide policykind containers and show the authoring interface
+        $("#nocode-container").removeClass("hidden");
+        $("#policykind-container").addClass("hidden");
+        $(".wizard").css("background", "rgba(248, 249, 250, 1)");
+
+        $("#nocode-panel-header").html(panel_header_title[selected_policy_kind]);
+        $("#design-action-instruct").html(trigger_action_instruct[selected_policy_kind]);
+
+        if(selected_policy_kind === "community_policies"){
+            showExecutionVariables("success", "execute_actions", SPECIAL_EXECUTION_APP, required=true);
+            // $(`#design_execution_success-formview`).before(
+            //     showWarningMessage(`The governed actions will be automatically executed at this stage.`, "info")
+            // )
+
+            // remove the revert_action
+            executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "revert_action");
+        } else if(selected_policy_kind == "triggering_policies"){
+            executions[SPECIAL_EXECUTION_APP] = executions[SPECIAL_EXECUTION_APP].filter(execution => execution.value !== "execute_actions");
+            slider_panel_header["action"] = ["Choose trigger Actons", "Select one or more actions that you want to trigger a policy"];
+            return;
+        } else if(selected_policy_kind == "if_then_rules"){
+
+            $("#design_procedure").addClass("hidden");
+            $("#transformer-collapse-section").addClass("hidden");
+            $("#design_execution_fail").addClass("hidden");
+            $("#design_execution_success-instruct").html("Then what should happen next?");
+
+            return;
+        }
+    }
+
+
+    /**
+     * Code related to collect data from each section and submit to the backend
+    */
+    const collectMetadata = () => {
+        if(checkMissingVariable(`design_meta`)) return false;
+        return getVariableDataInStep("design_meta");
+    }
+
+    const collectCustomActionData = () => {
+        // to collect user input about custom actions
+        
+        console.log("new actions are: ", selected_actions.map(action => action.value));
+        
+        let missing_input = false;
+        const filters = selected_actions.map((action, index) => {
+            const action_div = document.getElementById(`custom.action.${action.value}`);
+            let action_field_divs = action_div.getElementsByClassName('custom-action-field');
+            var filters_per_action = {}
+            Array.from(action_field_divs).forEach((action_field_div => {
+                let action_field_id = action_field_div.firstElementChild.id; // the field itself: slackpostmessage.initiator
+                let action_field_name = action_field_id.split(".")[1]; // initiator
+                let selected_filter_pk = document.getElementById(`select-${action_field_id}`).value; // select-slackpostmessage.initiator
+                if(selected_filter_pk === "" || selected_filter_pk === "none"){
+                    // if no filter modules are selected, then no filter is applied to this field
+                    filters_per_action[action_field_name] = {}
+                } else {
+                    // a dict of variable_name: variable_value
+                    var variables_dict = {}
+                    field_variables_div = action_field_div.getElementsByClassName('custom-action-filter-variable')[0];
+                    for(var i = 0; i < field_variables_div.children.length; i++){
+                        let filter_variable_div = field_variables_div.children[i];
+                        // check whether all variables are filled and alert with the missing variable names
+                        missing_input = checkMissingVariable(null, elements=filter_variable_div);
+                        if(missing_input) break;
+                        let filter_variable_input = getVariableDataInStep(null, elements=filter_variable_div);
+                        // replace original key in filter_variable_input with the variable name
+                        Object.keys(filter_variable_input).forEach(key => {
+                            variables_dict[key.split(".").pop()] = filter_variable_input[key];
+                        });
+                    }
+                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: action.app, variables: variables_dict}
+                }
+            }))
+            return {action_type: action.value, filter: filters_per_action, app_name: action.app}
+        });
+        // only submit the data if all variables are filled
+        if(missing_input) return false; else {
+            console.log("collect custom action data: " + JSON.stringify(filters));
+            return filters;
+        }
+    }
+
+    const collectTransformerData = () => {
+        if(selected_transformers.length == 0) return [];
+
+        if(checkMissingVariable(`design_transformer`)) return false;
+
+        const transformers_data = selected_transformers.map((transformer, index) => {
+            let transformer_div = document.getElementById(`custom.transformer.${transformer.value}`);
+            let data = getVariableDataInStep(null, elements=transformer_div);
+            return {module_index: transformer.value, module_data: data}
+        });
+        console.log("transformers_data " + JSON.stringify(transformers_data));
+        return transformers_data;
+    }
+
+    const collectProcedureData = () => {
+        if(selected_procedure === null) return false;
+
+        if(checkMissingVariable("design_procedure")) return false;
+        
+        const procedure_data = {
+            procedure_index: selected_procedure.value,
+            procedure_variables: getVariableDataInStep("design_procedure"),
+        }
+        console.log("procedure_data " + JSON.stringify(procedure_data));
+        return procedure_data;
+    }
+
+    const collectExecutionData = (stage) => {
+        if(selected_executions[stage].length == 0) return [];
+        if(checkMissingVariable(`design_execution_${stage}`)) return false;
+
+        const execution_data = selected_executions[stage].map((execution, index) => {
+            let execution_div = document.getElementById(`custom.execution_${stage}.${execution.value}`);
+            let data = getVariableDataInStep(null, elements=execution_div);
+            data.action = execution.value;
+            if(!("platform" in data)){
+                data.platform = selected_platform;
+            }
+            return data
+        });
+        console.log("execution_data " + JSON.stringify(execution_data));
+        return execution_data;
+    }
+
+    const generateSourceCode = async (stage) => {
+        let data = null;
+        switch(stage){
+            case "action":
+                data = collectCustomActionData();
+                break;
+            case "execution_success":
+                data = collectExecutionData("success");
+                break;
+            case "execution_fail":
+                data = collectExecutionData("fail");
+                break;
+        } 
+        if(!data) return false;
+
+        let result = await submit('generate_code', {
+            stage: stage,
+            data: data,
+        });
+        // console.log("result: ", result);
+        if(result.status) return result.code; else return false;
+    }
+
+    
+    const goCreateProcedure = async () => {
+        
+        hideSliderPanel();
+        let meta_data = collectMetadata();
+        if(meta_data === false) return;
+
+        let custom_action_data = collectCustomActionData();
+        if(custom_action_data === false) {
+            changeFocusSection("design_action");
+            return;
+        }
+        
+        let success_data = collectExecutionData("success");
+        if(success_data === false) {
+            changeFocusSection("design_execution_success");
+            return;
+        }
+
+        let procedure_data = null;
+        let transformer_data = null;
+        let fail_data = null;
+        if(selected_policy_kind !== "if_then_rules"){
+            procedure_data = collectProcedureData();
+            if(procedure_data === false) {
+                changeFocusSection("design_procedure");
+                return;
+            }
+
+            transformer_data = collectTransformerData();
+            if(transformer_data === false){
+                changeFocusSection("design_transformer");
+                return;
+            }
+
+            // let notify_data = collectExecutionData("notify");
+            // if(notify_data === false) return;
+            
+            fail_data = collectExecutionData("fail");
+            if(fail_data === false){
+                changeFocusSection("design_execution_fail");
+                return;
+            }
+        }
+        
+        app_name = custom_action_data["app_name"];
+        delete custom_action_data["app_name"];
+        all_data = {
+                    name: meta_data.name,
+                    description: meta_data.description,
+                    policykind: selected_policy_kind,   // "if_then_rules", "community_policies", "triggering_policies"
+                    app_name: app_name,
+                    filters: custom_action_data,
+                    procedure: procedure_data,
+                    transformers: transformer_data,
+                    executions: {
+                        // notify: notify_data,
+                        success: success_data,
+                        fail: fail_data,
+                    }
+                }
+        console.log("all data: " + JSON.stringify(all_data));
+        const response = await submit('create', all_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response.status === "success"){
+            created_policy_pk = response.policy;
+            $("#end-popup").modal("show");
+        }
+    }
+
+    document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
+    document.getElementById("discard_policy").addEventListener('click', function(){
+        $("#discard-popup").modal("show");
+    });
+
+    document.getElementById("inspect-code-button").addEventListener('click', function(){
+        if(created_policy_pk !== null){
+            window.location.href = `/main/editor?policy=${created_policy_pk}`;
+        }
+    });
+    document.getElementById("author-new-button").addEventListener('click', function(){
+        // go back to the page where choosing policy kind by refreshing the page
+        location.reload();
+    });
+
+    document.getElementById("close-discard-button").addEventListener('click', function(){
+        $("#discard-popup").modal("hide");
+    });
+
+    document.getElementById("continue-discard-button").addEventListener('click', function(){
+        $("#discard-popup").modal("hide");
+        location.reload();
+    });
+
+
+
+</script>
+{% endblock %}

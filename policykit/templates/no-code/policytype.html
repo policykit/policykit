@@ -1,0 +1,29 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="choose_policy_type">
+  <h4 class="heading-4">
+    Would you like to create a <b>Governance Policy</b> or a <b>If-Then Rule</b>?
+  </h4>
+  <div>
+    <button id="govern-policy">Governance Policy</button>
+    <button id="trigger-policy">If-Then Rule</button>
+  </div>
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const goCreateGovernPolicy = () => {
+        redirect('custom_action', {trigger: "false"})
+    }
+
+    const goCreateTriggerPolicy = () => {
+        redirect('custom_action', {trigger: "true"})
+    }
+
+    document.getElementById("govern-policy").addEventListener("click", goCreateGovernPolicy);
+    document.getElementById("trigger-policy").addEventListener("click", goCreateTriggerPolicy);
+</script>
+{% endblock %}

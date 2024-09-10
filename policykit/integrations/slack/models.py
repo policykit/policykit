@@ -41,6 +41,18 @@ class SlackCommunity(CommunityPlatform):
         logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
         proposal.save()
 
+    def initiate_advanced_vote(self, proposal, candidates, options, users=None, post_type="channel", title=None, channel=None, details=None):
+        args = SlackUtils.construct_select_vote_params(proposal, candidates, options, users, post_type, title, channel, details)
+
+        plugin = metagov.get_community(self.community.metagov_slug).get_plugin("slack", self.team_id)
+        # start process
+        process = plugin.start_process("advanced-vote", **args)
+        # save reference to process on the proposal, so we can link up the signals later
+        proposal.governance_process = process
+        proposal.vote_post_id = process.outcome["message_ts"]
+        logger.debug(f"Saving proposal with vote_post_id '{proposal.vote_post_id}'")
+        proposal.save()
+
     def _execute_platform_action(self, action, delete_policykit_post=False):
         obj = action
 
@@ -95,7 +107,10 @@ class SlackCommunity(CommunityPlatform):
         channel = post in channel
         ephemeral = ephemeral post(s) in channel that is only visible to one user
         """
-        usernames = [user.username for user in users or []]
+        if users and len(users) > 0 and isinstance(users[0], str):
+            usernames = users
+        else:
+            usernames = [user.username for user in users or []]
         if len(usernames) == 0 and post_type in ["mpim", "im", "ephemeral"]:
             raise Exception(f"user(s) required for post type '{post_type}'")
 
@@ -154,7 +169,7 @@ class SlackCommunity(CommunityPlatform):
         if not values.get("method_name"):
             raise Exception("must provide method_name in values to slack make_call")
         return self.metagov_plugin.method(**values)
-    
+
     def get_conversations(self, types=["channel"], types_arg="public_channel"):
         """
             acceptable types are "im", "group", "channel"
@@ -171,10 +186,10 @@ class SlackCommunity(CommunityPlatform):
                 return "channel"
             else:
                 return None
-        
+
         response = self.__make_generic_api_call("conversations.list", {"types": types_arg})
         return [channel for channel in response["channels"] if get_channel_type(channel) in types]
-    
+
     def get_real_users(self):
         """
         Get realname and id of all slack workspace members that are not bot and not slackbot
@@ -184,18 +199,77 @@ class SlackCommunity(CommunityPlatform):
         ret = [{'value': x['id'], 'name': x.get('real_name', '')} for x in members if x['is_bot'] is False and x['name'] != 'slackbot']
         return ret
 
+    def get_users_in_channel(self, channel=None):
+        from policyengine.models import CommunityUser
+        if channel:
+            response = self.__make_generic_api_call("conversations.members", {"channel": channel})
+            users = []
+            for member in response["members"]:
+                user = CommunityUser.objects.filter(community=self, username=member).first()
+                if user:
+                    users.append(user)
+            return users
+        else:
+            return CommunityUser.objects.filter(community=self)
+
+    def rename_conversation(self, channel, name):
+        admin_user_token = SlackUtils.get_admin_user_token(community=self)
+        self.metagov_plugin.method("conversations.rename", channel=channel, name=name, token=admin_user_token)
+
+    def kick_conversation(self, channel, user):
+        admin_user_token = SlackUtils.get_admin_user_token(community=self)
+        self.metagov_plugin.method("conversations.kick", channel=channel, user=user, token=admin_user_token)
+
+    def join_conversation(self, channel, users):
+        admin_user_token = SlackUtils.get_admin_user_token(community=self)
+        users = ",".join(users)
+        self.metagov_plugin.method("conversations.invite", channel=channel, users=users, token=admin_user_token)
 
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
     EXECUTE_PARAMETERS = ["text", "channel", "thread"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "text": "Text", "channel": None, "timestamp": None}
+    ACTION_NAME = "Post Message"
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who posted a message on Slack",
+            "is_list": False,
+            "type": "string",
+        },
+        {
+            "name": "text",
+            "label": "Message",
+            "entity": "Text",
+            "prompt": "the message that was posted on Slack",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where the message was posted",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "timestamp",
+            "label": "Time",
+            "entity": "Timestamp",
+            "prompt": "the timestamp of the posted message",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "text",
-            "label": "Message to be posted",
-            "entity": None,
-            "default_value": "",
+            "label": "Message",
+            "entity": "Text",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -203,9 +277,9 @@ class SlackPostMessage(GovernableAction):
         },
         {
             "name": "channel",
-            "label": "Channel to post message in",
+            "label": "Channel",
             "entity": "SlackChannel",
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -213,9 +287,9 @@ class SlackPostMessage(GovernableAction):
         },
         {
             "name": "thread",
-            "label": "Thread timestamp to post message in",
-            "entity": None,
-            "default_value": "",
+            "label": "Thread",
+            "entity": "Thread",
+            "default": "",
             "is_required": False,
             "prompt": "",
             "type": "string",
@@ -241,23 +315,59 @@ class SlackPostMessage(GovernableAction):
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
     def execution_codes(**kwargs):
-        message = kwargs.get("message", None)
+        text = kwargs.get("text", "")
         channel = kwargs.get("channel", None)
+        if not channel: # when the channel is an empty string
+            channel = None
         thread =  kwargs.get("thread", None)
-        return f"slack.post_message(text={message}, channel={channel}, thread_ts={thread})"
-
+        return f"slack.post_message(text={text}, channel={channel}, thread_ts={thread})"
 
 class SlackRenameConversation(GovernableAction):
     ACTION = "conversations.rename"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "name"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "name": "Text", "previous_name": "Text", "channel": None}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "name": "Text", "previous_name": "Text", "channel": None}
+    ACTION_NAME = "Rename Channel"
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who renamed a channel on Slack",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "text",
+            "label": "New Name",
+            "entity": "Text",
+            "prompt": "the new name of the channel",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "previous_name",
+            "label": "Old Name",
+            "entity": "Text",
+            "prompt": "the old name of the channel before being renamed",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel that was renamed",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel to rename",
+            "label": "Renaming channel",
             "entity": "SlackChannel",
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -265,9 +375,9 @@ class SlackRenameConversation(GovernableAction):
         },
         {
             "name": "name",
-            "label": "New name for the channel",
-            "entity": None,
-            "default_value": "",
+            "label": "New channel name",
+            "entity": "Text",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -289,22 +399,57 @@ class SlackRenameConversation(GovernableAction):
             "name": self.previous_name,
             "channel": self.channel,
             # Use the initiators access token if we have it (since they already successfully renamed)
-            "token": self.initiator.access_token or self.community.__get_admin_user_token(),
+            "token": self.initiator.access_token or SlackUtils.get_admin_user_token(community=self.community),
         }
         super()._revert(values=values, call=SLACK_METHOD_ACTION)
+
+    def execution_codes(**kwargs):
+        name = kwargs.get("name", None)
+        channel = kwargs.get("channel", None)
+        if name and channel:
+            return f"slack.rename_conversation(channel={channel}, name={name})"
+        else:
+            logger.error(f"When generating code for SlackRenameConversation: missing name or channel: {name}, {channel}")
 
 
 class SlackJoinConversation(GovernableAction):
     ACTION = "conversations.invite"
     AUTH = "admin_user"
     EXECUTE_PARAMETERS = ["channel", "users"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "users": None}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "users": None}
+    ACTION_NAME = "Invite User to Channel"
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Invitor",
+            "entity": "CommunityUser",
+            "prompt": "the user who invited new users to a channel on Slack",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where new users were invited to join",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "users",
+            "label": "Invited Users",
+            "entity": "CommunityUser",
+            "prompt": "the users who were invited to join the channel",
+            "is_list": True,
+            "type": "string"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel to join",
+            "label": "Channel",
             "entity": "SlackChannel",
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -312,13 +457,13 @@ class SlackJoinConversation(GovernableAction):
         },
         {
             "name": "users",
-            "label": "Users that will join the channel",
-            "entity": "SlackUser",
-            "default_value": "",
+            "label": "Invited user",
+            "entity": "CommunityUser",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
-            "is_list": True
+            "is_list": False
         }
     ]
 
@@ -334,24 +479,53 @@ class SlackJoinConversation(GovernableAction):
             super()._revert(values=values, call=SLACK_METHOD_ACTION)
         except Exception:
             # Whether or not bot can kick is based on workspace settings
-            logger.error(f"kick with bot token failed, attempting with admin token")
-            values["token"] = self.community.__get_admin_user_token()
+            logger.error("kick with bot token failed, attempting with admin token")
+            values["token"] = SlackUtils.get_admin_user_token(community=self.community)
             # This will fail with `cant_kick_self` if a user is trying to kick itself.
             # TODO: handle that by using a different token or `conversations.leave` if we have the user's token
             super()._revert(values=values, call=SLACK_METHOD_ACTION)
 
+    def execution_codes(**kwargs):
+        channel = kwargs.get("channel", None)
+        users = kwargs.get("users", None)
+        if channel and users:
+            return f"slack.join_conversation(channel={channel}, users={users})"
+        else:
+            logger.error(f"When generating code for SlackJoinConversation: missing channel or users: {channel}, {users}")
 
 class SlackPinMessage(GovernableAction):
+    """
+        Slack API use the timestamp of the message (in string format) to identify which message should be pinned in this channel
+    """
     ACTION = "pins.add"
     AUTH = "bot"
     EXECUTE_PARAMETERS = ["channel", "timestamp"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "timestamp": "Timestamp"}
+    ACTION_NAME = "Pin Message "
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who pinned a message on Slack",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where a message was pinned",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel that the message is pinned to",
+            "label": "Channel",
             "entity": "SlackChannel",
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -359,9 +533,9 @@ class SlackPinMessage(GovernableAction):
         },
         {
             "name": "timestamp",
-            "label": "Timestamp of the message to pin",
-            "entity": None,
-            "default_value": "",
+            "label": "Timestamp of the pinned message",
+            "entity": "Timestamp",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "timestamp",
@@ -381,15 +555,56 @@ class SlackPinMessage(GovernableAction):
 
 
 class SlackScheduleMessage(GovernableAction):
+    """
+        Slack API use the timestamp of the message (an integer) here,
+        in contrast to the timestamp (in string format) in SlackPinMessage.
+        For the simplicity, we treat all of them as integer by default
+        We will convert the timestamp to string when we generate codes for this SlackPinMessage action
+    """
     ACTION = "chat.scheduleMessage"
     EXECUTE_PARAMETERS = ["text", "channel", "post_at"]
-    FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
+    # FILTER_PARAMETERS = {"text": "Text", "channel": None, "post_at": "Timestamp"}
+    ACTION_NAME = "Schedule Message"
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who scheduled a message on Slack",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "text",
+            "label": "Message",
+            "entity": "Text",
+            "prompt": "the message that was scheduled",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where the message was scheduled",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "post_at",
+            "label": "Scheduled time",
+            "entity": "Timestamp",
+            "prompt": "the time when the message was scheduled",
+            "is_list": False,
+            "type": "timestamp"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "text",
-            "label": "Text of the message to send",
+            "label": "Message",
             "entity": None,
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -397,9 +612,9 @@ class SlackScheduleMessage(GovernableAction):
         },
         {
             "name": "channel",
-            "label": "Channel that the message is scheduled to sent to",
+            "label": "Channel",
             "entity": "SlackChannel",
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -407,9 +622,9 @@ class SlackScheduleMessage(GovernableAction):
         },
         {
             "name": "post_at",
-            "label": "Timestamp when the message is scheduled to send",
-            "entity": None,
-            "default_value": "",
+            "label": "Scheduled time",
+            "entity": "Timestamp",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "timestamp",
@@ -428,13 +643,40 @@ class SlackKickConversation(GovernableAction):
     ACTION = "conversations.kick"
     AUTH = "user"
     EXECUTE_PARAMETERS = ["user", "channel"]
-    FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "user": "CommunityUser"}
+    # FILTER_PARAMETERS = {"initiator": "CommunityUser", "channel": None, "user": "CommunityUser"}
+    ACTION_NAME = "Kick User from Channel"
+    FILTER_PARAMETERS = [
+        {
+            "name": "initiator",
+            "label": "Initiator",
+            "entity": "CommunityUser",
+            "prompt": "the user who kicked another user from a channel on Slack",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "channel",
+            "label": "Channel",
+            "entity": "SlackChannel",
+            "prompt": "the channel where a user was kicked from",
+            "is_list": False,
+            "type": "string"
+        },
+        {
+            "name": "user",
+            "label": "Kicked users",
+            "entity": "CommunityUser",
+            "prompt": "the user who was kicked from the channel",
+            "is_list": False,
+            "type": "string"
+        }
+    ]
     EXECUTE_VARIABLES = [
         {
             "name": "channel",
-            "label": "Channel to kick the user from",
+            "label": "Channel",
             "entity": "SlackChannel",
-            "default_value": "",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -442,9 +684,9 @@ class SlackKickConversation(GovernableAction):
         },
         {
             "name": "user",
-            "label": "User to kick from the channel",
-            "entity": "SlackUser",
-            "default_value": "",
+            "label": "Kicked users",
+            "entity": "CommunityUser",
+            "default": "",
             "is_required": True,
             "prompt": "",
             "type": "string",
@@ -457,3 +699,11 @@ class SlackKickConversation(GovernableAction):
 
     class Meta:
         permissions = (("can_execute_slackkickconversation", "Can execute slack kick conversation"),)
+
+    def execution_codes(**kwargs):
+        channel = kwargs.get("channel")
+        user = kwargs.get("user")
+        if channel and user:
+            return f"slack.kick_conversation(channel={channel}, user={user})"
+        else:
+            logger.error(f"When generating codes for SlackKickConversation, missing channel or user: {channel}, {user}")
