@@ -16,7 +16,7 @@ class OpencollectiveCommunity(CommunityPlatform):
 
     team_id = models.CharField("team_id", max_length=150, unique=True)
 
-    def post_message(self, text, expense_id):
+    def post_message(self, proposal, text, expense_id):
 
         mg_community = metagov.get_community(self.community.metagov_slug)
         return mg_community.perform_action(
