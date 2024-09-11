@@ -8,3 +8,6 @@ docs/source/generated_policy_examples.inc
 .idea
 src
 policykit/policykit_venv/
+postgres_data
+celerybeat.pid
+celerybeat-schedule

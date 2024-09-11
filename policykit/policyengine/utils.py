@@ -13,7 +13,7 @@ INTEGRATION_ADMIN_ROLE_NAME = "Integration Admin"
 
 # These functions get automatically passed "proposal" as the first argument,
 # without the policy author needing to pass it manually.
-SHIMMED_PROPOSAL_FUNCTIONS = ["initiate_vote", "post_message"]
+SHIMMED_PROPOSAL_FUNCTIONS = ["initiate_vote", "post_message", "initiate_advanced_vote"]
 
 def default_election_vote_message(policy):
     return "This action is governed by the following policy: " + policy.name + ". Decide between options below:\n"
@@ -178,7 +178,7 @@ def get_starterkits_info():
     """
     starterkits = []
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    dir_path = os.path.join(cur_path, f"../starterkits")
+    dir_path = os.path.join(cur_path, "../starterkits")
     for kit_file in sorted(os.listdir(dir_path)):
         kit_path = os.path.join(dir_path, kit_file)
         f = open(kit_path)
@@ -266,7 +266,6 @@ def initialize_starterkit_inner(community, kit_data, creator_username=None):
 
         r.save()
 
-
 def _add_permissions_to_role(role, permission_sets, content_types):
     from django.contrib.auth.models import Permission
 
@@ -280,6 +279,25 @@ def _add_permissions_to_role(role, permission_sets, content_types):
         execute_perms = Permission.objects.filter(content_type__in=content_types, name__startswith="Can execute")
         role.permissions.add(*execute_perms)
 
+def determine_action_kind(codename):
+    """ get the corresponding action kind: PLATFORM, CONSTITUTION"""
+    from policyengine.models import Policy
+    action_class = find_action_cls(codename)
+    app_label = action_class._meta.app_label
+    if app_label == "constitution":
+        return Policy.CONSTITUTION
+    else:
+        return Policy.PLATFORM
+
+def determine_policy_kind(is_trigger, app_name):
+    from policyengine.models import Policy
+    if is_trigger:
+        return Policy.TRIGGER
+    elif app_name == "constitution":
+        return Policy.CONSTITUTION
+    else:
+        return Policy.PLATFORM
+
 def dump_to_JSON(object, json_fields):
     for field in json_fields:
         object[field] = json.dumps(object[field])
@@ -289,12 +307,13 @@ def load_templates(kind):
         """
             Load procedute and module templates for a given platform
         """
-            
+
         cur_path = os.path.abspath(os.path.dirname(__file__))
+        logger.debug(f"Loading {kind} templates from {cur_path}")
         if kind == "Procedure":
             from policyengine.models import Procedure
             Procedure.objects.all().delete()
-            procedure_path = os.path.join(cur_path, f"../policytemplates/procedures.json")
+            procedure_path = os.path.join(cur_path, "../policytemplates/procedures.json")
             with open(procedure_path) as f:
                 procedure_data = json.loads(f.read())
                 for procedure in procedure_data:
@@ -303,7 +322,7 @@ def load_templates(kind):
         elif kind == "Transformer":
             from policyengine.models import Transformer
             Transformer.objects.all().delete()
-            checkmodule_path = os.path.join(cur_path, f"../policytemplates/modules.json")
+            checkmodule_path = os.path.join(cur_path, "../policytemplates/modules.json")
             with open(checkmodule_path) as f:
                 checkmodule_data = json.loads(f.read())
                 for checkmodule in checkmodule_data:
@@ -312,7 +331,7 @@ def load_templates(kind):
         elif kind == "FilterModule":
             from policyengine.models import FilterModule
             FilterModule.objects.all().delete()
-            filtermodule_path = os.path.join(cur_path, f"../policytemplates/filters.json")
+            filtermodule_path = os.path.join(cur_path, "../policytemplates/filters.json")
             with open(filtermodule_path) as f:
                 filtermodule_data = json.loads(f.read())
                 for filtermodule in filtermodule_data:
@@ -323,7 +342,7 @@ def load_entities(platform, get_slack_users=False):
     SUPPORTED_ENTITIES = [
         "CommunityUser", "Role", "Permission", "SlackChannel", "Expense", "SlackUser"
     ]
-    
+
     entities = {}
     # extract all readable names of CommunityUsers on this platform
     entities["CommunityUser"] = [{"name": user.readable_name, "value": user.username} for user in platform.get_users()]
@@ -335,7 +354,7 @@ def load_entities(platform, get_slack_users=False):
     entities["Permission"] = [{"name": permission.name, "value": permission.codename } for permission in get_all_permissions([platform.platform])]
 
     entities["Expense"] = [{"name": "Invoice", "value": "INVOICE"}, {"name": "Reimbursement", "value": "REIMBURSEMENT"}]
-    
+
     # entities["Expense"] = [
     #     {"name": "Invoice", "value": "Invoice"}, {"name": "Reimbursement", "value": "Reimbursement"}
     # ]
@@ -344,7 +363,7 @@ def load_entities(platform, get_slack_users=False):
     if platform.platform.upper() == "SLACK":
         entities["SlackChannel"] = [
                             {
-                                "name": channel.get("name", channel["id"]), 
+                                "name": channel.get("name", channel["id"]),
                                 "value": channel["id"]
                             } for channel in platform.get_conversations(types=["channel"], types_arg="private_channel")
                         ]
@@ -362,3 +381,27 @@ def get_filter_parameters(app_name, action_codename):
         return action_model.FILTER_PARAMETERS
     else:
         return []
+
+def check_code_variables(string):
+    """
+        Check whether the string contains any embedded variables or data, and format it accordingly
+        TODO: check whether the referenced variables or data are defined
+    """
+    import re
+    pattern = r'\{.*?\}'
+    return re.search(pattern, string) is not None
+
+def validate_fstrings(string):
+    import re
+    pattern = r'{\s*}'
+    # Regular expression pattern to match empty curly brackets
+    return re.sub(pattern, '', string)
+
+def determine_user(platform, username):
+    from policyengine.models import CommunityUser
+    if CommunityUser.objects.filter(username=username, community=platform).exists():
+        return CommunityUser.objects.get(username=username, community=platform)
+    elif CommunityUser.objects.filter(readable_name=username, community=platform).exists():
+        return CommunityUser.objects.get(readable_name=username, community=platform)
+    else:
+        return None

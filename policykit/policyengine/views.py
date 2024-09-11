@@ -307,7 +307,6 @@ def editor(request):
 
 @login_required
 def selectrole(request):
-    from policyengine.models import CommunityRole
 
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -322,7 +321,7 @@ def selectrole(request):
 
 @login_required
 def roleusers(request):
-    from policyengine.models import CommunityRole, CommunityUser
+    from policyengine.models import CommunityUser
 
     user = get_user(request)
     operation = request.GET.get('operation')
@@ -529,7 +528,7 @@ def policy_action_save(request):
                                      PolicykitChangePlatformPolicy,
                                      PolicykitChangeTriggerPolicy)
 
-    from policyengine.models import Policy, PolicyVariable
+    from policyengine.models import Policy
 
     data = json.loads(request.body)
     user = get_user(request)
@@ -824,5 +823,290 @@ def document_action_recover(request):
 
     return HttpResponse()
 
+def policy_from_request (request, key_name = 'policy'):
+    policy_id = request.GET.get(key_name)
 
+    from policyengine.models import Policy
 
+    # Get source policy object
+    try:
+        return Policy.objects.get(pk=policy_id)
+    except Policy.DoesNotExist:
+        raise Http404("Policy does not exist")
+
+def embed_initial(request):
+    # Get source policy based on id passed via the URL
+    policy_source = policy_from_request(request, key_name="source")
+
+    # Variables without a default value or value are set in the first step of the flow
+    initial_variables = policy_source.variables.filter(default_value__exact="", value__exact="")
+
+    # Variables are ordered with initial variables first
+    all_variables = policy_source.variables.order_by("default_value")
+
+    return render(request, "embed/initial.html", {
+        "policy": policy_source,
+        "initial_variables": initial_variables,
+        "all_variables": all_variables
+    })
+
+def embed_setup (request):
+    # TODO onboarding flow: starterkit, community, user, etc
+
+    # TODO revert this
+    from integrations.slack.models import SlackUser
+    user = SlackUser.objects.last()
+    community = user.community.community
+
+    # Make a copy of the policy
+    data = json.loads(request.body)
+    policy_source = policy_from_request(request)
+    new_policy = policy_source.copy_to_community(community=community, variable_data=data["variables"])
+
+    return JsonResponse({ "policy": new_policy.id })
+
+def embed_summary (request):
+    policy = policy_from_request(request)
+
+    variables = policy.variables.all()
+
+    return render(request, "embed/summary.html", {
+        "policy": policy,
+        "all_variables": variables
+    })
+
+def embed_update (request):
+    policy = policy_from_request(request)
+
+    # Update policy variables
+    data = json.loads(request.body)
+    policy.update_variables(data["variables"])
+
+    return JsonResponse({ "policy": policy.id })
+
+def embed_edit (request):
+    policy = policy_from_request(request)
+
+    variables = policy.variables.all()
+
+    return render(request, "embed/edit.html", {
+        "policy": policy,
+        "all_variables": variables
+    })
+
+def embed_success (request):
+    policy = policy_from_request(request)
+
+    return render(request, "embed/success.html", {
+        "policy": policy
+    })
+
+@login_required
+def main(request):
+    import policyengine.frontend_utils as FrontendUtils
+    reload = request.GET.get("reload", "false")
+    if reload == "true":
+        Utils.load_templates("Procedure")
+        Utils.load_templates("Transformer")
+        Utils.load_templates("FilterModule")
+
+    user = get_user(request)
+    # get base actions and filter kinds when creating custom actions
+    base_actions, action_filter_kinds = FrontendUtils.get_base_actions(user)
+    # for filter modules, only show the ones that are applicable to platforms base actions are available on
+    filter_modules = FrontendUtils.get_filter_modules(list(base_actions.keys()))
+
+    # get all platforms this community is on
+    platforms = FrontendUtils.get_all_platforms(user)
+    # get all procedures available to this community
+    procedures = FrontendUtils.get_procedures(platforms)
+
+    # get all transformers available to this community
+    transformers = FrontendUtils.get_transformers()
+
+    # get all execution modules available to this community
+    executions = FrontendUtils.extract_executable_actions(user)
+
+    # get all entities in the community
+    entities = FrontendUtils.load_entities(user.community)
+    trigger = request.GET.get("trigger", "false")
+    return render(request, "no-code/main.html", {
+        "trigger": trigger,
+        "base_actions": json.dumps(base_actions),
+        "action_filter_kinds": json.dumps(action_filter_kinds),
+        "filter_modules": json.dumps(filter_modules),
+        "platforms": json.dumps(platforms),
+        "procedures": json.dumps(procedures),
+        "transformers": json.dumps(transformers),
+        "executions": json.dumps(executions),
+        "entities": json.dumps(entities),
+    })
+
+def view_policy_json(request):
+    policy_id = request.GET.get("id")
+    from policyengine.models import PolicyTemplate
+    policy = PolicyTemplate.objects.get(pk=policy_id)
+    policy_json = policy.to_json()
+    return render(request, "no-code/view.html", {"policy_json": json.dumps(policy_json)})
+
+def generate_code(request):
+    body = json.loads(request.body)
+    stage = body.get("stage", None)
+    data = body.get("data", None)
+    import policyengine.generate_codes as CodesGenerator
+    codes = ""
+    if(stage == "action"):
+        custom_action_json = create_custom_action(data)
+        codes = CodesGenerator.generate_filter_codes(custom_action_json)
+    elif(stage == "execution_success"):
+        codes = CodesGenerator.generate_execution_codes(data)
+    elif(stage == "execution_fail"):
+        codes = CodesGenerator.generate_execution_codes(data)
+    return JsonResponse({"status": True, "code": codes})
+
+@login_required
+def create_policy(request):
+    data = json.loads(request.body)
+    from policyengine.models import PolicyTemplate
+
+    new_policytemplate = PolicyTemplate.objects.create(
+        template_kind=data.get("policykind"),
+        name=data.get("name", ""),
+        description=data.get("description", "")
+    )
+
+    custom_actions_JSON = create_custom_action(data.get("filters", {}))
+    new_policytemplate.add_custom_actions(custom_actions_JSON)
+
+    create_procedure(data.get("procedure", {}), new_policytemplate)
+    create_transformers(data.get("transformers", {}), new_policytemplate)
+    create_execution(data.get("executions", {}), new_policytemplate)
+
+    user = get_user(request)
+    new_policy = new_policytemplate.create_policy(user.community.community)
+    return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
+
+def create_custom_action(filters):
+    '''
+        convert the frontend data to the custom actions JSON object;
+        speciallly, replace all filter_pk with more details about each filter module
+
+        parameters:
+            filters: A Json object in the shape of
+                [
+                    {
+                        "action_type": "slackpostmessage",
+                        "filter": {
+                            "message": {
+                                "filter_pk": 1,
+                                "platform": "slack",
+                                "variables": {"word": "vote"}
+                            },
+                            "initiator": ...
+                        }
+                    },
+                    ...
+                ]
+    '''
+
+    from policyengine.models import FilterModule
+    custom_action_JSON = []
+    for filter in filters:
+        action_type = filter.get("action_type")
+        action_specs = filter.get("filter")
+        '''
+            check whether the value of each action_specs is an empty string
+            an example of a action_specs:
+                {
+                    "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
+                    "text":{}
+                }
+        '''
+        empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
+        filter_JSON = {}
+        filter_JSON["action_type"] = action_type
+
+        if not empty_filter:
+            filter_JSON["action_type"] = action_type
+            filter_JSON["filter"] = {}
+            for field, filter_info in action_specs.items():
+                if filter_info:
+                    filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
+                    # create a filter JSON object with the actual value specified for each variable
+                    filter_JSON["filter"][field] = filter_module.to_json(filter_info["variables"])
+                    # to faciliate the generation of codes for custom actions, we store the platform of each filter
+                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]
+        custom_action_JSON.append(filter_JSON)
+    return custom_action_JSON
+
+def create_procedure(procedure_data, policytemplate):
+    '''
+        Create the procedure field of a PolicyTemplate instance based on the procedure.
+        We also add variables defined in the selected procedure to the new policytemplate instance
+
+        Parameters:
+            procedure:
+                A Json object in the shape of
+                {
+                    "procedure_index": an integer, which represents the primary key of the selected procedure;
+                    "procedure_variables": a dict of variable names and their values
+                }
+    '''
+    from policyengine.models import Procedure
+    if procedure_data:
+        procedure_index = procedure_data.get("procedure_index", None)
+        procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
+        if procedure:
+            policytemplate.procedure = procedure
+            policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
+            policytemplate.add_descriptive_data(procedure.loads("data"))
+            policytemplate.save()
+    else:
+        policytemplate.procedure = None
+        policytemplate.save()
+
+def create_transformers(transformer_data, policytemplate):
+    """
+        Add extra check modules and extra actions to the policy template
+        parameters:
+            transformer_data: e.g.,
+                [
+
+                    {
+                        "module_index": 1,
+                        "module_data": {
+                            "duration": ...
+                        }
+                    }
+                ]
+    """
+    from policyengine.models import Transformer
+
+    for transformer in transformer_data or []:
+        module_index = transformer.get("module_index", None)
+        module_template = Transformer.objects.filter(pk=module_index).first()
+        if module_template:
+            policytemplate.add_transformer(module_template)
+            policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
+            policytemplate.add_descriptive_data(module_template.loads("data"))
+    policytemplate.save()
+
+def create_execution(execution_data, policytemplate):
+    """
+        Add executions to success, fail, or notify blocks of the policytemplate instance
+
+        parameters:
+            "execution_data":
+                {
+                    "success": [
+                        {
+                            "action": "slackpostmessage",
+                            "channel": ...,
+                            "text": ...
+                        }
+                    ],
+                    "fail": [{...}]
+                }
+    """
+    for stage, executions in execution_data.items():
+        policytemplate.add_executions(stage, executions)

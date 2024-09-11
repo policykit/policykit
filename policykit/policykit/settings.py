@@ -24,6 +24,8 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     SERVER_URL=(str, "http://127.0.0.1:8000"),
     LOG_FILE=(str, "debug.log"),
+    DATABASE_URL=(str, "sqlite:///" + os.path.join(BASE_DIR, 'db.sqlite3')),
+    CELERY_BROKER_URL=(str, "amqp://guest:guest@localhost:5672/"),
 
     # DEV SECRET! override by setting DJANGO_SECRET_KEY in .env file
     DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-')
@@ -157,14 +159,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'policykit',
-        'USER': 'policykituser',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': ''
-    }
+    'default': env.db('DATABASE_URL')
 }
 
 # Password validation
@@ -268,7 +263,7 @@ LOGGING = {
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 
-CELERY_BEAT_FREQUENCY = 60.0
+CELERY_BEAT_FREQUENCY = 20.0
 
 CELERY_BEAT_SCHEDULE = {
     # Evaluate pending policy evaluations every minute
