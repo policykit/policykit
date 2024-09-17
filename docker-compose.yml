@@ -3,7 +3,7 @@ services:
     build: ./policykit/
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./policykit:/app
+      - .:/app
     ports:
       - "8000:8000"
     env_file: ".env"
