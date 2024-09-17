@@ -3,7 +3,7 @@ services:
     build: ./policykit/
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./policykit:/app
+      - .:/app
     ports:
       - "8000:8000"
     env_file: ".env"
@@ -33,7 +33,7 @@ services:
     user: django-user
     command: "celery -A policykit worker --loglevel=info"
     volumes:
-      - ./policykit:/app
+      - .:/app
     env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
@@ -48,7 +48,7 @@ services:
     command: "celery -A policykit beat --loglevel=info"
     env_file: ".env"
     volumes:
-      - ./policykit:/app
+      - .:/app
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
