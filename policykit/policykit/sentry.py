@@ -11,14 +11,17 @@ SENTRY_SCRIPT = '<script id="sentry-script" src="https://browser.sentry-cdn.com/
 
 @register.simple_tag
 def sentry():
-    DSN = settings.SENTRY_DSN
-    if not DSN:
+    """
+    Insert script tag for Sentry and initialize it, if `SENTRY_CLIENT_SCRIPT` is set.
+    """
+    script = settings.SENTRY_CLIENT_SCRIPT
+    if not script:
         return ''
 
-    meta = trace_propagation_meta(sentry_sdk.Hub.current)
-    html = f"""{SENTRY_SCRIPT}
-  {meta}
-  <script>Sentry.init({{dsn: {DSN!r}, integrations: [Sentry.browserTracingIntegration()]}});</script>
+    html = f"""{trace_propagation_meta(sentry_sdk.Hub.current)}
+  <script src={script!r} crossorigin="anonymous"></script>
+  <script>Sentry.onLoad(function() {{Sentry.init({{integrations: [Sentry.browserTracingIntegration()]}});}});</script>
+  <script>notAReadFunction();</script>
 """
 
     return mark_safe(html)
