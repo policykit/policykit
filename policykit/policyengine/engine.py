@@ -62,10 +62,10 @@ class EvaluationContext:
         self.proposal = proposal
 
         # Can't use logger in filter step because proposal isn't saved yet
+        logger_context = {"community": self.action.community.community} 
         if proposal.pk:
-            self.logger = EvaluationLogAdapter(
-                db_logger, {"community": self.action.community.community, "proposal": proposal}
-            )
+            logger_context["proposal"] = proposal
+        self.logger = EvaluationLogAdapter(db_logger, logger_context)
 
         from policyengine.models import Community, CommunityPlatform
 
