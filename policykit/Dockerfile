@@ -1,6 +1,6 @@
 FROM python:3.6
 
-WORKDIR app
+WORKDIR /app/policykit
 
 COPY requirements.txt .
 
@@ -10,7 +10,7 @@ RUN adduser \
         --no-create-home \
         django-user
 
-COPY policykit app
+COPY policykit policykit
 
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 

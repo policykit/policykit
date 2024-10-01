@@ -11,6 +11,7 @@ backcall==0.1.0
 billiard==3.6.1.0
 celery==4.4.0
 certifi==2019.11.28
+cffi==1.15.1
 chardet==3.0.4
 click==7.1.2
 decorator==4.4.1
@@ -56,6 +57,7 @@ prompt-toolkit==3.0.2
 psycopg2-binary==2.8.6
 ptyprocess==0.6.0
 pycodestyle==2.7.0
+pycparser==2.21
 pycryptodome==3.10.1
 Pygments==2.5.2
 PyJWT==2.3.0
@@ -69,6 +71,7 @@ pytz==2019.3
 regex==2021.3.17
 requests==2.23.0
 RestrictedPython==5.2
+sentry-sdk==1.9.0
 six==1.15.0
 snowballstemmer==2.1.0
 Sphinx==3.5.4

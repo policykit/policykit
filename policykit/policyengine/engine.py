@@ -62,10 +62,10 @@ class EvaluationContext:
         self.proposal = proposal
 
         # Can't use logger in filter step because proposal isn't saved yet
+        logger_context = {"community": self.action.community.community} 
         if proposal.pk:
-            self.logger = EvaluationLogAdapter(
-                db_logger, {"community": self.action.community.community, "proposal": proposal}
-            )
+            logger_context["proposal"] = proposal
+        self.logger = EvaluationLogAdapter(db_logger, logger_context)
 
         from policyengine.models import Community, CommunityPlatform
 
@@ -337,8 +337,8 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     action = proposal.action
     policy = proposal.policy
 
-    logger.debug('*')
-    logger.debug(action.__dict__)
+    #logger.debug('*')
+    #logger.debug(action.__dict__)
 
     if not exec_code_block(policy.filter, context, Policy.FILTER):
         # logger.debug("does not pass filter")

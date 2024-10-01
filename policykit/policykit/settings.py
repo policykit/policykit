@@ -28,7 +28,9 @@ env = environ.Env(
     CELERY_BROKER_URL=(str, "amqp://guest:guest@localhost:5672/"),
 
     # DEV SECRET! override by setting DJANGO_SECRET_KEY in .env file
-    DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-')
+    DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'),
+    SENTRY_SERVER_DSN=(str, None),
+    SENTRY_CLIENT_SCRIPT=(str, None),
 )
 environ.Env.read_env()
 
@@ -36,7 +38,17 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SERVER_URL = env("SERVER_URL")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
+SENTRY_SERVER_DSN = env("SENTRY_SERVER_DSN")
+SENTRY_CLIENT_SCRIPT = env("SENTRY_CLIENT_SCRIPT")
 LOGIN_URL = "/login"
+
+if SENTRY_SERVER_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_SERVER_DSN,
+        traces_sample_rate=1.0,
+    )
 
 # Application definition
 INTEGRATIONS = [
@@ -150,7 +162,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
             "builtins": [
-                "pattern_library.loader_tags"
+                "pattern_library.loader_tags",
+                'policykit.sentry'
             ],
         },
     },
@@ -165,7 +178,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 DATABASES = {
     'default': env.db('DATABASE_URL')
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

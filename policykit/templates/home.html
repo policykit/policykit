@@ -1,103 +1,725 @@
-{% extends "./base.html" %}
 {% load static %}
-{% block styles %}
-		<link rel="stylesheet" href="{% static "policyengine/css/home.css" %}">
-		<link rel="stylesheet" href="{% static "bootstrap/css/semantic.min.css" %}">
-		<link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
-{% endblock %}
-{% block content %}
-     	<div class="pusher">
-			  <div class="masthead">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta
+      name="description"
+      content="An open-source tool for evolving governance in online communities"
+    />
+    <meta name="viewport" content="width=device-width" />
+    {% sentry %}
+    <link rel="apple-touch-icon" sizes="180x180" href={% static "policyengine/img/favicon_io/apple-touch-icon.png" %}>
+		<link rel="icon" type="image/png" sizes="32x32" href={% static "policyengine/img/favicon_io/favicon-32x32.png" %}>
+		<link rel="icon" type="image/png" sizes="16x16" href={% static "policyengine/img/favicon_io/favicon-16x16.png" %}>
+		<link rel="manifest" href={% static "policyengine/img/favicon_io/site.webmanifest" %}>
+		<link rel="icon" href={% static "policyengine/img/favicon_io/favicon.ico" %} type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+      rel="stylesheet"
+    />
+    <title>PolicyKit</title>
+    <link rel="stylesheet" href={% static "policyengine/css/landing.css" %} />
+  </head>
+  <body
+    class="text-grey-darkest"
+    style="overscroll-behavior-x: auto"
+    cz-shortcut-listen="true"
+  >
+    <header
+      class="flex justify-between items-center py-6 px-8 border-b border-background-focus"
+    >
+      <div class="flex gap-3 items-center">
+        <img
+          src={% static "policyengine/img/logo.png" %}
+          alt=""
+          width="18"
+          height="18"
+          loading="lazy"
+          decoding="async"
+        />
+        <p>PolicyKit</p>
+      </div>
+      <nav class="hidden lg:block">
+        <ul class="flex gap-10 justify-center text-primary-darkest">
+          <li>
+            <a href="#templates"
+              >Templates</a
+            >
+          </li>
+          <li>
+            <a href="#research"
+              >Research</a
+            >
+          </li>
+          <li>
+            <a href="https://policykit.readthedocs.io/" target="_blank">
+              Documentation
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/policykit/policykit" target="_blank">
+              Github
+            </a>
+          </li>
+          <li>
+            <a
+              href="/main"
+              class="button primary large"
+            >
+              Get started
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="space-y-24">
+      <section class="max-w-3xl mx-auto p-8 mt-16 space-y-8">
+        <img
+          src={% static "policyengine/img/logo.gif" %}
+          alt=""
+          class="mx-auto"
+          width="110"
+          height="82"
+          loading="lazy"
+          decoding="async"
+        />
+        <h1 class="text-center font-serif">
+          An open-source tool<br />for
+          <span class="text-primary-dark">evolving governance</span> in <br />
+          online communities
+        </h1>
+        <h2 class="p large text-grey-dark text-center">
+          Author custom community governance procedures with PolicyKit, an
+          open-source tool for democratising community governance online.
+        </h2>
+        <div
+          class="flex flex-col sm:flex-row items-center gap-6 justify-center"
+        >
+          <a
+            href="/main"
+            class="button large primary"
+          >
+            Get started
+          </a>
+          <a
+            href="https://github.com/policykit/policykit"
+            class="button large secondary"
+            target="_blank"
+          >
+            Contribute
+          </a>
+        </div>
+      </section>
+      <section class="max-w-7xl mx-auto px-8 lg:px-16">
+        <div
+          class="p-10 md:px-12 xl:px-[152px] xl:py-24 grid lg:grid-cols-2 gap-16 bg-background-focus rounded-t-[8px]"
+        >
+          <h3 class="font-serif">
+            What if there was a way to embrace more
+            <span class="text-primary-dark">democratic</span> governance models
+            tailored to community needs?
+          </h3>
+          <div>
+            <p class="mb-6 large">
+              PolicyKit empowers online community members to concisely author a
+              wide range of governance procedures and automatically carry out
+              those procedures on their home platforms. Inspired by Nobel
+              economist Elinor Ostrom, we've developed a framework that
+              describes governance as a series of actions and policies, written
+              in short programming scripts.
+            </p>
+            <p class="large">
+              We're now building out an editor, software libraries, and
+              connectors to community platforms for members to author actions
+              and policies.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="templates" class="bg-primary-lightest py-16">
+        <!-- <div class="max-w-6xl mx-auto gap-6"> -->
+        <!-- <div class="flex justify-between mb-12 px-8"> -->
+        <h3 class="font-serif sr-only">Templates</h3>
+        <!-- </div> -->
+        <div
+          class="flex gap-6 overflow-y-auto shrink-0 px-8 xl:px-16 2xl:pl-[calc((100vw-1280px)/2)]"
+        >
+          <div
+            class="bg-white p-6 w-72 md:w-96 shrink-0 border border-background-focus rounded-[8px]"
+          >
+            <div class="mx-auto my-6 w-fit">
+              <svg
+                width="143"
+                height="167"
+                viewBox="0 0 143 35"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7.64133 1.92388C2.1367 11.0566 -3.28832 20.9346 7.22838 28.1947C12.5608 31.8758 20.3417 33.0132 26.8193 32.0647C35.3664 30.8133 42.1957 26.8314 47.2361 19.9538C51.1015 14.6794 51.937 6.95935 44.8044 4.06379C38.742 1.60265 32.4167 7.6639 32.4167 13.5796C32.4167 20.6678 37.2819 26.7554 43.1527 30.198C56.8627 38.2374 73.1247 27.7162 82.1511 16.6756C87.0269 10.7117 85.9418 4.8346 78.71 1.60518C71.9566 -1.41062 67.2324 8.16258 68.1117 13.3974C70.4702 27.4397 88.9199 33.2342 101.008 29.3785C108.879 26.8677 114.064 22.2387 119.131 15.674C122.808 10.9098 123.389 3.68652 116.653 1.55965C108.921 -0.881797 104.278 10.3374 106.284 16.3114C110.77 29.6666 130.526 28.9687 141.429 28.9687"
+                  stroke="#CDD3FF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </div>
+            <h4 class="mb-4 font-serif">Ranked Voting for Community Users</h4>
+            <p class="text-grey-dark">
+              Each voter is asked to rank candidates, who are then assigned a
+              score based on their ranking.
+            </p>
+          </div>
+          <div
+            class="bg-white p-6 rounded-[8px] w-72 md:w-96 shrink-0 border border-background-focus"
+          >
+            <div class="mx-auto my-6 w-fit">
+              <svg
+                width="164"
+                height="167"
+                viewBox="0 0 164 35"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1.58496 5.15988C10.8353 12.5095 18.1417 15.6206 30.0091 15.0983C40.726 14.6265 52.3836 9.58556 62.351 5.9122C74.6917 1.36425 98.9159 -2.19023 106.087 12.287C111.655 23.5282 103.309 36.9704 90.1755 33.312C85.1123 31.9016 82.4958 25.2069 84.7386 20.5624C87.1609 15.5459 94.4023 13.1276 99.4104 11.9702C112.86 8.86205 121.821 21.3404 133.991 23.532C145.362 25.5795 153.805 20.5349 162.415 13.7125"
+                  stroke="#CDD3FF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </div>
+            <h4 class="mb-4 font-serif">Board Voting</h4>
+            <p class="text-grey-dark">
+              Community members of a specified role, i.e. a Board, can vote on a
+              proposal. The board can either approve or reject a proposal
+              through either a designated moderation channel or mpim with the
+              bot.
+            </p>
+          </div>
+          <div
+            class="bg-white p-6 rounded-[8px] w-72 md:w-96 shrink-0 border border-background-focus"
+          >
+            <div class="mx-auto my-6 w-fit">
+              <svg
+                class="h-40"
+                width="96"
+                height="167"
+                viewBox="0 0 96 88"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1.1665 52.7909C10.3841 78.4153 22.3834 88.6156 49.4016 85.4806C67.9047 83.3337 86.2282 72.3077 92.2087 53.4172C98.5953 33.2438 88.9713 9.26662 68.9547 2.69176C51.349 -3.09117 29.9299 6.87177 20.5345 22.4809C12.9828 35.0271 19.3695 53.007 33.1176 58.1766"
+                  stroke="#CDD3FF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </div>
+            <h4 class="mb-4 font-serif">Benevolent Dictator</h4>
+            <p class="text-grey-dark">
+              A benevolent dictator has the final say on all proposals. The
+              dictator can either approve or reject a proposal through a DM with
+              the bot.
+            </p>
+          </div>
+          <div
+            class="bg-white p-6 rounded-[8px] w-72 md:w-96 shrink-0 border border-background-focus"
+          >
+            <div class="mx-auto my-6 w-fit">
+              <svg
+                width="121"
+                height="167"
+                viewBox="0 0 121 56"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M50.0933 38.6924C69.0852 38.6048 94.2464 39.0353 110.803 27.9932C115.374 24.9445 122.429 20.0862 118.538 13.7745C112.692 4.29229 95.7872 2.89832 86.3186 2.0546C69.4172 0.548559 52.0682 2.32477 35.6931 6.87627C25.4852 9.71359 8.96195 14.7674 3.09385 24.8256C-12.2414 51.1109 100.902 54.1332 108.523 54.53"
+                  stroke="#CDD3FF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </div>
+            <h4 class="mb-4 font-serif">Majority Voting</h4>
+            <p class="text-grey-dark">
+              A simple yes-no vote procedure: if the percentage of yes votes is
+              greater than or equal to the minimum required, the proposal is
+              passed. If the percentage of no votes is greater than or equal to
+              the maximum allowed, the proposal is failed. Otherwise, the
+              proposal is still in progress.
+            </p>
+          </div>
+          <div
+            class="bg-white p-6 rounded-[8px] w-72 md:w-96 shrink-0 border border-background-focus"
+          >
+            <div class="mx-auto my-6 w-fit">
+              <svg
+                width="162"
+                height="167"
+                viewBox="0 0 162 52"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.5731 50.1442C54.0915 45.9455 69.55 42.6291 66.9544 37.2426C64.6104 32.3783 39.5632 27.0869 21.3112 22.5628C-1.28646 16.9614 -18.9478 5.96616 52.986 2.7114C108.841 0.184164 175.632 3.97212 157.454 9.93338C150.446 12.2316 117.182 13.4192 94.1042 12.4012"
+                  stroke="#CDD3FF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </div>
+            <h4 class="mb-4 font-serif">Create your own voting structure</h4>
+            <p class="text-grey-dark">
+              Customise and merge different voting templates in PolicyKit's
+              no-code editor.
+            </p>
+          </div>
+        </div>
+        <!-- </div> -->
+      </section>
+      <section id="research" class="max-w-6xl px-8 mx-auto">
+        <h3 class="font-serif text-center mb-16">Our research</h3>
+        <div
+          class="gap-16 grid sm:grid-cols-2 justify-center max-w-2xl mx-auto"
+        >
+          <div class="space-y-4">
+            <img
+							src={% static "policyengine/img/chi.jpg" %}
+              class="object-cover aspect-square w-full"
+              alt=""
+              width="350"
+              height="350"
+              loading="lazy"
+              decoding="async"
+            />
+            <p>
+              Pika: Empowering Non-Programmers to Author Executable Governance
+              Policies in Online Communities
+            </p>
+            <p class="small text-grey-dark">ACM’20</p>
+            <div class="flex gap-2">
+              <a
+                href="https://arxiv.org/abs/2310.04329"
+                target="_blank"
+                class="border-primary border px-4 py-1 rounded-[20px]"
+                >Paper</a
+              >
+              <a
+                href="https://vimeo.com/446531759"
+                target="_blank"
+                class="border-grey border px-4 py-1 rounded-[20px]"
+                >Video</a
+              >
+            </div>
+          </div>
+          <div class="space-y-4">
+            <img
+							src={% static "policyengine/img/uist.jpg" %}
+              class="object-cover aspect-square w-full"
+              alt=""
+              width="350"
+              height="350"
+              loading="lazy"
+              decoding="async"
+            />
+            <p>PolicyKit: Building Governance in Online Communities</p>
+            <p class="small text-grey-dark">ACM’20</p>
+            <div class="flex gap-2">
+              <a
+                href="https://dl.acm.org/doi/abs/10.1145/3379337.3415858"
+                target="_blank"
+                class="border-primary border px-4 py-1 rounded-[20px]"
+                >Paper</a
+              >
+              <a
+                href="https://vimeo.com/446531759"
+                target="_blank"
+                class="border-grey border px-4 py-1 rounded-[20px]"
+                >Video</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="max-w-7xl mx-auto px-8 lg:px-16">
+        <div
+          class="p-10 xl:px-[152px] xl:py-24 grid lg:grid-cols-2 gap-16 bg-grey-darkest text-white rounded-[8px]"
+        >
+          <img
+						src={% static "policyengine/img/json.png" %}
+            class="opacity-[95%]"
+            alt=""
+            width="408"
+            height="245"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="space-y-7">
+            <h3 class="font-serif h4">
+              Contribute to our open-source ecosystem
+            </h3>
+            <p class="mb-6 large">
+              All voting templates can be edited, downloaded, and merged in
+              JSON.
+            </p>
+            <a
+              class="button text-white bg-grey-dark hover:bg-grey large block w-fit"
+              href="https://github.com/policykit/policykit"
+              target="_blank"
+              >Our Github</a
+            >
+          </div>
+        </div>
+      </section>
+      <section class="max-w-7xl mx-auto px-8 lg:px-16 text-center">
+        <h3 class="font-serif mb-16">Meet the team</h3>
+        <p class="max-w-prose mx-auto mb-6">
+          Thank you to the following people who have contributed to this
+          open-source project: Amy Zhang, Leijie Wang, Julija Rukanskaitė, Jack
+          Murray-Brown, Nicholas Vincent, Val Elefante, Miriam Ashton, Or
+          Zubalsky, Shauna Gordon-McKeon, Michael Bernstein, Ricky Grannis-Vu,
+          Grant Hugh, Sreya Guha, Evan Yong-Seok Kim, Daniel Carr
+        </p>
+        <p class="max-w-prose mx-auto mb-8">
+          Thank you to our funders National Science Foundation (NSF), Mina
+          Foundation, OneProject, Facebook, Office of Naval Research (ONR),
+          Grant for the Web
+        </p>
+        <p class="max-w-prose mx-auto mb-3 text-grey-dark">
+          Collaborating institutions
+        </p>
+        <div class="flex flex-wrap justify-center items-center gap-6 mb-8">
+          <img
+						src={% static "policyengine/img/metagov-logo.png" %}
+            alt="Metagov"
+            width="130"
+            height="44"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+						src={% static "policyengine/img/open-collective-logo.svg" %}
+            alt="Open Collective"
+            width="180"
+            height="44"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+						src={% static "policyengine/img/standford-hci-group.png" %}
+            alt="Stanford HCI Group"
+            class="opacity-90"
+            width="44"
+            height="44"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <!-- <p class="max-w-prose mx-auto mb-6">
+        Metagov, Open Collective, Stanford HCI Group
+      </p> -->
+        <p class="max-w-prose mx-auto mb-3 text-grey-dark">Brought to you by</p>
+        <div class="flex justify-center items-center gap-6 mb-6 mr-3">
+          <img
+						src={% static "policyengine/img/social-futures-lab.jpg" %}
+            alt="Social Futures Lab"
+            width="140"
+            height="44"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+						src={% static "policyengine/img/uw.png" %}
+            alt="University of Washington"
+            width="44"
+            height="44"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <!-- <p class="max-w-prose mx-auto mb-6">
+        Social Futures, Lab University of Washington
+      </p> -->
+        <!-- <div class="flex flex-wrap max-w-3xl mx-auto justify-center mb-16 gap-9">
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+        <div>
+          <div
+            class="h-32 w-32 rounded-full bg-background-light mb-4 shadow-focus"
+          >
+          </div>
+          <p class="mb-1">Name Surname</p>
+          <p class="text-grey-dark">Affiliation</p>
+        </div>
+      </div> -->
+        <!-- <p class="mb-6">Supported by</p>
+      <Image
+        class="mx-auto mb-8"
+        src="/assets/supported-by.jpg"
+        width={342}
+        height={90}
+        alt="Social Future Lab and Metagov Logos"
+      /> -->
+      </section>
+      <section class="max-w-6xl px-8 lg:px-16 mx-auto">
+        <h3 class="text-center mb-12 font-serif">News</h3>
+        <div class="flex flex-col sm:flex-row justify-center gap-12">
+          <a
+            class="space-y-6 sm:w-[275px] block"
+            href="https://newpublic.substack.com/p/democratizing-power-in-online-communities"
+            target="_blank"
+          >
+            <img
+							src={% static "policyengine/img/featured-new-public.jpg" %}
+              class="rounded-[8px] object-cover aspect-[10/8] w-full"
+              alt=""
+              width="275"
+              height="200"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="space-y-4">
+              <p class="text-grey-dark">New_ Public, November 2023</p>
+              <h4 class="h4">
+                🙋🏽‍♀️🙋🏻🙋🏿‍♂️ Democratizing power in online communities
+              </h4>
+              <p class="text-grey-dark">
+                PolicyKit’s Amy Zhang on disrupting the dominant, top–down
+                governance model
+              </p>
+            </div>
+          </a>
+          <a
+            class="space-y-6 sm:w-[275px] block"
+            href="https://metagov.substack.com/p/metagov-news-project-updates-july-2023"
+            target="_blank"
+          >
+            <img
+							src={% static "policyengine/img/featured-metagov.jpg" %}
+              class="rounded-[8px] object-cover aspect-[10/8] w-full"
+              alt=""
+              width="275"
+              height="200"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="space-y-4">
+              <p class="text-grey-dark">Metagov News, July 2023</p>
+              <h4 class="h4">Metagov News - Project Updates (July 2023)</h4>
+              <p class="text-grey-dark">
+                DWeb, AI commons, collective governance pilots, membership
+                circles, and upcoming seminars
+              </p>
+            </div>
+          </a>
+        </div>
+      </section>
+      <!-- <section
+      class="grid lg:grid-cols-2 max-w-6xl px-8 lg:px-16 mx-auto gap-6 items-center"
+    >
+      <Image
+        src="/assets/governance-history-ui.jpg"
+        width={482}
+        height={482}
+        alt=""
+      />
+      <div>
+        <h3 class="mb-4 font-serif">Built by community researchers</h3>
+        <p class="mb-8 text-grey-dark">
+          PolicyKit is for community leaders, admins, and members who want to
+          build better online spaces. It works for both small groups and big
+          communities.
+        </p>
+        <a href="" class="button large primary"> Learn more </a>
+      </div>
+    </section> -->
+      <!-- <section class="grid lg:grid-cols-12 max-w-7xl px-8 lg:px-16 mx-auto gap-6">
+      <h3 class="lg:col-span-2 font-serif">FAQ</h3>
+      <div
+        class="bg-background-light rounded-[8px] p-8 space-y-4 w-full lg:col-span-10"
+      >
+        <details class="faq">
+          <summary class="cursor-pointer h4"> Who can use PolicyKit? </summary>
+          <p class="py-6 pl-8 large text-grey-dark">
+            PolicyKit is for community leaders, admins, and members who want to
+            build better online spaces. It works for both small groups and big
+            communities.
+          </p>
+        </details>
 
-			    <div class="container">
-			      <div class="ui secondary inverted right menu" id="nav">
-			      	<div class="toc item" style="margin-left: 50px;"></div>
-			      	<div class="right menu">
-			      		<!-- <a class="item active" href="https://github.com/amyxzhang/policykit">Github Repo</a> -->
-				    </div>
-			      </div>
-			    </div>
+        <details class="faq">
+          <summary class="cursor-pointer h4">
+            Can I change the Policies to fit my community?
+          </summary>
+          <p class="py-6 pl-8 large text-grey-dark">
+            PolicyKit is for community leaders, admins, and members who want to
+            build better online spaces. It works for both small groups and big
+            communities.
+          </p>
+        </details>
 
-			    <div class="ui stackable grid container" id="main">
-			    	<div class="row">
-			    		<div class="six wide column main-left">
-			    			<img src={% static "policyengine/img/logo.gif" %} style="width:200px;">
-			    			<BR><BR>
+        <details class="faq">
+          <summary class="cursor-pointer h4">
+            Who can make changes to policies?
+          </summary>
+          <p class="py-6 pl-8 large text-grey-dark">
+            PolicyKit is for community leaders, admins, and members who want to
+            build better online spaces. It works for both small groups and big
+            communities.
+          </p>
+        </details>
 
-			    			<h2 class="header">
-					        PolicyKit
-					      </h2>
-					      <h3>A tool for building and evolving governance in online communities.</h3>
-
-					      <BR><BR>
-
-					      					      <!-- Begin Mailchimp Signup Form -->
-
-						<div id="mc_embed_signup">
-						<form action="https://policykit.us17.list-manage.com/subscribe/post?u=4a1d75598cb903abe5974f90d&amp;id=07499cff74" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-						    <div id="mc_embed_signup_scroll">
-							<label for="mce-EMAIL">Get updates on our newsletter:</label>
-							<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
-						    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
-						    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_4a1d75598cb903abe5974f90d_07499cff74" tabindex="-1" value=""></div>
-						    <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
-						    </div>
-						</form>
-						</div>
-
-						<!--End mc_embed_signup-->
-
-
-
-					       </div>
-					    <div class="one wide column"></div>
-					    <div class="nine wide column main-right">
-
-		          <h5>
-					      	Consider the platforms you use for online communities today.
-					      	These platforms only offer governance options that are top-down, autocratic, and punitive,
-					      	involving admins and mods.
-					    But what if platforms could provide other types of governance, such as
-					      		more democratic ones?
-					      		What if communities could <i>build for themselves</i> the governance that suits
-					      		their needs and values?
-					      </h5>
-					      <h5>
-					      	PolicyKit empowers online community members to
-					      	<b>concisely author a wide range of governance procedures</b> and <b>automatically carry out those
-					      	procedures</b> on their home platforms.
-					      	Inspired by Nobel economist Elinor Ostrom, we've developed a framework that
-					      	describes governance as a series of <i>actions</i> and <i>policies</i>, written in short programming scripts.
-					      	We're now building out an editor, software libraries, and connectors
-					      	to platforms like Slack, Reddit, and Discord for
-					      	communities to author actions and policies.
-					      </h5>
-					      <h5>
-					      	See our ACM UIST 2020 <a href={% static "policyengine/pdf/policykit_uist2020.pdf" %}>paper</a> and <a href="https://vimeo.com/446531759">video</a> to learn more.
-
-					      	PolicyKit is still in development and will be released soon. Visit our <a href="https://github.com/amyxzhang/policykit">Github</a> to contribute.
-					      </h5>
-
-			    		 Meet the PolicyKit Team:<BR>
-			    			<a href="https://homes.cs.washington.edu/~axz"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/amy.png" %}"></a>
-			    			<a href="https://github.com/ekim6767"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/evan.png" %}"></a>
-			    		<a href="http://stanford.edu/~rickygv/index.html"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/ricky.png" %}"></a>
-			    		<a href="http://www.sreyaguha.net/"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/sreya.png" %}"></a>
-			    		<a href="https://hci.stanford.edu/msb/"><img class="rounded-circle" width="60" height="60" src="{% static "policyengine/img/michael.png" %}"></a><BR>
-			    			And thank you to our alumni:
-			    				<a href="https://github.com/tnarg999"><img class="rounded-circle" width="40" height="40" src="{% static "policyengine/img/grant.png" %}"></a>
-
-			    	</div>
-			    </div>
-
-			  </div>
-
-
-
-		     </div>
-
-
-
-
-
-{% endblock %}
+        <details class="faq">
+          <summary class="cursor-pointer h4">
+            Is my information safe with PolicyKit?
+          </summary>
+          <p class="py-6 pl-8 large text-grey-dark">
+            PolicyKit is for community leaders, admins, and members who want to
+            build better online spaces. It works for both small groups and big
+            communities.
+          </p>
+        </details>
+      </div>
+    </section> -->
+    </main>
+    <footer
+      class="border-t border-background-light py-8 lg:mx-16 mx-auto mt-24"
+    >
+      <div
+        class="grid md:grid-cols-4 lg:grid-cols-12 3xl:grid-cols-12 gap-8 lg:gap-16 px-8 lg:px-16"
+      >
+        <div
+          class="bg-background-light md:col-span-2 lg:col-span-5 rounded-[8px] p-8 pb-16"
+        >
+          <img
+						src={% static "policyengine/img/logo.png" %}
+            class="mb-16"
+            alt=""
+            width="18"
+            height="18"
+            loading="lazy"
+            decoding="async"
+          />
+          <p class="mb-6 font-serif h4">Stay updated</p>
+          <p class="mb-8 text-grey-dark">
+            Subscribe to our newsletter to stay updated
+          </p>
+          <form
+            action="https://policykit.us17.list-manage.com/subscribe/post?u=4a1d75598cb903abe5974f90d&amp;id=07499cff74"
+            method="post"
+            id="mc-embedded-subscribe-form"
+            name="mc-embedded-subscribe-form"
+            class="validate"
+            target="_blank"
+            novalidate=""
+          >
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px" aria-hidden="true">
+              <input
+                type="text"
+                name="b_4a1d75598cb903abe5974f90d_07499cff74"
+                tabindex="-1"
+                value=""
+              />
+            </div>
+            <input
+              class="bg-background px-4 py-2 rounded-[8px] focus:outline focus:outline-primary"
+              type="email"
+              placeholder="name@email.com"
+              required=""
+            />
+          </form>
+        </div>
+        <div class="lg:col-span-2">
+          <h5 class="mb-4">Contribute</h5>
+          <ul class="text-grey-dark">
+            <li>
+              <a href="https://policykit.readthedocs.io/"> Documentation </a>
+            </li>
+            <li><a href="https://github.com/policykit">GitHub</a></li>
+          </ul>
+        </div>
+        <div class="lg:col-span-3">
+          <h5 class="mb-4">Research partners</h5>
+          <ul class="text-grey-dark">
+            <li>
+              <a href="https://social.cs.washington.edu/" target="_blank"
+                >Social Future Lab</a
+              >
+            </li>
+            <li><a href="https://metagov.org/" target="_blank">Metagov</a></li>
+            <li>
+              <a href="https://opencollective.com/" target="_blank"
+                >Open Collective</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p class="small text-grey-dark md:text-right mt-8 md:mt-4 px-8">
+        Copyright © 2020-2024 PolicyKit.
+        <a
+          class="underline"
+          href="https://github.com/policykit/policykit/blob/master/LICENSE.md"
+          target="_blank"
+          >MIT License</a
+        >.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -1,34 +1,50 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <title>PolicyKit</title>
-        <!-- Styles -->
-        <link rel="stylesheet" href={% static "policyengine/css/output.css" %}>
-        {% block styles %}{% endblock %}
-        <!-- Custom Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap"
-              rel="stylesheet">
-        <!-- Favicon -->
-        <link rel="apple-touch-icon" sizes="180x180" href="{% static "policyengine/img/favicon_io/apple-touch-icon.png" %}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{% static "policyengine/img/favicon_io/favicon-32x32.png" %}">
-        <link rel="icon" type="image/png" sizes="16x16" href="{% static "policyengine/img/favicon_io/favicon-16x16.png" %}">
-        <link rel="manifest" href="{% static "policyengine/img/favicon_io/site.webmanifest" %}">
-        <link rel="icon" href="{% static "policyengine/img/favicon_io/favicon.ico" %}" type="image/x-icon">
-        <!-- JS -->
-        <script defer
-                src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    </head>
-    <body>
-        {% block content %}{% endblock %}
-        {% block scripts %}{% endblock %}
-    </body>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    {% sentry %}
+
+    <title>PolicyKit</title>
+    
+    <link rel="stylesheet" href={% static "policyengine/css/output.css" %}>
+
+    
+	{% block styles %}{% endblock %}
+	
+
+    <!-- Custom Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap"
+            rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static "policyengine/img/favicon_io/apple-touch-icon.png" %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static "policyengine/img/favicon_io/favicon-32x32.png" %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static "policyengine/img/favicon_io/favicon-16x16.png" %}">
+    <link rel="manifest" href="{% static "policyengine/img/favicon_io/site.webmanifest" %}">
+    <link rel="icon" href="{% static "policyengine/img/favicon_io/favicon.ico" %}" type="image/x-icon">
+    <!-- JS -->
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+
+<body>
+
+{% block content %}
+{% endblock %}
+	
+    
+	{% block scripts %}
+	{% endblock %}
+
+</body>
+
 </html>
