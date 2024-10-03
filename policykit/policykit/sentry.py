@@ -21,7 +21,6 @@ def sentry():
     html = f"""{trace_propagation_meta(sentry_sdk.Hub.current)}
   <script src={script!r} crossorigin="anonymous"></script>
   <script>Sentry.onLoad(function() {{Sentry.init({{integrations: [Sentry.browserTracingIntegration()]}});}});</script>
-  <script>notAReadFunction();</script>
 """
 
     return mark_safe(html)

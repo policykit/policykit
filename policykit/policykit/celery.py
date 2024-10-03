@@ -2,7 +2,9 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 
-from celery import Celery
+from celery import Celery, signals
+import sentry_sdk
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
@@ -28,6 +30,20 @@ app.conf.task_ignore_result = True
 @app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
+
+@signals.celeryd_init.connect
+def init_sentry(**kwargs):
+    from django.conf import settings
+    dsn = settings.SENTRY_SERVER_DSN
+    if dsn:
+        sentry_sdk.init(
+            dsn=dsn,
+            integrations=[CeleryIntegration(
+                # Add when we upgrade to recent version of sentry which includes
+                # https://github.com/getsentry/sentry-python/pull/1967
+                # monitor_beat_tasks=True
+            )],
+        )
 
 if __name__ == '__main__':
     app.start()
