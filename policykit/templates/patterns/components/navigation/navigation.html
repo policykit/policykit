@@ -1,0 +1,81 @@
+{% load static %}
+<nav x-data="{ showMobileMenu: false }"
+     @keydown.escape="showMobileMenu = false">
+  <!-- <div class="fixed"> -->
+  <div class="bg-grey-darkest flex justify-between w-full text-grey-light px-6 py-4 pr-8 lg:pr-6 items-center lg:hidden">
+    {% if user.is_authenticated %}
+      <button @click="showMobileMenu = true">
+        <svg width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 5H21" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M3 12H21" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M3 19H21" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    {% else %}
+      <div>{% include "patterns/icons/logo_nav.html" %}</div>
+    {% endif %}
+    <div>
+      <p class="text-small mb-1">{{ user.community.community_name }}</p>
+      <p class="text-small">{{ user.readable_name }}</p>
+    </div>
+  </div>
+  <div x-cloak
+       x-transition.opacity
+       x-show="showMobileMenu"
+       class="fixed inset-0 bg-background-popup/40 z-40"></div>
+  <div class="transition invisible lg:!visible bg-grey-darkest flex flex-col w-[241px] h-screen py-8 px-6 text-grey-light absolute lg:sticky left-0 top-0 z-50 lg:z-auto lg:translate-x-0"
+       :class="{ '!visible translate-x-0': showMobileMenu, '-translate-x-full' : !showMobileMenu }"
+       @mousedown.outside="showMobileMenu = false"
+       x-show.transition="true">
+    <div class="mb-10 mx-auto flex-none">{% include "patterns/icons/logo_nav.html" %}</div>
+    <div class="grow">
+      {% if user.is_authenticated %}
+        {% with request.resolver_match.url_name as url_name %}
+          <nav>
+            <ul class="space-y-2">
+              <li>
+                <a href="{% url 'dashboard' %}"
+                   class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'dashboard' %}bg-background-popup/40{% endif %}">
+                  <div class="h-4 w-4">{% include "patterns/icons/home.html" with class="stroke-grey-light" %}</div>
+                  Home
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'members' %}"
+                   class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'members' %}bg-background-popup/40{% endif %}">
+                  <div class="h-4 w-4">{% include "patterns/icons/group.html" with class="stroke-grey-light" %}</div>
+                  Members
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'settings' %}"
+                   class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'settings' %}bg-background-popup/40{% endif %}">
+                  <div class="h-4 w-4">{% include "patterns/icons/settings.html" with class="stroke-grey-light" %}</div>
+                  Settings
+                </a>
+              </li>
+            </ul>
+          </nav>
+        {% endwith %}
+      {% endif %}
+    </div>
+    <div class="text-center flex-none">
+      <div class="mx-auto w-fit mb-6">
+        <img class="mx-auto h-6" height="18px" width="18px" src="{% static "policyengine/icon/slack.svg" %}" alt="" />
+      </div>
+      <p class="text-grey-light font-medium mb-1">{{ user.community.community_name }}</p>
+      {% if user.is_authenticated %}<p class="text-grey">{{ user.readable_name }}</p>{% endif %}
+    </div>
+    {% if user.is_authenticated %}
+      <a href="{% url 'logout' %}"
+         class="bg-background-popup/40 rounded-full py-2 px-2 w-fit mx-auto mt-6 flex-none">
+        {% include "patterns/icons/logout.html" with class="stroke-grey-light" %}
+      </a>
+    {% endif %}
+  </div>
+  <!-- </div> -->
+</nav>

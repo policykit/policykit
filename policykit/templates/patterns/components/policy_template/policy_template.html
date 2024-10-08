@@ -1,0 +1,13 @@
+{% load static %}
+<label class="radio-group-item bg-white">
+  <div class="flex gap-6 items-start justify-between">
+    <div>
+      <input type="checkbox" class="sr-only peer" name={{ title }} value={{ id }} />
+      <span class="p large mb-4 block">{{ title }}</span>
+      <span class="p text-grey-dark block mb-6">{{ description }}</span>
+      <span class="peer-checked:hidden text-dark-primary p-2 rounded-[3.5px] inline-block">Select</span>
+      <span class="hidden text-dark-primary p-2 bg-success-light text-success-dark rounded-[3.5px] peer-checked:inline-block">Selected</span>
+    </div>
+    <img class="mx-auto h-6" height="18px" width="18px" src="{% static "policyengine/icon/slack.svg" %}" alt="" />
+  </div>
+</label>

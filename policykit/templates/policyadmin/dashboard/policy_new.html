@@ -1,0 +1,22 @@
+{% extends base %}
+{% block content %}
+  {% include "patterns/components/headers/modal.html" with title="New Policy" %}
+  <div class="p-8 lg:px-0 h-full overflow-auto w-full max-w-[782px] mx-auto">
+    <div class="lg:px-4">
+      <div class="flex mb-10">
+        <h3 class="grow">New Policy</h3>
+        <a href="" class="button secondary large hidden lg:block">Start from scratch</a>
+      </div>
+      <p class="mb-8">Create a policy from scratch or customise an existing template.</p>
+      <a href="/main/editor/?type=Platform&operation=Add"
+         class="button secondary large lg:hidden mb-8 inline-block">Start from scratch</a>
+    </div>
+    <div class="lg:p-4 lg:bg-background-light lg:">
+      <div class="space-y-4">
+        {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+        {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+        {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

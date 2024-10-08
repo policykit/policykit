@@ -1,35 +1,11 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <meta
-    name="description"
-    content="An open-source tool for evolving governance in online communities"
-  />
-  <meta name="viewport" content="width=device-width" />
-  {% sentry %}
-  <link rel="apple-touch-icon" sizes="180x180" href={% static "policyengine/img/favicon_io/apple-touch-icon.png" %}>
-<link rel="icon" type="image/png" sizes="32x32" href={% static "policyengine/img/favicon_io/favicon-32x32.png" %}>
-<link rel="icon" type="image/png" sizes="16x16" href={% static "policyengine/img/favicon_io/favicon-16x16.png" %}>
-<link rel="manifest" href={% static "policyengine/img/favicon_io/site.webmanifest" %}>
-<link rel="icon" href={% static "policyengine/img/favicon_io/favicon.ico" %} type="image/x-icon">
-  <link rel="preconnect" href="https://fonts.googleapis.com/" />
-  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Libre+Baskerville&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
-    rel="stylesheet"
-  />
-  <title>PolicyKit - Connect</title>
-  <link rel="stylesheet" href={% static "policyengine/css/landing.css" %} />
-</head>
-<body>
+{% extends "base.html" %}
+{% load i18n static %}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block content %}
   <main class="flex-col md:flex-row flex min-h-screen items-center justify-between">
     <div class="h-[25vh] w-full md:w-1/5 lg:w-2/5 md:h-full md:min-h-screen"
          style="background: linear-gradient(243deg, rgba(222, 195, 252, 0.57) 1.25%, rgba(196, 196, 252, 0.68) 45.36%, #99C4FC 97.5%)">

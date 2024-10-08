@@ -1,9 +1,8 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
-
 {% block styles %}
-<style>
-  h2, h3 {
+  <style>
+  /* h2, h3 {
     padding-bottom: 1em;
   }
   .title-row {
@@ -45,97 +44,143 @@
   .btn.btn-primary:hover {
     background-color: #3b4699;
     color: #ffffff;
-  }
-</style>
+  } */
+  </style>
 {% endblock %}
-
 {% block content %}
-
-<div class="form-row title-row">
-  <div class="col-sm-8">
-    <h2>Integrations</h2>
-  </div>
-  <div class="col-sm-4">
-    <div class="dropdown show">
-      <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Add Integration
-      </a>
-    
-      <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-        {% for name, data in disabled_integrations %}
-        <a class="dropdown-item" href="{% url 'add_integration' %}?integration={{name}}">
-          {%if data.readable_name %}{{data.readable_name}}{% else %}{{name}}{% endif %}
-        </a>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-</div>
-
-{% if request.GET.error %}
-  <div class="alert alert-danger" role="alert">
-    {% if request.GET.error == 'slack_wrong_community' %}
-      Failed to add Slack integration. PolicyKit is already installed to the selected workspace, but for a different PolicyKit community. Contact a PolicyKit administrator for support.
-    {% elif request.GET.error == 'slack_installer_is_not_admin' %}
-      Failed to add Slack integration. Only Slack workspace admins are permitted to install PolicyKit.
-    {% elif request.GET.error_description %}
-      {{ request.GET.error_description }}
-    {% else %}
-      Error: {{ request.GET.error }}
-    {% endif %}
-  </div>
-{% endif %}
-
-{% if request.GET.success %}
-  <div class="alert alert-success" role="alert">
-    Integration added!
-  </div>
-{% endif %}
-
-
-  {% for name, data in enabled_integrations %}
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">{%if data.readable_name %}{{data.readable_name}}{% else %}{{name}}{% endif %}</h5>
-      {% if data.config and not data.hide_config %}
-      <p class="card-text">
-        <ul class="configList">
-          {% for k,v in data.config %}
-          <li class="configListItem">{{v}}</li>
+  {% include "patterns/components/headers/page.html" with title="Settings" %}
+  <div class="mb-52 px-6 lg:px-8"
+       x-data="{currentTab: new URLSearchParams(location.search).get('tab') || 'About'}"
+       x-init="$watch('currentTab', (value) => { const url = new URL(window.location.href); url.searchParams.set('tab', value); history.pushState(null, document.title, url.toString()); })">
+    <ul @keydown.right.prevent.stop="$focus.wrap().next()"
+        @keydown.home.prevent.stop="$focus.first()"
+        @keydown.page-up.prevent.stop="$focus.first()"
+        @keydown.left.prevent.stop="$focus.wrap().prev()"
+        @keydown.end.prevent.stop="$focus.last()"
+        @keydown.page-down.prevent.stop="$focus.last()"
+        role="tablist"
+        class="border-b border-background-focus flex items-stretch -mb-0">
+      <li>
+        <button class="px-6 py-2 border-b mb-[-1px]"
+                :class="currentTab == $el.innerHTML ? 'text-primary border-primary-dark' : 'border-grey-light'"
+                @click="currentTab=$el.innerHTML"
+                :tabindex="currentTab == $el.innerHTML ? 0 : -1"
+                @mousedown.prevent
+                @focus="currentTab=$el.innerHTML"
+                :aria-selected="currentTab == $el.innerHTML"
+                type="button"
+                role="tab">About</button>
+      </li>
+      <li>
+        <button class="px-6 py-2 border-b mb-[-1px]"
+                :class="currentTab == $el.innerHTML ? 'text-primary border-primary-dark' : 'border-grey-light'"
+                @click="currentTab=$el.innerHTML"
+                :tabindex="currentTab == $el.innerHTML ? 0 : -1"
+                @mousedown.prevent
+                @focus="currentTab=$el.innerHTML"
+                :aria-selected="currentTab == $el.innerHTML"
+                type="button"
+                role="tab">Integrations</button>
+      </li>
+      <li>
+        <a class="block px-6 py-2 border-b mb-[-1px] border-grey-light"
+           role="tab"
+           aria-selected="false"
+           href="/main/logs">Logs</a>
+      </li>
+    </ul>
+    <div class="lg:px-4 mt-8">
+      <section x-cloak x-show="currentTab == 'About'">
+        <h2 class="h4 mb-8">About</h2>
+        <div class="lg:grid lg:grid-cols-10">
+          <div class="lg:col-span-6">
+            <p class="large mb-6">
+              PolicyKit empowers online community members to concisely author a wide range of governance procedures and automatically carry out those procedures on their home platforms.
+            </p>
+            <p>
+              Inspired by Nobel economist Elinor Ostrom, we've developed a framework that describes governance as a series of actions and policies, written in short programming scripts. We're now building out an editor, software libraries, and connectors to platforms like Slack, Reddit, and Discord for communities to author actions and policies.
+            </p>
+          </div>
+          <div class="lg:col-span-2 lg:col-start-8 space-y-8">
+            <div>
+              <h3 class="p font-medium mb-2">Join our community</h3>
+              <div class="flex flex-col gap-1">
+                <a href="https://discord.gg/p9PzjM4vcv"
+                   target="_blank"
+                   class="p small text-primary-dark block">Discord</a>
+                <a href="https://policykit.us17.list-manage.com/subscribe/post?u=4a1d75598cb903abe5974f90d&id=07499cff74"
+                   target="_blank"
+                   class="p small text-primary-dark">Mailing List</a>
+              </div>
+            </div>
+            <div>
+              <h3 class="p font-medium mb-2">Contribute</h3>
+              <div class="flex flex-col gap-1">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdB_BE_iKX8TaPXHkBK_t0I8lSnux_IEtV0w4Fy7zqDqFyVtQ/viewform?usp=sf_link"
+                   target="_blank"
+                   class="p small text-primary-dark">Feedback Form</a>
+                <a href="https://github.com/amyxzhang/policykit"
+                   target="_blank"
+                   class="p small text-primary-dark">GitHub</a>
+                <a href="https://policykit.readthedocs.io/en/latest/index.html"
+                   target="_blank"
+                   class="p small text-primary-dark">Documentation</a>
+              </div>
+            </div>
+            <div>
+              <h3 class="p font-medium mb-2">Our research</h3>
+              <div class="flex flex-col gap-1">
+                <a href="https://social.cs.washington.edu/index.html"
+                   target="_blank"
+                   class="p small text-primary-dark">Social Futures Lab</a>
+                <a href="https://arxiv.org/abs/2008.04236"
+                   target="_blank"
+                   class="p small text-primary-dark">Our ACM UIST 2020 Paper</a>
+                <a href="https://vimeo.com/446531759"
+                   target="_blank"
+                   class="p small text-primary-dark">Our ACM UIST 2020 Video</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section x-cloak x-show="currentTab == 'Integrations'">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="h4">Integrations</h2>
+          {% include "patterns/components/modal/integration-modal.html" %}
+        </div>
+        {% if request.GET.error %}
+          <div class="alert alert-danger" role="alert">
+            {% if request.GET.error == 'slack_wrong_community' %}
+              Failed to add Slack integration. PolicyKit is already installed to the selected workspace, but for a different PolicyKit community. Contact a PolicyKit administrator for support.
+            {% elif request.GET.error == 'slack_installer_is_not_admin' %}
+              Failed to add Slack integration. Only Slack workspace admins are permitted to install PolicyKit.
+            {% elif request.GET.error_description %}
+              {{ request.GET.error_description }}
+            {% else %}
+              Error: {{ request.GET.error }}
+            {% endif %}
+          </div>
+        {% endif %}
+        {% if request.GET.success %}<div class="alert alert-success" role="alert">Integration added!</div>{% endif %}
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for name, data in enabled_integrations %}
+            <!-- <a class="group" href="/{{ name }}/disable_integration?id={{ data.id }}"> -->
+            {% include "patterns/components/integration_widget/integration_widget.html" with name=name data=data enabled=True home_base_integration=True %}
+            <!-- </a> -->
+          {% empty %}
+            <h3>No integrations enabled.</h3>
           {% endfor %}
-        </ul>
-      </p>
-      {% endif %}
-      
-      {% if data.webhook_url %}
-      <p class="card-text">
-          {% if data.webhook_instructions %}
-            <p><b>Webhook Instructions: </b>{{data.webhook_instructions}}</p>
-          {% endif %}
-          <code id="{{name}}-webhook">{{data.webhook_url}}</code>
-          <a class="copyToClipboard" onClick="copyToClipboard('{{name}}-webhook')" href="javascript:void(0);">Copy Webhook URL</a>
-      </p>
-      {% endif %}
-
-      <a href="/{{name}}/disable_integration?id={{data.id}}" class="btn btn-sm btn-outline-danger">Delete Integration</a>
-      {% if name == "opencollective" %}
-      <a href="/{{name}}/disable_integration_without_deletion?id={{data.id}}" class="btn btn-sm btn-outline-danger">Disable Integration</a>
-      
-      {% endif %}
+        </div>
+      </section>
+      <section x-cloak x-show="currentTab == 'Logs'">
+        <h2 class="h4 mb-8">Logs</h2>
+      </section>
     </div>
   </div>
-  {% empty %}
-  <div class="card">
-    <div class="card-body">
-      No integrations enabled.
-    </div>
-  </div>
-  {% endfor %}
-
 {% endblock %}
-
 {% block scripts %}
-<script>
+  <script>
   function copyToClipboard(id) {
     var copyText = document.getElementById(id)
     // https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
@@ -146,6 +191,8 @@
     document.execCommand("Copy");
     textArea.remove();
   }
-</script>
-<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+  // force full page reload when navigating back and forward when page url has been changed using history API
+  window.addEventListener("popstate", function (event) { window.location.reload(); });
+  </script>
+  <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
 {% endblock %}

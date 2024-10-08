@@ -1,0 +1,7 @@
+{% load static %}
+<div class="lg:sticky lg:top-0 lg:z-30 flex gap-2 bg-white py-6 px-6 lg:py-8 lg:px-8 border-background-focus {% if border %}border-b{% endif %}">
+  <h1 class="inline h3">{{ title }}</h1>
+  {% if icon %}
+    <img class="h-5" height="20px" width="15px" src="{% static "policyengine/icon/logo.svg" %}" alt="" />
+  {% endif %}
+</div>

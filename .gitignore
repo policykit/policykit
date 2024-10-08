@@ -8,6 +8,9 @@ docs/source/generated_policy_examples.inc
 .idea
 src
 policykit/policykit_venv/
+policykit_venv
+policykit/node_modules
+policykit/package-lock.json
 postgres_data
 celerybeat.pid
 celerybeat-schedule

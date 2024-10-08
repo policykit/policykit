@@ -1,278 +1,133 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
 {% load dashboard_extras %}
-{% block styles %}
-<style>
-  .body {
-    display: flex;
-    flex-direction: row;
-  }
-
-  .leftCol {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 60%;
-  }
-
-  .rightCol {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 40%;
-  }
-
-  .searchBar {
-    display: flex;
-    width: 90%;
-    margin-top: 1vh;
-    margin-right: auto;
-    border-radius: 30px;
-    border-width: 0px;
-    padding: 10px 30px;
-    background-color: #ffffff;
-    outline: none;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.5em;
-  }
-
-  .proposeButton {
-    width: 80%;
-    padding: 2% 20%;
-    margin: 0.5em 0 1em auto;
-    border-width: 0px;
-    border-radius: 20px;
-    background-color: #4451b2;
-    color: #ffffff;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.5em;
-    outline: none;
-  }
-
-  .proposeButton:hover {
-    background-color: #3b4699;
-  }
-
-  .sidebarPanel {
-    width: 80%;
-    min-height: 20em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    margin-left: auto;
-    border-radius: 20px;
-    background-color: #ffffff;
-  }
-
-  .sidebarPanelTitle {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.5em;
-    padding: 1em 0 0.5em 2vw;
-  }
-
-  .sidebarPanelContent {
-    width: 92%;
-    margin-left: 4%;
-    height: 13.5em;
-    overflow: auto;
-  }
-
-  .sidebarPicture {
-    height: 1.5em;
-    border-radius: 50%;
-  }
-
-  .sidebarItem {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1em;
-    color: #333333;
-    cursor: pointer;
-  }
-
-  .actionPanel {
-    width: 90%;
-    margin-right: auto;
-    max-height: 40em;
-    margin-top: 0.5em;
-    background-color: #ffffff;
-    border-radius: 20px;
-    margin-bottom: 2em;
-  }
-
-  .actionPanelTitle {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.5em;
-    padding: 1em 0 0.5em 2vw;
-  }
-
-  .actionPanelContent {
-    width: 92%;
-    margin-left: 4%;
-    max-height: 33.5em;
-    overflow: auto;
-  }
-
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
-  }
-
-  .modal-content {
-    background-color: #ffffff;
-    margin: 5vh auto;
-    padding: 2%;
-    border: 1px solid #888;
-    width: 70vw;
-  }
-
-  .editor {
-    width: 90%;
-  }
-
-  .name {
-    width: 90%;
-  }
-
-  .description {
-    resize: none;
-    width: 90%;
-  }
-
-  .bundled {
-    width: auto;
-  }
-
-  .code {
-    resize: none;
-    font-family: monospace;
-  }
-
-  .btn {
-    padding: 0.5em 2vw;
-    margin-right: 0.4vw;
-    border: 1px solid #4451b2;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.2em;
-    background-color: #ffffff;
-    color: #4451b2;
-  }
-
-  .btn:hover {
-    background-color: #4451b2;
-    color: #ffffff;
-  }
-
-  .form-row {
-    margin-bottom: 2vh;
-  }
-
-  .control-label {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.2em;
-    color: #373456;
-  }
-
-  .close {
-    margin-left: auto;
-    margin-bottom: 2vh;
-    width: 10%;
-    font-size: 32px;
-    font-weight: bold;
-  }
-
-  .close:hover {
-    cursor: pointer;
-  }
-
-  input[readonly] {
-    background-color: #ffffff !important;
-  }
-
-  textarea[readonly] {
-    background-color: #ffffff !important;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="body">
-  <div class="leftCol">
-    <!--<input type="text" class="searchBar" placeholder="Search">-->
-    <div class="actionPanel">
-      <h3 class="actionPanelTitle">Pending actions</h3>
-      <div class="actionPanelContent">
-        <table class="table table-hover">
-          <tbody>
+  <div class="lg:sticky lg:top-0 lg:z-30 flex gap-2 bg-white py-6 px-6 lg:py-8 lg:px-8 border-b border-background-focus justify-between">
+    <h1 class="inline h3">Home</h1>
+    {% include "patterns/components/modal/share-modal.html" %}
+  </div>
+  <div class="lg:grid lg:grid-cols-10 relative">
+    <div class="lg:p-6 lg:col-span-7">
+      <section x-show="welcome"
+               class="px-8 py-7 bg-primary-lightest rounded-lg"
+               x-data="{welcome: true}">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="h4 ">Welcome to {{ user.community.community_name }}'s governance dashboard</h2>
+          <button @click="welcome = false">{% include "patterns/icons/cancel.html" with class="stroke-primary-dark" %}</button>
+        </div>
+        <p class="mb-6">
+          If you have any questions or need help getting started, don't hesitate to reach out. We're here to help you build and evolve a thriving online community.
+        </p>
+        <div class="flex justify-end ">
+          <a href="#" class="button primary medium">Share your feedback</a>
+        </div>
+      </section>
+      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="h5">Community guidelines</h3>
+          <button href="#"
+                  class="button primary medium"
+                  x-data
+                  @click="$dispatch('toggle_modal')"
+                  hx-get="/main/documenteditor?operation=Add"
+                  hx-push-url="true"
+                  hx-target="#modal-content"
+                  hx-swap="innerHTML transition:true">Add</button>
+        </div>
+        <div class="flex flex-col items-center justify-center gap-4 h-32">
+          {% include "patterns/icons/guidelines_empty.html" %}
+          <p class="text-grey-dark">No Guidelines yet</p>
+        </div>
+      </section>
+      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="h5">Policies</h3>
+          <button href="#"
+                  class="button primary medium"
+                  x-data
+                  @click="$dispatch('toggle_modal')"
+                  hx-get="/main/policynew"
+                  hx-push-url="true"
+                  hx-target="#modal-content"
+                  hx-swap="innerHTML transition:true">Add</button>
+        </div>
+        <div class="flex flex-col items-center justify-center gap-4 h-32">
+          {% include "patterns/icons/policies_empty.html" %}
+          <p class="text-grey-dark">No Policies yet</p>
+        </div>
+      </section>
+      <div class="h-80"></div>
+    </div>
+    <section class="px-5 py-4 lg:col-span-3 border-l border-background-focus">
+      <div class="lg:sticky lg:top-32">
+        <h3 class="h5">Governance history</h3>
+        {% for action in action_log %}
+          <tr class="sidebarItem">
+            <td>{{ action.actor|capfirst }} {{ action.verb|default_if_none:"" }}</td>
+            <td>{{ action.timesince }} ago</td>
+          </tr>
+        {% empty %}
+          <div class="flex flex-col items-center justify-center h-60 gap-4">
+            {% include "patterns/icons/activity_log_empty.html" %}
+            <p class="text-grey-dark">No actions yet</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+  <div class="body">
+    <div class="leftCol">
+      <!--<input type="text" class="searchBar" placeholder="Search">-->
+      <div class="actionPanel">
+        <h3 class="actionPanelTitle">Pending actions</h3>
+        <div class="actionPanelContent">
+          <table class="table table-hover">
+            <tbody>
               {% for proposal in pending_proposals %}
                 <tr class="sidebarItem">
-                  <td>{{proposal.action|capfirst}} governed by '{{proposal.policy}}'</td>
-                  <td>{{proposal.proposal_time|timesince}} ago</td>
+                  <td>{{ proposal.action|capfirst }} governed by '{{ proposal.policy }}'</td>
+                  <td>{{ proposal.proposal_time|timesince }} ago</td>
                 </tr>
               {% empty %}
                 <tr class="sidebarItem">
                   <td>No pending actions.</td>
                 </tr>
               {% endfor %}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-
-    <div class="actionPanel">
-      <h3 class="actionPanelTitle">Recent actions</h3>
-      <div class="actionPanelContent">
-        <table class="table table-hover">
-          <tbody>
-            {% for action in action_log %}
-              <tr class="sidebarItem">
-                <td>{{action.actor|capfirst}} {{action.verb|default_if_none:""}}</td>
-                <td>{{action.timesince}} ago</td>
-              </tr>
-            {% empty %}
-              <tr class="sidebarItem">
-                <td>No recent actions.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="rightCol">
-    <input type="button" class="proposeButton" value="Propose action" id="proposeAction">
-
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Users</h4>
-      <div class="sidebarPanelContent">
+    <div class="rightCol">
+      <input type="button"
+             class="proposeButton"
+             value="Propose action"
+             id="proposeAction">
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Users</h4>
+        <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
               {% for u in users %}
                 <tr class="sidebarItem">
                   <td>
                     {% if u.avatar %}
-                      <img class="sidebarPicture" src="{{u.avatar}}">
+                      <img class="sidebarPicture" src="{{ u.avatar }}">
                     {% else %}
-                      <img class="sidebarPicture" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
+                      <img class="sidebarPicture"
+                           src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp">
                     {% endif %}
                   </td>
-                  <td>{{u.readable_name|default_if_none:u.username}}</td>
+                  <td>{{ u.readable_name|default_if_none:u.username }}</td>
                   <td>
                     {% with roles=u|user_roles %}
-                    {% for r in roles %}
-                      {% if forloop.last %}
-                        {{r}}
-                      {% else %}
-                        {{r}},
-                      {% endif %}
-                    {% endfor %}
+                      {% for r in roles %}
+                        {% if forloop.last %}
+                          {{ r }}
+                        {% else %}
+                          {{ r }},
+                        {% endif %}
+                      {% endfor %}
                     {% endwith %}
                   </td>
                 </tr>
@@ -280,34 +135,30 @@
             </tbody>
           </table>
         </div>
-    </div>
-
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Roles</h4>
-      <div class="sidebarPanelContent">
+      </div>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Roles</h4>
+        <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
               {% for role in roles %}
                 <tr class="sidebarItem">
-                  <td>{{role.role_name}}</td>
-                  <td>
-                    {{role|role_users_string}}
-                  </td>
+                  <td>{{ role.role_name }}</td>
+                  <td>{{ role|role_users_string }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-    </div>
-
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Community documents</h4>
-      <div class="sidebarPanelContent">
+      </div>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Community documents</h4>
+        <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
               {% for doc in docs %}
-                <tr id="document_{{doc.pk}}" class="sidebarItem">
-                  <td>{{doc.name}}</td>
+                <tr id="document_{{ doc.pk }}" class="sidebarItem">
+                  <td>{{ doc.name }}</td>
                 </tr>
               {% empty %}
                 <tr class="sidebarItem">
@@ -317,164 +168,148 @@
             </tbody>
           </table>
         </div>
-    </div>
-
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Platform policies</h4>
-      <div class="sidebarPanelContent">
+      </div>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Platform policies</h4>
+        <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
               {% for policy in platform_policies %}
-                <tr id="platform_{{policy.pk}}" class="sidebarItem">
-                  <td>{{policy.name}}</td>
+                <tr id="platform_{{ policy.pk }}" class="sidebarItem">
+                  <td>{{ policy.name }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-    </div>
-
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Constitution policies</h4>
-      <div class="sidebarPanelContent">
+      </div>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Constitution policies</h4>
+        <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
               {% for policy in constitution_policies %}
-                <tr id="constitution_{{policy.pk}}" class="sidebarItem">
-                  <td>{{policy.name}}</td>
+                <tr id="constitution_{{ policy.pk }}" class="sidebarItem">
+                  <td>{{ policy.name }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-    </div>
-
-    <div class="sidebarPanel">
-      <h4 class="sidebarPanelTitle">Trigger policies</h4>
-      <div class="sidebarPanelContent">
+      </div>
+      <div class="sidebarPanel">
+        <h4 class="sidebarPanelTitle">Trigger policies</h4>
+        <div class="sidebarPanelContent">
           <table class="table table-hover">
             <tbody>
               {% for policy in trigger_policies %}
-                <tr id="trigger_{{policy.pk}}" class="sidebarItem">
-                  <td>{{policy.name}}</td>
+                <tr id="trigger_{{ policy.pk }}" class="sidebarItem">
+                  <td>{{ policy.name }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-    </div>
-  </div>
-</div>
-
-<div id="modal_code" class="modal">
-  <div class="modal-content">
-    <div class="close">&times;</div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="doc_name">Name:</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control name" id="doc_name" readonly>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="doc_text">Text:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control description" id="doc_text" readonly rows="10"></textarea>
       </div>
     </div>
   </div>
-</div>
-
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <div class="close">&times;</div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="name">Name:</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control name" id="name" readonly>
+  <div id="modal_code" class="modal">
+    <div class="modal-content">
+      <div class="close">&times;</div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="doc_name">Name:</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control name" id="doc_name" readonly>
+        </div>
       </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="description">Description:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control description" id="description" readonly rows="6"></textarea>
-      </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="action_types">Action Types:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control description" id="action_types" readonly rows="1"></textarea>
-      </div>
-    </div>
-    <div class="form-row" id="variables-field-container">
-      <label class="control-label col-sm-2" for="variables">Variables:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control description" id="variables" readonly rows="1"></textarea>
-      </div>
-    </div>
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="filter">Filter:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control code" id="filter" readonly rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="initialize">Initialize:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control code" id="initialize" readonly rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="notify">Notify:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control code" id="notify" readonly rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="check">Check:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control code" id="check" readonly rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="pass">Pass:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control code" id="pass" readonly rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label class="control-label col-sm-2" for="fail">Fail:</label>
-      <div class="col-sm-10">
-        <textarea class="form-control code" id="fail" readonly rows="3"></textarea>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <button type="button" class="btn" id="download">Download policy</button>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <button type="button" class="btn" id="editpolicy">Edit policy</button>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="doc_text">Text:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="doc_text" readonly rows="10"></textarea>
+        </div>
       </div>
     </div>
   </div>
-</div>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="close">&times;</div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="name">Name:</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control name" id="name" readonly>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="description">Description:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="description" readonly rows="6"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="action_types">Action Types:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="action_types" readonly rows="1"></textarea>
+        </div>
+      </div>
+      <div class="form-row" id="variables-field-container">
+        <label class="control-label col-sm-2" for="variables">Variables:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control description" id="variables" readonly rows="1"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="filter">Filter:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="filter" readonly rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="initialize">Initialize:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="initialize" readonly rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="notify">Notify:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="notify" readonly rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="check">Check:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="check" readonly rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="pass">Pass:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="pass" readonly rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="control-label col-sm-2" for="fail">Fail:</label>
+        <div class="col-sm-10">
+          <textarea class="form-control code" id="fail" readonly rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          <button type="button" class="btn" id="download">Download policy</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          <button type="button" class="btn" id="editpolicy">Edit policy</button>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
-
 {% block scripts %}
-<script>
+  <script>
   document.getElementById("download").addEventListener("click", download);
   document.getElementById("editpolicy").addEventListener("click", editPolicy);
   document.getElementById("proposeAction").addEventListener("click", navActions);
@@ -629,5 +464,5 @@
     const data = $("#modal").data()
     window.location.href = `/main/editor?type=${data.kind}&operation=Change&policy=${data.pk}`;
   }
-</script>
+  </script>
 {% endblock %}

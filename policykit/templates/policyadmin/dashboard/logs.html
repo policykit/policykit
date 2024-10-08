@@ -1,7 +1,38 @@
 {% extends "./dashboard_base.html" %}
 {% load render_table from django_tables2 %}
-
 {% block content %}
-<br />
-{% render_table table %}
+  {% include "patterns/components/headers/page.html" with title="Settings" %}
+  <div class="mb-52 px-6 lg:px-8">
+    <ul @keydown.right.prevent.stop="$focus.wrap().next()"
+        @keydown.home.prevent.stop="$focus.first()"
+        @keydown.page-up.prevent.stop="$focus.first()"
+        @keydown.left.prevent.stop="$focus.wrap().prev()"
+        @keydown.end.prevent.stop="$focus.last()"
+        @keydown.page-down.prevent.stop="$focus.last()"
+        role="tablist"
+        class="border-b border-background-focus flex items-stretch -mb-0">
+      <li>
+        <a class="block px-6 py-2 border-b mb-[-1px] border-grey-light"
+           role="tab"
+           aria-selected="false"
+           href="/main/settings/?tab=About">About</a>
+      </li>
+      <li>
+        <a class="block px-6 py-2 border-b mb-[-1px] border-grey-light"
+           role="tab"
+           aria-selected="false"
+           href="/main/settings/?tab=Integrations">Integrations</a>
+      </li>
+      <li>
+        <span class="block px-6 py-2 border-b mb-[-1px] text-primary border-primary-dark"
+              role="tab"
+              aria-selected="true"
+              href="/main/logs">Logs</span>
+      </li>
+    </ul>
+    <section class="lg:px-4 mt-8">
+      <h2 class="h4 mb-8">Logs</h2>
+      {% render_table table %}
+    </section>
+  </div>
 {% endblock %}

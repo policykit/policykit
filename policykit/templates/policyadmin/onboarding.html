@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block content %}
+  {% include "patterns/components/headers/policy_header.html" with title="Getting started" icon=True %}
+  <main>
+    <form x-data="{ formStep: 0 }">
+      <!-- step 0 - info -->
+      <div x-cloak
+           x-show="formStep === 0"
+           class="max-w-[580px] my-24 lg:mt-40 mb-16 container">
+        <h1 class="h3 mb-6">Welcome to PolicyKit, {{ community_name }}</h1>
+        <p class="large mb-8 lg:mb-16">Here are the steps to get you started</p>
+        <ol class="mb-8 lg:mb-16 space-y-4">
+          <li class="flex gap-8 p-4 rounded-lg border border-background-focus">
+            <div class="bg-background-focus text-grey-dark rounded-full h-8 w-8 flex items-center  justify-center">
+              <span class="p large">1</span>
+            </div>
+            <div>
+              <h2 class="p large text-grey-darkest mb-4">Define your community Roles</h2>
+              <p class="text-grey-dark">Define who can participate in community voting.</p>
+            </div>
+          </li>
+          <li class="flex gap-8 p-4 rounded-lg border border-background-focus">
+            <div class="bg-background-focus text-grey-dark rounded-full h-8 w-8 flex items-center  justify-center">
+              <span class="p large">2</span>
+            </div>
+            <div>
+              <h2 class="p large text-grey-darkest mb-4">Choose Policies to start with</h2>
+              <p class="text-grey-dark">Select a policy that will govern specific actions within your home platform.</p>
+            </div>
+          </li>
+          <li class="flex gap-8 p-4 rounded-lg border border-background-focus">
+            <div class="bg-background-focus text-grey-dark rounded-full h-8 w-8 flex items-center  justify-center">
+              <span class="p large">3</span>
+            </div>
+            <div>
+              <h2 class="p large text-grey-darkest mb-4">Choose a governance model</h2>
+              <p class="text-grey-dark">Select the governance model that aligns with your community's values.</p>
+            </div>
+          </li>
+          <li class="flex gap-8 p-4 rounded-lg border border-background-focus">
+            <div class="bg-background-focus text-grey-dark rounded-full h-8 w-8 flex items-center  justify-center">
+              <span class="p large">4</span>
+            </div>
+            <div>
+              <h2 class="p large text-grey-darkest mb-4">Add community guidelines</h2>
+              <p class="text-grey-dark">Add any written rules you want to be available on PolicyKit.</p>
+            </div>
+          </li>
+        </ol>
+        <button class="button large primary block w-fit mx-auto"
+                type="button"
+                @click="formStep += 1">Get started</button>
+      </div>
+      <!-- step 1-4 - form -->
+      <div x-cloak x-show="formStep > 0" class="mb-32 lg:mb-0">
+        <div class="container lg:grid lg:grid-cols-12 lg:gap-y-8 lg:gap-x-6 my-24 lg:mt-40 mb-16">
+          <div class="w-32 h-3 lg:w-auto mx-auto lg:mx-0 col-span-2 col-start-2 flex  justify-evenly items-center gap-8 mb-8 lg:mb-0">
+            <div class="rounded-full transition-all origin-center shrink-0"
+                 :class="formStep === 1 ? 'bg-primary h-3 w-3':'bg-primary-light h-2 w-2'"></div>
+            <div class="rounded-full transition-all origin-center shrink-0"
+                 :class="formStep === 2 ? 'bg-primary h-3 w-3':'bg-primary-light h-2 w-2'"></div>
+            <div class="rounded-full transition-all origin-center shrink-0"
+                 :class="formStep === 3 ? 'bg-primary h-3 w-3':'bg-primary-light h-2 w-2'"></div>
+            <div class="rounded-full transition-all origin-center shrink-0"
+                 :class="formStep === 4 ? 'bg-primary h-3 w-3':'bg-primary-light h-2 w-2'"></div>
+          </div>
+          <!-- step 1 - base members -->
+          <fieldset x-cloak
+                    x-show="formStep === 1"
+                    class="lg:grid lg:grid-cols-11 lg:gap-y-8 lg:gap-x-6 col-span-10 col-start-2 ">
+            <div class="lg:col-span-4 block mb-8 lg:mb-0">
+              <legend>
+                <h1 class="h3 mb-6">Select who can participate in PolicyKit voting</h1>
+                <p class="large mb-4">People selected will be granted Base Member Role with voting permissions.</p>
+                <p class="large ">Roles and permissions can be changed any time to adapt to the evolving needs of your community.</p>
+              </legend>
+            </div>
+            <div class="lg:col-span-6 lg:col-start-7">
+              <div class="border border-background-focus rounded-lg">
+                <div class="bg-background-focus rounded-t-lg px-4 py-2 mb-4">
+                  <label class="flex items-center gap-4 px-4 py-2 cursor-pointer checkbox-label"
+                         @click="handleSelectAll">
+                    <input type="checkbox" id="select-all-checkbox" />
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="none"
+                         xmlns="http://www.w3.org/2000/svg"
+                         aria-hidden="true"
+                         focusable="false"
+                         class="checkbox">
+                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                      <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                    </svg>
+                    <span>Select all</span>
+                  </label>
+                </div>
+              <div class="grid grid-cols-1 divide-y divide-background-light px-4 mb-4">
+              {% for member in community_members %}<!-- members go in here -->
+                <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+                  <input type="checkbox" class="member-checkbox" />
+                  <svg width="16"
+                       height="16"
+                       viewBox="0 0 16 16"
+                       fill="none"
+                       xmlns="http://www.w3.org/2000/svg"
+                       aria-hidden="true"
+                       focusable="false"
+                       class="checkbox">
+                    <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                    <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                  </svg>
+                  <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.avatar }} alt="" />
+                  <span>{{member.readable_name }}</span>
+                </label>
+              {% endfor %}
+              
+                
+                  <!-- <label class="flex items-center gap-4 cursor-pointer px-4 py-2 checkbox-label">
+                    <input type="checkbox" class="member-checkbox" />
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="none"
+                         xmlns="http://www.w3.org/2000/svg"
+                         aria-hidden="true"
+                         focusable="false"
+                         class="checkbox">
+                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" class="checkbox-bg" />
+                      <path d="M3.19995 8.00016L6.39995 10.6668L12.8 5.3335" stroke="white" />
+                    </svg>
+                    <img class="rounded-full h-8 w-8 bg-primary-light" height="32" width="32" src={{ member.profile.image_72 }} alt="" />
+                    <span>Name of member</span>
+                  </label> -->
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <!-- step 2 - policies  -->
+          <fieldset x-cloak
+                    x-show="formStep === 2"
+                    class="lg:grid lg:grid-cols-11 lg:gap-y-8 lg:gap-x-6 col-span-10 col-start-2">
+            <div class="lg:col-span-4 block mb-8 lg:mb-0">
+              <legend>
+                <h1 class="h3 mb-6">Select Policies to start with</h1>
+                <p class="large">You can edit, delete, or add more Policies later.</p>
+              </legend>
+            </div>
+            <div class="lg:col-span-6 lg:col-start-7">
+              <fieldset class="radio-group">
+                {% for policy in platform_policies %}
+                  {% include "patterns/components/policy_template/policy_template.html" with title=policy.name description=policy.description %}
+                {% endfor %}
+                <!-- {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %}
+                {% include "patterns/components/policy_template/policy_template.html" with title="Template title" description="Description" %} -->
+              </fieldset>
+            </div>
+          </fieldset>
+          <!-- step 3 - governance model -->
+          <fieldset x-cloak
+                    x-show="formStep === 3"
+                    class="lg:grid lg:grid-cols-11 lg:gap-y-8 lg:gap-x-6 col-span-10 col-start-2">
+            <div class="lg:col-span-4 block mb-8 lg:mb-0">
+              <legend>
+                <h1 class="h3 mb-6">How do you want to make changes to Policies?</h1>
+                <p class="large mb-6">
+                  Select a governance model that aligns with your community's values and decision-making processes.
+                </p>
+                <p class="large">Your governance model will be reflected by your Constitutional Policy. You can change it anytime.</p>
+              </legend>
+            </div>
+            <div class="lg:col-span-6 lg:col-start-7">
+              <fieldset class="radio-group">
+                {% for policy in constitution_policies %}
+                  {% include "patterns/components/input/radio.html" with name="policy" title=policy.name description=policy.description %}
+                {% endfor %}
+                <!-- {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %}
+                {% include "patterns/components/input/radio.html" with name="policy" title="Testing" description="All Base members have full permission to make changes to policies." %} -->
+              </fieldset>
+            </div>
+          </fieldset>
+          <!-- step 4 - guidelines -->
+          <fieldset x-cloak
+                    x-show="formStep === 4"
+                    class="lg:grid lg:grid-cols-11 lg:gap-y-8 lg:gap-x-6 col-span-10 col-start-2">
+            <div class="lg:col-span-4 block mb-8 lg:mb-0">
+              <legend>
+                <h1 class="h3 mb-6">Any guidelines to include?</h1>
+                <p class="large">
+                  Take a moment to consider any important text-based guidelines you want to
+                  list alongside Policies.
+                </p>
+              </legend>
+            </div>
+            <div class="lg:col-span-6 lg:col-start-7">
+              <input type="text" id="name" hidden required value="Founding document" />
+              <textarea id="text"
+                        required
+                        rows="12"
+                        placeholder="What do your founding documents have to say about Metagovernance or how decisions in are made in your community?"></textarea>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <div x-cloak
+           x-show="formStep > 0"
+           class="fixed bg-white bottom-0 left-0 w-screen py-6 lg:pt-[25.5px] lg:pb-[17.5px] border-t-2 border-background-focus">
+        <div class="container flex justify-between items-center">
+          <button x-cloak
+                  x-show="formStep > 1"
+                  @click="formStep -= 1"
+                  type="button"
+                  class="button large primary block w-fit">Back</button>
+          <button x-cloak
+                  x-show="formStep < 4 && formStep > 0"
+                  @click="formStep += 1"
+                  type="button"
+                  class="button large primary block w-fit ml-auto mr-0">Continue</button>
+          <button x-cloak
+                  x-show="formStep === 4"
+                  type="submit"
+                  class="button large primary block w-fit ml-auto mr-0">Submit</button>
+        </div>
+      </div>
+    </form>
+  </main>
+  <script>
+    const memberCheckboxes = document.getElementsByClassName("member-checkbox")
+    const selectAllCheckbox = document.getElementById("select-all-checkbox")
+    function handleSelectAll() {
+      for (let checkbox of memberCheckboxes) {
+        checkbox.checked = selectAllCheckbox.checked
+      };
+    }
+  </script>
+{% endblock %}
