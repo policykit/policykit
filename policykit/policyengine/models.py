@@ -864,7 +864,7 @@ class PolicyVariable(models.Model):
     is_required = models.BooleanField(default=False)
     """Whether a value for this policy variable is required."""
 
-    value = models.CharField(blank=True, max_length=100)
+    value = models.CharField(blank=True, max_length=1000)
     """The value assigned to the variable."""
 
     prompt = models.CharField(blank=True, max_length=255)
