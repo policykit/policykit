@@ -1,4 +1,4 @@
-alabaster==0.7.12
+sphinx-immaterial==0.11.2
 amqp==2.5.2
 appdirs==1.4.4
 appnope==0.1.0
