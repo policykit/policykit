@@ -865,7 +865,7 @@ class PolicyVariable(models.Model):
     label = models.CharField(blank=False, max_length=100)
     """The label used in public facing forms."""
 
-    default_value = models.CharField(blank=False, max_length=100)
+    default_value = models.CharField(blank=False, max_length=1000)
     """The default value assigned to the variable."""
 
     is_required = models.BooleanField(default=False)
