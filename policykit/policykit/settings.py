@@ -31,6 +31,7 @@ env = environ.Env(
     DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'),
     SENTRY_SERVER_DSN=(str, None),
     SENTRY_CLIENT_SCRIPT=(str, None),
+    DJANGO_DEBUG_TOOLBAR=(bool, False),
 )
 environ.Env.read_env()
 
@@ -41,6 +42,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 SENTRY_SERVER_DSN = env("SENTRY_SERVER_DSN")
 SENTRY_CLIENT_SCRIPT = env("SENTRY_CLIENT_SCRIPT")
 LOGIN_URL = "/login"
+DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
@@ -325,3 +327,11 @@ PATTERN_LIBRARY = {
     # BASE_TEMPLATE_NAMES is a "page" and will be rendered as-is without being wrapped.
     "BASE_TEMPLATE_NAMES": ["patterns/base_page.html"],
 }
+
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    }

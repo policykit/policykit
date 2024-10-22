@@ -13,6 +13,7 @@ services:
       - DJANGO_SECRET_KEY=supersecretkey
       - SERVER_URL=https://${DOMAIN}
       - ALLOWED_HOSTS=web,.localhost,127.0.0.1,[::1],${DOMAIN}
+      - DJANGO_DEBUG_TOOLBAR=True
     depends_on:
       - rabbit
       - postgres
