@@ -178,7 +178,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db('DATABASE_URL')
+    'default': {**env.db('DATABASE_URL'), 'ATOMIC_REQUESTS': True}
 }
 
 # Password validation
