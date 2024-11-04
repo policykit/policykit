@@ -96,6 +96,7 @@ You can also deploy PolicyKit using Docker.
 
 	docker compose run --rm web python3 manage.py makemigrations
         docker compose run --rm web python3 manage.py migrate
+        docker compose run --rm web python3 manage.py
 
 5. Finally, to run PolicyKit and all its services run:
 
@@ -106,6 +107,15 @@ You can also deploy PolicyKit using Docker.
 6. Then you can access PolicyKit in the browser at ``http://localhost:8000`` or ``https://<DOMAIN>``.
 
 7. To be able to sign in, follow the steps below for setting up Slack. Use ``https://<DOMAIN>`` as your web address.
+
+8. If you would like to try running with all the assets bunlded, as it is in production, run:
+
+.. code-block:: shell
+
+        docker compose run --rm frontend yarn build
+        env DJANGO_VITE_DEV_MODE=False docker compose run --rm web python manage.py collectstatic
+        env DJANGO_VITE_DEV_MODE=False docker compose up web
+
 
 
 Running PolicyKit on a Server

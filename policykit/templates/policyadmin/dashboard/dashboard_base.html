@@ -1,4 +1,5 @@
 {% load static %}
+{% load django_vite %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -34,8 +35,10 @@
             src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+    {% vite_hmr_client %}
   </head>
   <body>
+    {% vite_react_refresh %}
     <div class="lg:flex">
       {% include "patterns/components/navigation/navigation.html" %}
       <main class="grow relative">

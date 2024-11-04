@@ -32,6 +32,7 @@ env = environ.Env(
     SENTRY_SERVER_DSN=(str, None),
     SENTRY_CLIENT_SCRIPT=(str, None),
     DJANGO_DEBUG_TOOLBAR=(bool, False),
+    DJANGO_VITE_DEV_MODE=(bool, False),
 )
 environ.Env.read_env()
 
@@ -43,6 +44,7 @@ SENTRY_SERVER_DSN = env("SENTRY_SERVER_DSN")
 SENTRY_CLIENT_SCRIPT = env("SENTRY_CLIENT_SCRIPT")
 LOGIN_URL = "/login"
 DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
+DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
@@ -91,7 +93,8 @@ INSTALLED_APPS = [
     'policyengine',
     'constitution',
     'policybuilding_apps',
-    'pattern_library'
+    'pattern_library',
+    "django_vite"
 ] + INTEGRATIONS
 
 SITE_ID = 1
@@ -335,3 +338,18 @@ if DEBUG_TOOLBAR:
     DEBUG_TOOLBAR_CONFIG = {
         'SHOW_TOOLBAR_CALLBACK': lambda request: True,
     }
+
+# server_url_parsed = urllib.parse.urlparse(SERVER_URL)
+
+DJANGO_VITE = {
+  "default": {
+    "static_url_prefix": "bundler",
+    "manifest_path": os.path.join(BASE_DIR, '../frontend/assets/manifest.json'),
+    "dev_mode": DJANGO_VITE_DEV_MODE,
+  }
+}
+
+
+STATICFILES_DIRS = [
+    ('bundler', os.path.join(BASE_DIR, '../frontend/assets')),
+]

@@ -1,6 +1,7 @@
 {% extends "./dashboard_base.html" %}
 {% load static %}
 {% load dashboard_extras %}
+{% load django_vite %}
 {% block content %}
   <div class="lg:sticky lg:top-0 lg:z-30 flex gap-2 bg-white py-6 px-6 lg:py-8 lg:px-8 border-b border-background-focus justify-between">
     <h1 class="inline h3">Home</h1>
@@ -22,6 +23,8 @@
           <a href="#" class="button primary medium">Share your feedback</a>
         </div>
       </section>
+      <div id="--react-documents"></div>
+      {% vite_asset 'src/main.tsx' %}
       <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
         <div class="flex items-center justify-between mb-4">
           <h3 class="h5">Community guidelines</h3>
