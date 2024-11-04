@@ -14,7 +14,7 @@ export default defineConfig({
     outDir: "./assets",
     rollupOptions: {
       input: {
-        "documents": '/src/main.tsx'
+        "guidelines": '/src/guidelines.tsx'
       },
     }
   },

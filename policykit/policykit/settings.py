@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'constitution',
     'policybuilding_apps',
     'pattern_library',
+    "rest_framework",
     "django_vite"
 ] + INTEGRATIONS
 

@@ -23,32 +23,8 @@
           <a href="#" class="button primary medium">Share your feedback</a>
         </div>
       </section>
-      <div id="--react-documents"></div>
-      {% vite_asset 'src/main.tsx' %}
-      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="h5">Community guidelines</h3>
-          <button href="#"
-                  class="button primary medium"
-                  x-data
-                  @click="$dispatch('toggle_modal')"
-                  hx-get="/main/documenteditor?operation=Add"
-                  hx-push-url="true"
-                  hx-target="#modal-content"
-                  hx-swap="innerHTML transition:true">Add</button>
-        </div>
-        <div class="flex flex-col items-center justify-center gap-4 h-32">
-          {% for doc in docs %}
-            <div class="w-full p-4 border border-gray-300 rounded-lg shadow-sm">
-              <div class="font-semibold text-lg text-gray-800">{{ doc.name }}</div>
-              <p class="text-gray-600 text-nowrap overflow-hidden truncate line-clamp-1">{{ doc.text }}</div>
-            </div>
-          {% empty %}
-            {% include "patterns/icons/guidelines_empty.html" %}
-            <p class="text-grey-dark">No Guidelines yet</p>
-          {% endfor %}
-        </div>
-      </section>
+      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light" id="--react-guidelines"></section>
+      {% vite_asset 'src/guidelines.tsx' %}
       <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
         <div class="flex items-center justify-between mb-4">
           <h3 class="h5">Policies</h3>
