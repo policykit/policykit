@@ -1340,7 +1340,7 @@
         if(policytemplate.transformers){
             toggleTransformerSection();
             policytemplate.transformers.forEach(transformer => {
-                showTransformerVariables(transformer.pk, decapitalize(transformer.platform), transformer.variables);
+                showTransformerVariables(transformer.pk, decapitalize(transformer.platform), transformer);
             });
         }
         changeFocusSection();
