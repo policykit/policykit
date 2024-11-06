@@ -645,7 +645,8 @@
         $("#design_procedure-formview").empty();
         $("#design_procedure-formview").append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
-            variable.value = applied_procedure.variables[variable.name] ? applied_procedure.variables[variable.name] : null;
+            let set_variable = applied_procedure.variables ? applied_procedure.variables.find(item => item.name == variable.name) : null;
+            if(set_variable) variable.value = set_variable.value;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, type="procedure")
         })
 
@@ -664,7 +665,8 @@
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
-            variable.value = applied_transformer.variables[variable.name] ? applied_transformer.variables[variable.name] : null;
+            let set_variable = applied_transformer.variables? applied_transformer.variables.find(item => item.name == variable.name) : null;
+            if(set_variable) variable.value = set_variable.value;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
         })
     }
@@ -914,7 +916,7 @@
     });
 
     const toggleTransformerSection = () => {
-        let toggle_button = document.getElementById("customize-procedure-button");
+        let toggle_button = document.querySelector(".customize-procedure-button");
         if(toggle_button.getAttribute("status") === "closed"){
             $(`#design_transformer`).removeClass("hidden");
             $(`#transformer-collapse-section`).removeClass("hidden");
