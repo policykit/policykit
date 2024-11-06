@@ -654,6 +654,7 @@
     }
         
     const showTransformerVariables = (transformer_value, app, applied_transformer={}) => {
+        console.log('show transformer variables', applied_transformer)
         if(selected_transformers.some(item => item.value === transformer_value)) return;
 
         if(selected_transformers.length === 0) activate_section("transformer");
@@ -665,7 +666,8 @@
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
-            let set_variable = applied_transformer.variables? applied_transformer.variables.find(item => item.name == variable.name) : null;
+            console.log('variable', variable)
+            let set_variable = applied_transformer.variables ? applied_transformer.variables.find(item => item.name == variable.name) : null;
             if(set_variable) variable.value = set_variable.value;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
         })
