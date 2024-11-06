@@ -1381,6 +1381,7 @@
                     if(variable.default instanceof Object) default_value = variable.default.value;
                     input_validate += `  value='${default_value}'`;
                 };
+                console.log('for the variable', variable, 'the input validate is', input_validate);
                 text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>${prompt}</div>`;
             }
         }
