@@ -1356,6 +1356,7 @@ class Transformer(models.Model):
         return {
             "name": self.name,
             "description": self.description,
+            "variables": self.loads("variables"),
         }
 
 class Procedure(models.Model):
@@ -1703,15 +1704,29 @@ class PolicyTemplate(models.Model):
     
     def to_nocode_json(self):
         variables = self.loads("variables")
+        def fetch_value(name):
+            for variable in variables:
+                if variable["name"] == name:
+                    return variable["value"]
+            return None
         # combine the custom actions and the action types together as a filter of this Procedure    
         filters = [action.to_json() for action in self.custom_actions.all()]
         filters += [{"action_type": action.codename} for action in self.action_types.all()]
 
          # add actions defined in the Procedure instance to the extra_executions
-        procedure = self.procedure.to_json() if self.procedure else {}
+        if self.procedure:
+            procedure = self.procedure.to_json()
+            for variable in procedure["variables"]:
+                # fill in the actual value of the variable from variables
+                variable["value"] = fetch_value(variable["name"])
+        
         executions = self.loads("executions") 
 
         transformers = [transformer.to_json() for transformer in self.transformers.all()]
+        for transformer in transformers:
+            for variable in transformer["variables"]:
+                # fill in the actual value of the variable from variables
+                variable["value"] = fetch_value(variable["name"])
 
         
         return {

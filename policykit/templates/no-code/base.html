@@ -1137,6 +1137,16 @@
         }
     }
 
+    function setDateTimeLocalInput(timestamp) {
+        // Ensure timestamp is in milliseconds
+        const dateObject = new Date(timestamp * 1000);
+    
+        // Format the date as YYYY-MM-DDTHH:MM
+        const formattedDate = dateObject.toISOString().slice(0, 16);
+        console.log("new date", formattedDate);
+        return formattedDate;
+    }
+
     const getVariableDataInStep = (elementId, elements=null) => {
         // Select all input elements in step element
         var inputElements;
@@ -1171,7 +1181,7 @@
             }
         });
         return variable_data;
-  }
+    }
 
     const checkMissingVariable = (elementId, elements=null) => {
         var inputElements;
@@ -1300,8 +1310,10 @@
                     input_validate += ' type="number" min="0"';
                 else if(variable["type"] === "float")
                     input_validate += ' type="number" step="0.01", min="0"';
-                else if(variable["type"] === "timestamp")
+                else if(variable["type"] === "timestamp"){
+                    variable.value = variable.value ? setDateTimeLocalInput(variable.value) : null;
                     input_validate += ' type="datetime-local"';
+                }
             }
 
             
