@@ -1292,7 +1292,7 @@
             all_data["policytemplate"] = policytemplate.pk;
         }
         console.log("all data: " + JSON.stringify(all_data));
-        const response = await submit('create', all_data);
+        const response = await submit('/no-code/create', all_data);
         console.log("after creating custom action, " + JSON.stringify(response))
         if(response.status === "success"){
             created_policy_pk = response.policy;
