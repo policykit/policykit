@@ -1,4 +1,5 @@
-FROM python:3.6
+# Python 3.10 is the latest version supported by Django 3.2
+FROM python:3.10
 
 WORKDIR /app/policykit
 

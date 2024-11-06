@@ -14,9 +14,21 @@ services:
       - SERVER_URL=https://${DOMAIN}
       - ALLOWED_HOSTS=web,.localhost,127.0.0.1,[::1],${DOMAIN}
       - DJANGO_DEBUG_TOOLBAR=True
+      - DJANGO_VITE_DEV_MODE=${DJANGO_VITE_DEV_MODE:-True}
     depends_on:
       - rabbit
       - postgres
+      - frontend
+
+  # when DJANGO_VITE_DEV_MODE is True, we need to run the vite server
+  # enables HMR while developing the frontend
+  frontend:
+    build: ./frontend/
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+
 
   ngrok:
     image: ngrok/ngrok:latest
