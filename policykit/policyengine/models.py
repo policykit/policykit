@@ -1358,6 +1358,7 @@ class Transformer(models.Model):
             "name": self.name,
             "description": self.description,
             "variables": self.loads("variables"),
+            "platform": "all"
         }
 
 class Procedure(models.Model):
@@ -1726,7 +1727,6 @@ class PolicyTemplate(models.Model):
 
         transformers = [transformer.to_json() for transformer in self.transformers.all()]
         for transformer in transformers:
-            transformer["platform"] = procedure.get("platform", "")
             for variable in transformer["variables"]:
                 # fill in the actual value of the variable from variables
                 variable["value"] = fetch_value(variable["name"])
