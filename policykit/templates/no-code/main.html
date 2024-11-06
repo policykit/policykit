@@ -1288,6 +1288,9 @@
                         fail: fail_data,
                     }
                 }
+        if(policytemplate){
+            all_data["policytemplate"] = policytemplate.pk;
+        }
         console.log("all data: " + JSON.stringify(all_data));
         const response = await submit('create', all_data);
         console.log("after creating custom action, " + JSON.stringify(response))
@@ -1351,7 +1354,6 @@
         policytemplate.executions.fail.forEach(execution => {
             showExecutionVariables("fail", execution.action, decapitalize(execution.platform), false, execution);
         });
-
     }
 
 

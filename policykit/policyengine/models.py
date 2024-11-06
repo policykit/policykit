@@ -1733,6 +1733,7 @@ class PolicyTemplate(models.Model):
 
         
         return {
+            "pk": self.pk,
             "name": self.name,
             "description": self.description,
             "kind": self.template_kind,
@@ -1759,13 +1760,18 @@ class PolicyTemplate(models.Model):
             variable["default_value"] = variable["default"]["value"] if isinstance(variable["default"], dict) else variable["default"]
             del variable["default"] 
             
-            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            policy_variable, created = PolicyVariable.objects.get_or_create(
+                policy=policy,
+                name=variable["name"],
+                defaults=variable
+            )
 
             if variable["name"] in variables_data:
-                new_variable.value = variables_data[variable["name"]]
-            new_variable.save()
+                policy_variable.value = variables_data[variable["name"]]
 
-    def create_policy(self, community):
+            policy_variable.save()
+
+    def create_policy(self, community, policy=None):
         """
             Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
         """
@@ -1773,17 +1779,32 @@ class PolicyTemplate(models.Model):
 
         policy_json = self.to_json()
 
-        policy = Policy.objects.create(
-            name=self.name,
-            description=self.description,
-            kind=self.policy_kind,
-            community=community,
-            policy_template=self,
-        )
+        if policy is not None:
+            policy.name = self.name
+            policy.description = self.description
+            policy.kind = self.policy_kind
+            policy.community = community
+            policy.policy_template = self
+        else:
+            policy = Policy.objects.create(
+                name=self.name,
+                description=self.description,
+                kind=self.policy_kind,
+                community=community,
+                policy_template=self,
+            )
         
-        action_types = CodesGenerator.extract_action_types(policy_json["filter"]) 
-        for action_type in action_types:
+        action_types = set(CodesGenerator.extract_action_types(policy_json["filter"]))
+        if policy is not None:
+            old_action_types = set(policy.action_types.all())
+        else:
+            old_action_types = set()
+        action_types_to_add = action_types - old_action_types
+        action_types_to_remove = old_action_types - action_types
+        for action_type in action_types_to_add:
             policy.action_types.add(action_type)
+        for action_type in action_types_to_remove:
+            policy.action_types.remove(action_type)
         
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
         policy.initialize = "pass" 

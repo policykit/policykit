@@ -952,7 +952,11 @@ def generate_code(request):
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
-    
+    old_policytemplate = PolicyTemplate.objects.get(pk=data.get("policytemplate"))
+    if old_policytemplate and old_policytemplate.policy:
+        policy = old_policytemplate.policy
+    else:
+        policy = None
     new_policytemplate = PolicyTemplate.objects.create(
         template_kind=data.get("policykind"),
         name=data.get("name", ""),
@@ -967,7 +971,7 @@ def create_policy(request):
     create_execution(data.get("executions", {}), new_policytemplate)
 
     user = get_user(request)
-    new_policy = new_policytemplate.create_policy(user.community.community)
+    new_policy = new_policytemplate.create_policy(user.community.community, policy)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
 def create_custom_action(filters):
