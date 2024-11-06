@@ -658,7 +658,7 @@
 
         if(selected_transformers.length === 0) activate_section("transformer");
 
-        let selected_transformer = {...transformers[app].find(item => item.value == transformer_value)};
+        let selected_transformer = deepcopy(transformers[app].find(item => item.value == transformer_value));
         selected_transformers.push(selected_transformer);
         
     

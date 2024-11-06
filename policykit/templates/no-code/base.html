@@ -1216,7 +1216,7 @@
     }
 
     const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
-        if(variable.name === "vote_channel"){
+        if(variable.name === "eligible_voters"){
             console.log('variable', variable);
             console.log('datalist', datalist);
         }
@@ -1268,7 +1268,7 @@
                     innerHTML += `<option class="default-option" ${selected} value='${variable.default}' data-subtext="default" ${selected}>${decapitalize(variable.default)}</option>`;
                 }
                 else if(variable.default instanceof Object){
-                    let selected = variable.default.value === set_value ? "selected" : "";
+                    let selected = `{${variable.default.value}}` === set_value ? "selected" : "";
                     innerHTML += `<option class="default-option" ${selected} value='{${variable.default.value}}' data-subtext="default" ${selected}>${decapitalize(variable.default.name)}</option>`;
                 }
                 
