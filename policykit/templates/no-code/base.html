@@ -1091,288 +1091,302 @@
 
 {% block scripts %}
 <script>
-  const capitalize = (word) => {
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  }
-
-  const decapitalize = (word) => {
-    return word.charAt(0).toLowerCase() + word.slice(1);
-  }
-
-  // Reference of class names defined here to avoid repetition
-  const classnames = {
-    visible: 'active',
-    primary: 'primary',
-    secondary: 'secondary'
-  }
-
-  const submit = async (url, submitData) => {
-    // Django generated csrf token
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
-
-    try {
-      const response = await fetch(`${url}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify(submitData)
-      })
-
-      if (!response.ok) {
-        const text = await response.text()
-
-        console.error(text)
-      }
-
-      const json = await response.json()
-      return json
-    } catch (e) {
-      console.log(e)
+    const capitalize = (word) => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
     }
-  }
 
-  const getVariableDataInStep = (elementId, elements=null) => {
+    const decapitalize = (word) => {
+        return word.charAt(0).toLowerCase() + word.slice(1);
+    }
+
+    const deepcopy = (dict) => {
+        return JSON.parse(JSON.stringify(dict));
+    }
+
+    // Reference of class names defined here to avoid repetition
+    const classnames = {
+        visible: 'active',
+        primary: 'primary',
+        secondary: 'secondary'
+    }
+
+    const submit = async (url, submitData) => {
+        // Django generated csrf token
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+
+        try {
+            const response = await fetch(`${url}`, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(submitData)
+            })
+
+            if (!response.ok) {
+                const text = await response.text()
+
+                console.error(text)
+            }
+
+            const json = await response.json()
+            return json
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const getVariableDataInStep = (elementId, elements=null) => {
         // Select all input elements in step element
         var inputElements;
         if(elementId){
-          inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
+            inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
         } else {
-          inputElements = elements.querySelectorAll('.variable-input');
+            inputElements = elements.querySelectorAll('.variable-input');
         }
 
         var variable_data = {};
         
         Array.from(inputElements).forEach(input => {
           // if it is an input element
-          if(input.tagName === 'INPUT' || input.tagName === 'TEXTAREA'){
-            let value = input.value;
-            /* 
-              the display of a input box that shows a date and time is for the conveience of the user,
-              while in the backend we still use timestamp. 
-              Therefore, the conversation of the value is more of the task of the frontend. 
-              In contrast, we store a list of numbers still as strings in the backend, 
-              and the backend should take care of the conversion of such values
-            */
-            if(input.type === 'datetime-local'){
-              const dateObject = new Date(value);
-              value = Math.floor(dateObject.getTime() / 1000)
+            if(input.tagName === 'INPUT' || input.tagName === 'TEXTAREA'){
+                let value = input.value;
+                /* 
+                the display of a input box that shows a date and time is for the conveience of the user,
+                while in the backend we still use timestamp. 
+                Therefore, the conversation of the value is more of the task of the frontend. 
+                In contrast, we store a list of numbers still as strings in the backend, 
+                and the backend should take care of the conversion of such values
+                */
+                if(input.type === 'datetime-local'){
+                    const dateObject = new Date(value);
+                    value = Math.floor(dateObject.getTime() / 1000)
+                }
+                variable_data[input.getAttribute('data-id')] = value;
             }
-            variable_data[input.getAttribute('data-id')] = value;
-          }
-          else if(input.tagName === 'SELECT'){
-            let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
-            variable_data[input.getAttribute('data-id')] = selected_options;
-          }
+            else if(input.tagName === 'SELECT'){
+                let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
+                variable_data[input.getAttribute('data-id')] = selected_options;
+            }
         });
         return variable_data;
   }
 
-  const checkMissingVariable = (elementId, elements=null) => {
-    var inputElements;
-    if(elementId){
-      inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
-    } else {
-      inputElements = elements.querySelectorAll('.variable-input');
-    } 
-    
-    var missing_variables = false;
-    Array.from(inputElements).forEach(input => {
-        // if it is an input box
-      if(input.tagName === 'INPUT') {
-        if(!input.reportValidity()){
-          missing_variables = true;
-          input.classList.add("wrong");
+    const checkMissingVariable = (elementId, elements=null) => {
+        var inputElements;
+        if(elementId){
+            inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
         } else {
-          input.classList.remove("wrong");
-        }
-      } else if(input.tagName === 'SELECT' && input.required){
-        // if it is a select-picker object, it is actually an select element enclosed by a div
-        let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
-        if(selected_options === ""){
-          missing_variables = true;
-          input.parentElement.parentElement.classList.add("wrong");
-        } else {
-          input.parentElement.parentElement.classList.remove("wrong");
-        }
-      }
-    });
-    return missing_variables;
-  }
-
-  const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
-    var text = document.createElement('div');
-    text.id = id;
-    let displayed_name = capitalize(variable.label); // which name to display for this variable input box
-
-    // if it is a column variable, then we use the column variable style
-    if(type === "procedure" || type === "transformer"){
-      text.classList.add('column-variable-item');
-    } else text.classList.add('variable-item');
-    
-    let input_validate = "";
-
-    let label_html = "";
-    if(variable.is_required ?? true){
-      input_validate += " required";
-      label_html = `<label for='${id}' class="small normal">${displayed_name}<span>*</span></label>`
-    } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
-
-    var prompt = "";  // display the prompt if exists 
-    if(Boolean(variable.prompt) == true) prompt = `<p class='variable-prompt'>${variable.prompt}</p>`;
-
-    const matched_variables = (item) => {
-      // if(item.entity === "undefined"){
-      //   console.log(item, variable);
-      // }
-      let prelim_filter = (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
-        (item.entity === "undefined" && item.type === variable.type && item.is_list === variable.is_list && item.name !== variable.label);
-      if(type == "procedure") return (prelim_filter && item.from != "procedure"); // do not need to show variables from the same procedure in the select dropdown list.
-      else return prelim_filter;
-    }
-
-    // use select picker if possible
-    if(variable.entity && variable.entity !== "Text" && ((options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0))){
-      // if it is, then we use a select as the input box
-      if(variable.is_list ?? false) input_validate += "  multiple";
-
-      let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
-        <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
-      
-      if(datalist || variable.default !== ""){
-        innerHTML += ` <optgroup label="Variables">`
+            inputElements = elements.querySelectorAll('.variable-input');
+        } 
         
-        if(typeof variable.default === "string" && variable.default !== "")
-          innerHTML += `<option class="default-option" value='${variable.default}' data-subtext="default" selected>${decapitalize(variable.default)}</option>`;
-        else if(variable.default instanceof Object)
-          innerHTML += `<option class="default-option" value='{${variable.default.value}}' data-subtext="default" selected>${decapitalize(variable.default.name)}</option>`;
-        
-        if(datalist){
-          datalist.filter(matched_variables).forEach(
-            item => {
-              innerHTML += `<option class="${item.from}-option" value="{${item.value}}" data-subtext="from ${item.from}">${decapitalize(item.name)}</option>`;
+        var missing_variables = false;
+        Array.from(inputElements).forEach(input => {
+            // if it is an input box
+            if(input.tagName === 'INPUT') {
+                if(!input.reportValidity()){
+                    missing_variables = true;
+                    input.classList.add("wrong");
+                } else {
+                    input.classList.remove("wrong");
+                }
+            } else if(input.tagName === 'SELECT' && input.required){
+                // if it is a select-picker object, it is actually an select element enclosed by a div
+                let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
+                if(selected_options === ""){
+                    missing_variables = true;
+                    input.parentElement.parentElement.classList.add("wrong");
+                } else {
+                    input.parentElement.parentElement.classList.remove("wrong");
+                }
             }
-          );
-        }
-        innerHTML += `</optgroup>`;
-      }
-
-      if(variable.entity in options){
-        innerHTML += `<optgroup label="${variable.entity}">`;
-        // add entities in this community
-        options[variable.entity].forEach(entity => {
-          innerHTML += `<option value='${entity.value}'>${entity.name}</option>`;
         });
-        innerHTML += `</optgroup>`;
-      }
+        return missing_variables;
+    }
 
-      innerHTML += `</select></div></div>`;
-      text.innerHTML = innerHTML;
-    } else {
-      // determine the type of input requirement is needed
-      if(variable["is_list"] ?? false){
-          if(variable["type"] === "string")
-            input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
-          else if(variable["type"] === "number")
-            input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
-          else if(variable["type"] === "float")
-            input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
-          else if(variable["type"] === "timestamp")
-            console.warn("We do not support a variable as a list of timestamps yet");
-      } else {
-          if(variable["type"] === "string")
-            input_validate += ' type="text"';
-          else if(variable["type"] === "number")
-            input_validate += ' type="number" min="0"';
-          else if(variable["type"] === "float")
-            input_validate += ' type="number" step="0.01", min="0"';
-          else if(variable["type"] === "timestamp")
-            input_validate += ' type="datetime-local"';
-      }
+    const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
+        var text = document.createElement('div');
+        text.id = id;
+        let displayed_name = capitalize(variable.label); // which name to display for this variable input box
 
-      
-      if(variable["type"] === "string"){ // use textarea for variables of the string type
-        if(type !== "filter" && datalist.length > 0) {
-          let variables_list = "";
-          let action_data = datalist.filter(item => item.name !== variable.label && (item.from === "action" || item.from === "filter"));
-          if(action_data.length > 0){
-            variables_list += `<div class="textarea-dropdown-header">Action</div>`;
-            action_data.forEach(
-              item => {
-                variables_list += `
-                  <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
-                    <label class="header small normal">${decapitalize(item.name)}</label>
-                    <label class="code small prompt">{${item.value}}</label>
-                  </button>`;
-              }
-            );
-          }
-
-          let procedure_data = datalist.filter(item => item.name !== variable.label && item.from === "procedure");
-          if(procedure_data.length > 0){
-            variables_list += `<div class="textarea-dropdown-header">Procedure</div>`;
-            procedure_data.forEach(
-              item => {
-                variables_list += `
-                  <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
-                    <label class="header small normal ${item.category}-dropdown-item">${decapitalize(item.name)}</label>
-                    <label class="code small prompt">{${item.value}}</label>
-                  </button>`;
-              }
-            );
-          }
-          
-          var variables_dropdowm = `
-                <div class="dropdown variables-dropdown">
-                  <button class="dropdown-toggle variables-dropdown-toggle small " type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    + Insert Variables
-                  </button>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    ${variables_list}
-                  </div>
-                </div>`
-        } else var variables_dropdowm = "";
-        text.innerHTML = label_html + `
-                    <div class="variable-textarea">  
-                      <div class="textarea-div">
-                          <textarea class='variable-input small normal' rows='3' data-id='${id}' ${input_validate}>${variable.default ? variable.default.trim() : ""}</textarea>
-                          ${variables_dropdowm}
-                      </div>
-                      ${prompt}
-                    </div>
-                  </div>`;
+        // if it is a column variable, then we use the column variable style
+        if(type === "procedure" || type === "transformer"){
+            text.classList.add('column-variable-item');
+        } else text.classList.add('variable-item');
         
-      } else {
-        if(variable.default){// if it is a select input, then a default value is actually not much needed
-          var default_value = variable.default;
-          if(variable.default instanceof Object) default_value = variable.default.value;
-          input_validate += `  value='${default_value}'`;
+        let input_validate = "";
+
+        let label_html = "";
+        if(variable.is_required ?? true){
+            input_validate += " required";
+            label_html = `<label for='${id}' class="small normal">${displayed_name}<span>*</span></label>`
+        } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
+
+        var prompt = "";  // display the prompt if exists 
+        if(Boolean(variable.prompt) == true) prompt = `<p class='variable-prompt'>${variable.prompt}</p>`;
+
+        const matched_variables = (item) => {
+            // if(item.entity === "undefined"){
+            //   console.log(item, variable);
+            // }
+            let prelim_filter = (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
+                (item.entity === "undefined" && item.type === variable.type && item.is_list === variable.is_list && item.name !== variable.label);
+            // do not need to show variables from the same procedure in the select dropdown list.
+            if(type == "procedure") return (prelim_filter && item.from != "procedure"); 
+            else return prelim_filter;
         }
-        text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>
-                    ${prompt}
-                      </div>`;
-      }
+
+        // use select picker if there is a non-text entity, and this entity is part of the predefined list of options, or there is a datalist
+        if(variable.entity && variable.entity !== "Text" && ((options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0))){
+            // if it is, then we use a select as the input box
+            if(variable.is_list ?? false) input_validate += "  multiple";
+
+            let set_value = variable.value ? variable.value : '';
+            let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
+                <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
+            
+            if(datalist || variable.default !== ""){
+                innerHTML += ` <optgroup label="Variables">`
+            
+                if(typeof variable.default === "string" && variable.default !== ""){
+                    let selected = variable.default === set_value ? "selected" : "";
+                    innerHTML += `<option class="default-option" ${selected} value='${variable.default}' data-subtext="default" ${selected}>${decapitalize(variable.default)}</option>`;
+                }
+                else if(variable.default instanceof Object){
+                    let selected = variable.default.value === set_value ? "selected" : "";
+                    innerHTML += `<option class="default-option" ${selected} value='{${variable.default.value}}' data-subtext="default" ${selected}>${decapitalize(variable.default.name)}</option>`;
+                }
+                
+                if(datalist){
+                    
+                    datalist.filter(matched_variables).forEach(item => {
+                        // Determine if this option should be selected based on item.value
+                        let selected = `{${item.value}}` === set_value ? "selected" : "";
+                        // console.log('datalist item', item, 'set_value', set_value, selected);
+                        innerHTML += `<option class="${item.from}-option" value="{${item.value}}" data-subtext="from ${item.from}" ${selected}>${decapitalize(item.name)}</option>`;
+                    });
+                }
+                innerHTML += `</optgroup>`;
+            }
+
+            if(variable.entity in options){
+                innerHTML += `<optgroup label="${variable.entity}">`;
+                // add entities in this community
+                options[variable.entity].forEach(entity => {
+                    let selected = entity.value === set_value ? "selected" : "";
+                    innerHTML += `<option value='${entity.value}' ${selected}>${entity.name}</option>`;
+                });
+                innerHTML += `</optgroup>`;
+            }
+
+            innerHTML += `</select></div></div>`;
+            text.innerHTML = innerHTML;
+        } else {
+            // determine the type of input requirement is needed
+            if(variable["is_list"] ?? false){
+                if(variable["type"] === "string")
+                    input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+                else if(variable["type"] === "number")
+                    input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
+                else if(variable["type"] === "float")
+                    input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
+                else if(variable["type"] === "timestamp")
+                    console.warn("We do not support a variable as a list of timestamps yet");
+            } else {
+                if(variable["type"] === "string")
+                    input_validate += ' type="text"';
+                else if(variable["type"] === "number")
+                    input_validate += ' type="number" min="0"';
+                else if(variable["type"] === "float")
+                    input_validate += ' type="number" step="0.01", min="0"';
+                else if(variable["type"] === "timestamp")
+                    input_validate += ' type="datetime-local"';
+            }
+
+            
+            if(variable["type"] === "string"){ // use textarea for variables of the string type
+                if(type !== "filter" && datalist.length > 0) {
+                    let variables_list = "";
+                    let action_data = datalist.filter(item => item.name !== variable.label && (item.from === "action" || item.from === "filter"));
+                    if(action_data.length > 0){
+                        variables_list += `<div class="textarea-dropdown-header">Action</div>`;
+                        action_data.forEach(
+                            item => {
+                                variables_list += `
+                                <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
+                                    <label class="header small normal">${decapitalize(item.name)}</label>
+                                    <label class="code small prompt">{${item.value}}</label>
+                                </button>`;
+                            }
+                        );
+                    }
+
+                    let procedure_data = datalist.filter(item => item.name !== variable.label && item.from === "procedure");
+                    if(procedure_data.length > 0){
+                        variables_list += `<div class="textarea-dropdown-header">Procedure</div>`;
+                        procedure_data.forEach(
+                            item => {
+                                variables_list += `
+                                <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
+                                    <label class="header small normal ${item.category}-dropdown-item">${decapitalize(item.name)}</label>
+                                    <label class="code small prompt">{${item.value}}</label>
+                                </button>`;
+                            }
+                        );
+                    }
+            
+                    var variables_dropdowm = `
+                            <div class="dropdown variables-dropdown">
+                            <button class="dropdown-toggle variables-dropdown-toggle small " type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                + Insert Variables
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                ${variables_list}
+                            </div>
+                            </div>`
+                } else var variables_dropdowm = "";
+                let default_text = variable.value ? variable.value : (variable.default ? variable.default.trim() : "");
+                text.innerHTML = label_html + `<div class="variable-textarea">  
+                        <div class="textarea-div">
+                            <textarea class='variable-input small normal' rows='3' data-id='${id}' ${input_validate}>${default_text}</textarea>
+                            ${variables_dropdowm}
+                        </div>
+                        ${prompt}
+                        </div>
+                    </div>`;
+            
+            } else {
+                if(variable.value){
+                    input_validate += `  value='${variable.value}'`;
+                } else if (variable.default){
+                    // if it is a select input, then a default value is actually not much needed
+                    var default_value = variable.default;
+                    if(variable.default instanceof Object) default_value = variable.default.value;
+                    input_validate += `  value='${default_value}'`;
+                };
+                text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>${prompt}</div>`;
+            }
+        }
+
+        parentDiv.appendChild(text);
+        $(".selectpicker").selectpicker("refresh");
+        
     }
 
-    parentDiv.appendChild(text);
-    $(".selectpicker").selectpicker("refresh");
-      
-  }
-
-  function decodeHtml(html) {
-    var txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
-
-  document.body.addEventListener("click", (event) => {
-    let target = event.target.closest(".variables-dropdown-item");
-    if(target){
-      let textarea = target.closest(".textarea-div").querySelector("textarea");
-      textarea.value += ` ${target.querySelector(".code").innerHTML}`;
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
     }
-  })
+
+    document.body.addEventListener("click", (event) => {
+        let target = event.target.closest(".variables-dropdown-item");
+        if(target){
+            let textarea = target.closest(".textarea-div").querySelector("textarea");
+            textarea.value += ` ${target.querySelector(".code").innerHTML}`;
+        }
+    });
 
 
 
