@@ -1216,6 +1216,10 @@
     }
 
     const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
+        if(variable.name === "vote_channel"){
+            console.log('variable', variable);
+            console.log('datalist', datalist);
+        }
         var text = document.createElement('div');
         text.id = id;
         let displayed_name = capitalize(variable.label); // which name to display for this variable input box

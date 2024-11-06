@@ -664,6 +664,7 @@
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
+            variable.value = applied_transformer.variables[variable.name] ? applied_transformer.variables[variable.name] : null;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
         })
     }
@@ -912,31 +913,27 @@
         }
     });
 
+    const toggleTransformerSection = () => {
+        let toggle_button = document.getElementById("customize-procedure-button");
+        if(toggle_button.getAttribute("status") === "closed"){
+            $(`#design_transformer`).removeClass("hidden");
+            $(`#transformer-collapse-section`).removeClass("hidden");
+            toggle_button.innerHTML = "Hide";
+            toggle_button.setAttribute("status", "open");
+            changeFocusSection("design_transformer");
+        } else if(toggle_button.getAttribute("status") === "open"){
+            $(`#design_transformer`).addClass("hidden");
+            $(`#transformer-collapse-section`).addClass("hidden");
+            toggle_button.innerHTML = "Customize";
+            toggle_button.setAttribute("status", "closed");
+        }
+
+    }
     // listen to the event when users click the + button to unfold a collapsed section (transformer section)
     document.getElementById("nocode-panel").addEventListener("click", (event) => {
-        // let target = event.target.closest(".collapse-section-button");
-        // if(target){
-        //     let section_type = target.getAttribute("type");
-        //     if(section_type === "transformer" || section_type.startsWith("execution")){
-        //         let collapse_section = target.closest(".collapse-section");
-        //         collapse_section.classList.add("hidden");
-        //         $(`#design_${section_type}`).removeClass("hidden");
-        //     }
-        // }
         let target = event.target.closest(".customize-procedure-button");
         if(target){
-            if(target.getAttribute("status") === "closed"){
-                $(`#design_transformer`).removeClass("hidden");
-                $(`#transformer-collapse-section`).removeClass("hidden");
-                target.innerHTML = "Hide";
-                target.setAttribute("status", "open");
-                changeFocusSection("design_transformer");
-            } else if(target.getAttribute("status") === "open"){
-                $(`#design_transformer`).addClass("hidden");
-                $(`#transformer-collapse-section`).addClass("hidden");
-                target.innerHTML = "Customize";
-                target.setAttribute("status", "closed");
-            }
+            toggleTransformerSection();
         }
     })
     
@@ -1336,6 +1333,12 @@
             decapitalize(policytemplate.procedure.platform),
             policytemplate.procedure
         );
+        if(policytemplate.transformers){
+            toggleTransformerSection();
+            policytemplate.transformers.forEach(transformer => {
+                showTransformerVariables(transformer.pk, decapitalize(transformer.platform), transformer.variables);
+            });
+        }
         changeFocusSection();
         policytemplate.executions.success.forEach(execution => {
             showExecutionVariables("success", execution.action, execution.platform, false, execution);

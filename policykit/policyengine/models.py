@@ -1354,6 +1354,7 @@ class Transformer(models.Model):
     def to_json(self):
         # we do not need to include codes for a  transformer here, as we use its name as the identifier
         return {
+            'pk': self.pk,
             "name": self.name,
             "description": self.description,
             "variables": self.loads("variables"),
@@ -1719,11 +1720,13 @@ class PolicyTemplate(models.Model):
             for variable in procedure["variables"]:
                 # fill in the actual value of the variable from variables
                 variable["value"] = fetch_value(variable["name"])
-        
+        else:
+            procedure = {}
         executions = self.loads("executions") 
 
         transformers = [transformer.to_json() for transformer in self.transformers.all()]
         for transformer in transformers:
+            transformer["platform"] = procedure.get("platform", "")
             for variable in transformer["variables"]:
                 # fill in the actual value of the variable from variables
                 variable["value"] = fetch_value(variable["name"])
