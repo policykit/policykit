@@ -1254,11 +1254,11 @@
 
             let set_value = variable.value ? variable.value : '';
             const determine_selected = (value) => {
-                if(variable.is_list ?? false){
-                    return value === set_value ? "selected" : "";
-                } else {
+                if(variable.is_list){
                     console.log('set_value', set_value.split(","), 'value', value);
                     return set_value.split(",").includes(value) ? "selected" : "";
+                } else {
+                    return value === set_value ? "selected" : "";
                 }
             }
             let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
