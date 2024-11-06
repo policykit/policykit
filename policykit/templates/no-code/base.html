@@ -1257,6 +1257,7 @@
                 if(variable.is_list ?? false){
                     return value === set_value ? "selected" : "";
                 } else {
+                    console.log('set_value', set_value.split(","), 'value', value);
                     return set_value.split(",").includes(value) ? "selected" : "";
                 }
             }

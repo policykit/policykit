@@ -1347,11 +1347,11 @@
             });
         }
         changeFocusSection();
-        policytemplate.executions.success.forEach(execution => {
+        (policytemplate.executions.success || []).forEach(execution => {
             showExecutionVariables("success", execution.action, decapitalize(execution.platform), false, execution);
         });
         changeFocusSection();
-        policytemplate.executions.fail.forEach(execution => {
+        (policytemplate.executions.fail || []).forEach(execution => {
             showExecutionVariables("fail", execution.action, decapitalize(execution.platform), false, execution);
         });
     }
