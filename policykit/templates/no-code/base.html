@@ -1216,10 +1216,6 @@
     }
 
     const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
-        if(variable.name === "eligible_voters"){
-            console.log('variable', variable);
-            console.log('datalist', datalist);
-        }
         var text = document.createElement('div');
         text.id = id;
         let displayed_name = capitalize(variable.label); // which name to display for this variable input box
@@ -1257,6 +1253,13 @@
             if(variable.is_list ?? false) input_validate += "  multiple";
 
             let set_value = variable.value ? variable.value : '';
+            const determine_selected = (value) => {
+                if(variable.is_list ?? false){
+                    return value === set_value ? "selected" : "";
+                } else {
+                    return set_value.split(",").includes(value) ? "selected" : "";
+                }
+            }
             let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
                 <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
             
@@ -1264,11 +1267,11 @@
                 innerHTML += ` <optgroup label="Variables">`
             
                 if(typeof variable.default === "string" && variable.default !== ""){
-                    let selected = variable.default === set_value ? "selected" : "";
+                    let selected = determine_selected(variable.default);
                     innerHTML += `<option class="default-option" ${selected} value='${variable.default}' data-subtext="default" ${selected}>${decapitalize(variable.default)}</option>`;
                 }
                 else if(variable.default instanceof Object){
-                    let selected = `{${variable.default.value}}` === set_value ? "selected" : "";
+                    let selected = determine_selected(`{${variable.default.value}}`);
                     innerHTML += `<option class="default-option" ${selected} value='{${variable.default.value}}' data-subtext="default" ${selected}>${decapitalize(variable.default.name)}</option>`;
                 }
                 
@@ -1276,7 +1279,7 @@
                     
                     datalist.filter(matched_variables).forEach(item => {
                         // Determine if this option should be selected based on item.value
-                        let selected = `{${item.value}}` === set_value ? "selected" : "";
+                        let selected = determine_selected(`{${item.value}}`);
                         // console.log('datalist item', item, 'set_value', set_value, selected);
                         innerHTML += `<option class="${item.from}-option" value="{${item.value}}" data-subtext="from ${item.from}" ${selected}>${decapitalize(item.name)}</option>`;
                     });
@@ -1288,7 +1291,7 @@
                 innerHTML += `<optgroup label="${variable.entity}">`;
                 // add entities in this community
                 options[variable.entity].forEach(entity => {
-                    let selected = entity.value === set_value ? "selected" : "";
+                    let selected = determine_selected(entity.value);
                     innerHTML += `<option value='${entity.value}' ${selected}>${entity.name}</option>`;
                 });
                 innerHTML += `</optgroup>`;
@@ -1381,7 +1384,7 @@
                     if(variable.default instanceof Object) default_value = variable.default.value;
                     input_validate += `  value='${default_value}'`;
                 };
-                console.log('for the variable', variable, 'the input validate is', input_validate);
+                
                 text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>${prompt}</div>`;
             }
         }
