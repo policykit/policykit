@@ -61,3 +61,4 @@ class CommunityDashboardSerializer(serializers.Serializer):
     constitution_policies = PolicySummarySerializer(many=True, source='get_constitution_policies')
     trigger_policies = PolicySummarySerializer(many=True, source='get_trigger_policies')
     proposals = ProposalSummarySerializer(many=True)
+    name = serializers.CharField(source="community_name")

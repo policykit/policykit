@@ -8,42 +8,8 @@
     {% include "patterns/components/modal/share-modal.html" %}
   </div>
   <div class="lg:grid lg:grid-cols-10 relative">
-    <div class="lg:p-6 lg:col-span-7">
-      <section x-show="welcome"
-               class="px-8 py-7 bg-primary-lightest rounded-lg"
-               x-data="{welcome: true}">
-        <div class="flex items-center justify-between mb-8">
-          <h2 class="h4 ">Welcome to {{ user.community.community_name }}'s governance dashboard</h2>
-          <button @click="welcome = false">{% include "patterns/icons/cancel.html" with class="stroke-primary-dark" %}</button>
-        </div>
-        <p class="mb-6">
-          If you have any questions or need help getting started, don't hesitate to reach out. We're here to help you build and evolve a thriving online community.
-        </p>
-        <div class="flex justify-end ">
-          <a href="#" class="button primary medium">Share your feedback</a>
-        </div>
-      </section>
-      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light" id="--react-dashboard"></section>
-      {% vite_asset 'src/dashboard.tsx' %}
-      <section class="px-8 py-7 mt-4 border border-background-focus rounded-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="h5">Policies</h3>
-          <button href="#"
-                  class="button primary medium"
-                  x-data
-                  @click="$dispatch('toggle_modal')"
-                  hx-get="/main/policynew"
-                  hx-push-url="true"
-                  hx-target="#modal-content"
-                  hx-swap="innerHTML transition:true">Add</button>
-        </div>
-        <div class="flex flex-col items-center justify-center gap-4 h-32">
-          {% include "patterns/icons/policies_empty.html" %}
-          <p class="text-grey-dark">No Policies yet</p>
-        </div>
-      </section>
-      <div class="h-80"></div>
-    </div>
+    <div class="lg:p-6 lg:col-span-7"  id="--react-dashboard" />
+    {% vite_asset 'src/dashboard.tsx' %}      
     <section class="px-5 py-4 lg:col-span-3 border-l border-background-focus">
       <div class="lg:sticky lg:top-32">
         <h3 class="h5">Governance history</h3>
