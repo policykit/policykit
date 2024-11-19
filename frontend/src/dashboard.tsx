@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 
 import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+
 // Create a client
 const queryClient = new QueryClient();
 
@@ -17,9 +18,15 @@ async function fetchData(url: string): Promise<any> {
   return data;
 }
 
-export function Guidelines() {
+function useData() {
   const query = useQuery({ queryKey: ["community_docs"], queryFn: () => fetchData("/api/dashboard"), staleTime: Infinity, networkMode: "online" });
-  const text = query.data?.community_docs[0].text || "Loading...";
+  return query.data
+}
+
+
+export function Guidelines() {
+  const data = useData();
+  const text = data?.community_docs[0].text || "Loading...";
   return (
     <>
       <div className="flex items-center justify-between mb-4">
