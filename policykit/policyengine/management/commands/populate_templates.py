@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from policyengine.models import Policy, PolicyVariable, ActionType
+from policyengine.models import Community, Policy, PolicyVariable, ActionType
 
 
 class Command(BaseCommand):
@@ -46,8 +46,9 @@ class Command(BaseCommand):
             notify=notify,
             success="opencollective.process_expense(action=\"APPROVE\", expense_id=action.expense_id)\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nmessage = f\"Expense approved. The vote passed with {yes_votes} for and {no_votes} against.\"\n\n# comment on the expense\nopencollective.post_message(text=message, expense_id=action.expense_id)\n\n# update the Slack thread\nslack.post_message(text=message, channel=variables[\"slack_channel_id\"], thread_ts=proposal.vote_post_id)\n",
             fail="opencollective.process_expense(action=\"REJECT\", expense_id=action.expense_id)\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nmessage = f\"Expense rejected. The vote failed with {yes_votes} for and {no_votes} against.\"\n\n# comment on the expense\nopencollective.post_message(text=message, expense_id=action.expense_id)\n\n# update the Slack thread\nslack.post_message(text=message, channel=variables[\"slack_channel_id\"], thread_ts=proposal.vote_post_id)\n",
-            is_template=True,
-            description=desc
+            # is_template=True,
+            description=desc,
+            community=Community.objects.first()
         )
         if created:
             action_type, _ = ActionType.objects.get_or_create(codename="expensecreated")
