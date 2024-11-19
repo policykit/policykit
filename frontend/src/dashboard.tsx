@@ -23,13 +23,13 @@ export function Guidelines() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">Community guidelines</h3>
+        <h3 className="h5">Community Guidelines</h3>
       </div>
       <p className="mb-6">{text}</p>
     </>
   );
 }
-createRoot(document.getElementById("--react-guidelines")!).render(
+createRoot(document.getElementById("--react-dashboard")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Guidelines />
