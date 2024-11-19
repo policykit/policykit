@@ -4,8 +4,8 @@ import { createRoot } from "react-dom/client";
 
 // dont import SVG files directly because of issue with loading static assets in dev mode
 // BC can't load from insecure URL, proxying dev server is annoying, and can't inline them
-import CancelIcon from "./components/CancelIcon"
-import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon"
+import CancelIcon from "./components/CancelIcon";
+import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon";
 
 import {
   useQuery,
@@ -25,6 +25,12 @@ async function fetchData(url: string): Promise<any> {
   const data = await response.json();
   return data;
 }
+
+type Policy = {
+  id: number;
+  name: string;
+  description: string;
+};
 
 function useData() {
   const query = useQuery({
@@ -78,11 +84,42 @@ export function Guidelines() {
   );
 }
 
-export function Policies() {
+export function Policies({
+  policies,
+  type,
+}: {
+  policies: null | Policy[];
+  type: string;
+}) {
+  let policiesElement;
+  if (!policies) {
+    policiesElement = <p className="text-grey-dark">Loading...</p>;
+  } else {
+    if (policies.length == 0) {
+      policiesElement = (
+        <>
+          <PoliciesEmptyIcon />
+          <p className="text-grey-dark">No Policies yet</p>
+        </>
+      );
+    } else {
+      policiesElement = (
+        <>
+          {policies.map((policy) => (
+            <div className="flex items-center justify-between mb-4 w-full">
+              <h4 key={policy.id} className="h5">{policy.name}</h4>
+              <span className="text-grey-dark">{policy.description}</span>
+            </div>
+          ))}
+        </>
+      );
+    }
+  }
+
   return (
-    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg">
+    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">Policies</h3>
+        <h3 className="h5">{type} Policies</h3>
         <button
           // href="#"
           className="button primary medium"
@@ -97,20 +134,33 @@ export function Policies() {
         </button>
       </div>
       <div className="flex flex-col items-center justify-center gap-4 h-32">
-        <PoliciesEmptyIcon />
-        <p className="text-grey-dark">No Policies yet</p>
+        {policiesElement}
       </div>
     </section>
   );
 }
 
+export function MetaGovernance() {
+  const data = useData();
+  return (
+    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
+      <p className="text-grey-dark">Meta-Governance</p>
+      <Policies type="Constitutional" policies={data?.constitution_policies} />
+    </section>
+  );
+}
+
 export function Dashboard() {
-  return (<>
-    <Welcome />
-    <Guidelines />
-    <Policies />
-    <div className="h-80" />
-  </>);
+  const data = useData();
+  return (
+    <>
+      <Welcome />
+      <Guidelines />
+      <Policies type="Platform" policies={data?.platform_policies} />
+      <Policies type="Trigger" policies={data?.trigger_policies} />
+      <MetaGovernance />
+    </>
+  );
 }
 
 createRoot(document.getElementById("--react-dashboard")!).render(
