@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
+    origin: 'http://localhost:5173',
   },
   build: {
     manifest: "manifest.json",
