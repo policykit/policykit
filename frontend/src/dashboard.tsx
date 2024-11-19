@@ -2,8 +2,10 @@ import "vite/modulepreload-polyfill";
 import { StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import cancelIcon from "./icons/cancel.svg";
-import policiesEmptyIcon from "./icons/cancel.svg";
+// dont import SVG files directly because of issue with loading static assets in dev mode
+// BC can't load from insecure URL, proxying dev server is annoying, and can't inline them
+import CancelIcon from "./components/CancelIcon"
+import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon"
 
 import {
   useQuery,
@@ -47,11 +49,7 @@ export function Welcome() {
       <div className="flex items-center justify-between mb-8">
         <h2 className="h4 ">Welcome to {name}'s governance dashboard</h2>
         <button onClick={hide}>
-          <img
-            className="stroke-primary-dark"
-            alt="cancel icon"
-            src={cancelIcon}
-          />
+          <CancelIcon className="stroke-primary-dark" />
         </button>
       </div>
       <p className="mb-6">
@@ -99,7 +97,7 @@ export function Policies() {
         </button>
       </div>
       <div className="flex flex-col items-center justify-center gap-4 h-32">
-        <img alt="empty policies icon" src={policiesEmptyIcon} />
+        <PoliciesEmptyIcon />
         <p className="text-grey-dark">No Policies yet</p>
       </div>
     </section>
