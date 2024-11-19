@@ -2,8 +2,11 @@ import "vite/modulepreload-polyfill";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import {
+  useQuery,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -19,10 +22,14 @@ async function fetchData(url: string): Promise<any> {
 }
 
 function useData() {
-  const query = useQuery({ queryKey: ["community_docs"], queryFn: () => fetchData("/api/dashboard"), staleTime: Infinity, networkMode: "online" });
-  return query.data
+  const query = useQuery({
+    queryKey: ["community_docs"],
+    queryFn: () => fetchData("/api/dashboard"),
+    staleTime: Infinity,
+    networkMode: "online",
+  });
+  return query.data;
 }
-
 
 export function Guidelines() {
   const data = useData();
@@ -36,10 +43,11 @@ export function Guidelines() {
     </>
   );
 }
+
 createRoot(document.getElementById("--react-dashboard")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Guidelines />
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );
