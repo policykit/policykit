@@ -16,7 +16,10 @@ def evaluate_pending_proposals():
     from policyengine import engine
     from policyengine.models import Proposal, ExecutedActionTriggerAction, GovernableAction
 
+
     pending_proposals = Proposal.objects.filter(status=Proposal.PROPOSED)
+    #logger.debug("Running evaluate_pending_proposals:" + str(len(pending_proposals)))
+
     for proposal in pending_proposals:
         community_name = proposal.action.community.community_name
         logger.debug(f"{community_name} - Evaluating proposal '{proposal}'")

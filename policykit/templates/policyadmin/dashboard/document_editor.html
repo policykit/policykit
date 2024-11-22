@@ -1,15 +1,14 @@
-{% extends "./dashboard_base.html" %}
+{% extends base %}
 {% load static %}
-
 {% block styles %}
-<style>
+  <style>
   .body {
     display: flex;
     flex-direction: column;
   }
 
   .headerText {
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
     font-size: 2em;
   }
 
@@ -28,13 +27,13 @@
   }
 
   .control-label {
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
     font-size: 1.2em;
   }
 
   .btn {
     padding: 0.5em 2vw;
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
     font-size: 1.2em;
     background-color: #4451b2;
     color: #ffffff;
@@ -44,53 +43,39 @@
     background-color: #3b4699;
     color: #ffffff;
   }
-</style>
+  </style>
 {% endblock %}
-
 {% block content %}
-<div class="body">
-  <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
-      {% if operation == "Add" %}
-        <h3 class="headerText">Propose a new document</h3>
-      {% elif operation == "Change" %}
-        <h3 class="headerText">Propose edits to this document</h3>
-      {% endif %}
+  {% include "patterns/components/headers/modal.html" with title="Community document" %}
+  <div class="p-8 h-full overflow-auto">
+    <div class="mb-4 lg:w-1/2">
+      <label class="block small mb-2">Name</label>
+      <input class="bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary"
+             type="text"
+             id="document-name"
+             placeholder="Community Document"
+             required />
     </div>
-  </div>
-
-  <div class="form-row">
-    <label class="control-label col-sm-1" for="name">Name</label>
-    <div class="col-sm-11">
-      <input type="text" class="form-control name" id="name" required>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <label class="control-label col-sm-1" for="text">Text</label>
-    <div class="col-sm-11">
-      <textarea class="form-control text" id="text" required rows="12"></textarea>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-11">
+    <div>
+      <label class="block small mb-2">Text</label>
+      <textarea class="bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary"
+                type="text"
+                placeholder="Write or paste your text here"
+                id="document-text"
+                required
+                rows="12"></textarea>
       {% csrf_token %}
-      {% if operation == "Add" %}
-        <button type="button" class="btn" id="propose">Propose document</button>
-      {% elif operation == "Change" %}
-        <button type="button" class="btn" id="propose">Propose edits</button>
-      {% endif %}
     </div>
   </div>
-</div>
+  <div class="sticky bottom-0 px-4 lg:px-16 pt-6 pb-8 border-t border-background-focus flex justify-end gap-4 bg-white">
+    <button type="button" class="button secondary large">Delete</button>
+    <button type="submit" class="button primary large" id="document-propose">Save</button>
+  </div>
 {% endblock %}
-
 {% block scripts %}
-<script>
-  document.getElementById("propose").addEventListener("click", propose);
+  <script>
+  document.getElementById("document-propose").addEventListener("click", propose);
+  console.log(document.getElementById("document-propose"))
 
   // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
   function decodeHtml(html) {
@@ -100,11 +85,11 @@
   }
 
   {% if name %}
-    document.getElementById('name').value = decodeHtml(`{{name}}`);
+    document.getElementById('document-name').value = decodeHtml(`{{name}}`);
   {% endif %}
 
   {% if text %}
-    document.getElementById('text').value = decodeHtml(`{{text}}`);
+    document.getElementById('document-text').value = decodeHtml(`{{text}}`);
   {% endif %}
 
   function propose() {
@@ -112,12 +97,12 @@
     const operation = urlParams.get('operation');
     const doc = urlParams.get('doc');
 
-    const name = document.getElementById("name").value
-    const text = document.getElementById("text").value
+    const name = document.getElementById("document-name").value
+    const text = document.getElementById("document-text").value
 
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    fetch('../../../main/policyengine/document_action_save', {
+    fetch('/main/policyengine/document_action_save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,5 +123,5 @@
       }
     });
   }
-</script>
+  </script>
 {% endblock %}

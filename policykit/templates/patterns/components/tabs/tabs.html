@@ -1,0 +1,22 @@
+<ul @keydown.right.prevent.stop="$focus.wrap().next()"
+    @keydown.home.prevent.stop="$focus.first()"
+    @keydown.page-up.prevent.stop="$focus.first()"
+    @keydown.left.prevent.stop="$focus.wrap().prev()"
+    @keydown.end.prevent.stop="$focus.last()"
+    @keydown.page-down.prevent.stop="$focus.last()"
+    role="tablist"
+    class="border-b border-background-focus flex items-stretch -mb-0">
+  {% for tab in tabs %}
+    <li>
+      <button class="px-6 py-2 border-b mb-[-1px]"
+              :class="currentTab == $el.innerHTML ? 'text-primary border-primary-dark' : 'border-grey-light'"
+              @click="currentTab=$el.innerHTML"
+              :tabindex="currentTab == $el.innerHTML ? 0 : -1"
+              @mousedown.prevent
+              @focus="currentTab=$el.innerHTML"
+              :aria-selected="currentTab == $el.innerHTML"
+              type="button"
+              role="tab">{{ tab }}</button>
+    </li>
+  {% endfor %}
+</ul>

@@ -1,225 +1,62 @@
 {% load static %}
+{% load django_vite %}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet" href="{% static "bootstrap/css/semantic.min.css" %}">
-  <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
-  <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap-select.min.css" %}">
-
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2&family=Itim&family=Karla:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
-
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-	<style>
-    body {
-      margin: 0px;
-      padding: 0px;
-      background-color: #f8f9fa;
-    }
-
-    .header {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      position: fixed;
-      z-index: 999;
-      top: 0;
-      width: 100%;
-      height: 7vh;
-      padding: 0 15vw;
-      background-color: #f8f9fa;
-      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .brandContainer {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .brandLogo {
-      width: 60px;
-    }
-
-    .brandName {
-      font-family: 'Nunito', sans-serif;
-      font-size: 2em;
-      margin-left: 0.5em;
-    }
-
-    .communityContainer {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-    }
-
-    .communityName {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.6em;
-    }
-
-    .profileContainer {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .profileName {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.6em;
-      color: #000000;
-    }
-
-    .profileName:hover {
-      color: #000000;
-      text-decoration: none;
-    }
-
-    .dropdownMenu {
-      border-radius: 10px;
-    }
-
-    .dropdownItem {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1em;
-    }
-
-    .content {
-      margin: 7vh 15vw 0 15vw;
-      min-height: 70vh;
-      padding-top: 2em;
-      padding-bottom: 2em;
-    }
-
-    .footer {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      width: 100%;
-      height: 23vh;
-      padding: 5vh 20vw;
-      box-shadow:inset 0 3px 5px rgba(0, 0, 0, 0.1);
-      background-color: #f8f9fa;
-    }
-
-    .footerTitle {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.6em;
-    }
-
-    .footerText {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.2em;
-      display: block;
-      color: #000000;
-      margin-top: 0.2em;
-    }
-
-    .footerText:hover {
-      color: #000000;
-    }
-
-  </style>
-
-  {% block styles %}
-	{% endblock %}
-  <title>PolicyKit</title>
-</head>
-
-<body>
-  <div class="header">
-    <div class="brandContainer" id="brand">
-      <img class="brandLogo" src={% static "policyengine/img/logo.png" %}>
-      <h2 class="brandName">PolicyKit</h2>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% sentry %}
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>PolicyKit</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href={% static "policyengine/css/output.css" %}>
+    {% block styles %}{% endblock %}
+    <!-- Custom Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap"
+          rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static "policyengine/img/favicon_io/apple-touch-icon.png" %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static "policyengine/img/favicon_io/favicon-32x32.png" %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static "policyengine/img/favicon_io/favicon-16x16.png" %}">
+    <link rel="manifest" href="{% static "policyengine/img/favicon_io/site.webmanifest" %}">
+    <link rel="icon" href="{% static "policyengine/img/favicon_io/favicon.ico" %}" type="image/x-icon">
+    <!-- JS -->
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
+    {% vite_hmr_client %}
+    {% vite_react_refresh %}
+  </head>
+  <body>
+    <div class="lg:flex">
+      {% include "patterns/components/navigation/navigation.html" %}
+      <main class="grow relative">
+        {% block content %}{% endblock %}
+      </main>
+      {% include "patterns/components/modal/modal.html" %}
     </div>
-
-    <div class="communityContainer">
-      <h3 class="communityName">{{user.community.community_name}}</h3>
-    </div>
-
-    {% if user.is_authenticated %}
-    <div class="profileContainer dropdown" id="profile">
-      <a href="#" class="profileName dropdown-toggle" data-toggle="dropdown">Hi, {{user.readable_name}}</a>
-      <div class="dropdown-menu dropdownMenu">
-        <a href="{% url 'settings' %}" class="dropdown-item dropdownItem">Settings</a>
-        <a href="{% url 'django_db_logger:logs' %}" class="dropdown-item dropdownItem">Logs</a>
-        <div class="dropdown-divider"></div>
-        <a href="https://policykit.readthedocs.io/" target="_blank" class="dropdown-item dropdownItem">Documentation</a>
-        <div class="dropdown-divider"></div>
-        <a href="{% url 'logout' %}" class="dropdown-item dropdownItem">Log out</a>
-      </div>
-    </div>
-    {% endif %}
-  </div>
-
-  <div class="content">
-    {% block content %}
-    {% endblock %}
-  </div>
-
-  <div class="footer">
-    <div>
-      <p class="footerTitle">Research</p>
-      <a href="https://social.cs.washington.edu/index.html" target="_blank" class="footerText">Social Futures Lab</a>
-      <a href="https://arxiv.org/abs/2008.04236" target="_blank" class="footerText">Our ACM UIST 2020 Paper</a>
-      <a href="https://vimeo.com/446531759" target="_blank" class="footerText">Our ACM UIST 2020 Video</a>
-    </div>
-    <div>
-      <p class="footerTitle">Contribute</p>
-      <a href="https://github.com/amyxzhang/policykit" target="_blank" class="footerText">GitHub</a>
-      <a href="https://policykit.readthedocs.io/en/latest/index.html" target="_blank" class="footerText">Documentation</a>
-    </div>
-    <div>
-      <p class="footerTitle">Community</p>
-      <a href="https://discord.gg/p9PzjM4vcv" target="_blank" class="footerText">Discord</a>
-      <a href="https://policykit.us17.list-manage.com/subscribe/post?u=4a1d75598cb903abe5974f90d&id=07499cff74" target="_blank" class="footerText">Mailing List</a>
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdB_BE_iKX8TaPXHkBK_t0I8lSnux_IEtV0w4Fy7zqDqFyVtQ/viewform?usp=sf_link" target="_blank" class="footerText">Feedback Form</a>
-    </div>
-  </div>
-
-  <script>
-    document.getElementById("brand").addEventListener("click", navHome);
-
-    let profileElement = document.getElementById("profile");
-    profileElement && profileElement.addEventListener("mouseover", showDropdown);
-    profileElement && profileElement.addEventListener("mouseout", hideDropdown);
-
-    function navHome() {
-      window.location.href = "{{server_url}}/main/"
-    }
-
-    function showDropdown() {
-      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
-      for (let i = 0; i < dropdownElements.length; i++) {
-        dropdownElements[i].style.display = "inline-block"
-      }
-    }
-
-    function hideDropdown() {
-      var dropdownElements = document.getElementsByClassName("profileDropdownElement");
-      for (let i = 0; i < dropdownElements.length; i++) {
-        dropdownElements[i].style.display = "none"
-      }
-    }
-  </script>
-
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-  <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
-  <script src="{% static "bootstrap/js/bootstrap-select.min.js" %}"></script>
-
-  {% block scripts %}
-	{% endblock %}
-</body>
-
+    {% block scripts %}{% endblock %}
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script>
+      // tooltip
+      // to do: move to static one merged with branch that has static in more sensible directory
+    tippy('.tooltip', {
+      theme: 'custom',
+      // to do: fix issue with round arrow appearing always appearing at bottom
+      // arrow: tippy.roundArrow,
+    });
+    </script>
+  </body>
 </html>

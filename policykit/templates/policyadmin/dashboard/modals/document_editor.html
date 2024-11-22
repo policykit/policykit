@@ -1,0 +1,77 @@
+{% include "patterns/components/headers/modal.html" with title="Community document" %}
+<form>
+  <div class="p-8 h-full overflow-auto">
+    <div class="mb-4 lg:w-1/2">
+      <label class="block small mb-2">Name</label>
+      <input class="bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary"
+             type="text"
+             placeholder="Community Document"
+             required />
+    </div>
+    <div>
+      <label class="block small mb-2">Text</label>
+      <textarea class="bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary"
+                type="text"
+                placeholder="Write or paste your text here"
+                required
+                rows="12"></textarea>
+      {% csrf_token %}
+    </div>
+  </div>
+  <div class="sticky bottom-0 px-4 lg:px-16 pt-6 pb-8 border-t border-background-focus flex justify-end gap-4 bg-white">
+    <button type="button" class="button secondary large" id="propose">Delete</button>
+    <button type="submit" class="button primary large" id="propose">Save</button>
+  </div>
+</form>
+{% block scripts %}
+  <script>
+  document.getElementById("propose").addEventListener("click", propose);
+
+  // https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it
+  function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+  {% if name %}
+    document.getElementById('name').value = decodeHtml(`{{name}}`);
+  {% endif %}
+
+  {% if text %}
+    document.getElementById('text').value = decodeHtml(`{{text}}`);
+  {% endif %}
+
+  function propose() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const operation = urlParams.get('operation');
+    const doc = urlParams.get('doc');
+
+    const name = document.getElementById("name").value
+    const text = document.getElementById("text").value
+
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch('../../../main/policyengine/document_action_save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        'operation': operation,
+        'doc': doc,
+        'name': name,
+        'text': text
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.href = "/main/"
+      } else {
+        throw Error(response.statusText);
+      }
+    });
+  }
+  </script>
+{% endblock %}

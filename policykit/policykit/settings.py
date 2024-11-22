@@ -24,9 +24,15 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     SERVER_URL=(str, "http://127.0.0.1:8000"),
     LOG_FILE=(str, "debug.log"),
+    DATABASE_URL=(str, "sqlite:///" + os.path.join(BASE_DIR, 'db.sqlite3')),
+    CELERY_BROKER_URL=(str, "amqp://guest:guest@localhost:5672/"),
 
     # DEV SECRET! override by setting DJANGO_SECRET_KEY in .env file
-    DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-')
+    DJANGO_SECRET_KEY=(str, 'kg=&9zrc5@rern2=&+6yvh8ip0u7$f=k_zax**bwsur_z7qy+-'),
+    SENTRY_SERVER_DSN=(str, None),
+    SENTRY_CLIENT_SCRIPT=(str, None),
+    DJANGO_DEBUG_TOOLBAR=(bool, False),
+    DJANGO_VITE_DEV_MODE=(bool, False),
 )
 environ.Env.read_env()
 
@@ -34,7 +40,19 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SERVER_URL = env("SERVER_URL")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
+SENTRY_SERVER_DSN = env("SENTRY_SERVER_DSN")
+SENTRY_CLIENT_SCRIPT = env("SENTRY_CLIENT_SCRIPT")
 LOGIN_URL = "/login"
+DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
+DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
+
+if SENTRY_SERVER_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_SERVER_DSN,
+        traces_sample_rate=1.0,
+    )
 
 # Application definition
 INTEGRATIONS = [
@@ -73,7 +91,11 @@ INSTALLED_APPS = [
     'metagov.plugins.example', #for testing
     'metagov.core',
     'policyengine',
-    'constitution'
+    'constitution',
+    'policybuilding_apps',
+    'pattern_library',
+    "rest_framework",
+    "django_vite"
 ] + INTEGRATIONS
 
 SITE_ID = 1
@@ -145,6 +167,10 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            "builtins": [
+                "pattern_library.loader_tags",
+                'policykit.sentry'
+            ],
         },
     },
 ]
@@ -156,13 +182,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    },
-
+    'default': {**env.db('DATABASE_URL'), 'ATOMIC_REQUESTS': True}
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -273,19 +294,63 @@ CELERY_BEAT_SCHEDULE = {
         "task": "policyengine.tasks.evaluate_pending_proposals",
         "schedule": CELERY_BEAT_FREQUENCY,
     },
-    # Poll reddit for updates
-    "reddit-listener-beat": {
-        "task": "integrations.reddit.tasks.reddit_listener_actions",
-        "schedule": CELERY_BEAT_FREQUENCY,
-    },
-    # Poll discourse for updates
-    "discourse-listener-beat": {
-        "task": "integrations.discourse.tasks.discourse_listener_actions",
-        "schedule": CELERY_BEAT_FREQUENCY,
-    },
+    # # Poll reddit for updates
+    # "reddit-listener-beat": {
+    #     "task": "integrations.reddit.tasks.reddit_listener_actions",
+    #     "schedule": CELERY_BEAT_FREQUENCY,
+    # },
+    # # Poll discourse for updates
+    # "discourse-listener-beat": {
+    #     "task": "integrations.discourse.tasks.discourse_listener_actions",
+    #     "schedule": CELERY_BEAT_FREQUENCY,
+    # },
     # Metagov task for polling external platforms
     "metagov-plugins-beat": {
         "task": "metagov.core.tasks.execute_plugin_tasks",
         "schedule": CELERY_BEAT_FREQUENCY,
     },
 }
+
+PATTERN_LIBRARY = {
+    # Groups of templates for the pattern library navigation. The keys
+    # are the group titles and the values are lists of template name prefixes that will
+    # be searched to populate the groups.
+    "SECTIONS": (
+        ("components", ["patterns/components"]),
+        ("pages", ["patterns/pages"]),
+    ),
+
+    # Configure which files to detect as templates.
+    "TEMPLATE_SUFFIX": ".html",
+
+    # Set which template components should be rendered inside of,
+    # so they may use page-level component dependencies like CSS.
+    "PATTERN_BASE_TEMPLATE_NAME": "patterns/base.html",
+
+    # Any template in BASE_TEMPLATE_NAMES or any template that extends a template in
+    # BASE_TEMPLATE_NAMES is a "page" and will be rendered as-is without being wrapped.
+    "BASE_TEMPLATE_NAMES": ["patterns/base_page.html"],
+}
+
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    }
+
+# server_url_parsed = urllib.parse.urlparse(SERVER_URL)
+
+DJANGO_VITE = {
+  "default": {
+    "static_url_prefix": "bundler",
+    "manifest_path": os.path.join(BASE_DIR, '../frontend/assets/manifest.json'),
+    "dev_mode": DJANGO_VITE_DEV_MODE,
+  }
+}
+
+
+STATICFILES_DIRS = [
+    ('bundler', os.path.join(BASE_DIR, '../frontend/assets')),
+]

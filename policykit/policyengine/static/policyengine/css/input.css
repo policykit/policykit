@@ -1,0 +1,329 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Nunito", sans-serif;
+}
+
+/* typography */
+
+@layer components {
+  h1,
+  .h1 {
+    font-size: 2rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 38.4px */
+  }
+
+  h2,
+  .h2 {
+    font-size: 1.8125;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 34.8px */
+  }
+
+  h3,
+  .h3 {
+    font-size: 1.5625rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 30px */
+  }
+
+  h4,
+  .h4 {
+    font-size: 1.375rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 26.4px */
+  }
+
+  p.large,
+  .p.large {
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 25.08px */
+  }
+
+  p,
+  .p {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 21.12px */
+  }
+
+  p.focussed,
+  .p.focussed {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  p.small,
+  span.small,
+  .p.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  p.small.focussed,
+  .p.small.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  .subtext {
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 14.4px */
+  }
+
+  /* button */
+
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
+  .button.primary {
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
+  }
+
+  .button.large {
+    @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 22.8px */
+  }
+
+  .button.large.secondary {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
+
+  .button.medium,
+  .button.small,
+  .button.tiny {
+    @apply rounded-[3.5px];
+  }
+
+  .button.medium {
+    @apply px-8 py-2 flex gap-2 items-center;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
+  }
+
+  .button.medium.primary svg.external-link-icon {
+    @apply fill-white;
+  }
+
+  .button.small {
+    @apply px-4 py-2 flex gap-2 items-center;
+  }
+
+  .button.small,
+  .button.tiny,
+  .link.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  .button.small,
+  .button.medium.secondary,
+  .button.tiny.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  .button.small svg,
+  .button.medium.secondary svg,
+  .button.tiny.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  .button.small svg.external-link-icon,
+  .button.medium.secondary svg.external-link-icon,
+  .button.tiny.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  .button.tiny {
+    @apply px-3 py-1.5 flex gap-2 items-center;
+  }
+
+  .button.error {
+    @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
+  }
+
+  .button:disabled {
+    @apply !cursor-not-allowed
+   /* !bg-grey !text-white; */;
+  }
+
+  .button.icon-only {
+    @apply px-2 rounded-full w-[34px] h-[34px];
+  }
+
+  .button.icon-only svg {
+    @apply w-full h-full;
+  }
+
+  .button.slack {
+    @apply bg-slack py-3 rounded-[4px];
+  }
+
+  /* links */
+
+  .link {
+    @apply px-2 py-1 rounded-[3.5px] text-primary-dark hover:bg-primary-lightest;
+
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
+  }
+
+  /* search input */
+
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+  }
+
+  /* text input */
+
+  input[type="text"],
+  textarea {
+    @apply bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary w-full;
+  }
+
+  /* radio */
+
+  input[type="radio"] {
+    @apply border-primary-dark disabled:border-grey rounded-sm checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
+  }
+
+  input[type="radio"] {
+    @apply mt-1;
+  }
+
+  .radio-group {
+    @apply space-y-4;
+  }
+
+  .radio-group-item {
+    @apply flex items-start gap-4 px-6 py-4 cursor-pointer rounded-lg border-2 border-background-focus focus:outline focus:outline-primary hover:shadow-focus hover:border-primary;
+  }
+
+  .radio-group label:has(input:checked) {
+    @apply border-primary shadow-focus;
+  }
+
+  /* checkbox */
+
+  input[type="checkbox"] {
+    @apply absolute opacity-0 w-4 h-4;
+  }
+
+  .checkbox {
+    @apply stroke-primary-dark;
+  }
+
+  .checkbox-label:hover .checkbox-bg {
+    @apply fill-primary-light;
+  }
+
+  input[type="checkbox"]:checked + svg .checkbox-bg {
+    @apply fill-primary-dark;
+  }
+}
+
+/* alpine js */
+
+/* fix blip with on initial load with elements using x-cloak */
+[x-cloak=""] {
+  display: none;
+}
+
+/* mobile only x-cloak */
+@media screen and (max-width: 768px) {
+  [x-cloak="mobile"] {
+    display: none;
+  }
+}
+
+/* tippy js tooltip styling */
+
+.tippy-content {
+  border-radius: 3px;
+  max-width: 201px;
+  padding: 18px;
+}
+
+.tippy-box[data-theme~="custom"] {
+  @apply bg-background-focus text-grey-darkest shadow-dark;
+}
+
+.tippy-tooltip.custom-theme .tippy-roundarrow {
+  @apply fill-background-focus;
+}
+
+/* .tippy-box[x-placement^="right"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-right: 7px solid;
+}
+.tippy-box[x-placement^="left"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-left: 7px solid;
+}
+.tippy-box[x-placement^="top"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-top: 7px solid;
+}
+.tippy-box[x-placement^="bottom"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-bottom: 7px solid;
+} */
+
+.tippy-arrow {
+  @apply text-background-focus;
+}
+
+/* tables */
+
+.table-container {
+  @apply border border-background-light p-4 rounded-[4px];
+}
+
+table {
+  @apply table-auto w-full;
+}
+
+th {
+  @apply bg-background-light text-left;
+}
+
+th {
+  @apply px-4 py-2;
+}
+
+tr {
+  @apply border-t border-background-light;
+}
+
+td {
+  @apply p-4;
+}

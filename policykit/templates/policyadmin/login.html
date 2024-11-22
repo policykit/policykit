@@ -1,132 +1,130 @@
-{% extends "admin/base_site.html" %}
+{% extends "base.html" %}
 {% load i18n static %}
-
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/login.css" %}">
-{{ form.media }}
-{% endblock %}
-
-{% block extrahead %}
-<script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
-<script src={% static "policyengine/js/login.js" %}></script>
-{% endblock %}
-
-{% block bodyclass %}{{ block.super }} login {% endblock %}
-
+{% block bodyclass %}{{ block.super }} login{% endblock %}
 {% block usertools %}{% endblock %}
-
 {% block nav-global %}{% endblock %}
-
 {% block content_title %}{% endblock %}
-
 {% block breadcrumbs %}{% endblock %}
-
 {% block content %}
-
-{% if request.GET.error %}
-  <div class="error">
-    {% if request.GET.error == 'slack_wrong_community' %}
-      PolicyKit is already installed to your Slack workspace! Sign in with Slack to continue.
-    {% elif request.GET.error == 'slack_installer_is_not_admin' %}
-      Installation failed! Only Slack workspace admins are permitted to install PolicyKit.
-    {% elif request.GET.error == 'discord_wrong_community' %}
-      PolicyKit is already installed to your Discord guild! Sign in with Discord to continue.
-    {% elif request.GET.error == 'discord_installer_is_not_admin' %}
-      Installation failed! Only Discord guild owners are permitted to install PolicyKit.
-    {% elif request.GET.error_description %}
-      {{ request.GET.error_description }}
-    {% else %}
-      Error: {{ request.GET.error }}
-    {% endif %}
-  </div>
-{% endif %}
-
-{% if request.GET.success %}
-  Successfully added PolicyKit!
-{% endif %}
-
-<P>
+  <main class="flex-col md:flex-row flex min-h-screen items-center justify-between">
+    <div class="h-[25vh] w-full md:w-1/5 lg:w-2/5 md:h-full md:min-h-screen"
+         style="background: linear-gradient(243deg, rgba(222, 195, 252, 0.57) 1.25%, rgba(196, 196, 252, 0.68) 45.36%, #99C4FC 97.5%)">
+    </div>
+    <div class="md:grow container">
+      <div class="max-w-sm mb-16 md:mb-32 mx-auto">
+        <h1 class="mb-8">Sign in</h1>
+        <p class="large mb-16">Sign in to PolicyKit using your community's home base platform.</p>
+        <a href="/authorize_platform?platform=slack&type=user"
+           class="button slack block mb-16">
+          <img class="mx-auto h-6" height="24px" width="160px" src="{% static "policyengine/img/slack-sign-in.svg" %}" alt="Sign in with slack" />
+        </a>
+        {% if request.GET.error %}
+          <div class="error">
+            {% if request.GET.error == 'slack_wrong_community' %}
+              PolicyKit is already installed to your Slack workspace! Sign in with Slack to continue.
+            {% elif request.GET.error == 'slack_installer_is_not_admin' %}
+              Installation failed! Only Slack workspace admins are permitted to install PolicyKit.
+            {% elif request.GET.error == 'discord_wrong_community' %}
+              PolicyKit is already installed to your Discord guild! Sign in with Discord to continue.
+            {% elif request.GET.error == 'discord_installer_is_not_admin' %}
+              Installation failed! Only Discord guild owners are permitted to install PolicyKit.
+            {% elif request.GET.error_description %}
+              {{ request.GET.error_description }}
+            {% else %}
+              Error: {{ request.GET.error }}
+            {% endif %}
+          </div>
+        {% endif %}
+        <p>
+          Not connected to PolicyKit?
+          <a class="ml-2.5" href="/connect">Connect</a>
+        </p>
+      </div>
+    </div>
+  </main>
+  <!-- <p>
   <b>Connect PolicyKit to Slack</b>
-  <BR>
-  You must be an admin of the Slack to add PolicyKit to your workspace.<BR>
-  <P>
+  <br>
+  You must be an admin of the Slack to add PolicyKit to your workspace.<br>
+  <p>
     <a href="/authorize_platform?platform=slack&type=app">
       Install PolicyKit to Slack
     </a>
-  </P>
-  <P>
+  </p>
+  <p>
     <a href="/authorize_platform?platform=slack&type=user">
       Sign in with Slack
     </a>
-  </P>
-</P>
+  </p>
+</p>
 
-<BR>
+<br>
 
 {% if reddit_client_id %}
-<P>
+<p>
 <b>Connect PolicyKit to Reddit</b>
-<BR>
+<br>
 
 Because Reddit doesn't grant permissions on a subreddit by subreddit basis, you should create a Reddit account and make that account a moderator
 with full permissions on your Reddit. Then, while logged in to that account, click below to grant PolicyKit permission to act on behalf of that account.
 
 
-<BR>
+<br>
 
 
 <a href="https://www.reddit.com/api/v1/authorize?client_id={{reddit_client_id}}&response_type=code&state=policykit_reddit_mod_install&redirect_uri={{server_url}}%2Freddit%2Foauth&duration=permanent&scope=modcontributors,modmail,mysubreddits,modconfig,modflair,modothers,modtraffic,modself,modlog,modposts,modwiki,read,privatemessages,submit">
-	Install PolicyKit to Reddit
+  Install PolicyKit to Reddit
 </a>
 
-</P>
+</p>
 
-<P>
+<p>
 
 You must be a subscriber to the Subreddit first.
-<BR>
+<br>
 <a href="https://www.reddit.com/api/v1/authorize?client_id={{reddit_client_id}}&response_type=code&state=policykit_reddit_user_login&redirect_uri={{server_url}}%2Freddit%2Foauth&duration=permanent&scope=edit,flair,identity,mysubreddits,read,submit,save,vote">
-	Sign in with Reddit
+  Sign in with Reddit
 </a>
 
-</P>
+</p>
 {% endif %}
 
-<BR>
+<br>
 
-<P>
+<p>
   <b>Connect PolicyKit to Discord</b>
-  <BR>
-  You must be an admin of the Discord to add PolicyKit to your server.<BR>
-  <P>
+  <br>
+  You must be an admin of the Discord to add PolicyKit to your server.<br>
+  <p>
     <a href="/authorize_platform?platform=discord&type=app">
       Install PolicyKit to Discord
     </a>
-  </P>
-  <P>
+  </p>
+  <p>
     <a href="/authorize_platform?platform=discord&type=user&redirect_uri={{server_url}}%2Fdiscord%2Flogin">
       Sign in with Discord
     </a>
-  </P>
-</P>
+  </p>
+</p>
 
-<BR>
+<br>
 
-<P>
+<p>
 <b>Connect PolicyKit to Discourse</b>
 
-<BR>
-You must be an admin of the Discourse to add PolicyKit to your community.<BR>
+<br>
+You must be an admin of the Discourse to add PolicyKit to your community.<br>
 
 <a href="../discourse/configure?state=policykit_discourse_mod_install">
   Install PolicyKit to Discourse
 </a>
-</P>
+</p>
 
-<P>
+<p>
 
 <a href="../discourse/configure?state=policykit_discourse_user_login">
   Sign in with Discourse
 </a>
 
-</P>
+</p> -->
 {% endblock %}

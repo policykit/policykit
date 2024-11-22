@@ -62,10 +62,10 @@ class EvaluationContext:
         self.proposal = proposal
 
         # Can't use logger in filter step because proposal isn't saved yet
+        logger_context = {"community": self.action.community.community} 
         if proposal.pk:
-            self.logger = EvaluationLogAdapter(
-                db_logger, {"community": self.action.community.community, "proposal": proposal}
-            )
+            logger_context["proposal"] = proposal
+        self.logger = EvaluationLogAdapter(db_logger, logger_context)
 
         from policyengine.models import Community, CommunityPlatform
 
@@ -89,16 +89,16 @@ class EvaluationContext:
 
         variables = {}
         initialize_codes = []
-        """ 
-            put the initialize codes for non-string type variables before others, 
+        """
+            put the initialize codes for non-string type variables before others,
             as people could potentially embed these variables in a string
         """
         for variable in self.policy.variables.all() or []:
             if not variable.entity:
-                """       
+                """
                     Integer and float variables are literal values so we can directly parse their values.
-                    it is unlikely that users will use another variable as their values 
-                    as there are actually no integer or float parameters for any Slack actions or executions. 
+                    it is unlikely that users will use another variable as their values
+                    as there are actually no integer or float parameters for any Slack actions or executions.
                 """
                 variables[variable.name] = variable.get_variable_values()
             else:
@@ -110,7 +110,7 @@ class EvaluationContext:
                     # remove empty curly bracket pairs to avoid errors when executing the code
                     code = f"variables.{variable.name} = f\"{validated_value}\""
                     # this is safe because for now all variables are string type
-                    intialize_weight = 2 if variable.entity == "Text" else 1 
+                    intialize_weight = 2 if variable.entity == "Text" else 1
                     # we first initialize other entities in case users embed other variables in creating the context of a Text variable
                     initialize_codes.append((code, intialize_weight))
 
@@ -132,11 +132,13 @@ class EvaluationContext:
                     variables[variable.name] = variable.validate_value(variables[variable.name])
                     # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
 
-            
+
             setattr(self, "variables", variables)
         else:
             setattr(self, "variables", AttrDict(variables))
         logger.debug(f"All initialized variables: {self.variables}")
+
+
 class PolicyEngineError(Exception):
     """Base class for exceptions raised from the policy engine"""
 
@@ -250,7 +252,7 @@ def evaluate_action(action):
 
 def create_prefiltered_proposals(action, policies, allow_multiple=False):
     """
-    Evaluate aciton against the Filter step in all provided policies, and return the Proposal
+    Evaluate action against the Filter step in all provided policies, and return the Proposal
     for the first Policy where the aciton passed the Filter.
 
     If allow_multiple is true, returns a *list* of all Proposals where the action passed the filter (used for Triggers).
@@ -319,6 +321,7 @@ def evaluate_proposal(proposal, is_first_evaluation=False):
         raise
     except PolicyCodeError as e:
         # Log policy code exception to the db, so policy author can view it in the UI.
+        logger.debug(str(e))
         context.logger.error(str(e))
         raise
     except Exception as e:
@@ -334,11 +337,14 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     action = proposal.action
     policy = proposal.policy
 
+    #logger.debug('*')
+    #logger.debug(action.__dict__)
+
     if not exec_code_block(policy.filter, context, Policy.FILTER):
         # logger.debug("does not pass filter")
         raise PolicyDoesNotPassFilter
 
-    
+
 
     # If policy is being evaluated for the first time, run "initialize" block
     if is_first_evaluation:
@@ -354,6 +360,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
         context.logger.debug(f"Evaluating Proposal {proposal.pk}, check returned {check_result.upper()}")
 
     if check_result == Proposal.PASSED:
+        logger.debug('Met PASS conditions!')
         # run "pass" block of policy
         exec_code_block(policy.success, context, Policy.SUCCESS)
         # mark proposal as 'passed'
@@ -376,7 +383,7 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
     )
 
     if should_revert:
-        context.logger.debug(f"Reverting action")
+        context.logger.debug("Reverting action")
         action._revert()
 
     # If this action is moving into pending state for the first time, run the Notify block (to start a vote, maybe)

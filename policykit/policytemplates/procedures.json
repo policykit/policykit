@@ -3,7 +3,7 @@
         "name": "Majority Voting",
         "description": "A simple yes-no vote procedure: if the percentage of yes votes is greater than or equal to the minimum required, the proposal is passed. If the percentage of no votes is greater than or equal to the maximum allowed, the proposal is failed. Otherwise, the proposal is still in progress.",
         "platform": "Slack",
-        "initialize": [], 
+        "initialize": [],
         "check": {
                 "name": "main",
                 "codes": "if not proposal.vote_post_id:\n\t# initialize stage, use default value for variables that are not specified by users\n\tif not variables.vote_channel:\n\t\tproposal.data.set(\"vote_channel\", action.channel)\n\telse:\n\t\tproposal.data.set(\"vote_channel\", variables.vote_channel)\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users_in_channel(variables.vote_channel)])\n\t\tlogger.debug(f\"eligible users are {[str(user) for user in slack.get_users_in_channel(variables.vote_channel)]}\")\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n\treturn None\n\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables.minimum_yes_required:\n\tslack.post_message(f\"The procedure passed with {yes_votes} :thumbsup: votes and {no_votes} :thumbsdown: votes\", post_type='channel', channel=proposal.data.get(\"vote_channel\"))\n\treturn PASSED\nelif no_votes >= variables.maximum_no_allowed:\n\tslack.post_message(f\"The procedure failed with {yes_votes} :thumbsup: votes and {no_votes} :thumbsdown: votes\", post_type='channel', channel=proposal.data.get(\"vote_channel\"))\n\treturn FAILED\n\nreturn PROPOSED\n"
@@ -41,7 +41,7 @@
                 "prompt": "",
                 "type": "string",
                 "is_list": true
-                
+
             },
             {
                 "name": "minimum_yes_required",
@@ -481,7 +481,7 @@
         "platform": "Slack",
         "initialize": [],
         "check": {
-                "name": "main", 
+                "name": "main",
                 "codes": "if proposal.data.get(\"delegate_stage\") is None:\n\tproposal.data.set(\"delegate_stage\", True)\n\nif not proposal.data.get(\"username_dict\") or not proposal.data.get(\"readable_name_dict\"):\n\tall_users_dict = {user.username: str(user) for user in slack.get_users()}\n\tusername_dict = {username: all_users_dict[username] for username in variables.eligible_voters}\n\treadable_name_dict = {readable_name: username for username, readable_name in username_dict.items()}\n\tproposal.data.set(\"username_dict\", username_dict)\n\tproposal.data.set(\"readable_name_dict\", readable_name_dict)\n\tproposal.data.set(\"eligible_voters_with_readable_names\", [all_users_dict[username] for username in variables.eligible_voters])\nif not proposal.vote_post_id:\n\treturn None\n\n\nif proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > variables.delegate_duration:\n\tlogger.debug(\"We are now at the delegation process\")\n\treadable_name_dict = proposal.data.get(\"readable_name_dict\")\n\tusername_dict = proposal.data.get(\"username_dict\")\n\t\n\toutcomes = proposal.get_select_votes_by_users()\n\tfake_option = \"Your representative for this proposal\"\n\tdelegates_dict = {}\n\tproxy_dict = {}\n\tfor user in variables.eligible_voters: # iterate all usernames, including those who have not voted\n\t\tvotes = outcomes.get(user, {})\n\t\tif votes.get(fake_option, {}) and readable_name_dict.get(votes[fake_option], \"\") != user:\n\t\t\tdelegates_dict[user] = readable_name_dict[votes[fake_option]] # converted to user id\n\t\t\tslack.post_message(f\"You have delegated your votes to {votes[fake_option]}\", users=[user], post_type=\"ephemeral\", channel=variables.procedure_channel)\n\t\telse:\n\t\t\tdelegates_dict[user] = user\n\t\t\tproxy_dict[user] = [user]\n            \n    # TODO: we need to decide whether there is a loop in this directed graph\n\tfor voter, delegate in delegates_dict.items():\n\t\tif voter not in proxy_dict: # they delegate their votes to others\n\t\t\tfinal_delegate = delegate\n\t\t\twhile final_delegate not in proxy_dict:\n\t\t\t\tfinal_delegate = delegates_dict[final_delegate]\n\t\t\tproxy_dict[final_delegate].append(voter)\n\tfor proxy, delegate_list in proxy_dict.items():\n\t\treadable_names = \", \".join(username_dict[user] for user in delegate_list)\n\t\tslack.post_message(f\"When making decision on this proposal, please remember that you are representing the following users {readable_names}\", post_type=\"ephemeral\", users=[proxy], channel=variables.procedure_channel)\n\tlogger.debug(\"representatives: \" + \", \".join([username_dict[proxy] for proxy in proxy_dict.keys()]))\n\tslack.initiate_vote(users=[key for key in proxy_dict.keys()], post_type=\"channel\", text=\"We have collected people's delegation results, and now let's vote on this proposal\", channel=variables.procedure_channel)\n\tproposal.data.set(\"proxy_dict\", proxy_dict)\n\tproposal.data.set(\"delegate_stage\", False)\n\treturn PROPOSED\n\nif not proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > (variables.delegate_duration + variables.vote_duration):\n\tlogger.debug(\"We are now at the actual voting process\")\n\tproxy_dict = proposal.data.get(\"proxy_dict\")\n\tyes_votes = proposal.get_yes_votes()\n\tweighted_yes_votes_sum = 0\n\tfor vote in yes_votes:\n\t\tweighted_yes_votes_sum += len(proxy_dict[vote.user.username])\n\tno_votes = proposal.get_no_votes()\n\tweighted_no_votes_sum = 0\n\tfor vote in no_votes:\n\t\tweighted_no_votes_sum += len(proxy_dict[vote.user.username])\n\tslack.post_message(f\"There are in total {weighted_yes_votes_sum} yes votes and {weighted_no_votes_sum} no votes\")\n\tif weighted_yes_votes_sum > weighted_no_votes_sum:\n\t\treturn PASSED\n\telse:\n\t\treturn FAILED\nreturn PROPOSED"
         },
         "notify": [
@@ -559,7 +559,7 @@
         "platform": "Slack",
         "initialize": [],
         "check": {
-                "name": "main", 
+                "name": "main",
                 "codes": "\nreturn PASSED"
         },
         "notify": [],

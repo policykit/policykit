@@ -17,7 +17,7 @@ PolicyKit requires Python 3. Our guide recommends that you manage the repository
 	git clone https://github.com/policykit/policykit.git
 	cd policykit
 
-2. Install Python3, create a virtual environment for Policykit, and ensure your environment is using the latest version of pip: 
+2. Install Python3, create a virtual environment for Policykit, and ensure your environment is using the latest version of pip:
 
 .. code-block:: shell
 
@@ -42,7 +42,7 @@ Your terminal prompt should change to look something like this ``(policykit_venv
 	cd policykit
 	cp .env.example .env
 
-To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``. 
+To run PolicyKit in production, you'll need to change some values in the ``.env`` file such as the ``DJANGO_SECRET_KEY`` and ``SERVER_URL``.
 
 For local development, all you need to do is set ``DEBUG=true``.
 
@@ -68,6 +68,56 @@ There is an open issue to support logging in without any third-party platform: `
 To log in to PolicyKit, you'll need to install it on a server and set up at least 1 of the auth-enabled integrations.
 
 
+Local Development (with docker)
+-----------------
+
+You can also deploy PolicyKit using Docker.
+
+1. Make sure to have Docker and Docker Compose installed.
+
+2. Clone the repo, navigate to the root and create a copy of ``policykit/policykit/.env.example`` as ``.env``:
+
+   .. code-block:: shell
+
+        cp policykit/policykit/.env.example .env
+
+3. Create a ngrok account and [claim your free static domain](https://ngrok.com/blog-post/free-static-domains-ngrok-users).
+   Then add your domain and auth token to the ``.env`` file:
+
+.. code-block:: shell
+
+        DOMAIN=xyz.ngrok-free.app
+        NGROK_AUTHTOKEN=467...
+
+
+4. Next, to create and set up the database run the following commands:
+
+.. code-block:: shell
+
+	docker compose run --rm web python3 manage.py makemigrations
+        docker compose run --rm web python3 manage.py migrate
+        docker compose run --rm web python3 manage.py
+
+5. Finally, to run PolicyKit and all its services run:
+
+.. code-block:: shell
+
+	docker compose up
+
+6. Then you can access PolicyKit in the browser at ``http://localhost:8000`` or ``https://<DOMAIN>``.
+
+7. To be able to sign in, follow the steps below for setting up Slack. Use ``https://<DOMAIN>`` as your web address.
+
+8. If you would like to try running with all the assets bunlded, as it is in production, run:
+
+.. code-block:: shell
+
+        docker compose run --rm frontend yarn build
+        env DJANGO_VITE_DEV_MODE=False docker compose run --rm web python manage.py collectstatic
+        env DJANGO_VITE_DEV_MODE=False docker compose up web
+
+
+
 Running PolicyKit on a Server
 -----------------------------
 
@@ -81,7 +131,7 @@ Thus far, we have run Policykit in Ubuntu 18.04 and Ubuntu 20.04. The instructio
 		cd policykit
 
 2. Install Python3, create a virtual environment for PolicyKit, and ensure your environment is using the latest version of pip:
-         
+
 	.. code-block:: shell
 
 		sudo apt install python3-pip python3-venv
@@ -99,12 +149,12 @@ Your terminal prompt should change to look something like this ``(policykit_venv
 		pip install -r requirements.txt
 
 4. Next, run the following commands to create an ``.env`` file to store your settings and secrets:
-           
+
 	.. code-block:: shell
 
 		cd policykit
 		cp .env.example .env
- 
+
 5. Generate a secret key for Django using this command:
 
 	.. code-block:: shell
@@ -141,7 +191,7 @@ By default, PolicyKit will create a sqlite3 database in the root directory. If y
 Deploy with Apache web server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now that you have PolicyKit installed on your server, you can deploy it on Apache web server. 
+Now that you have PolicyKit installed on your server, you can deploy it on Apache web server.
 
 Make sure you have a domain dedicated to Policykit that is pointing to your server's IP address.
 
@@ -158,7 +208,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 1. Install apache2 and the apache module Web Server Gateway Interface:
 
 	.. code-block:: shell
-        
+
         	sudo apt-get install apache2 libapache2-mod-wsgi-py3
 
 2. Create a new apache2 config file:
@@ -179,8 +229,8 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                         	ServerAdmin webmaster@localhost
                         	Alias /static $POLICYKIT_REPO/policykit/static
                         	DocumentRoot $POLICYKIT_REPO
-                        
-                        	# Grant access to the static site 
+
+                        	# Grant access to the static site
                         	<Directory $POLICYKIT_REPO/policykit/static>
                                 	Require all granted
                         	</Directory>
@@ -191,7 +241,7 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
                                         	Require all granted
                                 	</Files>
                         	</Directory>
-                        
+
                         	# Setup the WSGI Daemon
                         	WSGIDaemonProcess policykit python-home=$POLICYKIT_ENV python-path=$POLICYKIT_REPO/policykit
                         	WSGIProcessGroup policykit
@@ -229,19 +279,19 @@ Make sure you have a domain dedicated to Policykit that is pointing to your serv
 8. Reload the config:
 
 	.. code-block:: shell
-        
+
 		systemctl reload apache2
 
 9. Give the Apache2 user (aka ``www-data``) access to the Django log directory and the database directory. Update paths as needed based on personal setup:
 
 	.. code-block:: shell
-        
+
         	sudo chown -R www-data:www-data /var/log/django/policykit/
         	sudo chown -R www-data:www-data /var/databases/policykit/
 
 10. Load your site in the browser and navigate to ``/login``. You should see a site titled "PolicKiy Administration" with options to connect to Slack, Discourse, and Discord. Before you can install PolicyKit into any of these platforms, you'll need to set the necessary Client IDs and Client Secrets in ``.env``. Follow the setup instructions for these and other integrations in :doc:`Integrations <integrations>`.
 
-  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/policykit/debug.log`` (or whatever logging path you set in ``.env``). 
+  Check for errors at ``/var/log/apache2/error.log`` and ``/var/log/django/policykit/debug.log`` (or whatever logging path you set in ``.env``).
 
 11. Any time you update the code, you'll need to run ``systemctl reload apache2`` to reload the server.
 
@@ -256,7 +306,7 @@ Create celery user
 If you don't already have a ``celery`` user, create one:
 
 .. code-block:: bash
-        
+
         sudo useradd celery -d /home/celery -b /bin/bash
 
 Give the ``celery`` user access to necessary pid and log folders:
@@ -291,14 +341,14 @@ The ``celery`` user will also need write access to the Django log file and the d
 Create Celery configuration files
 """""""""""""""""""""""""""""""""
 
-Next, you'll need to create three Celery configuration files for PolicyKit 
+Next, you'll need to create three Celery configuration files for PolicyKit
 
 .. note::
 
         Remember to substitute the following variables with an absolute path:
-        
+
         ``$POLICYKIT_ENV`` is the path to your policykit virtual environment. (i.e. ``/var/www/policykit/policykit_venv``)
-        
+
         ``$POLICYKIT_REPO`` is the path to your policykit repository root. (i.e. ``/var/www/policykit``)
 
 ``/etc/conf.d/celery``
@@ -399,7 +449,7 @@ Next, install RabbitMQ, a message broker:
 
 Enable and start the RabbitMQ service:
 
-:: 
+::
 
  sudo systemctl enable rabbitmq-server
  sudo service rabbitmq-server start
@@ -414,7 +464,7 @@ Check the status to make sure everything is running smoothly:
 Finally, run the following commands to start the celery daemon:
 
 ::
- 
+
  sudo systemctl start celery celerybeat
 
 
@@ -497,7 +547,7 @@ Visit https://api.slack.com/apps and click the "Create New App" button, and then
 
 Give your app a name and pick a workspace to develop your app in.
 
-You must be the admin of the workspace to add a new app. If you are not an admin of any current workspace you can create a new workspace. 
+You must be the admin of the workspace to add a new app. If you are not an admin of any current workspace you can create a new workspace.
 
 Go to the "Basic Information" page and under "Building Apps for Slack", expand the "Add features and functionality section". We will work our way through each subsection detailing how to configure your application.
 
@@ -505,11 +555,11 @@ Go to the "Basic Information" page and under "Building Apps for Slack", expand t
 
 **Incoming Webhooks**
 
-Activate the toggle from off to on in this section. 
+Activate the toggle from off to on in this section.
 
 **Interactive Components**
 
-Activate the toggle from off to on in this section. 
+Activate the toggle from off to on in this section.
 
 Enter the following URL in the Request URL box (changing $SERVER_NAME for the server url you setup above): ``https://$SERVER_NAME/api/hooks/slack``
 
@@ -519,14 +569,14 @@ No changes needed.
 
 **Event Subscriptions**
 
-Activate the toggle from off to on in this section. 
+Activate the toggle from off to on in this section.
 
 Enter the following URL in the Request URL box (changing $SERVER_NAME for the server url you setup above): ``https://$SERVER_NAME/api/hooks/slack``
 
 Bots
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-Activate the toggle from off to on for Always Show My Bot as Online. 
+Activate the toggle from off to on for Always Show My Bot as Online.
 
 **Permissions**
 
@@ -578,7 +628,7 @@ We recommend adding the following scopes to your app for testing PolicyKit with 
 
 **Install Your App**
 
-After defining scopes you are able to install your app to your Slack workspace to test it and generate API tokens. 
+After defining scopes you are able to install your app to your Slack workspace to test it and generate API tokens.
 
 Go back to the "Basic Information" page and expand the "Install your App section". Then click "Install to Workspace".
 
@@ -591,13 +641,13 @@ Add these values to your ``.env`` in ``$POLICY_REPO/policykit/policykit/.env``
 Reload the Apache server
 
 ::
- 
+
  systemctl reload apache2
 
 
 **Connecting PolicyKit to Your Slack App**
 
-You can now visit your PolicyKit login page ``$SERVER_NAME/login`` and "Install Policykit to Slack". 
+You can now visit your PolicyKit login page ``$SERVER_NAME/login`` and "Install Policykit to Slack".
 
 You will be prompted to authorize the the app to access your workspace.
 
@@ -615,7 +665,7 @@ If you plan to allow other Slack workspaces to use your PolicyKit server, you wi
 
 Discord
 """""""
-The Discord integration occurs through Metagov. Instructions for how to setup the plugin for Metagov Discord to be written. 
+The Discord integration occurs through Metagov. Instructions for how to setup the plugin for Metagov Discord to be written.
 
 Discourse
 """""""""

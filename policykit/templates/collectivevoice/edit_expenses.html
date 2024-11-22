@@ -1,0 +1,310 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="edit_expenses">
+
+    <h3 class="heading-3">Define Expenses</h3>
+    <div class="selectpicker-group">
+        <label for="actionpicker">
+        </label>
+        <div>
+            <p>You can use CollectiveVoice to vote on all your community's expenses or filter for the specific type of expense you want to vote on here.</p>
+            <p> If you don't want to filter based on a given field, just leave it untouched. If you click "Continue" and nothing else, CollectiveVoice will be used for all expenses.</p>
+            <button class="button" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                Show More Info
+            </button>
+              <div class="collapse" id="collapseExample">
+                <div class="card card-body">
+                  Currently, CollectiveVoice supports four "filters" to select certain expenses.
+                  If you select multiple "filters", CollectiveVoice will only apply to expenses that meet ALL filters.
+                  You can look for matches based on:
+
+                  <ul>
+                    <li>
+                        the expense type: reimbursement or invoice.
+    
+                        </li>
+
+                    <li>
+                    the presence of a word in the expense description.
+                    </li>
+                    
+                    <li>
+                    the expense amount. You can either match all expenses below some threshold (small expenses) or above some threshold (large expenses)
+
+                    </li><li>
+                    the presence of a word in the expense tags.
+
+                    </li>
+                </ul>
+                <!-- <img class="small-image" src="{% static 'policyengine/img/filter_screenshot2.png' %}">
+
+                <img class="small-image" src="{% static 'policyengine/img/filter_screenshot1.png' %}"> -->
+
+
+                </div>
+              </div>
+            
+            <div style="display:none">
+            <select  id="actionpicker" class="selectpicker" title="Select an action..." multiple>
+                {% for app_name, action_list in actions.items %}
+                    <optgroup label="{{app_name|upper}}">
+                        {% for model_name, verbose_name in action_list %}
+                            {% if model_name == "expensecreated" %}
+                            <option value={{model_name}} group="{{app_name}}" selected>{{verbose_name}}</option>
+                            {% else %}
+                            <option value={{model_name}} group="{{app_name}}">{{verbose_name}}</option>
+                            {% endif %}
+
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="variables-group" id="action-specs-group"></div>
+    </div>
+
+    <div class="button-group">
+        <button id="back" class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const filter_parameters_dict = JSON.parse('{{filter_parameters | safe}}');
+    const filters_per_app = JSON.parse('{{filter_modules | safe}}');
+    console.log(filters_per_app)
+    const entities = JSON.parse('{{entities|safe|addslashes}}');
+    const showFilterParameters = () => {
+        var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
+        selected_options = selected_options.filter(option => option.value != "none");
+        if (selected_options.length == 0) {
+            removeElementChildren("action-specs-group");
+            return;
+        }
+
+        // in codenames
+        var selected_actions = Array.from(selected_options).map(({ value }) => value);
+         // get the verbose names of the selected actions for future display
+        var selected_actions_names = Array.from(selected_options).map(({ innerHTML }) => innerHTML);
+        // get the corresponding apps of the selected actions
+        var selected_groups = Array.from(selected_options).map( option => option.getAttribute('group'));
+        console.log("new actions are: " + selected_actions);
+
+        // add filter parameters for each action, iterating with action and index
+        var spec_group = document.getElementById('action-specs-group');
+        selected_actions.forEach((action, index) => {
+            // remove all previously selected action
+            if(index == 0) removeElementChildren("action-specs-group");
+            
+            /*
+                The exepcted div structure looks like this:
+                <div id="action-specs-group">
+                    # for all fields of this action
+                    <div class="variables" id=${action}>
+                        <label class="action-label">For action ... </label>
+                        <div class="action-field">
+                            <div class="variables-values" id="${action}.${field}">
+                                <label class="variable-label" for="select-${action}.${field}">${field}</label>
+                                <select id="select-${action}.${field}" class="selectpicker" title="Select a filter">
+                                    <option value="filter.pk">filter.description</option>
+                                    ...
+                                </select>
+                            </div>
+                            # for all variables of the filter module selected in the div above; 
+                            # added in the showFilterModuleVariables function
+                            <div class="variable-values" id="select-${action}.${field}.${variable.name}"> ... 
+                                <label class='variable-label' for='${variable_id}'>${variable.name}</label>
+                                <input type='text' data-id='${variable_id}' name='${variable_id}' class='variable-input' ${default_value}>
+                            </div>
+                        </div>
+                        
+                        # for other fields of this action
+                        <div class="action-field"> ... </div>
+                    </div>
+
+                    # for other selected actions
+                    <div class="variables" id=${action}>
+                        ...
+                    </div
+                </div>
+
+            */
+            var action_div = document.createElement('div');
+            action_div.classList.add('variables');
+            action_div.id = action;
+
+            // add a label for each action in this action_div
+            // NMV: commented for Collective Voice minimalism
+            // var action_label = document.createElement('label');
+            // action_label.classList.add('action-label');
+            // action_label.innerHTML = `For ${selected_actions_names[index]}`;
+            // action_div.appendChild(action_label);
+            
+            // then add the filter parameters for each action in this action_div
+            const filter_parameters = filter_parameters_dict[action]; // a dict of field: filter_kind
+            const filters_this_app = filters_per_app[selected_groups[index]]; // a dict of filter_kind: [filter_modules]
+            // console.log("filters for this app: " + JSON.stringify(filters_this_app));
+            Object.keys(filter_parameters).forEach(field => {
+                const filter_kind = filter_parameters[field];
+                if(filter_kind){
+                    // only show fields of which the filter we support
+                    var text = document.createElement('div');
+                    text.classList.add('action-field');
+
+                    select_id = `select-${action}.${field}`
+                    select_html = `<div class='variables-values' id='${action}.${field}'>
+                            <label class='variable-label' for='${select_id}'>${field}</label>
+                            <select id='${select_id}' class="selectpicker" title="Select a filter">
+                                <option value="none" selected>None (don't filter based on ${field})</option>`
+
+                    const filters_this_kind = filters_this_app[filter_kind]
+                    console.log("filter_kind: " + filter_kind + " filters for this kind: " + JSON.stringify(filters_this_kind));
+                    filters_this_kind.forEach(filter => {
+                        select_html  += `<option value=${filter.pk}>${filter.description}</option>`
+                    });
+                    select_html += `</select></div>`;  
+                    text.innerHTML = select_html; 
+                    action_div.appendChild(text);
+
+                    
+                }
+            });
+            spec_group.appendChild(action_div);
+            
+            $(".selectpicker").selectpicker('refresh');
+        });
+    }
+
+    const showFilterModuleVariables = (select_id) => {
+        let filter_pk = parseInt(document.getElementById(select_id).value);
+        console.log('*', filter_pk)
+
+        var field_div = document.getElementById(select_id).parentElement.parentElement.parentElement; 
+        // now at the level of the action-field div
+        while (field_div.childNodes.length > 1) {
+            field_div.removeChild(field_div.lastChild);
+            // remove previously displayed filter variables except the action-field div
+        } 
+
+        if(Number.isNaN(filter_pk)){
+
+            return
+
+        } ; // when no filter is selected, the value is "none" (NaN after parseInt)
+
+        // search for a filter with this pk by iterating through filter_per_app
+        let filter = null;
+        for(let app in filters_per_app){
+            for(let kind in filters_per_app[app]){
+                filter = filters_per_app[app][kind].find(filter => filter.pk == filter_pk);
+                if(filter) break;
+            }
+            if(filter) break;
+        }
+
+        const variables = filter.variables;
+        
+
+        variables.forEach(variable => {
+            console.log("adding variable: " + JSON.stringify(variable));
+            const variable_id = `${select_id}.${variable.name}`;
+            // select-${action}.${field}.${variable.name}
+            addVariableInputBox(variable=variable, id=variable_id, parentDiv=field_div, options=entities)
+        });
+    
+    }
+    
+    const goCreateProcedure = async () => {
+        var selected_options = Array.from(document.getElementById("actionpicker").selectedOptions);
+        selected_options = selected_options.filter(option => option.value != "none");
+        
+        var selected_actions = Array.from(selected_options).map(({ value }) => value); // in codenames
+        
+        // get the corresponding apps of the selected actions
+        var selected_groups = Array.from(selected_options).map( option => option.getAttribute('group'));
+        // make sure that all selected actions are from the same app
+        if(selected_groups.every( (val, i, arr) => val === arr[0] )){
+            var app_name = selected_groups[0];
+        } else {
+            alert("Please select actions from the same app");
+            return;
+        }
+        console.log("new actions are: " + selected_actions);
+        
+        let missing_input = false;
+        const filters = selected_actions.map((action, index) => {
+            const action_div = document.getElementById(action);
+            let action_field_divs = action_div.getElementsByClassName('action-field');
+            var filters_per_action = {}
+            Array.from(action_field_divs).forEach((action_field_div => {
+                let action_field_id = action_field_div.firstElementChild.id; // the field itself: slackpostmessage.initiator
+                let action_field_name = action_field_id.split(".")[1]; // initiator
+                let selected_filter_pk = document.getElementById(`select-${action_field_id}`).value; // select-slackpostmessage.initiator
+                if(selected_filter_pk === "" || selected_filter_pk === "none"){
+                    // if no filter modules are selected, then no filter is applied to this field
+                    filters_per_action[action_field_name] = {}
+                } else {
+                    // a dict of variable_name: variable_value
+                    var variables_dict = {}
+                    for(var i=1, len = action_field_div.childElementCount ; i < len; ++i){
+                        let filter_variable_div = action_field_div.children[i];
+                        // check whether all variables are filled and alert with the missing variable names
+                        missing_input = checkMissingVariable(null, elements=filter_variable_div);
+                        if(missing_input) break;
+                        let filter_variable_input = getVariableDataInStep(null, elements=filter_variable_div);
+                        // replace original key in filter_variable_input with the variable name
+                        Object.keys(filter_variable_input).forEach(key => {
+                            variables_dict[key.split(".").pop()] = filter_variable_input[key];
+                        });
+                    }
+                    filters_per_action[action_field_name] = {filter_pk: selected_filter_pk, platform: app_name, variables: variables_dict}
+                }
+            }))
+            console.log("filters per action: " + JSON.stringify(filters_per_action));
+            return {action_type: action, filter: filters_per_action}
+        });
+        // only submit the data if all variables are filled
+        if(missing_input) return;
+        
+        let submit_data = {
+                            filters: filters,
+                            app_name: app_name,
+                            policy_id: '{{policy_id}}'
+                        }
+
+        console.log("submit data " + JSON.stringify(submit_data));
+        const response = await submit('create_custom_action', submit_data);
+        console.log("after creating custom action, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+                redirect('home', {policy_id: response["policy_id"]});
+        }
+    }
+    
+    document.getElementById(stepElementIds.edit_expenses).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateProcedure);
+    
+    document.getElementById("actionpicker").addEventListener("change", showFilterParameters);
+    showFilterParameters(); // make sure that the filter parameters are shown when the page is loaded
+    document.body.addEventListener('change', ( event ) => {
+        // check whether the id starts with "select-", which we named all fields of the selected actions
+        // we cannot listen to events on elements we create dynamically, so we listen to the body and check the id
+        if(event.target.id.startsWith("select-") ){
+            showFilterModuleVariables(event.target.id);
+        }
+    });
+
+    const goBack = () => redirect('home', { policy_id: '{{ policy_id }}' })
+    document.getElementById("back").addEventListener('click', goBack)
+</script>
+{% endblock %}

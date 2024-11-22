@@ -1,0 +1,72 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block step %}
+<section class="step active" id="policy_overview">
+    <div>
+        <h4 class="heading-4">Please give a name and description for this new policy</h4>
+        <div id="action-specs-group" class="variables">
+            <div class="variable-values">
+                <label class='variable-label' for='name'>Policy Name</label>
+                <input type='text' value='{{policy.name}}' data-id='name'  class='variable-input' name='name'/>
+            </div>
+            <div class="variable-values">
+                <label class='variable-label' for='description'>Description</label>
+                <input type='text' value='{{policy.description}}' data-id='description'  class='variable-input' name='description'/>
+            </div>
+        </div>
+    </div>
+    <!-- <button class="button" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+        Show Full Details
+    </button>
+    <div class="collapse" id="collapseExample">
+        <pre id="policy-json">
+        </pre>
+    </div> -->
+    
+    <div class="button-group">
+        <button class="button secondary">
+          Go back
+        </button>
+        <button class="button primary">
+          Continue
+        </button>
+    </div>
+   
+</section>
+{% endblock %}
+
+{% block step_scripts %}
+<script>
+    const goCreateOverview= async () => {
+        const data = getVariableDataInStep(stepElementIds.overview);
+        console.log("now filled in data: " + JSON.stringify(data));
+        console.log(parseInt("{{policy_id}}"));
+        const submit_data = {
+                            policy_id: parseInt("{{policy_id}}"),
+                            data: data,
+                        }
+        const response = await submit('create_overview', submit_data);
+        console.log("after adding metadata, " + JSON.stringify(response))
+        if(response["status"] == "success"){
+            redirect("success", {policy: response["policy_id"]})
+        }
+    }
+
+    document.getElementById(stepElementIds.overview).querySelector(`.${classnames.primary}`).addEventListener('click', goCreateOverview);
+
+    var policy_json = `{{policy | safe}}`;
+    // replace all occurrences of variables["key"] with variables[\"key\"]
+    policy_json = policy_json.replace(/variables\["([\w_]*)"\]/gi, 'variables[\\"$1\\"]')
+    // replace all occurrences of \n with \\n
+    policy_json = policy_json.replaceAll("\n", "\\n");
+    // replace all occurrences of logger.debug(f"...") with logger.debug(f\"...\")
+    policy_json = policy_json.replace(/\(f"(.*)"\)/gi, '(f\\"$1\\")')
+    
+    policy_json = JSON.parse(policy_json);
+    // log each key-value pair of the policy_json, an json object, in turn
+
+    document.getElementById("policy-json").innerHTML = JSON.stringify(policy_json, null, 2);
+</script>
+</script>
+{% endblock %}

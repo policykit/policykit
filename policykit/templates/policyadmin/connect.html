@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block content %}
+  <main class="flex-col md:flex-row flex min-h-screen items-center justify-between">
+    <div class="h-[25vh] w-full md:w-1/5 lg:w-2/5 md:h-full md:min-h-screen"
+         style="background: linear-gradient(243deg, rgba(222, 195, 252, 0.57) 1.25%, rgba(196, 196, 252, 0.68) 45.36%, #99C4FC 97.5%)">
+    </div>
+    <div class="md:grow container">
+      <div class="max-w-sm mb-16 md:mb-32 mx-auto">
+        <h1 class="mb-8">Connect PolicyKit to your home platform</h1>
+        <p class="large mb-16">Note that only Admins (Moderators) can connect PolicyKit to community platforms.</p>
+        <a href="/authorize_platform?platform=slack&type=app"
+           class="button slack block mb-16">
+          <img class="mx-auto h-6" height="24px" width="160px" src="{% static "policyengine/img/slack-add.svg" %}" alt="Add to Slack" />
+        </a>
+        {% if request.GET.success %}Successfully added PolicyKit!{% endif %}
+        {% if request.GET.error %}
+          <div class="error">
+            {% if request.GET.error == 'slack_wrong_community' %}
+              PolicyKit is already installed to your Slack workspace! Sign in with Slack to continue.
+            {% elif request.GET.error == 'slack_installer_is_not_admin' %}
+              Installation failed! Only Slack workspace admins are permitted to install PolicyKit.
+            {% elif request.GET.error == 'discord_wrong_community' %}
+              PolicyKit is already installed to your Discord guild! Sign in with Discord to continue.
+            {% elif request.GET.error == 'discord_installer_is_not_admin' %}
+              Installation failed! Only Discord guild owners are permitted to install PolicyKit.
+            {% elif request.GET.error_description %}
+              {{ request.GET.error_description }}
+            {% else %}
+              Error: {{ request.GET.error }}
+            {% endif %}
+          </div>
+        {% endif %}
+        <p>
+          Already connected?
+          <a class="ml-2.5" href="/login">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </main>
+{% endblock %}
