@@ -89,7 +89,7 @@ export function Policies({
   type,
 }: {
   policies: null | Policy[];
-  type: string;
+  type: string | null;
 }) {
   let policiesElement;
   if (!policies) {
@@ -115,11 +115,11 @@ export function Policies({
       );
     }
   }
-
+  const header = type ? `${type} Policies` : "Policies";
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">{type} Policies</h3>
+        <h3 className="h5">{header}</h3>
         <button
           // href="#"
           className="button primary medium"
@@ -156,8 +156,7 @@ export function Dashboard() {
     <>
       <Welcome />
       <Guidelines />
-      <Policies type="Platform" policies={data?.platform_policies} />
-      <Policies type="Trigger" policies={data?.trigger_policies} />
+      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : null} />
       <MetaGovernance />
     </>
   );
