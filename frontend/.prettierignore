@@ -1,0 +1,3 @@
+# Ignore artifacts:
+assets
+node_modules
