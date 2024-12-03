@@ -87,9 +87,11 @@ export function Guidelines() {
 export function Policies({
   policies,
   type,
+  addURL
 }: {
   policies: null | Policy[];
   type: string | null;
+  addURL: string | null;
 }) {
   let policiesElement;
   if (!policies) {
@@ -120,8 +122,8 @@ export function Policies({
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
         <h3 className="h5">{header}</h3>
-        <button
-          // href="#"
+        <a
+          href={addURL || undefined}
           className="button primary medium"
           // x-data
           // @click="$dispatch('toggle_modal')"
@@ -131,7 +133,7 @@ export function Policies({
           // hx-swap="innerHTML transition:true"
         >
           Add
-        </button>
+        </a>
       </div>
       <div className="flex flex-col items-center justify-center gap-4 h-32">
         {policiesElement}
@@ -145,7 +147,7 @@ export function MetaGovernance() {
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <p className="text-grey-dark">Meta-Governance</p>
-      <Policies type="Constitutional" policies={data?.constitution_policies} />
+      <Policies type="Constitutional" policies={data?.constitution_policies} addURL={null} />
     </section>
   );
 }
@@ -156,7 +158,7 @@ export function Dashboard() {
     <>
       <Welcome />
       <Guidelines />
-      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : null} />
+      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : null} addURL={"/no-code/main"} />
       <MetaGovernance />
     </>
   );
