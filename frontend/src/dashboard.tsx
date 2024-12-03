@@ -259,7 +259,7 @@ export function MetaGovernance() {
 export function Dashboard() {
   const data = useData();
   return (
-    <>
+    <div className="lg:p-6 lg:col-span-7" >
       <Welcome />
       <Guidelines />
       <Policies
@@ -272,7 +272,7 @@ export function Dashboard() {
         addURL={"/no-code/main"}
       />
       <MetaGovernance />
-    </>
+    </div>
   );
 }
 
