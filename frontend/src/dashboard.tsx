@@ -35,22 +35,22 @@ type PolicySummary = {
 type ActionSummary = {
   id: number;
   action_type: string;
-}
+};
 
 type InitiatorSummary = {
   id: number;
   readable_name: string;
-}
+};
 
 type ProposalSummary = {
   id: number;
   status: string;
   proposal_time: string;
   is_vote_closed: boolean;
-  action: ActionSummary,
-  initiator: InitiatorSummary,
-  policy: PolicySummary,
-}
+  action: ActionSummary;
+  initiator: InitiatorSummary;
+  policy: PolicySummary;
+};
 
 type CommunityDoc = {
   id: number;
@@ -65,7 +65,6 @@ type DashboardRoleSummary = {
   number_of_members: number;
 };
 
-
 type CommunityDashboard = {
   roles: DashboardRoleSummary[];
   community_docs: CommunityDoc[];
@@ -74,7 +73,7 @@ type CommunityDashboard = {
   constitution_policies: PolicySummary[];
   proposals: ProposalSummary[];
   name: string;
-}
+};
 
 function useData(): CommunityDashboard | undefined {
   const query = useQuery<CommunityDashboard>({
@@ -131,7 +130,7 @@ export function Guidelines() {
 export function Policies({
   policies,
   type,
-  addURL
+  addURL,
 }: {
   policies: undefined | PolicySummary[];
   type: string | null;
@@ -150,14 +149,13 @@ export function Policies({
       );
     } else {
       policiesElement = (
-        <>
-          {policies.map((policy) => (
-            <div className="flex items-center justify-between mb-4 w-full">
-              <h4 key={policy.id} className="h5">{policy.name}</h4>
-              <span className="text-grey-dark">{policy.description}</span>
-            </div>
-          ))}
-        </>
+        <DashboardTable
+          rows={policies.map((policy) => ({
+            title: policy.name,
+            description: policy.description,
+            details: <></>,
+          }))}
+        />
       );
     }
   }
@@ -186,12 +184,74 @@ export function Policies({
   );
 }
 
+type DashboardTableRow = {
+  title: string;
+  description: string;
+  details: JSX.Element;
+};
+
+export function DashboardTable({ rows }: { rows: DashboardTableRow[] }) {
+  return (
+    <table className="table-auto">
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i}>
+            <td>
+              <h4 className="h5">{row.title}</h4>
+            </td>
+            <td>
+              <span className="text-grey-dark">{row.description}</span>
+            </td>
+            <td>{row.details}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+export function Roles({
+  roles,
+}: {
+  roles: DashboardRoleSummary[] | undefined;
+}) {
+  let rolesList;
+  if (!roles) {
+    rolesList = <p className="text-grey-dark">Loading...</p>;
+  } else {
+    rolesList = (
+      <DashboardTable
+        rows={roles.map((role) => ({
+          title: role.name,
+          description: role.description,
+          details: <span className="text-grey-dark">{role.number_of_members === 1 ? "1 member" : `${role.number_of_members} members`}</span>,
+        }))}
+      />
+    );
+  }
+  return (
+    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="h5">Roles</h3>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-4 h-32">
+          {rolesList}
+        </div>
+    </section>
+  );
+}
+
 export function MetaGovernance() {
   const data = useData();
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <p className="text-grey-dark">Meta-Governance</p>
-      <Policies type="Constitutional" policies={data?.constitution_policies} addURL={null} />
+      <Policies
+        type="Constitutional"
+        policies={data?.constitution_policies}
+        addURL={null}
+      />
+      <Roles roles={data?.roles} />
     </section>
   );
 }
@@ -202,7 +262,15 @@ export function Dashboard() {
     <>
       <Welcome />
       <Guidelines />
-      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : undefined} addURL={"/no-code/main"} />
+      <Policies
+        type={null}
+        policies={
+          data
+            ? [...data.trigger_policies, ...data.platform_policies]
+            : undefined
+        }
+        addURL={"/no-code/main"}
+      />
       <MetaGovernance />
     </>
   );
