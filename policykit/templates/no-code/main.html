@@ -239,8 +239,7 @@
 <script>
 
     const policytemplate = JSON.parse('{{policytemplate | safe}}');
-    console.log('policytemplate', policytemplate)
-
+    
     const base_actions = JSON.parse('{{base_actions | safe}}');
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
@@ -654,7 +653,7 @@
     }
         
     const showTransformerVariables = (transformer_value, app, applied_transformer={}) => {
-        console.log('show transformer variables', applied_transformer)
+        
         if(selected_transformers.some(item => item.value === transformer_value)) return;
 
         if(selected_transformers.length === 0) activate_section("transformer");
@@ -666,7 +665,6 @@
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
-            console.log('variable', variable)
             let set_variable = applied_transformer.variables ? applied_transformer.variables.find(item => item.name == variable.name) : null;
             if(set_variable) variable.value = set_variable.value;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
@@ -1224,7 +1222,6 @@
             stage: stage,
             data: data,
         });
-        // console.log("result: ", result);
         if(result.status) return result.code; else return false;
     }
 
@@ -1293,7 +1290,6 @@
         }
         console.log("all data: " + JSON.stringify(all_data));
         const response = await submit('/no-code/create', all_data);
-        console.log("after creating custom action, " + JSON.stringify(response))
         if(response.status === "success"){
             created_policy_pk = response.policy;
             $("#end-popup").modal("show");
