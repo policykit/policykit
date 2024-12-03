@@ -26,14 +26,58 @@ async function fetchData(url: string): Promise<any> {
   return data;
 }
 
-type Policy = {
+type PolicySummary = {
   id: number;
   name: string;
   description: string;
 };
 
-function useData() {
-  const query = useQuery({
+type ActionSummary = {
+  id: number;
+  action_type: string;
+}
+
+type InitiatorSummary = {
+  id: number;
+  readable_name: string;
+}
+
+type ProposalSummary = {
+  id: number;
+  status: string;
+  proposal_time: string;
+  is_vote_closed: boolean;
+  action: ActionSummary,
+  initiator: InitiatorSummary,
+  policy: PolicySummary,
+}
+
+type CommunityDoc = {
+  id: number;
+  name: string;
+  text: string;
+};
+
+type DashboardRoleSummary = {
+  id: number;
+  name: string;
+  description: string;
+  number_of_members: number;
+};
+
+
+type CommunityDashboard = {
+  roles: DashboardRoleSummary[];
+  community_docs: CommunityDoc[];
+  trigger_policies: PolicySummary[];
+  platform_policies: PolicySummary[];
+  constitution_policies: PolicySummary[];
+  proposals: ProposalSummary[];
+  name: string;
+}
+
+function useData(): CommunityDashboard | undefined {
+  const query = useQuery<CommunityDashboard>({
     queryKey: ["community_docs"],
     queryFn: () => fetchData("/api/dashboard"),
     staleTime: Infinity,
@@ -89,7 +133,7 @@ export function Policies({
   type,
   addURL
 }: {
-  policies: null | Policy[];
+  policies: undefined | PolicySummary[];
   type: string | null;
   addURL: string | null;
 }) {
@@ -158,7 +202,7 @@ export function Dashboard() {
     <>
       <Welcome />
       <Guidelines />
-      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : null} addURL={"/no-code/main"} />
+      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : undefined} addURL={"/no-code/main"} />
       <MetaGovernance />
     </>
   );
