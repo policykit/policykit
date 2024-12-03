@@ -138,14 +138,18 @@ export function Policies({
 }) {
   let policiesElement;
   if (!policies) {
-    policiesElement = <p className="text-grey-dark">Loading...</p>;
+    policiesElement = (
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">Loading...</p>
+      </div>
+    );
   } else {
     if (policies.length == 0) {
       policiesElement = (
-        <>
+        <div className="flex flex-col items-center justify-center gap-4 h-32">
           <PoliciesEmptyIcon />
           <p className="text-grey-dark">No Policies yet</p>
-        </>
+        </div>
       );
     } else {
       policiesElement = (
@@ -177,9 +181,8 @@ export function Policies({
           Add
         </a>
       </div>
-      <div className="flex flex-col items-center justify-center gap-4 h-32">
-        {policiesElement}
-      </div>
+
+      {policiesElement}
     </section>
   );
 }
@@ -224,7 +227,13 @@ export function Roles({
         rows={roles.map((role) => ({
           title: role.name,
           description: role.description,
-          details: <span className="text-grey-dark">{role.number_of_members === 1 ? "1 member" : `${role.number_of_members} members`}</span>,
+          details: (
+            <span className="text-grey-dark">
+              {role.number_of_members === 1
+                ? "1 member"
+                : `${role.number_of_members} members`}
+            </span>
+          ),
         }))}
       />
     );
@@ -233,10 +242,8 @@ export function Roles({
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
         <h3 className="h5">Roles</h3>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-4 h-32">
-          {rolesList}
-        </div>
+      </div>
+      {rolesList}
     </section>
   );
 }
@@ -259,7 +266,7 @@ export function MetaGovernance() {
 export function Dashboard() {
   const data = useData();
   return (
-    <div className="lg:p-6 lg:col-span-7" >
+    <div className="lg:p-6 lg:col-span-7">
       <Welcome />
       <Guidelines />
       <Policies
