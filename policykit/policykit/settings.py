@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import environ
+import tempfile
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -360,9 +361,10 @@ STATICFILES_DIRS = [
 
 SILKY_PYTHON_PROFILER = True
 SILKY_PYTHON_PROFILER_BINARY = True
-SILKY_PYTHON_PROFILER_RESULT_PATH = os.path.join(BASE_DIR, './silky_profiles/')
-if not os.path.exists(SILKY_PYTHON_PROFILER_RESULT_PATH):
-    os.mkdir(SILKY_PYTHON_PROFILER_RESULT_PATH)
+
+# keep reference so not removed
+_tmp_dir = tempfile.TemporaryDirectory("policykit_silky_profiles")
+SILKY_PYTHON_PROFILER_RESULT_PATH = _tmp_dir.name
 
 # Only enable django silk conditionally for debugging. Turns on profiling and records all REST requests
 # for profiling
