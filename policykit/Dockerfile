@@ -1,6 +1,11 @@
 # Python 3.10 is the latest version supported by Django 3.2
 FROM python:3.10
 
+# RUN apt-get update \
+#   && apt-get install -yq --no-install-recommends libfuse-dev nano fuse vim git graphviz \
+#   && apt-get clean \
+#   && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app/policykit
 
 COPY requirements.txt .

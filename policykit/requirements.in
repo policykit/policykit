@@ -13,6 +13,7 @@ django-jet
 django-pattern-library
 django-polymorphic
 django-schema-graph
+django-silk
 django-tables2
 django-vite
 djangorestframework

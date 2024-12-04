@@ -6,6 +6,7 @@ asgiref==3.8.1
 astroid==3.3.5
 asttokens==2.4.1
 attrs==24.2.0
+autopep8==2.3.1
 babel==2.16.0
 billiard==4.2.1
 cattrs==24.1.2
@@ -32,6 +33,7 @@ django-jet==1.0.8
 django-pattern-library==1.2.0
 django-polymorphic==3.1.0
 django-schema-graph==3.1.0
+django-silk==5.2.0
 django-tables2==2.7.0
 django-timezone-field==7.0
 django-vite==3.0.5
@@ -39,6 +41,7 @@ djangorestframework==3.15.1
 docutils==0.21.2
 exceptiongroup==1.2.2
 executing==2.1.0
+gprof2dot==2024.6.6
 idna==3.10
 imagesize==1.4.1
 ipython==8.29.0
@@ -64,6 +67,7 @@ prompt_toolkit==3.0.48
 psycopg2-binary==2.9.10
 ptyprocess==0.7.0
 pure_eval==0.2.3
+pycodestyle==2.12.1
 pycryptodome==3.21.0
 pydantic==2.9.2
 pydantic-extra-types==2.10.0

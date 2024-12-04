@@ -695,3 +695,19 @@ If you're making changes to the `Metagov Gateway <https://docs.metagov.org/>`_ a
      .. code-block:: bash
 
         pip install -e /path/to/gateway/repo/metagov
+
+
+Profiling
+---------
+
+If you are trying to develop PolicyKit and notice that a certain view is slow, we have integrated two extensions to help
+with profiling.
+
+If the view is a Django HTML view, then you can use `Django Debug Toolbar <https://github.com/django-commons/django-debug-toolbar>`_
+to inspect the SQL queries performed. To enable it set the ``DJANGO_DEBUG_TOOLBAR`` env variable to ``True`` (the default
+when developing with Docker).
+
+If the view is REST API, then you can use `Django Silk <https://github.com/jazzband/django-silk>`_. To enable it
+set ``DJANGO_SILK`` to ``True`` (again the default in Docker) and load the API. It will then be recorded in the database
+and you can see the results by accessing the ``/silk/`` endpoint. If you would like to generate a profile for the view,
+`decorate it with ``@silk.profiling.profiler.silk_profile`` <https://github.com/jazzband/django-silk?tab=readme-ov-file#decorator>`_.

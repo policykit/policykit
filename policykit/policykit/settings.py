@@ -33,6 +33,7 @@ env = environ.Env(
     SENTRY_CLIENT_SCRIPT=(str, None),
     DJANGO_DEBUG_TOOLBAR=(bool, False),
     DJANGO_VITE_DEV_MODE=(bool, False),
+    DJANGO_SILK=(bool, False),
 )
 environ.Env.read_env()
 
@@ -45,6 +46,7 @@ SENTRY_CLIENT_SCRIPT = env("SENTRY_CLIENT_SCRIPT")
 LOGIN_URL = "/login"
 DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
+DJANGO_SILK = env("DJANGO_SILK")
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
@@ -95,7 +97,8 @@ INSTALLED_APPS = [
     'policybuilding_apps',
     'pattern_library',
     "rest_framework",
-    "django_vite"
+    "django_vite",
+    "silk"
 ] + INTEGRATIONS
 
 SITE_ID = 1
@@ -354,3 +357,14 @@ DJANGO_VITE = {
 STATICFILES_DIRS = [
     ('bundler', os.path.join(BASE_DIR, '../frontend/assets')),
 ]
+
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+SILKY_PYTHON_PROFILER_RESULT_PATH = os.path.join(BASE_DIR, './silky_profiles/')
+if not os.path.exists(SILKY_PYTHON_PROFILER_RESULT_PATH):
+    os.mkdir(SILKY_PYTHON_PROFILER_RESULT_PATH)
+
+# Only enable django silk conditionally for debugging. Turns on profiling and records all REST requests
+# for profiling
+if DJANGO_SILK:
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')

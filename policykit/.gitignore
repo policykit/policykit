@@ -8,3 +8,4 @@ env
 .vscode
 *.log
 policy_backups
+silky_profiles
