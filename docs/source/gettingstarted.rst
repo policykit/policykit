@@ -116,7 +116,20 @@ You can also deploy PolicyKit using Docker.
         env DJANGO_VITE_DEV_MODE=False docker compose run --rm web python manage.py collectstatic
         env DJANGO_VITE_DEV_MODE=False docker compose up web
 
+If you would like to save the DB:
 
+.. code-block:: shell
+
+        docker compose run --rm postgres env PGPASSWORD=password pg_dump -h postgres -Fc -U user policykit > local_db
+
+And to restore it:
+
+.. code-block:: shell
+
+        docker compose run -T --rm postgres env PGPASSWORD=password pg_restore --clean --create --exit-on-error --no-privileges --no-owner -h postgres -U user --verbose -d postgres  < db_dump
+
+If you have restored a database from a production server and want to pretend you are logged in as a user for testing, you can set the ``FORCE_SLACK_LOGIN`` variable in ``.env`` to the full name of a user
+to force that user to always be logged in.
 
 Running PolicyKit on a Server
 -----------------------------

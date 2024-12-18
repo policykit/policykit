@@ -35,6 +35,7 @@ env = environ.Env(
     DJANGO_DEBUG_TOOLBAR=(bool, False),
     DJANGO_VITE_DEV_MODE=(bool, False),
     DJANGO_SILK=(bool, False),
+    FORCE_SLACK_LOGIN=(str, None),
 )
 environ.Env.read_env()
 
@@ -48,6 +49,7 @@ LOGIN_URL = "/login"
 DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
 DJANGO_SILK = env("DJANGO_SILK")
+FORCE_SLACK_LOGIN = env("FORCE_SLACK_LOGIN")
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
@@ -153,6 +155,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'policykit.middleware.ForceLoginMiddleware',
 ]
 
 ROOT_URLCONF = 'policykit.urls'
@@ -370,3 +373,4 @@ SILKY_PYTHON_PROFILER_RESULT_PATH = _tmp_dir.name
 # for profiling
 if DJANGO_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
+
