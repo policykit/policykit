@@ -101,3 +101,7 @@ if apps.is_installed("pattern_library"):
 
 if settings.DEBUG_TOOLBAR:
     urlpatterns.append(path('__debug__/', include('debug_toolbar.urls')))
+
+
+if settings.DJANGO_SILK:
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

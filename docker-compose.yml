@@ -15,6 +15,7 @@ services:
       - ALLOWED_HOSTS=web,.localhost,127.0.0.1,[::1],${DOMAIN}
       - DJANGO_DEBUG_TOOLBAR=True
       - DJANGO_VITE_DEV_MODE=${DJANGO_VITE_DEV_MODE:-True}
+      - DJANGO_SILK=True
     depends_on:
       - rabbit
       - postgres

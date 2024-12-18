@@ -26,14 +26,57 @@ async function fetchData(url: string): Promise<any> {
   return data;
 }
 
-type Policy = {
+type PolicySummary = {
   id: number;
   name: string;
   description: string;
 };
 
-function useData() {
-  const query = useQuery({
+type ActionSummary = {
+  id: number;
+  action_type: string;
+};
+
+type InitiatorSummary = {
+  id: number;
+  readable_name: string;
+};
+
+type ProposalSummary = {
+  id: number;
+  status: string;
+  proposal_time: string;
+  is_vote_closed: boolean;
+  action: ActionSummary;
+  initiator: InitiatorSummary;
+  policy: PolicySummary;
+};
+
+type CommunityDoc = {
+  id: number;
+  name: string;
+  text: string;
+};
+
+type DashboardRoleSummary = {
+  id: number;
+  name: string;
+  description: string;
+  number_of_members: number;
+};
+
+type CommunityDashboard = {
+  roles: DashboardRoleSummary[];
+  community_docs: CommunityDoc[];
+  trigger_policies: PolicySummary[];
+  platform_policies: PolicySummary[];
+  constitution_policies: PolicySummary[];
+  proposals: ProposalSummary[];
+  name: string;
+};
+
+function useData(): CommunityDashboard | undefined {
+  const query = useQuery<CommunityDashboard>({
     queryKey: ["community_docs"],
     queryFn: () => fetchData("/api/dashboard"),
     staleTime: Infinity,
@@ -87,31 +130,36 @@ export function Guidelines() {
 export function Policies({
   policies,
   type,
+  addURL,
 }: {
-  policies: null | Policy[];
+  policies: undefined | PolicySummary[];
   type: string | null;
+  addURL: string | null;
 }) {
   let policiesElement;
   if (!policies) {
-    policiesElement = <p className="text-grey-dark">Loading...</p>;
+    policiesElement = (
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">Loading...</p>
+      </div>
+    );
   } else {
     if (policies.length == 0) {
       policiesElement = (
-        <>
+        <div className="flex flex-col items-center justify-center gap-4 h-32">
           <PoliciesEmptyIcon />
           <p className="text-grey-dark">No Policies yet</p>
-        </>
+        </div>
       );
     } else {
       policiesElement = (
-        <>
-          {policies.map((policy) => (
-            <div className="flex items-center justify-between mb-4 w-full">
-              <h4 key={policy.id} className="h5">{policy.name}</h4>
-              <span className="text-grey-dark">{policy.description}</span>
-            </div>
-          ))}
-        </>
+        <DashboardTable
+          rows={policies.map((policy) => ({
+            title: policy.name,
+            description: policy.description,
+            details: <></>,
+          }))}
+        />
       );
     }
   }
@@ -120,8 +168,8 @@ export function Policies({
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
         <h3 className="h5">{header}</h3>
-        <button
-          // href="#"
+        <a
+          href={addURL || undefined}
           className="button primary medium"
           // x-data
           // @click="$dispatch('toggle_modal')"
@@ -131,11 +179,71 @@ export function Policies({
           // hx-swap="innerHTML transition:true"
         >
           Add
-        </button>
+        </a>
       </div>
-      <div className="flex flex-col items-center justify-center gap-4 h-32">
-        {policiesElement}
+
+      {policiesElement}
+    </section>
+  );
+}
+
+type DashboardTableRow = {
+  title: string;
+  description: string;
+  details: JSX.Element;
+};
+
+export function DashboardTable({ rows }: { rows: DashboardTableRow[] }) {
+  return (
+    <table className="table-auto">
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i}>
+            <td>
+              <h4 className="h5">{row.title}</h4>
+            </td>
+            <td>
+              <span className="text-grey-dark">{row.description}</span>
+            </td>
+            <td>{row.details}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+export function Roles({
+  roles,
+}: {
+  roles: DashboardRoleSummary[] | undefined;
+}) {
+  let rolesList;
+  if (!roles) {
+    rolesList = <p className="text-grey-dark">Loading...</p>;
+  } else {
+    rolesList = (
+      <DashboardTable
+        rows={roles.map((role) => ({
+          title: role.name,
+          description: role.description,
+          details: (
+            <span className="text-grey-dark">
+              {role.number_of_members === 1
+                ? "1 member"
+                : `${role.number_of_members} members`}
+            </span>
+          ),
+        }))}
+      />
+    );
+  }
+  return (
+    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="h5">Roles</h3>
       </div>
+      {rolesList}
     </section>
   );
 }
@@ -145,7 +253,12 @@ export function MetaGovernance() {
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <p className="text-grey-dark">Meta-Governance</p>
-      <Policies type="Constitutional" policies={data?.constitution_policies} />
+      <Policies
+        type="Constitutional"
+        policies={data?.constitution_policies}
+        addURL={null}
+      />
+      <Roles roles={data?.roles} />
     </section>
   );
 }
@@ -153,12 +266,20 @@ export function MetaGovernance() {
 export function Dashboard() {
   const data = useData();
   return (
-    <>
+    <div className="lg:p-6 lg:col-span-7">
       <Welcome />
       <Guidelines />
-      <Policies type={null} policies={data ? [...data.trigger_policies, ...data.platform_policies] : null} />
+      <Policies
+        type={null}
+        policies={
+          data
+            ? [...data.trigger_policies, ...data.platform_policies]
+            : undefined
+        }
+        addURL={"/no-code/main"}
+      />
       <MetaGovernance />
-    </>
+    </div>
   );
 }
 
