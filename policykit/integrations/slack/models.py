@@ -228,7 +228,7 @@ class SlackCommunity(CommunityPlatform):
 class SlackPostMessage(GovernableAction):
     ACTION = "chat.postMessage"
     AUTH = "admin_bot"
-    EXECUTE_PARAMETERS = ["text", "channel", "thread"]
+    EXECUTE_PARAMETERS = ["text", "channel"]
     ACTION_NAME = "Post Message"
     FILTER_PARAMETERS = [
         {

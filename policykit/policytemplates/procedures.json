@@ -45,21 +45,21 @@
             },
             {
                 "name": "minimum_yes_required",
-                "label": "Minimum percentage of yes votes required",
+                "label": "Minimum number of yes votes required",
                 "entity": null,
-                "default": 50,
+                "default": 3,
                 "is_required": true,
-                "prompt": "The proposal will be approved if the percentage of yes votes is greater than or equal to this",
+                "prompt": "The proposal will be approved if the number of yes votes is greater than or equal to this",
                 "type": "number",
                 "is_list": false
             },
             {
                 "name": "maximum_no_allowed",
-                "label": "Maximum percentage of no votes allowed",
+                "label": "Maximum number of no votes allowed",
                 "entity": null,
-                "default": 50,
+                "default": 1,
                 "is_required": true,
-                "prompt": "The proposal will be rejected if the percentage of no votes is greater than or equal to this",
+                "prompt": "The proposal will be rejected if the number of no votes is greater than or equal to this",
                 "type": "number",
                 "is_list": false
             },
@@ -67,7 +67,7 @@
                 "name": "vote_message",
                 "label": "Voting message",
                 "entity": "Text",
-                "default": "Only approve the action when at least  {variables.minimum_yes_required}% people approve and at most {variables.maximum_no_allowed}% disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
+                "default": "Only approve the action when at least  {variables.minimum_yes_required} people approve and at most {variables.maximum_no_allowed} disapprove(s). Vote with :thumbsup: or :thumbsdown: on this post.",
                 "is_required": false,
                 "prompt": "",
                 "type": "string",
@@ -76,16 +76,16 @@
         ],
         "data": [
             {
-                "name": "yes_votes_percent",
-                "label": "Percentage of Yes Votes",
+                "name": "yes_votes_number",
+                "label": "Number of Yes Votes",
                 "prompt": "",
                 "entity": null,
                 "type": "number",
                 "is_list": false
             },
             {
-                "name": "no_votes_percent",
-                "label": "Percentage of No Votes",
+                "name": "no_votes_number",
+                "label": "Number of No Votes",
                 "prompt": "",
                 "entity": null,
                 "type": "number",
