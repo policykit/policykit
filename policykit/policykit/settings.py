@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import environ
+import tempfile
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +34,8 @@ env = environ.Env(
     SENTRY_CLIENT_SCRIPT=(str, None),
     DJANGO_DEBUG_TOOLBAR=(bool, False),
     DJANGO_VITE_DEV_MODE=(bool, False),
+    DJANGO_SILK=(bool, False),
+    FORCE_SLACK_LOGIN=(str, None),
 )
 environ.Env.read_env()
 
@@ -45,6 +48,8 @@ SENTRY_CLIENT_SCRIPT = env("SENTRY_CLIENT_SCRIPT")
 LOGIN_URL = "/login"
 DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
+DJANGO_SILK = env("DJANGO_SILK")
+FORCE_SLACK_LOGIN = env("FORCE_SLACK_LOGIN")
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
@@ -95,7 +100,8 @@ INSTALLED_APPS = [
     'policybuilding_apps',
     'pattern_library',
     "rest_framework",
-    "django_vite"
+    "django_vite",
+    "silk"
 ] + INTEGRATIONS
 
 SITE_ID = 1
@@ -149,6 +155,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'policykit.middleware.ForceLoginMiddleware',
 ]
 
 ROOT_URLCONF = 'policykit.urls'
@@ -354,3 +361,16 @@ DJANGO_VITE = {
 STATICFILES_DIRS = [
     ('bundler', os.path.join(BASE_DIR, '../frontend/assets')),
 ]
+
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+
+# keep reference so not removed
+_tmp_dir = tempfile.TemporaryDirectory("policykit_silky_profiles")
+SILKY_PYTHON_PROFILER_RESULT_PATH = _tmp_dir.name
+
+# Only enable django silk conditionally for debugging. Turns on profiling and records all REST requests
+# for profiling
+if DJANGO_SILK:
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
+

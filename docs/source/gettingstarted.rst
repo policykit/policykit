@@ -116,7 +116,20 @@ You can also deploy PolicyKit using Docker.
         env DJANGO_VITE_DEV_MODE=False docker compose run --rm web python manage.py collectstatic
         env DJANGO_VITE_DEV_MODE=False docker compose up web
 
+If you would like to save the DB:
 
+.. code-block:: shell
+
+        docker compose run --rm postgres env PGPASSWORD=password pg_dump -h postgres -Fc -U user policykit > local_db
+
+And to restore it:
+
+.. code-block:: shell
+
+        docker compose run -T --rm postgres env PGPASSWORD=password pg_restore --clean --create --exit-on-error --no-privileges --no-owner -h postgres -U user --verbose -d postgres  < db_dump
+
+If you have restored a database from a production server and want to pretend you are logged in as a user for testing, you can set the ``FORCE_SLACK_LOGIN`` variable in ``.env`` to the full name of a user
+to force that user to always be logged in.
 
 Running PolicyKit on a Server
 -----------------------------
@@ -695,3 +708,19 @@ If you're making changes to the `Metagov Gateway <https://docs.metagov.org/>`_ a
      .. code-block:: bash
 
         pip install -e /path/to/gateway/repo/metagov
+
+
+Profiling
+---------
+
+If you are trying to develop PolicyKit and notice that a certain view is slow, we have integrated two extensions to help
+with profiling.
+
+If the view is a Django HTML view, then you can use `Django Debug Toolbar <https://github.com/django-commons/django-debug-toolbar>`_
+to inspect the SQL queries performed. To enable it set the ``DJANGO_DEBUG_TOOLBAR`` env variable to ``True`` (the default
+when developing with Docker).
+
+If the view is REST API, then you can use `Django Silk <https://github.com/jazzband/django-silk>`_. To enable it
+set ``DJANGO_SILK`` to ``True`` (again the default in Docker) and load the API. It will then be recorded in the database
+and you can see the results by accessing the ``/silk/`` endpoint. If you would like to generate a profile for the view,
+`decorate it with ``@silk.profiling.profiler.silk_profile`` <https://github.com/jazzband/django-silk?tab=readme-ov-file#decorator>`_.

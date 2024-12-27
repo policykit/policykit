@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound 
 from django.contrib.auth import get_user
 from django.db import transaction
+from silk.profiling.profiler import silk_profile
 from policyengine.serializers import MemberSummarySerializer, PutMembersRequestSerializer, CommunityDashboardSerializer
 
 @api_view(['GET', 'PUT'])
@@ -24,10 +25,11 @@ def members(request):
         put_members(user, **req.validated_data)
         return Response({}, status=200)
 
-    raise NotImplemented
+    raise NotImplementedError
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@silk_profile()
 def dashboard(request):
     user = get_user(request)
     return Response(CommunityDashboardSerializer(user.community.community).data)
