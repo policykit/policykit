@@ -43,7 +43,7 @@ class Community(models.Model):
         """
         Returns a QuerySet of all roles in the community.
         """
-        return CommunityRole.objects.filter(community=self)
+        return self.communityrole_set.all()
 
     def get_policies(self, is_active=True):
         return Policy.objects.filter(community=self, is_active=is_active).order_by('-modified_at')
@@ -70,12 +70,12 @@ class Community(models.Model):
         """
         Returns a QuerySet of all documents in the community.
         """
-        return CommunityDoc.objects.filter(community=self, is_active=is_active)
+        return self.communitydoc_set.filter(is_active=is_active)
 
     @property
     def constitution_community(self):
         from constitution.models import ConstitutionCommunity
-        return ConstitutionCommunity.objects.filter(community=self).first()
+        return self.communityplatform_set.instance_of(ConstitutionCommunity).first()
 
     @property
     def proposals(self):
