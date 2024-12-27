@@ -82,7 +82,11 @@ class Community(models.Model):
         """
         Returns a QuerySet of all proposals in the community.
         """
-        return Proposal.objects.filter(policy__community=self)
+        return Proposal.objects.select_related(
+            "governance_process",
+            "action__initiator",
+            "policy"
+        ).filter(policy__community=self)
 
     def get_platform_communities(self):
         constitution_community = self.constitution_community
