@@ -94,9 +94,9 @@ You can also deploy PolicyKit using Docker.
 
 .. code-block:: shell
 
-	docker compose run --rm web python3 manage.py makemigrations
-        docker compose run --rm web python3 manage.py migrate
-        docker compose run --rm web python3 manage.py
+	docker compose run --rm web python manage.py makemigrations
+        docker compose run --rm web python manage.py migrate
+        docker compose run --rm web python manage.py collectstatic
 
 5. Finally, to run PolicyKit and all its services run:
 
