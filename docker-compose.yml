@@ -12,7 +12,7 @@ services:
       - DATABASE_URL=postgres://user:password@postgres:5432/policykit
       - DJANGO_SECRET_KEY=supersecretkey
       - SERVER_URL=https://${DOMAIN}
-      - ALLOWED_HOSTS=web,.localhost,127.0.0.1,[::1],${DOMAIN}
+      - ALLOWED_HOSTS=*
       - DJANGO_DEBUG_TOOLBAR=True
       - DJANGO_VITE_DEV_MODE=${DJANGO_VITE_DEV_MODE:-True}
       - DJANGO_SILK=True
