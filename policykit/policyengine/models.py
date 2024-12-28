@@ -987,6 +987,14 @@ class Policy(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     """Datetime object representing the last time the policy was modified."""
 
+    policy_template = models.OneToOneField(
+        'PolicyTemplate',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='policy',
+    )
+
     # TODO(https://github.com/amyxzhang/policykit/issues/341) add back support for policy bundles
     bundled_policies = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="member_of_bundle")
     """Policies bundled inside this policy."""
@@ -1208,6 +1216,7 @@ class CustomAction(models.Model):
         """ return a json object that represents this filter """
         return {
             "action_type": self.action_type.codename,
+            'platform': Utils.determine_action_app(self.action_type.codename),
             "filter": self.loads("filter"),
             "community_name": self.community_name
         }
@@ -1338,6 +1347,7 @@ class FilterModule(models.Model):
                     variable["value"] = variables_value[variable["name"]]
         # we do not need to include codes for a filter module here
         return {
+            "pk": self.pk,
             "kind": self.kind,
             "name": self.name,
             "description": self.description,
@@ -1373,8 +1383,11 @@ class Transformer(models.Model):
     def to_json(self):
         # we do not need to include codes for a  transformer here, as we use its name as the identifier
         return {
+            'pk': self.pk,
             "name": self.name,
             "description": self.description,
+            "variables": self.loads("variables"),
+            "platform": "all"
         }
 
 class Procedure(models.Model):
@@ -1487,11 +1500,14 @@ class Procedure(models.Model):
 
         # we will later use this name to search for the corresponding procedure and later the check codes
         return {
+            "pk": self.pk,
             "name": self.name,
             "description": self.description,
+            "platform": self.platform,
             "initialize": self.loads("initialize"),
             "notify": self.loads("notify"),
-            "check": check
+            "check": check,
+            "variables": self.loads("variables"),
         }
 
 class PolicyTemplate(models.Model):
@@ -1729,6 +1745,47 @@ class PolicyTemplate(models.Model):
             "variables": self.loads("variables"),
             "data": self.loads("data")
         }
+    
+    def to_nocode_json(self):
+        variables = self.loads("variables")
+        def fetch_value(name):
+            for variable in variables:
+                if variable["name"] == name:
+                    return variable["value"]
+            return None
+        # combine the custom actions and the action types together as a filter of this Procedure    
+        filters = [action.to_json() for action in self.custom_actions.all()]
+        filters += [{"action_type": action.codename} for action in self.action_types.all()]
+
+         # add actions defined in the Procedure instance to the extra_executions
+        if self.procedure:
+            procedure = self.procedure.to_json()
+            for variable in procedure["variables"]:
+                # fill in the actual value of the variable from variables
+                variable["value"] = fetch_value(variable["name"])
+        else:
+            procedure = {}
+        executions = self.loads("executions") 
+
+        transformers = [transformer.to_json() for transformer in self.transformers.all()]
+        for transformer in transformers:
+            for variable in transformer["variables"]:
+                # fill in the actual value of the variable from variables
+                variable["value"] = fetch_value(variable["name"])
+
+        
+        return {
+            "pk": self.pk,
+            "name": self.name,
+            "description": self.description,
+            "kind": self.template_kind,
+            "actions": filters,
+            "procedure": procedure,
+            "executions": executions,
+            "transformers": transformers,
+            "variables": self.loads("variables"),
+            "data": self.loads("data")
+        }
 
     def create_policy_variables(self, policy, variables_data):
         """
@@ -1743,15 +1800,20 @@ class PolicyTemplate(models.Model):
         for variable in variables:
             # as in the data models, we allow two ways to specify the default value of a variable
             variable["default_value"] = variable["default"]["value"] if isinstance(variable["default"], dict) else variable["default"]
-            del variable["default"]
-
-            new_variable = PolicyVariable.objects.create(policy=policy, **variable)
+            del variable["default"] 
+            
+            policy_variable, created = PolicyVariable.objects.get_or_create(
+                policy=policy,
+                name=variable["name"],
+                defaults=variable
+            )
 
             if variable["name"] in variables_data:
-                new_variable.value = variables_data[variable["name"]]
-            new_variable.save()
+                policy_variable.value = variables_data[variable["name"]]
 
-    def create_policy(self, community):
+            policy_variable.save()
+
+    def create_policy(self, community, policy=None):
         """
             Create a Policy instance based on the JSON object defined by this PolicyTemplate instance
         """
@@ -1759,12 +1821,33 @@ class PolicyTemplate(models.Model):
 
         policy_json = self.to_json()
 
-        policy = Policy.objects.create(name=self.name, description=self.description, kind=self.policy_kind, community=community)
-
-        action_types = CodesGenerator.extract_action_types(policy_json["filter"])
-        for action_type in action_types:
+        if policy is not None:
+            policy.name = self.name
+            policy.description = self.description
+            policy.kind = self.policy_kind
+            policy.community = community
+            policy.policy_template = self
+        else:
+            policy = Policy.objects.create(
+                name=self.name,
+                description=self.description,
+                kind=self.policy_kind,
+                community=community,
+                policy_template=self,
+            )
+        
+        action_types = set(CodesGenerator.extract_action_types(policy_json["filter"]))
+        if policy is not None:
+            old_action_types = set(policy.action_types.all())
+        else:
+            old_action_types = set()
+        action_types_to_add = action_types - old_action_types
+        action_types_to_remove = old_action_types - action_types
+        for action_type in action_types_to_add:
             policy.action_types.add(action_type)
-
+        for action_type in action_types_to_remove:
+            policy.action_types.remove(action_type)
+        
         policy.filter = CodesGenerator.generate_filter_codes(policy_json["filter"])
         policy.initialize = "pass"
         # for now we do not have any initialize codes, we put all of them in the check module
