@@ -1255,7 +1255,7 @@
             let set_value = variable.value ? variable.value : '';
             const determine_selected = (value) => {
                 if(variable.is_list){
-                    console.log('set_value', set_value.split(","), 'value', value);
+                    // console.log('set_value', set_value.split(","), 'value', value);
                     return set_value.split(",").includes(value) ? "selected" : "";
                 } else {
                     return value === set_value ? "selected" : "";

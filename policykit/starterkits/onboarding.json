@@ -1,5 +1,6 @@
 {
     "name": "Onboarding",
+    "description": "A starter kit for onboarding new communities",
     "platform_policies": [
     {
       "name": "All Platform Actions Pass",

@@ -298,7 +298,7 @@ def editor(request):
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
-    if not policy.policy_template:
+    if not policy or not policy.policy_template:
         # which action types to show in the dropdown
         actions = Utils.get_action_types(community, kinds=[kind])
 
@@ -999,7 +999,7 @@ def generate_code(request):
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
-    old_policytemplate = PolicyTemplate.objects.get(pk=data.get("policytemplate"))
+    old_policytemplate = PolicyTemplate.objects.filter(pk=data.get("policytemplate")).first()
     if old_policytemplate and old_policytemplate.policy:
         policy = old_policytemplate.policy
     else:

@@ -632,7 +632,7 @@
     
     }
 
-    const showProcedureVariables = (procedure_value, app, applied_procedure) => { 
+    const showProcedureVariables = (procedure_value, app, applied_procedure = {}) => { 
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_procedure === null) activate_section("procedure");
         
@@ -717,7 +717,7 @@
                 // $('.procedure-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
                 let app = event.target.getAttribute("platform");
                 if(selected_procedure) removeProcedureVariables(selected_procedure.value);
-                showProcedureVariables(procedure_value, app);
+                showProcedureVariables(procedure_value, app, {});
             } else {
                 removeProcedureVariables(procedure_value);
             }
