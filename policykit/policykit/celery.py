@@ -2,9 +2,6 @@ from __future__ import absolute_import, unicode_literals
 
 from django.conf import settings
 
-if settings.DDTRACE:
-    import ddtrace
-    ddtrace.patch(logging=True, celery=True)
 
 import os
 
@@ -35,6 +32,10 @@ def on_after_setup_task_logger(logger, *args, **kwargs):
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
+
+if settings.DDTRACE:
+    import ddtrace
+    ddtrace.patch(celery=True)
 
 app = Celery('policykit',
              broker=os.getenv("CELERY_BROKER_URL"),
