@@ -16,7 +16,7 @@ DDTRACE = eval(os.environ.get("DDTRACE", "False"))
 
 if DDTRACE:
     from ddtrace import patch
-    patch(logging=True, celery=True)
+    patch(logging=True)
 
 import environ
 import tempfile
