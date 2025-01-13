@@ -287,6 +287,8 @@ LOGGING = {
     'loggers': {
         # Database logger for policy evaluation logs
         "db": {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate": True},
+        # Only log DDTRACE warnings
+        "ddtrace": {"level": "WARNING", "propagate": True},
         # Info for everything else
         "": {"handlers": ["console", "file"], "level": LOG_LEVEL}
     }
