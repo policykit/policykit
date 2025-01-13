@@ -11,6 +11,13 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+
+DDTRACE = bool(os.environ.get("DDTRACE", "False"))
+
+if DDTRACE:
+    from ddtrace import patch
+    patch(logging=True, celery=True)
+
 import environ
 import tempfile
 
@@ -51,11 +58,6 @@ DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
 DJANGO_SILK = env("DJANGO_SILK")
 FORCE_SLACK_LOGIN = env("FORCE_SLACK_LOGIN")
-DDTRACE = env("DDTRACE")
-
-if DDTRACE:
-    from ddtrace import patch
-    patch(logging=True, celery=True)
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
