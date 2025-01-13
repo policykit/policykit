@@ -1,9 +1,11 @@
 # minimal requirements https://github.com/pypa/pip/issues/8981#issuecomment-707051457
 # metagov uses providing_args kwarg for Signal which was removed in Django 4
+ddtrace
 Django<3.4
 django-activity-stream
 django-celery-beat
 django-celery-results
+django-datadog-logger
 django-debug-toolbar
 django-environ
 django-extensions

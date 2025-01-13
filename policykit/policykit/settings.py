@@ -36,6 +36,7 @@ env = environ.Env(
     DJANGO_VITE_DEV_MODE=(bool, False),
     DJANGO_SILK=(bool, False),
     FORCE_SLACK_LOGIN=(str, None),
+    DDTRACE=(bool, False),
 )
 environ.Env.read_env()
 
@@ -50,6 +51,11 @@ DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
 DJANGO_SILK = env("DJANGO_SILK")
 FORCE_SLACK_LOGIN = env("FORCE_SLACK_LOGIN")
+DDTRACE = env("DDTRACE")
+
+if DDTRACE:
+    from ddtrace import patch
+    patch(logging=True, celery=True)
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
@@ -147,6 +153,7 @@ ACTSTREAM_SETTINGS = {
 }
 
 MIDDLEWARE = [
+    "django_datadog_logger.middleware.request_id.RequestIdMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -156,6 +163,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'policykit.middleware.ForceLoginMiddleware',
+    "django_datadog_logger.middleware.error_log.ErrorLoggingMiddleware",
+    "django_datadog_logger.middleware.request_log.RequestLoggingMiddleware",
 ]
 
 ROOT_URLCONF = 'policykit.urls'
@@ -244,7 +253,6 @@ PROJECT_NAME = "PolicyKit"
 
 ### Logging
 import sys
-import os
 
 # Set default log level
 DEFAULT_LOG_LEVEL_FOR_TESTS = "DEBUG"
@@ -252,18 +260,6 @@ DEFAULT_LOG_LEVEL = "DEBUG"
 
 TESTING = sys.argv[1:2] == ["test"]
 LOG_LEVEL = DEFAULT_LOG_LEVEL_FOR_TESTS if TESTING else DEFAULT_LOG_LEVEL
-
-# Generate loggers for engine and integrations
-loggers = {}
-for app in ['policyengine'] + INTEGRATIONS:
-    loggers.update({app: {"handlers": ["console", "file"], "level": LOG_LEVEL, "propagate": False}})
-# Database logger for policy evaluation logs
-loggers["db"] = {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate": False}
-# Set log level to WARN for everything else (imported dependencies)
-loggers[""] = {"handlers": ["console", "file"], "level": "WARN"}
-
-# Override for specific apps
-loggers['metagov'] = {'handlers': ['console', 'file'], 'level': "DEBUG", "propagate": False}
 
 # Maximum number of log records to keep
 DB_MAX_LOGS_TO_KEEP = 5000
@@ -273,7 +269,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         "console": {"format": "%(name)-12s %(levelname)-8s %(message)s"},
-        "file": {"format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"},
+        "json": {"()": "django_datadog_logger.formatters.datadog.DataDogJSONFormatter"},
     },
     'handlers': {
         "db_log": {
@@ -282,12 +278,19 @@ LOGGING = {
         "file": {
             "class": "logging.FileHandler",
             "filename": env("LOG_FILE"),
-            "formatter": "file",
+            "formatter": "json",
         },
         "console": {"class": "logging.StreamHandler", "formatter": "console"},
     },
-    'loggers': loggers
+    'loggers': {
+        # Database logger for policy evaluation logs
+        "db": {"handlers": ["db_log"], "level": DEFAULT_LOG_LEVEL, "propagate": True},
+        # Info for everything else
+        "": {"handlers": ["console", "file"], "level": LOG_LEVEL}
+    }
 }
+
+DJANGO_DATADOG_LOGGER_EXTRA_INCLUDE = r"^.*$"
 
 
 CELERY_RESULT_BACKEND = 'django-db'
