@@ -11,15 +11,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-
-DDTRACE = eval(os.environ.get("DDTRACE", "False"))
-
-if DDTRACE:
-    import ddtrace.auto # noqa: E402
-    ddtrace.auto
-    from ddtrace import patch
-    patch(logging=True)
-
 import environ
 import tempfile
 
@@ -60,6 +51,13 @@ DEBUG_TOOLBAR = env("DJANGO_DEBUG_TOOLBAR")
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE")
 DJANGO_SILK = env("DJANGO_SILK")
 FORCE_SLACK_LOGIN = env("FORCE_SLACK_LOGIN")
+DDTRACE = env("DDTRACE")
+
+if DDTRACE:
+    import ddtrace.auto # noqa: E402
+    ddtrace.auto
+    from ddtrace import patch
+    patch(logging=True)
 
 if SENTRY_SERVER_DSN:
     import sentry_sdk
