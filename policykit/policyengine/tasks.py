@@ -21,7 +21,11 @@ def evaluate_pending_proposals():
     #logger.debug("Running evaluate_pending_proposals:" + str(len(pending_proposals)))
 
     for proposal in pending_proposals:
-        community_name = proposal.action.community.community_name
+        try:
+            community_name = proposal.action.community.community_name
+        except Exception as e:
+            logger.error(f"Error getting community name for proposal {proposal}: {repr(e)} {e}")
+            continue
         logger.debug(f"{community_name} - Evaluating proposal '{proposal}'")
         try:
             engine.evaluate_proposal(proposal)
