@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
-DDTRACE = bool(os.environ.get("DDTRACE", "False"))
+DDTRACE = eval(os.environ.get("DDTRACE", "False"))
 
 if DDTRACE:
     from ddtrace import patch
