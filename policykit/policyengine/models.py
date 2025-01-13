@@ -743,17 +743,20 @@ class GovernableAction(BaseAction, PolymorphicModel):
         """
         evaluate_action = kwargs.pop("evaluate_action", None)
         should_evaluate = (not self.pk and evaluate_action != False) or evaluate_action
+        logger.debug("GovernableAction::save", extra={"GovernableAction::save.should_evaluate": should_evaluate, "GovernableAction::save.pk": self.pk, "GovernableAction::save.evaluate_action": evaluate_action})
 
         if should_evaluate:
             can_propose_perm = f"{self._meta.app_label}.add_{self.action_type}"
             can_execute_perm = f"{self._meta.app_label}.can_execute_{self.action_type}"
 
-            if self.initiator and self.initiator.has_perm(can_execute_perm):
+            should_execute = self.initiator and self.initiator.has_perm(can_execute_perm)
+            can_not_propose = self.initiator and not self.initiator.has_perm(can_propose_perm)
+            logger.debug("GovernableAction::save executing?", extra={"GovernableAction::save.should_execute": should_execute, "GovernableAction::save.initiator": self.initiator, "GovernableAction::save.can_execute_perm": can_execute_perm, "GovernableAction::save.can_not_propose": can_not_propose})
+            if should_execute:
                 self.execute()  # No `Proposal` is created because we don't evaluate it
                 super(GovernableAction, self).save(*args, **kwargs)
                 ExecutedActionTriggerAction.from_action(self).evaluate()
-
-            elif self.initiator and not self.initiator.has_perm(can_propose_perm):
+            elif can_not_propose:
                 if self._is_reversible:
                     logger.debug(f"{self.initiator} does not have permission to propose action {self.action_type}: reverting")
                     super(GovernableAction, self).save(*args, **kwargs)

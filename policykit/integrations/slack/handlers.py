@@ -34,7 +34,7 @@ def slack_event_receiver(sender, instance, event_type, data, initiator, **kwargs
         return
 
     new_api_action = SlackUtils.slack_event_to_platform_action(slack_community, event_type, data, initiator)
-    logger.debug("slack_event_reciever", extra={"slack_event_reciever.new_api_action": new_api_action})
+    logger.debug("slack_event_reciever: got api action", extra={"slack_event_reciever.new_api_action": new_api_action})
 
     if new_api_action is not None:
         new_api_action.community_origin = True
