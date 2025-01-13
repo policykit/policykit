@@ -20,8 +20,8 @@ Django signal handlers
 
 @receiver(platform_event_created, sender=Slack)
 def slack_event_receiver(sender, instance, event_type, data, initiator, **kwargs):
+    logger.debug("slack_event_reciever", extra={"event_type": event_type, "data": data, "initiator": initiator})
     logger.debug(f"Received {event_type} event from {instance}")
-    logger.debug(data)
     if initiator.get("is_metagov_bot") == True:
         return
     try:
