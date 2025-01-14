@@ -16,6 +16,7 @@ services:
       - DJANGO_DEBUG_TOOLBAR=True
       - DJANGO_VITE_DEV_MODE=${DJANGO_VITE_DEV_MODE:-True}
       - DJANGO_SILK=True
+      - LOG_FILE=/app/log
     depends_on:
       - rabbit
       - postgres

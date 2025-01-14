@@ -20,19 +20,22 @@ Django signal handlers
 
 @receiver(platform_event_created, sender=Slack)
 def slack_event_receiver(sender, instance, event_type, data, initiator, **kwargs):
-    logger.debug(f"Received {event_type} event from {instance}")
-    # logger.debug(data)
+    logger.debug("slack_event_reciever", extra={"slack_event_reciever.event_type": event_type, "slack_event_reciever.initiator": initiator, "slack_event_reciever.data": data})
+    # logger.debug(f"Received {event_type} event from {instance}")
     if initiator.get("is_metagov_bot") == True:
+        logger.debug("slack_event_reciever: Ignoring event from Metagov bot")
         return
     try:
         slack_community = SlackCommunity.objects.get(
             team_id=instance.community_platform_id, community__metagov_slug=instance.community.slug
         )
     except SlackCommunity.DoesNotExist:
-        logger.warn(f"No SlackCommunity matches {instance}")
+        logger.warning(f"slack_event_reciever: No SlackCommunity matches {instance}")
         return
 
     new_api_action = SlackUtils.slack_event_to_platform_action(slack_community, event_type, data, initiator)
+    # logger.debug("slack_event_reciever: got api action", extra={"slack_event_reciever.new_api_action": new_api_action})
+
     if new_api_action is not None:
         new_api_action.community_origin = True
         new_api_action.save()  # save triggers policy proposal

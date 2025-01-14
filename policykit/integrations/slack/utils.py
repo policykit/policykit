@@ -4,7 +4,7 @@ import logging
 
 from django.db.models import Q
 from policyengine.models import LogAPICall, PolicyActionKind
-from policyengine.utils import default_boolean_vote_message, default_election_vote_message
+from policyengine.utils import default_boolean_vote_message
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ def get_slack_user_fields(user_info):
 
 
 def is_policykit_action(community, value_to_match, key_to_match, api_name):
+    # logger.debug("is_policykit_action", extra={"is_policykit_action.value_to_match": value_to_match, "is_policykit_action.key_to_match": key_to_match, "is_policykit_action.api_name": api_name})
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
 
     logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus).filter(
@@ -39,8 +40,10 @@ def is_policykit_action(community, value_to_match, key_to_match, api_name):
                 continue
             if value_to_match == j_info[key_to_match]:
                 # logger.debug(f">found matching log {log.pk}")
+                # logger.debug("is_policykit_action -> True")
                 return True
     # logger.debug(f">no match")
+    # logger.debug("is_policykit_action -> False")
     return False
 
 
@@ -136,7 +139,7 @@ def construct_vote_params(proposal, users=None, post_type="channel", text=None, 
     if post_type not in ["channel", "mpim"]:
         raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
     if post_type == "mpim" and not users:
-        raise Exception(f"Must pass users for 'mpim' vote")
+        raise Exception("Must pass users for 'mpim' vote")
 
     params = {}
 
@@ -174,7 +177,7 @@ def construct_select_vote_params(proposal, candidates, options, users=None, post
     if post_type not in ["channel", "mpim"]:
         raise Exception(f"Unsupported post type {post_type}. Must be 'channel' or 'mpim'")
     if post_type == "mpim" and not users:
-        raise Exception(f"Must pass users for 'mpim' vote")
+        raise Exception("Must pass users for 'mpim' vote")
 
     params = {}
 

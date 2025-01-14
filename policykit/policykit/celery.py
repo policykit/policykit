@@ -1,13 +1,41 @@
 from __future__ import absolute_import, unicode_literals
 
+from django.conf import settings
+
+
 import os
 
 from celery import Celery, signals
 import sentry_sdk
 from sentry_sdk.integrations.celery import CeleryIntegration
+from celery.signals import after_setup_logger, after_setup_task_logger
+
+# https://github.com/namespace-ee/django-datadog-logger
+@after_setup_logger.connect
+def on_after_setup_logger(logger, *args, **kwargs):
+    from django_datadog_logger.formatters.datadog import DataDogJSONFormatter
+
+    formatter = DataDogJSONFormatter()
+    for handler in list(logger.handlers):
+        handler.setFormatter(formatter)
+        handler.setLevel(settings.LOG_LEVEL)
+
+
+@after_setup_task_logger.connect
+def on_after_setup_task_logger(logger, *args, **kwargs):
+    from django_datadog_logger.formatters.datadog import DataDogJSONFormatter
+
+    formatter = DataDogJSONFormatter()
+    for handler in list(logger.handlers):
+        handler.setFormatter(formatter)
+        handler.setLevel(settings.LOG_LEVEL)
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'policykit.settings')
+
+if settings.DDTRACE:
+    import ddtrace
+    ddtrace.patch(celery=True)
 
 app = Celery('policykit',
              broker=os.getenv("CELERY_BROKER_URL"),

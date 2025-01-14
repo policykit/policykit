@@ -208,8 +208,11 @@ def evaluate_action(action):
     """
     from policyengine.models import PolicyActionKind
 
+    # logger.debug("evaluate_action", extra={"evaluate_action.action": action})
+
     eligible_policies = get_eligible_policies(action)
     if not eligible_policies.exists():
+        # logger.debug("evaluate_action -> None (no eligble policies)")
         if action.kind != PolicyActionKind.TRIGGER:
             raise Exception(f"no eligible policies found for governable action '{action}'")
         else:
@@ -219,6 +222,7 @@ def evaluate_action(action):
     if action.kind == PolicyActionKind.TRIGGER:
         proposals = []
         matching_policies_proposals = create_prefiltered_proposals(action, eligible_policies, allow_multiple=True)
+        logger.debug("evaluate_action:trigger", extra={"evaluate_action.len(trigger_proposals)": len(matching_policies_proposals)})
         for proposal in matching_policies_proposals:
             try:
                 evaluate_proposal(proposal, is_first_evaluation=True)
@@ -231,8 +235,10 @@ def evaluate_action(action):
 
     # If this is a governable action, choose ONE policy to evaluate
     else:
+        # logger.debug("evaluate_action:governable")
         while eligible_policies.exists():
             proposal = create_prefiltered_proposals(action, eligible_policies)
+            # logger.debug("evaluate_action:governable evaluating proposal", extra={"evaluate_action.proposal": proposal})
             if not proposal:
                 # This means that the action didn't pass the filter for ANY policies.
                 logger.warn(f"Governable action {action} did not pass Filter for any eligible policies.")
@@ -259,8 +265,10 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
     """
     from policyengine.models import Policy, Proposal
 
+    # logger.debug("create_prefiltered_proposals", extra={"create_prefiltered_proposals.action": action, "create_prefiltered_proposals.policies": policies})
     proposals = []
     for policy in policies:
+        # logger.debug("create_prefiltered_proposals:policy", extra={"create_prefiltered_proposals.policy": policy})
         proposal = Proposal(policy=policy, action=action, status=Proposal.PROPOSED)
         context = EvaluationContext(proposal, is_first_evaluation=True)
         try:
@@ -271,6 +279,7 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
             # If there was an exception raised in 'filter', treat it as if the action didn't pass this policy's filter.
             continue
 
+        # logger.debug("create_prefiltered_proposals:policy exec filter", extra={"create_prefiltered_proposals.policy.filter": policy.filter, "create_prefiltered_proposals.passed_filter": passed_filter})
         if passed_filter:
             # Defer saving trigger actions and proposals until we need to, so we don't bloat the database
             if not action.pk:
