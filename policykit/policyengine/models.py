@@ -753,8 +753,10 @@ class GovernableAction(BaseAction, PolymorphicModel):
             can_not_propose = self.initiator and not self.initiator.has_perm(can_propose_perm)
             logger.debug("GovernableAction::save executing?", extra={"GovernableAction::save.should_execute": should_execute, "GovernableAction::save.initiator": self.initiator, "GovernableAction::save.can_execute_perm": can_execute_perm, "GovernableAction::save.can_not_propose": can_not_propose})
             if should_execute:
+                logger.debug("GovernableAction::execute")
                 self.execute()  # No `Proposal` is created because we don't evaluate it
                 super(GovernableAction, self).save(*args, **kwargs)
+                logger.debug("GovernableAction::evaluate")
                 ExecutedActionTriggerAction.from_action(self).evaluate()
             elif can_not_propose:
                 if self._is_reversible:
@@ -768,9 +770,12 @@ class GovernableAction(BaseAction, PolymorphicModel):
             else:
                 super(GovernableAction, self).save(*args, **kwargs)
 
+                logger.debug("GovernableAction::evaluating action")
                 proposal = engine.evaluate_action(self)
+                logger.debug("GovernableAction::evaluating action -> status: %s", proposal.status)
                 if proposal and proposal.status == Proposal.PASSED:
                     # Evaluate a trigger for the acion being executed
+                    logger.debug("GovernableAction::evaluating action -> evaluating trigger")
                     ExecutedActionTriggerAction.from_action(self).evaluate()
 
         super(GovernableAction, self).save(*args, **kwargs)

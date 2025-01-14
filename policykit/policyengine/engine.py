@@ -208,8 +208,11 @@ def evaluate_action(action):
     """
     from policyengine.models import PolicyActionKind
 
+    logger.debug("evaluate_action", extra={"evaluate_action.action": action})
+
     eligible_policies = get_eligible_policies(action)
     if not eligible_policies.exists():
+        logger.debug("evaluate_action -> None (no eligble policies)")
         if action.kind != PolicyActionKind.TRIGGER:
             raise Exception(f"no eligible policies found for governable action '{action}'")
         else:
@@ -219,6 +222,7 @@ def evaluate_action(action):
     if action.kind == PolicyActionKind.TRIGGER:
         proposals = []
         matching_policies_proposals = create_prefiltered_proposals(action, eligible_policies, allow_multiple=True)
+        logger.debug("evaluate_action:trigger", extra={"evaluate_action.trigger_proposals": matching_policies_proposals})
         for proposal in matching_policies_proposals:
             try:
                 evaluate_proposal(proposal, is_first_evaluation=True)
@@ -231,8 +235,10 @@ def evaluate_action(action):
 
     # If this is a governable action, choose ONE policy to evaluate
     else:
+        logger.debug("evaluate_action:governable")
         while eligible_policies.exists():
             proposal = create_prefiltered_proposals(action, eligible_policies)
+            logger.debug("evaluate_action:governable evaluating proposal", extra={"evaluate_action.proposal": proposal})
             if not proposal:
                 # This means that the action didn't pass the filter for ANY policies.
                 logger.warn(f"Governable action {action} did not pass Filter for any eligible policies.")
