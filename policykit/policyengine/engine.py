@@ -222,7 +222,7 @@ def evaluate_action(action):
     if action.kind == PolicyActionKind.TRIGGER:
         proposals = []
         matching_policies_proposals = create_prefiltered_proposals(action, eligible_policies, allow_multiple=True)
-        logger.debug("evaluate_action:trigger", extra={"evaluate_action.trigger_proposals": matching_policies_proposals})
+        logger.debug("evaluate_action:trigger", extra={"evaluate_action.len(trigger_proposals)": len(matching_policies_proposals)})
         for proposal in matching_policies_proposals:
             try:
                 evaluate_proposal(proposal, is_first_evaluation=True)
@@ -265,8 +265,10 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
     """
     from policyengine.models import Policy, Proposal
 
+    logger.debug("create_prefiltered_proposals", extra={"create_prefiltered_proposals.action": action, "create_prefiltered_proposals.policies": policies})
     proposals = []
     for policy in policies:
+        logger.debug("create_prefiltered_proposals:policy", extra={"create_prefiltered_proposals.policy": policy})
         proposal = Proposal(policy=policy, action=action, status=Proposal.PROPOSED)
         context = EvaluationContext(proposal, is_first_evaluation=True)
         try:
@@ -277,6 +279,7 @@ def create_prefiltered_proposals(action, policies, allow_multiple=False):
             # If there was an exception raised in 'filter', treat it as if the action didn't pass this policy's filter.
             continue
 
+        logger.debug("create_prefiltered_proposals:policy exec filter", extra={"create_prefiltered_proposals.policy.filter": policy.filter, "create_prefiltered_proposals.passed_filter": passed_filter})
         if passed_filter:
             # Defer saving trigger actions and proposals until we need to, so we don't bloat the database
             if not action.pk:
