@@ -23,7 +23,7 @@ def get_slack_user_fields(user_info):
 
 
 def is_policykit_action(community, value_to_match, key_to_match, api_name):
-    logger.debug("is_policykit_action", extra={"is_policykit_action.value_to_match": value_to_match, "is_policykit_action.key_to_match": key_to_match, "is_policykit_action.api_name": api_name})
+    # logger.debug("is_policykit_action", extra={"is_policykit_action.value_to_match": value_to_match, "is_policykit_action.key_to_match": key_to_match, "is_policykit_action.api_name": api_name})
     current_time_minus = datetime.datetime.now() - datetime.timedelta(seconds=2)
 
     logs = LogAPICall.objects.filter(community=community, proposal_time__gte=current_time_minus).filter(
@@ -43,7 +43,7 @@ def is_policykit_action(community, value_to_match, key_to_match, api_name):
                 logger.debug("is_policykit_action -> True")
                 return True
     # logger.debug(f">no match")
-    logger.debug("is_policykit_action -> False")
+    # logger.debug("is_policykit_action -> False")
     return False
 
 
