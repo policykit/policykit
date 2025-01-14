@@ -40,7 +40,7 @@ def is_policykit_action(community, value_to_match, key_to_match, api_name):
                 continue
             if value_to_match == j_info[key_to_match]:
                 # logger.debug(f">found matching log {log.pk}")
-                logger.debug("is_policykit_action -> True")
+                # logger.debug("is_policykit_action -> True")
                 return True
     # logger.debug(f">no match")
     # logger.debug("is_policykit_action -> False")

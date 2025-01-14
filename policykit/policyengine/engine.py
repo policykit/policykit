@@ -238,7 +238,7 @@ def evaluate_action(action):
         # logger.debug("evaluate_action:governable")
         while eligible_policies.exists():
             proposal = create_prefiltered_proposals(action, eligible_policies)
-            logger.debug("evaluate_action:governable evaluating proposal", extra={"evaluate_action.proposal": proposal})
+            # logger.debug("evaluate_action:governable evaluating proposal", extra={"evaluate_action.proposal": proposal})
             if not proposal:
                 # This means that the action didn't pass the filter for ANY policies.
                 logger.warn(f"Governable action {action} did not pass Filter for any eligible policies.")

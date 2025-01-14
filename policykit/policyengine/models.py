@@ -751,7 +751,7 @@ class GovernableAction(BaseAction, PolymorphicModel):
 
             should_execute = self.initiator and self.initiator.has_perm(can_execute_perm)
             can_not_propose = self.initiator and not self.initiator.has_perm(can_propose_perm)
-            logger.debug("GovernableAction::save executing?", extra={"GovernableAction::save.should_execute": should_execute, "GovernableAction::save.initiator": self.initiator, "GovernableAction::save.can_execute_perm": can_execute_perm, "GovernableAction::save.can_not_propose": can_not_propose})
+            # logger.debug("GovernableAction::save executing?", extra={"GovernableAction::save.should_execute": should_execute, "GovernableAction::save.initiator": self.initiator, "GovernableAction::save.can_execute_perm": can_execute_perm, "GovernableAction::save.can_not_propose": can_not_propose})
             if should_execute:
                 # logger.debug("GovernableAction::execute")
                 self.execute()  # No `Proposal` is created because we don't evaluate it
