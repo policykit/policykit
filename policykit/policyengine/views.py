@@ -298,42 +298,51 @@ def editor(request):
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
-    # which action types to show in the dropdown
-    actions = Utils.get_action_types(community, kinds=[kind])
+    if not policy or not policy.policy_template:
+        # which action types to show in the dropdown
+        actions = Utils.get_action_types(community, kinds=[kind])
 
-    # list of autocomplete strings
-    action_types = [a.codename for a in policy.action_types.all()] if policy else None
-    autocompletes = Utils.get_autocompletes(community, action_types=action_types, policy=policy)
+        # list of autocomplete strings
+        action_types = [a.codename for a in policy.action_types.all()] if policy else None
+        autocompletes = Utils.get_autocompletes(community, action_types=action_types, policy=policy)
 
-    # determine whether the page should be displayed as modal or full page
-    base = DASHBOARD_BASE 
+        base = DASHBOARD_BASE 
 
-    if request.META.get('HTTP_HX_REQUEST'):
-        base = DASHBOARD_BASE_AJAX
+        if request.META.get('HTTP_HX_REQUEST'):
+            base = DASHBOARD_BASE_AJAX
 
-    data = {
-        'user': get_user(request),
-        'type': kind.capitalize(),
-        'operation': operation,
-        'actions': actions.items(),
-        'autocompletes': json.dumps(autocompletes),
-        'base': base
-    }
+        data = {
+            'user': get_user(request),
+            'type': kind.capitalize(),
+            'operation': operation,
+            'actions': actions.items(),
+            'autocompletes': json.dumps(autocompletes),
+            'base': base
+        }
 
-    if policy:
-        data['policy'] = policy_id
-        data['name'] = policy.name
-        data['description'] = policy.description
-        data['filter'] = policy.filter
-        data['initialize'] = policy.initialize
-        data['check'] = policy.check
-        data['notify'] = policy.notify
-        data['success'] = policy.success
-        data['fail'] = policy.fail
-        data['action_types'] = list(policy.action_types.all().values_list('codename', flat=True))
-        data['variables'] = policy.variables.all()
 
-    return render(request, 'policyadmin/dashboard/editor.html', data)
+        if policy:
+            data['policy'] = policy_id
+            data['name'] = policy.name
+            data['description'] = policy.description
+            data['filter'] = policy.filter
+            data['initialize'] = policy.initialize
+            data['check'] = policy.check
+            data['notify'] = policy.notify
+            data['success'] = policy.success
+            data['fail'] = policy.fail
+            data['action_types'] = list(policy.action_types.all().values_list('codename', flat=True))
+            data['variables'] = policy.variables.all()
+
+        return render(request, 'policyadmin/dashboard/editor.html', data)
+    else:
+        import policyengine.frontend_utils as FrontendUtils
+        user = get_user(request)
+        nocode_modules = FrontendUtils.get_nocode_modules(user)
+        nocode_modules['trigger'] = kind == PolicyActionKind.TRIGGER
+        nocode_modules['policytemplate'] = json.dumps(policy.policy_template.to_nocode_json())
+        return render(request, "no-code/main.html", nocode_modules)
+
 
 @login_required
 def selectrole(request):
@@ -959,36 +968,10 @@ def main(request):
         Utils.load_templates("FilterModule")
 
     user = get_user(request)
-    # get base actions and filter kinds when creating custom actions
-    base_actions, action_filter_kinds = FrontendUtils.get_base_actions(user)
-    # for filter modules, only show the ones that are applicable to platforms base actions are available on
-    filter_modules = FrontendUtils.get_filter_modules(list(base_actions.keys()))
-
-    # get all platforms this community is on
-    platforms = FrontendUtils.get_all_platforms(user)
-    # get all procedures available to this community
-    procedures = FrontendUtils.get_procedures(platforms)
-
-    # get all transformers available to this community
-    transformers = FrontendUtils.get_transformers()
-
-    # get all execution modules available to this community
-    executions = FrontendUtils.extract_executable_actions(user)
-
-    # get all entities in the community
-    entities = FrontendUtils.load_entities(user.community)
-    trigger = request.GET.get("trigger", "false")
-    return render(request, "no-code/main.html", {
-        "trigger": trigger,
-        "base_actions": json.dumps(base_actions),
-        "action_filter_kinds": json.dumps(action_filter_kinds),
-        "filter_modules": json.dumps(filter_modules),
-        "platforms": json.dumps(platforms),
-        "procedures": json.dumps(procedures),
-        "transformers": json.dumps(transformers),
-        "executions": json.dumps(executions),
-        "entities": json.dumps(entities),
-    })
+    nocode_modules = FrontendUtils.get_nocode_modules(user)
+    nocode_modules['trigger'] = request.GET.get("trigger", "false")
+    nocode_modules['policytemplate'] = json.dumps({})
+    return render(request, "no-code/main.html", nocode_modules)
 
 def view_policy_json(request):
     policy_id = request.GET.get("id")
@@ -1016,7 +999,11 @@ def generate_code(request):
 def create_policy(request):
     data = json.loads(request.body)
     from policyengine.models import PolicyTemplate
-
+    old_policytemplate = PolicyTemplate.objects.filter(pk=data.get("policytemplate")).first()
+    if old_policytemplate and old_policytemplate.policy:
+        policy = old_policytemplate.policy
+    else:
+        policy = None
     new_policytemplate = PolicyTemplate.objects.create(
         template_kind=data.get("policykind"),
         name=data.get("name", ""),
@@ -1031,7 +1018,7 @@ def create_policy(request):
     create_execution(data.get("executions", {}), new_policytemplate)
 
     user = get_user(request)
-    new_policy = new_policytemplate.create_policy(user.community.community)
+    new_policy = new_policytemplate.create_policy(user.community.community, policy)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
 def create_custom_action(filters):

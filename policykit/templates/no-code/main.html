@@ -55,11 +55,11 @@
             <div class="section-body" id="design_meta">
                 <div class="column-variable-item">
                     <label for='name' class="medium normal">Policy Name<span>*</span></label>
-                    <input type='text'  data-id='name' class='variable-input' name='name' required/>
+                    <input type='text' id='policy-name' data-id='name' class='variable-input' name='name' required/>
                 </div>
                 <div class="column-variable-item">
                     <label for='description' class="medium normal">Description</label>
-                    <textarea data-id='description' class='variable-input' name='description' rows="5" required></textarea>
+                    <textarea data-id='description' id='policy-description' class='variable-input' name='description' rows="5" required></textarea>
                 </div>
             </div>
         </section>
@@ -237,6 +237,9 @@
 {% block step_scripts %}
 
 <script>
+
+    const policytemplate = JSON.parse('{{policytemplate | safe}}');
+    
     const base_actions = JSON.parse('{{base_actions | safe}}');
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
@@ -249,7 +252,7 @@
 
     var selected_policy_kind = "community_policies"; // other choices: triggering_policies
 
-    var focus_section_id = null;
+    var focus_section_id = "design_action";
     var selected_actions = [];
     var selected_procedure = null;
     var selected_transformers = [];
@@ -316,7 +319,7 @@
     }
 
     function update_data_from_filters(){
-        console.log("update data from filters", selected_actions);
+        // console.log("update data from filters", selected_actions);
         if(selected_actions.length > 1) return; // do not consider complicated cases when there are more than one action
         let filters = selected_actions[0].filter;
         global_datalist = global_datalist.filter(item => item.from !== "filter");
@@ -506,7 +509,7 @@
         if(selected_executions[stage].length == 0) deactivate_section(`execution_${stage}`);
     }
 
-    const showFilterParameters = (action_value, app) => {
+    const showFilterParameters = (action_value, app, applied_filters={}) => {
 
         // check if the action has already been selected
         if (selected_actions.some(item => item.value == action_value)) return;
@@ -535,6 +538,8 @@
                 field_div.classList.add('custom-action-field');
 
                 select_id = `select-${action.value}.${field_name}`
+                // if the filter is already applied, then select the filter
+                let selected_option = applied_filters[field_name] ? applied_filters[field_name].pk : "none";
                 let field_html = `<div class='variable-item small normal' id='${action.value}.${field_name}'>
                             <label for='${select_id}' class="small normal">${capitalize(filter_schema.label)}</label>
                             <div class='selectpicker-wrapper'>
@@ -547,7 +552,8 @@
                 filters_this_kind.forEach(filter => {
                     let prompt = "";
                     if(filter.prompt) prompt = `<br><span class='variable-prompt'>${filter.prompt}</span>`
-                    field_html   += `<option value=${filter.pk} data-content="${filter.description}${prompt}"></option>`
+                    let selected = (filter.pk == selected_option) ? 'selected' : '';
+                    field_html   += `<option ${selected} value=${filter.pk} data-content="${filter.description}${prompt}"></option>`
                 });
                 field_html  += `</select></div></div>`; 
                 field_div.innerHTML = field_html; 
@@ -558,9 +564,18 @@
         $("#design_action-formview > :last-child").before(action_div);
         $(".selectpicker").selectpicker('refresh');
 
+        // load the filter variables if the filter is already applied
+        now_filter_kinds.forEach(filter_schema => {
+            const field_name = filter_schema.name;
+            let selected_option = applied_filters[field_name] ? applied_filters[field_name].pk : "none";
+            if(selected_option != "none"){
+                showFilterModuleVariables(`select-${action.value}.${field_name}`, applied_filters[field_name]);
+            }
+        });
+
     }
 
-    const showFilterModuleVariables = (select_id) => {
+    const showFilterModuleVariables = (select_id, applied_filter={}) => {
         let select_box = document.getElementById(select_id);
         let filter_pk = parseInt(select_box.value);
 
@@ -568,8 +583,8 @@
         var field_div = select_box.closest(".custom-action-field"); 
         // now at the level of the action-field div
         while (field_div.childNodes.length > 1) {
-            field_div.removeChild(field_div.lastChild);
             // remove previously displayed filter variables except the action-field div
+            field_div.removeChild(field_div.lastChild);
         } 
 
         if(Number.isNaN(filter_pk)) return; // when no filter is selected, the value is "none" (NaN after parseInt)
@@ -593,6 +608,16 @@
         update_data_from_filters();
 
         const variables = filter.variables;
+        // if there is an applied filter, then load the variables with the values
+        if(Object.keys(applied_filter).length > 0){
+            variables.forEach(variable => {
+                // determine whether this variable already has a value or not
+                let set_variable = applied_filter["variables"].find(item => item.name == variable.name);
+                if(set_variable){
+                    variable.value = set_variable.value;
+                }
+            });
+        }
         var variable_div = document.createElement('div');
         variable_div.classList.add('custom-action-filter-variable');
         field_div.appendChild(variable_div);
@@ -607,55 +632,63 @@
     
     }
 
-    const showProcedureVariables = (procedure_value, app) => { 
+    const showProcedureVariables = (procedure_value, app, applied_procedure = {}) => { 
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_procedure === null) activate_section("procedure");
         
         // search for data about this selected procedure 
-        selected_procedure = {...procedures[app].find(item => item.value == procedure_value)};;
+        selected_procedure = deepcopy(procedures[app].find(item => item.value == procedure_value));
         update_data_from_procedures();
 
         let procedure_div = add_section_header("procedure", selected_procedure);
         $("#design_procedure-formview").empty();
         $("#design_procedure-formview").append(procedure_div);
         selected_procedure["variables"].forEach((variable, index) => {
+            let set_variable = applied_procedure.variables ? applied_procedure.variables.find(item => item.name == variable.name) : null;
+            if(set_variable) variable.value = set_variable.value;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=procedure_div, options=entities, datalist=global_datalist, type="procedure")
         })
 
         
     }
         
-    const showTransformerVariables = (transformer_value, app) => {
+    const showTransformerVariables = (transformer_value, app, applied_transformer={}) => {
+        
         if(selected_transformers.some(item => item.value === transformer_value)) return;
 
         if(selected_transformers.length === 0) activate_section("transformer");
 
-        let selected_transformer = {...transformers[app].find(item => item.value == transformer_value)};
+        let selected_transformer = deepcopy(transformers[app].find(item => item.value == transformer_value));
         selected_transformers.push(selected_transformer);
         
     
         let transformer_div = add_section_header("transformer", selected_transformer);
         $("#design_transformer-formview > :last-child").before(transformer_div);
         selected_transformer["variables"].forEach((variable, index) => {
+            let set_variable = applied_transformer.variables ? applied_transformer.variables.find(item => item.name == variable.name) : null;
+            if(set_variable) variable.value = set_variable.value;
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=transformer_div, options=entities, datalist=null, type="transformer")
         })
     }
 
-    const showExecutionVariables = (stage, execution_value, app, required=false) => {
+    const showExecutionVariables = (stage, execution_value, app, required=false, applied_execution={}) => {
         if(selected_executions[stage].some(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_executions[stage].length == 0) activate_section(`execution_${stage}`);
 
-        let execution ={...executions[app].find(item => item.value === execution_value)};
+        let execution = deepcopy(executions[app].find(item => item.value === execution_value));
         execution["name"] = `${capitalize(app)} ${capitalize(execution.name)}`;
         execution["required"] = required;
 
         selected_executions[stage].push(execution);
 
         let execution_div = add_section_header(`execution_${stage}`, execution);
-        
+
         $(`#design_execution_${stage}-formview > :last-child`).before(execution_div);
         execution["variables"].forEach((variable, index) => {
+            // check whether the dict applied_execution has the attribute with the name of the variable
+            variable.value = applied_execution[variable.name] ? applied_execution[variable.name] : null;
+            // console.log("variable ", variable.name, " at the stage ", stage, variable);
             addVariableInputBox(variable=variable, id=variable.name, parentDiv=execution_div, options=entities, datalist=global_datalist, type="execution")
         })
     }
@@ -684,7 +717,7 @@
                 // $('.procedure-checkbox-item input[type="checkbox"]').not(event.target).prop('checked', false);
                 let app = event.target.getAttribute("platform");
                 if(selected_procedure) removeProcedureVariables(selected_procedure.value);
-                showProcedureVariables(procedure_value, app);
+                showProcedureVariables(procedure_value, app, {});
             } else {
                 removeProcedureVariables(procedure_value);
             }
@@ -882,31 +915,27 @@
         }
     });
 
+    const toggleTransformerSection = () => {
+        let toggle_button = document.querySelector(".customize-procedure-button");
+        if(toggle_button.getAttribute("status") === "closed"){
+            $(`#design_transformer`).removeClass("hidden");
+            $(`#transformer-collapse-section`).removeClass("hidden");
+            toggle_button.innerHTML = "Hide";
+            toggle_button.setAttribute("status", "open");
+            changeFocusSection("design_transformer");
+        } else if(toggle_button.getAttribute("status") === "open"){
+            $(`#design_transformer`).addClass("hidden");
+            $(`#transformer-collapse-section`).addClass("hidden");
+            toggle_button.innerHTML = "Customize";
+            toggle_button.setAttribute("status", "closed");
+        }
+
+    }
     // listen to the event when users click the + button to unfold a collapsed section (transformer section)
     document.getElementById("nocode-panel").addEventListener("click", (event) => {
-        // let target = event.target.closest(".collapse-section-button");
-        // if(target){
-        //     let section_type = target.getAttribute("type");
-        //     if(section_type === "transformer" || section_type.startsWith("execution")){
-        //         let collapse_section = target.closest(".collapse-section");
-        //         collapse_section.classList.add("hidden");
-        //         $(`#design_${section_type}`).removeClass("hidden");
-        //     }
-        // }
         let target = event.target.closest(".customize-procedure-button");
         if(target){
-            if(target.getAttribute("status") === "closed"){
-                $(`#design_transformer`).removeClass("hidden");
-                $(`#transformer-collapse-section`).removeClass("hidden");
-                target.innerHTML = "Hide";
-                target.setAttribute("status", "open");
-                changeFocusSection("design_transformer");
-            } else if(target.getAttribute("status") === "open"){
-                $(`#design_transformer`).addClass("hidden");
-                $(`#transformer-collapse-section`).addClass("hidden");
-                target.innerHTML = "Customize";
-                target.setAttribute("status", "closed");
-            }
+            toggleTransformerSection();
         }
     })
     
@@ -1193,11 +1222,9 @@
             stage: stage,
             data: data,
         });
-        // console.log("result: ", result);
         if(result.status) return result.code; else return false;
     }
 
-    
     const goCreateProcedure = async () => {
         
         hideSliderPanel();
@@ -1258,9 +1285,11 @@
                         fail: fail_data,
                     }
                 }
+        if(policytemplate){
+            all_data["policytemplate"] = policytemplate.pk;
+        }
         console.log("all data: " + JSON.stringify(all_data));
-        const response = await submit('create', all_data);
-        console.log("after creating custom action, " + JSON.stringify(response))
+        const response = await submit('/no-code/create', all_data);
         if(response.status === "success"){
             created_policy_pk = response.policy;
             $("#end-popup").modal("show");
@@ -1290,6 +1319,38 @@
         $("#discard-popup").modal("hide");
         location.reload();
     });
+
+    if(Object.keys(policytemplate).length > 0){
+        // if the user is editing a policy, then we need to show the policy kind
+        selected_policy_kind = policytemplate.kind
+        $('input[data-id="name"]').val(policytemplate.name);
+        $('textarea[data-id="description"]').val(policytemplate.description);
+        showSectionsForPolicyKinds();
+        policytemplate.actions.forEach(action => {
+            showFilterParameters(action.action_type, action.platform, action.filter);
+            
+        });
+        changeFocusSection();
+        showProcedureVariables(
+            policytemplate.procedure.pk,
+            decapitalize(policytemplate.procedure.platform),
+            policytemplate.procedure
+        );
+        if(policytemplate.transformers){
+            toggleTransformerSection();
+            policytemplate.transformers.forEach(transformer => {
+                showTransformerVariables(transformer.pk, decapitalize(transformer.platform), transformer);
+            });
+        }
+        changeFocusSection();
+        (policytemplate.executions.success || []).forEach(execution => {
+            showExecutionVariables("success", execution.action, decapitalize(execution.platform), false, execution);
+        });
+        changeFocusSection();
+        (policytemplate.executions.fail || []).forEach(execution => {
+            showExecutionVariables("fail", execution.action, decapitalize(execution.platform), false, execution);
+        });
+    }
 
 
 

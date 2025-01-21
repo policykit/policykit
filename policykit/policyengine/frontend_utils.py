@@ -12,6 +12,7 @@ def get_filter_parameters(app_name, action_codename):
         return action_model.FILTER_PARAMETERS
     else:
         return []
+
 def remove_platform_prefix(action_name, appname):
     """
         Remove the platform prefix from an action name
@@ -104,7 +105,6 @@ def get_procedures(platforms):
         })
     return procedures
 
-
 def get_transformers():
     from policyengine.models import Transformer
     
@@ -136,6 +136,35 @@ def get_action_name(app_name, action_codename):
     else:
         logger.error("ACTION_NAME not found for %s.%s" % (app_name, action_codename))
     
+def get_nocode_modules(user):
+    base_actions, action_filter_kinds = get_base_actions(user)
+    # for filter modules, only show the ones that are applicable to platforms base actions are available on
+    filter_modules = get_filter_modules(list(base_actions.keys()))
+
+    # get all platforms this community is on
+    platforms = get_all_platforms(user)
+    # get all procedures available to this community
+    procedures = get_procedures(platforms)
+
+    # get all transformers available to this community
+    transformers = get_transformers()
+
+    # get all execution modules available to this community
+    executions = extract_executable_actions(user)
+
+    # get all entities in the community
+    entities = load_entities(user.community)
+    return {
+        "base_actions": json.dumps(base_actions),
+        "action_filter_kinds": json.dumps(action_filter_kinds),
+        "filter_modules": json.dumps(filter_modules),
+        "platforms": json.dumps(platforms),
+        "procedures": json.dumps(procedures),
+        "transformers": json.dumps(transformers),
+        "executions": json.dumps(executions),
+        "entities": json.dumps(entities),
+    }
+
 def extract_executable_actions(user):
     from policyengine.models import PolicyActionKind
     from policyengine.utils import get_action_types

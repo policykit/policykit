@@ -7,6 +7,7 @@ docs/source/generated_policy_examples.inc
 .github
 .idea
 src
+policykit_venv/
 !frontend/src
 policykit/policykit_venv/
 policykit_venv
