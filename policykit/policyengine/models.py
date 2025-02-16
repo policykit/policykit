@@ -1763,7 +1763,11 @@ class PolicyTemplate(models.Model):
             return None
         # combine the custom actions and the action types together as a filter of this Procedure    
         filters = [action.to_json() for action in self.custom_actions.all()]
-        filters += [{"action_type": action.codename} for action in self.action_types.all()]
+        # We need to structure the action types in a way that is compatible with the frontend
+        for action in self.action_types.all():
+            now_codename = action.codename
+            now_platform = Utils.determine_action_app(now_codename)
+            filters.append({"action_type": now_codename, "platform": now_platform})
 
          # add actions defined in the Procedure instance to the extra_executions
         if self.procedure:
