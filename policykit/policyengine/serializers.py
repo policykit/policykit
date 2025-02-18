@@ -1,15 +1,20 @@
 import rest_framework.serializers as serializers
 from rest_framework.exceptions import ValidationError
 
-class CommunityRoleSummarySerializer(serializers.Serializer):
+class MembersRoleSummarySerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    name = serializers.CharField(source='__str__')
+    name = serializers.CharField(source='role_name')
+    user_ids = serializers.PrimaryKeyRelatedField(many=True, read_only=True, source='user_set')
+    # users = serializers.ListField(child=serializers.IntegerField(), source='user_set.all.values_list("pk", flat=True)')
 
 class MemberSummarySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField(source='__str__')
     avatar = serializers.CharField()
-    roles = CommunityRoleSummarySerializer(many=True, source='get_roles')
+
+class MembersSerializer(serializers.Serializer):
+    roles = MembersRoleSummarySerializer(many=True, source='get_roles')
+    members =  MemberSummarySerializer(many=True, source='get_members')
 
 def validate_action_field(value):
     if value not in ['Add', 'Remove']:
