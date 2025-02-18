@@ -84,8 +84,7 @@ def get_all_platforms(user):
     platform_names = [platform.platform for platform in platforms]
     return platform_names
 
-def sanitize_code(code):
-    return code.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"')
+
 
 def get_procedures(platforms):
     from policyengine.models import Procedure
@@ -101,7 +100,7 @@ def get_procedures(platforms):
             "variables": template.loads("variables"),
             "data": template.loads("data"),
             "app": template.platform.lower(),
-            "codes": sanitize_code(template.loads("check")["codes"])
+            "codes": Utils.sanitize_code(template.loads("check")["codes"])
         })
     return procedures
 
@@ -118,7 +117,7 @@ def get_transformers():
             "description": template.description,
             "variables": template.loads("variables"),
             "app": "all",
-            "codes": sanitize_code(template.codes)
+            "codes": Utils.sanitize_code(template.codes)
         })
     return {"all": transformers}
 

@@ -410,3 +410,6 @@ def determine_user(platform, username):
         return CommunityUser.objects.get(readable_name=username, community=platform)
     else:
         return None
+
+def sanitize_code(code):
+    return code.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"')

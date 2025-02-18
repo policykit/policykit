@@ -424,7 +424,8 @@ def generate_execution_codes(executions):
     
     some examples of executions:
         [
-            {
+            {   
+                "view": "form",
                 "action": "initiate_vote",
                 "vote_message": "variables.vote_message",
                 "vote_type": "boolean",
@@ -436,48 +437,66 @@ def generate_execution_codes(executions):
     or
         [
             {   
+                "view": "form",
                 "action": "slackpostmessage",
                 "text": "LeijieWang",
                 "channel": "test-channel",
                 "frequency": "60"
             }
-        ],
+        ]
+
+    or [
+            {
+                "view": "form",
+                "codes: "...."
+            }
+        ]
     """
     from policyengine.utils import find_action_cls
     execution_codes = []
     comment_only = True
     for execution in executions:
-        codes = ""
-        # if "frequency" in execution:
-        #     # if the execution has a frequency, then it is a recurring execution
-        #     # we need to add the frequency to the execution
-        #     duration_variable = "last_time_" + execution["action"]
-        #     codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+        execution_view = execution.get("view", "form")
+        if execution_view == "codes":
+            codes = execution["codes"]
+            comment_only = False
+        elif execution_view == "form":
+            codes = ""
+            # if "frequency" in execution:
+            #     # if the execution has a frequency, then it is a recurring execution
+            #     # we need to add the frequency to the execution
+            #     duration_variable = "last_time_" + execution["action"]
+            #     codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
-        if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
-            execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
-            execution = force_execution_variable_types(execution, execute_variables)
-            codes += generate_initiate_votes(execution)
-            comment_only = False
-        elif execution["action"] == "revert_actions":
-            codes += "action.revert()"
-            comment_only = False
-        elif execution["action"] == "execute_actions":
-            codes += "# actions are reverted in the policy engine by default\n"
-        else:
-            # currently only support slackpostmessage
-            action_codename = execution["action"]
-            this_action = find_action_cls(action_codename)
-            if hasattr(this_action, "execution_codes"):
-                execute_variables = this_action.EXECUTE_VARIABLES
+            if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
+                execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
                 execution = force_execution_variable_types(execution, execute_variables)
-                codes += this_action.execution_codes(**execution)
+                codes += generate_initiate_votes(execution)
                 comment_only = False
+            elif execution["action"] == "revert_actions":
+                codes += "action.revert()"
+                comment_only = False
+            elif execution["action"] == "execute_actions":
+                codes += "# actions are reverted in the policy engine by default\n"
             else:
-                raise NotImplementedError
-        execution_codes.append(codes)
-    if comment_only:
-        return "\n".join(execution_codes) + "pass\n"
+                # currently only support slackpostmessage
+                action_codename = execution["action"]
+                this_action = find_action_cls(action_codename)
+                if hasattr(this_action, "execution_codes"):
+                    execute_variables = this_action.EXECUTE_VARIABLES
+                    execution = force_execution_variable_types(execution, execute_variables)
+                    codes += this_action.execution_codes(**execution)
+                    comment_only = False
+                else:
+                    raise NotImplementedError
+        else:
+            logger.error(f"view {execution['view']} is not supported")
+            raise NotImplementedError
 
+        execution_codes.append(codes)
     
-    return "\n".join(execution_codes) + "\n"
+    if comment_only:
+        # if the code is only comments, we need to add a pass statement at the end
+        return "\n".join(execution_codes) + "pass\n"
+    else:
+        return "\n".join(execution_codes) + "\n"

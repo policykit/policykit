@@ -1566,10 +1566,18 @@ class PolicyTemplate(models.Model):
             {
                 "notify": a list of actions,
                 "check": [
-                    {
+                    {   
+                        "view": "form",
                         "action": "slackpostmessage",
                         "text": "we are still waiting for the dictator to make a decision",
                         "frequency": 60,
+                    }
+
+                    or 
+
+                    {
+                        "view": "codes",
+                        "codes": "...."
                     }
                 ],
                 "success": [],
@@ -1778,7 +1786,11 @@ class PolicyTemplate(models.Model):
         else:
             procedure = {}
         executions = self.loads("executions") 
-
+        for stage in executions:
+            for execution in executions[stage]:
+                if execution["view"] == "codes":
+                    execution["codes"] = Utils.sanitize_code(execution["codes"])
+                
         transformers = [transformer.to_json() for transformer in self.transformers.all()]
         for transformer in transformers:
             for variable in transformer["variables"]:

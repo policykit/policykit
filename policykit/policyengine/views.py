@@ -4,6 +4,7 @@ import logging
 import os
 
 from actstream.models import Action
+import black 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user, login
 from django.contrib.auth.decorators import login_required, permission_required
@@ -993,6 +994,12 @@ def generate_code(request):
         codes = CodesGenerator.generate_execution_codes(data)
     elif(stage == "execution_fail"):
         codes = CodesGenerator.generate_execution_codes(data)
+    
+    try:
+        # black's format_str() raises an exception if there's a syntax error
+        codes = black.format_str(codes, mode=black.FileMode())
+    except Exception as e:
+        logger.error('Error when formatting code ', e)
     return JsonResponse({"status": True, "code": codes})
 
 @login_required

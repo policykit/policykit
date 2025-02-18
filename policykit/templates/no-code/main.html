@@ -235,12 +235,12 @@
 {% endblock %}
 
 {% block step_scripts %}
-
 <script>
-
+    // define the most global data for policy templates and community-related information.
     const policytemplate = JSON.parse('{{policytemplate | safe}}');
-    
+    console.log('policytemplate', policytemplate);
     const base_actions = JSON.parse('{{base_actions | safe}}');
+    console.log('base_actions', base_actions);
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
     const platforms = JSON.parse('{{platforms | safe}}');
@@ -259,12 +259,146 @@
     var selected_executions = {success: [], fail: [], notify: []};
 
     var global_datalist = []
-    var editors = {}; // a list of codemirror editors
-    var editor_status = {};
+
     var selected_platform = "slack";
 
     var created_policy_pk = null;
 
+</script>
+<!-- Code editor mechanisms.-->
+<script>
+    // a list of codemirror editors.
+    var editors = {}; 
+    // documenting whether the editor has been changed or not.
+    var editor_status = {};
+
+    // given a html element and the code, render a code editor
+    function renderCodeEditor(codearea_html){
+        let now_editor = CodeMirror.fromTextArea(codearea_html, {
+            mode: 'python',
+            autoRefresh: true,
+            lineNumbers: true,
+            lineWrapping: true,
+            theme: 'eclipse',
+            extraKeys: {"Ctrl-Space": "autocomplete"},
+            matchBrackets: true,
+            gutters: ['warnings'],
+            // By default, CodeMirror’s Python mode uses an indentation setting of 2 spaces
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false
+        });
+        return now_editor;
+    }
+
+    function createCodeEditor(component_type){
+        var code_area = document.querySelector(`#design_${component_type}-codeview > textarea`);
+        console.log("we are creating the editor for ", component_type);
+        editors[component_type] = renderCodeEditor(code_area);
+        console.log("editor created for ", component_type, editors[component_type]);
+        
+        // whenever the editor is changed, the status becomes changed
+        editors[component_type].on('change', (cm, change) => {
+            editor_status[component_type] = "changed";
+        });
+    }
+
+    ["action", "procedure", "transformer", "execution_success", "execution_fail"].forEach(
+        component_type => {
+            createCodeEditor(component_type);
+            editor_status[component_type] = "unchanged";
+        }
+    );
+
+    // generate the source code for a specific component given its form view
+    async function generateComponentCode(component_type){
+        let codes = null;
+        switch(component_type){
+            case "procedure": 
+                codes = selected_procedure["codes"];
+                // await generateSourceCode("procedure");
+                break;
+            case "transformer":
+                codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
+                break;
+            case "action":
+                codes = await generateSourceCode("action");
+                break;
+            case "execution_success":
+                codes = await generateSourceCode("execution_success");
+                break;
+            case "execution_fail":
+                codes = await generateSourceCode("execution_fail");
+                break;
+        }
+        return codes;
+    }
+
+    // show the code editor for a specific component
+    async function showCodeEditor(component_type, switch_button_html, codes){
+        editors[component_type].setValue(decodeHtml(codes));
+        // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+        setTimeout(() => editors[component_type].refresh(), 1);
+
+        // when the first time the editor is created, the status is unchanged
+        editor_status[component_type] = "unchanged";
+
+
+        $(`#design_${component_type}-codeview`).before(
+            showWarningMessage(`Once you change the code, you cannot edit this section using no-code view.`)
+        )
+        
+        $(`#design_${component_type}-formview`).addClass("hidden");
+        $(`#design_${component_type}-codeview`).removeClass("hidden");
+        if(!switch_button_html) switch_button_html = document.querySelector(`#design_${component_type} .source-code-button`);
+        switch_button_html.setAttribute("view", "formview");
+        switch_button_html.innerHTML = '<i class="fa-regular fa-pen-to-square" style="color: #4451b2;"></i>&nbsp;No-code';
+    } 
+
+    // hide the code editor for a specific component
+    function hideCodeEditor(component_type, switch_button_html){
+        if(editor_status[component_type] == "changed"){
+            let confirm = window.confirm("Are you sure you want to switch to no-code view? If so, all you changes will be discarded.");
+            if(!confirm) return;
+        }
+        $(`#design_${component_type}-formview`).removeClass("hidden");
+        $(`#design_${component_type}-codeview`).addClass("hidden");
+        $(`#design_${component_type}-codeview`).prev().remove(); // remove the warning message
+        switch_button_html.setAttribute("view", "codeview");
+        editor_status[component_type] = "unchanged";
+        switch_button_html.innerHTML = '{} Source Code';
+    }
+
+    // handles the event when users switch between code view and form view
+    async function switchCodeFormView(switch_button_html){
+        if(!switch_button_html) return;
+        // to make sure that users cannot change procedures in the code view
+        hideSliderPanel();
+
+        // 'action', 'procedure', 'transformer', 'execution_success', 'execution_fail'
+        let component_type = switch_button_html.getAttribute("type");
+        // 'codeview' or 'formview'
+        let component_view = switch_button_html.getAttribute("view"); 
+
+        if(component_view == "codeview"){
+            let codes = await generateComponentCode(component_type);
+        
+            if(codes == null) return;
+            await showCodeEditor(component_type, switch_button_html, codes);
+        } else {
+            hideCodeEditor(component_type, switch_button_html);
+        }
+    }
+
+    // listen to the events when users click the source-code/no-code buttons
+    document.getElementById("nocode-panel").addEventListener('click', async (event) => {
+        let target = event.target.closest(".source-code-button");
+        switchCodeFormView(target);
+    });
+
+</script>
+<!-- Form view mechanisms.-->
+<script>
     function sort_datalist(){
         global_datalist.sort((a, b) => {
             if (a.category === 'variable' && b.category === 'setting') return -1;
@@ -510,7 +644,7 @@
     }
 
     const showFilterParameters = (action_value, app, applied_filters={}) => {
-
+        
         // check if the action has already been selected
         if (selected_actions.some(item => item.value == action_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
@@ -764,84 +898,6 @@
             }
         }
     });
-    
-    // listen to the events when users click the source-code/no-code buttons
-    document.getElementById("nocode-panel").addEventListener('click', async (event) => {
-        let target = event.target.closest(".source-code-button");
-
-        if(target){
-            let type = target.getAttribute("type");
-            let view = target.getAttribute("view");
-            let codes = null;
-            hideSliderPanel(); // so that users cannot change procedures in the code view
-            if(view == "codeview"){
-                switch(type){
-                    case "procedure": 
-                        codes = selected_procedure["codes"];
-                        break;
-                    case "transformer":
-                        codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
-                        break;
-                    case "action":
-                        codes = await generateSourceCode("action");
-                        break;
-                    case "execution_success":
-                        codes = await generateSourceCode("execution_success");
-                        break;
-                    case "execution_fail":
-                        codes = await generateSourceCode("execution_fail");
-                        break;
-                }
-                console.log(codes);
-                if(!codes) return;
-                
-                if(editors[type] == null){
-                    var codeArea = document.querySelector(`#design_${type}-codeview > textarea`);
-                    editors[type] = CodeMirror.fromTextArea(codeArea, {
-                        mode: 'python',
-                        autoRefresh: true,
-                        lineNumbers: true,
-                        lineWrapping: true,
-                        theme: 'eclipse',
-                        extraKeys: {"Ctrl-Space": "autocomplete"},
-                        matchBrackets: true,
-                        gutters: ['warnings'],
-                    });
-
-                    editors[type].on('change', (cm, change) => {
-                        editor_status[type] = "changed";
-                    });
-                }
-
-
-                $(`#design_${type}-codeview`).before(
-                    showWarningMessage(`Once you change the code, you cannot edit this section using no-code view.`)
-                )
-                
-                editors[type].setValue(decodeHtml(codes));
-                editor_status[type] = "unchanged";
-                // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
-                setTimeout(() => editors[type].refresh(), 1);
-
-
-                $(`#design_${type}-formview`).addClass("hidden");
-                $(`#design_${type}-codeview`).removeClass("hidden");
-                target.setAttribute("view", "formview");
-                target.innerHTML = '<i class="fa-regular fa-pen-to-square" style="color: #4451b2;"></i>&nbsp;No-code';
-            } else {
-                if(editor_status[type] == "changed"){
-                    let confirm = window.confirm("Are you sure you want to switch to no-code view? If so, all you changes will be discarded.");
-                    if(!confirm) return;
-                }
-                $(`#design_${type}-formview`).removeClass("hidden");
-                $(`#design_${type}-codeview`).addClass("hidden");
-                $(`#design_${type}-codeview`).prev().remove(); // remove the warning message
-                target.setAttribute("view", "codeview");
-                target.innerHTML = '{} Source Code';
-            }
-        }
-    })
-
 
     /** 
      * listen the events on the buttons in the nocode panel (including next and add buttons)
@@ -877,6 +933,7 @@
             focus_section.classList.add("focus-section");   
         }
     }
+    
     document.getElementById("nocode-panel").addEventListener('click', (event) => {
         let target = event.target.closest(".section-next");
         let button = event.target.closest(".section-inactive-button");
@@ -931,6 +988,7 @@
         }
 
     }
+    
     // listen to the event when users click the + button to unfold a collapsed section (transformer section)
     document.getElementById("nocode-panel").addEventListener("click", (event) => {
         let target = event.target.closest(".customize-procedure-button");
@@ -1047,9 +1105,10 @@
         $("#slider-panel").addClass("hidden");
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("hide");
     }
+</script>
+<!--  /** Code related to policy kinds */ -->
+<script>
 
-
-    /** Code related to policy kinds */
 
     document.getElementById("policykind-container").addEventListener("click", (event)=>{
         let target = event.target.closest(".policykind-box");
@@ -1072,7 +1131,6 @@
         "triggering_policies": "Choose the trigger Actions",
         "if_then_rules": "If this Action happens"
     }
-
 
     function showSectionsForPolicyKinds(){
         // hide policykind containers and show the authoring interface
@@ -1105,11 +1163,10 @@
             return;
         }
     }
+</script>
+<!-- Code related to collect data from each section and submit to the backend -->
+<script>
 
-
-    /**
-     * Code related to collect data from each section and submit to the backend
-    */
     const collectMetadata = () => {
         if(checkMissingVariable(`design_meta`)) return false;
         return getVariableDataInStep("design_meta");
@@ -1120,6 +1177,13 @@
         
         console.log("new actions are: ", selected_actions.map(action => action.value));
         
+        // determine whether we should fetch the code or the form data
+        if(editor_status['action'] == 'changed'){
+            // if the code is changed, then we should get the value from the code editor
+            let codes = editors['action'].getValue();
+            return codes;
+        }
+
         let missing_input = false;
         const filters = selected_actions.map((action, index) => {
             const action_div = document.getElementById(`custom.action.${action.value}`);
@@ -1175,6 +1239,15 @@
 
     const collectProcedureData = () => {
         if(selected_procedure === null) return false;
+        if(editor_status['procedure'] == 'changed'){
+            // if the code is changed, then we should get the value from the code editor
+            let codes = editors['procedure'].getValue();
+            return {
+                procedure_index: selected_procedure.value,
+                procedure_codes: codes,
+                procedure_variables: getVariableDataInStep("design_procedure"),
+            }
+        }
 
         if(checkMissingVariable("design_procedure")) return false;
         
@@ -1187,6 +1260,19 @@
     }
 
     const collectExecutionData = (stage) => {
+        let section_type = `execution_${stage}`;
+        if(editor_status[section_type] == 'changed'){
+            // if the code is changed, then we should get the value from the code editor
+            let codes = editors[section_type].getValue();
+            return [
+                {
+                    "view": "codes",
+                    "codes": codes,
+                }
+            ]
+        }
+
+        // then we need to get the data from the form
         if(selected_executions[stage].length == 0) return [];
         if(checkMissingVariable(`design_execution_${stage}`)) return false;
 
@@ -1197,6 +1283,7 @@
             if(!("platform" in data)){
                 data.platform = selected_platform;
             }
+            data.view = "form";
             return data
         });
         console.log("execution_data " + JSON.stringify(execution_data));
@@ -1218,7 +1305,7 @@
         } 
         if(!data) return false;
 
-        let result = await submit('generate_code', {
+        let result = await submit('/no-code/generate_code', {
             stage: stage,
             data: data,
         });
@@ -1296,29 +1383,40 @@
         }
     }
 
+    // listen to the event when users click the save button
     document.getElementById("save_policy").addEventListener('click', goCreateProcedure);
+</script>
+<!-- Code related to discarding, starting a new policy, etc.-->
+<script>
+    // listen to the event when users click the discard button
     document.getElementById("discard_policy").addEventListener('click', function(){
         $("#discard-popup").modal("show");
     });
 
+    // listen to the event when users click the inspect code button
     document.getElementById("inspect-code-button").addEventListener('click', function(){
         if(created_policy_pk !== null){
             window.location.href = `/main/editor?policy=${created_policy_pk}`;
         }
     });
+    
+    // listen to the event when users click the author new button
     document.getElementById("author-new-button").addEventListener('click', function(){
         // go back to the page where choosing policy kind by refreshing the page
         location.reload();
     });
 
+    // listen to the event when users click the cancel button in the discard popup
     document.getElementById("close-discard-button").addEventListener('click', function(){
         $("#discard-popup").modal("hide");
     });
 
+    // listen to the event when users click the continue button in the discard popup
     document.getElementById("continue-discard-button").addEventListener('click', function(){
         $("#discard-popup").modal("hide");
         location.reload();
     });
+
 
     if(Object.keys(policytemplate).length > 0){
         // if the user is editing a policy, then we need to show the policy kind
@@ -1344,7 +1442,14 @@
         }
         changeFocusSection();
         (policytemplate.executions.success || []).forEach(execution => {
-            showExecutionVariables("success", execution.action, decapitalize(execution.platform), false, execution);
+            if(execution.view === "form"){
+                showExecutionVariables("success", execution.action, decapitalize(execution.platform), false, execution);
+            } else if (execution.view === "codes"){
+                // we should then show the executions in its code editor
+                let switch_button_html = $("#execution_success-switch-button").html();
+                showCodeEditor("execution_success", null, execution.codes);
+                editor_status["execution_success"] = "changed";
+            }
         });
         changeFocusSection();
         (policytemplate.executions.fail || []).forEach(execution => {
