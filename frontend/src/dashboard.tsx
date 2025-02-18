@@ -263,9 +263,42 @@ export function MetaGovernance() {
   );
 }
 
+export function Proposals() {
+  const data = useData();
+  let proposalsElement;
+  if (!data) {
+    proposalsElement = (
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">Loading...</p>
+      </div>
+    );
+  } else {
+    proposalsElement = (
+      <ol>
+        {data.proposals.map((proposal) => (
+          <li key={proposal.id} className="py-2">
+            <p className="text-grey-darkest">
+              <span className="text-grey-dark">{proposal.initiator.readable_name}</span> {proposal.status} a {" "}
+              <span className="text-grey-dark">{proposal.policy.name}</span> policy
+            </p>
+            <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+  return (
+    <div>
+      <h3 className="h5">Proposals</h3>
+      {proposalsElement}
+    </div>
+  );
+}
+
 export function Dashboard() {
   const data = useData();
   return (
+    <>
     <div className="lg:p-6 lg:col-span-7">
       <Welcome />
       <Guidelines />
@@ -280,6 +313,10 @@ export function Dashboard() {
       />
       <MetaGovernance />
     </div>
+    <div className="lg:p-6 lg:col-span-3 border-l border-background-focus">
+      <Proposals />
+    </div>
+    </>
   );
 }
 
