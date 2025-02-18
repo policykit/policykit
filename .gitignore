@@ -17,3 +17,5 @@ postgres_data
 celerybeat.pid
 celerybeat-schedule
 log
+models.svg
+models.dot
