@@ -54,6 +54,17 @@ class CommunityDocSerializer(serializers.Serializer):
     name = serializers.CharField()
     text = serializers.CharField()
 
+class CommunityUserSummarySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    readable_name = serializers.CharField()
+
+
+class ActionSummarySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    initiator = CommunityUserSummarySerializer()
+    str = serializers.CharField(source='__str__')
+
+
 class CommunityDashboardSerializer(serializers.Serializer):
     roles = DashboardRoleSummarySerializer(many=True, source='get_roles')
     community_docs = CommunityDocSerializer(source='get_documents', many=True)
@@ -62,3 +73,5 @@ class CommunityDashboardSerializer(serializers.Serializer):
     trigger_policies = PolicySummarySerializer(many=True, source='get_trigger_policies')
     proposals = ProposalSummarySerializer(many=True)
     name = serializers.CharField(source="community_name")
+    # Don't include governable actions for now, instead we use proposals
+    # governable_actions = ActionSummarySerializer(many=True, source="get_governable_actions")

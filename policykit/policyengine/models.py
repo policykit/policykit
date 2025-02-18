@@ -114,6 +114,10 @@ class Community(models.Model):
 
         super(Community, self).save(*args, **kwargs)
 
+    def get_governable_actions(self):
+        # max get 10
+        return self.constitution_community.get_governable_actions()[:20]
+
 class CommunityPlatform(PolymorphicModel):
     """A CommunityPlatform represents a group of users on a single platform."""
 
@@ -151,6 +155,12 @@ class CommunityPlatform(PolymorphicModel):
         The users who should be notified.
         """
         pass
+
+    def get_governable_actions(self):
+        """
+        Returns a QuerySet of all governable actions in the community.
+        """
+        return GovernableAction.objects.filter(community=self)
 
     def get_roles(self):
         """
