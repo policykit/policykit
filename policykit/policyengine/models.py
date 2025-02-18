@@ -86,7 +86,8 @@ class Community(models.Model):
             "governance_process",
             "action__initiator",
             "policy"
-        ).filter(policy__community=self)
+        ).filter(policy__community=self).order_by('-proposal_time')[:50]
+
 
     def get_platform_communities(self):
         constitution_community = self.constitution_community
