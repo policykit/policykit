@@ -242,7 +242,7 @@ export function MetaGovernance() {
 }
 
 export function Proposals() {
-  const data = useData();
+  const data = useDashboardData();
   let proposalsElement;
   if (!data) {
     proposalsElement = (
