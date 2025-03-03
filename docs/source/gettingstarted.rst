@@ -724,3 +724,16 @@ If the view is REST API, then you can use `Django Silk <https://github.com/jazzb
 set ``DJANGO_SILK`` to ``True`` (again the default in Docker) and load the API. It will then be recorded in the database
 and you can see the results by accessing the ``/silk/`` endpoint. If you would like to generate a profile for the view,
 `decorate it with ``@silk.profiling.profiler.silk_profile`` <https://github.com/jazzband/django-silk?tab=readme-ov-file#decorator>`_.
+
+
+Database Schema
+---------------
+
+You can create a visual representation of the database schema by running the following command:
+
+
+.. code-block:: shell
+
+        docker compose run --rm web python manage.py graph_models -a -o ../models.dot
+        dot -Tsvg models.dot > models.svg
+        open models.svg

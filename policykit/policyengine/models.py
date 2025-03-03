@@ -86,7 +86,8 @@ class Community(models.Model):
             "governance_process",
             "action__initiator",
             "policy"
-        ).filter(policy__community=self)
+        ).filter(policy__community=self).order_by('-proposal_time')[:50]
+
 
     def get_platform_communities(self):
         constitution_community = self.constitution_community
@@ -112,6 +113,10 @@ class Community(models.Model):
             # logger.debug(f"Created new Metagov community '{self.metagov_slug}' Saving slug in model.")
 
         super(Community, self).save(*args, **kwargs)
+
+    def get_governable_actions(self):
+        # max get 10
+        return self.constitution_community.get_governable_actions()[:20]
 
 class CommunityPlatform(PolymorphicModel):
     """A CommunityPlatform represents a group of users on a single platform."""
@@ -150,6 +155,12 @@ class CommunityPlatform(PolymorphicModel):
         The users who should be notified.
         """
         pass
+
+    def get_governable_actions(self):
+        """
+        Returns a QuerySet of all governable actions in the community.
+        """
+        return GovernableAction.objects.filter(community=self)
 
     def get_roles(self):
         """
