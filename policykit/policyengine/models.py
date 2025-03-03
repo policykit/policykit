@@ -99,6 +99,9 @@ class Community(models.Model):
                 return p
         return None
 
+    def get_members(self):
+        return CommunityUser.objects.filter(community__community=self).order_by('readable_name')
+
     def save(self, *args, **kwargs):
         """
         Saves the Community. If community is new, creates it in Metagov and stores the Metagov-generated slug.

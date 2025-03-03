@@ -5,7 +5,7 @@ from rest_framework.exceptions import NotFound
 from django.contrib.auth import get_user
 from django.db import transaction
 from silk.profiling.profiler import silk_profile
-from policyengine.serializers import MemberSummarySerializer, PutMembersRequestSerializer, CommunityDashboardSerializer
+from policyengine.serializers import MembersSerializer, PutMembersRequestSerializer, CommunityDashboardSerializer
 
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
@@ -14,10 +14,8 @@ def members(request):
     user = get_user(request)
 
     if request.method == 'GET':
-        members = get_members(user)
-        return Response(
-            MemberSummarySerializer(members, many=True).data
-        )
+        return Response(MembersSerializer(user.community.community).data)
+
 
     if request.method == 'PUT':
         req = PutMembersRequestSerializer(data=request.data)
@@ -33,11 +31,6 @@ def members(request):
 def dashboard(request):
     user = get_user(request)
     return Response(CommunityDashboardSerializer(user.community.community).data)
-
-def get_members(user):
-    from policyengine.models import CommunityUser
-    members = CommunityUser.objects.filter(community__community=user.community.community)
-    return members
 
 def put_members(user, action, role, members):
     from constitution.models import (PolicykitAddUserRole,

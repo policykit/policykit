@@ -15,6 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         dashboard: "/src/dashboard.tsx",
+        members: "/src/members.tsx",
       },
     },
   },

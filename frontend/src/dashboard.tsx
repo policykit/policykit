@@ -1,30 +1,14 @@
 import "vite/modulepreload-polyfill";
 import { StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 // dont import SVG files directly because of issue with loading static assets in dev mode
 // BC can't load from insecure URL, proxying dev server is annoying, and can't inline them
 import CancelIcon from "./components/CancelIcon";
 import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon";
 
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
-
-// Create a client
-const queryClient = new QueryClient();
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchData(url: string): Promise<any> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  const data = await response.json();
-  return data;
-}
+import { queryClient, useData } from "./query";
 
 type PolicySummary = {
   id: number;
@@ -75,18 +59,12 @@ type CommunityDashboard = {
   name: string;
 };
 
-function useData(): CommunityDashboard | undefined {
-  const query = useQuery<CommunityDashboard>({
-    queryKey: ["community_docs"],
-    queryFn: () => fetchData("/api/dashboard"),
-    staleTime: Infinity,
-    networkMode: "online",
-  });
-  return query.data;
+function useDashboardData(): CommunityDashboard | undefined {
+  return useData<CommunityDashboard>("/api/dashboard", "data");
 }
 
 export function Welcome() {
-  const name = useData()?.name || "...";
+  const name = useDashboardData()?.name || "...";
   const [show, setShow] = useState(true);
   const hide = useCallback(() => setShow(false), [setShow]);
   if (!show) {
@@ -115,7 +93,7 @@ export function Welcome() {
   );
 }
 export function Guidelines() {
-  const data = useData();
+  const data = useDashboardData();
   const text = data?.community_docs[0].text || "Loading...";
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
@@ -249,7 +227,7 @@ export function Roles({
 }
 
 export function MetaGovernance() {
-  const data = useData();
+  const data = useDashboardData();
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <p className="text-grey-dark">Meta-Governance</p>
@@ -296,7 +274,7 @@ export function Proposals() {
 }
 
 export function Dashboard() {
-  const data = useData();
+  const data = useDashboardData();
   return (
     <>
     <div className="lg:p-6 lg:col-span-7">
