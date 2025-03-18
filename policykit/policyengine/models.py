@@ -6,6 +6,7 @@ from actstream import action as actstream_action
 from django.contrib.auth.models import Group, User, UserManager
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.db.models.deletion import CASCADE
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
@@ -78,16 +79,20 @@ class Community(models.Model):
         return self.communityplatform_set.instance_of(ConstitutionCommunity).first()
 
     @property
+    def completed_proposals(self):
+        return self.proposals.filter(~Q(governance_process__status="pending"))[:50]
+    
+    @property
+    def pending_proposals(self):
+        return self.proposals.filter(governance_process__status="pending")[:50]
+
+    @property
     def proposals(self):
-        """
-        Returns a QuerySet of all proposals in the community.
-        """
         return Proposal.objects.select_related(
             "governance_process",
             "action__initiator",
             "policy"
-        ).filter(policy__community=self).order_by('-proposal_time')[:50]
-
+        ).filter(policy__community=self).order_by('-proposal_time')
 
     def get_platform_communities(self):
         constitution_community = self.constitution_community
@@ -700,6 +705,12 @@ class BaseAction(PolymorphicModel):
 
     def __str__(self):
         return f"{self._meta.verbose_name.title()} ({self.pk})"
+
+    def description(self):
+        # this causes one query per call but we cannot use selected_related with polymorphic models
+        # https://github.com/jazzband/django-polymorphic/issues/198
+        upcast = self.get_real_instance()
+        return getattr(upcast, 'ACTION_NAME', str(upcast))
 
     @property
     def action_type(self):
