@@ -56,7 +56,8 @@ type CommunityDashboard = {
   trigger_policies: PolicySummary[];
   platform_policies: PolicySummary[];
   constitution_policies: PolicySummary[];
-  proposals: ProposalSummary[];
+  pending_proposals: ProposalSummary[];
+  completed_proposals: ProposalSummary[];
   name: string;
 };
 
@@ -242,19 +243,17 @@ export function MetaGovernance() {
   );
 }
 
-export function Proposals() {
-  const data = useDashboardData();
-  let proposalsElement;
-  if (!data) {
-    proposalsElement = (
+export function ProposalsList({proposals}: {proposals: ProposalSummary[] | undefined}) {
+  if (!proposals) {
+    return (
       <div className="flex flex-col items-center justify-center gap-4 h-32">
         <p className="text-grey-dark">Loading...</p>
       </div>
     );
-  } else {
-    proposalsElement = (
+  }
+    return (
       <ol>
-        {data.proposals.map((proposal) => (
+        {proposals.map((proposal) => (
           <li key={proposal.id} className="py-2">
             <p className="text-grey-darkest">
             <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
@@ -265,12 +264,18 @@ export function Proposals() {
           </li>
         ))}
       </ol>
-    );
-  }
+    )
+  
+}
+
+export function Proposals() {
+  const data = useDashboardData();
   return (
     <div>
-      <h3 className="h5">Proposals</h3>
-      {proposalsElement}
+      <h3 className="h5">Pending Proposals</h3>
+      <ProposalsList proposals={data?.pending_proposals} />
+      <h3 className="h5">Completed Proposals</h3>
+      <ProposalsList proposals={data?.completed_proposals} />
     </div>
   );
 }
