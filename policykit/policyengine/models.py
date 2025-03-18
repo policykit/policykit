@@ -701,6 +701,12 @@ class BaseAction(PolymorphicModel):
     def __str__(self):
         return f"{self._meta.verbose_name.title()} ({self.pk})"
 
+    def description(self):
+        # this causes one query per call but we cannot use selected_related with polymorphic models
+        # https://github.com/jazzband/django-polymorphic/issues/198
+        upcast = self.get_real_instance()
+        return getattr(upcast, 'ACTION_NAME', str(upcast))
+
     @property
     def action_type(self):
         """The type of action (such as 'slackpostmessage' or 'policykitaddcommunitydoc')."""

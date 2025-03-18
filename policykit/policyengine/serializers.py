@@ -40,6 +40,7 @@ class PolicySummarySerializer(serializers.Serializer):
 class ActionSummarySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     action_type = serializers.CharField()
+    description = serializers.CharField()
 
 class InitiatorSummarySerializer(serializers.Serializer):
     id = serializers.IntegerField()

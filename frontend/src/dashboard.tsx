@@ -19,6 +19,7 @@ type PolicySummary = {
 type ActionSummary = {
   id: number;
   action_type: string;
+  description: string;
 };
 
 type InitiatorSummary = {
@@ -256,8 +257,9 @@ export function Proposals() {
         {data.proposals.map((proposal) => (
           <li key={proposal.id} className="py-2">
             <p className="text-grey-darkest">
-              <span className="text-grey-dark">{proposal.initiator.readable_name}</span> {proposal.status} a {" "}
-              <span className="text-grey-dark">{proposal.policy.name}</span> policy
+            <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
+            {proposal.status} from <span className="text-grey-dark">{proposal.policy.name}</span> policy
+            {proposal.initiator.readable_name ? (<> by <span className="text-grey-dark">{proposal.initiator.readable_name}</span></>) : null}
             </p>
             <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
           </li>
