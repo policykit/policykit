@@ -19,6 +19,7 @@ type PolicySummary = {
 type ActionSummary = {
   id: number;
   action_type: string;
+  description: string;
 };
 
 type InitiatorSummary = {
@@ -55,7 +56,8 @@ type CommunityDashboard = {
   trigger_policies: PolicySummary[];
   platform_policies: PolicySummary[];
   constitution_policies: PolicySummary[];
-  proposals: ProposalSummary[];
+  pending_proposals: ProposalSummary[];
+  completed_proposals: ProposalSummary[];
   name: string;
 };
 
@@ -241,34 +243,46 @@ export function MetaGovernance() {
   );
 }
 
-export function Proposals() {
-  const data = useDashboardData();
-  let proposalsElement;
-  if (!data) {
-    proposalsElement = (
+export function ProposalsList({proposals}: {proposals: ProposalSummary[] | undefined}) {
+  if (!proposals) {
+    return (
       <div className="flex flex-col items-center justify-center gap-4 h-32">
         <p className="text-grey-dark">Loading...</p>
       </div>
     );
-  } else {
-    proposalsElement = (
-      <ol>
-        {data.proposals.map((proposal) => (
-          <li key={proposal.id} className="py-2">
-            <p className="text-grey-darkest">
-              <span className="text-grey-dark">{proposal.initiator.readable_name}</span> {proposal.status} a {" "}
-              <span className="text-grey-dark">{proposal.policy.name}</span> policy
-            </p>
-            <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
-          </li>
-        ))}
-      </ol>
+  }
+  if (proposals.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">No Proposals</p>
+      </div>
     );
   }
   return (
+    <ol>
+      {proposals.map((proposal) => (
+        <li key={proposal.id} className="py-2">
+          <p className="text-grey-darkest">
+          <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
+          {proposal.status} from <span className="text-grey-dark">{proposal.policy.name}</span> policy
+          {proposal.initiator.readable_name ? (<> by <span className="text-grey-dark">{proposal.initiator.readable_name}</span></>) : null}
+          </p>
+          <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
+        </li>
+      ))}
+    </ol>
+  )
+  
+}
+
+export function Proposals() {
+  const data = useDashboardData();
+  return (
     <div>
-      <h3 className="h5">Proposals</h3>
-      {proposalsElement}
+      <h3 className="h5">Pending Proposals</h3>
+      <ProposalsList proposals={data?.pending_proposals} />
+      <h3 className="h5">Completed Proposals</h3>
+      <ProposalsList proposals={data?.completed_proposals} />
     </div>
   );
 }

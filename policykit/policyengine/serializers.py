@@ -40,6 +40,7 @@ class PolicySummarySerializer(serializers.Serializer):
 class ActionSummarySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     action_type = serializers.CharField()
+    description = serializers.CharField()
 
 class InitiatorSummarySerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -76,7 +77,8 @@ class CommunityDashboardSerializer(serializers.Serializer):
     platform_policies = PolicySummarySerializer(many=True, source='get_platform_policies')
     constitution_policies = PolicySummarySerializer(many=True, source='get_constitution_policies')
     trigger_policies = PolicySummarySerializer(many=True, source='get_trigger_policies')
-    proposals = ProposalSummarySerializer(many=True)
+    pending_proposals = ProposalSummarySerializer(many=True)
+    completed_proposals = ProposalSummarySerializer(many=True)
     name = serializers.CharField(source="community_name")
     # Don't include governable actions for now, instead we use proposals
     # governable_actions = ActionSummarySerializer(many=True, source="get_governable_actions")
