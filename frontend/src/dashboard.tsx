@@ -1,4 +1,6 @@
 import "vite/modulepreload-polyfill";
+
+import "./style.css";
 import { StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -101,6 +103,12 @@ export function Guidelines() {
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <div className="flex items-center justify-between mb-4">
         <h3 className="h5">Community Guidelines</h3>
+        <a
+          // href={addURL || undefined}
+          className="button primary medium"
+        >
+          Details
+        </a>
       </div>
       <p className="mb-6">{text}</p>
     </section>
@@ -151,12 +159,6 @@ export function Policies({
         <a
           href={addURL || undefined}
           className="button primary medium"
-          // x-data
-          // @click="$dispatch('toggle_modal')"
-          // hx-get="/main/policynew"
-          // hx-push-url="true"
-          // hx-target="#modal-content"
-          // hx-swap="innerHTML transition:true"
         >
           Add
         </a>
