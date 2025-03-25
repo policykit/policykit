@@ -57,7 +57,10 @@ export function MembersTable() {
           <th className="text-left">Name</th>
           <th className="text-left">Roles</th>
         </tr>
-        {data.members.map((member) => (
+        {/* Sort by number of roles */}
+        {data.members.toSorted
+          ((a, b) => (userToRoles.get(b.id) || []).length - (userToRoles.get(a.id) || []).length
+        ).map((member) => (
           <tr key={member.id}>
             <td>
               <span className="text-grey-dark">{member.name}</span>
