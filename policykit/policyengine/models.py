@@ -704,7 +704,7 @@ class BaseAction(PolymorphicModel):
     """Datastore for persisting any additional data related to the proposal."""
 
     def __str__(self):
-        return f"{self._meta.verbose_name.title()} ({self.pk})"
+        return self._meta.verbose_name.title()
 
     def description(self):
         # this causes one query per call but we cannot use selected_related with polymorphic models
@@ -852,7 +852,7 @@ class ExecutedActionTriggerAction(TriggerAction):
         )
 
     def __str__(self):
-        return f"Trigger: {self.action._meta.verbose_name.title()} ({self.pk})"
+        return f"Trigger: {self.action._meta.verbose_name.title()}"
 
 
 class WebhookTriggerAction(TriggerAction):
@@ -864,7 +864,7 @@ class WebhookTriggerAction(TriggerAction):
     #add platform_community_platform_id
 
     def __str__(self):
-        return f"Trigger: {self.event_type} ({self.pk})"
+        return f"Trigger: {self.event_type}"
 
 class PlatformPolicyManager(models.Manager):
     def get_queryset(self):
