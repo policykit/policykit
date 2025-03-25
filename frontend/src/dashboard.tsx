@@ -251,20 +251,27 @@ export function ProposalsList({proposals}: {proposals: ProposalSummary[] | undef
       </div>
     );
   }
+  if (proposals.length === 0) {
     return (
-      <ol>
-        {proposals.map((proposal) => (
-          <li key={proposal.id} className="py-2">
-            <p className="text-grey-darkest">
-            <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
-            {proposal.status} from <span className="text-grey-dark">{proposal.policy.name}</span> policy
-            {proposal.initiator.readable_name ? (<> by <span className="text-grey-dark">{proposal.initiator.readable_name}</span></>) : null}
-            </p>
-            <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
-          </li>
-        ))}
-      </ol>
-    )
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">No Proposals</p>
+      </div>
+    );
+  }
+  return (
+    <ol>
+      {proposals.map((proposal) => (
+        <li key={proposal.id} className="py-2">
+          <p className="text-grey-darkest">
+          <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
+          {proposal.status} from <span className="text-grey-dark">{proposal.policy.name}</span> policy
+          {proposal.initiator.readable_name ? (<> by <span className="text-grey-dark">{proposal.initiator.readable_name}</span></>) : null}
+          </p>
+          <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
+        </li>
+      ))}
+    </ol>
+  )
   
 }
 

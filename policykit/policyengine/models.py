@@ -80,11 +80,15 @@ class Community(models.Model):
 
     @property
     def completed_proposals(self):
-        return self.proposals.filter(~Q(governance_process__status="pending"))[:50]
+        return self.proposals.filter(
+            ~Q(status=Proposal.PROPOSED)
+        )[:50]
     
     @property
     def pending_proposals(self):
-        return self.proposals.filter(governance_process__status="pending")[:50]
+        return self.proposals.filter((
+            Q(status=Proposal.PROPOSED)
+        ))[:50]
 
     @property
     def proposals(self):
@@ -709,7 +713,10 @@ class BaseAction(PolymorphicModel):
     def description(self):
         # this causes one query per call but we cannot use selected_related with polymorphic models
         # https://github.com/jazzband/django-polymorphic/issues/198
-        upcast = self.get_real_instance()
+        try:
+            upcast = self.get_real_instance()
+        except AttributeError:
+            upcast = self
         return getattr(upcast, 'ACTION_NAME', str(upcast))
 
     @property
