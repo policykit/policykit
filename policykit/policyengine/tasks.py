@@ -24,7 +24,8 @@ def evaluate_pending_proposals():
         try:
             community_name = proposal.action.community.community_name
         except Exception as e:
-            logger.error(f"Error getting community name for proposal {proposal}: {repr(e)} {e}")
+            logger.error(f"Error getting community name for proposal {proposal}, deleting proposal: {repr(e)} {e}")
+            proposal.delete()
             continue
         logger.debug(f"{community_name} - Evaluating proposal '{proposal}'")
         try:

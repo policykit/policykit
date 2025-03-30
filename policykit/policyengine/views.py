@@ -114,7 +114,7 @@ def onboarding(request):
     users = CommunityUser.objects.filter(community__community=community)
 
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    startkit_path = os.path.join(cur_path, f"../starterkits/onboarding.json")
+    startkit_path = os.path.join(cur_path, "../starterkits/onboarding.json")
     startkit = open(startkit_path)
     data = json.loads(startkit.read())
 
@@ -361,22 +361,7 @@ def selectrole(request):
 
 @login_required
 def roleusers(request):
-    from policyengine.models import CommunityUser
-
-    user = get_user(request)
-    operation = request.GET.get('operation')
-
-    community = user.community.community
-    roles = community.get_roles()
-    users = {}
-    for cp in community.get_platform_communities():
-        users[cp.platform] = CommunityUser.objects.filter(community=cp).order_by('readable_name', 'username')
-
-    return render(request, 'policyadmin/dashboard/role_users.html', {
-        'roles': roles,
-        'users': users.items(),
-        'operation': operation
-    })
+    return render(request, 'policyadmin/dashboard/role_users.html', {})
 
 @login_required
 def roleeditor(request):

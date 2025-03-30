@@ -18,3 +18,5 @@ celerybeat.pid
 celerybeat-schedule
 log
 metagov/
+models.svg
+models.dot

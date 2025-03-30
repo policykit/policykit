@@ -1,30 +1,14 @@
 import "vite/modulepreload-polyfill";
 import { StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 // dont import SVG files directly because of issue with loading static assets in dev mode
 // BC can't load from insecure URL, proxying dev server is annoying, and can't inline them
 import CancelIcon from "./components/CancelIcon";
 import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon";
 
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
-
-// Create a client
-const queryClient = new QueryClient();
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchData(url: string): Promise<any> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  const data = await response.json();
-  return data;
-}
+import { queryClient, useData } from "./query";
 
 type PolicySummary = {
   id: number;
@@ -35,6 +19,7 @@ type PolicySummary = {
 type ActionSummary = {
   id: number;
   action_type: string;
+  description: string;
 };
 
 type InitiatorSummary = {
@@ -71,22 +56,17 @@ type CommunityDashboard = {
   trigger_policies: PolicySummary[];
   platform_policies: PolicySummary[];
   constitution_policies: PolicySummary[];
-  proposals: ProposalSummary[];
+  pending_proposals: ProposalSummary[];
+  completed_proposals: ProposalSummary[];
   name: string;
 };
 
-function useData(): CommunityDashboard | undefined {
-  const query = useQuery<CommunityDashboard>({
-    queryKey: ["community_docs"],
-    queryFn: () => fetchData("/api/dashboard"),
-    staleTime: Infinity,
-    networkMode: "online",
-  });
-  return query.data;
+function useDashboardData(): CommunityDashboard | undefined {
+  return useData<CommunityDashboard>("/api/dashboard", "data");
 }
 
 export function Welcome() {
-  const name = useData()?.name || "...";
+  const name = useDashboardData()?.name || "...";
   const [show, setShow] = useState(true);
   const hide = useCallback(() => setShow(false), [setShow]);
   if (!show) {
@@ -115,7 +95,7 @@ export function Welcome() {
   );
 }
 export function Guidelines() {
-  const data = useData();
+  const data = useDashboardData();
   const text = data?.community_docs[0].text || "Loading...";
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
@@ -249,7 +229,7 @@ export function Roles({
 }
 
 export function MetaGovernance() {
-  const data = useData();
+  const data = useDashboardData();
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <p className="text-grey-dark">Meta-Governance</p>
@@ -263,9 +243,54 @@ export function MetaGovernance() {
   );
 }
 
-export function Dashboard() {
-  const data = useData();
+export function ProposalsList({proposals}: {proposals: ProposalSummary[] | undefined}) {
+  if (!proposals) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">Loading...</p>
+      </div>
+    );
+  }
+  if (proposals.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 h-32">
+        <p className="text-grey-dark">No Proposals</p>
+      </div>
+    );
+  }
   return (
+    <ol>
+      {proposals.map((proposal) => (
+        <li key={proposal.id} className="py-2">
+          <p className="text-grey-darkest">
+          <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
+          {proposal.status} from <span className="text-grey-dark">{proposal.policy.name}</span> policy
+          {proposal.initiator.readable_name ? (<> by <span className="text-grey-dark">{proposal.initiator.readable_name}</span></>) : null}
+          </p>
+          <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
+        </li>
+      ))}
+    </ol>
+  )
+  
+}
+
+export function Proposals() {
+  const data = useDashboardData();
+  return (
+    <div>
+      <h3 className="h5">Pending Proposals</h3>
+      <ProposalsList proposals={data?.pending_proposals} />
+      <h3 className="h5">Completed Proposals</h3>
+      <ProposalsList proposals={data?.completed_proposals} />
+    </div>
+  );
+}
+
+export function Dashboard() {
+  const data = useDashboardData();
+  return (
+    <>
     <div className="lg:p-6 lg:col-span-7">
       <Welcome />
       <Guidelines />
@@ -280,6 +305,10 @@ export function Dashboard() {
       />
       <MetaGovernance />
     </div>
+    <div className="lg:p-6 lg:col-span-3 border-l border-background-focus">
+      <Proposals />
+    </div>
+    </>
   );
 }
 
