@@ -17,3 +17,4 @@ postgres_data
 celerybeat.pid
 celerybeat-schedule
 log
+metagov/
