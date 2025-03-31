@@ -51,36 +51,44 @@ def force_variable_types(value, variable):
                 raise NotImplementedError
     return value_codes
 
-def extract_action_types(filters):
+def extract_action_types(custom_actions):
     """ 
     extract all ActionTypes defined in a list of CustomActions JSON
     e.g.,
         [
             {
-                "action_type": "slackpostmessage",
+                "action_types": ["slackpostmessage"] or ["slackpostmessage", "slackrenameconversation"]
                 "filter": {
-                    "initiator": {
-                        "kind": "CommunityUser",
-                        "name": "Role",
-                        "variables": [
+                    "view": "form",
+                    "form": {
+                        "initiator": {
+                            "kind": "CommunityUser",
+                            "name": "Role",
+                            "variables": [
+                                    {
+                                        "name": "role",
+                                        "type": "string",
+                                        "value": "hello"
+                                    }
+                                ]
+                        },
+                        "text": {
+                            "kind": "Text",
+                            "name": "Startswith",
+                            "variables": [
                                 {
-                                    "name": "role",
+                                    "name": "word",
                                     "type": "string",
-                                    "value": "hello"
+                                    "value": "test"
                                 }
                             ]
-                    },
-                    "text": {
-                        "kind": "Text",
-                        "name": "Startswith",
-                        "variables": [
-                            {
-                                "name": "word",
-                                "type": "string",
-                                "value": "test"
-                            }
-                        ]
+                        }
                     }
+
+                    or
+
+                    "view": "codes",
+                    "codes": "...."
                 },
                 "community_name": null
             },
@@ -91,17 +99,19 @@ def extract_action_types(filters):
     """
     from policyengine.models import ActionType
     action_types = []
-    for filter in filters:
-        action_codename = filter["action_type"]
-        action_type = ActionType.objects.filter(codename=action_codename).first()
-        if action_type:
-            action_types.append(action_type)
+    for custom_action in custom_actions:
+        action_codenames = custom_action["action_types"]
+        for action_codename in action_codenames:
+            action_type = ActionType.objects.filter(codename=action_codename).first()
+            if action_type:
+                action_types.append(action_type)
+
     return action_types
 
-def generate_filter_codes(filters):
+def generate_filter_codes(custom_actions):
     """
-        Generate codes from a list of filters defined in JSON
-        See examples of the parameter filters above 
+        Generate codes from a list of custom actions defined in JSON
+        See examples of the parameter custom actions above 
 
         The generated codes will be in the shape of 
         if action.action_type == "slackpostmessage":
@@ -116,17 +126,27 @@ def generate_filter_codes(filters):
 
     from policyengine.models import FilterModule
 
-    filter_codes = ""
-    for action_filter in filters:
+    custom_actions_codes = ""
+    for custom_action in custom_actions:
+        print(custom_action)
+        if custom_action['filter']["view"] == "codes":
+            # if the view is codes, we just use the codes as it is
+            custom_actions_codes += custom_action['filter']["codes"]
+            continue
+
+        # then if the view is form, we need to generate codes from the filter
+        
+        assert len(custom_action["action_types"]) == 1, "Currently only support one action type for each custom action in the form view"
         # we first check whether the action is the one we want to apply filters to
-        filter_codes += "if action.action_type == \"{action_type}\":\n\t".format(action_type = action_filter["action_type"])
+        custom_actions_codes += "if action.action_type == \"{action_type}\":\n\t".format(action_type = custom_action["action_types"][0])
         # one example: "if action.action_type == \"slackpostmessage\":\n\t
         
         now_codes = []
         function_calls = [] # a list of names of filter functions we will call in the end for each action type
         
         # only custom actions have the filter key
-        for field, field_filter in action_filter.get("filter", {}).items():
+        form_filters = custom_action["filter"]["form"]
+        for field, field_filter in form_filters.items():
             """  e.g.,
                     "initiator": {
                         "kind": "CommunityUser",
@@ -183,12 +203,12 @@ def generate_filter_codes(filters):
                     )
                 )
         if now_codes:
-            filter_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
+            custom_actions_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
         else:
-            filter_codes += "return True\n"
-    if not filter_codes:
-        filter_codes = "pass"
-    return filter_codes
+            custom_actions_codes += "return True\n"
+    if not custom_actions_codes:
+        custom_actions_codes = "pass"
+    return custom_actions_codes
 
 '''
 def generate_initialize_codes(data):

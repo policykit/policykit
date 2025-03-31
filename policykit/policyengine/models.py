@@ -1115,7 +1115,6 @@ class UserVote(models.Model):
         """
         return datetime.now(timezone.utc) - self.vote_time
 
-
 class SelectVote(UserVote):
     """ where a user assigns a option to a candidate"""
     candidate = models.CharField(max_length=100)
@@ -1182,43 +1181,57 @@ class CustomAction(models.Model):
     JSON_FIELDS = ["filter"]
     """fields that are stored as JSON dumps"""
 
-    action_type = models.ForeignKey(ActionType, on_delete=models.CASCADE)
+    action_types = models.ManyToManyField('ActionType', related_name='custom_actions')
     """actions that this custom action is built upon"""
 
     filter = models.TextField(blank=True, default="[]")
     """
-        a JSON object. For each custom action, we only allow filters that apply to the filter parameters
+        a JSON object. 
+        
+        === Form View ===
+        For each custom action, we only allow filters that apply to the filter parameters
         defined in the referenced governable action. We do not store the codes of each filter here.
         See examples of filter modules in policytemplates/filters.json
         e.g.,
         {
-            "initiator": {
-                "kind": "CommunityUser",
-                "name": "permission",
-                "platform": "slack"
-                "variables": [
-                    {
+            "view": "form",
+            "form":    
+                {
+                    "initiator": {
+                        "kind": "CommunityUser",
                         "name": "permission",
-                        "type": "string",
-                        "value": "can_add_slackpostmessage"
-                    }
-                ],
-            },
-            "text": {
-                "kind": "Text",
-                "name": "startsWtih",
-                "platform": "slack"
-                "variables": [
-                    {
-                        "name": "word",
-                        "type": "string",
-                        "value": "vote"
-                    }
-                ],
-            },
-            "channel": null,
-            "timestamp": null
+                        "platform": "slack"
+                        "variables": [
+                            {
+                                "name": "permission",
+                                "type": "string",
+                                "value": "can_add_slackpostmessage"
+                            }
+                        ],
+                    },
+                    "text": {
+                        "kind": "Text",
+                        "name": "startsWtih",
+                        "platform": "slack"
+                        "variables": [
+                            {
+                                "name": "word",
+                                "type": "string",
+                                "value": "vote"
+                            }
+                        ],
+                    },
+                    "channel": null,
+                    "timestamp": null
+                }
         }
+
+        === Code View ===
+        {
+            "view": "codes",
+            "codes": "....",
+        }
+
     """
 
     community_name = models.TextField(null=True, unique=True)
@@ -1233,17 +1246,17 @@ class CustomAction(models.Model):
     @property
     def action_kind(self):
         """ get the corresponding policy kind: PLATFORM, CONSTITUTION or TRIGGER """
-        if self.is_trigger:
-            return Policy.TRIGGER
+        action_app = self.get_platform()
+        if action_app == "constitution":
+            return Policy.CONSTITUTION
         else:
-            action_class = Utils.find_action_cls(self.action_type.codename)
-            app_label = action_class._meta.app_label
-            if app_label == "constitution":
-                return Policy.CONSTITUTION
-            else:
-                return Policy.PLATFORM
+            return Policy.PLATFORM
 
-
+    def get_platform(self):
+        action_apps = set([Utils.determine_action_app(action_type.codename) for action_type in self.action_types.all()])
+        assert len(action_apps) == 1, f"action_apps should be of the same kind, but we have {action_apps}"
+        return list(action_apps)[0]
+    
     def loads(self, attr):
         """ load a field that is stored as a JSON dump """
         return json.loads(getattr(self, attr))
@@ -1254,10 +1267,13 @@ class CustomAction(models.Model):
 
     def to_json(self):
         """ return a json object that represents this filter """
+        filter = self.loads("filter")
+        if filter['view'] == 'codes':
+            filter['codes'] = Utils.sanitize_code(filter['codes'])
         return {
-            "action_type": self.action_type.codename,
-            'platform': Utils.determine_action_app(self.action_type.codename),
-            "filter": self.loads("filter"),
+            "action_types": [at.codename for at in self.action_types.all()],
+            'platform': self.get_platform(),
+            "filter": filter,
             "community_name": self.community_name
         }
 
@@ -1267,6 +1283,7 @@ class CustomAction(models.Model):
             # If it is a user custom action, it has a new permission name
             permissions = ((f"can_execute_{self.community_name}", "Can execute {self.community_name}"))
         else:
+            '''
             from django.contrib.auth.models import Permission
             from django.contrib.contenttypes.models import ContentType
 
@@ -1278,7 +1295,9 @@ class CustomAction(models.Model):
 
             # While it is obvious that the permission codename is f"can_execute_{self.action_type}",
             # We actually do not know exactly the corresponding permisson name
-            # That is why we take such trouble to extract it
+            # That is why we take such trouble to extract it'
+            '''
+            raise Exception("CustomAction should have a community_name; we do not support permissions for unnamed custom actions yet")
         return permissions
 
 
@@ -1642,12 +1661,12 @@ class PolicyTemplate(models.Model):
         if self.template_kind == PolicyTemplate.IF_THEN_RULES or self.template_kind == PolicyTemplate.TRIGGERING_POLICIES:
             return Policy.TRIGGER
         else:
-            codename = None
             if self.custom_actions.first():
-                codename = self.custom_actions.first().action_type.codename
+                action_kind = self.custom_actions.first().action_kind
             elif self.action_types.first():
                 codename = self.action_types.first().codename
-            return Utils.determine_action_kind(codename)
+                action_kind = Utils.determine_action_kind(codename)
+            return action_kind
 
     def add_variables(self, new_variables, values={}):
         """
@@ -1711,11 +1730,22 @@ class PolicyTemplate(models.Model):
             add custom actions to this policy template based on a fully specified JSON object
         """
         for action_json in actions_json:
-            action_type = ActionType.objects.filter(codename=action_json["action_type"]).first()
-            if not action_json.get("filter", {}):
-                self.action_types.add(action_type)
+            action_type_codenames = action_json.get("action_types", [])
+            action_types = list(ActionType.objects.filter(codename__in=action_type_codenames))
+            action_filter = action_json['filter']
+
+            is_empty_filter = (
+                not action_filter.get('form') if action_filter.get('view') == 'form'
+                else not action_filter.get('codes')
+            )
+            if is_empty_filter:
+                # skip the action if it does not have a filter or the codes are empty
+                for action_type in action_types:
+                    self.action_types.add(action_type)
             else:
-                custom_action = CustomAction.objects.create(action_type=action_type)
+                custom_action = CustomAction.objects.create()
+                custom_action.action_types.set(action_types)
+
                 custom_action.dumps("filter", action_json["filter"])
                 custom_action.save()
                 self.custom_actions.add(custom_action)
@@ -1764,8 +1794,17 @@ class PolicyTemplate(models.Model):
 
         # combine the custom actions and the action types together as a filter of this Procedure
         filters = [action.to_json() for action in self.custom_actions.all()]
-        filters += [{"action_type": action.codename} for action in self.action_types.all()]
-
+        filters += [
+            {
+                "action_types": [action.codename],
+                "filter": {
+                    "view": "form",
+                    "form": {}
+                }
+            } 
+            for action in self.action_types.all()
+        ]
+        
          # add actions defined in the Procedure isntance to the extra_executions
         procedure = self.procedure.to_json() if self.procedure else {}
         executions = self.loads("executions")
@@ -1801,13 +1840,16 @@ class PolicyTemplate(models.Model):
                 if variable["name"] == name:
                     return variable["value"]
             return None
+        
+        
         # combine the custom actions and the action types together as a filter of this Procedure    
         filters = [action.to_json() for action in self.custom_actions.all()]
         # We need to structure the action types in a way that is compatible with the frontend
         for action in self.action_types.all():
             now_codename = action.codename
             now_platform = Utils.determine_action_app(now_codename)
-            filters.append({"action_type": now_codename, "platform": now_platform})
+            filters.append({"action_types": [now_codename], "platform": now_platform})
+        
 
          # add actions defined in the Procedure instance to the extra_executions
         if self.procedure:

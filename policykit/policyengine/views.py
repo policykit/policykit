@@ -21,6 +21,7 @@ from policyengine.linter import _lint_check
 from policyengine.metagov_app import metagov, metagov_handler
 from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
 
+
 logger = logging.getLogger(__name__)
 
 DASHBOARD_MAX_USERS = 50
@@ -1013,17 +1014,31 @@ def create_policy(request):
     new_policy = new_policytemplate.create_policy(user.community.community, policy)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
-def create_custom_action(filters):
+def create_custom_action(custom_actions):
     '''
         convert the frontend data to the custom actions JSON object;
         speciallly, replace all filter_pk with more details about each filter module
 
         parameters:
-            filters: A Json object in the shape of
+            custom_actions: A Json object in the shape of
                 [
                     {
-                        "action_type": "slackpostmessage",
+                        "action_types":["slackpostmessage"] or ["slackpostmessage", "slackrenameconversations"],
                         "filter": {
+                            "view: "form" or "codes",
+                            "codes"/"form": {
+                            
+                            }
+                            
+                        }
+                    },
+                    ...
+                ]
+            The filter field could take two forms:
+            1) form view
+                    {
+                        "view": "form",
+                        "form": {
                             "message": {
                                 "filter_pk": 1,
                                 "platform": "slack",
@@ -1031,40 +1046,53 @@ def create_custom_action(filters):
                             },
                             "initiator": ...
                         }
-                    },
-                    ...
-                ]
+                    }
+            2) codes view
+                    {
+                        "view": "codes",
+                        "codes": "....",
+                    }
+
+
     '''
 
     from policyengine.models import FilterModule
-    custom_action_JSON = []
-    for filter in filters:
-        action_type = filter.get("action_type")
-        action_specs = filter.get("filter")
-        '''
-            check whether the value of each action_specs is an empty string
-            an example of a action_specs:
-                {
-                    "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
-                    "text":{}
-                }
-        '''
-        empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
-        filter_JSON = {}
-        filter_JSON["action_type"] = action_type
+    custom_actions_JSON = []
+    for custom_action in custom_actions:
+        action_types = custom_action.get("action_types")
+        action_filter = custom_action.get("filter")
+        
+        action_JSON = {}
+        action_JSON["action_types"] = action_types
 
-        if not empty_filter:
-            filter_JSON["action_type"] = action_type
-            filter_JSON["filter"] = {}
-            for field, filter_info in action_specs.items():
-                if filter_info:
-                    filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
-                    # create a filter JSON object with the actual value specified for each variable
-                    filter_JSON["filter"][field] = filter_module.to_json(filter_info["variables"])
-                    # to faciliate the generation of codes for custom actions, we store the platform of each filter
-                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]
-        custom_action_JSON.append(filter_JSON)
-    return custom_action_JSON
+        if action_filter['view'] == "codes":
+            action_JSON["filter"] = action_filter
+        elif action_filter['view'] == "form":
+            '''
+                check whether the value of each action_specs is an empty string
+                an example of a action_specs:
+                    {
+                        "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
+                        "text":{}
+                    }
+            '''
+            filter_specs = action_filter["form"]
+            empty_filter = not any(["filter_pk" in value for value in list(filter_specs.values())])
+            action_JSON['filter'] = {
+                "view": "form",
+                "form": {}
+            }
+            if not empty_filter:
+                form_json = action_JSON['filter']["form"]
+                for field, filter_spec in filter_specs.items():
+                    if filter_spec:
+                        filter_module = FilterModule.objects.filter(pk=int(filter_spec["filter_pk"])).first()
+                        # create a filter JSON object with the actual value specified for each variable
+                        form_json[field] = filter_module.to_json(filter_spec["variables"])
+                        # to faciliate the generation of codes for custom actions, we store the platform of each filter
+                        form_json[field]["platform"] = filter_spec["platform"]
+        custom_actions_JSON.append(action_JSON)
+    return custom_actions_JSON
 
 def create_procedure(procedure_data, policytemplate):
     '''

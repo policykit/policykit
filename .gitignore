@@ -20,3 +20,4 @@ log
 metagov/
 models.svg
 models.dot
+policykit/deprecated.py

@@ -3,1079 +3,1081 @@
 
 {% block styles %}
 <style>
-  html {
-    font-size: 100%;     /* 16px */
-  }
+    html {
+        font-size: 100%;         /* 16px */
+    }
 
-  body {
-    font-family: 'Arial', sans-serif;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 24px;
-    color: #111;
-  }
+    body {
+        font-family: 'Arial', sans-serif;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 24px;
+        color: #111;
+    }
 
-  p {
-    margin: 0;
-  }
+    p {
+        margin: 0;
+    }
 
-  h1, h2, h3, h4, h5 {
-    font-weight: 400;
-    margin: 0;
-  }
+        h1, h2, h3, h4, h5 {
+                font-weight: 400;
+                margin: 0;
+        }
 
-  h1,
-  .heading-1 {
-    margin-top: 0;
-    font-size: 39.81px;
-    line-height: 24px;
-  }
+    h1,
+    .heading-1 {
+        margin-top: 0;
+        font-size: 39.81px;
+        line-height: 24px;
+    }
 
-  h2,
-  .heading-2 {
-    font-size: 33.18px;
-    margin: 0 0 36px 0;
-    text-align: center;
-    font-weight: 600;
-  }
+    h2,
+    .heading-2 {
+        font-size: 33.18px;
+        margin: 0 0 36px 0;
+        text-align: center;
+        font-weight: 600;
+    }
 
-  h3,
-  .heading-3 {
-    font-size: 27.65px;
-    text-align: center;
-  }
+    h3,
+    .heading-3 {
+        font-size: 27.65px;
+        text-align: center;
+    }
 
-  h4,
-  .heading-4 {
-    font-size: 23.04px;
-    line-height: 28px;
-    text-align: center;
-  }
+    h4,
+    .heading-4 {
+        font-size: 23.04px;
+        line-height: 28px;
+        text-align: center;
+    }
 
-  h5,
-  .heading-5 {
-    font-size: 19.20px;
-    color: #666;
-  }
+    h5,
+    .heading-5 {
+        font-size: 19.20px;
+        color: #666;
+    }
 
-  small,
-  .text-small {
-    font-size: 13.33px;
-  }
+    small,
+    .text-small {
+        font-size: 13.33px;
+    }
 
-  .huge {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 25px;
-  }
-  .large {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 20px;
-  }
+    .huge {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 25px;
+    }
+    .large {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 20px;
+    }
 
-  .medium {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 16px;
-  }
-  
-  .small {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 14px;
-  }
-
-  .smaller {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 10px;
-  }
-
-  .normal {
-    color: #3A3A3A;
-  }
-
-  .prompt {
-    color: #52677A;
-    font-weight: 300;
-  }
-
-  .variable-prompt {
-    color: #52677A;
-    font-weight: 300;
-    font-size: 11px; 
-    font-family: 'Nunito';
+    .medium {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 16px;
+    }
     
-  }
+    .small {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 14px;
+    }
 
-  .info {
-    color: #4451B2;
-  }
+    .smaller {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 10px;
+    }
 
+    .normal {
+        color: #3A3A3A;
+    }
 
-  .container {
-    display: flex;
-    margin-left: 0;
-    margin-right: 0;
-    max-width: 100%;
-    height: 100vh;
-    padding-left: 0px;
-    padding-right: 0px;
+    .prompt {
+        color: #52677A;
+        font-weight: 300;
+    }
 
-  }
+    .variable-prompt {
+        color: #52677A;
+        font-weight: 300;
+        font-size: 11px; 
+        font-family: 'Nunito';
+        
+    }
 
-  .wizard {
-    flex-basis: 0;
-    flex-grow: 1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: stretch;
-    background: rgba(102, 124, 147, 0.4);
-    height: 100%;
-  }
-
-  .policykind-container.hidden {
-    display: none;
-  }
-
-  .policykind-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0px;
-    gap: 32px;
-
-    background: #FFFFFF;
-    border: 1px solid #F1F4F6;
-    border-radius: 8px;
-
-    width: 50%;
-    margin: 20vh auto;
-  }
-
-  .policykind-container > .header {
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    align-items: start;
-    padding: 32px 32px 0px;
-    gap: 24px;
-
-    align-self: stretch;
-  }
-  .policykind-container > .body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0px 32px 64px;
-    gap: 32px;
-  }
-
-  .policykind-group {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    padding: 16px 16px 24px;
-    gap: 16px;
-
-    background: #F8F9FA;
-    border-radius: 8px;
-
-    align-self: stretch;
-  }
-
-  .policykind-box {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px;
-    gap: 24px;
-
-    background: #FFFFFF;
-    border: 1px solid #F8F9FA;
-    border-radius: 8px;
-    text-align: left;
-  }
-
-  .policykind-icon > i:before {
-    background: -webkit-gradient(linear, left top, left bottom, from(rgba(222, 195, 252, 0.57)), to(rgba(153, 196, 252, 1)));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: initial; /* reset Font Awesome's display:inline-block */
-  }
-
-  /*For the overall panel layout 3:7 */
-  .nocode-container {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .nocode-container.hidden {
-    display: none;
-  }
-  .nocode-sidebar {
-    flex-basis: 35vw;;
-    padding-top: 2vh;
-    height: 98vh;
-    flex-grow: 0;
-    flex-shrink: 0;
-  }
-
-  .nocode-panel {
-    flex-basis: 65vw;
-    height: 98vh;
-    background-color: #F8F9FA;
-    flex-grow: 0;
-    flex-shrink: 3;
-
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    padding-top: 1vh;
-  }
-  /* for the slider bar before the slider panel */
-  .nocode-sidebar section {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 24px 16px 32px;
-    gap: 32px;
-
-    background: #FFFFFF;
-    border: 1px solid #F1F4F6;
-    border-radius: 4px;
-    margin-left: 17%;
-  }
+    .info {
+        color: #4451B2;
+    }
 
 
-  .nocode-sidebar .section-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 0px;
-    gap: 32px;
+    .container {
+        display: flex;
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        height: 100vh;
+        padding-left: 0px;
+        padding-right: 0px;
 
-    align-self: stretch;
-    border-radius: 4px;
-  }
+    }
+
+    .wizard {
+        flex-basis: 0;
+        flex-grow: 1;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-self: stretch;
+        background: rgba(102, 124, 147, 0.4);
+        height: 100%;
+    }
+
+    .policykind-container.hidden {
+        display: none;
+    }
+
+    .policykind-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0px;
+        gap: 32px;
+
+        background: #FFFFFF;
+        border: 1px solid #F1F4F6;
+        border-radius: 8px;
+
+        width: 50%;
+        margin: 20vh auto;
+    }
+
+    .policykind-container > .header {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: start;
+        padding: 32px 32px 0px;
+        gap: 24px;
+
+        align-self: stretch;
+    }
+    .policykind-container > .body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0px 32px 64px;
+        gap: 32px;
+    }
+
+    .policykind-group {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        padding: 16px 16px 24px;
+        gap: 16px;
+
+        background: #F8F9FA;
+        border-radius: 8px;
+
+        align-self: stretch;
+    }
+
+    .policykind-box {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px;
+        gap: 24px;
+
+        background: #FFFFFF;
+        border: 1px solid #F8F9FA;
+        border-radius: 8px;
+        text-align: left;
+    }
+
+    .policykind-icon > i:before {
+        background: -webkit-gradient(linear, left top, left bottom, from(rgba(222, 195, 252, 0.57)), to(rgba(153, 196, 252, 1)));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: initial; /* reset Font Awesome's display:inline-block */
+    }
+
+    /*For the overall panel layout 3:7 */
+    .nocode-container {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .nocode-container.hidden {
+        display: none;
+    }
+    .nocode-sidebar {
+        flex-basis: 35vw;;
+        padding-top: 2vh;
+        height: 98vh;
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    .nocode-panel {
+        flex-basis: 65vw;
+        height: 98vh;
+        background-color: #F8F9FA;
+        flex-grow: 0;
+        flex-shrink: 3;
+
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding-top: 1vh;
+    }
+    /* for the slider bar before the slider panel */
+    .nocode-sidebar section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px 16px 32px;
+        gap: 32px;
+
+        background: #FFFFFF;
+        border: 1px solid #F1F4F6;
+        border-radius: 4px;
+        margin-left: 17%;
+    }
 
 
-  /*for the slider panel that pops up when selecting actions or procedures*/
-  #slider-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 32px;
-    padding: 32px;
+    .nocode-sidebar .section-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0px;
+        gap: 32px;
+
+        align-self: stretch;
+        border-radius: 4px;
+    }
+
+
+    /*for the slider panel that pops up when selecting actions or procedures*/
+    #slider-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 32px;
+        padding: 32px;
+        
+        background: #FFFFFF;
+        border-right: 1px solid #F1F4F6;
+        box-shadow: 0px 20px 20px rgba(0, 0, 0, 0.08);
+        overflow-y: auto;
+    }
+
+    #slider-panel.hidden {
+        display: none;
+    }
+
+    .slide-panel-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0px;
+        gap: 20px;
+
+        align-self: stretch;
+    }
+
+    .slide-panel-header > div:first-child {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px;
+        gap: 8px;
+        flex-grow: 1;
+    }
+
+    .slide-panel-header > div:last-child {
+        flex-grow: 0;
+        align-self: start;
+        padding-top: 8px;
+    }
+
+    .slide-panel-header button{
+        border: none;
+        background-color: #FFFFFF;
+        color: rgba(68, 81, 178, 1);
+
+    }
+
+    .slide-panel-body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px;
+        gap: 32px;
+
+        align-self: stretch;
+    }
+
+
+    /* for the main panel */
+    .panel-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0px 48px 10px 48px;
+        justify-content: center;
+        background: #F8F9FA;
+        /* new/focus background */
+
+        border-bottom: 2px solid #F1F4F6;
+        /* light drop shadow */
+
+        box-shadow: 0px 4px 4px #F1F4F7;
+    }
+
+    .panel-body { /* for the list of sections */
+        overflow-y: auto;
+        flex-grow: 1;
+        
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px 10% 10% 5%;
+        gap: 16px;
+    }
+
+    .panel-bottom { /* for the bottom buttons */
+        align-self: stretch;
+        flex-basis: 10%;
+        flex-grow:    0;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 16px 11% 16px;
+        gap: 16px;
+
+        background: #F8F9FA;
+        border-top: 2px solid #F1F4F6;
+        box-shadow: 0px 4px 4px #F1F4F7;
+    }
+
+
+    /* for each section in the main panel */
+    .panel-body section {
+        border-radius: 10px;
+        background-color: white;
+        padding: 16px 0px;
+        
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .panel-body section.hidden {
+        display: none;
+    }
+
+    .opaque-section {
+        visibility: hidden;
+    }
+
+    .panel-body .focus-section {
+        border: 1px solid #7282F9;
+        box-shadow: 0px 2px 4px #CDD3FF;
+        border-radius: 8px;
+
+    }
+
+    .collapse-section.hidden {
+        display: none;
+    }
+
+    .collapse-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0px;
+        margin-top: -16px;
+        margin-bottom: -16px;
+    }
+
+    .vertical-line {
+        border: 1px solid #CDD3FF;
+        height: 16px; /* Adjust the height as needed */
+    }
+
+    .collapse-section-button {
+        background: #FFFFFF;
+        border-radius: 50%;
+        border: none;
+        width: 32px;
+        height: 32px;
+        
+        color: #4451B2;
+        font-size: 28px;
+        font-weight: 200;
+        font-family: "Nunito";
+        font-style: normal;
+    }
+
+    .section-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 16px 32px;
+        gap: 16px;
+        border-bottom: 1px solid #F1F4F6;
+        justify-content: space-between;
+        align-self: stretch;
+
+        /* font-size: 20px;
+        line-height: 28px;
+        text-align: center;
+        padding: 0px 32px 8px; */
+    }
+
+    .section-header > div:first-child {
+        align-self: stretch;
+        font-size: 20px;
+    } 
+
+    .section-header .source-code-button {
+        border-radius: 3.5px;
+        color: #4451B2;
+        line-height: 120%;
+        border: none;
+        background-color: white;
+    }
+
+    .section-header .source-code-button.hidden{
+        display: none;
+    }
+
+    .panel-body .section-body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px;
+        align-self: stretch;
+    }
+
+    .section-formview.active {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        padding: 0px 32px;
+        gap: 16px;
+        background: #FFFFFF;
+        align-self: stretch;
+    }
+
+
+
+    .section-formview.inactive {        
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        align-self: stretch;
+        padding: 16px 32px;
+        gap: 8px;
+
+        height: 100px;
+    }
+
+    .section-formview.hidden {
+        display: none;
+    }
+
+    .CodeMirror {
+        height: auto;
+        width: 100%;
+        border: 1px solid #F8F9FA;
+        border-radius: 8px;
+        font-size: 12px;
+    }
+
+    .section-warning-banner {
+        background: #FDF4F2;
+        align-self: stretch;
+        color: #A72A11;
+        padding: 10px 32px;
+        margin: 5px 32px;
+    }
+
+    .section-info-banner {
+        background: #f3f4ff;
+        align-self: stretch;
+        color: #4451b2;
+        padding: 10px 32px;
+        margin: 5px 32px;
+    }
+
+    .section-codeview.hidden {
+        display: none;
+    }
+
+    .section-codeview {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px 32px;
+        gap: 16px;
+        background: #FFFFFF;
+        align-self: stretch;
+    }
+
+    .section-inactive-button {
+        align-self: stretch;
+        flex-grow: 1;
+
+        background: #F8F9FA;
+        border-radius: 8px;
+        border: none;
+    }
+
+    .section-inactive-button:focus{
+        outline: none;
+    }
+
+    /* For the section bottom */
+    .section-bottom {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 16px 32px 0px 32px;
+        gap: 16px;
+        
+        background: #FFFFFF;
+        border-top: 1px solid #F1F4F6;
+        border-radius: 0px 0px 8px 8px;
+        align-self: stretch;
+    }
+
+    .section-bottom.hidden {
+        display: none;
+    }
+
+    .section-bottom button {
+        border-radius: 3.5px;
+        flex-basis: 15%;
+        padding: 5px;
+    }
+
+
+    /*for the actions list in the slider panel*/
+    .checkbox-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px;
+        gap: 16px;
+
+        align-self: stretch;
+        overflow-y: auto;
+    }
+
+    .checkbox-header {
+        border-bottom: 1px solid #F3F5F7;
+        align-self: stretch;
+        padding-bottom: 5px;
+    }
+
+    .checkbox-body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px 0px 8px;
+        gap: 8px;
+
+        align-self: stretch;
+    }
+
+    .action-checkbox-item {
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+        padding: 8px;
+        gap: 16px;
+    }
+
+    .action-checkbox-item input {
+        flex-grow: 0;
+        border: 1px solid #4451B2;
+        border-radius: 2px;
+    }
+
+    .action-checkbox-item label{
+        flex-grow: 0;
+    }
+
+    /* for the procedures list in the slider panel */
+    .procedure-checkbox-item {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        padding: 16px 24px 16px;
+        gap: 24px;
+        align-self: stretch;
+
+        border: 1px solid #F1F4F6;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .procedure-checkbox-item input {
+        border: 1px solid #4451B2;
+        border-radius: 10px;
+        margin-top: 6px;
+    }
+
+    .procedure-checkbox-item .procedure-label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        align-self: stretch;
+    }
     
-    background: #FFFFFF;
-    border-right: 1px solid #F1F4F6;
-    box-shadow: 0px 20px 20px rgba(0, 0, 0, 0.08);
-    overflow-y: auto;
-  }
+    /* For the blocks of action filters and displays of variables */
+    .custom-group {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 5px 16px;
+        gap: 10px;
+        
+        border: 1px solid #F3F5F7;
+        border-radius: 8px;
+        align-self: stretch;
+    }
 
-  #slider-panel.hidden {
-    display: none;
-  }
+    .custom-group-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0px 10px;
+        gap: 16px;
 
-  .slide-panel-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 0px;
-    gap: 20px;
+        align-self: stretch;
+    }
 
-    align-self: stretch;
-  }
+    .custom-group-header label {
+        align-self: flex-start;
+    }
 
-  .slide-panel-header > div:first-child {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px;
-    gap: 8px;
-    flex-grow: 1;
-  }
+    .custom-group-remove-button {
+        align-self: flex-end;
+        color: rgba(68, 81, 178, 1);
+        background-color: transparent;
+        border: none;
+    }
 
-  .slide-panel-header > div:last-child {
-    flex-grow: 0;
-    align-self: start;
-    padding-top: 8px;
-  }
+    .custom-group-remove-button:disabled {
+        background-color: #ccc;
+        color: #888;
+        cursor: not-allowed;
+    }
 
-  .slide-panel-header button{
-    border: none;
-    background-color: #FFFFFF;
-    color: rgba(68, 81, 178, 1);
+    .custom-group-add-button {
+        color: rgba(68, 81, 178, 1);
+        background-color: transparent;
+        border: none;
+    }
 
-  }
-
-  .slide-panel-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px;
-    gap: 32px;
-
-    align-self: stretch;
-  }
-
-
-  /* for the main panel */
-  .panel-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 0px 48px 10px 48px;
-    justify-content: center;
-    background: #F8F9FA;
-    /* new/focus background */
-
-    border-bottom: 2px solid #F1F4F6;
-    /* light drop shadow */
-
-    box-shadow: 0px 4px 4px #F1F4F7;
-  }
-
-  .panel-body { /* for the list of sections */
-    overflow-y: auto;
-    flex-grow: 1;
+    #design_procedure .custom-group{
+        gap: 2px;
+    }
     
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 10px 10% 10% 5%;
-    gap: 16px;
-  }
+    .custom-label {
+        font-weight: 500;
+        padding-top: 5px;
+    }
 
-  .panel-bottom { /* for the bottom buttons */
-    align-self: stretch;
-    flex-basis: 10%;
-    flex-grow:  0;
-
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 16px 11% 16px;
-    gap: 16px;
-
-    background: #F8F9FA;
-    border-top: 2px solid #F1F4F6;
-    box-shadow: 0px 4px 4px #F1F4F7;
-  }
+    #custom\.execution_success\.execute_actions .custom-label{
+        font-weight: 500;
+        padding-top: 5px;
+        color:rgb(249, 129, 129);
+    }
 
 
-  /* for each section in the main panel */
-  .panel-body section {
-    border-radius: 10px;
-    background-color: white;
-    padding: 16px 0px;
+    .custom-action-field {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px 10px;
+        gap: 10px;
+
+        align-self: stretch;
+    }
+
     
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 16px;
-  }
+    .custom-action-filter-variable {
+        margin-left: 15%;
+        width: 85%;
+        padding-left: 12px;
+    }
 
-  .panel-body section.hidden {
-    display: none;
-  }
+    .column-variable-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 6px 0px 6px 10px;
+        gap: 2px;
 
-  .opaque-section {
-    visibility: hidden;
-  }
+        border-radius: 4px;
+        align-self: stretch;
+    }
 
-  .panel-body .focus-section {
-    border: 1px solid #7282F9;
-    box-shadow: 0px 2px 4px #CDD3FF;
-    border-radius: 8px;
+    .column-variable-item label {
+        font-weight: 500;
+        font-size: 16px;
+        padding: 0px;
+        margin-bottom: 0px;
+    }
 
-  }
+    .column-variable-item p {
+        padding-left: 3px;
+    }
+    .column-variable-item input[type="text"] {
+        background: rgba(241, 244, 246, 1);
+        border: 1px solid #F2F4FF;
+        border-radius: 4px;
+        align-self: stretch;
+    }
 
-  .collapse-section.hidden {
-    display: none;
-  }
+    .column-variable-item input[type="number"] {
+        background: rgba(241, 244, 246, 1);
+        border: 1px solid #F2F4FF;
+        border-radius: 4px;
+        width: 15%;
+        text-align: center;
+    }
 
-  .collapse-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0px;
-    margin-top: -16px;
-    margin-bottom: -16px;
-  }
+    .column-variable-item input:not([type="text"]):not([type="number"]) {
+        background: rgba(241, 244, 246, 1);
+        border: 1px solid #F2F4FF;
+        border-radius: 4px;
+    }
 
-  .vertical-line {
-    border: 1px solid #CDD3FF;
-    height: 16px; /* Adjust the height as needed */
-  }
+    .column-variable-item textarea {
+        background: rgba(241, 244, 246, 1);
+        border: none;
+        /* background: #F8F9FA;
+        border: 1px solid #F2F4FF;
+        border-radius: 4px;
+         */
+        align-self: stretch;
+        text-align:left;
+        resize: vertical;
+        overflow-y: auto;
 
-  .collapse-section-button {
-    background: #FFFFFF;
-    border-radius: 50%;
-    border: none;
-    width: 32px;
-    height: 32px;
+    }
+    .column-variable-item .variable-textarea {
+        border: none;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .textarea-div {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+        background: rgba(241, 244, 246, 1);
+        border-radius: 4px;
+    }
     
-    color: #4451B2;
-    font-size: 28px;
-    font-weight: 200;
-    font-family: "Nunito";
-    font-style: normal;
-  }
+    .textarea-div:focus-within {
+        background: rgba(241, 244, 246, 1);
+        border-color: #4451B2;
+        /* background: #F8F9FA;
+        border: 1px solid #F2F4FF;
+        border-radius: 4px;
+         */
+        align-self: stretch;
+        text-align:left;
+        resize: vertical;
+    }
 
-  .section-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 16px 32px;
-    gap: 16px;
-    border-bottom: 1px solid #F1F4F6;
-    justify-content: space-between;
-    align-self: stretch;
+    .textarea-div textarea {
+        padding-left: 8px;
+        padding-top: 2px;
+    }
 
-    /* font-size: 20px;
-    line-height: 28px;
-    text-align: center;
-    padding: 0px 32px 8px; */
-  }
+    .textarea-div textarea:focus {
+        padding-left: 8px;
+        padding-top: 2px;
+        border: none;
+        outline: none !important;
+    }
+    .column-variable-item .selectpicker-wrapper {
+        min-width: 50%;
+    }
 
-  .section-header > div:first-child {
-    align-self: stretch;
-    font-size: 20px;
-  } 
+    .column-variable-item label span,
+    .variable-item label span {
+        color: rgb(249, 129, 129);
+        padding-left: 2px;
+    }
 
-  .section-header .source-code-button {
-    border-radius: 3.5px;
-    color: #4451B2;
-    line-height: 120%;
-    border: none;
-    background-color: white;
-  }
+    .variables-dropdown {
+        border: none;
+        padding-left: 8px;
+        padding-bottom: 4px;
 
-  .section-header .source-code-button.hidden{
-    display: none;
-  }
+    }
 
-  .panel-body .section-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px;
-    align-self: stretch;
-  }
+    .dropdown-menu {
+        max-height: 35vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
 
-  .section-formview.active {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    .textarea-dropdown-header:not(:first-child) {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 16px;
+        font-weight: 600;
+        padding-left: 16px;
+        padding-right: 0px;
+        color: #4451B2;
+        border-top: #4451B2 1px solid;
+    }
 
-    padding: 0px 32px;
-    gap: 16px;
-    background: #FFFFFF;
-    align-self: stretch;
-  }
+    .textarea-dropdown-header:first-child {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-size: 16px;
+        font-weight: 600;
+        padding-left: 16px;
+        padding-right: 0px;
+        color: #4451B2;
+    }
 
-  .section-formview.hidden {
-    display: none;
-  }
 
-  .section-formview.inactive {    
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    align-self: stretch;
-    padding: 16px 32px;
-    gap: 8px;
+    .variables-dropdown-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 4px 0 4px 16px;
+        gap: 2px;
+        background: #FFFFFF;
+        /* new/focus background */
+        border-bottom: 1px solid #F1F4F6;
+    }
 
-    height: 100px;
-  }
+    .variable-dropdown-button {
+        background-color:#fff2f5; 
+    }
 
-  .CodeMirror {
-    height: auto;
-    width: 100%;
-    border: 1px solid #F8F9FA;
-    border-radius: 8px;
-    font-size: 12px;
-  }
+    .variables-dropdown-item label {
+        font-weight: 500;
+        font-size: 14px;
+    }
 
-  .section-warning-banner {
-    background: #FDF4F2;
-    align-self: stretch;
-    color: #A72A11;
-    padding: 10px 32px;
-    margin: 5px 32px;
-  }
+    .variables-dropdown-toggle {
+        background: #F2F4FF;
+        border: none;
+        border-radius: 3.5px;
+        padding: 4px 8px 4px 8px;
+        color: #4451B2;
+    }
 
-  .section-info-banner {
-    background: #f3f4ff;
-    align-self: stretch;
-    color: #4451b2;
-    padding: 10px 32px;
-    margin: 5px 32px;
-  }
 
-  .section-codeview.hidden {
-    display: none;
-  }
+    .variable-item {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: center;
+        padding: 0px;
+        gap: 8px;
 
-  .section-codeview {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px 32px;
-    gap: 16px;
-    background: #FFFFFF;
-    align-self: stretch;
-  }
+        align-self: stretch;
+    }
 
-  .section-inactive-button {
-    align-self: stretch;
-    flex-grow: 1;
+    .variable-item > label {
+        font-weight: 500;
+        font-size: 16px;
+        flex-basis:    15%;
+        flex-grow: 0;
+        flex-shrink: 1;
+    }
 
-    background: #F8F9FA;
-    border-radius: 8px;
-    border: none;
-  }
+    .variable-item input[type="text"]{
+        flex-basis: 85%;
+        flex-grow: 1;
+        flex-shrink: 5;
 
-  .section-inactive-button:focus{
-    outline: none;
-  }
+        background: rgba(241, 244, 246, 1);
+        border-radius: 4px;
+        border: none;
+        padding-left: 12px;
 
-  /* For the section bottom */
-  .section-bottom {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 16px 32px 0px 32px;
-    gap: 16px;
+    }
+
+    .variable-item input:not([type="text"]) {
+        flex-basis: 10%;
+        flex-grow: 0;
+        flex-shrink: 0;
+        background: rgba(241, 244, 246, 1);
+        border: none;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .variable-item textarea {
+        background: rgba(241, 244, 246, 1);
+        border-radius: 4px;
+        border: none;
+        padding-left: 12px;
+        
+        text-align:left;
+        resize: vertical;
+        overflow-y: auto;
+    }
+
+    .variable-item .variable-textarea {
+        display: flex;
+        flex-direction: column;
+        flex-basis: 85%;
+        flex-grow: 1;
+        flex-shrink: 5;
+    }
+
+
     
-    background: #FFFFFF;
-    border-top: 1px solid #F1F4F6;
-    border-radius: 0px 0px 8px 8px;
-    align-self: stretch;
-  }
+    .variable-item .selectpicker-wrapper {
+        flex-basis: 85%;
+        flex-grow: 1;
+        flex-shrink: 5;
+    }
 
-  .section-bottom.hidden {
-    display: none;
-  }
+    .bootstrap-select {
+        width: 100%!important;
+    }
 
-  .section-bottom button {
-    border-radius: 3.5px;
-    flex-basis: 15%;
-    padding: 5px;
-  }
+    .selectpicker {
+        border: 1px solid #F3F5F7;
+        border-radius: 4px;
+        background-color: rgba(241, 244, 246, 1);
+    }
+
+    .selectpicker + button.btn.dropdown-toggle,
+    .selectpicker + button.btn.dropdown-toggle.disabled {
+        border: 1px solid #F3F5F7;
+        border-radius: 4px;
+        background-color: rgba(241, 244, 246, 1);
+        white-space: pre-line; /*To avoid too long options when multiple options are selected*/
+    }
+     
+    .selectpicker + button {
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        background-color: #ffffff;
+    }
+
+    /*
+        to avoid too long a single option 
+    */
+
+    /* div.dropdown-menu.open { 
+        width: 100%
+    } 
+    ul.dropdown-menu.inner>li>a { 
+        white-space: initial; 
+    } */
 
 
-  /*for the actions list in the slider panel*/
-  .checkbox-section {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px;
-    gap: 16px;
+    #module-picker option {
+        width: fit-content;
+    }
+    .action-label {
+        font-weight: 500;
+        font-size: 19px;
+    }
 
-    align-self: stretch;
-    overflow-y: auto;
-  }
-
-  .checkbox-header {
-    border-bottom: 1px solid #F3F5F7;
-    align-self: stretch;
-    padding-bottom: 5px;
-  }
-
-  .checkbox-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px 0px 8px;
-    gap: 8px;
-
-    align-self: stretch;
-  }
-
-  .action-checkbox-item {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    padding: 8px;
-    gap: 16px;
-  }
-
-  .action-checkbox-item input {
-    flex-grow: 0;
-    border: 1px solid #4451B2;
-    border-radius: 2px;
-  }
-
-  .action-checkbox-item label{
-    flex-grow: 0;
-  }
-
-  /* for the procedures list in the slider panel */
-  .procedure-checkbox-item {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    padding: 16px 24px 16px;
-    gap: 24px;
-    align-self: stretch;
-
-    border: 1px solid #F1F4F6;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-
-  .procedure-checkbox-item input {
-    border: 1px solid #4451B2;
-    border-radius: 10px;
-    margin-top: 6px;
-  }
-
-  .procedure-checkbox-item .procedure-label {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    align-self: stretch;
-  }
-  
-  /* For the blocks of action filters and displays of variables */
-  .custom-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 5px 16px;
-    gap: 10px;
+    .description {
+        margin: 0 0 32px;
+    }
     
-    border: 1px solid #F3F5F7;
-    border-radius: 8px;
-    align-self: stretch;
-  }
+    .selectpicker-group {
+        display: flex;
+        justify-content: center;
+        line-height: 50px;
+    }
 
-  .custom-group-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0px 10px;
-    gap: 16px;
+    .selectpicker-group label {
+        margin-right: 10px;
+    }
 
-    align-self: stretch;
-  }
-
-  .custom-group-header label {
-    align-self: flex-start;
-  }
-
-  .custom-group-remove-button {
-    align-self: flex-end;
-    color: rgba(68, 81, 178, 1);
-    background-color: transparent;
-    border: none;
-  }
-
-  .custom-group-remove-button:disabled {
-    background-color: #ccc;
-    color: #888;
-    cursor: not-allowed;
-  }
-
-  .custom-group-add-button {
-    color: rgba(68, 81, 178, 1);
-    background-color: transparent;
-    border: none;
-  }
-
-  #design_procedure .custom-group{
-    gap: 2px;
-  }
-  
-  .custom-label {
-    font-weight: 500;
-    padding-top: 5px;
-  }
-
-  #custom\.execution_success\.execute_actions .custom-label{
-    font-weight: 500;
-    padding-top: 5px;
-    color:rgb(249, 129, 129);
-  }
+    .action-picker div {
+        margin: 0px 0px 10px 24px;
+    }
 
 
-  .custom-action-field {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0px 10px;
-    gap: 10px;
-
-    align-self: stretch;
-  }
-
-  
-  .custom-action-filter-variable {
-    margin-left: 15%;
-    width: 85%;
-    padding-left: 12px;
-  }
-
-  .column-variable-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 6px 0px 6px 10px;
-    gap: 2px;
-
-    border-radius: 4px;
-    align-self: stretch;
-  }
-
-  .column-variable-item label {
-    font-weight: 500;
-    font-size: 16px;
-    padding: 0px;
-    margin-bottom: 0px;
-  }
-
-  .column-variable-item p {
-    padding-left: 3px;
-  }
-  .column-variable-item input[type="text"] {
-    background: rgba(241, 244, 246, 1);
-    border: 1px solid #F2F4FF;
-    border-radius: 4px;
-    align-self: stretch;
-  }
-
-  .column-variable-item input[type="number"] {
-    background: rgba(241, 244, 246, 1);
-    border: 1px solid #F2F4FF;
-    border-radius: 4px;
-    width: 15%;
-    text-align: center;
-  }
-
-  .column-variable-item input:not([type="text"]):not([type="number"]) {
-    background: rgba(241, 244, 246, 1);
-    border: 1px solid #F2F4FF;
-    border-radius: 4px;
-  }
-
-  .column-variable-item textarea {
-    background: rgba(241, 244, 246, 1);
-    border: none;
-    /* background: #F8F9FA;
-    border: 1px solid #F2F4FF;
-    border-radius: 4px;
-     */
-    align-self: stretch;
-    text-align:left;
-    resize: vertical;
-    overflow-y: auto;
-
-  }
-  .column-variable-item .variable-textarea {
-    border: none;
-    align-self: stretch;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .textarea-div {
-    display: flex;
-    flex-direction: column;
-    align-self: stretch;
-    background: rgba(241, 244, 246, 1);
-    border-radius: 4px;
-  }
-  
-  .textarea-div:focus-within {
-    background: rgba(241, 244, 246, 1);
-    border-color: #4451B2;
-    /* background: #F8F9FA;
-    border: 1px solid #F2F4FF;
-    border-radius: 4px;
-     */
-    align-self: stretch;
-    text-align:left;
-    resize: vertical;
-  }
-
-  .textarea-div textarea {
-    padding-left: 8px;
-    padding-top: 2px;
-  }
-
-  .textarea-div textarea:focus {
-    padding-left: 8px;
-    padding-top: 2px;
-    border: none;
-    outline: none !important;
-  }
-  .column-variable-item .selectpicker-wrapper {
-    min-width: 50%;
-  }
-
-  .column-variable-item label span,
-  .variable-item label span {
-    color: rgb(249, 129, 129);
-    padding-left: 2px;
-  }
-
-  .variables-dropdown {
-    border: none;
-    padding-left: 8px;
-    padding-bottom: 4px;
-
-  }
-
-  .dropdown-menu {
-    max-height: 35vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .textarea-dropdown-header:not(:first-child) {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 16px;
-    font-weight: 600;
-    padding-left: 16px;
-    padding-right: 0px;
-    color: #4451B2;
-    border-top: #4451B2 1px solid;
-  }
-
-  .textarea-dropdown-header:first-child {
-    font-family: 'Nunito';
-    font-style: normal;
-    font-size: 16px;
-    font-weight: 600;
-    padding-left: 16px;
-    padding-right: 0px;
-    color: #4451B2;
-  }
-
-
-  .variables-dropdown-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 4px 0 4px 16px;
-    gap: 2px;
-    background: #FFFFFF;
-    /* new/focus background */
-    border-bottom: 1px solid #F1F4F6;
-  }
-
-  .variable-dropdown-button {
-    background-color:#fff2f5; 
-  }
-
-  .variables-dropdown-item label {
-    font-weight: 500;
-    font-size: 14px;
-  }
-
-  .variables-dropdown-toggle {
-    background: #F2F4FF;
-    border: none;
-    border-radius: 3.5px;
-    padding: 4px 8px 4px 8px;
-    color: #4451B2;
-  }
-
-
-  .variable-item {
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    align-items: center;
-    padding: 0px;
-    gap: 8px;
-
-    align-self: stretch;
-  }
-
-  .variable-item > label {
-    font-weight: 500;
-    font-size: 16px;
-    flex-basis:  15%;
-    flex-grow: 0;
-    flex-shrink: 1;
-  }
-
-  .variable-item input[type="text"]{
-    flex-basis: 85%;
-    flex-grow: 1;
-    flex-shrink: 5;
-
-    background: rgba(241, 244, 246, 1);
-    border-radius: 4px;
-    border: none;
-    padding-left: 12px;
-
-  }
-
-  .variable-item input:not([type="text"]) {
-    flex-basis: 10%;
-    flex-grow: 0;
-    flex-shrink: 0;
-    background: rgba(241, 244, 246, 1);
-    border: none;
-    border-radius: 4px;
-    text-align: center;
-  }
-
-  .variable-item textarea {
-    background: rgba(241, 244, 246, 1);
-    border-radius: 4px;
-    border: none;
-    padding-left: 12px;
     
-    text-align:left;
-    resize: vertical;
-    overflow-y: auto;
-  }
 
-  .variable-item .variable-textarea {
-    display: flex;
-    flex-direction: column;
-    flex-basis: 85%;
-    flex-grow: 1;
-    flex-shrink: 5;
-  }
+    .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
 
 
-  
-  .variable-item .selectpicker-wrapper {
-    flex-basis: 85%;
-    flex-grow: 1;
-    flex-shrink: 5;
-  }
+    .button {
+        border: none;
+        padding: 12px;
+        cursor: pointer;
+        border-radius: 20px;
+        font-family: "Nunito";
+    }
 
-  .bootstrap-select {
-    width: 100%!important;
-  }
+    .secondary {
+        background:rgba(242, 244, 255, 1);
+        color: #4451B2;
+    }
 
-  .selectpicker {
-    border: 1px solid #F3F5F7;
-    border-radius: 4px;
-    background-color: rgba(241, 244, 246, 1);
-  }
+    .primary {
+        background: rgba(68, 81, 178, 1);
+        color: #FFFFFF; 
+    }
 
-  .selectpicker + button.btn.dropdown-toggle,
-  .selectpicker + button.btn.dropdown-toggle.disabled {
-    border: 1px solid #F3F5F7;
-    border-radius: 4px;
-    background-color: rgba(241, 244, 246, 1);
-    white-space: pre-line; /*To avoid too long options when multiple options are selected*/
-  }
-   
-  .selectpicker + button {
-    border: 1px solid #ced4da;
-    border-radius: .25rem;
-    background-color: #ffffff;
-  }
+    .wrong {
+        border: 1px solid red;
+    }
 
-  /*
-    to avoid too long a single option 
-  */
+    .modal-footer {
+        border-top: none!important;
+    }
 
-  /* div.dropdown-menu.open { 
-    width: 100%
-  } 
-  ul.dropdown-menu.inner>li>a { 
-    white-space: initial; 
-  } */
+    .modal-header {
+        padding: 16px 24px 0px;
+        border-bottom: none!important;
+    }
 
-
-  #module-picker option {
-    width: fit-content;
-  }
-  .action-label {
-    font-weight: 500;
-    font-size: 19px;
-  }
-
-  .description {
-    margin: 0 0 32px;
-  }
-  
-  .selectpicker-group {
-    display: flex;
-    justify-content: center;
-    line-height: 50px;
-  }
-
-  .selectpicker-group label {
-    margin-right: 10px;
-  }
-
-  .action-picker div {
-    margin: 0px 0px 10px 24px;
-  }
-
-
-  
-
-  .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-
-  .button {
-    border: none;
-    padding: 12px;
-    cursor: pointer;
-    border-radius: 20px;
-    font-family: "Nunito";
-  }
-
-  .secondary {
-    background:rgba(242, 244, 255, 1);
-    color: #4451B2;
-  }
-
-  .primary {
-    background: rgba(68, 81, 178, 1);
-    color: #FFFFFF; 
-  }
-
-  .wrong {
-    border: 1px solid red;
-  }
-
-  .modal-footer {
-    border-top: none!important;
-  }
-
-  .modal-header {
-    padding: 16px 24px 0px;
-    border-bottom: none!important;
-  }
-
-  .modal-body {
-    padding: 16px 24px 16px;
-    font-size: 18px;
-    font-family: 'Nunito';
-    font-style: normal;
-    line-height: 1.7;
-  }
+    .modal-body {
+        padding: 16px 24px 16px;
+        font-size: 18px;
+        font-family: 'Nunito';
+        font-style: normal;
+        line-height: 1.7;
+    }
 
 
 
@@ -1085,331 +1087,331 @@
 
 {% block content %}
 <div class="container">
-  <div class="wizard">
-    {% csrf_token %}
-    {% block step %}
-    {% endblock %}
+    <div class="wizard">
+        {% csrf_token %}
+        {% block step %}
+        {% endblock %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const capitalize = (word) => {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-    }
-
-    const decapitalize = (word) => {
-        return word.charAt(0).toLowerCase() + word.slice(1);
-    }
-
-    const deepcopy = (dict) => {
-        return JSON.parse(JSON.stringify(dict));
-    }
-
-    // Reference of class names defined here to avoid repetition
-    const classnames = {
-        visible: 'active',
-        primary: 'primary',
-        secondary: 'secondary'
-    }
-
-    const submit = async (url, submitData) => {
-        // Django generated csrf token
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
-
-        try {
-            const response = await fetch(`${url}`, {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(submitData)
-            })
-
-            if (!response.ok) {
-                const text = await response.text()
-
-                console.error(text)
-            }
-
-            const json = await response.json()
-            return json
-        } catch (e) {
-            console.log(e)
-        }
-    }
-
-    function setDateTimeLocalInput(timestamp) {
-        // Ensure timestamp is in milliseconds
-        const dateObject = new Date(timestamp * 1000);
-    
-        // Format the date as YYYY-MM-DDTHH:MM
-        const formattedDate = dateObject.toISOString().slice(0, 16);
-        console.log("new date", formattedDate);
-        return formattedDate;
-    }
-
-    const getVariableDataInStep = (elementId, elements=null) => {
-        // Select all input elements in step element
-        var inputElements;
-        if(elementId){
-            inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
-        } else {
-            inputElements = elements.querySelectorAll('.variable-input');
+        const capitalize = (word) => {
+                return word.charAt(0).toUpperCase() + word.slice(1);
         }
 
-        var variable_data = {};
-        
-        Array.from(inputElements).forEach(input => {
-          // if it is an input element
-            if(input.tagName === 'INPUT' || input.tagName === 'TEXTAREA'){
-                let value = input.value;
-                /* 
-                the display of a input box that shows a date and time is for the conveience of the user,
-                while in the backend we still use timestamp. 
-                Therefore, the conversation of the value is more of the task of the frontend. 
-                In contrast, we store a list of numbers still as strings in the backend, 
-                and the backend should take care of the conversion of such values
-                */
-                if(input.type === 'datetime-local'){
-                    const dateObject = new Date(value);
-                    value = Math.floor(dateObject.getTime() / 1000)
-                }
-                variable_data[input.getAttribute('data-id')] = value;
-            }
-            else if(input.tagName === 'SELECT'){
-                let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
-                variable_data[input.getAttribute('data-id')] = selected_options;
-            }
-        });
-        return variable_data;
-    }
-
-    const checkMissingVariable = (elementId, elements=null) => {
-        var inputElements;
-        if(elementId){
-            inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
-        } else {
-            inputElements = elements.querySelectorAll('.variable-input');
-        } 
-        
-        var missing_variables = false;
-        Array.from(inputElements).forEach(input => {
-            // if it is an input box
-            if(input.tagName === 'INPUT') {
-                if(!input.reportValidity()){
-                    missing_variables = true;
-                    input.classList.add("wrong");
-                } else {
-                    input.classList.remove("wrong");
-                }
-            } else if(input.tagName === 'SELECT' && input.required){
-                // if it is a select-picker object, it is actually an select element enclosed by a div
-                let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
-                if(selected_options === ""){
-                    missing_variables = true;
-                    input.parentElement.parentElement.classList.add("wrong");
-                } else {
-                    input.parentElement.parentElement.classList.remove("wrong");
-                }
-            }
-        });
-        return missing_variables;
-    }
-
-    const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
-        var text = document.createElement('div');
-        text.id = id;
-        let displayed_name = capitalize(variable.label); // which name to display for this variable input box
-
-        // if it is a column variable, then we use the column variable style
-        if(type === "procedure" || type === "transformer"){
-            text.classList.add('column-variable-item');
-        } else text.classList.add('variable-item');
-        
-        let input_validate = "";
-
-        let label_html = "";
-        if(variable.is_required ?? true){
-            input_validate += " required";
-            label_html = `<label for='${id}' class="small normal">${displayed_name}<span>*</span></label>`
-        } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
-
-        var prompt = "";  // display the prompt if exists 
-        if(Boolean(variable.prompt) == true) prompt = `<p class='variable-prompt'>${variable.prompt}</p>`;
-
-        const matched_variables = (item) => {
-            // if(item.entity === "undefined"){
-            //   console.log(item, variable);
-            // }
-            let prelim_filter = (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
-                (item.entity === "undefined" && item.type === variable.type && item.is_list === variable.is_list && item.name !== variable.label);
-            // do not need to show variables from the same procedure in the select dropdown list.
-            if(type == "procedure") return (prelim_filter && item.from != "procedure"); 
-            else return prelim_filter;
+        const decapitalize = (word) => {
+                return word.charAt(0).toLowerCase() + word.slice(1);
         }
 
-        // use select picker if there is a non-text entity, and this entity is part of the predefined list of options, or there is a datalist
-        if(variable.entity && variable.entity !== "Text" && ((options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0))){
-            // if it is, then we use a select as the input box
-            if(variable.is_list ?? false) input_validate += "  multiple";
+        const deepcopy = (dict) => {
+                return JSON.parse(JSON.stringify(dict));
+        }
 
-            let set_value = variable.value ? variable.value : '';
-            const determine_selected = (value) => {
-                if(variable.is_list){
-                    // console.log('set_value', set_value.split(","), 'value', value);
-                    return set_value.split(",").includes(value) ? "selected" : "";
+        // Reference of class names defined here to avoid repetition
+        const classnames = {
+                visible: 'active',
+                primary: 'primary',
+                secondary: 'secondary'
+        }
+
+        const submit = async (url, submitData) => {
+                // Django generated csrf token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+
+                try {
+                        const response = await fetch(`${url}`, {
+                                method: 'POST',
+                                headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                                },
+                                body: JSON.stringify(submitData)
+                        })
+
+                        if (!response.ok) {
+                                const text = await response.text()
+
+                                console.error(text)
+                        }
+
+                        const json = await response.json()
+                        return json
+                } catch (e) {
+                        console.log(e)
+                }
+        }
+
+        function setDateTimeLocalInput(timestamp) {
+                // Ensure timestamp is in milliseconds
+                const dateObject = new Date(timestamp * 1000);
+        
+                // Format the date as YYYY-MM-DDTHH:MM
+                const formattedDate = dateObject.toISOString().slice(0, 16);
+                console.log("new date", formattedDate);
+                return formattedDate;
+        }
+
+        const getVariableDataInStep = (elementId, elements=null) => {
+                // Select all input elements in step element
+                var inputElements;
+                if(elementId){
+                        inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
                 } else {
-                    return value === set_value ? "selected" : "";
+                        inputElements = elements.querySelectorAll('.variable-input');
                 }
-            }
-            let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
-                <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
-            
-            if(datalist || variable.default !== ""){
-                innerHTML += ` <optgroup label="Variables">`
-            
-                if(typeof variable.default === "string" && variable.default !== ""){
-                    let selected = determine_selected(variable.default);
-                    innerHTML += `<option class="default-option" ${selected} value='${variable.default}' data-subtext="default" ${selected}>${decapitalize(variable.default)}</option>`;
-                }
-                else if(variable.default instanceof Object){
-                    let selected = determine_selected(`{${variable.default.value}}`);
-                    innerHTML += `<option class="default-option" ${selected} value='{${variable.default.value}}' data-subtext="default" ${selected}>${decapitalize(variable.default.name)}</option>`;
-                }
+
+                var variable_data = {};
                 
-                if(datalist){
-                    
-                    datalist.filter(matched_variables).forEach(item => {
-                        // Determine if this option should be selected based on item.value
-                        let selected = determine_selected(`{${item.value}}`);
-                        // console.log('datalist item', item, 'set_value', set_value, selected);
-                        innerHTML += `<option class="${item.from}-option" value="{${item.value}}" data-subtext="from ${item.from}" ${selected}>${decapitalize(item.name)}</option>`;
-                    });
-                }
-                innerHTML += `</optgroup>`;
-            }
-
-            if(variable.entity in options){
-                innerHTML += `<optgroup label="${variable.entity}">`;
-                // add entities in this community
-                options[variable.entity].forEach(entity => {
-                    let selected = determine_selected(entity.value);
-                    innerHTML += `<option value='${entity.value}' ${selected}>${entity.name}</option>`;
+                Array.from(inputElements).forEach(input => {
+                    // if it is an input element
+                        if(input.tagName === 'INPUT' || input.tagName === 'TEXTAREA'){
+                                let value = input.value;
+                                /* 
+                                the display of a input box that shows a date and time is for the conveience of the user,
+                                while in the backend we still use timestamp. 
+                                Therefore, the conversation of the value is more of the task of the frontend. 
+                                In contrast, we store a list of numbers still as strings in the backend, 
+                                and the backend should take care of the conversion of such values
+                                */
+                                if(input.type === 'datetime-local'){
+                                        const dateObject = new Date(value);
+                                        value = Math.floor(dateObject.getTime() / 1000)
+                                }
+                                variable_data[input.getAttribute('data-id')] = value;
+                        }
+                        else if(input.tagName === 'SELECT'){
+                                let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",");
+                                variable_data[input.getAttribute('data-id')] = selected_options;
+                        }
                 });
-                innerHTML += `</optgroup>`;
-            }
+                return variable_data;
+        }
 
-            innerHTML += `</select></div></div>`;
-            text.innerHTML = innerHTML;
-        } else {
-            // determine the type of input requirement is needed
-            if(variable["is_list"] ?? false){
-                if(variable["type"] === "string")
-                    input_validate += '  pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
-                else if(variable["type"] === "number")
-                    input_validate += '  pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
-                else if(variable["type"] === "float")
-                    input_validate += '  pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
-                else if(variable["type"] === "timestamp")
-                    console.warn("We do not support a variable as a list of timestamps yet");
-            } else {
-                if(variable["type"] === "string")
-                    input_validate += ' type="text"';
-                else if(variable["type"] === "number")
-                    input_validate += ' type="number" min="0"';
-                else if(variable["type"] === "float")
-                    input_validate += ' type="number" step="0.01", min="0"';
-                else if(variable["type"] === "timestamp"){
-                    variable.value = variable.value ? setDateTimeLocalInput(variable.value) : null;
-                    input_validate += ' type="datetime-local"';
-                }
-            }
-
-            
-            if(variable["type"] === "string"){ // use textarea for variables of the string type
-                if(type !== "filter" && datalist.length > 0) {
-                    let variables_list = "";
-                    let action_data = datalist.filter(item => item.name !== variable.label && (item.from === "action" || item.from === "filter"));
-                    if(action_data.length > 0){
-                        variables_list += `<div class="textarea-dropdown-header">Action</div>`;
-                        action_data.forEach(
-                            item => {
-                                variables_list += `
-                                <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
-                                    <label class="header small normal">${decapitalize(item.name)}</label>
-                                    <label class="code small prompt">{${item.value}}</label>
-                                </button>`;
-                            }
-                        );
-                    }
-
-                    let procedure_data = datalist.filter(item => item.name !== variable.label && item.from === "procedure");
-                    if(procedure_data.length > 0){
-                        variables_list += `<div class="textarea-dropdown-header">Procedure</div>`;
-                        procedure_data.forEach(
-                            item => {
-                                variables_list += `
-                                <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
-                                    <label class="header small normal ${item.category}-dropdown-item">${decapitalize(item.name)}</label>
-                                    <label class="code small prompt">{${item.value}}</label>
-                                </button>`;
-                            }
-                        );
-                    }
-            
-                    var variables_dropdowm = `
-                            <div class="dropdown variables-dropdown">
-                            <button class="dropdown-toggle variables-dropdown-toggle small " type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                + Insert Variables
-                            </button>
-                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                ${variables_list}
-                            </div>
-                            </div>`
-                } else var variables_dropdowm = "";
-                let default_text = variable.value ? variable.value : (variable.default ? variable.default.trim() : "");
-                text.innerHTML = label_html + `<div class="variable-textarea">  
-                        <div class="textarea-div">
-                            <textarea class='variable-input small normal' rows='3' data-id='${id}' ${input_validate}>${default_text}</textarea>
-                            ${variables_dropdowm}
-                        </div>
-                        ${prompt}
-                        </div>
-                    </div>`;
-            
-            } else {
-                if(variable.value){
-                    input_validate += `  value='${variable.value}'`;
-                } else if (variable.default){
-                    // if it is a select input, then a default value is actually not much needed
-                    var default_value = variable.default;
-                    if(variable.default instanceof Object) default_value = variable.default.value;
-                    input_validate += `  value='${default_value}'`;
-                };
+        const checkMissingVariable = (elementId, elements=null) => {
+                var inputElements;
+                if(elementId){
+                        inputElements = document.getElementById(elementId).querySelectorAll('.variable-input');
+                } else {
+                        inputElements = elements.querySelectorAll('.variable-input');
+                } 
                 
-                text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>${prompt}</div>`;
-            }
+                var missing_variables = false;
+                Array.from(inputElements).forEach(input => {
+                        // if it is an input box
+                        if(input.tagName === 'INPUT') {
+                                if(!input.reportValidity()){
+                                        missing_variables = true;
+                                        input.classList.add("wrong");
+                                } else {
+                                        input.classList.remove("wrong");
+                                }
+                        } else if(input.tagName === 'SELECT' && input.required){
+                                // if it is a select-picker object, it is actually an select element enclosed by a div
+                                let selected_options = Array.from(input.selectedOptions).map(({ value }) => value).join(",")
+                                if(selected_options === ""){
+                                        missing_variables = true;
+                                        input.parentElement.parentElement.classList.add("wrong");
+                                } else {
+                                        input.parentElement.parentElement.classList.remove("wrong");
+                                }
+                        }
+                });
+                return missing_variables;
         }
 
-        parentDiv.appendChild(text);
-        $(".selectpicker").selectpicker("refresh");
-        
-    }
+        const addVariableInputBox = (variable, id, parentDiv, options=null, datalist=null, type="procedure") => {
+                var text = document.createElement('div');
+                text.id = id;
+                let displayed_name = capitalize(variable.label); // which name to display for this variable input box
 
-    function decodeHtml(html) {
-        var txt = document.createElement("textarea");
-        txt.innerHTML = html;
-        return txt.value;
-    }
+                // if it is a column variable, then we use the column variable style
+                if(type === "procedure" || type === "transformer"){
+                        text.classList.add('column-variable-item');
+                } else text.classList.add('variable-item');
+                
+                let input_validate = "";
 
-    document.body.addEventListener("click", (event) => {
-        let target = event.target.closest(".variables-dropdown-item");
-        if(target){
-            let textarea = target.closest(".textarea-div").querySelector("textarea");
-            textarea.value += ` ${target.querySelector(".code").innerHTML}`;
+                let label_html = "";
+                if(variable.is_required ?? true){
+                        input_validate += " required";
+                        label_html = `<label for='${id}' class="small normal">${displayed_name}<span>*</span></label>`
+                } else label_html = `<label for='${id}' class="small normal">${displayed_name}</label>`;
+
+                var prompt = "";    // display the prompt if exists 
+                if(Boolean(variable.prompt) == true) prompt = `<p class='variable-prompt'>${variable.prompt}</p>`;
+
+                const matched_variables = (item) => {
+                        // if(item.entity === "undefined"){
+                        //     console.log(item, variable);
+                        // }
+                        let prelim_filter = (item.entity === variable.entity && item.is_list == variable.is_list && item.name !== variable.label) || 
+                                (item.entity === "undefined" && item.type === variable.type && item.is_list === variable.is_list && item.name !== variable.label);
+                        // do not need to show variables from the same procedure in the select dropdown list.
+                        if(type == "procedure") return (prelim_filter && item.from != "procedure"); 
+                        else return prelim_filter;
+                }
+
+                // use select picker if there is a non-text entity, and this entity is part of the predefined list of options, or there is a datalist
+                if(variable.entity && variable.entity !== "Text" && ((options && variable.entity in options) || (datalist && datalist.filter(matched_variables).length > 0))){
+                        // if it is, then we use a select as the input box
+                        if(variable.is_list ?? false) input_validate += "    multiple";
+
+                        let set_value = variable.value ? variable.value : '';
+                        const determine_selected = (value) => {
+                                if(variable.is_list){
+                                        // console.log('set_value', set_value.split(","), 'value', value);
+                                        return set_value.split(",").includes(value) ? "selected" : "";
+                                } else {
+                                        return value === set_value ? "selected" : "";
+                                }
+                        }
+                        let innerHTML = label_html + `<div class='selectpicker-wrapper small normal'>
+                                <select class='variable-input selectpicker' data-id='${id}' title="Select an ${displayed_name}" ${input_validate}>`;
+                        
+                        if(datalist || variable.default !== ""){
+                                innerHTML += ` <optgroup label="Variables">`
+                        
+                                if(typeof variable.default === "string" && variable.default !== ""){
+                                        let selected = determine_selected(variable.default);
+                                        innerHTML += `<option class="default-option" ${selected} value='${variable.default}' data-subtext="default" ${selected}>${decapitalize(variable.default)}</option>`;
+                                }
+                                else if(variable.default instanceof Object){
+                                        let selected = determine_selected(`{${variable.default.value}}`);
+                                        innerHTML += `<option class="default-option" ${selected} value='{${variable.default.value}}' data-subtext="default" ${selected}>${decapitalize(variable.default.name)}</option>`;
+                                }
+                                
+                                if(datalist){
+                                        
+                                        datalist.filter(matched_variables).forEach(item => {
+                                                // Determine if this option should be selected based on item.value
+                                                let selected = determine_selected(`{${item.value}}`);
+                                                // console.log('datalist item', item, 'set_value', set_value, selected);
+                                                innerHTML += `<option class="${item.from}-option" value="{${item.value}}" data-subtext="from ${item.from}" ${selected}>${decapitalize(item.name)}</option>`;
+                                        });
+                                }
+                                innerHTML += `</optgroup>`;
+                        }
+
+                        if(variable.entity in options){
+                                innerHTML += `<optgroup label="${variable.entity}">`;
+                                // add entities in this community
+                                options[variable.entity].forEach(entity => {
+                                        let selected = determine_selected(entity.value);
+                                        innerHTML += `<option value='${entity.value}' ${selected}>${entity.name}</option>`;
+                                });
+                                innerHTML += `</optgroup>`;
+                        }
+
+                        innerHTML += `</select></div></div>`;
+                        text.innerHTML = innerHTML;
+                } else {
+                        // determine the type of input requirement is needed
+                        if(variable["is_list"] ?? false){
+                                if(variable["type"] === "string")
+                                        input_validate += '    pattern="^[a-zA-Z0-9]+(,\\s*[a-zA-Z0-9]+)*$" title="Please enter comma separated strings" type="text"';
+                                else if(variable["type"] === "number")
+                                        input_validate += '    pattern="^\\d+(,\\s*\\d+)*$" title="Please enter comma separated numbers" type="text"';
+                                else if(variable["type"] === "float")
+                                        input_validate += '    pattern="^([-+]?[0-9]*\\.?[0-9]+)(,\\s*[-+]?[0-9]*\\.?[0-9]+)*$" title="Please enter comma separated floats" type="text"';
+                                else if(variable["type"] === "timestamp")
+                                        console.warn("We do not support a variable as a list of timestamps yet");
+                        } else {
+                                if(variable["type"] === "string")
+                                        input_validate += ' type="text"';
+                                else if(variable["type"] === "number")
+                                        input_validate += ' type="number" min="0"';
+                                else if(variable["type"] === "float")
+                                        input_validate += ' type="number" step="0.01", min="0"';
+                                else if(variable["type"] === "timestamp"){
+                                        variable.value = variable.value ? setDateTimeLocalInput(variable.value) : null;
+                                        input_validate += ' type="datetime-local"';
+                                }
+                        }
+
+                        
+                        if(variable["type"] === "string"){ // use textarea for variables of the string type
+                                if(type !== "filter" && datalist.length > 0) {
+                                        let variables_list = "";
+                                        let action_data = datalist.filter(item => item.name !== variable.label && (item.from === "action" || item.from === "filter"));
+                                        if(action_data.length > 0){
+                                                variables_list += `<div class="textarea-dropdown-header">Action</div>`;
+                                                action_data.forEach(
+                                                        item => {
+                                                                variables_list += `
+                                                                <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
+                                                                        <label class="header small normal">${decapitalize(item.name)}</label>
+                                                                        <label class="code small prompt">{${item.value}}</label>
+                                                                </button>`;
+                                                        }
+                                                );
+                                        }
+
+                                        let procedure_data = datalist.filter(item => item.name !== variable.label && item.from === "procedure");
+                                        if(procedure_data.length > 0){
+                                                variables_list += `<div class="textarea-dropdown-header">Procedure</div>`;
+                                                procedure_data.forEach(
+                                                        item => {
+                                                                variables_list += `
+                                                                <button class="dropdown-item variables-dropdown-item ${item.category}-dropdown-button">
+                                                                        <label class="header small normal ${item.category}-dropdown-item">${decapitalize(item.name)}</label>
+                                                                        <label class="code small prompt">{${item.value}}</label>
+                                                                </button>`;
+                                                        }
+                                                );
+                                        }
+                        
+                                        var variables_dropdowm = `
+                                                        <div class="dropdown variables-dropdown">
+                                                        <button class="dropdown-toggle variables-dropdown-toggle small " type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                + Insert Variables
+                                                        </button>
+                                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                                ${variables_list}
+                                                        </div>
+                                                        </div>`
+                                } else var variables_dropdowm = "";
+                                let default_text = variable.value ? variable.value : (variable.default ? variable.default.trim() : "");
+                                text.innerHTML = label_html + `<div class="variable-textarea">    
+                                                <div class="textarea-div">
+                                                        <textarea class='variable-input small normal' rows='3' data-id='${id}' ${input_validate}>${default_text}</textarea>
+                                                        ${variables_dropdowm}
+                                                </div>
+                                                ${prompt}
+                                                </div>
+                                        </div>`;
+                        
+                        } else {
+                                if(variable.value){
+                                        input_validate += `    value='${variable.value}'`;
+                                } else if (variable.default){
+                                        // if it is a select input, then a default value is actually not much needed
+                                        var default_value = variable.default;
+                                        if(variable.default instanceof Object) default_value = variable.default.value;
+                                        input_validate += `    value='${default_value}'`;
+                                };
+                                
+                                text.innerHTML = label_html + `<input class='variable-input small normal' data-id='${id}' ${input_validate}/>${prompt}</div>`;
+                        }
+                }
+
+                parentDiv.appendChild(text);
+                $(".selectpicker").selectpicker("refresh");
+                
         }
-    });
+
+        function decodeHtml(html) {
+                var txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+        }
+
+        document.body.addEventListener("click", (event) => {
+                let target = event.target.closest(".variables-dropdown-item");
+                if(target){
+                        let textarea = target.closest(".textarea-div").querySelector("textarea");
+                        textarea.value += ` ${target.querySelector(".code").innerHTML}`;
+                }
+        });
 
 
 
