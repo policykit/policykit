@@ -1,5 +1,8 @@
 import logging
+from mimetypes import init
+from tabnanny import check
 import policyengine.utils as Utils
+
 logger = logging.getLogger(__name__)
 
 def force_variable_types(value, variable):
@@ -128,7 +131,6 @@ def generate_filter_codes(custom_actions):
 
     custom_actions_codes = ""
     for custom_action in custom_actions:
-        print(custom_action)
         if custom_action['filter']["view"] == "codes":
             # if the view is codes, we just use the codes as it is
             custom_actions_codes += custom_action['filter']["codes"]
@@ -227,6 +229,17 @@ def generate_initialize_codes(data):
     return initialize_codes
 '''
 
+def retrieve_procedure_check_codes(procedure_pk):
+    from policyengine.models import Procedure
+
+    procedure = Procedure.objects.filter(pk=procedure_pk).first()
+    if not procedure:
+        raise Exception(f"When generating check codes, Procedure {procedure_pk} not found")
+    procedure_check = procedure.loads("check")
+    if "codes" not in procedure_check:
+        raise Exception(f"When generating check codes, Procedure {procedure_check} does not have check codes")
+    return procedure_check["codes"]
+
 
 def generate_check_codes(checks):
     """
@@ -245,7 +258,7 @@ def generate_check_codes(checks):
             }
         ],
     """
-    from policyengine.models import Transformer, Procedure
+    from policyengine.models import Transformer
     # in cases when the user writes a policy without any checks (e.g., a if-then rules)
     if(len(checks) == 0):
         return "pass"
@@ -258,14 +271,7 @@ def generate_check_codes(checks):
         check_codes += check_module.codes
     
     # the last check is the one representing the referenced procedure
-    procedure = Procedure.objects.filter(name=checks[-1]["name"]).first()
-    if not procedure:
-        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} not found")
-    procedure_check = procedure.loads("check")
-    if "codes" not in procedure_check:
-        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} does not have check codes")
-    check_codes += procedure_check["codes"]
-
+    check_codes += retrieve_procedure_check_codes(checks[-1]["pk"])
     return check_codes
 
 def generate_initiate_votes(execution):
@@ -446,22 +452,26 @@ def generate_execution_codes(executions):
         [
             {   
                 "view": "form",
-                "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
-                "vote_type": "boolean",
-                "users": "variables.users",
-                "channel": "variables.vote_channel",
-                "platform": "slack"
+                "form": {
+                    "action": "initiate_vote",
+                    "vote_message": "variables.vote_message",
+                    "vote_type": "boolean",
+                    "users": "variables.users",
+                    "channel": "variables.vote_channel",
+                    "platform": "slack"
+                },
             }
         ]
     or
         [
             {   
                 "view": "form",
-                "action": "slackpostmessage",
-                "text": "LeijieWang",
-                "channel": "test-channel",
-                "frequency": "60"
+                "form": {
+                    "action": "slackpostmessage",
+                    "text": "LeijieWang",
+                    "channel": "test-channel",
+                    "frequency": "60"
+                }
             }
         ]
 
@@ -481,6 +491,7 @@ def generate_execution_codes(executions):
             codes = execution["codes"]
             comment_only = False
         elif execution_view == "form":
+            execution = execution["form"]
             codes = ""
             # if "frequency" in execution:
             #     # if the execution has a frequency, then it is a recurring execution
@@ -520,3 +531,125 @@ def generate_execution_codes(executions):
         return "\n".join(execution_codes) + "pass\n"
     else:
         return "\n".join(execution_codes) + "\n"
+
+def generate_initialize_codes(variables):
+    from policyengine.models import PolicyVariable
+    initialize_codes = []
+    """
+        put the initialize codes for non-string type variables before others,
+        as people could potentially embed these variables in a string
+    """
+    for variable in variables:
+        if not variable["entity"]:
+            """
+                Integer and float variables are literal values so we can directly parse their values.
+                it is unlikely that users will use another variable as their values
+                as there are actually no integer or float parameters for any Slack actions or executions.
+            """
+            value_str = PolicyVariable.embed_value(variable, variable["value"])
+            code = f"variables.{variable['name']} = {value_str}"
+        else:
+            if not Utils.check_code_variables(variable["value"]):
+                # if the variable value is not a code snippet or f-strings, we can directly parse it as well
+                value_str = PolicyVariable.embed_value(variable, variable["value"])
+                code = f"variables.{variable['name']} = {value_str}"
+            else:
+                validated_value = Utils.validate_fstrings(variable["value"])
+                # remove empty curly bracket pairs to avoid errors when executing the code
+                code = f"variables.{variable['name']} = f\"{validated_value}\""
+                # this is safe because for now all variables are string type
+        
+        intialize_weight = 2 if variable["entity"] == "Text" else 1
+        # we first initialize other entities in case users embed other variables in creating the context of a Text variable
+        initialize_codes.append((code, intialize_weight))
+
+    if len(initialize_codes) > 0:
+        initialize_codes.sort(key=lambda x: x[1])
+        initialize_codes = "\n".join([code for code, weight in initialize_codes])
+        initialize_codes += f"\nreturn variables\n"
+        return initialize_codes
+    else:
+        return "return None\n"
+
+def generate_procedure_codes(procedure):
+    """
+        Generate codes for a procedure, see the example of a procedure as the to_json of a Procedure instance
+        e.g. 
+            {
+                "value": primary key of the procedure template
+                "name": "Majority Voting",
+                "description": "....",
+                "platform": "slack",
+                "initialize": a piece of codes,
+                "notify": [
+                    {
+                        "action": "initiate_vote",
+                        "vote_message": "varaibles.vote_message",
+                        "vote_type": "boolean",
+                        "users": "variables.dictator",
+                        "platform": "slack",
+                    },
+                    {
+                        "action": "slackpostmessage",
+                        "text": "variables.notify_message",
+                        "platform": "slack",
+                    }
+                ],
+                "check": "check codes",
+                "transformers": [
+                    {
+                        'pk': transformer pk,
+                        "name": transformer name,
+                        "description": transformer description,
+                        "is_template": self.is_template,
+                        "view": "form",
+                        "codes": transformer codes,
+                        "variables": transformer variables,
+                        "platform": "all"
+                    }
+                ]
+                "variables": variables with values assigned.
+        }
+
+        We want to generate two code blocks, one for the notify stage using generate_execution_codes methods,
+        and another for the check code blocks, where we need to replace all occurrences of variables.[name] with its actual value.
+    """
+    
+    
+    variables = procedure["variables"] or []
+    transformer_variables = []
+    for transformer in procedure["transformers"]:
+        transformer_variables.extend(transformer["variables"])
+    if not procedure["initialize"]:
+        # if there is no initialize codes, we need to generate the codes for initializing variables
+        # and return the variables as well
+        initialize_codes = generate_initialize_codes(variables + transformer_variables)
+    else:
+        # if there is already an initialize codes, we just need to return it
+        initialize_codes = procedure["initialize"]
+    if isinstance(procedure["notify"], str):
+        # if it is already codes, we just need to return it
+        # TODO: we need to format notify codes similar to executions as well.
+        notify_codes = procedure["notify"]
+    else:
+        notify_codes = generate_execution_codes(procedure["notify"])
+    check_codes = ""
+    for transformer in procedure["transformers"]:
+        check_codes += ("#" + "-" * 70 + "\n")
+        check_codes += "# start of the transformer {name}\n".format(name=transformer["name"])
+        check_codes += "# description: {description}\n".format(description=transformer["description"])
+        check_codes += transformer["codes"]
+        check_codes += "# end of the transformer {name}\n".format(name=transformer["name"])
+        check_codes += ("#" + "-" * 50 + "\n\n")
+
+    check_codes += ("#" + "-" * 70 + "\n")
+    check_codes += "# start of the procedure check: {name}\n".format(name=procedure["name"])
+    check_codes += procedure["check"]
+    check_codes += "# end of the procedure check\n"
+    check_codes += ("#" + "-" * 70 + "\n\n")
+    return {
+        "initialize": initialize_codes,
+        "notify": notify_codes,
+        "check": check_codes,
+    }
+    

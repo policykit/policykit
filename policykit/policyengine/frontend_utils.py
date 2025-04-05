@@ -89,7 +89,7 @@ def get_all_platforms(user):
 def get_procedures(platforms):
     from policyengine.models import Procedure
     # load all procedure templates
-    procedure_objects= Procedure.objects.all()
+    procedure_objects= Procedure.objects.filter(is_template=True).all()
     procedures = { platform: [] for platform in platforms }
    
     for template in procedure_objects:
@@ -100,7 +100,7 @@ def get_procedures(platforms):
             "variables": template.loads("variables"),
             "data": template.loads("data"),
             "app": template.platform.lower(),
-            "codes": Utils.sanitize_code(template.loads("check")["codes"])
+            "codes": Utils.sanitize_code(template.loads("check"))
         })
     return procedures
 
@@ -108,12 +108,12 @@ def get_transformers():
     from policyengine.models import Transformer
     
     # prepare information about module templates
-    transformers_objects = Transformer.objects.all()
+    transformers_objects = Transformer.objects.filter(is_template=True).all()
     transformers = []
     for template in transformers_objects:
         transformers.append({
             "name": template.name, 
-            "value": template.pk, 
+            "value": template.name,  # we assume that the name is unique
             "description": template.description,
             "variables": template.loads("variables"),
             "app": "all",

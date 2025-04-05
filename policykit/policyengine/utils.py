@@ -1,3 +1,4 @@
+import black 
 import json
 import logging
 import os
@@ -376,7 +377,6 @@ def load_entities(platform, get_slack_users=False):
         entities["SlackUser"] = platform.get_real_users()
     return entities
 
-
 def get_filter_parameters(app_name, action_codename):
     """
         Get the designated filter parameters for a GovernableAction
@@ -411,5 +411,14 @@ def determine_user(platform, username):
     else:
         return None
 
-def sanitize_code(code):
-    return code.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"')
+def sanitize_code(codes):
+    return codes.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"')
+
+def format_code(codes):
+    try:
+        # black's format_str() raises an exception if there's a syntax error
+        codes = black.format_str(codes, mode=black.FileMode())
+        return codes
+    except Exception as e:
+        logger.error('Error when formatting code ', e)
+        return None

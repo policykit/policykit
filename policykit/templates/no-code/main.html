@@ -114,7 +114,15 @@
                         <button class="section-inactive-button small-button small info" type="procedure">+ Add</button>
                     </div>
                     <div id="design_procedure-codeview" class="section-codeview hidden">
-                        <textarea></textarea>
+                        <div>Initialize</div>
+                        <textarea stage="initialize" class="codeblock-title">
+                        </textarea>
+                        <div>Check</div>
+                        <textarea stage="check" class="codeblock-title">
+                        </textarea>
+                        <div>Notify</div>
+                        <textarea stage="notify" class="codeblock-title">
+                        </textarea>
                     </div>
                 </div>
                 <div class="section-bottom hidden"></div>
@@ -127,7 +135,7 @@
             <section id="design_transformer" class="hidden">
                 <div class="section-header medium">
                     <div>Customize your the governing Procedure<span class="small prompt">&nbsp;(optional)</span></div>
-                    <button class="source-code-button hidden small" type="transformer" view="formview">{} Source Code</button>
+                    <!-- <button class="source-code-button hidden small" type="transformer" view="formview">{} Source Code</button> -->
                 </div>
                 <div class="section-body" id="design_transformer-section-body">
                     <div id="design_transformer-formview" class="section-formview inactive">
@@ -243,9 +251,9 @@
     const policytemplate = JSON.parse('{{policytemplate | safe}}');
     console.log('policytemplate', policytemplate);
     const base_actions = JSON.parse('{{base_actions | safe}}');
-    console.log('base_actions', base_actions);
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
     const filter_modules = JSON.parse('{{filter_modules | safe}}');
+
     const platforms = JSON.parse('{{platforms | safe}}');
     const procedures = JSON.parse(`{{procedures | safe}}`);
     const transformers = JSON.parse(`{{transformers | safe}}`);
@@ -296,15 +304,35 @@
     }
 
     function createCodeEditor(component_type){
-        var code_area = document.querySelector(`#design_${component_type}-codeview > textarea`);
-        // console.log("we are creating the editor for ", component_type);
-        editors[component_type] = renderCodeEditor(code_area);
-        // console.log("editor created for ", component_type, editors[component_type]);
-        
-        // whenever the editor is changed, the status becomes changed
-        editors[component_type].on('change', (cm, change) => {
-            editor_status[component_type] = "changed";
-        });
+        if(component_type == "procedure"){
+            // we have three code areas for the three stages of the procedure
+            let code_areas = document.querySelectorAll(`#design_${component_type}-codeview > textarea`);
+            if (!editors[component_type]) {
+                editors[component_type] = {};
+            }
+            code_areas.forEach(textarea => {
+                const stage = textarea.getAttribute("stage");
+                const editor = renderCodeEditor(textarea);
+
+                // Store editor instance in a nested object keyed by stage
+                editors[component_type][stage] = editor;
+
+                // Whenever this editor changes, mark the component's status as changed
+                editor.on('change', () => {
+                    editor_status[component_type] = "changed";
+                });
+            });
+        } else {
+            let code_area = document.querySelector(`#design_${component_type}-codeview > textarea`);
+            // console.log("we are creating the editor for ", component_type);
+            editors[component_type] = renderCodeEditor(code_area);
+            // console.log("editor created for ", component_type, editors[component_type]);
+            
+            // whenever the editor is changed, the status becomes changed
+            editors[component_type].on('change', (cm, change) => {
+                editor_status[component_type] = "changed";
+            });
+        }
     }
 
 
@@ -321,10 +349,10 @@
         let codes = null;
         switch(component_type){
             case "procedure": 
-                codes = selected_procedure["codes"];
-                // await generateSourceCode("procedure");
+                codes = await generateSourceCode("procedure");
                 break;
             case "transformer":
+                // we do not expect the codes to be actually used because transformers will be part of the procedure
                 codes = selected_transformers.map(transformer => transformer["codes"]).join("\n");
                 break;
             case "action":
@@ -342,9 +370,23 @@
 
     // show the code editor for a specific component
     async function showCodeEditor(component_type, switch_button_jq, codes){
-        editors[component_type].setValue(decodeHtml(codes));
-        // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
-        setTimeout(() => editors[component_type].refresh(), 1);
+        const showCode = async (editor, codes) => {
+            editor.setValue(decodeHtml(codes));
+            // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+            setTimeout(() => editor.refresh(), 1);
+        };
+        if(component_type === "procedure"){
+            ['initialize', 'check', 'notify'].forEach(stage => {
+                if(!editors[component_type][stage]) return;
+                showCode(editors[component_type][stage], codes[stage]);
+            });
+            // we should in addition remove the customize button.
+            $('#customize-procedure').hide();
+
+        } else {
+            if(!editors[component_type]) return;
+            showCode(editors[component_type], codes);
+        }
 
         // when the first time the editor is created, the status is unchanged
         editor_status[component_type] = "unchanged";
@@ -356,6 +398,11 @@
         
         $(`#design_${component_type}-formview`).addClass("hidden");
         $(`#design_${component_type}-codeview`).removeClass("hidden");
+        if(component_type === "procedure"){
+            // we need to hide the transformer section when we are in the code view of the procedure
+            $(`#design_transformer`).addClass("hidden");
+        }
+
         if(!switch_button_jq) switch_button_jq = $(`#design_${component_type} .source-code-button`);
         // Handle the case where no .source-code-button element is found
         if(!switch_button_jq || switch_button_jq.length === 0) {
@@ -382,24 +429,67 @@
         $(`#design_${component_type}-formview`).removeClass("hidden");
         $(`#design_${component_type}-codeview`).addClass("hidden");
         $(`#design_${component_type}-codeview`).prev().remove(); // remove the warning message
-
+        $('#customize-procedure').show();
+        
+        if(component_type === "procedure"){
+            // we need to show the transformer section when we are in the form view of the procedure
+            // and it is activated
+            if ($(`#design_procedure-formview`).hasClass('active')) {
+                $(`#design_transformer`).removeClass("hidden");
+            }
+        }
         switch_button_jq.attr("view", "formview");
         switch_button_jq.html('{} Source Code');
 
-        editor_status[component_type] = "unchanged";
+        
+        // we only need to refresh the actions when we edit the code in the code view
+        if(component_type === "action" && editor_status[component_type] === "changed"){
+            // for executions, we do not persist the specific actions;
+            // but for custom actions, the base actions that are governed remain the same between these two views.
+            // so we need to render the action divs again.
+            // to do so,
+            // we first remove selected actions when we are still in the code view
+            // then we show the selected actions again in the form view
+
+            // keep a copy of selected actions
+            let actions_to_select = selected_actions.map(action => action);
+            // remove the selected actions from the selected_actions
+            selected_actions.forEach(action => {
+                deselectOneAction(action.value);
+            });
+            // switch to the form view
+            editor_status[component_type] = "unchanged";
+            // to emulate the status when no actions have been selected;
+            // in particular, this avoids adding more next buttons in the custom action section.
+            deactivateSection("action");
+            // then show the selected actions again
+            actions_to_select.forEach(action => {
+                showCustomActionVariables([action.value], action.app);
+            });
+
+        } else {
+            editor_status[component_type] = "unchanged";
+        }
+        
+        
     }
 
     // Handles the event when users switch between code view and form view
     async function switchCodeFormView(switch_button_jq) {
-        console.log("switchCodeFormView: ");
         if (!switch_button_jq || switch_button_jq.length === 0) return;
-        console.log("switch_button_jq: ", switch_button_jq);
         hideSliderPanel();
 
+        // to view we want to switch from.
         const component_type = switch_button_jq.attr("type");
         const component_view = switch_button_jq.attr("view");
 
         if (component_view === "formview") {
+            // we need to make sure all variables are specified
+            if(checkMissingInput(component_type) === false) return;
+            if(component_type == "procedure" && checkMissingInput("transformer") === false) {
+                // we need to check if variabels for transformers are selected
+                return;
+            }
             const codes = await generateComponentCode(component_type);
             if (codes == null) return;
             await showCodeEditor(component_type, switch_button_jq, codes);
@@ -419,8 +509,6 @@
 
 <!-- Form view mechanisms.-->
 <script>
-
-
     function sortDatalist(){
         global_datalist.sort((a, b) => {
             if (a.category === 'variable' && b.category === 'setting') return -1;
@@ -558,7 +646,14 @@
         if(section_name !== "procedure"){
             section.append(`<button class="custom-group-add-button small" type="${section_name}">${add_button_text[section_name]}</button>`)
         } else {
-            $(`#design_${section_name} .section-bottom:first`).append(`<button class="button secondary medium customize-procedure-button" id="customize-procedure" status="closed">Customize</button>`);
+            $(`#design_${section_name} .section-bottom:first`).append(
+                `<button class="button secondary medium customize-procedure-button" 
+                        id="customize-procedure" 
+                        status="closed"
+                >
+                    Customize
+                </button>`
+            );
         }
 
         $(`#design_${section_name} .section-bottom`).removeClass("hidden");
@@ -591,7 +686,8 @@
     function addSectionHeader(section_type, module) {
         let div = document.createElement('div');
         div.classList.add('custom-group');
-        div.id = `custom.${section_type}.${module.value}`;
+        let module_value = module?.value ? module.value : module.pk;
+        div.id = `custom.${section_type}.${module_value}`;
 
         let header = document.createElement('div');
         header.classList.add('custom-group-header');
@@ -605,7 +701,7 @@
 
         if(!module.required){
             let button_element = document.createElement('button');
-            button_element.id = `remove.${section_type}.${module.value}`
+            button_element.id = `remove.${section_type}.${module_value}`
             button_element.classList.add("small")
             button_element.classList.add("custom-group-remove-button")
             button_element.innerHTML = '<i class="fa-regular fa-trash-can fa-sm" style="color: #4451b2;"></i>&nbsp;&nbsp;Remove'
@@ -638,10 +734,9 @@
 
     function deselectOneAction(action_value){
         selected_actions = selected_actions.filter(item => item.value !== action_value);
-        console.log("selected_actions after deselecting: ", selected_actions);
     }
 
-    const removeCustomActionVariables = (action_values) => {
+    function removeCustomActionVariables(action_values){
         
         if(editor_status["action"] == "changed"){
             action_values.forEach(
@@ -667,7 +762,7 @@
         
     }
     
-    const removeProcedureVariables = (procedure_value) => {   
+    function removeProcedureVariables(procedure_value){   
         let checkbox = document.getElementById(`procedure.checkbox.${procedure_value}`);
         if(checkbox != null) checkbox.checked = false;
         selected_procedure = null;
@@ -675,15 +770,15 @@
         deactivateSection("procedure");
     }
 
-    const removeTransformerVariables = (transformer_value) => {
+    function removeTransformerVariables(transformer_value){
         document.getElementById(`custom.transformer.${transformer_value}`).remove();
         let checkbox = document.getElementById(`transformer.checkbox.${transformer_value}`);
         if(checkbox != null) checkbox.checked = false;
-        selected_transformers = selected_transformers.filter(item => item.value !== parseInt(transformer_value));
+        selected_transformers = selected_transformers.filter(item => item.value !== transformer_value);
         if(selected_transformers.length == 0) deactivateSection("transformer");
     }
 
-    const removeExecutionVariables = (stage, execution_codename) => {
+    function removeExecutionVariables(stage, execution_codename){
         let removed_execution = selected_executions[stage].find(item => item.value == execution_codename);
         if(removed_execution.required) return; // if it is a required execution, do not remove it
 
@@ -693,9 +788,11 @@
         if(checkbox != null) checkbox.checked = false;
         if(selected_executions[stage].length == 0) deactivateSection(`execution_${stage}`);
     }
-    
-    const showCustomActionVariables = (action_values, app, applied_filters={}) => {
+
+    function showCustomActionVariables(action_values, app, applied_filters={}){
         if(editor_status["action"] == "changed"){
+            // if we are at the code view, then we simply push the new action to the selected_actions,
+            // but we do not need to show the form for variables.
             action_values.forEach(
                 action_value => selectOneAction(action_value, app)
             )
@@ -704,7 +801,7 @@
 
         // then we could assume that the action component is now at the form view
         if(action_values.length > 1){
-            console.error('We do not support multiple actions in the form view yet. ', action_value);
+            console.error('We do not support multiple actions in the form view yet. ', action_values);
             return;
         } else {
             action_value = action_values[0];
@@ -770,7 +867,7 @@
 
     }
 
-    const showFilterModuleVariables = (select_id, applied_filter={}) => {
+    function showFilterModuleVariables(select_id, applied_filter={}){
         let select_box = document.getElementById(select_id);
         let filter_pk = parseInt(select_box.value);
 
@@ -827,12 +924,16 @@
     
     }
 
-    const showProcedureVariables = (procedure_value, app, applied_procedure = {}) => { 
+    function showProcedureVariables(procedure_value, app, applied_procedure = {}){ 
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_procedure === null) activateSection("procedure");
         
         // search for data about this selected procedure 
-        selected_procedure = deepcopy(procedures[app].find(item => item.value == procedure_value));
+        if(applied_procedure?.value){
+            selected_procedure = applied_procedure;
+        } else {
+            selected_procedure = deepcopy(procedures[app].find(item => item.value == procedure_value));
+        }
         updateDataFromProcedures();
 
         let procedure_div = addSectionHeader("procedure", selected_procedure);
@@ -847,13 +948,19 @@
         
     }
         
-    const showTransformerVariables = (transformer_value, app, applied_transformer={}) => {
-        
+    function showTransformerVariables(transformer_value, app, applied_transformer={}){
         if(selected_transformers.some(item => item.value === transformer_value)) return;
 
         if(selected_transformers.length === 0) activateSection("transformer");
 
-        let selected_transformer = deepcopy(transformers[app].find(item => item.value == transformer_value));
+        if(applied_transformer?.value){
+            // if we are viewing a policy that is already created, then we need to load the transformer from the applied_transformer
+            // as we create a new transformer for the new policy
+            selected_transformer = applied_transformer;
+        } else {
+            selected_transformer = deepcopy(transformers[app].find(item => item.value == transformer_value));
+        }
+
         selected_transformers.push(selected_transformer);
         
     
@@ -866,7 +973,7 @@
         })
     }
 
-    const showExecutionVariables = (stage, execution_value, app, required=false, applied_execution={}) => {
+    function showExecutionVariables(stage, execution_value, app, required=false, applied_execution={}){
         if(selected_executions[stage].some(item => item.value == execution_value)) return;
         // if there are no actions selected before, remove the inactive class and empty the section
         if(selected_executions[stage].length == 0) activateSection(`execution_${stage}`);
@@ -948,7 +1055,7 @@
             let module_value = id.split(".")[2];
             if(type === "action"){
                 // id: e.g., custom.action.slackpostmessage
-                removeCustomActionVariables(module_value);
+                removeCustomActionVariables([module_value]);
             } else if(type === "procedure"){
                 // id: e.g., custom.procedure.64
                 removeProcedureVariables(module_value);
@@ -1036,7 +1143,7 @@
         }
     });
 
-    const toggleTransformerSection = () => {
+    function toggleTransformerSection(){
         let toggle_button = document.querySelector(".customize-procedure-button");
         if(toggle_button.getAttribute("status") === "closed"){
             $(`#design_transformer`).removeClass("hidden");
@@ -1084,7 +1191,7 @@
         execution_fail: ["Choose Executions", "Select one or more executions that you want to have when the actions fail"],
     }
 
-    const showSliderPanel = (options, slidepanel_type, button_type) => {
+    function showSliderPanel(options, slidepanel_type, button_type){
         let focus_section = document.getElementById(focus_section_id);     
         focus_section.classList.add("focus-section");   
         focus_section.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
@@ -1101,16 +1208,17 @@
                 <div class="checkbox-body">`
             let this_app_options = options[app];
             this_app_options.forEach(option => {
+                let option_value = option?.value ? option.value : option.pk;
                 if(slidepanel_type === "action" || slidepanel_type.startsWith("execution")){
                     innerHTML += `<div class='action-checkbox-item'>
-                        <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
-                        <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                        <input type='checkbox' name='${option.name}' value='${option_value}' platform="${app}" id="${slidepanel_type}.checkbox.${option_value}">
+                        <label for='${slidepanel_type}.checkbox.${option_value}' class='normal medium'>${option.name}</label>
                     </div>`;
                 } else if(slidepanel_type == "procedure" || slidepanel_type == "transformer"){
                     innerHTML += `<div class='procedure-checkbox-item'>
-                            <input type='checkbox' name='${option.name}' value='${option.value}' platform="${app}" id="${slidepanel_type}.checkbox.${option.value}">
+                            <input type='checkbox' name='${option.name}' value='${option_value}' platform="${app}" id="${slidepanel_type}.checkbox.${option_value}">
                             <div class="procedure-label">
-                                <label for='${slidepanel_type}.checkbox.${option.value}' class='normal medium'>${option.name}</label>
+                                <label for='${slidepanel_type}.checkbox.${option_value}' class='normal medium'>${option.name}</label>
                                 <div class="small prompt">${option.description}</div>
                             </div>
                         </div>`;
@@ -1137,6 +1245,10 @@
             } else if(slidepanel_type === "procedure"){
                 document.getElementById(`procedure.checkbox.${selected_procedure.value}`).checked = true;
             } else if(slidepanel_type === "transformer"){
+                // while we use codenames for the executions and custom actions,
+                // and we cannot add a new procedure
+                // only for transformers we can only use the primary key as its value?
+
                 selected_transformers.forEach(transformer => {
                     document.getElementById(`transformer.checkbox.${transformer.value}`).checked = true;
                 });
@@ -1154,7 +1266,7 @@
         $("#slider-panel").slideReveal({push: false, width: "37%"}).slideReveal("show");
     }
     
-    const hideSliderPanel = () => {
+    function hideSliderPanel(){
         let focus_section = document.getElementById(focus_section_id);
         if(focus_section) {
             focus_section.classList.remove("focus-section");
@@ -1233,16 +1345,36 @@
 <!-- Code related to collect data from each section and submit to the backend -->
 <script>
 
-    const collectMetadata = () => {
+    function checkMissingInput(component_type){
+        let data = null;
+        if(component_type == "action"){
+            data = collectCustomActionData();
+        } else if(component_type == "procedure"){
+            data = collectProcedureData();
+        } else if(component_type == "transformer"){
+            data = collectTransformerData();
+        } else if(component_type == "execution_success"){
+            data = collectExecutionData("success");
+        } else if(component_type == "execution_fail"){
+            data = collectExecutionData("fail");
+        }
+        if(data === false){
+            // if the data is false, then we should alert the user
+            changeFocusSection(`design_${component_type}`);
+            return false;
+        } else {
+            return data;
+        }
+    }
+
+    function collectMetadata(){
         if(checkMissingVariable(`design_meta`)) return false;
         return getVariableDataInStep("design_meta");
     }
 
-    const collectCustomActionData = () => {
+    function collectCustomActionData(){
         // to collect user input about custom actions
-        
-        console.log("new actions are: ", selected_actions.map(action => action.value));
-        
+                
         // determine whether we should fetch the code or the form data
         if(editor_status['action'] == 'changed'){
             // if the code is changed, then we should get the value from the code editor
@@ -1304,7 +1436,9 @@
         }
     }
 
-    const collectTransformerData = () => {
+    function collectTransformerData(){
+        // if the procedure is at the code view, then we do not need to collect the transformer data
+        if(editor_status["procedure"] === "changed") return [];
         if(selected_transformers.length == 0) return [];
 
         if(checkMissingVariable(`design_transformer`)) return false;
@@ -1312,35 +1446,46 @@
         const transformers_data = selected_transformers.map((transformer, index) => {
             let transformer_div = document.getElementById(`custom.transformer.${transformer.value}`);
             let data = getVariableDataInStep(null, elements=transformer_div);
-            return {module_index: transformer.value, module_data: data}
+            return {
+                view: "form",
+                value: transformer.value, 
+                form: data
+            }
         });
         console.log("transformers_data " + JSON.stringify(transformers_data));
         return transformers_data;
     }
 
-    const collectProcedureData = () => {
+    function collectProcedureData(){
         if(selected_procedure === null) return false;
         if(editor_status['procedure'] == 'changed'){
             // if the code is changed, then we should get the value from the code editor
-            let codes = editors['procedure'].getValue();
+            let procedure_codes = {};
+            ['initialize', 'check', 'notify'].forEach(
+                stage => {
+                    let codes = editors['procedure'][stage].getValue();
+                    procedure_codes[stage] = codes;
+                }
+            )
+
             return {
-                procedure_index: selected_procedure.value,
-                procedure_codes: codes,
-                procedure_variables: getVariableDataInStep("design_procedure"),
+                value: selected_procedure.value, // to retrieve the variables schemas but not the values
+                codes: procedure_codes,
+                view: "codes",
             }
         }
 
         if(checkMissingVariable("design_procedure")) return false;
-        
         const procedure_data = {
-            procedure_index: selected_procedure.value,
-            procedure_variables: getVariableDataInStep("design_procedure"),
+            value: selected_procedure.value,
+            form: getVariableDataInStep("design_procedure"),
+            view: "form",
         }
         console.log("procedure_data " + JSON.stringify(procedure_data));
         return procedure_data;
     }
 
-    const collectExecutionData = (stage) => {
+    function collectExecutionData(stage){
         let section_type = `execution_${stage}`;
         if(editor_status[section_type] == 'changed'){
             // if the code is changed, then we should get the value from the code editor
@@ -1364,18 +1509,28 @@
             if(!("platform" in data)){
                 data.platform = selected_platform;
             }
-            data.view = "form";
-            return data
+            return {
+                view: "form",
+                form: data,
+            }
         });
         console.log("execution_data " + JSON.stringify(execution_data));
         return execution_data;
     }
 
-    const generateSourceCode = async (stage) => {
+    async function generateSourceCode(stage){
         let data = null;
         switch(stage){
             case "action":
                 data = collectCustomActionData();
+                break;
+            case "procedure":
+                let procedure_data = collectProcedureData();
+                let transformers_data = collectTransformerData();
+                data = {
+                    procedure: procedure_data,
+                    transformers: transformers_data,
+                }
                 break;
             case "execution_success":
                 data = collectExecutionData("success");
@@ -1390,10 +1545,10 @@
             stage: stage,
             data: data,
         });
-        if(result.status) return result.code; else return false;
+        if(result.status) return result.codes; else return false;
     }
 
-    const goCreateProcedure = async () => {
+    async function goCreateProcedure(){
         
         hideSliderPanel();
         let meta_data = collectMetadata();
@@ -1412,7 +1567,7 @@
         }
 
         let procedure_data = null;
-        let transformer_data = null;
+        let transformers_data = null;
         let fail_data = null;
         if(selected_policy_kind !== "if_then_rules"){
             procedure_data = collectProcedureData();
@@ -1420,15 +1575,13 @@
                 changeFocusSection("design_procedure");
                 return;
             }
-
-            transformer_data = collectTransformerData();
-            if(transformer_data === false){
+            
+            transformers_data = collectTransformerData();
+            if(transformers_data === false){
                 changeFocusSection("design_transformer");
                 return;
             }
 
-            // let notify_data = collectExecutionData("notify");
-            // if(notify_data === false) return;
             
             fail_data = collectExecutionData("fail");
             if(fail_data === false){
@@ -1445,8 +1598,10 @@
                     policykind: selected_policy_kind,   // "if_then_rules", "community_policies", "triggering_policies"
                     app_name: app_name,
                     filters: custom_action_data,
-                    procedure: procedure_data,
-                    transformers: transformer_data,
+                    procedure: {
+                        procedure: procedure_data,
+                        transformers: transformers_data,
+                    },
                     executions: {
                         // notify: notify_data,
                         success: success_data,
@@ -1533,21 +1688,31 @@
             });
         }
         changeFocusSection();
-        showProcedureVariables(
-            policytemplate.procedure.pk,
-            decapitalize(policytemplate.procedure.platform),
-            policytemplate.procedure
-        );
-        if(policytemplate.transformers){
+        if(policytemplate.procedure.view === "codes"){
+            let procedure = policytemplate.procedure;
+            showCodeEditor("procedure", null, {
+                initialize: procedure.initialize,
+                check: procedure.check,
+                notify: procedure.notify
+            });
+        } else {
+            showProcedureVariables(
+                policytemplate.procedure.value,
+                decapitalize(policytemplate.procedure.platform),
+                policytemplate.procedure
+            );
+        }
+        let transformers = policytemplate.procedure.transformers;
+        if(Array.isArray(transformers) && transformers.length > 0){
             toggleTransformerSection();
-            policytemplate.transformers.forEach(transformer => {
-                showTransformerVariables(transformer.pk, decapitalize(transformer.platform), transformer);
+            transformers.forEach(transformer => {
+                showTransformerVariables(transformer.value, decapitalize(transformer.platform), transformer);
             });
         }
         changeFocusSection();
         (policytemplate.executions.success || []).forEach(execution => {
             if(execution.view === "form"){
-                showExecutionVariables("success", execution.action, decapitalize(execution.platform), false, execution);
+                showExecutionVariables("success", execution.form.action, decapitalize(execution.form.platform), false, execution.form);
             } else if (execution.view === "codes"){
                 // we should then show the executions in its code editor
                 showCodeEditor("execution_success", null, execution.codes);
@@ -1559,10 +1724,9 @@
             // only when the view is form, there are more than one executions;
             // otherwise, we only have one execution in the code editor, so we will not show the code editor for multiple times
             if(execution.view === "form"){
-                showExecutionVariables("fail", execution.action, decapitalize(execution.platform), false, execution);
+                showExecutionVariables("fail", execution.form.action, decapitalize(execution.form.platform), false, execution.form)
             } else if (execution.view === "codes"){
                 // we should then show the executions in its code editor
-                console.log("show code editor for execution_fail", execution.codes);
                 showCodeEditor("execution_fail", null, execution.codes);
                 editor_status["execution_fail"] = "changed";
             }

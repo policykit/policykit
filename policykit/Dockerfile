@@ -11,8 +11,8 @@ RUN apt-get update && \
 
 WORKDIR /app/policykit
 
-COPY ../metagov .
-RUN pip install -e ./metagov
+# COPY ../metagov .
+# RUN pip install -e ./metagov
 
 COPY requirements.txt .
 
