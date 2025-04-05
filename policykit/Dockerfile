@@ -5,9 +5,9 @@ FROM python:3.10
 #   && apt-get install -yq --no-install-recommends libfuse-dev nano fuse vim git graphviz \
 #   && apt-get clean \
 #   && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && \
-    apt-get install -y git && \
-    rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && \
+#     apt-get install -y git && \
+#     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/policykit
 
