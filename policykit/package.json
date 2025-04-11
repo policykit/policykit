@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "npx tailwindcss -i ./policyengine/static/policyengine/css/input.css -o ./policyengine/static/policyengine/css/output.css --watch"
+    "dev": "npx @tailwindcss/cli -i ./policyengine/static/policyengine/css/input.css -o ./policyengine/static/policyengine/css/output.css --watch"
   },
   "devDependencies": {
     "tailwindcss": "4.1.0"
