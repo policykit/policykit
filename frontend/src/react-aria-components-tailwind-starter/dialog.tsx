@@ -8,7 +8,7 @@ import React from 'react';
 import { BaseHeadingProps, Heading } from './heading';
 import { Button, ButtonProps } from './button';
 import { Text } from './text';
-import { XIcon } from './icons';
+import { XIcon } from './icons/outline/x';
 
 export { DialogTrigger } from 'react-aria-components';
 

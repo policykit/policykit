@@ -1,4 +1,11 @@
-@import './react-aria-components-tailwind-starter/index.css';
+@import './react-aria-components-tailwind-starter/theme/index.css';
+
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
 
 @utility h1 {
   font-size: 2rem;
@@ -306,8 +313,8 @@
   }
 
   &:disabled {
-    @apply !cursor-not-allowed
-    /* !bg-grey !text-white; */;
+    @apply cursor-not-allowed!
+   /* !bg-grey !text-white; */;
   }
 
   &.icon-only {
@@ -515,11 +522,13 @@
   }
 }
 
-:root {
-  font-family: "Nunito", sans-serif;
-}
+@layer utilities {
+  :root {
+    font-family: 'Nunito', sans-serif;
+  }
 
-/* typography */
+  /* typography */
+}
 
 @layer components {
 
@@ -536,13 +545,13 @@
 
   input[type="text"],
   textarea {
-    @apply bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary w-full;
+    @apply bg-background-light px-4 py-2 rounded-xs focus:outline focus:outline-primary w-full;
   }
 
   /* radio */
 
   input[type="radio"] {
-    @apply border-primary-dark disabled:border-grey rounded-sm checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
+    @apply border-primary-dark disabled:border-grey rounded-xs checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
   }
 
   input[type="radio"] {
@@ -587,20 +596,20 @@
 }
 
 /* .tippy-box[x-placement^="right"] .tippy-tooltip.mytheme-theme .tippy-arrow {
-@apply border-background-focus;
-border-right: 7px solid;
+  @apply border-background-focus;
+  border-right: 7px solid;
 }
 .tippy-box[x-placement^="left"] .tippy-tooltip.mytheme-theme .tippy-arrow {
-@apply border-background-focus;
-border-left: 7px solid;
+  @apply border-background-focus;
+  border-left: 7px solid;
 }
 .tippy-box[x-placement^="top"] .tippy-tooltip.mytheme-theme .tippy-arrow {
-@apply border-background-focus;
-border-top: 7px solid;
+  @apply border-background-focus;
+  border-top: 7px solid;
 }
 .tippy-box[x-placement^="bottom"] .tippy-tooltip.mytheme-theme .tippy-arrow {
-@apply border-background-focus;
-border-bottom: 7px solid;
+  @apply border-background-focus;
+  border-bottom: 7px solid;
 } */
 
 .tippy-arrow {

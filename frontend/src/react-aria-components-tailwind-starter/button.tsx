@@ -10,14 +10,14 @@ import {
 } from 'react-aria-components';
 import { twMerge } from 'tailwind-merge';
 import { AsChildProps, Slot } from './slot';
-import { SpinnerIcon } from './icons';
-import { NonFousableTooltipTarget, TooltipTrigger } from './tooltip';
+import { SpinnerIcon } from './icons/outline/spinner';
+import { NonFousableTooltipTarget, Tooltip, TooltipTrigger } from './tooltip';
 
-type Color = 'accent' | 'success' | 'destructive';
+type Color = 'accent' | 'red' | 'green';
 
 type Size = 'sm' | 'lg';
 
-type Variant = 'solid' | 'outline' | 'plain' | 'unstyle';
+type Variant = 'solid' | 'outline' | 'plain' | 'link' | 'unstyle';
 
 export type ButtonStyleProps = {
   color?: Color;
@@ -30,7 +30,7 @@ export type ButtonStyleProps = {
 
 export type ButtonWithAsChildProps = AsChildProps<
   RACButtonProps & {
-    tooltip?: React.ReactNode;
+    tooltip?: string | React.ReactElement;
     allowTooltipOnDisabled?: boolean;
   }
 > &
@@ -38,7 +38,7 @@ export type ButtonWithAsChildProps = AsChildProps<
 
 export type ButtonProps = RACButtonProps &
   ButtonStyleProps & {
-    tooltip?: React.ReactNode;
+    tooltip?: string | React.ReactElement;
   };
 
 const buttonStyle = ({
@@ -72,18 +72,27 @@ const buttonStyle = ({
     variant: {
       base: 'group inline-flex gap-x-2 justify-center items-center font-semibold text-base/6 sm:text-sm/6',
       solid: [
-        'border border-transparent bg-[var(--btn-bg)]',
-        '[--btn-color:lch(from_var(--btn-bg)_calc((49.44_-_l)_*_infinity)_0_0)]',
+        'bg-[var(--btn-bg)]',
+        color === 'red' || color === 'green'
+          ? '[--btn-color:white]'
+          : '[--btn-color:lch(from_var(--btn-bg)_calc((49.44_-_l)_*_infinity)_0_0)]',
         'text-[var(--btn-color)]',
         !isDisabled && 'hover:opacity-90',
       ],
       outline: [
-        'border text-[var(--btn-color)] shadow-xs',
+        'text-[var(--btn-color)]',
+        'shadow-outline',
+        'in-[[data-ui=button-group]]:shadow-none',
+        'dark:in-[[data-ui=button-group]]:shadow-none',
+        'bg-white dark:bg-white/5',
         !isDisabled && 'hover:bg-zinc-50 dark:hover:bg-zinc-800',
       ],
       plain: [
         'text-[var(--btn-color)]',
         !isDisabled && 'hover:bg-zinc-100 dark:hover:bg-zinc-800',
+      ],
+      link: [
+        'text-[var(--btn-color)] underline [&:not(:hover)]:decoration-[var(--btn-color)]/20 underline-offset-4',
       ],
     },
     size: {
@@ -91,54 +100,56 @@ const buttonStyle = ({
       sm: [
         isIconOnly
           ? 'size-8 sm:size-7 [--icon-size:theme(size.5)] sm:[--icon-size:theme(size.4)]'
-          : 'h-8 sm:h-7 [--icon-size:theme(size.3)] text-sm/6 sm:text-xs/6 px-3 sm:px-2',
+          : variant !== 'link' &&
+            'h-8 sm:h-7 [--icon-size:theme(size.3)] text-sm/6 sm:text-xs/6 px-3 sm:px-2',
       ],
       md: [
         // lg: 44px, sm:36px
         '[--icon-size:theme(size.5)] sm:[--icon-size:theme(size.4)]',
         isIconOnly
-          ? 'p-[calc(--spacing(2.5)-1px)] sm:p-[calc(--spacing(1.5)-1px)] [&_svg[data-ui=icon]]:m-0.5 sm:[&_svg[data-ui=icon]]:m-1'
-          : 'px-[calc(--spacing(3.5)-1px)] sm:px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+          ? 'p-2.5 sm:p-1.5 [&_svg[data-ui=icon]]:m-0.5 sm:[&_svg[data-ui=icon]]:m-1'
+          : variant !== 'link' && 'px-3.5 sm:px-3 py-2.5 sm:py-1.5',
       ],
 
       lg: [
         '[--icon-size:theme(size.5)]',
         isIconOnly
-          ? 'p-[calc(--spacing(2.5)-1px)] [&_svg[data-ui=icon]]:m-0.5'
-          : 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
+          ? 'p-2.5 [&_svg[data-ui=icon]]:m-0.5'
+          : variant !== 'link' && 'px-3.5 py-2.5',
       ],
     },
     color: {
       foreground: '[--btn-color:var(--color-foreground)]',
       accent: '[--btn-color:var(--color-accent)]',
-      destructive: '[--btn-color:var(--color-destructive)]',
-      success: '[--btn-color:var(--color-success)]',
+      red: '[--btn-color:var(--color-red-600)]',
+      green: '[--btn-color:var(--color-green-600)]',
     },
     iconColor: {
-      base: '[&:not(:hover)_svg[data-ui=icon]:not([class*=text-])]:text-[var(--icon-color)]',
-      solid:
-        !isIconOnly &&
-        '[--icon-color:lch(from_var(--btn-color)_calc(0.85*l)_c_h)]',
-      outline: !isIconOnly && '[--icon-color:var(--color-muted)]',
-      plain: !isIconOnly && '[--icon-color:var(--color-muted)]',
+      base: isPending
+        ? '[&_svg[data-ui=icon]:not([class*=text-])]:text-[var(--icon-color)]'
+        : '[&:not(:hover)_svg[data-ui=icon]:not([class*=text-])]:text-[var(--icon-color)]',
+      solid: !isIconOnly && '[--icon-color:var(--btn-color)]/75',
+      outline: !isIconOnly && '[--icon-color:var(--color-muted)]/50',
+      plain: !isIconOnly && '[--icon-color:var(--color-muted)]/50',
+      link: !isIconOnly && '[--icon-color:var(--btn-color)]',
     },
     backgroundColor: {
       accent: '[--btn-bg:var(--color-accent)]',
-      destructive: '[--btn-bg:var(--color-destructive)]',
-      success: '[--btn-bg:var(--color-success)]',
+      red: '[--btn-bg:var(--color-red-600)]',
+      green: '[--btn-bg:var(--color-green-600)]',
     },
   };
 
   return [
     style.base,
     style.color[color ?? 'foreground'],
-    style.variant.base,
-    style.variant[variant],
     style.size.base,
     style.size[size ?? 'md'],
     style.iconColor.base,
     style.iconColor[variant],
     style.backgroundColor[color ?? 'accent'],
+    style.variant.base,
+    style.variant[variant],
     !isCustomPending && isPending && 'text-transparent',
   ];
 };
@@ -225,7 +236,7 @@ export const Button = React.forwardRef<
           <NonFousableTooltipTarget>
             <div className="content">{button}</div>
           </NonFousableTooltipTarget>
-          {tooltip}
+          {typeof tooltip === 'string' ? <Tooltip>{tooltip}</Tooltip> : tooltip}
         </TooltipTrigger>
       );
     }
@@ -233,7 +244,7 @@ export const Button = React.forwardRef<
     return (
       <TooltipTrigger>
         {button}
-        {tooltip}
+        {typeof tooltip === 'string' ? <Tooltip>{tooltip}</Tooltip> : tooltip}
       </TooltipTrigger>
     );
   }
@@ -308,21 +319,26 @@ const buttonGroupStyle = ({
     base: [
       'group inline-flex w-max items-center',
       '[&>*:not(:first-child):not(:last-child)]:rounded-none',
-      '[&>*[data-variant=solid]:not(:first-child)]:border-s-[lch(from_var(--btn-bg)_calc(l*0.85)_c_h)]',
+      '[&>*[data-variant=solid]:not(:first-child)]:border-s',
+      '[&>*[data-variant=solid]:not(:first-child)]:border-s-[oklch(from_var(--btn-bg)_calc(l*0.85)_c_h)]',
+
+      '[&:has([data-variant=outline])]:rounded-md',
+      '[&:has([data-variant=outline])]:shadow-outline',
+      'dark:[&:has([data-variant=outline])]:p-px',
+      'dark:[&:has([data-variant=outline])]:bg-white/5',
+      'dark:[&:has([data-variant=outline])]:rounded-[calc(var(--radius-md)+1px)]',
+      'dark:[&:has([data-variant=outline])>[data-variant=outline]]:[--color-border:oklch(1_0_0_/_0.05)]',
     ],
     horizontal: [
       '[&>*:first-child]:rounded-e-none',
       '[&>*:last-child]:rounded-s-none',
-      '[&>*:not(:last-child)]:border-e-0',
-      inline && 'shadow-xs [&>*:not(:first-child)]:border-s-0 *:shadow-none',
+      !inline && '[&:has([data-variant=outline])>*:not(:first-child)]:border-s',
     ],
     vertical: [
       'flex-col',
       '[&>*:first-child]:rounded-b-none',
       '[&>*:last-child]:rounded-t-none',
-      '[&>*:not(:last-child)]:border-b-0',
-
-      inline && 'shadow-xs [&>*:not(:first-child)]:border-t-0 *:shadow-none',
+      !inline && '[&:has([data-variant=outline])>*:not(:first-child)]:border-t',
     ],
   };
 

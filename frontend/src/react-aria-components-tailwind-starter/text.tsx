@@ -15,7 +15,7 @@ export function Text({
     {
       ...props,
       className: twMerge(
-        'text-pretty text-base text-muted sm:text-sm/6',
+        'text-muted text-base text-pretty sm:text-sm/6',
         className,
       ),
     },
@@ -31,7 +31,7 @@ export function Strong({
     <Text
       {...props}
       elementType="strong"
-      className={twMerge('font-medium text-foreground', className)}
+      className={twMerge('text-foreground font-medium', className)}
     />
   );
 }
@@ -49,14 +49,17 @@ export function Small({
   );
 }
 
-export function TextLink(props: LinkProps) {
+export function TextLink({
+  highlight,
+  ...props
+}: LinkProps & { highlight?: boolean }) {
   return (
     <Link
       {...props}
-      className={composeTailwindRenderProps(
-        props.className,
-        'underline underline-offset-4 decoration-zinc-400 dark:decoration-zinc-500',
-      )}
+      className={composeTailwindRenderProps(props.className, [
+        highlight && 'text-foreground font-medium',
+        'underline underline-offset-4 [&:not(:hover)]:decoration-zinc-300 dark:[&:not(:hover)]:decoration-zinc-600',
+      ])}
     />
   );
 }

@@ -10,7 +10,7 @@ export function composeTailwindRenderProps<T>(
 
 // RAC uses `slot=*`. We use `data-ui=* to avoid potential conflict
 export const inputField = [
-  'group',
+  'group relative',
   // Label style
   '[&_[data-ui=label]:not([class*=mb-])]:mb-1',
   '[&_[data-ui=label]:not([class*=mb-]):has(+:is(input,textarea,[data-ui=control]))]:mb-2',

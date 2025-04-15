@@ -11,6 +11,12 @@ import CancelIcon from "./components/CancelIcon";
 import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon";
 
 import { queryClient, useData } from "./query";
+import { Dialog, DialogBody, DialogCloseButton, DialogFooter, DialogHeader, DialogTrigger } from "./react-aria-components-tailwind-starter/dialog";
+import { Button } from "./react-aria-components-tailwind-starter/button";
+import { Modal } from "./react-aria-components-tailwind-starter/modal";
+import { Form } from "./react-aria-components-tailwind-starter/form";
+import { Text } from "./react-aria-components-tailwind-starter/text";
+import { FieldError, Input, Label, TextField } from "./react-aria-components-tailwind-starter/field";
 
 type PolicySummary = {
   id: number;
@@ -98,19 +104,43 @@ export function Welcome() {
 }
 export function Guidelines() {
   const data = useDashboardData();
-  const text = data?.community_docs[0].text || "Loading...";
+  const doc = data?.community_docs[0];
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">Community Guidelines</h3>
-        <a
-          // href={addURL || undefined}
-          className="button primary medium"
-        >
-          Details
-        </a>
+        <h3 className="h5 bg-zinc-950/25">{doc?.name || "Loading..."}</h3>
+        <DialogTrigger>
+          <Button>Details</Button>
+          <Modal size="md">
+            <Dialog>
+              <DialogHeader>{doc?.name || "Loading..."}</DialogHeader>
+              <DialogCloseButton />
+              <DialogBody>
+                <p>{doc?.text || "Loading..."}</p>
+                <Form className="py-4" id="edit-profile-form">
+                  <TextField isRequired className="grid grid-cols-4 gap-x-4">
+                    <Label className="ms-auto">Name</Label>
+                    <Input className="col-span-3"></Input>
+                    <FieldError className="col-span-3 col-start-2" />
+                  </TextField>
+                  <TextField isRequired className="grid grid-cols-4 gap-x-4">
+                    <Label className="ms-auto">Username</Label>
+                    <Input className="col-span-3"></Input>
+                    <FieldError className="col-span-3 col-start-2" />
+                  </TextField>
+                </Form>
+              </DialogBody>
+              <DialogFooter>
+                <DialogCloseButton>Cancel</DialogCloseButton>
+                <Button form="edit-profile-form" type="submit">
+                  Save changes
+                </Button>
+              </DialogFooter>
+            </Dialog>
+          </Modal>
+        </DialogTrigger>
       </div>
-      <p className="mb-6">{text}</p>
+      <p className="mb-6">{doc?.text || "Loading..."}</p>
     </section>
   );
 }
