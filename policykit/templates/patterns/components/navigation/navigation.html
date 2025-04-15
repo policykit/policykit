@@ -27,8 +27,8 @@
        x-transition.opacity
        x-show="showMobileMenu"
        class="fixed inset-0 bg-background-popup/40 z-40"></div>
-  <div class="transition invisible lg:!visible bg-grey-darkest flex flex-col w-[241px] h-screen py-8 px-6 text-grey-light absolute lg:sticky left-0 top-0 z-50 lg:z-auto lg:translate-x-0"
-       :class="{ '!visible translate-x-0': showMobileMenu, '-translate-x-full' : !showMobileMenu }"
+  <div class="transition invisible lg:visible! bg-grey-darkest flex flex-col w-[241px] h-screen py-8 px-6 text-grey-light absolute lg:sticky left-0 top-0 z-50 lg:z-auto lg:translate-x-0"
+       :class="{ 'visible! translate-x-0': showMobileMenu, '-translate-x-full' : !showMobileMenu }"
        @mousedown.outside="showMobileMenu = false"
        x-show.transition="true">
     <div class="mb-10 mx-auto flex-none">{% include "patterns/icons/logo_nav.html" %}</div>

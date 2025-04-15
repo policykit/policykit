@@ -1,103 +1,120 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
-  font-family: "Nunito", sans-serif;
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+
+  --color-background-light: #f8f9fa;
+  --color-background-focus: #f1f4f6;
+  --color-background-popup: #667c93;
+
+  --color-grey-darkest: #191f24;
+  --color-grey-dark: #52677a;
+  --color-grey: #b2bbc3;
+  --color-grey-light: #d2d2d2;
+
+  --color-primary-darkest: #2f387b;
+  --color-primary-dark: #4451b2;
+  --color-primary: #7282f9;
+  --color-primary-light: #cdd3ff;
+  --color-primary-lightest: #f2f4ff;
+
+  --color-success-darkest: #254125;
+  --color-success-dark: #3b683b;
+  --color-success: #70ae6e;
+  --color-success-light: #e7f6e7;
+
+  --color-warning-darkest: #e09d00;
+  --color-warning-dark: #ffc233;
+  --color-warning: #ffd470;
+  --color-warning-light: #ffedc2;
+
+  --color-error-darkest: #a72a11;
+  --color-error-dark: #e03616;
+  --color-error: #ed6145;
+  --color-error-light: #f2917d;
+  --color-error-background: #fdf4f2;
+
+  --color-burgundy: #7f0055;
+  --color-slack: #4a154b;
+
+  --shadow-*: initial;
+  --shadow-light: ;
+  --shadow-focus: 0px 2px 4px 0px #cdd3ff;
+  --shadow-dark: 0px 8px 20px 0px rgba(0, 0, 0, 0.08);
+  --shadow-disabled: 0px 0px 4px 0px rgba(39, 39, 39, 0.35);
+  --shadow-header: 0px 4px 4px 0px #f1f4f7;
+
+  --font-sans: var(--font-nunito);
 }
 
-/* typography */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
 
-@layer components {
-  h1,
-  .h1 {
-    font-size: 2rem;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 120%; /* 38.4px */
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
   }
+}
 
-  h2,
-  .h2 {
-    font-size: 1.8125;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 120%; /* 34.8px */
-  }
+@utility h1 {
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 38.4px */
+}
 
-  h3,
-  .h3 {
-    font-size: 1.5625rem;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 120%; /* 30px */
-  }
+@utility h2 {
+  font-size: 1.8125;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 34.8px */
+}
 
-  h4,
-  .h4 {
-    font-size: 1.375rem;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 120%; /* 26.4px */
-  }
+@utility h3 {
+  font-size: 1.5625rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%; /* 30px */
+}
 
-  p.large,
-  .p.large {
+@utility h4 {
+  font-size: 1.375rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%; /* 26.4px */
+}
+
+@utility large {
+  &p {
     font-size: 1.1875rem;
     font-style: normal;
     font-weight: 400;
     line-height: 132%; /* 25.08px */
   }
 
-  p,
-  .p {
-    font-size: 1rem;
+  & .p {
+    font-size: 1.1875rem;
     font-style: normal;
     font-weight: 400;
-    line-height: 132%; /* 21.12px */
+    line-height: 132%; /* 25.08px */
   }
 
-  p.focussed,
-  .p.focussed {
-    font-size: 1rem;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 124%; /* 19.84px */
-  }
-
-  p.small,
-  span.small,
-  .p.small {
-    font-size: 0.875rem;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 120%; /* 16.8px */
-  }
-
-  p.small.focussed,
-  .p.small.focussed {
-    font-size: 0.875rem;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 120%; /* 16.8px */
-  }
-
-  .subtext {
-    font-size: 0.75rem;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 120%; /* 14.4px */
-  }
-
-  /* button */
-
-  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
-
-  .button.primary {
-    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
-  }
-
-  .button.large {
+  &.button {
     @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
     font-size: 1.1875rem;
     font-style: normal;
@@ -105,17 +122,187 @@
     line-height: 120%; /* 22.8px */
   }
 
-  .button.large.secondary {
+  &.button.secondary {
     @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
   }
+}
 
-  .button.medium,
-  .button.small,
-  .button.tiny {
+@utility p {
+  &.large {
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 25.08px */
+  }
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 132%; /* 21.12px */
+
+  &.focussed {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  &.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.small.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+}
+
+@utility focussed {
+  &p {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  & .p {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  &p.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .p.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+}
+
+@utility small {
+  &p {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & span {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .p {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &p.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .p.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .button {
     @apply rounded-[3.5px];
   }
 
-  .button.medium {
+  &.button {
+    @apply px-4 py-2 flex gap-2 items-center;
+  }
+
+  &.button {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .link {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.button {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.button svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.button svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility subtext {
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 14.4px */
+}
+
+@utility button {
+  /* button */
+
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
+  &.primary {
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
+  }
+
+  &.large {
+    @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 22.8px */
+  }
+
+  &.large.secondary {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
+
+  &.medium {
+    @apply rounded-[3.5px];
+  }
+
+  &.small {
+    @apply rounded-[3.5px];
+  }
+
+  &.tiny {
+    @apply rounded-[3.5px];
+  }
+
+  &.medium {
     @apply px-8 py-2 flex gap-2 items-center;
     font-size: 1rem;
     font-style: normal;
@@ -123,76 +310,291 @@
     line-height: 120%; /* 19.2px */
   }
 
-  .button.medium.primary svg.external-link-icon {
+  &.medium.primary svg.external-link-icon {
     @apply fill-white;
   }
 
-  .button.small {
+  &.small {
     @apply px-4 py-2 flex gap-2 items-center;
   }
 
-  .button.small,
-  .button.tiny,
-  .link.small {
+  &.small {
     font-size: 0.875rem;
     font-style: normal;
     font-weight: 600;
     line-height: 120%; /* 16.8px */
   }
 
-  .button.small,
-  .button.medium.secondary,
-  .button.tiny.secondary {
+  &.tiny {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.small {
     @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
   }
 
-  .button.small svg,
-  .button.medium.secondary svg,
-  .button.tiny.secondary svg {
+  &.medium.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.tiny.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.small svg {
     @apply stroke-primary-dark;
   }
 
-  .button.small svg.external-link-icon,
-  .button.medium.secondary svg.external-link-icon,
-  .button.tiny.secondary svg.external-link-icon {
+  &.medium.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.tiny.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.small svg.external-link-icon {
     @apply fill-primary-dark stroke-none;
   }
 
-  .button.tiny {
+  &.medium.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.tiny.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.tiny {
     @apply px-3 py-1.5 flex gap-2 items-center;
   }
 
-  .button.error {
+  &.error {
     @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
   }
 
-  .button:disabled {
-    @apply !cursor-not-allowed
+  &:disabled {
+    @apply cursor-not-allowed!
    /* !bg-grey !text-white; */;
   }
 
-  .button.icon-only {
+  &.icon-only {
     @apply px-2 rounded-full w-[34px] h-[34px];
   }
 
-  .button.icon-only svg {
+  &.icon-only svg {
     @apply w-full h-full;
   }
 
-  .button.slack {
+  &.slack {
     @apply bg-slack py-3 rounded-[4px];
   }
+}
 
-  /* links */
+@utility primary {
+  /* button */
 
-  .link {
-    @apply px-2 py-1 rounded-[3.5px] text-primary-dark hover:bg-primary-lightest;
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
 
+  &.button {
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
+  }
+
+  &.button.medium svg.external-link-icon {
+    @apply fill-white;
+  }
+}
+
+@utility secondary {
+  &.button.large {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
+
+  & .button.medium {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.tiny {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.medium svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.tiny svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.medium svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  & .button.tiny svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility medium {
+  &.button {
+    @apply rounded-[3.5px];
+  }
+
+  &.button {
+    @apply px-8 py-2 flex gap-2 items-center;
     font-size: 1rem;
     font-style: normal;
     font-weight: 600;
     line-height: 120%; /* 19.2px */
   }
+
+  &.button.primary svg.external-link-icon {
+    @apply fill-white;
+  }
+
+  & .button.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility tiny {
+  & .button {
+    @apply rounded-[3.5px];
+  }
+
+  & .button {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .button.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.button {
+    @apply px-3 py-1.5 flex gap-2 items-center;
+  }
+}
+
+@utility external-link-icon {
+  .button.medium.primary &svg {
+    @apply fill-white;
+  }
+
+  .button.small &svg {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  .button.medium.secondary &svg {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  .button.tiny.secondary &svg {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility link {
+  &.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  /* links */
+  @apply px-2 py-1 rounded-[3.5px] text-primary-dark hover:bg-primary-lightest;
+
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 19.2px */
+}
+
+@utility error {
+  &.button {
+    @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
+  }
+}
+
+@utility icon-only {
+  &.button {
+    @apply px-2 rounded-full w-[34px] h-[34px];
+  }
+
+  &.button svg {
+    @apply w-full h-full;
+  }
+}
+
+@utility slack {
+  &.button {
+    @apply bg-slack py-3 rounded-[4px];
+  }
+}
+
+@utility radio-group {
+  @apply space-y-4;
+
+  & label:has(input:checked) {
+    @apply border-primary shadow-focus;
+  }
+}
+
+@utility radio-group-item {
+  @apply flex items-start gap-4 px-6 py-4 cursor-pointer rounded-lg border-2 border-background-focus focus:outline focus:outline-primary hover:shadow-focus hover:border-primary;
+}
+
+@utility checkbox {
+  @apply stroke-primary-dark;
+}
+
+@utility checkbox-label {
+  &:hover .checkbox-bg {
+    @apply fill-primary-light;
+  }
+}
+
+@utility checkbox-bg {
+  .checkbox-label:hover & {
+    @apply fill-primary-light;
+  }
+
+  input[type='checkbox']:checked + svg & {
+    @apply fill-primary-dark;
+  }
+}
+
+@layer utilities {
+  :root {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  /* typography */
+}
+
+@layer components {
 
   /* search input */
 
@@ -207,47 +609,23 @@
 
   input[type="text"],
   textarea {
-    @apply bg-background-light px-4 py-2 rounded-sm focus:outline focus:outline-primary w-full;
+    @apply bg-background-light px-4 py-2 rounded-xs focus:outline focus:outline-primary w-full;
   }
 
   /* radio */
 
   input[type="radio"] {
-    @apply border-primary-dark disabled:border-grey rounded-sm checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
+    @apply border-primary-dark disabled:border-grey rounded-xs checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
   }
 
   input[type="radio"] {
     @apply mt-1;
   }
 
-  .radio-group {
-    @apply space-y-4;
-  }
-
-  .radio-group-item {
-    @apply flex items-start gap-4 px-6 py-4 cursor-pointer rounded-lg border-2 border-background-focus focus:outline focus:outline-primary hover:shadow-focus hover:border-primary;
-  }
-
-  .radio-group label:has(input:checked) {
-    @apply border-primary shadow-focus;
-  }
-
   /* checkbox */
 
   input[type="checkbox"] {
     @apply absolute opacity-0 w-4 h-4;
-  }
-
-  .checkbox {
-    @apply stroke-primary-dark;
-  }
-
-  .checkbox-label:hover .checkbox-bg {
-    @apply fill-primary-light;
-  }
-
-  input[type="checkbox"]:checked + svg .checkbox-bg {
-    @apply fill-primary-dark;
   }
 }
 

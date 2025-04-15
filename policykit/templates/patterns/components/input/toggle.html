@@ -2,7 +2,7 @@
   <input type="checkbox" id={{ name }} class="peer" />
   {% if label %}<span className="text-black text-[15px] leading-none pr-[15px]">{{ label }}</span>{% endif %}
   <div class="w-[24px] h-[11px] relative group peer-focus-visible:outline peer-focus-visible:outline-primary outline-offset-2">
-    <span class="absolute w-[24px] h-[11px] inset-0 rounded-full bg-grey-light transition peer-checked:group-[]:bg-primary-light"></span>
-    <span class="absolute inset-y-0 start-0 w-[15px] h-[15px] -mt-0.5 rounded-full bg-background-focus transition-all -translate-x-[1.5px] peer-checked:group-[]:translate-x-3 peer-checked:group-[]:bg-primary-dark"></span>
+    <span class="absolute w-[24px] h-[11px] inset-0 rounded-full bg-grey-light transition in-[.group]:peer-checked:bg-primary-light"></span>
+    <span class="absolute inset-y-0 start-0 w-[15px] h-[15px] -mt-0.5 rounded-full bg-background-focus transition-all -translate-x-[1.5px] in-[.group]:peer-checked:translate-x-3 in-[.group]:peer-checked:bg-primary-dark"></span>
   </div>
 </label>
