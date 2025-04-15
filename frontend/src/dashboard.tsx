@@ -1,7 +1,7 @@
 import "vite/modulepreload-polyfill";
 
 import "./style.css";
-import { StrictMode, useCallback, useState } from "react";
+import { JSX, StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 
@@ -15,7 +15,6 @@ import { Dialog, DialogBody, DialogCloseButton, DialogFooter, DialogHeader, Dial
 import { Button } from "./react-aria-components-tailwind-starter/button";
 import { Modal } from "./react-aria-components-tailwind-starter/modal";
 import { Form } from "./react-aria-components-tailwind-starter/form";
-import { Text } from "./react-aria-components-tailwind-starter/text";
 import { FieldError, Input, Label, TextField } from "./react-aria-components-tailwind-starter/field";
 
 type PolicySummary = {

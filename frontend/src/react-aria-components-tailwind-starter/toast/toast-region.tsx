@@ -129,7 +129,7 @@ function Toast({ state, ...props }: ToastProps) {
             role={null}
             color={color}
             compact={props.toast.content.compact}
-            inline={props.toast.content.inline}
+            inline={props.toast.content.inline as true | undefined}
           >
             {props.toast.content.dismissable !== false && (
               <CalloutControl slot="close" {...toast.closeButtonProps} />
