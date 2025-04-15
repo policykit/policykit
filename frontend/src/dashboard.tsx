@@ -107,10 +107,10 @@ export function Guidelines() {
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5 bg-zinc-950/25">{doc?.name || "Loading..."}</h3>
+        <h3 className="h5">{doc?.name || "Loading..."}</h3>
         <DialogTrigger>
           <Button>Details</Button>
-          <Modal size="md">
+          <Modal size="md" classNames={{modalOverlay: "z-100"}}>
             <Dialog>
               <DialogHeader>{doc?.name || "Loading..."}</DialogHeader>
               <DialogCloseButton />

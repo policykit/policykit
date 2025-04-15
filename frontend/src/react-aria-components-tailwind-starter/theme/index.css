@@ -6,7 +6,6 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-*: initial;
   --color-white: #ffffff;
 
   --color-background-light: #f8f9fa;
@@ -43,8 +42,6 @@
   --color-burgundy: #7f0055;
   --color-slack: #4a154b;
 
-  --shadow-*: initial;
-  --shadow-light: ;
   --shadow-focus: 0px 2px 4px 0px #cdd3ff;
   --shadow-dark: 0px 8px 20px 0px rgba(0, 0, 0, 0.08);
   --shadow-disabled: 0px 0px 4px 0px rgba(39, 39, 39, 0.35);
