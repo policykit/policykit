@@ -1,9 +1,9 @@
 import "vite/modulepreload-polyfill";
 
 import "./style.css";
-import { JSX, StrictMode, useCallback, useState } from "react";
+import { JSX, StrictMode, useCallback, useContext, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useMutation } from "@tanstack/react-query";
 
 // dont import SVG files directly because of issue with loading static assets in dev mode
 // BC can't load from insecure URL, proxying dev server is annoying, and can't inline them
@@ -11,11 +11,26 @@ import CancelIcon from "./components/CancelIcon";
 import PoliciesEmptyIcon from "./components/PoliciesEmptyIcon";
 
 import { queryClient, useData } from "./query";
-import { Dialog, DialogBody, DialogCloseButton, DialogFooter, DialogHeader, DialogTrigger } from "./react-aria-components-tailwind-starter/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "./react-aria-components-tailwind-starter/dialog";
 import { Button } from "./react-aria-components-tailwind-starter/button";
 import { Modal } from "./react-aria-components-tailwind-starter/modal";
 import { Form } from "./react-aria-components-tailwind-starter/form";
-import { FieldError, Input, Label, TextField } from "./react-aria-components-tailwind-starter/field";
+import {
+  FieldError,
+  Input,
+  Label,
+  TextArea,
+  TextField,
+} from "./react-aria-components-tailwind-starter/field";
+import { csrfHeaders } from "./csrf";
+import { OverlayTriggerStateContext } from "react-aria-components";
 
 type PolicySummary = {
   id: number;
@@ -101,40 +116,113 @@ export function Welcome() {
     </section>
   );
 }
+
+export function GuidelinesModal({
+  text,
+  name,
+}: {
+  text: string;
+  name: string;
+}) {
+  const [editedName, setEditedName] = useState<null | string>(null);
+  const [editedText, setEditedText] = useState<null | string>(null);
+  const dialogState = useContext(OverlayTriggerStateContext)!;
+
+  const mutation = useMutation({
+    mutationFn: (data: { text: string | null; name: string | null }) =>
+      fetch("/api/community_doc", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...csrfHeaders(),
+        },
+        // credentials: "include",
+        body: JSON.stringify(data),
+      }).then(async (response) => {
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+      }),
+    onSuccess: () => {
+      dialogState.close();
+      queryClient.invalidateQueries({ queryKey: ["data"] });
+    },
+  });
+  return (
+    <>
+      <DialogHeader>Community Document</DialogHeader>
+      <DialogCloseButton />
+      <DialogBody>
+        <Form
+          className="py-4"
+          id="edit-profile-form"
+          validationErrors={
+            mutation.error ? { text: mutation.error.message } : {}
+          }
+        >
+          <TextField isRequired
+          // className="grid grid-cols-4 gap-x-4"
+          >
+            <Label className="ms-auto">Name</Label>
+            <Input
+              // className="col-span-3"
+              value={editedName === null ? name : editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+            ></Input>
+          </TextField>
+          <TextField
+            isRequired
+            // className="grid grid-cols-4 gap-x-4"
+            name={"text"}
+          >
+            <Label className="ms-auto">Text</Label>
+            <TextArea
+              // className="col-span-3"
+              value={editedText === null ? text : editedText}
+              onChange={(e) => setEditedText(e.target.value)}
+            ></TextArea>
+            <FieldError className="col-span-3 col-start-2" />
+          </TextField>
+        </Form>
+      </DialogBody>
+      <DialogFooter>
+        {/* No deleting for now because only one available */}
+        {/* <Button className={"bg-primary-lightest text-primary-dark"}>Delete</Button> */}
+        <Button
+          onClick={(e) => {
+            e.preventDefault();
+            mutation.mutate({ text: editedText, name: editedName });
+          }}
+          isDisabled={(editedText === null && editedName === null) || mutation.isPending}
+          form="edit-profile-form"
+          type="submit"
+          className={"bg-primary-dark"}
+        >
+          {mutation.isPending ? "Saving..." : "Save"}
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
+
 export function Guidelines() {
   const data = useDashboardData();
   const doc = data?.community_docs[0];
+
   return (
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
       <div className="flex items-center justify-between mb-4">
         <h3 className="h5">{doc?.name || "Loading..."}</h3>
         <DialogTrigger>
-          <Button>Details</Button>
-          <Modal size="md" classNames={{modalOverlay: "z-100"}}>
+          <Button isDisabled={data === undefined} className={"bg-primary-dark"}>
+            Details
+          </Button>
+          <Modal size="md" classNames={{ modalOverlay: "z-100" }}>
             <Dialog>
-              <DialogHeader>{doc?.name || "Loading..."}</DialogHeader>
-              <DialogCloseButton />
-              <DialogBody>
-                <p>{doc?.text || "Loading..."}</p>
-                <Form className="py-4" id="edit-profile-form">
-                  <TextField isRequired className="grid grid-cols-4 gap-x-4">
-                    <Label className="ms-auto">Name</Label>
-                    <Input className="col-span-3"></Input>
-                    <FieldError className="col-span-3 col-start-2" />
-                  </TextField>
-                  <TextField isRequired className="grid grid-cols-4 gap-x-4">
-                    <Label className="ms-auto">Username</Label>
-                    <Input className="col-span-3"></Input>
-                    <FieldError className="col-span-3 col-start-2" />
-                  </TextField>
-                </Form>
-              </DialogBody>
-              <DialogFooter>
-                <DialogCloseButton>Cancel</DialogCloseButton>
-                <Button form="edit-profile-form" type="submit">
-                  Save changes
-                </Button>
-              </DialogFooter>
+              <GuidelinesModal
+                text={doc?.text || "Loading..."}
+                name={doc?.name || "Loading..."}
+              />
             </Dialog>
           </Modal>
         </DialogTrigger>
@@ -185,10 +273,7 @@ export function Policies({
     <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
         <h3 className="h5">{header}</h3>
-        <a
-          href={addURL || undefined}
-          className="button primary medium"
-        >
+        <a href={addURL || undefined} className="button primary medium">
           Add
         </a>
       </div>
@@ -274,7 +359,11 @@ export function MetaGovernance() {
   );
 }
 
-export function ProposalsList({proposals}: {proposals: ProposalSummary[] | undefined}) {
+export function ProposalsList({
+  proposals,
+}: {
+  proposals: ProposalSummary[] | undefined;
+}) {
   if (!proposals) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 h-32">
@@ -294,16 +383,29 @@ export function ProposalsList({proposals}: {proposals: ProposalSummary[] | undef
       {proposals.map((proposal) => (
         <li key={proposal.id} className="py-2">
           <p className="text-grey-darkest">
-          <span className="text-grey-dark">{proposal.action.description}</span> action {" "}
-          {proposal.status} from <span className="text-grey-dark">{proposal.policy.name}</span> policy
-          {proposal.initiator.readable_name ? (<> by <span className="text-grey-dark">{proposal.initiator.readable_name}</span></>) : null}
+            <span className="text-grey-dark">
+              {proposal.action.description}
+            </span>{" "}
+            action {proposal.status} from{" "}
+            <span className="text-grey-dark">{proposal.policy.name}</span>{" "}
+            policy
+            {proposal.initiator.readable_name ? (
+              <>
+                {" "}
+                by{" "}
+                <span className="text-grey-dark">
+                  {proposal.initiator.readable_name}
+                </span>
+              </>
+            ) : null}
           </p>
-          <p className="text-grey-light">{new Date(proposal.proposal_time).toLocaleString()}</p>
+          <p className="text-grey-light">
+            {new Date(proposal.proposal_time).toLocaleString()}
+          </p>
         </li>
       ))}
     </ol>
-  )
-  
+  );
 }
 
 export function Proposals() {
@@ -322,23 +424,23 @@ export function Dashboard() {
   const data = useDashboardData();
   return (
     <>
-    <div className="lg:p-6 lg:col-span-7">
-      <Welcome />
-      <Guidelines />
-      <Policies
-        type={null}
-        policies={
-          data
-            ? [...data.trigger_policies, ...data.platform_policies]
-            : undefined
-        }
-        addURL={"/no-code/main"}
-      />
-      <MetaGovernance />
-    </div>
-    <div className="lg:p-6 lg:col-span-3 border-l border-background-focus">
-      <Proposals />
-    </div>
+      <div className="lg:p-6 lg:col-span-7">
+        <Welcome />
+        <Guidelines />
+        <Policies
+          type={null}
+          policies={
+            data
+              ? [...data.trigger_policies, ...data.platform_policies]
+              : undefined
+          }
+          addURL={"/no-code/main"}
+        />
+        <MetaGovernance />
+      </div>
+      <div className="lg:p-6 lg:col-span-3 border-l border-background-focus">
+        <Proposals />
+      </div>
     </>
   );
 }
