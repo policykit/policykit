@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
+    cors: true
   },
   build: {
     manifest: "manifest.json",
