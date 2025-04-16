@@ -4,6 +4,7 @@ import logging
 import os
 
 from actstream.models import Action
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user, login
 from django.contrib.auth.decorators import login_required, permission_required
@@ -19,6 +20,9 @@ from policyengine.integration_data import integration_data
 from policyengine.linter import _lint_check
 from policyengine.metagov_app import metagov, metagov_handler
 from policyengine.utils import INTEGRATION_ADMIN_ROLE_NAME
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -340,7 +344,7 @@ def editor(request):
         user = get_user(request)
         nocode_modules = FrontendUtils.get_nocode_modules(user)
         nocode_modules['trigger'] = kind == PolicyActionKind.TRIGGER
-        nocode_modules['policytemplate'] = json.dumps(policy.policy_template.to_nocode_json())
+        nocode_modules['policytemplate'] = json.dumps(policy.policy_template.to_json(sanitize=True))
         return render(request, "no-code/main.html", nocode_modules)
 
 
@@ -972,13 +976,29 @@ def generate_code(request):
     import policyengine.generate_codes as CodesGenerator
     codes = ""
     if(stage == "action"):
-        custom_action_json = create_custom_action(data)
+        custom_action_json = prepare_custom_action(data)
         codes = CodesGenerator.generate_filter_codes(custom_action_json)
+    elif(stage == "procedure"):
+        customize_procedure_json = prepare_custom_procedure(data)
+        codes = CodesGenerator.generate_procedure_codes(customize_procedure_json)
     elif(stage == "execution_success"):
         codes = CodesGenerator.generate_execution_codes(data)
     elif(stage == "execution_fail"):
         codes = CodesGenerator.generate_execution_codes(data)
-    return JsonResponse({"status": True, "code": codes})
+    
+    something_wrong = False
+    if stage != 'procedure':
+        codes = Utils.format_code(codes)
+        if codes is None:
+            something_wrong = True
+    else:
+        # as there are initialize, notify, and check stages.
+        for stage, stage_code in codes.items():
+            codes[stage] = Utils.format_code(stage_code)
+            if codes[stage] is None:
+                something_wrong = True
+    
+    return JsonResponse({"status": not something_wrong, "codes": codes})
 
 @login_required
 def create_policy(request):
@@ -995,28 +1015,88 @@ def create_policy(request):
         description=data.get("description", "")
     )
 
-    custom_actions_JSON = create_custom_action(data.get("filters", {}))
+    custom_actions_JSON = prepare_custom_action(data.get("filters", {}))
     new_policytemplate.add_custom_actions(custom_actions_JSON)
 
-    create_procedure(data.get("procedure", {}), new_policytemplate)
-    create_transformers(data.get("transformers", {}), new_policytemplate)
+    custom_procedure_json = prepare_custom_procedure(data.get("procedure", {}))
+    new_policytemplate.add_custom_procedure(custom_procedure_json)
+
     create_execution(data.get("executions", {}), new_policytemplate)
 
     user = get_user(request)
     new_policy = new_policytemplate.create_policy(user.community.community, policy)
     return JsonResponse({"policytemplate": new_policytemplate.pk , "policy": new_policy.pk, "status": "success"})
 
-def create_custom_action(filters):
+def prepare_custom_procedure(custom_data):
+    '''
+        convert the frontend data to the procedure JSON object;
+        speciallly, replace all procedure_index with more details about the procedure
+
+        parameters:
+            custom_procedure: A Json object in the shape of
+                {
+                    "procedure": {
+                        "view": "form" or "codes",
+                        "value": an integer, which represents the primary key of the selected procedure;
+                        "form": a dict of variable names and their values
+                        // or alternatively,
+                        "codes": a string of codes
+                    },
+                    "transformers": [{
+                        "view": "form" # it must be "form" here.
+                        "value": an integer, which represents the primary key of the selected transformer;
+                        "form": a dict of variable names and their values
+                    }],
+                }
+    '''
+    from policyengine.models import Procedure, Transformer
+    custom_procedure = custom_data.get("procedure", {})
+    custom_transformers = custom_data.get("transformers", {})
+    
+    procedure_template = Procedure.objects.filter(pk=int(custom_procedure["value"])).first()
+    if custom_procedure["view"] == "form":
+        procedure_json = procedure_template.customize(variables=custom_procedure["form"])
+    elif custom_procedure["view"] == "codes":
+        procedure_json = procedure_template.customize(codes=custom_procedure["codes"])
+
+    procedure_json["transformers"] = []
+    if custom_transformers:
+        for transformer in custom_transformers:
+            # we use the name of a transformer as the unique key even though it is actually not unique
+            # because we create other custom transofrmers with the same name.
+            # but still it is unique if we only consider the transformer templates.
+            transformer_template = Transformer.objects.filter(name=transformer["value"], is_template=True).first()
+            if transformer["view"] == "form":
+                procedure_json["transformers"].append(transformer_template.customize(variables=transformer["form"]))
+            elif transformer["view"] == "codes":
+                raise NotImplementedError("The codes view is not supported for transformer components")
+    return procedure_json
+
+def prepare_custom_action(custom_actions):
     '''
         convert the frontend data to the custom actions JSON object;
         speciallly, replace all filter_pk with more details about each filter module
 
         parameters:
-            filters: A Json object in the shape of
+            custom_actions: A Json object in the shape of
                 [
                     {
-                        "action_type": "slackpostmessage",
+                        "action_types":["slackpostmessage"] or ["slackpostmessage", "slackrenameconversations"],
                         "filter": {
+                            "view: "form" or "codes",
+                            "codes"/"form": {
+                            
+                            }
+                            
+                        }
+                    },
+                    ...
+                ]
+            The filter field could take two forms:
+            1) form view
+                    {
+                        "view": "form",
+                        "form": {
                             "message": {
                                 "filter_pk": 1,
                                 "platform": "slack",
@@ -1024,92 +1104,105 @@ def create_custom_action(filters):
                             },
                             "initiator": ...
                         }
-                    },
-                    ...
-                ]
+                    }
+            2) codes view
+                    {
+                        "view": "codes",
+                        "codes": "....",
+                    }
+
+
     '''
 
     from policyengine.models import FilterModule
-    custom_action_JSON = []
-    for filter in filters:
-        action_type = filter.get("action_type")
-        action_specs = filter.get("filter")
-        '''
-            check whether the value of each action_specs is an empty string
-            an example of a action_specs:
-                {
-                    "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
-                    "text":{}
-                }
-        '''
-        empty_filter = not any(["filter_pk" in value for value in list(action_specs.values()) ])
-        filter_JSON = {}
-        filter_JSON["action_type"] = action_type
+    custom_actions_JSON = []
+    for custom_action in custom_actions:
+        action_types = custom_action.get("action_types")
+        action_filter = custom_action.get("filter")
+        
+        action_JSON = {}
+        action_JSON["action_types"] = action_types
 
-        if not empty_filter:
-            filter_JSON["action_type"] = action_type
-            filter_JSON["filter"] = {}
-            for field, filter_info in action_specs.items():
-                if filter_info:
-                    filter_module = FilterModule.objects.filter(pk=int(filter_info["filter_pk"])).first()
-                    # create a filter JSON object with the actual value specified for each variable
-                    filter_JSON["filter"][field] = filter_module.to_json(filter_info["variables"])
-                    # to faciliate the generation of codes for custom actions, we store the platform of each filter
-                    filter_JSON["filter"][field]["platform"] = filter_info["platform"]
-        custom_action_JSON.append(filter_JSON)
-    return custom_action_JSON
-
-def create_procedure(procedure_data, policytemplate):
-    '''
-        Create the procedure field of a PolicyTemplate instance based on the procedure.
-        We also add variables defined in the selected procedure to the new policytemplate instance
-
-        Parameters:
-            procedure:
-                A Json object in the shape of
-                {
-                    "procedure_index": an integer, which represents the primary key of the selected procedure;
-                    "procedure_variables": a dict of variable names and their values
-                }
-    '''
-    from policyengine.models import Procedure
-    if procedure_data:
-        procedure_index = procedure_data.get("procedure_index", None)
-        procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
-        if procedure:
-            policytemplate.procedure = procedure
-            policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
-            policytemplate.add_descriptive_data(procedure.loads("data"))
-            policytemplate.save()
-    else:
-        policytemplate.procedure = None
-        policytemplate.save()
-
-def create_transformers(transformer_data, policytemplate):
-    """
-        Add extra check modules and extra actions to the policy template
-        parameters:
-            transformer_data: e.g.,
-                [
-
+        if action_filter['view'] == "codes":
+            action_JSON["filter"] = action_filter
+        elif action_filter['view'] == "form":
+            '''
+                check whether the value of each action_specs is an empty string
+                an example of a action_specs:
                     {
-                        "module_index": 1,
-                        "module_data": {
-                            "duration": ...
-                        }
+                        "initiator":{"filter_pk":"72", "platform": "slack", "variables":{"role":"test"}},
+                        "text":{}
                     }
-                ]
-    """
-    from policyengine.models import Transformer
+            '''
+            filter_specs = action_filter["form"]
+            empty_filter = not any(["filter_pk" in value for value in list(filter_specs.values())])
+            action_JSON['filter'] = {
+                "view": "form",
+                "form": {}
+            }
+            if not empty_filter:
+                form_json = action_JSON['filter']["form"]
+                for field, filter_spec in filter_specs.items():
+                    if filter_spec:
+                        filter_module = FilterModule.objects.filter(pk=int(filter_spec["filter_pk"])).first()
+                        # create a filter JSON object with the actual value specified for each variable
+                        form_json[field] = filter_module.to_json(filter_spec["variables"])
+                        # to faciliate the generation of codes for custom actions, we store the platform of each filter
+                        form_json[field]["platform"] = filter_spec["platform"]
+        custom_actions_JSON.append(action_JSON)
+    return custom_actions_JSON
 
-    for transformer in transformer_data or []:
-        module_index = transformer.get("module_index", None)
-        module_template = Transformer.objects.filter(pk=module_index).first()
-        if module_template:
-            policytemplate.add_transformer(module_template)
-            policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
-            policytemplate.add_descriptive_data(module_template.loads("data"))
-    policytemplate.save()
+# def create_procedure(procedure_data, policytemplate):
+#     '''
+#         Create the procedure field of a PolicyTemplate instance based on the procedure.
+#         We also add variables defined in the selected procedure to the new policytemplate instance
+
+#         Parameters:
+#             procedure:
+#                 A Json object in the shape of
+#                 {
+#                     "procedure_index": an integer, which represents the primary key of the selected procedure;
+#                     "procedure_variables": a dict of variable names and their values
+#                 }
+#     '''
+#     from policyengine.models import Procedure
+#     if procedure_data:
+#         procedure_index = procedure_data.get("procedure_index", None)
+#         procedure = Procedure.objects.filter(pk=int(procedure_index)).first()
+#         if procedure:
+#             policytemplate.procedure = procedure
+#             policytemplate.add_variables(procedure.loads("variables"), procedure_data.get("procedure_variables", {}))
+#             policytemplate.add_descriptive_data(procedure.loads("data"))
+#             policytemplate.save()
+#     else:
+#         policytemplate.procedure = None
+#         policytemplate.save()
+
+# def create_transformers(transformer_data, policytemplate):
+#     """
+#         Add extra check modules and extra actions to the policy template
+#         parameters:
+#             transformer_data: e.g.,
+#                 [
+
+#                     {
+#                         "module_index": 1,
+#                         "module_data": {
+#                             "duration": ...
+#                         }
+#                     }
+#                 ]
+#     """
+#     from policyengine.models import Transformer
+
+#     for transformer in transformer_data or []:
+#         module_index = transformer.get("module_index", None)
+#         module_template = Transformer.objects.filter(pk=module_index).first()
+#         if module_template:
+#             policytemplate.add_transformer(module_template)
+#             policytemplate.add_variables(module_template.loads("variables"), transformer.get("module_data", {}))
+#             policytemplate.add_descriptive_data(module_template.loads("data"))
+#     policytemplate.save()
 
 def create_execution(execution_data, policytemplate):
     """

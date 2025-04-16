@@ -1,5 +1,8 @@
 import logging
+from mimetypes import init
+from tabnanny import check
 import policyengine.utils as Utils
+
 logger = logging.getLogger(__name__)
 
 def force_variable_types(value, variable):
@@ -51,36 +54,44 @@ def force_variable_types(value, variable):
                 raise NotImplementedError
     return value_codes
 
-def extract_action_types(filters):
+def extract_action_types(custom_actions):
     """ 
     extract all ActionTypes defined in a list of CustomActions JSON
     e.g.,
         [
             {
-                "action_type": "slackpostmessage",
+                "action_types": ["slackpostmessage"] or ["slackpostmessage", "slackrenameconversation"]
                 "filter": {
-                    "initiator": {
-                        "kind": "CommunityUser",
-                        "name": "Role",
-                        "variables": [
+                    "view": "form",
+                    "form": {
+                        "initiator": {
+                            "kind": "CommunityUser",
+                            "name": "Role",
+                            "variables": [
+                                    {
+                                        "name": "role",
+                                        "type": "string",
+                                        "value": "hello"
+                                    }
+                                ]
+                        },
+                        "text": {
+                            "kind": "Text",
+                            "name": "Startswith",
+                            "variables": [
                                 {
-                                    "name": "role",
+                                    "name": "word",
                                     "type": "string",
-                                    "value": "hello"
+                                    "value": "test"
                                 }
                             ]
-                    },
-                    "text": {
-                        "kind": "Text",
-                        "name": "Startswith",
-                        "variables": [
-                            {
-                                "name": "word",
-                                "type": "string",
-                                "value": "test"
-                            }
-                        ]
+                        }
                     }
+
+                    or
+
+                    "view": "codes",
+                    "codes": "...."
                 },
                 "community_name": null
             },
@@ -91,17 +102,19 @@ def extract_action_types(filters):
     """
     from policyengine.models import ActionType
     action_types = []
-    for filter in filters:
-        action_codename = filter["action_type"]
-        action_type = ActionType.objects.filter(codename=action_codename).first()
-        if action_type:
-            action_types.append(action_type)
+    for custom_action in custom_actions:
+        action_codenames = custom_action["action_types"]
+        for action_codename in action_codenames:
+            action_type = ActionType.objects.filter(codename=action_codename).first()
+            if action_type:
+                action_types.append(action_type)
+
     return action_types
 
-def generate_filter_codes(filters):
+def generate_filter_codes(custom_actions):
     """
-        Generate codes from a list of filters defined in JSON
-        See examples of the parameter filters above 
+        Generate codes from a list of custom actions defined in JSON
+        See examples of the parameter custom actions above 
 
         The generated codes will be in the shape of 
         if action.action_type == "slackpostmessage":
@@ -116,17 +129,26 @@ def generate_filter_codes(filters):
 
     from policyengine.models import FilterModule
 
-    filter_codes = ""
-    for action_filter in filters:
+    custom_actions_codes = ""
+    for custom_action in custom_actions:
+        if custom_action['filter']["view"] == "codes":
+            # if the view is codes, we just use the codes as it is
+            custom_actions_codes += custom_action['filter']["codes"]
+            continue
+
+        # then if the view is form, we need to generate codes from the filter
+        
+        assert len(custom_action["action_types"]) == 1, "Currently only support one action type for each custom action in the form view"
         # we first check whether the action is the one we want to apply filters to
-        filter_codes += "if action.action_type == \"{action_type}\":\n\t".format(action_type = action_filter["action_type"])
+        custom_actions_codes += "if action.action_type == \"{action_type}\":\n\t".format(action_type = custom_action["action_types"][0])
         # one example: "if action.action_type == \"slackpostmessage\":\n\t
         
         now_codes = []
         function_calls = [] # a list of names of filter functions we will call in the end for each action type
         
         # only custom actions have the filter key
-        for field, field_filter in action_filter.get("filter", {}).items():
+        form_filters = custom_action["filter"]["form"]
+        for field, field_filter in form_filters.items():
             """  e.g.,
                     "initiator": {
                         "kind": "CommunityUser",
@@ -183,12 +205,12 @@ def generate_filter_codes(filters):
                     )
                 )
         if now_codes:
-            filter_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
+            custom_actions_codes += "\n\t".join(now_codes) + "\n\treturn " + " and ".join(function_calls) + "\n"
         else:
-            filter_codes += "return True\n"
-    if not filter_codes:
-        filter_codes = "pass"
-    return filter_codes
+            custom_actions_codes += "return True\n"
+    if not custom_actions_codes:
+        custom_actions_codes = "pass"
+    return custom_actions_codes
 
 '''
 def generate_initialize_codes(data):
@@ -206,6 +228,17 @@ def generate_initialize_codes(data):
         initialize_codes = "pass"
     return initialize_codes
 '''
+
+def retrieve_procedure_check_codes(procedure_pk):
+    from policyengine.models import Procedure
+
+    procedure = Procedure.objects.filter(pk=procedure_pk).first()
+    if not procedure:
+        raise Exception(f"When generating check codes, Procedure {procedure_pk} not found")
+    procedure_check = procedure.loads("check")
+    if "codes" not in procedure_check:
+        raise Exception(f"When generating check codes, Procedure {procedure_check} does not have check codes")
+    return procedure_check["codes"]
 
 
 def generate_check_codes(checks):
@@ -225,7 +258,7 @@ def generate_check_codes(checks):
             }
         ],
     """
-    from policyengine.models import Transformer, Procedure
+    from policyengine.models import Transformer
     # in cases when the user writes a policy without any checks (e.g., a if-then rules)
     if(len(checks) == 0):
         return "pass"
@@ -238,14 +271,7 @@ def generate_check_codes(checks):
         check_codes += check_module.codes
     
     # the last check is the one representing the referenced procedure
-    procedure = Procedure.objects.filter(name=checks[-1]["name"]).first()
-    if not procedure:
-        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} not found")
-    procedure_check = procedure.loads("check")
-    if "codes" not in procedure_check:
-        raise Exception(f"When generating check codes, Procedure {checks[-1]['name']} does not have check codes")
-    check_codes += procedure_check["codes"]
-
+    check_codes += retrieve_procedure_check_codes(checks[-1]["pk"])
     return check_codes
 
 def generate_initiate_votes(execution):
@@ -424,60 +450,206 @@ def generate_execution_codes(executions):
     
     some examples of executions:
         [
-            {
-                "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
-                "vote_type": "boolean",
-                "users": "variables.users",
-                "channel": "variables.vote_channel",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_vote",
+                    "vote_message": "variables.vote_message",
+                    "vote_type": "boolean",
+                    "users": "variables.users",
+                    "channel": "variables.vote_channel",
+                    "platform": "slack"
+                },
             }
         ]
     or
         [
             {   
-                "action": "slackpostmessage",
-                "text": "LeijieWang",
-                "channel": "test-channel",
-                "frequency": "60"
+                "view": "form",
+                "form": {
+                    "action": "slackpostmessage",
+                    "text": "LeijieWang",
+                    "channel": "test-channel",
+                    "frequency": "60"
+                }
             }
-        ],
+        ]
+
+    or [
+            {
+                "view": "form",
+                "codes: "...."
+            }
+        ]
     """
     from policyengine.utils import find_action_cls
     execution_codes = []
     comment_only = True
     for execution in executions:
-        codes = ""
-        # if "frequency" in execution:
-        #     # if the execution has a frequency, then it is a recurring execution
-        #     # we need to add the frequency to the execution
-        #     duration_variable = "last_time_" + execution["action"]
-        #     codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
+        execution_view = execution.get("view", "form")
+        if execution_view == "codes":
+            codes = execution["codes"]
+            comment_only = False
+        elif execution_view == "form":
+            execution = execution["form"]
+            codes = ""
+            # if "frequency" in execution:
+            #     # if the execution has a frequency, then it is a recurring execution
+            #     # we need to add the frequency to the execution
+            #     duration_variable = "last_time_" + execution["action"]
+            #     codes += f"if not proposal.data.get(\"{duration_variable}\"):\n\tproposal.data.set(\"{duration_variable}\", proposal.get_time_elapsed().total_seconds())\nif proposal.vote_post_id and ((proposal.get_time_elapsed().total_seconds() - proposal.data.get(\"{duration_variable}\")) > int({execution['frequency']})) * 60:\n\tproposal.data.set(\"duration_variable\", proposal.get_time_elapsed().total_seconds())\n\t"
 
-        if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
-            execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
-            execution = force_execution_variable_types(execution, execute_variables)
-            codes += generate_initiate_votes(execution)
-            comment_only = False
-        elif execution["action"] == "revert_actions":
-            codes += "action.revert()"
-            comment_only = False
-        elif execution["action"] == "execute_actions":
-            codes += "# actions are reverted in the policy engine by default\n"
-        else:
-            # currently only support slackpostmessage
-            action_codename = execution["action"]
-            this_action = find_action_cls(action_codename)
-            if hasattr(this_action, "execution_codes"):
-                execute_variables = this_action.EXECUTE_VARIABLES
+            if execution["action"] == "initiate_vote" or execution["action"] == "initiate_advanced_vote":
+                execute_variables = initiate_execution_variables(execution["platform"], execution["action"])
                 execution = force_execution_variable_types(execution, execute_variables)
-                codes += this_action.execution_codes(**execution)
+                codes += generate_initiate_votes(execution)
                 comment_only = False
+            elif execution["action"] == "revert_actions":
+                codes += "action.revert()"
+                comment_only = False
+            elif execution["action"] == "execute_actions":
+                codes += "# actions are reverted in the policy engine by default\n"
             else:
-                raise NotImplementedError
-        execution_codes.append(codes)
-    if comment_only:
-        return "\n".join(execution_codes) + "pass\n"
+                # currently only support slackpostmessage
+                action_codename = execution["action"]
+                this_action = find_action_cls(action_codename)
+                if hasattr(this_action, "execution_codes"):
+                    execute_variables = this_action.EXECUTE_VARIABLES
+                    execution = force_execution_variable_types(execution, execute_variables)
+                    codes += this_action.execution_codes(**execution)
+                    comment_only = False
+                else:
+                    raise NotImplementedError
+        else:
+            logger.error(f"view {execution['view']} is not supported")
+            raise NotImplementedError
 
+        execution_codes.append(codes)
     
-    return "\n".join(execution_codes) + "\n"
+    if comment_only:
+        # if the code is only comments, we need to add a pass statement at the end
+        return "\n".join(execution_codes) + "pass\n"
+    else:
+        return "\n".join(execution_codes) + "\n"
+
+def generate_initialize_codes(variables):
+    from policyengine.models import PolicyVariable
+    initialize_codes = []
+    """
+        put the initialize codes for non-string type variables before others,
+        as people could potentially embed these variables in a string
+    """
+    for variable in variables:
+        if not variable["entity"]:
+            """
+                Integer and float variables are literal values so we can directly parse their values.
+                it is unlikely that users will use another variable as their values
+                as there are actually no integer or float parameters for any Slack actions or executions.
+            """
+            value_str = PolicyVariable.embed_value(variable, variable["value"])
+            code = f"variables.{variable['name']} = {value_str}"
+        else:
+            if not Utils.check_code_variables(variable["value"]):
+                # if the variable value is not a code snippet or f-strings, we can directly parse it as well
+                value_str = PolicyVariable.embed_value(variable, variable["value"])
+                code = f"variables.{variable['name']} = {value_str}"
+            else:
+                validated_value = Utils.validate_fstrings(variable["value"])
+                # remove empty curly bracket pairs to avoid errors when executing the code
+                code = f"variables.{variable['name']} = f\"{validated_value}\""
+                # this is safe because for now all variables are string type
+        
+        intialize_weight = 2 if variable["entity"] == "Text" else 1
+        # we first initialize other entities in case users embed other variables in creating the context of a Text variable
+        initialize_codes.append((code, intialize_weight))
+
+    if len(initialize_codes) > 0:
+        initialize_codes.sort(key=lambda x: x[1])
+        initialize_codes = "\n".join([code for code, weight in initialize_codes])
+        initialize_codes += f"\nreturn variables\n"
+        return initialize_codes
+    else:
+        return "return None\n"
+
+def generate_procedure_codes(procedure):
+    """
+        Generate codes for a procedure, see the example of a procedure as the to_json of a Procedure instance
+        e.g. 
+            {
+                "value": primary key of the procedure template
+                "name": "Majority Voting",
+                "description": "....",
+                "platform": "slack",
+                "initialize": a piece of codes,
+                "notify": [
+                    {
+                        "action": "initiate_vote",
+                        "vote_message": "varaibles.vote_message",
+                        "vote_type": "boolean",
+                        "users": "variables.dictator",
+                        "platform": "slack",
+                    },
+                    {
+                        "action": "slackpostmessage",
+                        "text": "variables.notify_message",
+                        "platform": "slack",
+                    }
+                ],
+                "check": "check codes",
+                "transformers": [
+                    {
+                        'pk': transformer pk,
+                        "name": transformer name,
+                        "description": transformer description,
+                        "is_template": self.is_template,
+                        "view": "form",
+                        "codes": transformer codes,
+                        "variables": transformer variables,
+                        "platform": "all"
+                    }
+                ]
+                "variables": variables with values assigned.
+        }
+
+        We want to generate two code blocks, one for the notify stage using generate_execution_codes methods,
+        and another for the check code blocks, where we need to replace all occurrences of variables.[name] with its actual value.
+    """
+    
+    
+    variables = procedure["variables"] or []
+    transformer_variables = []
+    for transformer in procedure["transformers"]:
+        transformer_variables.extend(transformer["variables"])
+    if not procedure["initialize"]:
+        # if there is no initialize codes, we need to generate the codes for initializing variables
+        # and return the variables as well
+        initialize_codes = generate_initialize_codes(variables + transformer_variables)
+    else:
+        # if there is already an initialize codes, we just need to return it
+        initialize_codes = procedure["initialize"]
+    if isinstance(procedure["notify"], str):
+        # if it is already codes, we just need to return it
+        # TODO: we need to format notify codes similar to executions as well.
+        notify_codes = procedure["notify"]
+    else:
+        notify_codes = generate_execution_codes(procedure["notify"])
+    check_codes = ""
+    for transformer in procedure["transformers"]:
+        check_codes += ("#" + "-" * 70 + "\n")
+        check_codes += "# start of the transformer {name}\n".format(name=transformer["name"])
+        check_codes += "# description: {description}\n".format(description=transformer["description"])
+        check_codes += transformer["codes"]
+        check_codes += "# end of the transformer {name}\n".format(name=transformer["name"])
+        check_codes += ("#" + "-" * 50 + "\n\n")
+
+    check_codes += ("#" + "-" * 70 + "\n")
+    check_codes += "# start of the procedure check: {name}\n".format(name=procedure["name"])
+    check_codes += procedure["check"]
+    check_codes += "# end of the procedure check\n"
+    check_codes += ("#" + "-" * 70 + "\n\n")
+    return {
+        "initialize": initialize_codes,
+        "notify": notify_codes,
+        "check": check_codes,
+    }
+    
