@@ -5,8 +5,9 @@ import traceback
 
 from actstream import action as actstream_action
 
-import policyengine.utils as Utils
+import policyengine.generate_codes as CodeGenerator
 from policyengine.safe_exec_code import execute_user_code
+import policyengine.utils as Utils
 
 logger = logging.getLogger(__name__)
 db_logger = logging.getLogger("db")
@@ -79,63 +80,30 @@ class EvaluationContext:
             setattr(self, comm.platform, comm)
 
         self.metagov = Metagov(proposal)
+        # why we need to set this here?
         if not is_first_evaluation:
-            self.initialize_variables()
+            self.initialize_variables(proposal.policy.initialize)
 
-    def initialize_variables(self):
+    def initialize_variables(self, initialize):
         """
         Initialize policy variables according to their default values or codes.
         """
+        # Make policy variables available in the evaluation context
+        setattr(self, "variables", AttrDict({}))
+        logger.debug(f"Initialized variables codes: {initialize}")
+        variables = exec_code_block(initialize, self, "initialize")
+        logger.debug(f"Initialized variables for putting into code running: {variables}")
 
-        variables = {}
-        initialize_codes = []
-        """
-            put the initialize codes for non-string type variables before others,
-            as people could potentially embed these variables in a string
-        """
         for variable in self.policy.variables.all() or []:
-            if not variable.entity:
-                """
-                    Integer and float variables are literal values so we can directly parse their values.
-                    it is unlikely that users will use another variable as their values
-                    as there are actually no integer or float parameters for any Slack actions or executions.
-                """
-                variables[variable.name] = variable.get_variable_values()
-            else:
-                if not Utils.check_code_variables(variable.value):
-                    # if the variable value is not a code snippet or f-strings, we can directly parse it as well
-                    variables[variable.name] = variable.get_variable_values()
-                else:
-                    validated_value = Utils.validate_fstrings(variable.value)
-                    # remove empty curly bracket pairs to avoid errors when executing the code
-                    code = f"variables.{variable.name} = f\"{validated_value}\""
-                    # this is safe because for now all variables are string type
-                    intialize_weight = 2 if variable.entity == "Text" else 1
-                    # we first initialize other entities in case users embed other variables in creating the context of a Text variable
-                    initialize_codes.append((code, intialize_weight))
-
-        if len(initialize_codes) > 0:
-            initialize_codes.sort(key=lambda x: x[1])
-            initialize_codes = "\n".join([code for code, weight in initialize_codes])
-            initialize_codes += "\nreturn variables\n"
-
-            # Make policy variables available in the evaluation context
-            setattr(self, "variables", AttrDict(variables))
-            logger.debug(f"Initialized variables codes: {initialize_codes}")
-            variables = exec_code_block(initialize_codes, self, "initialize_variables")
-            logger.debug(f"Initialized variables for putting into code running: {variables}")
-
-            for variable in self.policy.variables.all() or []:
-                # logger.debug(f"variable name: {variable.name}, value: {variable.value}")
-                if variable.entity and Utils.check_code_variables(variable.value):
-                    # make sure variables value after the initialization is still valid
-                    variables[variable.name] = variable.validate_value(variables[variable.name])
-                    # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
+            # logger.debug(f"variable name: {variable.name}, value: {variable.value}")
+            # confused about what this code is for.
+            if variable.entity and Utils.check_code_variables(variable.value):
+                # make sure variables value after the initialization is still valid
+                variables[variable.name] = variable.validate_value(variables[variable.name])
+                # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
 
 
-            setattr(self, "variables", variables)
-        else:
-            setattr(self, "variables", AttrDict(variables))
+        setattr(self, "variables", variables)
         logger.debug(f"All initialized variables: {self.variables}")
 
 
@@ -357,8 +325,9 @@ def evaluate_proposal_inner(context: EvaluationContext, is_first_evaluation: boo
 
     # If policy is being evaluated for the first time, run "initialize" block
     if is_first_evaluation:
-        context.initialize_variables()
-        exec_code_block(policy.initialize, context, Policy.INITIALIZE)
+        # we expect the initialize block to return a dict of variables
+        context.initialize_variables(policy.initialize)
+        # exec_code_block(policy.initialize, context, Policy.INITIALIZE)
 
     # Run "check" block of policy
     check_result = exec_code_block(policy.check, context, Policy.CHECK)

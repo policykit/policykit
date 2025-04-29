@@ -3,19 +3,19 @@
         "name": "Majority Voting",
         "description": "A simple yes-no vote procedure: if the percentage of yes votes is greater than or equal to the minimum required, the proposal is passed. If the percentage of no votes is greater than or equal to the maximum allowed, the proposal is failed. Otherwise, the proposal is still in progress.",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "if not proposal.vote_post_id:\n\t# initialize stage, use default value for variables that are not specified by users\n\tif not variables.vote_channel:\n\t\tproposal.data.set(\"vote_channel\", action.channel)\n\telse:\n\t\tproposal.data.set(\"vote_channel\", variables.vote_channel)\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users_in_channel(variables.vote_channel)])\n\t\tlogger.debug(f\"eligible users are {[str(user) for user in slack.get_users_in_channel(variables.vote_channel)]}\")\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n\treturn None\n\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables.minimum_yes_required:\n\tslack.post_message(f\"The procedure passed with {yes_votes} :thumbsup: votes and {no_votes} :thumbsdown: votes\", post_type='channel', channel=proposal.data.get(\"vote_channel\"))\n\treturn PASSED\nelif no_votes >= variables.maximum_no_allowed:\n\tslack.post_message(f\"The procedure failed with {yes_votes} :thumbsup: votes and {no_votes} :thumbsdown: votes\", post_type='channel', channel=proposal.data.get(\"vote_channel\"))\n\treturn FAILED\n\nreturn PROPOSED\n"
-        },
+        "initialize": "",
+        "check": "if not proposal.vote_post_id:\n\t# initialize stage, use default value for variables that are not specified by users\n\tif not variables.vote_channel:\n\t\tproposal.data.set(\"vote_channel\", action.channel)\n\telse:\n\t\tproposal.data.set(\"vote_channel\", variables.vote_channel)\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users_in_channel(variables.vote_channel)])\n\t\tlogger.debug(f\"eligible users are {[str(user) for user in slack.get_users_in_channel(variables.vote_channel)]}\")\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n\treturn None\n\n\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nlogger.debug(f\"{yes_votes} for, {no_votes} against\")\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables.minimum_yes_required:\n\tslack.post_message(f\"The procedure passed with {yes_votes} :thumbsup: votes and {no_votes} :thumbsdown: votes\", post_type=\"channel\", channel=proposal.data.get(\"vote_channel\"))\n\treturn PASSED\nelif no_votes >= variables.maximum_no_allowed:\n\tslack.post_message(f\"The procedure failed with {yes_votes} :thumbsup: votes and {no_votes} :thumbsdown: votes\", post_type=\"channel\", channel=proposal.data.get(\"vote_channel\"))\n\treturn FAILED\n\nreturn PROPOSED\n",
         "notify": [
-            {
-                "action": "initiate_vote",
-                "vote_message": "variables.vote_message",
-                "post_type": "channel",
-                "users": "data.eligible_voters",
-                "channel": "data.vote_channel",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_vote",
+                    "vote_message": "variables.vote_message",
+                    "post_type": "channel",
+                    "users": "data.eligible_voters",
+                    "channel": "data.vote_channel",
+                    "platform": "slack"
+                }
             }
         ],
         "variables": [
@@ -105,23 +105,26 @@
         "name": "Benevolent Dictator",
         "description": "A benevolent dictator has the final say on all proposals. The dictator can either approve or reject a proposal through a DM with the bot.",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n\treturn FAILED\nreturn PROPOSED"
-        },
+        "initialize": "",
+        "check": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nif(yes_votes == 1 and no_votes == 0):\n\treturn PASSED\nelif(yes_votes == 0 and no_votes == 1):\n\treturn FAILED\nreturn PROPOSED",
         "notify": [
-            {
-                "action": "initiate_vote",
-                "vote_message": "variables.decision_message",
-                "post_type": "mpim",
-                "users": "variables.dictator",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_vote",
+                    "vote_message": "variables.decision_message",
+                    "post_type": "mpim",
+                    "users": "variables.dictator",
+                    "platform": "slack"
+                }
             },
-            {
-                "action": "slackpostmessage",
-                "text": "variables.notify_message",
-                "channel": "variables.notify_channel"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "slackpostmessage",
+                    "text": "variables.notify_message",
+                    "channel": "variables.notify_channel"
+                }
             }
         ],
         "variables": [
@@ -172,21 +175,21 @@
         "name": "Ranked Voting for Community Users",
         "description": "Each voter is asked to rank candidates, who will then be assigned a socre based on their ranking. The candidate with the highest overall score is the winner.",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "\nif not variables.max_rank:\n\tproposal.data.set(\"max_rank\", len(variables.candidates))\nelse:\n\tproposal.data.set(\"max_rank\", variables.max_rank)\n\nif not variables.rank_scores:\n\tmax_rank = proposal.data.get(\"max_rank\")\n\tproposal.data.set(\"rank_scores\", [max_rank - i for i in range(max_rank)])\nelse:\n\tproposal.data.set(\"rank_scores\", variables.rank_scores)\n\tif len(variables.rank_scores) != proposal.data.get(\"max_rank\"):\n\t\tlogger.debug(\"The list of rank scores should have the length of max_rank.\")\n\t\treturn FAILED\n\nif not proposal.data.get(\"options\"):\n\tproposal.data.set(\"options\", [str(i) for i in range(1, proposal.data.get(\"max_rank\") + 1)])\n\nif not proposal.vote_post_id:\n\t# initialize stage, use default value for variables that are not specified by users\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users_in_channel(variables.vote_channel)])\n\t\tlogger.debug(f\"eligible users are {[str(user) for user in slack.get_users_in_channel(variables.vote_channel)]}\")\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n\treturn None \n    \nif not proposal.vote_post_id:\n\treturn None\n\nif proposal.get_time_elapsed().total_seconds() > variables.vote_duration:\n\toutcomes = proposal.get_select_votes_by_users()\n\tvalid_users = []\n\tfor user in proposal.data.get(\"eligible_voters\"):\n\t\tif user not in outcomes:\n\t\t\tcontinue\n\t\tvotes = outcomes.get(user, {})\n\t\trank_options = proposal.data.get(\"options\")\n\t\tcandidates = variables.candidates\n\t\tif len(votes) != len(set(votes.values())):\n\t\t\tslack.post_message(f\"You ranked two candidates in the same position, and therefore your vote will be discarded\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telif len(candidates) > len(rank_options) and len(votes) != len(rank_options):\n\t\t\t# when people are asked to choose top N candidates from more candidates, they are expected to give out all ranks\n\t\t\tslack.post_message(f\"You are expected to choose the top {variables.max_rank} candidates, but you only ranked {len(votes)}. So your vote will be discarded.\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telif len(candidates) < len(rank_options) and len(votes) != len(candidates):\n\t\t\t# when people are asked to rank all candidates\n\t\t\tslack.post_message(f\"You are expected to rank all candidates, but you only ranked {len(votes)} out of {len(candidates)}. So your vote will be discarded.\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telse:\n\t\t\tslack.post_message(f\"You have successfully ranked candidates and therefore your votes are valid\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\t\tvalid_users.append(user)\n\tlogger.debug(f\"valid users {valid_users}\")\n\toutcomes_by_candidates = proposal.get_select_votes_by_candidates(users=valid_users)\n\tlogger.debug(f\"outcomes_by_candidates {outcomes_by_candidates}\")\n\tcandidates_scores = []\n\trank_scores = proposal.data.get(\"rank_scores\")\n\tfor candidate, votes in outcomes_by_candidates.items():\n\t\tscores = 0\n\t\tfor index in range(len(rank_options)):\n\t\t\trank = rank_options[index]\n\t\t\tif rank in votes:\n\t\t\t\tscores += rank_scores[index] * len(votes[rank])\n\t\tcandidates_scores.append((candidate, scores))\n\tcandidates_scores = sorted(candidates_scores, key=lambda x: x[1], reverse=True)\n\tlogger.debug(f\"ordered candidates scores {candidates_scores}\")\n\tpotential_winners = [candidate_pair[0] for candidate_pair in candidates_scores if candidate_pair[1] == candidates_scores[0][1]]\n\tif len(potential_winners) > 1:\n\t\tslack.post_message(\"There are ties in this vote and therefore the procedure fails\", post_type='channel', channel=variables.vote_channel, thread_ts=proposal.vote_post_id, reply_broadcast=True)\n\t\treturn FAILED\n\telif len(potential_winners) == 0:\n\t\tslack.post_message(\"There are no vote at all and therefore the procedure fails\", post_type='channel', channel=variables.vote_channel, thread_ts=proposal.vote_post_id, reply_broadcast=True)\n\t\treturn FAILED\n\telse:\n\t\tproposal.data.set(\"winner\", potential_winners[0])\n\t\tcandidate_scores_summary = \", \".join([f\"{candidate_pair[1]} for {candidate_pair[0]}\" for candidate_pair in candidates_scores])\n\t\tslack.post_message(f\"The candidate **{potential_winners[0]}** stands out in this ranked vote. Scores for each candidate are {candidate_scores_summary}\" , post_type='channel', channel=variables.vote_channel, thread_ts=proposal.vote_post_id, reply_broadcast=True)\n\t\treturn PASSED\nreturn PROPOSED"
-        },
+        "initialize": "",
+        "check": "\nif not variables.max_rank:\n\tproposal.data.set(\"max_rank\", len(variables.candidates))\nelse:\n\tproposal.data.set(\"max_rank\", variables.max_rank)\n\nif not variables.rank_scores:\n\tmax_rank = proposal.data.get(\"max_rank\")\n\tproposal.data.set(\"rank_scores\", [max_rank - i for i in range(max_rank)])\nelse:\n\tproposal.data.set(\"rank_scores\", variables.rank_scores)\n\tif len(variables.rank_scores) != proposal.data.get(\"max_rank\"):\n\t\tlogger.debug(\"The list of rank scores should have the length of max_rank.\")\n\t\treturn FAILED\n\nif not proposal.data.get(\"options\"):\n\tproposal.data.set(\"options\", [str(i) for i in range(1, proposal.data.get(\"max_rank\") + 1)])\n\nif not proposal.vote_post_id:\n\t# initialize stage, use default value for variables that are not specified by users\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users_in_channel(variables.vote_channel)])\n\t\tlogger.debug(f\"eligible users are {[str(user) for user in slack.get_users_in_channel(variables.vote_channel)]}\")\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n\treturn None \n    \nif not proposal.vote_post_id:\n\treturn None\n\nif proposal.get_time_elapsed().total_seconds() > variables.vote_duration:\n\toutcomes = proposal.get_select_votes_by_users()\n\tvalid_users = []\n\tfor user in proposal.data.get(\"eligible_voters\"):\n\t\tif user not in outcomes:\n\t\t\tcontinue\n\t\tvotes = outcomes.get(user, {})\n\t\trank_options = proposal.data.get(\"options\")\n\t\tcandidates = variables.candidates\n\t\tif len(votes) != len(set(votes.values())):\n\t\t\tslack.post_message(f\"You ranked two candidates in the same position, and therefore your vote will be discarded\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telif len(candidates) > len(rank_options) and len(votes) != len(rank_options):\n\t\t\t# when people are asked to choose top N candidates from more candidates, they are expected to give out all ranks\n\t\t\tslack.post_message(f\"You are expected to choose the top {variables.max_rank} candidates, but you only ranked {len(votes)}. So your vote will be discarded.\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telif len(candidates) < len(rank_options) and len(votes) != len(candidates):\n\t\t\t# when people are asked to rank all candidates\n\t\t\tslack.post_message(f\"You are expected to rank all candidates, but you only ranked {len(votes)} out of {len(candidates)}. So your vote will be discarded.\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telse:\n\t\t\tslack.post_message(f\"You have successfully ranked candidates and therefore your votes are valid\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\t\tvalid_users.append(user)\n\tlogger.debug(f\"valid users {valid_users}\")\n\toutcomes_by_candidates = proposal.get_select_votes_by_candidates(users=valid_users)\n\tlogger.debug(f\"outcomes_by_candidates {outcomes_by_candidates}\")\n\tcandidates_scores = []\n\trank_scores = proposal.data.get(\"rank_scores\")\n\tfor candidate, votes in outcomes_by_candidates.items():\n\t\tscores = 0\n\t\tfor index in range(len(rank_options)):\n\t\t\trank = rank_options[index]\n\t\t\tif rank in votes:\n\t\t\t\tscores += rank_scores[index] * len(votes[rank])\n\t\tcandidates_scores.append((candidate, scores))\n\tcandidates_scores = sorted(candidates_scores, key=lambda x: x[1], reverse=True)\n\tlogger.debug(f\"ordered candidates scores {candidates_scores}\")\n\tpotential_winners = [candidate_pair[0] for candidate_pair in candidates_scores if candidate_pair[1] == candidates_scores[0][1]]\n\tif len(potential_winners) > 1:\n\t\tslack.post_message(\"There are ties in this vote and therefore the procedure fails\", post_type='channel', channel=variables.vote_channel, thread_ts=proposal.vote_post_id, reply_broadcast=True)\n\t\treturn FAILED\n\telif len(potential_winners) == 0:\n\t\tslack.post_message(\"There are no vote at all and therefore the procedure fails\", post_type='channel', channel=variables.vote_channel, thread_ts=proposal.vote_post_id, reply_broadcast=True)\n\t\treturn FAILED\n\telse:\n\t\tproposal.data.set(\"winner\", potential_winners[0])\n\t\tcandidate_scores_summary = \", \".join([f\"{candidate_pair[1]} for {candidate_pair[0]}\" for candidate_pair in candidates_scores])\n\t\tslack.post_message(f\"The candidate **{potential_winners[0]}** stands out in this ranked vote. Scores for each candidate are {candidate_scores_summary}\" , post_type='channel', channel=variables.vote_channel, thread_ts=proposal.vote_post_id, reply_broadcast=True)\n\t\treturn PASSED\nreturn PROPOSED",
         "notify": [
-            {
-                "action": "initiate_advanced_vote",
-                "candidates": "variables.candidates",
-                "options": "data.options",
-                "users": "data.eligible_voters",
-                "channel": "variables.vote_channel",
-                "title": "variables.vote_message",
-                "details": "",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_advanced_vote",
+                    "candidates": "variables.candidates",
+                    "options": "data.options",
+                    "users": "data.eligible_voters",
+                    "channel": "variables.vote_channel",
+                    "title": "variables.vote_message",
+                    "details": "",
+                    "platform": "slack"
+                }
             }
         ],
         "variables": [
@@ -279,23 +282,26 @@
         "name": "Board Voting",
         "description": "Community members of a specified role, i.e. a Board, can vote on a proposal. The board can either approve or reject a proposal through either a designated moderation channel or mpim with the bot.",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables.minimum_yes_required:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\nreturn PROPOSED\n"
-        },
+        "initialize": "",
+        "check": "if not proposal.vote_post_id:\n\treturn None\nyes_votes = proposal.get_yes_votes().count()\nno_votes = proposal.get_no_votes().count()\nproposal.data.set(\"yes_votes_num\", yes_votes)\nproposal.data.set(\"no_votes_num\", no_votes)\nif yes_votes >= variables.minimum_yes_required:\n  return PASSED\nelif no_votes >= variables.maximum_no_allowed:\n  return FAILED\nreturn PROPOSED\n",
         "notify": [
-            {
-                "action": "initiate_vote",
-                "vote_message": "variables.decision_message",
-                "post_type": "mpim",
-                "users": "data.board_members",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_vote",
+                    "vote_message": "variables.decision_message",
+                    "post_type": "mpim",
+                    "users": "data.board_members",
+                    "platform": "slack"
+                }
             },
             {
-                "action": "slackpostmessage",
-                "text": "variables.notify_message",
-                "channel": "variables.notify_channel"
+                "view": "form",
+                "form": {
+                    "action": "slackpostmessage",
+                    "text": "variables.notify_message",
+                    "channel": "variables.notify_channel"
+                }
             }
         ],
         "variables": [
@@ -391,21 +397,22 @@
         "name": "Quadratic Voting",
         "description": "Each voter is given a budget of vote credits that they can spend in order to influence the outcome of a range of decisions. The cost of vote credits is quadratic to the number of votes",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "if not proposal.data.get(\"options\"):\n\tproposal.data.set(\"options\", [str(i) for i in range(1, int(math.sqrt(variables.vote_budget)) + 1)])\n\nif not proposal.data.get(\"eligible_voters\"):\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users()])\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n    \nif not proposal.vote_post_id:\n\treturn None\n\nif proposal.get_time_elapsed().total_seconds() > variables.vote_duration:\n\toutcomes = proposal.get_select_votes_by_users()\n\tvalid_users = []\n\tfor user in proposal.data.get(\"eligible_voters\"):\n\t\tif user not in outcomes:\n\t\t\tslack.post_message(f\"Please remember that you have not voted yet\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\t\tcontinue\n\t\tvotes = outcomes.get(user, {})\n\t\tsum_of_cost = 0\n\t\tfor candidate, vote in votes.items():\n\t\t\tsum_of_cost += int(vote) * int(vote)\n\t\tif sum_of_cost > variables.vote_budget:\n\t\t\tslack.post_message(f\"You have used voting budget {sum_of_cost - variables.vote_budget} more than allocated, and therefore your vote will be discarded\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telse:\n\t\t\tslack.post_message(f\"You have used {sum_of_cost} voting budget below the limit {variables.vote_budget} and therefore your vote is valid\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\t\tvalid_users.append(user)\n\tlogger.debug(f\"valid users {valid_users}\")\n\toutcomes_by_candidates = proposal.get_select_votes_by_candidates(users=valid_users)\n\tlogger.debug(f\"outcomes_by_candidates {outcomes_by_candidates}\")\n\tcandidates_scores = []\n\tfor candidate, votes in outcomes_by_candidates.items():\n\t\tscores = 0\n\t\tfor option, voters_list in votes.items():\n\t\t\tscores += int(option) * len(voters_list)\n\t\tcandidates_scores.append((candidate, scores))\n\tcandidates_scores = sorted(candidates_scores, key=lambda x: x[1], reverse=True)\n\tlogger.debug(f\"ordered candidates scores {candidates_scores}\")\n\tpotential_winners = [candidate_pair[0] for candidate_pair in candidates_scores if candidate_pair[1] == candidates_scores[0][1]]\n\tproposal.data.set(\"winners\", potential_winners)\n\tif len(potential_winners) > 1:\n\t\treturn FAILED\n\telse:\n\t\treturn PASSED\nreturn PROPOSED"
-        },
+        "initialize": "",
+        "check": "if not proposal.data.get(\"options\"):\n\tproposal.data.set(\"options\", [str(i) for i in range(1, int(math.sqrt(variables.vote_budget)) + 1)])\n\nif not proposal.data.get(\"eligible_voters\"):\n\tif not variables.eligible_voters:\n\t\tproposal.data.set(\"eligible_voters\", [user.username for user in slack.get_users()])\n\telse:\n\t\tproposal.data.set(\"eligible_voters\", variables.eligible_voters)\n    \nif not proposal.vote_post_id:\n\treturn None\n\nif proposal.get_time_elapsed().total_seconds() > variables.vote_duration:\n\toutcomes = proposal.get_select_votes_by_users()\n\tvalid_users = []\n\tfor user in proposal.data.get(\"eligible_voters\"):\n\t\tif user not in outcomes:\n\t\t\tslack.post_message(f\"Please remember that you have not voted yet\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\t\tcontinue\n\t\tvotes = outcomes.get(user, {})\n\t\tsum_of_cost = 0\n\t\tfor candidate, vote in votes.items():\n\t\t\tsum_of_cost += int(vote) * int(vote)\n\t\tif sum_of_cost > variables.vote_budget:\n\t\t\tslack.post_message(f\"You have used voting budget {sum_of_cost - variables.vote_budget} more than allocated, and therefore your vote will be discarded\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\telse:\n\t\t\tslack.post_message(f\"You have used {sum_of_cost} voting budget below the limit {variables.vote_budget} and therefore your vote is valid\", users=[user], post_type=\"ephemeral\", channel=variables.vote_channel)\n\t\t\tvalid_users.append(user)\n\tlogger.debug(f\"valid users {valid_users}\")\n\toutcomes_by_candidates = proposal.get_select_votes_by_candidates(users=valid_users)\n\tlogger.debug(f\"outcomes_by_candidates {outcomes_by_candidates}\")\n\tcandidates_scores = []\n\tfor candidate, votes in outcomes_by_candidates.items():\n\t\tscores = 0\n\t\tfor option, voters_list in votes.items():\n\t\t\tscores += int(option) * len(voters_list)\n\t\tcandidates_scores.append((candidate, scores))\n\tcandidates_scores = sorted(candidates_scores, key=lambda x: x[1], reverse=True)\n\tlogger.debug(f\"ordered candidates scores {candidates_scores}\")\n\tpotential_winners = [candidate_pair[0] for candidate_pair in candidates_scores if candidate_pair[1] == candidates_scores[0][1]]\n\tproposal.data.set(\"winners\", potential_winners)\n\tif len(potential_winners) > 1:\n\t\treturn FAILED\n\telse:\n\t\treturn PASSED\nreturn PROPOSED",
         "notify": [
-            {
-                "action": "initiate_advanced_vote",
-                "candidates": "variables.candidates",
-                "options": "data.options",
-                "users": "variables.eligible_voters",
-                "channel": "variables.vote_channel",
-                "title": "variables.vote_message",
-                "details": "Each voter is given a budget of vote credits {variables.vote_budget} that they can spend in order to influence the outcome of a range of decisions. The cost of vote credits is quadratic to the number of votes",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_advanced_vote",
+                    "candidates": "variables.candidates",
+                    "options": "data.options",
+                    "users": "variables.eligible_voters",
+                    "channel": "variables.vote_channel",
+                    "title": "variables.vote_message",
+                    "details": "Each voter is given a budget of vote credits {variables.vote_budget} that they can spend in order to influence the outcome of a range of decisions. The cost of vote credits is quadratic to the number of votes",
+                    "platform": "slack"
+                }
+                
             }
         ],
         "variables": [
@@ -479,21 +486,21 @@
         "name": "Liquid Democracy",
         "description": "The action will be governed through liquid democracy. Voters in a liquid democracy have the right to vote directly on all policy issues (direct democracy); voters also have the option to delegate their votes to someone who will vote on their behalf (representative democracy).",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "if proposal.data.get(\"delegate_stage\") is None:\n\tproposal.data.set(\"delegate_stage\", True)\n\nif not proposal.data.get(\"username_dict\") or not proposal.data.get(\"readable_name_dict\"):\n\tall_users_dict = {user.username: str(user) for user in slack.get_users()}\n\tusername_dict = {username: all_users_dict[username] for username in variables.eligible_voters}\n\treadable_name_dict = {readable_name: username for username, readable_name in username_dict.items()}\n\tproposal.data.set(\"username_dict\", username_dict)\n\tproposal.data.set(\"readable_name_dict\", readable_name_dict)\n\tproposal.data.set(\"eligible_voters_with_readable_names\", [all_users_dict[username] for username in variables.eligible_voters])\nif not proposal.vote_post_id:\n\treturn None\n\n\nif proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > variables.delegate_duration:\n\tlogger.debug(\"We are now at the delegation process\")\n\treadable_name_dict = proposal.data.get(\"readable_name_dict\")\n\tusername_dict = proposal.data.get(\"username_dict\")\n\t\n\toutcomes = proposal.get_select_votes_by_users()\n\tfake_option = \"Your representative for this proposal\"\n\tdelegates_dict = {}\n\tproxy_dict = {}\n\tfor user in variables.eligible_voters: # iterate all usernames, including those who have not voted\n\t\tvotes = outcomes.get(user, {})\n\t\tif votes.get(fake_option, {}) and readable_name_dict.get(votes[fake_option], \"\") != user:\n\t\t\tdelegates_dict[user] = readable_name_dict[votes[fake_option]] # converted to user id\n\t\t\tslack.post_message(f\"You have delegated your votes to {votes[fake_option]}\", users=[user], post_type=\"ephemeral\", channel=variables.procedure_channel)\n\t\telse:\n\t\t\tdelegates_dict[user] = user\n\t\t\tproxy_dict[user] = [user]\n            \n    # TODO: we need to decide whether there is a loop in this directed graph\n\tfor voter, delegate in delegates_dict.items():\n\t\tif voter not in proxy_dict: # they delegate their votes to others\n\t\t\tfinal_delegate = delegate\n\t\t\twhile final_delegate not in proxy_dict:\n\t\t\t\tfinal_delegate = delegates_dict[final_delegate]\n\t\t\tproxy_dict[final_delegate].append(voter)\n\tfor proxy, delegate_list in proxy_dict.items():\n\t\treadable_names = \", \".join(username_dict[user] for user in delegate_list)\n\t\tslack.post_message(f\"When making decision on this proposal, please remember that you are representing the following users {readable_names}\", post_type=\"ephemeral\", users=[proxy], channel=variables.procedure_channel)\n\tlogger.debug(\"representatives: \" + \", \".join([username_dict[proxy] for proxy in proxy_dict.keys()]))\n\tslack.initiate_vote(users=[key for key in proxy_dict.keys()], post_type=\"channel\", text=\"We have collected people's delegation results, and now let's vote on this proposal\", channel=variables.procedure_channel)\n\tproposal.data.set(\"proxy_dict\", proxy_dict)\n\tproposal.data.set(\"delegate_stage\", False)\n\treturn PROPOSED\n\nif not proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > (variables.delegate_duration + variables.vote_duration):\n\tlogger.debug(\"We are now at the actual voting process\")\n\tproxy_dict = proposal.data.get(\"proxy_dict\")\n\tyes_votes = proposal.get_yes_votes()\n\tweighted_yes_votes_sum = 0\n\tfor vote in yes_votes:\n\t\tweighted_yes_votes_sum += len(proxy_dict[vote.user.username])\n\tno_votes = proposal.get_no_votes()\n\tweighted_no_votes_sum = 0\n\tfor vote in no_votes:\n\t\tweighted_no_votes_sum += len(proxy_dict[vote.user.username])\n\tslack.post_message(f\"There are in total {weighted_yes_votes_sum} yes votes and {weighted_no_votes_sum} no votes\")\n\tif weighted_yes_votes_sum > weighted_no_votes_sum:\n\t\treturn PASSED\n\telse:\n\t\treturn FAILED\nreturn PROPOSED"
-        },
+        "initialize": "",
+        "check": "if proposal.data.get(\"delegate_stage\") is None:\n\tproposal.data.set(\"delegate_stage\", True)\n\nif not proposal.data.get(\"username_dict\") or not proposal.data.get(\"readable_name_dict\"):\n\tall_users_dict = {user.username: str(user) for user in slack.get_users()}\n\tusername_dict = {username: all_users_dict[username] for username in variables.eligible_voters}\n\treadable_name_dict = {readable_name: username for username, readable_name in username_dict.items()}\n\tproposal.data.set(\"username_dict\", username_dict)\n\tproposal.data.set(\"readable_name_dict\", readable_name_dict)\n\tproposal.data.set(\"eligible_voters_with_readable_names\", [all_users_dict[username] for username in variables.eligible_voters])\nif not proposal.vote_post_id:\n\treturn None\n\n\nif proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > variables.delegate_duration:\n\tlogger.debug(\"We are now at the delegation process\")\n\treadable_name_dict = proposal.data.get(\"readable_name_dict\")\n\tusername_dict = proposal.data.get(\"username_dict\")\n\t\n\toutcomes = proposal.get_select_votes_by_users()\n\tfake_option = \"Your representative for this proposal\"\n\tdelegates_dict = {}\n\tproxy_dict = {}\n\tfor user in variables.eligible_voters: # iterate all usernames, including those who have not voted\n\t\tvotes = outcomes.get(user, {})\n\t\tif votes.get(fake_option, {}) and readable_name_dict.get(votes[fake_option], \"\") != user:\n\t\t\tdelegates_dict[user] = readable_name_dict[votes[fake_option]] # converted to user id\n\t\t\tslack.post_message(f\"You have delegated your votes to {votes[fake_option]}\", users=[user], post_type=\"ephemeral\", channel=variables.procedure_channel)\n\t\telse:\n\t\t\tdelegates_dict[user] = user\n\t\t\tproxy_dict[user] = [user]\n            \n    # TODO: we need to decide whether there is a loop in this directed graph\n\tfor voter, delegate in delegates_dict.items():\n\t\tif voter not in proxy_dict: # they delegate their votes to others\n\t\t\tfinal_delegate = delegate\n\t\t\twhile final_delegate not in proxy_dict:\n\t\t\t\tfinal_delegate = delegates_dict[final_delegate]\n\t\t\tproxy_dict[final_delegate].append(voter)\n\tfor proxy, delegate_list in proxy_dict.items():\n\t\treadable_names = \", \".join(username_dict[user] for user in delegate_list)\n\t\tslack.post_message(f\"When making decision on this proposal, please remember that you are representing the following users {readable_names}\", post_type=\"ephemeral\", users=[proxy], channel=variables.procedure_channel)\n\tlogger.debug(\"representatives: \" + \", \".join([username_dict[proxy] for proxy in proxy_dict.keys()]))\n\tslack.initiate_vote(users=[key for key in proxy_dict.keys()], post_type=\"channel\", text=\"We have collected people's delegation results, and now let's vote on this proposal\", channel=variables.procedure_channel)\n\tproposal.data.set(\"proxy_dict\", proxy_dict)\n\tproposal.data.set(\"delegate_stage\", False)\n\treturn PROPOSED\n\nif not proposal.data.get(\"delegate_stage\") and proposal.get_time_elapsed().total_seconds() > (variables.delegate_duration + variables.vote_duration):\n\tlogger.debug(\"We are now at the actual voting process\")\n\tproxy_dict = proposal.data.get(\"proxy_dict\")\n\tyes_votes = proposal.get_yes_votes()\n\tweighted_yes_votes_sum = 0\n\tfor vote in yes_votes:\n\t\tweighted_yes_votes_sum += len(proxy_dict[vote.user.username])\n\tno_votes = proposal.get_no_votes()\n\tweighted_no_votes_sum = 0\n\tfor vote in no_votes:\n\t\tweighted_no_votes_sum += len(proxy_dict[vote.user.username])\n\tslack.post_message(f\"There are in total {weighted_yes_votes_sum} yes votes and {weighted_no_votes_sum} no votes\")\n\tif weighted_yes_votes_sum > weighted_no_votes_sum:\n\t\treturn PASSED\n\telse:\n\t\treturn FAILED\nreturn PROPOSED",
         "notify": [
-            {
-                "action": "initiate_advanced_vote",
-                "candidates": "Your representative for this proposal",
-                "options": "data.eligible_voters_with_readable_names",
-                "users": "variables.eligible_voters",
-                "channel": "variables.procedure_channel",
-                "title": "Please select the individual you would like to delegate your vote to",
-                "details": "variables.delegate_message",
-                "platform": "slack"
+            {   
+                "view": "form",
+                "form": {
+                    "action": "initiate_advanced_vote",
+                    "candidates": "Your representative for this proposal",
+                    "options": "data.eligible_voters_with_readable_names",
+                    "users": "variables.eligible_voters",
+                    "channel": "variables.procedure_channel",
+                    "title": "Please select the individual you would like to delegate your vote to",
+                    "details": "variables.delegate_message",
+                    "platform": "slack"
+                }
             }
         ],
         "variables": [
@@ -557,11 +564,8 @@
         "name": "Placeholder Procedure",
         "description": "As a placeholder, it will always pass",
         "platform": "Slack",
-        "initialize": [],
-        "check": {
-                "name": "main",
-                "codes": "\nreturn PASSED"
-        },
+        "initialize": "",
+        "check": "\nreturn PASSED",
         "notify": [],
         "variables": [],
         "data": []

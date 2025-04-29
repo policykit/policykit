@@ -9,6 +9,7 @@ attrs==24.2.0
 autopep8==2.3.1
 babel==2.16.0
 billiard==4.2.1
+black==23.1.0
 bytecode==0.16.0
 cattrs==24.1.2
 celery==5.4.0
