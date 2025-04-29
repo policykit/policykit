@@ -12,7 +12,6 @@
     <meta name="author" content="">
     <title>PolicyKit</title>
     <!-- Styles -->
-    <link rel="stylesheet" href={% static "policyengine/css/output.css" %}>
     {% block styles %}{% endblock %}
     <!-- Custom Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,6 +36,7 @@
     <script src={% static "policyengine/js/jquery-3.4.1.min.js" %}></script>
     {% vite_hmr_client %}
     {% vite_react_refresh %}
+    {% vite_asset 'src/style.css' %}     
   </head>
   <body>
     <div class="lg:flex">

@@ -32,6 +32,23 @@ def dashboard(request):
     user = get_user(request)
     return Response(CommunityDashboardSerializer(user.community.community).data)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def community_doc(request):
+    user = get_user(request)
+    community = user.community.community
+    text = request.data['text']
+    name = request.data['name']
+    doc = community.get_documents()[0]
+    if text is not None:
+        doc.text = text
+    if name is not None:
+        doc.name = name
+    doc.save()
+    return Response({}, status=200)
+
+
+
 def put_members(user, action, role, members):
     from constitution.models import (PolicykitAddUserRole,
                                      PolicykitRemoveUserRole)

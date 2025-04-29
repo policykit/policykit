@@ -27,7 +27,7 @@ services:
   frontend:
     build: ./frontend/
     volumes:
-      - ./frontend:/app
+      - .:/app
     ports:
       - "5173:5173"
 
