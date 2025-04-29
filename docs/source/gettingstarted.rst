@@ -113,7 +113,6 @@ You can also deploy PolicyKit using Docker.
 .. code-block:: shell
 
         docker compose run --rm frontend yarn build
-        env DJANGO_VITE_DEV_MODE=False docker compose run --rm web python manage.py collectstatic
         env DJANGO_VITE_DEV_MODE=False docker compose up web
 
 If you would like to save the DB:
