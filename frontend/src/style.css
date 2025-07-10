@@ -1,0 +1,643 @@
+@import './react-aria-components-tailwind-starter/theme/index.css';
+
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+
+@utility h1 {
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 38.4px */
+}
+
+@utility h2 {
+  font-size: 1.8125;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 34.8px */
+}
+
+@utility h3 {
+  font-size: 1.5625rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%; /* 30px */
+}
+
+@utility h4 {
+  font-size: 1.375rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%; /* 26.4px */
+}
+
+@utility large {
+  &p {
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 25.08px */
+  }
+
+  & .p {
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 25.08px */
+  }
+
+  &.button {
+    @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 22.8px */
+  }
+
+  &.button.secondary {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
+}
+
+@utility p {
+  &.large {
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 132%; /* 25.08px */
+  }
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 132%; /* 21.12px */
+
+  &.focussed {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  &.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.small.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+}
+
+@utility focussed {
+  &p {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  & .p {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 124%; /* 19.84px */
+  }
+
+  &p.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .p.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+}
+
+@utility small {
+  &p {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & span {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .p {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &p.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .p.focussed {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .button {
+    @apply rounded-[3.5px];
+  }
+
+  &.button {
+    @apply px-4 py-2 flex gap-2 items-center;
+  }
+
+  &.button {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .link {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.button {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.button svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.button svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility subtext {
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 14.4px */
+}
+
+@utility button {
+  /* button */
+
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
+  &.primary {
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
+  }
+
+  &.large {
+    @apply px-10 py-2 rounded-[20px] flex gap-2 items-center;
+    font-size: 1.1875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 22.8px */
+  }
+
+  &.large.secondary {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
+
+  &.medium {
+    @apply rounded-[3.5px];
+  }
+
+  &.small {
+    @apply rounded-[3.5px];
+  }
+
+  &.tiny {
+    @apply rounded-[3.5px];
+  }
+
+  &.medium {
+    @apply px-8 py-2 flex gap-2 items-center;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
+  }
+
+  &.medium.primary svg.external-link-icon {
+    @apply fill-white;
+  }
+
+  &.small {
+    @apply px-4 py-2 flex gap-2 items-center;
+  }
+
+  &.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.tiny {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  &.small {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.medium.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.tiny.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  &.small svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.medium.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.tiny.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  &.small svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.medium.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.tiny.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.tiny {
+    @apply px-3 py-1.5 flex gap-2 items-center;
+  }
+
+  &.error {
+    @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
+  }
+
+  &:disabled {
+    @apply cursor-not-allowed!
+   /* !bg-grey !text-white; */;
+  }
+
+  &.icon-only {
+    @apply px-2 rounded-full w-[34px] h-[34px];
+  }
+
+  &.icon-only svg {
+    @apply w-full h-full;
+  }
+
+  &.slack {
+    @apply bg-slack py-3 rounded-[4px];
+  }
+}
+
+@utility primary {
+  /* button */
+
+  /* specifying .btn.btn-primary for jsonforms plugin used in new integration page */
+
+  &.button {
+    @apply bg-primary-dark text-white hover:bg-primary cursor-pointer;
+  }
+
+  &.button.medium svg.external-link-icon {
+    @apply fill-white;
+  }
+}
+
+@utility secondary {
+  &.button.large {
+    @apply bg-primary-lightest text-primary-dark hover:bg-primary-light;
+  }
+
+  & .button.medium {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.tiny {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.medium svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.tiny svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.medium svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  & .button.tiny svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility medium {
+  &.button {
+    @apply rounded-[3.5px];
+  }
+
+  &.button {
+    @apply px-8 py-2 flex gap-2 items-center;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 19.2px */
+  }
+
+  &.button.primary svg.external-link-icon {
+    @apply fill-white;
+  }
+
+  & .button.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility tiny {
+  & .button {
+    @apply rounded-[3.5px];
+  }
+
+  & .button {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  & .button.secondary {
+    @apply border-2 border-primary-lightest hover:bg-primary-lightest text-primary-dark;
+  }
+
+  & .button.secondary svg {
+    @apply stroke-primary-dark;
+  }
+
+  & .button.secondary svg.external-link-icon {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  &.button {
+    @apply px-3 py-1.5 flex gap-2 items-center;
+  }
+}
+
+@utility external-link-icon {
+  .button.medium.primary &svg {
+    @apply fill-white;
+  }
+
+  .button.small &svg {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  .button.medium.secondary &svg {
+    @apply fill-primary-dark stroke-none;
+  }
+
+  .button.tiny.secondary &svg {
+    @apply fill-primary-dark stroke-none;
+  }
+}
+
+@utility link {
+  &.small {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%; /* 16.8px */
+  }
+
+  /* links */
+  @apply px-2 py-1 rounded-[3.5px] text-primary-dark hover:bg-primary-lightest;
+
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 19.2px */
+}
+
+@utility error {
+  &.button {
+    @apply border bg-white border-error-dark text-error-dark hover:bg-error-dark hover:text-white;
+  }
+}
+
+@utility icon-only {
+  &.button {
+    @apply px-2 rounded-full w-[34px] h-[34px];
+  }
+
+  &.button svg {
+    @apply w-full h-full;
+  }
+}
+
+@utility slack {
+  &.button {
+    @apply bg-slack py-3 rounded-[4px];
+  }
+}
+
+@utility radio-group {
+  @apply space-y-4;
+
+  & label:has(input:checked) {
+    @apply border-primary shadow-focus;
+  }
+}
+
+@utility radio-group-item {
+  @apply flex items-start gap-4 px-6 py-4 cursor-pointer rounded-lg border-2 border-background-focus focus:outline focus:outline-primary hover:shadow-focus hover:border-primary;
+}
+
+@utility checkbox {
+  @apply stroke-primary-dark;
+}
+
+@utility checkbox-label {
+  &:hover .checkbox-bg {
+    @apply fill-primary-light;
+  }
+}
+
+@utility checkbox-bg {
+  .checkbox-label:hover & {
+    @apply fill-primary-light;
+  }
+
+  input[type='checkbox']:checked + svg & {
+    @apply fill-primary-dark;
+  }
+}
+
+@layer utilities {
+  :root {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  /* typography */
+}
+
+@layer components {
+
+  /* search input */
+
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+  }
+
+  /* text input */
+
+  input[type="text"],
+  textarea {
+    @apply bg-background-light px-4 py-2 rounded-xs focus:outline focus:outline-primary w-full;
+  }
+
+  /* radio */
+
+  input[type="radio"] {
+    @apply border-primary-dark disabled:border-grey rounded-xs checked:accent-primary-dark disabled:hover:accent-grey-light disabled:checked:accent-grey w-4 h-4 p-2 disabled:cursor-not-allowed;
+  }
+
+  input[type="radio"] {
+    @apply mt-1;
+  }
+
+  /* checkbox */
+
+  input[type="checkbox"] {
+    @apply absolute opacity-0 w-4 h-4;
+  }
+}
+
+/* alpine js */
+
+/* fix blip with on initial load with elements using x-cloak */
+[x-cloak=""] {
+  display: none;
+}
+
+/* mobile only x-cloak */
+@media screen and (max-width: 768px) {
+  [x-cloak="mobile"] {
+    display: none;
+  }
+}
+
+/* tippy js tooltip styling */
+
+.tippy-content {
+  border-radius: 3px;
+  max-width: 201px;
+  padding: 18px;
+}
+
+.tippy-box[data-theme~="custom"] {
+  @apply bg-background-focus text-grey-darkest shadow-dark;
+}
+
+.tippy-tooltip.custom-theme .tippy-roundarrow {
+  @apply fill-background-focus;
+}
+
+/* .tippy-box[x-placement^="right"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-right: 7px solid;
+}
+.tippy-box[x-placement^="left"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-left: 7px solid;
+}
+.tippy-box[x-placement^="top"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-top: 7px solid;
+}
+.tippy-box[x-placement^="bottom"] .tippy-tooltip.mytheme-theme .tippy-arrow {
+  @apply border-background-focus;
+  border-bottom: 7px solid;
+} */
+
+.tippy-arrow {
+  @apply text-background-focus;
+}
+
+/* tables */
+
+.table-container {
+  @apply border border-background-light p-4 rounded-[4px];
+}
+
+table {
+  @apply table-auto w-full;
+}
+
+th {
+  @apply bg-background-light text-left;
+}
+
+th {
+  @apply px-4 py-2;
+}
+
+tr {
+  @apply border-t border-background-light;
+}
+
+td {
+  @apply p-4;
+}

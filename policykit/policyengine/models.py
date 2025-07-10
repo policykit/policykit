@@ -2,7 +2,6 @@ import json
 import logging
 from datetime import datetime, timezone
 from operator import is_
-from tkinter import N
 
 from actstream import action as actstream_action
 from django.contrib.auth.models import Group, User, UserManager

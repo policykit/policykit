@@ -1,0 +1,175 @@
+@import 'tailwindcss' source("../../../..");
+
+@plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/container-queries';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-white: #ffffff;
+
+  --color-background-light: #f8f9fa;
+  --color-background-focus: #f1f4f6;
+  --color-background-popup: #667c93;
+
+  --color-grey-darkest: #191f24;
+  --color-grey-dark: #52677a;
+  --color-grey: #b2bbc3;
+  --color-grey-light: #d2d2d2;
+
+  --color-primary-darkest: #2f387b;
+  --color-primary-dark: #4451b2;
+  --color-primary: #7282f9;
+  --color-primary-light: #cdd3ff;
+  --color-primary-lightest: #f2f4ff;
+
+  --color-success-darkest: #254125;
+  --color-success-dark: #3b683b;
+  --color-success: #70ae6e;
+  --color-success-light: #e7f6e7;
+
+  --color-warning-darkest: #e09d00;
+  --color-warning-dark: #ffc233;
+  --color-warning: #ffd470;
+  --color-warning-light: #ffedc2;
+
+  --color-error-darkest: #a72a11;
+  --color-error-dark: #e03616;
+  --color-error: #ed6145;
+  --color-error-light: #f2917d;
+  --color-error-background: #fdf4f2;
+
+  --color-burgundy: #7f0055;
+  --color-slack: #4a154b;
+
+  --shadow-focus: 0px 2px 4px 0px #cdd3ff;
+  --shadow-dark: 0px 8px 20px 0px rgba(0, 0, 0, 0.08);
+  --shadow-disabled: 0px 0px 4px 0px rgba(39, 39, 39, 0.35);
+  --shadow-header: 0px 4px 4px 0px #f1f4f7;
+
+  --font-sans: var(--font-nunito);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent); 
+  --color-muted: var(--muted);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --shadow-outline: var(--shadow-outline);
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@layer base {
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.141 0.005 285.823);
+    --accent: oklch(0.21 0.006 285.885);
+    --input: oklch(0.9 0 0);
+    --border: oklch(0.92 0.004 286.32);
+    --muted: oklch(0.552 0.016 285.938);
+    --ring: oklch(0.705 0.015 286.067);
+    --shadow-outline: 0px 0px 0px 1px oklch(0 0 0 / 0.07),
+      0px 2px 3px -1px oklch(0 0 0 / 0.08), 0px 1px 0px 0px oklch(0 0 0 / 0.02);
+  }
+
+  .dark {
+    --background: oklch(0.141 0.005 285.823);
+    --foreground: oklch(1 0 0);
+    --accent: oklch(1 0 0);
+    --input: oklch(0.33 0 0);
+    --border: oklch(0.274 0.006 286.033);
+    --muted: oklch(0.705 0.015 286.067);
+    --ring: oklch(0.552 0.016 285.938);
+    --shadow-outline: inset 0 0px 0 1px oklch(1 0 0 / 0.05),
+      inset 0 1px 0 0px oklch(1 0 0 / 0.1);
+  }
+
+  /* Theme */
+  .blue-theme {
+    --accent: oklch(0.546 0.245 262.881);
+    --ring: oklch(0.623 0.214 259.815);
+  }
+
+  .dark.blue-theme {
+    --accent: oklch(0.546 0.245 262.881);
+  }
+
+  .indigo-theme {
+    --accent: oklch(0.585 0.233 277.117);
+    --ring: oklch(0.585 0.233 277.117);
+  }
+
+  .dark.indigo-theme {
+    --accent: oklch(0.585 0.233 277.117);
+  }
+
+  .violet-theme {
+    --accent: oklch(0.541 0.281 293.009);
+    --ring: oklch(0.541 0.281 293.009);
+  }
+
+  .dark.violet-theme {
+    --accent: oklch(0.541 0.281 293.009);
+  }
+
+  .purple-theme {
+    --accent: oklch(0.558 0.288 302.321);
+    --ring: oklch(0.558 0.288 302.321);
+  }
+
+  .dark.purple-theme {
+    --accent: oklch(0.558 0.288 302.321);
+  }
+}
+
+@layer base {
+  *,
+  *:before,
+  *:after {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground h-full font-sans antialiased;
+  }
+
+  [data-ui='icon'] {
+    flex-shrink: 0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 5px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+}
