@@ -337,7 +337,7 @@ def editor(request):
             data['fail'] = policy.fail
             data['action_types'] = list(policy.action_types.all().values_list('codename', flat=True))
             data['variables'] = policy.variables.all()
-
+        logger.info(f"Rendering editor for {kind} policy {policy_id} with data in the old editor format: {data}")
         return render(request, 'policyadmin/dashboard/editor.html', data)
     else:
         import policyengine.frontend_utils as FrontendUtils
