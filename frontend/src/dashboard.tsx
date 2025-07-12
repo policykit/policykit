@@ -263,6 +263,7 @@ export function Policies({
             title: policy.name,
             description: policy.description,
             details: <></>,
+            url: `/main/editor/?policy=${policy.id}&operation=Change`,
           }))}
         />
       );
@@ -287,6 +288,7 @@ type DashboardTableRow = {
   title: string;
   description: string;
   details: JSX.Element;
+  url?: string;
 };
 
 export function DashboardTable({ rows }: { rows: DashboardTableRow[] }) {
@@ -294,7 +296,11 @@ export function DashboardTable({ rows }: { rows: DashboardTableRow[] }) {
     <table className="table-auto">
       <tbody>
         {rows.map((row, i) => (
-          <tr key={i}>
+          <tr 
+            key={i}
+            onClick={row?.url ? () => window.location.assign(row.url!) : undefined}
+        >
+            
             <td>
               <h4 className="h5">{row.title}</h4>
             </td>

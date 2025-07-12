@@ -21,3 +21,4 @@ metagov/
 models.svg
 models.dot
 policykit/deprecated.py
+node_modules
