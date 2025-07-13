@@ -412,7 +412,19 @@ def determine_user(platform, username):
         return None
 
 def sanitize_code(codes):
-    return codes.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"')
+    """ 
+        Sanitize the code by escaping special characters
+        In the js frontend, \n will be interpreted as a new line, 
+        so we replace it with \\n, which will be parsed as \n
+        Similarly for \t.
+        We wrap the entire json string with the backticks; 
+        given that backticks are rarely used in python code, we simply remove them.
+        For double quotes, if there are just at the one nested level (i.e., \"), we will escape them with \\".
+        This will be parsed as \n in the js frontend.
+        But if double quotes are nested within two layers (i.e., \\\\\"), the first replace function will escape them to six backslashes,
+        so we further replace them to make them seven backslashes, which will be parsed as \\\" in the js frontend.
+    """
+    return codes.replace("\n", "\\n").replace("\t", "\\t").replace('\"', '\\"').replace('\\\\\"', '\\\\\\"').replace('`', '')
 
 def format_code(codes):
     try:
@@ -427,6 +439,9 @@ def translate_policy_to_template_format(policy):
     """
     Translate a policy into the format used by policy templates.
     """
+    def escape_single_quotes(codes):
+        return codes.replace("\n", "\\n").replace("\t", "\\t")
+
     from policyengine.models import PolicyTemplate, Policy, CustomAction, Procedure
     if policy.kind in [Policy.PLATFORM, Policy.CONSTITUTION]:
         template_kind = PolicyTemplate.COMMUNITY_POLICIES
@@ -445,7 +460,12 @@ def translate_policy_to_template_format(policy):
     # create an empty custom action first
     custom_action = CustomAction()
     custom_action.save()
-
+    logger.debug(policy.filter)
+    logger.debug(policy.check)
+    logger.debug(policy.initialize)
+    logger.debug(policy.notify)
+    logger.debug(policy.success)
+    logger.debug(policy.fail)
     custom_action.action_types.add(*policy.action_types.all())
     # we treat the filter as the codes at the codes view
     custom_action.dumps("filter", {
@@ -463,11 +483,11 @@ def translate_policy_to_template_format(policy):
         is_template=False,
         view="codes",
     )
-    custom_procedure.dumps("initialize", policy.initialize)
-    custom_procedure.dumps("check", policy.check)
+    custom_procedure.dumps("initialize", escape_single_quotes(policy.initialize))
+    custom_procedure.dumps("check", escape_single_quotes(policy.check))
     # if the notify is of the code view, then it is simply a string of codes;
     # only if it is of the form view, then it is a list of executions.
-    custom_procedure.dumps("notify", policy.notify)
+    custom_procedure.dumps("notify", escape_single_quotes(policy.notify))
     custom_procedure.save()
     new_template.procedure = custom_procedure
 
@@ -475,11 +495,11 @@ def translate_policy_to_template_format(policy):
     new_template.dumps("executions", {
         "success": [{
             "view": "codes",
-            "codes": policy.success
+            "codes": escape_single_quotes(policy.success)
         }],
         "fail": [{
             "view": "codes",
-            "codes": policy.fail
+            "codes": escape_single_quotes(policy.fail)
         }]
     })
     new_template.save()

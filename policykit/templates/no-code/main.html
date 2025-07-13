@@ -192,7 +192,7 @@
         </div>
         <div class="panel-bottom">
             <div>
-                <button class="button secondary" id="discard_policy"> Discard </button>
+                <button class="button secondary" id="discard_policy"> Delete </button>
                 <button class="button primary" id="save_policy"> Save </button>
             </div>
         </div>
@@ -210,11 +210,11 @@
               </button>
             </div>
             <div class="modal-body normal">
-              You have successfully authored a policy for your community. Would you like to inspect the code or continue to author another one?
+              You have successfully authored a policy for your community. Would you like to review its details or not?
             </div>
             <div class="modal-footer ">
-              <button type="button" id="inspect-code-button" class="button secondary medium" data-dismiss="modal">Inspect Code</button>
-              <button type="button" id="author-new-button" class="button primary medium">Continue</button>
+              <button type="button" id="inspect-code-button" class="button secondary medium" data-dismiss="modal">Review Policy</button>
+              <button type="button" id="author-new-button" class="button primary medium">Go to the Home Page</button>
             </div>
           </div>
         </div>
@@ -224,17 +224,17 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title prompt small">Discard the Policy</h5>
+              <h5 class="modal-title prompt small">Delete the Policy</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body normal">
-                Are you sure you want to discard the policy? All the changes will be lost.
+                Are you sure you want to delete the policy? All the changes will be lost.
             </div>
             <div class="modal-footer ">
               <button type="button" id="close-discard-button" class="button secondary medium" data-dismiss="modal">Cancel</button>
-              <button type="button" id="continue-discard-button" class="button primary medium">Discard</button>
+              <button type="button" id="continue-discard-button" class="button primary medium">Delete</button>
             </div>
           </div>
         </div>
@@ -248,7 +248,7 @@
 <!-- define the most global data for policy templates and community-related information. -->
 <script>
     
-    const policytemplate = JSON.parse('{{policytemplate | safe}}');
+    const policytemplate = JSON.parse(`{{policytemplate | safe}}`);
     console.log('policytemplate', policytemplate);
     const base_actions = JSON.parse('{{base_actions | safe}}');
     const action_filter_kinds = JSON.parse('{{action_filter_kinds | safe}}');
@@ -1611,7 +1611,7 @@
         if(policytemplate){
             all_data["policytemplate"] = policytemplate.pk;
         }
-        console.log("all data: " + JSON.stringify(all_data));
+        console.log("all data: ", all_data);
         const response = await submit('/no-code/create', all_data);
         if(response.status === "success"){
             created_policy_pk = response.policy;
@@ -1640,7 +1640,8 @@
     // listen to the event when users click the author new button
     document.getElementById("author-new-button").addEventListener('click', function(){
         // go back to the page where choosing policy kind by refreshing the page
-        location.reload();
+        // we update this button to go to the home page
+        window.location.href = "/main";
     });
 
     // listen to the event when users click the cancel button in the discard po dpup
@@ -1651,7 +1652,21 @@
     // listen to the event when users click the continue button in the discard popup
     document.getElementById("continue-discard-button").addEventListener('click', function(){
         $("#discard-popup").modal("hide");
-        location.reload();
+        if(Object.keys(policytemplate).length > 0){
+            // if the user is editing an existing policy, we should first delete it and then redirect to the main page.
+            submit('/main/policyengine/policy_action_remove', {policy: policytemplate.policy_pk}).then(response => {
+                console.log('You have proposed to delete the policy: ', response);
+                if(response.status === "success"){
+                    // redirect to the main page
+                    console.log("Policy deleted successfully, redirecting to main page...");
+                    window.location.href = "/main";
+                }
+            });
+
+        } else {
+            // if the user is authoring a new policy, we simply reload the page to discard the changes
+            location.reload();
+        }
     });
 
 
