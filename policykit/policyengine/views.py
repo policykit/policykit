@@ -308,6 +308,7 @@ def editor(request):
         # so that we can render it in the new no-code editor.
         logger.info(f"Creating policy template for {kind} policy {policy_id} in the old editor format")
         policy.policy_template = Utils.translate_policy_to_template_format(policy)
+        policy.save()
         """
         # which action types to show in the dropdown
         actions = Utils.get_action_types(community, kinds=[kind])
