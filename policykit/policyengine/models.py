@@ -1302,8 +1302,12 @@ class CustomAction(models.Model):
 
     def get_platform(self):
         action_apps = set([Utils.determine_action_app(action_type.codename) for action_type in self.action_types.all()])
-        assert len(action_apps) == 1, f"action_apps should be of the same kind, but we have {action_apps}"
-        return list(action_apps)[0]
+
+        assert len(action_apps) <= 1, f"action_apps should be of the same kind, but we have {action_apps}"
+        if len(action_apps) == 1:
+            return list(action_apps)[0]
+        else:
+            return ""
     
     def loads(self, attr):
         """ load a field that is stored as a JSON dump """
@@ -1315,6 +1319,7 @@ class CustomAction(models.Model):
 
     def to_json(self):
         """ return a json object that represents this filter """
+        # logger.debug(f"CustomAction.to_json: {self.community_name} {self.filter}")
         filter = self.loads("filter")
         if filter['view'] == 'codes':
             filter['codes'] = Utils.sanitize_code(filter['codes'])
@@ -1641,7 +1646,10 @@ class Procedure(models.Model):
     """  Extra check logic that are preapended to the check logic of the procedure. """
 
     variables = models.TextField(blank=True, default='[]')
-    """ varaibles used in the procedure; they differ from data in that they are open to user configuration """
+    """ 
+        varaibles used in the procedure; they differ from data in that they are open to user configuration 
+        (To be confirmed) Only for form views, we will have variables that users can configure, such as the number of votes needed to pass a proposal.
+    """
 
     data = models.TextField(blank=True, default='[]')
     """
@@ -1675,6 +1683,10 @@ class Procedure(models.Model):
 
     def loads(self, attr):
         return json.loads(getattr(self, attr))
+
+    def dumps(self, attr, value):
+        """ set a field, which is stored as a JSON dump, as the given value """
+        setattr(self, attr, json.dumps(value))
 
     def to_json(self, sanitize=False):
         # we will later use this name to search for the corresponding procedure and later the check codes

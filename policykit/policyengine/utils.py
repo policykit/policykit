@@ -422,3 +422,67 @@ def format_code(codes):
     except Exception as e:
         logger.error('Error when formatting code ', e)
         return None
+
+def translate_policy_to_template_format(policy):
+    """
+    Translate a policy into the format used by policy templates.
+    """
+    from policyengine.models import PolicyTemplate, Policy, CustomAction, Procedure
+    if policy.kind in [Policy.PLATFORM, Policy.CONSTITUTION]:
+        template_kind = PolicyTemplate.COMMUNITY_POLICIES
+    else:
+        template_kind = PolicyTemplate.TRIGGERING_POLICIES
+    
+    new_template = PolicyTemplate(
+        name=policy.name,
+        description=policy.description,
+        template_kind=template_kind,
+    )
+    new_template.save()
+
+    """Custom Action translation"""
+    # since the filter is written in codes, we will treat it as a custom action
+    # create an empty custom action first
+    custom_action = CustomAction()
+    custom_action.save()
+
+    custom_action.action_types.add(*policy.action_types.all())
+    # we treat the filter as the codes at the codes view
+    custom_action.dumps("filter", {
+        "view": "codes",
+        "codes": policy.filter
+    })
+    custom_action.save()
+    
+    new_template.custom_actions.add(custom_action)
+
+    """Procedure translation"""
+    custom_procedure = Procedure(
+        name=policy.name,
+        description=policy.description,
+        is_template=False,
+        view="codes",
+    )
+    custom_procedure.dumps("initialize", policy.initialize)
+    custom_procedure.dumps("check", policy.check)
+    # if the notify is of the code view, then it is simply a string of codes;
+    # only if it is of the form view, then it is a list of executions.
+    custom_procedure.dumps("notify", policy.notify)
+    custom_procedure.save()
+    new_template.procedure = custom_procedure
+
+    """Execution translation"""
+    new_template.dumps("executions", {
+        "success": [{
+            "view": "codes",
+            "codes": policy.success
+        }],
+        "fail": [{
+            "view": "codes",
+            "codes": policy.fail
+        }]
+    })
+    new_template.save()
+    
+    return new_template
+    

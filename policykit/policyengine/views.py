@@ -287,6 +287,7 @@ def editor(request):
     kind = request.GET.get('type', "platform").lower()
     operation = request.GET.get('operation', "Add")
     policy_id = request.GET.get('policy')
+    recreate = request.GET.get('recreate', 'false').lower() == 'true'
 
     user = get_user(request)
     community = user.community.community
@@ -302,7 +303,12 @@ def editor(request):
         except Policy.DoesNotExist:
             raise Http404("Policy does not exist")
 
-    if not policy or not policy.policy_template:
+    if not policy or not policy.policy_template or recreate:
+        # For these old policies, we want to create a policy template
+        # so that we can render it in the new no-code editor.
+        logger.info(f"Creating policy template for {kind} policy {policy_id} in the old editor format")
+        policy.policy_template = Utils.translate_policy_to_template_format(policy)
+        """
         # which action types to show in the dropdown
         actions = Utils.get_action_types(community, kinds=[kind])
 
@@ -339,13 +345,14 @@ def editor(request):
             data['variables'] = policy.variables.all()
         logger.info(f"Rendering editor for {kind} policy {policy_id} with data in the old editor format: {data}")
         return render(request, 'policyadmin/dashboard/editor.html', data)
-    else:
-        import policyengine.frontend_utils as FrontendUtils
-        user = get_user(request)
-        nocode_modules = FrontendUtils.get_nocode_modules(user)
-        nocode_modules['trigger'] = kind == PolicyActionKind.TRIGGER
-        nocode_modules['policytemplate'] = json.dumps(policy.policy_template.to_json(sanitize=True))
-        return render(request, "no-code/main.html", nocode_modules)
+        """
+    
+    import policyengine.frontend_utils as FrontendUtils
+    user = get_user(request)
+    nocode_modules = FrontendUtils.get_nocode_modules(user)
+    nocode_modules['trigger'] = kind == PolicyActionKind.TRIGGER
+    nocode_modules['policytemplate'] = json.dumps(policy.policy_template.to_json(sanitize=True))
+    return render(request, "no-code/main.html", nocode_modules)
 
 
 @login_required
