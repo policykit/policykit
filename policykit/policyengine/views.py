@@ -696,7 +696,7 @@ def policy_action_remove(request):
     action.initiator = user
     action.save()
 
-    return HttpResponse()
+    return JsonResponse({"status": "success", "action": action.pk})
 
 @login_required
 def policy_action_recover(request):
@@ -1010,9 +1010,12 @@ def generate_code(request):
 @login_required
 def create_policy(request):
     data = json.loads(request.body)
+    logger.info(request.body)
+    logger.info(json.loads(request.body))
     from policyengine.models import PolicyTemplate
     old_policytemplate = PolicyTemplate.objects.filter(pk=data.get("policytemplate")).first()
-    if old_policytemplate and old_policytemplate.policy:
+    if old_policytemplate and hasattr(old_policytemplate, "policy"):
+        # if the policy template is created from an old policy, we want to use the old
         policy = old_policytemplate.policy
     else:
         policy = None

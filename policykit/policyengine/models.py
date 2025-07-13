@@ -1234,7 +1234,7 @@ class CustomAction(models.Model):
 
     filter = models.TextField(blank=True, default="")
     """
-        a JSON object. 
+        a JSON object. Codes are dumped as a json string.
         
         === Form View ===
         For each custom action, we only allow filters that apply to the filter parameters
@@ -1317,7 +1317,7 @@ class CustomAction(models.Model):
         """ set a field, which is stored as a JSON dump, as the given value """
         setattr(self, attr, json.dumps(value))
 
-    def to_json(self):
+    def to_json(self, sanitize=True):
         """ return a json object that represents this filter """
         # logger.debug(f"CustomAction.to_json: {self.community_name} {self.filter}")
         filter = self.loads("filter")
@@ -1713,6 +1713,8 @@ class Procedure(models.Model):
             "data": self.loads("data"),
         }
     
+    
+    
     @staticmethod
     def from_json(procedure_json):
         """
@@ -1858,6 +1860,8 @@ class PolicyTemplate(models.Model):
                 logger.warning("action_types: {}".format(self.action_types.first().codename))
                 codename = self.action_types.first().codename
                 action_kind = Utils.determine_action_kind(codename)
+            else:
+                action_kind = Policy.PLATFORM
             return action_kind
 
     def add_variables(self, new_variables, values={}):
@@ -1997,7 +2001,7 @@ class PolicyTemplate(models.Model):
             self.dumps("executions", executions)
             self.save()
     
-    def custom_actions_to_json(self):
+    def custom_actions_to_json(self, sanitize=False):
         """
             Extract the custom actions from this PolicyTemplate instance;
             as we do not have an individual class that manages all custom actions.
@@ -2006,7 +2010,7 @@ class PolicyTemplate(models.Model):
         # combine the custom actions and the action types together as a filter of this Procedure
         # which view is shown depends on the view of the first action; 
         # but if the custom action is a code view, then there are no action types.
-        custom_actions = [action.to_json() for action in self.custom_actions.all()]
+        custom_actions = [action.to_json(sanitize=sanitize) for action in self.custom_actions.all()]
         if custom_actions and custom_actions[0]["filter"]["view"] == "codes":
             assert self.action_types.count() == 0, "If the first custom action is a code view, then there should be no action types"
         custom_actions += [
@@ -2024,10 +2028,10 @@ class PolicyTemplate(models.Model):
 
     def to_json(self, sanitize=False):
         # combine the custom actions and the action types together as a filter of this Procedure    
-        custom_actions = self.custom_actions_to_json()
+        custom_actions = self.custom_actions_to_json(sanitize=sanitize)
 
         if self.procedure:
-            procedure = self.procedure.to_json(sanitize=True)
+            procedure = self.procedure.to_json(sanitize=sanitize)
         else:
             procedure = {}
         
@@ -2039,8 +2043,9 @@ class PolicyTemplate(models.Model):
                  
         return {
             "pk": self.pk,
-            "name": self.name,
-            "description": self.description,
+            "policy_pk": self.policy.pk if hasattr(self, 'policy') else None,
+            "name": Utils.sanitize_code(self.name) if sanitize else self.name,
+            "description": Utils.sanitize_code(self.description) if sanitize else self.description,
             "kind": self.template_kind,
             "actions": custom_actions,
             "procedure": procedure,
