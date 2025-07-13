@@ -632,6 +632,7 @@ def generate_procedure_codes(procedure):
         # TODO: we need to format notify codes similar to executions as well.
         notify_codes = procedure["notify"]
     else:
+        # it is a list of executions then.
         notify_codes = generate_execution_codes(procedure["notify"])
     check_codes = ""
     for transformer in procedure["transformers"]:
