@@ -126,7 +126,6 @@ export function GuidelinesModal({
     text: string;
     name: string;
 }) {
-    console.log("GuidelinesModal rendered with id:", id);
     const [editedName, setEditedName] = useState<null | string>(null);
     const [editedText, setEditedText] = useState<null | string>(null);
     const dialogState = useContext(OverlayTriggerStateContext)!;
@@ -201,41 +200,63 @@ export function GuidelinesModal({
 export function Guidelines() {
     const data = useDashboardData();
     const docs = data?.community_docs;
-    console.log("Guidelines rendered with docs:", docs);
+    const [selectedDoc, setSelectedDoc] = useState<CommunityDoc | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    let guidelinesElement;
+    if (!docs) {
+        guidelinesElement = (
+            <div className="flex flex-col items-center justify-center gap-4 h-32">
+                <p className="text-grey-dark">Loading...</p>
+            </div>
+        );
+    } else {
+        if (docs.length === 0) {
+            guidelinesElement = (
+                <div className="flex flex-col items-center justify-center gap-4 h-32">
+                    <PoliciesEmptyIcon />
+                    <p className="text-grey-dark">No community documents are currently available.</p>
+                </div>
+            );
+        } else {
+            guidelinesElement = (
+                <DashboardTable
+                    rows={docs.map((doc) => ({
+                        title: doc.name,
+                        description: doc.text,
+                        details: <></>,
+                        onClick: () => {
+                            setSelectedDoc(doc);
+                            setIsModalOpen(true);
+                        },
+                    }))}
+                />
+            );
+        }
+    }
+
     return (
-        <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
+        <section className="px-8 py-7 mt-4 border-2 border-gray-200 rounded-lg bg-white">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="h5">Community Guidelines</h3>
+                <h3 className="h3">Community Guidelines</h3>
                 <DialogTrigger>
-                    <Button className="button primary medium">Add</Button>
-                    <Modal size="md" classNames={{ modalOverlay: "z-100" }}>
+                    <Button className="button primary medium" onPress={() => setIsAddModalOpen(true)}>Add</Button>
+                    <Modal size="md" classNames={{ modalOverlay: "z-100" }} isOpen={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                         <Dialog>
                             <GuidelinesModal id={null} text="" name="" />
                         </Dialog>
                     </Modal>
                 </DialogTrigger>
             </div>
-            {(!docs || docs.length === 0) && (
-                <p className="text-grey-dark">No community documents are currently available. Please check back later.</p>
+            {guidelinesElement}
+            {selectedDoc && (
+                <Modal size="md" classNames={{ modalOverlay: "z-100" }} isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <Dialog>
+                        <GuidelinesModal id={selectedDoc.id} text={selectedDoc.text} name={selectedDoc.name} />
+                    </Dialog>
+                </Modal>
             )}
-            {docs?.map((doc) => (
-                <div key={doc.id} className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h4 className="h6">{doc.name}</h4>
-                        <DialogTrigger>
-                            <Button className={"bg-primary-dark"}>
-                                Details
-                            </Button>
-                            <Modal size="md" classNames={{ modalOverlay: "z-100" }}>
-                                <Dialog>
-                                    <GuidelinesModal id={doc.id} text={doc.text} name={doc.name} />
-                                </Dialog>
-                            </Modal>
-                        </DialogTrigger>
-                    </div>
-                    <p>{doc.text}</p>
-                </div>
-            ))}
         </section>
     );
 }
@@ -279,9 +300,9 @@ export function Policies({
   }
   const header = type ? `${type} Policies` : "Policies";
   return (
-    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
+    <section className="px-8 py-7 mt-4 border-2 border-gray-200 rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">{header}</h3>
+        <h3 className="h3">{header}</h3>
         <a href={addURL || undefined} className="button primary medium">
           Add
         </a>
@@ -297,6 +318,7 @@ type DashboardTableRow = {
   description: string;
   details: JSX.Element;
   url?: string;
+  onClick?: () => void;
 };
 
 export function DashboardTable({ rows }: { rows: DashboardTableRow[] }) {
@@ -304,18 +326,19 @@ export function DashboardTable({ rows }: { rows: DashboardTableRow[] }) {
     <table className="table-auto">
       <tbody>
         {rows.map((row, i) => (
-          <tr 
+          <tr
             key={i}
-            onClick={row?.url ? () => window.location.assign(row.url!) : undefined}
+            onClick={row?.onClick ? row.onClick : (row?.url ? () => window.location.assign(row.url!) : undefined)}
+            className={`border-t border-background-focus ${row?.onClick || row?.url ? "cursor-pointer hover:bg-background-light transition-colors" : ""}`}
         >
-            
-            <td>
-              <h4 className="h5">{row.title}</h4>
+
+            <td className="w-1/3">
+              <h4 className="h5 font-normal">{row.title}</h4>
             </td>
-            <td>
-              <span className="text-grey-dark">{row.description}</span>
+            <td className="w-auto">
+              <span className="text-grey-dark line-clamp-2">{row.description}</span>
             </td>
-            <td>{row.details}</td>
+            <td className="w-auto">{row.details}</td>
           </tr>
         ))}
       </tbody>
@@ -349,9 +372,9 @@ export function Roles({
     );
   }
   return (
-    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-white">
+    <section className="px-8 py-7 mt-4 border-2 border-gray-200 rounded-lg bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">Roles</h3>
+        <h3 className="h3">Roles</h3>
       </div>
       {rolesList}
     </section>
@@ -361,8 +384,8 @@ export function Roles({
 export function MetaGovernance() {
   const data = useDashboardData();
   return (
-    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
-      <p className="text-grey-dark">Meta-Governance</p>
+    <section className="px-8 py-7 mt-4 rounded-lg bg-background-light">
+      <h3 className="h3 mb-4">Meta-Governance</h3>
       <Policies
         type="Constitutional"
         policies={data?.constitution_policies}
@@ -426,9 +449,9 @@ export function Proposals() {
   const data = useDashboardData();
   return (
     <div>
-      <h3 className="h5">Pending Proposals</h3>
+      <h3 className="h3">Pending Proposals</h3>
       <ProposalsList proposals={data?.pending_proposals} />
-      <h3 className="h5">Completed Proposals</h3>
+      <h3 className="h3">Completed Proposals</h3>
       <ProposalsList proposals={data?.completed_proposals} />
     </div>
   );

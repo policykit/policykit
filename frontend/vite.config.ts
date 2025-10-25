@@ -19,6 +19,7 @@ export default defineConfig({
         dashboard: "/src/dashboard.tsx",
         members: "/src/members.tsx",
         logs: "/src/logs.tsx",
+        settings: "/src/settings.tsx",
         style: "/src/style.css",
       },
     },

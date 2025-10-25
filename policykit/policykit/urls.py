@@ -94,6 +94,7 @@ urlpatterns = [
     path('api/dashboard', policyapiviews.dashboard),
     path('api/community_doc', policyapiviews.community_doc),
     path('api/logs', policyapiviews.logs),
+    path('api/settings', policyapiviews.settings),
 ]
 
 if apps.is_installed("pattern_library"):

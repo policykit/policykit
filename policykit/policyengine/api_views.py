@@ -38,6 +38,53 @@ def logs(request):
     user = get_user(request)
     return Response(LogsSerializer(user.community.community).data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def settings(request):
+    from policyengine.views import integration_data
+    from policyengine.metagov_app import metagov
+    from django.conf import settings as django_settings
+    import logging
+
+    logger = logging.getLogger(__name__)
+    user = get_user(request)
+    community = user.community
+    INTEGRATION_ADMIN_ROLE_NAME = "Integration Admin"
+
+    enabled_integrations = []
+    disabled_integrations = []
+
+    if community.metagov_slug:
+        enabled_dict = {}
+        # Iterate through all Metagov Plugins enabled for this community
+        for plugin in metagov.get_community(community.metagov_slug).plugins.all():
+            integration = plugin.name
+            if integration not in integration_data.keys():
+                logger.warn(f"unsupported integration {integration} is enabled for community {community}")
+                continue
+
+            # Only include configs if user has permission, since they may contain API Keys
+            config_tuples = []
+            if user.has_role(INTEGRATION_ADMIN_ROLE_NAME):
+                for (k,v) in plugin.config.items():
+                    readable_key = k.replace("_", " ").replace("-", " ").capitalize()
+                    config_tuples.append([readable_key, v])
+
+            # Add additional data about the integration, like description and webhook URL
+            additional_data = integration_data[integration]
+            if additional_data.get("webhook_instructions"):
+                additional_data["webhook_url"] = f"{django_settings.SERVER_URL}/api/hooks/{plugin.name}/{plugin.community.slug}"
+
+            enabled_dict[integration] = {**plugin.serialize(), **additional_data, "config": config_tuples}
+
+        enabled_integrations = list(enabled_dict.items())
+        disabled_integrations = [[k, v] for (k,v) in integration_data.items() if k not in enabled_dict.keys()]
+
+    return Response({
+        "enabled_integrations": enabled_integrations,
+        "disabled_integrations": disabled_integrations
+    })
+
 @api_view(['PUT', 'POST'])
 @permission_classes([IsAuthenticated])
 def community_doc(request):
