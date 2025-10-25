@@ -1,11 +1,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound 
+from rest_framework.exceptions import NotFound
 from django.contrib.auth import get_user
 from django.db import transaction
 from silk.profiling.profiler import silk_profile
-from policyengine.serializers import MembersSerializer, PutMembersRequestSerializer, CommunityDashboardSerializer
+from policyengine.serializers import MembersSerializer, PutMembersRequestSerializer, CommunityDashboardSerializer, LogsSerializer
 
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
@@ -32,18 +32,36 @@ def dashboard(request):
     user = get_user(request)
     return Response(CommunityDashboardSerializer(user.community.community).data)
 
-@api_view(['PUT'])
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def logs(request):
+    user = get_user(request)
+    return Response(LogsSerializer(user.community.community).data)
+
+@api_view(['PUT', 'POST'])
 @permission_classes([IsAuthenticated])
 def community_doc(request):
     user = get_user(request)
     community = user.community.community
-    text = request.data['text']
-    name = request.data['name']
-    doc = community.get_documents()[0]
+    doc_id = request.data.get('id')
+    text = request.data.get('text')
+    name = request.data.get('name')
+
+    if doc_id is not None:
+        try:
+            doc = community.get_documents().get(id=doc_id)
+        except community.get_documents().model.DoesNotExist:
+            raise NotFound('Document not found')
+    else:
+        # Create a new document if no ID is provided
+        from policyengine.models import CommunityDoc
+        doc = CommunityDoc(community=community)
+
     if text is not None:
         doc.text = text
     if name is not None:
         doc.name = name
+
     doc.save()
     return Response({}, status=200)
 

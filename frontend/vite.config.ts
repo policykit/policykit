@@ -18,8 +18,9 @@ export default defineConfig({
       input: {
         dashboard: "/src/dashboard.tsx",
         members: "/src/members.tsx",
+        logs: "/src/logs.tsx",
         style: "/src/style.css",
       },
     },
-  },
+  }
 });

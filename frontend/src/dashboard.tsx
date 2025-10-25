@@ -118,118 +118,126 @@ export function Welcome() {
 }
 
 export function GuidelinesModal({
-  text,
-  name,
+    id,
+    text,
+    name,
 }: {
-  text: string;
-  name: string;
+    id: number | null;
+    text: string;
+    name: string;
 }) {
-  const [editedName, setEditedName] = useState<null | string>(null);
-  const [editedText, setEditedText] = useState<null | string>(null);
-  const dialogState = useContext(OverlayTriggerStateContext)!;
+    console.log("GuidelinesModal rendered with id:", id);
+    const [editedName, setEditedName] = useState<null | string>(null);
+    const [editedText, setEditedText] = useState<null | string>(null);
+    const dialogState = useContext(OverlayTriggerStateContext)!;
 
-  const mutation = useMutation({
-    mutationFn: (data: { text: string | null; name: string | null }) =>
-      fetch("/api/community_doc", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...csrfHeaders(),
+    const mutation = useMutation({
+        mutationFn: (data: { id: number | null; text: string | null; name: string | null }) =>
+            fetch("/api/community_doc", {
+                method: id === null ? "POST" : "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...csrfHeaders(),
+                },
+                body: JSON.stringify(data),
+            }).then(async (response) => {
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+            }),
+        onSuccess: () => {
+            dialogState.close();
+            queryClient.invalidateQueries({ queryKey: ["data"] });
         },
-        // credentials: "include",
-        body: JSON.stringify(data),
-      }).then(async (response) => {
-        if (!response.ok) {
-          throw new Error(await response.text());
-        }
-      }),
-    onSuccess: () => {
-      dialogState.close();
-      queryClient.invalidateQueries({ queryKey: ["data"] });
-    },
-  });
-  return (
-    <>
-      <DialogHeader>Community Document</DialogHeader>
-      <DialogCloseButton />
-      <DialogBody>
-        <Form
-          className="py-4"
-          id="edit-profile-form"
-          validationErrors={
-            mutation.error ? { text: mutation.error.message } : {}
-          }
-        >
-          <TextField isRequired
-          // className="grid grid-cols-4 gap-x-4"
-          >
-            <Label className="ms-auto">Name</Label>
-            <Input
-              // className="col-span-3"
-              value={editedName === null ? name : editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-            ></Input>
-          </TextField>
-          <TextField
-            isRequired
-            // className="grid grid-cols-4 gap-x-4"
-            name={"text"}
-          >
-            <Label className="ms-auto">Text</Label>
-            <TextArea
-              // className="col-span-3"
-              value={editedText === null ? text : editedText}
-              onChange={(e) => setEditedText(e.target.value)}
-            ></TextArea>
-            <FieldError className="col-span-3 col-start-2" />
-          </TextField>
-        </Form>
-      </DialogBody>
-      <DialogFooter>
-        {/* No deleting for now because only one available */}
-        {/* <Button className={"bg-primary-lightest text-primary-dark"}>Delete</Button> */}
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            mutation.mutate({ text: editedText, name: editedName });
-          }}
-          isDisabled={(editedText === null && editedName === null) || mutation.isPending}
-          form="edit-profile-form"
-          type="submit"
-          className={"bg-primary-dark"}
-        >
-          {mutation.isPending ? "Saving..." : "Save"}
-        </Button>
-      </DialogFooter>
-    </>
-  );
+    });
+
+    return (
+        <>
+            <DialogHeader>{id === null ? "Add Community Document" : "Edit Community Document"}</DialogHeader>
+            <DialogCloseButton />
+            <DialogBody>
+                <Form
+                    className="py-4"
+                    id="edit-profile-form"
+                    validationErrors={
+                        mutation.error ? { text: mutation.error.message } : {}
+                    }
+                >
+                    <TextField isRequired>
+                        <Label className="ms-auto">Name</Label>
+                        <Input
+                            value={editedName === null ? name : editedName}
+                            onChange={(e) => setEditedName(e.target.value)}
+                        ></Input>
+                    </TextField>
+                    <TextField isRequired name={"text"}>
+                        <Label className="ms-auto">Text</Label>
+                        <TextArea
+                            value={editedText === null ? text : editedText}
+                            onChange={(e) => setEditedText(e.target.value)}
+                        ></TextArea>
+                        <FieldError className="col-span-3 col-start-2" />
+                    </TextField>
+                </Form>
+            </DialogBody>
+            <DialogFooter>
+                <Button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        mutation.mutate({ id, text: editedText, name: editedName });
+                    }}
+                    isDisabled={(editedText === null && editedName === null) || mutation.isPending}
+                    form="edit-profile-form"
+                    type="submit"
+                    className={"bg-primary-dark"}
+                >
+                    {mutation.isPending ? (id === null ? "Adding..." : "Saving...") : (id === null ? "Add" : "Save")}
+                </Button>
+            </DialogFooter>
+        </>
+    );
 }
 
 export function Guidelines() {
-  const data = useDashboardData();
-  const doc = data?.community_docs[0];
-
-  return (
-    <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="h5">{doc?.name || "Loading..."}</h3>
-        <DialogTrigger>
-          <Button isDisabled={data === undefined} className={"bg-primary-dark"}>
-            Details
-          </Button>
-          <Modal size="md" classNames={{ modalOverlay: "z-100" }}>
-            <Dialog>
-              <GuidelinesModal
-                text={doc?.text || "Loading..."}
-                name={doc?.name || "Loading..."}
-              />
-            </Dialog>
-          </Modal>
-        </DialogTrigger>
-      </div>
-      <p className="mb-6">{doc?.text || "Loading..."}</p>
-    </section>
-  );
+    const data = useDashboardData();
+    const docs = data?.community_docs;
+    console.log("Guidelines rendered with docs:", docs);
+    return (
+        <section className="px-8 py-7 mt-4 border border-background-focus rounded-lg bg-background-light">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="h5">Community Guidelines</h3>
+                <DialogTrigger>
+                    <Button className="button primary medium">Add</Button>
+                    <Modal size="md" classNames={{ modalOverlay: "z-100" }}>
+                        <Dialog>
+                            <GuidelinesModal id={null} text="" name="" />
+                        </Dialog>
+                    </Modal>
+                </DialogTrigger>
+            </div>
+            {(!docs || docs.length === 0) && (
+                <p className="text-grey-dark">No community documents are currently available. Please check back later.</p>
+            )}
+            {docs?.map((doc) => (
+                <div key={doc.id} className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="h6">{doc.name}</h4>
+                        <DialogTrigger>
+                            <Button className={"bg-primary-dark"}>
+                                Details
+                            </Button>
+                            <Modal size="md" classNames={{ modalOverlay: "z-100" }}>
+                                <Dialog>
+                                    <GuidelinesModal id={doc.id} text={doc.text} name={doc.name} />
+                                </Dialog>
+                            </Modal>
+                        </DialogTrigger>
+                    </div>
+                    <p>{doc.text}</p>
+                </div>
+            ))}
+        </section>
+    );
 }
 
 export function Policies({

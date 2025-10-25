@@ -375,6 +375,10 @@ def roleusers(request):
     return render(request, 'policyadmin/dashboard/role_users.html', {})
 
 @login_required
+def logs_view(request):
+    return render(request, 'policyadmin/dashboard/logs.html', {})
+
+@login_required
 def roleeditor(request):
     from policyengine.models import CommunityPlatform, CommunityRole
 

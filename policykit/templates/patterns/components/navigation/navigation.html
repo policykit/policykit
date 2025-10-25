@@ -58,6 +58,13 @@
                   Settings
                 </a>
               </li>
+              <li>
+                <a href="{% url 'logs' %}"
+                   class="hover:bg-background-popup/40 p-4 flex gap-4 rounded-[3.5px] items-center {% if url_name == 'logs' %}bg-background-popup/40{% endif %}">
+                  <div class="h-4 w-4">{% include "patterns/icons/log.html" with class="stroke-grey-light" %}</div>
+                  Logs
+                </a>
+              </li>
             </ul>
           </nav>
         {% endwith %}
