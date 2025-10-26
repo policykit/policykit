@@ -82,3 +82,20 @@ class CommunityDashboardSerializer(serializers.Serializer):
     name = serializers.CharField(source="community_name")
     # Don't include governable actions for now, instead we use proposals
     # governable_actions = ActionSummarySerializer(many=True, source="get_governable_actions")
+
+class LogEntrySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    create_datetime = serializers.DateTimeField()
+    level = serializers.IntegerField()
+    action = serializers.CharField(source='action_str')
+    policy = serializers.CharField(source='policy_str')
+    msg = serializers.CharField()
+
+class LogsSerializer(serializers.Serializer):
+    logs = serializers.SerializerMethodField()
+    
+    # this method will look for functions named "get_<field_name>"
+    def get_logs(self, community):
+        from django_db_logger.models import EvaluationLog
+        logs = EvaluationLog.objects.filter(community=community).order_by('-create_datetime')
+        return LogEntrySerializer(logs, many=True).data

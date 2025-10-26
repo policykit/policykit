@@ -55,7 +55,7 @@ urlpatterns = [
     path('main/policyengine/', include('policyengine.urls')),
     path('main/settings/', policyviews.settings_page, name="settings"),
     path('main/settings/addintegration', policyviews.add_integration, name="add_integration"),
-    path('main/logs/', include('django_db_logger.urls', namespace='django_db_logger')),
+    path('main/logs/', policyviews.logs_view, name='logs'),
 
     # # admin modals
     # path('main/modal/policynew/', policyviews.policynew),
@@ -93,6 +93,8 @@ urlpatterns = [
     path('api/members', policyapiviews.members),
     path('api/dashboard', policyapiviews.dashboard),
     path('api/community_doc', policyapiviews.community_doc),
+    path('api/logs', policyapiviews.logs),
+    path('api/settings', policyapiviews.settings),
 ]
 
 if apps.is_installed("pattern_library"):
