@@ -89,6 +89,7 @@ class EvaluationContext:
         Initialize policy variables according to their default values or codes.
         """
         # Make policy variables available in the evaluation context
+        from policyengine.models import PolicyVariable
         setattr(self, "variables", AttrDict({}))
         logger.debug(f"Initialized variables codes: {initialize}")
         variables = exec_code_block(initialize, self, "initialize")
