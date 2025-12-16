@@ -89,6 +89,7 @@ class EvaluationContext:
         Initialize policy variables according to their default values or codes.
         """
         # Make policy variables available in the evaluation context
+        from policyengine.models import PolicyVariable
         setattr(self, "variables", AttrDict({}))
         logger.debug(f"Initialized variables codes: {initialize}")
         variables = exec_code_block(initialize, self, "initialize")
@@ -99,7 +100,7 @@ class EvaluationContext:
             # confused about what this code is for.
             if variable.entity and Utils.check_code_variables(variable.value):
                 # make sure variables value after the initialization is still valid
-                variables[variable.name] = variable.validate_value(variables[variable.name])
+                variables[variable.name] = PolicyVariable.validate_value(variable.to_json(), variables[variable.name])
                 # logger.debug(f"variable name: {variable.name}, value: {variables[variable.name]}")
 
 
