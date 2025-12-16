@@ -1705,11 +1705,14 @@
         changeFocusSection();
         if(policytemplate.procedure.view === "codes"){
             let procedure = policytemplate.procedure;
+            // Set selected_procedure so collectProcedureData can retrieve the procedure value
+            selected_procedure = procedure;
             showCodeEditor("procedure", null, {
                 initialize: procedure.initialize,
                 check: procedure.check,
                 notify: procedure.notify
             });
+            editor_status["procedure"] = "changed";
         } else {
             showProcedureVariables(
                 policytemplate.procedure.value,
