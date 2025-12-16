@@ -270,7 +270,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        "console": {"format": "%(name)-12s %(levelname)-8s %(message)s"},
+        "console": {"format": "%(name)-12s %(levelname)-8s %(filename)s:%(lineno)d %(message)s"},
         "json": {"()": "django_datadog_logger.formatters.datadog.DataDogJSONFormatter"},
     },
     'handlers': {
