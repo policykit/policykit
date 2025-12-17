@@ -578,7 +578,7 @@ class Proposal(models.Model):
         return outcomes
 
     def get_select_votes_by_candidates(self, users=None):
-        if users:
+        if users is not None:
             select_votes = SelectVote.objects.filter(proposal=self, user__username__in=users)
         else:
             select_votes = SelectVote.objects.filter(proposal=self)
